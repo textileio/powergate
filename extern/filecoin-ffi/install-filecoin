@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -Exeo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+source "install-shared.bash"
+
+rust_sources_dir="rust"
+
+if [ "${FFI_BUILD_FROM_SOURCE}" != "1" ] && download_release_tarball tarball_path "${rust_sources_dir}" "filecoin-ffi"; then
+    tmp_dir=$(mktemp -d)
+    tar -C "$tmp_dir" -xzf "$tarball_path"
+
+    find -L "${tmp_dir}" -type f -name filecoin.h -exec cp -- "{}" . \;
+    find -L "${tmp_dir}" -type f -name libfilecoin.a -exec cp -- "{}" . \;
+    find -L "${tmp_dir}" -type f -name filecoin.pc -exec cp -- "{}" . \;
+
+    (>&2 echo "successfully installed prebuilt libfilecoin")
+else
+    (>&2 echo "building libfilecoin from local sources (dir = ${rust_sources_dir})")
+
+    build_from_source "filecoin" "${rust_sources_dir}"
+
+    mkdir -p include
+    mkdir -p lib/pkgconfig
+
+    find -L "${rust_sources_dir}/target/release" -type f -name filecoin.h -exec cp -- "{}" . \;
+    find -L "${rust_sources_dir}/target/release" -type f -name libfilecoin.a -exec cp -- "{}" . \;
+    find -L "${rust_sources_dir}" -type f -name filecoin.pc -exec cp -- "{}" . \;
+
+    if [[ ! -f "./filecoin.h" ]]; then
+        (>&2 echo "failed to install filecoin.h")
+        exit 1
+    fi
+
+    if [[ ! -f "./libfilecoin.a" ]]; then
+        (>&2 echo "failed to install libfilecoin.a")
+        exit 1
+    fi
+
+    if [[ ! -f "./filecoin.pc" ]]; then
+        (>&2 echo "failed to install filecoin.pc")
+        exit 1
+    fi
+
+    (>&2 echo "successfully built and installed libfilecoin from source")
+fi

@@ -1,0 +1,201 @@
+version: 2.1
+
+jobs:
+  build_and_test_linux_cgo_bindings:
+    docker:
+      - image: circleci/golang:1.12.1-stretch
+    working_directory: ~/go/src/github.com/filecoin-project/filecoin-ffi
+    resource_class: 2xlarge
+    steps:
+      - configure_environment_variables
+      - run:
+          name: Install Rust toolchain
+          command: |
+            (sudo apt-get update && sudo apt-get install -y ocl-icd-opencl-dev clang libssl-dev && which cargo && which rustc) || (curl https://sh.rustup.rs -sSf | sh -s -- -y)
+            rustc --version
+      - run:
+          name: Install jq
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y jq
+            jq --version
+      - checkout
+      - build_project
+      - restore_parameter_cache
+      - obtain_filecoin_parameters
+      - save_parameter_cache
+      - build_and_run_tests
+  build_darwin_cgo_bindings:
+    macos:
+      xcode: "10.0.0"
+    working_directory: ~/go/src/github.com/filecoin-project/filecoin-ffi
+    resource_class: large
+    steps:
+      - configure_environment_variables
+      - run:
+          name: Install go
+          command: |
+            curl https://dl.google.com/go/go1.12.1.darwin-amd64.pkg -o /tmp/go.pkg && \
+            sudo installer -pkg /tmp/go.pkg -target /
+            go version
+      - run:
+          name: Install pkg-config and md5sum
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config md5sha1sum
+      - run:
+          name: Install Rust toolchain
+          command: |
+            curl https://sh.rustup.rs -sSf | sh -s -- -y
+            rustc --version
+      - run:
+          name: Install jq
+          command: |
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install jq
+            jq --version
+      - checkout
+      - build_project
+      - build_and_compile_tests
+  publish_linux_staticlib:
+    docker:
+      - image: filecoin/rust:latest
+    working_directory: /mnt/crate
+    resource_class: 2xlarge
+    steps:
+      - configure_environment_variables
+      - checkout
+      - attach_workspace:
+          at: "."
+      - restore_cache:
+          keys:
+            - cargo-v0-{{ checksum "rust/rust-toolchain" }}-{{ checksum "rust/Cargo.toml" }}-{{ checksum "rust/Cargo.lock" }}-{{ arch }}
+      - run:
+          name: Install jq
+          command: apt-get install jq -yqq
+      - run:
+          name: Build the Rust release
+          command: cd rust && ./scripts/build-release.sh filecoin $(cat ./rust-toolchain) --verbose --frozen --all
+      - run:
+          name: Publish release to GitHub
+          command: cd rust && bash ./scripts/publish-release.sh
+  publish_darwin_staticlib:
+    macos:
+      xcode: "10.0.0"
+    working_directory: ~/crate
+    resource_class: large
+    steps:
+      - configure_environment_variables
+      - run:
+          name: Configure environment variables
+          command: |
+            echo 'export PATH="${HOME}/.cargo/bin:${HOME}/.bin:${PATH}"' >> $BASH_ENV
+            echo 'export CIRCLE_ARTIFACTS="/tmp"' >> $BASH_ENV
+      - checkout
+      - run:
+          name: Install Rust
+          command: |
+            curl https://sh.rustup.rs -sSf | sh -s -- -y
+      - run: cd rust && rustup install $(cat rust-toolchain)
+      - run: cd rust && rustup default $(cat rust-toolchain)
+      - run: cd rust && cargo fetch
+      - run:
+          name: Install jq
+          command: |
+            mkdir $HOME/.bin
+            curl --location https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64 --output $HOME/.bin/jq
+            chmod +x $HOME/.bin/jq
+      - run:
+          name: Build the release
+          command: cd rust && ./scripts/build-release.sh filecoin $(cat ./rust-toolchain) --verbose --frozen --all
+      - run:
+          name: Publish to GitHub
+          command: cd rust && bash ./scripts/publish-release.sh
+  cargo_fetch:
+    docker:
+      - image: filecoin/rust:latest
+    working_directory: /mnt/crate
+    resource_class: 2xlarge
+    steps:
+      - configure_environment_variables
+      - checkout
+      - restore_cache:
+          keys:
+            - cargo-v0-{{ checksum "rust/rust-toolchain" }}-{{ checksum "rust/Cargo.toml" }}-{{ checksum "rust/Cargo.lock" }}-{{ arch }}
+      - run: cd rust && rustup install $(cat rust-toolchain)
+      - run: cd rust && rustup default $(cat rust-toolchain)
+      - run: cd rust && rustup component add rustfmt-preview
+      - run: cd rust && rustup component add clippy-preview
+      - run: cd rust && cargo fetch
+      - run: cd rust && rustc +stable --version
+      - run: cd rust && rustc +$(cat rust-toolchain) --version
+      - persist_to_workspace:
+          root: "."
+          paths:
+            - rust/Cargo.lock
+      - save_cache:
+          key: cargo-v0-{{ checksum "rust/rust-toolchain" }}-{{ checksum "rust/Cargo.toml" }}-{{ checksum "rust/Cargo.lock" }}-{{ arch }}
+          paths:
+            - /root/.cargo
+            - /root/.rustup
+
+workflows:
+  version: 2
+  test_all:
+    jobs:
+      - cargo_fetch
+      - build_and_test_linux_cgo_bindings
+      - publish_linux_staticlib:
+          requires:
+            - cargo_fetch
+      - build_darwin_cgo_bindings
+      - publish_darwin_staticlib
+
+commands:
+  configure_environment_variables:
+    steps:
+      - run:
+          name: Configure environment variables
+          command: |
+            echo 'export FIL_PROOFS_PARAMETER_CACHE="${HOME}/filecoin-proof-parameters/"' >> $BASH_ENV
+            echo 'export GO111MODULE=on' >> $BASH_ENV
+            echo 'export GOPATH="${HOME}/go"' >> $BASH_ENV
+            echo 'export PATH="/usr/local/go/bin:${HOME}/.cargo/bin:${PATH}:${HOME}/go/bin:${HOME}/.bin"' >> $BASH_ENV
+            echo 'export RUST_LOG=info' >> $BASH_ENV
+  obtain_filecoin_parameters:
+    steps:
+      - run:
+          name: Obtain filecoin groth parameters
+          command: ./paramcache --params-for-sector-sizes='1024' --predictable
+          no_output_timeout: 60m
+  build_project:
+    steps:
+      - run:
+          name: Build project
+          command: make
+      - run:
+          name: Ensure paramcache is installed to project root
+          command: |
+            test -f ./paramcache \
+              || (rustup run --install nightly cargo install filecoin-proofs --force --git=https://github.com/filecoin-project/rust-fil-proofs.git --branch=master --bin=paramcache --root=./ \
+                && mv ./bin/paramcache ./paramcache)
+          no_output_timeout: 60m
+  build_and_run_tests:
+    steps:
+      - run:
+          name: Test project
+          command: RUST_LOG=info go test -p 1 -timeout 60m
+          no_output_timeout: 60m
+  build_and_compile_tests:
+    steps:
+      - run:
+          name: Build project and tests, but don't actually run the tests (used to verify that build/link works with Darwin)
+          command: RUST_LOG=info go test -run=^$
+  restore_parameter_cache:
+    steps:
+      - restore_cache:
+          keys:
+            - v20-proof-params-{{ arch }}
+  save_parameter_cache:
+    steps:
+      - save_cache:
+          key: v20-proof-params-{{ arch }}
+          paths:
+            - "~/filecoin-proof-parameters/"
