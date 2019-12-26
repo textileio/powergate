@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type apiServer struct {
+type service struct {
 	pb.UnimplementedAPIServer
 
 	dealModule *deals.DealModule
@@ -41,7 +41,7 @@ func store(ctx context.Context, dealModule *deals.DealModule, storeParams *pb.St
 	ch <- storeResult{Cids: cids, DealConfigs: dealConfigs}
 }
 
-func (s *apiServer) AvailableAsks(ctx context.Context, req *pb.AvailableAsksRequest) (*pb.AvailableAsksReply, error) {
+func (s *service) AvailableAsks(ctx context.Context, req *pb.AvailableAsksRequest) (*pb.AvailableAsksReply, error) {
 	query := deals.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),
@@ -65,7 +65,7 @@ func (s *apiServer) AvailableAsks(ctx context.Context, req *pb.AvailableAsksRequ
 	return &pb.AvailableAsksReply{Asks: replyAsks}, nil
 }
 
-func (s *apiServer) Store(srv pb.API_StoreServer) error {
+func (s *service) Store(srv pb.API_StoreServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func (s *apiServer) Store(srv pb.API_StoreServer) error {
 	return srv.SendAndClose(&pb.StoreReply{Cids: replyCids, DealConfigs: replyDealConfigs})
 }
 
-func (s *apiServer) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
+func (s *service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	proposals := make([]cid.Cid, len(req.GetProposals()))
 	for i, proposal := range req.GetProposals() {
 		id, err := cid.Decode(proposal)
