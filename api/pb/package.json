@@ -1,6 +1,6 @@
 {
   "name": "@textile/filecoin-client-grpc",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "gRPC client for interacting with Textile Filecoin APIs.",
   "repository": {
     "type": "git",
