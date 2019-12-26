@@ -1,0 +1,80 @@
+syntax = "proto3";
+package filecoin.api.pb;
+
+option java_multiple_files = true;
+option java_package = "io.textile.grpc_textile_filecoin";
+option java_outer_classname = "Filecoin";
+option objc_class_prefix = "TTE";
+
+message Query {
+    uint64 MaxPrice = 1;
+	uint64 PieceSize = 2;
+	int32 Limit = 3;
+	int32 Offset = 4;
+}
+
+message StorageAsk {
+	uint64 price = 1;
+	uint64 minPieceSize = 2;
+	string miner = 3;
+	uint64 timestamp = 4;
+	uint64 expiry = 5;
+}
+
+message DealConfig {
+	string miner = 1;
+	int64 epochPrice = 2;
+}
+
+message DealInfo {
+	string proposalCid = 1;
+	uint64 stateID = 2;
+	string stateName = 3;
+	string miner = 4;
+
+	bytes pieceRef = 5;
+	uint64 size = 6;
+
+	int64 pricePerEpoch = 7;
+	uint64 duration = 8;
+}
+
+message AvailableAsksRequest {
+    Query query = 1;
+}
+
+message AvailableAsksReply {
+    repeated StorageAsk asks = 1;
+}
+
+message StoreParams {
+    string address = 1;
+    repeated DealConfig dealConfigs = 2;
+    uint64 duration = 3;
+}
+
+message StoreRequest {
+    oneof payload {
+        StoreParams storeParams = 1;
+        bytes chunk = 2;
+    }
+}
+
+message StoreReply {
+    repeated string cids = 1;
+    repeated DealConfig dealConfigs = 2;
+}
+
+message WatchRequest {
+    repeated string proposals = 1;
+}
+
+message WatchReply {
+    DealInfo dealInfo = 1;
+}
+
+service API {
+    rpc AvailableAsks(AvailableAsksRequest) returns (AvailableAsksReply) {}
+    rpc Store(stream StoreRequest) returns (StoreReply) {}
+    rpc Watch(WatchRequest) returns (stream WatchReply) {}
+}
