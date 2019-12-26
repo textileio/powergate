@@ -13,3 +13,12 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# JS PB files
+*.js
+*.d.ts
+
+# vscode config folder
+.vscode/
+
+**/node_modules
