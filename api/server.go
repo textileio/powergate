@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"net"
-	"net/http"
 
 	"github.com/ipfs/go-datastore"
 	pb "github.com/textileio/filecoin/api/pb"
@@ -15,11 +14,10 @@ import (
 // Server represents the configured lotus client and filecoin grpc server
 type Server struct {
 	rpc     *grpc.Server
-	proxy   *http.Server
 	service *service
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	cancel     context.CancelFunc
+	closeLotus func()
 }
 
 // Config specifies server settings.
@@ -35,16 +33,16 @@ func NewServer(ctx context.Context, conf Config) (*Server, error) {
 	if err != nil {
 		panic(err)
 	}
-	defer cls()
 
+	// ToDo: use some other persistent data store
 	dm := deals.New(c, datastore.NewMapDatastore())
 
-	ctx, cancel := context.WithCancel(ctx)
+	_, cancel := context.WithCancel(ctx)
 	s := &Server{
-		rpc:     grpc.NewServer(),
-		service: &service{dealModule: dm},
-		ctx:     ctx,
-		cancel:  cancel,
+		rpc:        grpc.NewServer(),
+		service:    &service{dealModule: dm},
+		cancel:     cancel,
+		closeLotus: cls,
 	}
 
 	listener, err := net.Listen("tcp", conf.GrpcHostAddress)
@@ -57,4 +55,12 @@ func NewServer(ctx context.Context, conf Config) (*Server, error) {
 	}()
 
 	return s, nil
+}
+
+// Close shuts down the server
+func (s *Server) Close() {
+	s.cancel()
+	s.closeLotus()
+	s.rpc.Stop()
+	s.service.dealModule.Close()
 }

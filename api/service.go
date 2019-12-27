@@ -20,7 +20,7 @@ type service struct {
 
 type storeResult struct {
 	Cids        []cid.Cid
-	DealConfigs []deals.DealConfig
+	FailedDeals []deals.DealConfig
 	Err         error
 }
 
@@ -33,12 +33,12 @@ func store(ctx context.Context, dealModule *deals.DealModule, storeParams *pb.St
 			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
 		}
 	}
-	cids, dealConfigs, err := dealModule.Store(ctx, storeParams.GetAddress(), reader, dealConfigs, storeParams.GetDuration())
+	cids, failedDeals, err := dealModule.Store(ctx, storeParams.GetAddress(), reader, dealConfigs, storeParams.GetDuration())
 	if err != nil {
 		ch <- storeResult{Err: err}
 		return
 	}
-	ch <- storeResult{Cids: cids, DealConfigs: dealConfigs}
+	ch <- storeResult{Cids: cids, FailedDeals: failedDeals}
 }
 
 func (s *service) AvailableAsks(ctx context.Context, req *pb.AvailableAsksRequest) (*pb.AvailableAsksReply, error) {
@@ -75,7 +75,7 @@ func (s *service) Store(srv pb.API_StoreServer) error {
 	case *pb.StoreRequest_StoreParams:
 		storeParams = payload.StoreParams
 	default:
-		return status.Errorf(codes.InvalidArgument, "expexted StoreParams for StoreRequest.Payload but got %T", payload)
+		return status.Errorf(codes.InvalidArgument, "expected StoreParams for StoreRequest.Payload but got %T", payload)
 	}
 
 	reader, writer := io.Pipe()
@@ -113,12 +113,12 @@ func (s *service) Store(srv pb.API_StoreServer) error {
 		replyCids[i] = cid.String()
 	}
 
-	replyDealConfigs := make([]*pb.DealConfig, len(storeResult.DealConfigs))
-	for i, dealConfig := range storeResult.DealConfigs {
-		replyDealConfigs[i] = &pb.DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice.Uint64()}
+	replyFailedDeals := make([]*pb.DealConfig, len(storeResult.FailedDeals))
+	for i, dealConfig := range storeResult.FailedDeals {
+		replyFailedDeals[i] = &pb.DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice.Uint64()}
 	}
 
-	return srv.SendAndClose(&pb.StoreReply{Cids: replyCids, DealConfigs: replyDealConfigs})
+	return srv.SendAndClose(&pb.StoreReply{Cids: replyCids, FailedDeals: replyFailedDeals})
 }
 
 func (s *service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
@@ -135,23 +135,18 @@ func (s *service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 		return err
 	}
 
-	for {
-		update, ok := <-ch
-		if ok == false {
-			break
-		} else {
-			dealInfo := &pb.DealInfo{
-				ProposalCid:   update.ProposalCid.String(),
-				StateID:       update.StateID,
-				StateName:     update.StateName,
-				Miner:         update.Miner,
-				PieceRef:      update.PieceRef,
-				Size:          update.Size,
-				PricePerEpoch: update.PricePerEpoch.Uint64(),
-				Duration:      update.Duration,
-			}
-			srv.Send(&pb.WatchReply{DealInfo: dealInfo})
+	for update := range ch {
+		dealInfo := &pb.DealInfo{
+			ProposalCid:   update.ProposalCid.String(),
+			StateID:       update.StateID,
+			StateName:     update.StateName,
+			Miner:         update.Miner,
+			PieceRef:      update.PieceRef,
+			Size:          update.Size,
+			PricePerEpoch: update.PricePerEpoch.Uint64(),
+			Duration:      update.Duration,
 		}
+		srv.Send(&pb.WatchReply{DealInfo: dealInfo})
 	}
 	return nil
 }
