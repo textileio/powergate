@@ -14,7 +14,7 @@ import (
 var (
 	queryAskRateLim  = 25
 	queryAskTimeout  = time.Second * 20
-	dsStorageAskBase = datastore.NewKey("/dealmodule/storageask")
+	dsStorageAskBase = datastore.NewKey("/deals/storageask")
 )
 
 // Query specifies filtering and paging data to retrieve active Asks
