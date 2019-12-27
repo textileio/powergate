@@ -35,7 +35,7 @@ type DealerAPI interface {
 	ClientStartDeal(ctx context.Context, data cid.Cid, addr string, miner string, epochPrice types.BigInt, blocksDuration uint64) (*cid.Cid, error)
 	ClientImport(ctx context.Context, path string) (cid.Cid, error)
 	ClientGetDealInfo(context.Context, cid.Cid) (*types.DealInfo, error)
-	ChainNotify(context.Context) (<-chan struct{}, error)
+	ChainNotify(context.Context) (<-chan []*types.HeadChange, error)
 	StateListMiners(context.Context, *types.TipSet) ([]string, error)
 	ClientQueryAsk(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
 	StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)

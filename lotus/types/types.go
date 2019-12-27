@@ -1,8 +1,6 @@
 package types
 
-import (
-	"github.com/ipfs/go-cid"
-)
+import "github.com/ipfs/go-cid"
 
 type DealState = uint64
 
@@ -47,8 +45,8 @@ type DealInfo struct {
 }
 
 type TipSet struct {
-	cids   []cid.Cid
-	height uint64
+	Cids   []cid.Cid
+	Height uint64
 }
 
 type SignedStorageAsk struct {
@@ -71,4 +69,9 @@ type Version struct {
 	Version string
 	// Seconds
 	BlockDelay uint64
+}
+
+type HeadChange struct {
+	Type string
+	Val  *TipSet
 }

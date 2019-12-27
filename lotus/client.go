@@ -15,7 +15,7 @@ type API struct {
 		ClientStartDeal   func(ctx context.Context, data cid.Cid, addr string, miner string, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
 		ClientImport      func(ctx context.Context, path string) (cid.Cid, error)
 		ClientGetDealInfo func(context.Context, cid.Cid) (*types.DealInfo, error)
-		ChainNotify       func(context.Context) (<-chan struct{}, error)
+		ChainNotify       func(context.Context) (<-chan []*types.HeadChange, error)
 		StateListMiners   func(context.Context, *types.TipSet) ([]string, error)
 		ClientQueryAsk    func(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
 		StateMinerPeerID  func(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
@@ -46,7 +46,7 @@ func (a *API) ClientImport(ctx context.Context, path string) (cid.Cid, error) {
 func (a *API) ClientGetDealInfo(ctx context.Context, cid cid.Cid) (*types.DealInfo, error) {
 	return a.Internal.ClientGetDealInfo(ctx, cid)
 }
-func (a *API) ChainNotify(ctx context.Context) (<-chan struct{}, error) {
+func (a *API) ChainNotify(ctx context.Context) (<-chan []*types.HeadChange, error) {
 	return a.Internal.ChainNotify(ctx)
 }
 func (a *API) StateListMiners(ctx context.Context, tipset *types.TipSet) ([]string, error) {

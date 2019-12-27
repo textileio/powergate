@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/textileio/filecoin/tests"
 )
@@ -43,6 +44,32 @@ func TestClientImport(t *testing.T) {
 	checkErr(t, err)
 	if !cid.Defined() {
 		t.Errorf("undefined cid from import")
+	}
+}
+
+func TestClientChainNotify(t *testing.T) {
+	addr, token := tests.ClientConfig(t)
+	c, cls, err := New(addr, token)
+	checkErr(t, err)
+	defer cls()
+
+	ch, err := c.ChainNotify(context.Background())
+	checkErr(t, err)
+
+	// ch is guaranteed to push always current tipset
+	h := <-ch
+	if len(h) != 1 {
+		t.Fatalf("first pushed notification should have length 1")
+	}
+	if h[0].Type != "current" || len(h[0].Val.Cids) == 0 || h[0].Val.Height == 0 {
+		t.Fatalf("current head has invalid values")
+	}
+
+	select {
+	case <-time.After(time.Second * 50):
+		t.Fatalf("a new block should be received in less than ~45s")
+	case <-ch:
+		return
 	}
 }
 
