@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"net"
 
 	"github.com/ipfs/go-datastore"
@@ -13,10 +12,8 @@ import (
 
 // Server represents the configured lotus client and filecoin grpc server
 type Server struct {
-	rpc     *grpc.Server
-	service *service
-
-	cancel     context.CancelFunc
+	rpc        *grpc.Server
+	service    *service
 	closeLotus func()
 }
 
@@ -28,7 +25,7 @@ type Config struct {
 }
 
 // NewServer starts and returns a new server with the given configuration.
-func NewServer(ctx context.Context, conf Config) (*Server, error) {
+func NewServer(conf Config) (*Server, error) {
 	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
 	if err != nil {
 		panic(err)
@@ -37,11 +34,9 @@ func NewServer(ctx context.Context, conf Config) (*Server, error) {
 	// ToDo: use some other persistent data store
 	dm := deals.New(c, datastore.NewMapDatastore())
 
-	_, cancel := context.WithCancel(ctx)
 	s := &Server{
 		rpc:        grpc.NewServer(),
 		service:    &service{dealModule: dm},
-		cancel:     cancel,
 		closeLotus: cls,
 	}
 
@@ -59,8 +54,7 @@ func NewServer(ctx context.Context, conf Config) (*Server, error) {
 
 // Close shuts down the server
 func (s *Server) Close() {
-	s.cancel()
+	s.service.dealModule.Close()
 	s.closeLotus()
 	s.rpc.Stop()
-	s.service.dealModule.Close()
 }
