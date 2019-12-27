@@ -3,20 +3,22 @@ package deals
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"sort"
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
+	"github.com/textileio/filecoin/lotus/types"
 )
 
 var (
 	queryAskRateLim  = 25
 	queryAskTimeout  = time.Second * 20
-	dsStorageAskBase = datastore.NewKey("/dealmodule/storageask")
+	dsStorageAskBase = datastore.NewKey("/deals/storageask")
 )
 
+// Query specifies filtering and paging data to retrieve active Asks
 type Query struct {
 	MaxPrice  uint64
 	PieceSize uint64
@@ -24,6 +26,7 @@ type Query struct {
 	Offset    int
 }
 
+// StorageAsk has information about an active ask from a storage miner
 type StorageAsk struct {
 	Price        uint64
 	MinPieceSize uint64
@@ -32,6 +35,7 @@ type StorageAsk struct {
 	Expiry       uint64
 }
 
+// AvailableAsk executes a query to retrieve active Asks
 func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
 	d.askCacheLock.RLock()
 	defer d.askCacheLock.RUnlock()
@@ -51,7 +55,7 @@ func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
 		res = append(res, StorageAsk{
 			Price:        sa.Price.Uint64(),
 			MinPieceSize: sa.MinPieceSize,
-			Miner:        sa.Miner.String(),
+			Miner:        sa.Miner,
 			Timestamp:    sa.Timestamp,
 			Expiry:       sa.Expiry,
 		})
@@ -91,13 +95,14 @@ func (d *DealModule) updateMinerAsks() error {
 	})
 
 	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
 	for _, ask := range asks {
 		buf.Reset()
-		if err := ask.MarshalCBOR(&buf); err != nil {
+		if err := encoder.Encode(ask); err != nil {
 			log.Errorf("error when marshaling storage ask: %s", err)
 			return err
 		}
-		if err := d.ds.Put(dsStorageAskBase.ChildString(ask.Miner.String()), buf.Bytes()); err != nil {
+		if err := d.ds.Put(dsStorageAskBase.ChildString(ask.Miner), buf.Bytes()); err != nil {
 			log.Errorf("error when persiting storage ask: %s", err)
 			return err
 		}
