@@ -7,6 +7,7 @@ import (
 	"github.com/filecoin-project/lotus/api/client"
 )
 
+// New creates a new client to Lotus API
 func New(addr string, authToken string) (api.FullNode, func(), error) {
 	headers := http.Header{
 		"Authorization": []string{"Bearer " + authToken},

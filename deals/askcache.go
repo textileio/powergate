@@ -17,6 +17,7 @@ var (
 	dsStorageAskBase = datastore.NewKey("/dealmodule/storageask")
 )
 
+// Query specifies filtering and paging data to retrieve active Asks
 type Query struct {
 	MaxPrice  uint64
 	PieceSize uint64
@@ -24,6 +25,7 @@ type Query struct {
 	Offset    int
 }
 
+// StorageAsk has information about an active ask from a storage miner
 type StorageAsk struct {
 	Price        uint64
 	MinPieceSize uint64
@@ -32,6 +34,7 @@ type StorageAsk struct {
 	Expiry       uint64
 }
 
+// AvailableAsk executes a query to retrieve active Asks
 func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
 	d.askCacheLock.RLock()
 	defer d.askCacheLock.RUnlock()

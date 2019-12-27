@@ -32,6 +32,7 @@ var (
 	log = logging.Logger("deals")
 )
 
+// DealerAPI interacts with a Filecoin full-node
 type DealerAPI interface {
 	ClientStartDeal(ctx context.Context, data cid.Cid, addr address.Address, miner address.Address, epochPrice types.BigInt, blocksDuration uint64) (*cid.Cid, error)
 	ClientImport(ctx context.Context, path string) (cid.Cid, error)
@@ -42,6 +43,7 @@ type DealerAPI interface {
 	StateMinerPeerID(ctx context.Context, m address.Address, ts *types.TipSet) (peer.ID, error)
 }
 
+// DealModule exposes storage, monitoring, and Asks from the market.
 type DealModule struct {
 	api DealerAPI
 	ds  datastore.Datastore
@@ -55,11 +57,13 @@ type DealModule struct {
 	closed      chan struct{}
 }
 
+// DealConfig contains information about a proposal for a particular miner
 type DealConfig struct {
 	Miner      string
 	EpochPrice types.BigInt
 }
 
+// DealInfo contains information about a proposal storage deal
 type DealInfo struct {
 	ProposalCid cid.Cid
 	StateID     uint64
@@ -73,6 +77,7 @@ type DealInfo struct {
 	Duration      uint64
 }
 
+// New creates a new deal module
 func New(api DealerAPI, ds datastore.Datastore) *DealModule {
 	dm := &DealModule{
 		api:    api,
@@ -84,6 +89,7 @@ func New(api DealerAPI, ds datastore.Datastore) *DealModule {
 	return dm
 }
 
+// Close closes the deal module
 func (d *DealModule) Close() {
 	d.lock.Lock()
 	defer d.lock.Unlock()
@@ -95,6 +101,8 @@ func (d *DealModule) Close() {
 	d.stateClosed = true
 }
 
+// Store creates a proposal deal for data using wallet addr to all miners indicated
+// by dealConfigs for duration epochs
 func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
 	tmpF, err := ioutil.TempFile("", "import-*")
 	if err != nil {
@@ -134,6 +142,7 @@ func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dea
 	return proposals, failed, nil
 }
 
+// Watch returnas a channel with state changes of indicated proposals
 func (d *DealModule) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
 	ch := make(chan DealInfo)
 	w, err := d.api.ChainNotify(ctx)
