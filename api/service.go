@@ -4,10 +4,10 @@ import (
 	"context"
 	"io"
 
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	pb "github.com/textileio/filecoin/api/pb"
 	"github.com/textileio/filecoin/deals"
+	"github.com/textileio/filecoin/lotus/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

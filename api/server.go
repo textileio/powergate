@@ -7,8 +7,8 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	pb "github.com/textileio/filecoin/api/pb"
-	"github.com/textileio/filecoin/client"
 	"github.com/textileio/filecoin/deals"
+	"github.com/textileio/filecoin/lotus"
 	"google.golang.org/grpc"
 )
 
@@ -31,7 +31,7 @@ type Config struct {
 
 // NewServer starts and returns a new server with the given configuration.
 func NewServer(ctx context.Context, conf Config) (*Server, error) {
-	c, cls, err := client.New(conf.LotusAddress, conf.LotusAuthToken)
+	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
 	if err != nil {
 		panic(err)
 	}
