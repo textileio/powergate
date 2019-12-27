@@ -1,8 +1,0 @@
-**/target
-**/*.rs.bk
-*.pc
-**/include
-*.h
-*.a
-.install-filecoin
-**/paramcache

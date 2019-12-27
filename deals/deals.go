@@ -6,18 +6,16 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/chain/address"
-	"github.com/filecoin-project/lotus/chain/store"
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
 	peer "github.com/libp2p/go-libp2p-core/peer"
+	"github.com/textileio/filecoin/lotus/types"
 )
 
 const (
@@ -34,19 +32,20 @@ var (
 
 // DealerAPI interacts with a Filecoin full-node
 type DealerAPI interface {
-	ClientStartDeal(ctx context.Context, data cid.Cid, addr address.Address, miner address.Address, epochPrice types.BigInt, blocksDuration uint64) (*cid.Cid, error)
+	ClientStartDeal(ctx context.Context, data cid.Cid, addr string, miner string, epochPrice types.BigInt, blocksDuration uint64) (*cid.Cid, error)
 	ClientImport(ctx context.Context, path string) (cid.Cid, error)
-	ClientGetDealInfo(context.Context, cid.Cid) (*api.DealInfo, error)
-	ChainNotify(context.Context) (<-chan []*store.HeadChange, error)
-	StateListMiners(context.Context, *types.TipSet) ([]address.Address, error)
-	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*types.SignedStorageAsk, error)
-	StateMinerPeerID(ctx context.Context, m address.Address, ts *types.TipSet) (peer.ID, error)
+	ClientGetDealInfo(context.Context, cid.Cid) (*types.DealInfo, error)
+	ChainNotify(context.Context) (<-chan struct{}, error)
+	StateListMiners(context.Context, *types.TipSet) ([]string, error)
+	ClientQueryAsk(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
+	StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
 }
 
 // DealModule exposes storage, monitoring, and Asks from the market.
 type DealModule struct {
-	api DealerAPI
-	ds  datastore.Datastore
+	api            DealerAPI
+	ds             datastore.Datastore
+	basePathImport string
 
 	askCacheLock sync.RWMutex
 	askCache     []*types.StorageAsk
@@ -79,11 +78,17 @@ type DealInfo struct {
 
 // New creates a new deal module
 func New(api DealerAPI, ds datastore.Datastore) *DealModule {
+	// can't avoid home base path, ipfs checks: cannot add filestore references outside ipfs root (home folder)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
 	dm := &DealModule{
-		api:    api,
-		ds:     ds,
-		close:  make(chan struct{}),
-		closed: make(chan struct{}),
+		api:            api,
+		ds:             ds,
+		basePathImport: filepath.Join(home, "textilefc"),
+		close:          make(chan struct{}),
+		closed:         make(chan struct{}),
 	}
 	go dm.runBackgroundAskCache()
 	return dm
@@ -104,7 +109,7 @@ func (d *DealModule) Close() {
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
 func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
-	tmpF, err := ioutil.TempFile("", "import-*")
+	tmpF, err := ioutil.TempFile(d.basePathImport, "import-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
@@ -118,20 +123,15 @@ func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dea
 		return nil, nil, fmt.Errorf("error when importing data: %s", err)
 	}
 
-	myAddr, err := address.NewFromString(addr)
-	if err != nil {
-		return nil, nil, fmt.Errorf("wallet addr is invalid: %s", err)
-	}
 	var proposals []cid.Cid
 	var failed []DealConfig
 	for _, dconfig := range dealConfigs {
-		minerAddr, err := address.NewFromString(dconfig.Miner)
 		if err != nil {
 			log.Errorf("miner addr is invalid %v: %s", dconfig, err)
 			failed = append(failed, dconfig)
 			continue
 		}
-		proposal, err := d.api.ClientStartDeal(ctx, dataCid, myAddr, minerAddr, dconfig.EpochPrice, duration)
+		proposal, err := d.api.ClientStartDeal(ctx, dataCid, addr, dconfig.Miner, dconfig.EpochPrice, duration)
 		if err != nil {
 			log.Errorf("error when starting deal with %v: %s", dconfig, err)
 			failed = append(failed, dconfig)
@@ -152,7 +152,7 @@ func (d *DealModule) Watch(ctx context.Context, proposals []cid.Cid) (<-chan Dea
 	go func() {
 		defer close(ch)
 
-		currentState := make(map[cid.Cid]api.DealInfo)
+		currentState := make(map[cid.Cid]types.DealInfo)
 		tout := time.After(initialWait)
 		for {
 			select {
@@ -172,7 +172,7 @@ func (d *DealModule) Watch(ctx context.Context, proposals []cid.Cid) (<-chan Dea
 	return ch, nil
 }
 
-func (d *DealModule) pushNewChanges(ctx context.Context, currState map[cid.Cid]api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func (d *DealModule) pushNewChanges(ctx context.Context, currState map[cid.Cid]types.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
 		dinfo, err := d.api.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
@@ -184,8 +184,8 @@ func (d *DealModule) pushNewChanges(ctx context.Context, currState map[cid.Cid]a
 			newState := DealInfo{
 				ProposalCid:   dinfo.ProposalCid,
 				StateID:       dinfo.State,
-				StateName:     api.DealStates[dinfo.State],
-				Miner:         dinfo.Provider.String(),
+				StateName:     types.DealStates[dinfo.State],
+				Miner:         dinfo.Provider,
 				PieceRef:      dinfo.PieceRef,
 				Size:          dinfo.Size,
 				PricePerEpoch: dinfo.PricePerEpoch,
