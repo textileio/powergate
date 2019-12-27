@@ -2,15 +2,17 @@ package api
 
 import (
 	"context"
+	"net"
 	"net/http"
 
 	"github.com/ipfs/go-datastore"
+	pb "github.com/textileio/filecoin/api/pb"
 	"github.com/textileio/filecoin/client"
 	"github.com/textileio/filecoin/deals"
 	"google.golang.org/grpc"
 )
 
-// Server represents the configured filecoin grpc server
+// Server represents the configured lotus client and filecoin grpc server
 type Server struct {
 	rpc     *grpc.Server
 	proxy   *http.Server
@@ -22,22 +24,19 @@ type Server struct {
 
 // Config specifies server settings.
 type Config struct {
-	LotusAddress   string
-	LotusAuthToken string
-	// RepoPath  string
-	// Addr      ma.Multiaddr
-	// ProxyAddr ma.Multiaddr
-	// Debug     bool
+	LotusAddress    string
+	LotusAuthToken  string
+	GrpcHostAddress string
 }
 
-// NewServer starts and returns a new server with the given threadservice.
-// The threadservice is *not* managed by the server.
+// NewServer starts and returns a new server with the given configuration.
 func NewServer(ctx context.Context, conf Config) (*Server, error) {
 	c, cls, err := client.New(conf.LotusAddress, conf.LotusAuthToken)
 	if err != nil {
 		panic(err)
 	}
 	defer cls()
+
 	dm := deals.New(c, datastore.NewMapDatastore())
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -48,5 +47,14 @@ func NewServer(ctx context.Context, conf Config) (*Server, error) {
 		cancel:  cancel,
 	}
 
-	return nil, nil
+	listener, err := net.Listen("tcp", conf.GrpcHostAddress)
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		pb.RegisterAPIServer(s.rpc, s.service)
+		s.rpc.Serve(listener)
+	}()
+
+	return s, nil
 }

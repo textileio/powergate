@@ -109,12 +109,11 @@ func (s *service) Store(srv pb.API_StoreServer) error {
 	}
 
 	replyCids := make([]string, len(storeResult.Cids))
-	replyDealConfigs := make([]*pb.DealConfig, len(storeResult.DealConfigs))
-
 	for i, cid := range storeResult.Cids {
 		replyCids[i] = cid.String()
 	}
 
+	replyDealConfigs := make([]*pb.DealConfig, len(storeResult.DealConfigs))
 	for i, dealConfig := range storeResult.DealConfigs {
 		replyDealConfigs[i] = &pb.DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice.Uint64()}
 	}
