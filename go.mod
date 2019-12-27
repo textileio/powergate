@@ -13,6 +13,7 @@ require (
 	github.com/ipfs/go-log v1.0.0
 	github.com/libp2p/go-libp2p-core v0.3.0
 	github.com/libp2p/go-libp2p-peer v0.2.0
+	github.com/multiformats/go-multiaddr v0.2.0
 	github.com/multiformats/go-varint v0.0.2 // indirect
 	github.com/polydawn/refmt v0.0.0-20190809202753-05966cbd336a
 	github.com/smartystreets/assertions v1.0.1 // indirect
