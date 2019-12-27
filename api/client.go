@@ -9,7 +9,7 @@ import (
 	pb "github.com/textileio/filecoin/api/pb"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/lotus/types"
-	"github.com/textileio/go-threads/util"
+	"github.com/textileio/filecoin/util"
 	"google.golang.org/grpc"
 )
 
@@ -126,13 +126,13 @@ func (c *Client) Store(addr string, data io.Reader, dealConfigs []deals.DealConf
 		cids[i] = id
 	}
 
-	outDealConfigs := make([]deals.DealConfig, len(reply.GetDealConfigs()))
-	for i, dealConfig := range reply.GetDealConfigs() {
-		outDealConfigs[i] = deals.DealConfig{
+	failedDeals := make([]deals.DealConfig, len(reply.GetFailedDeals()))
+	for i, dealConfig := range reply.GetFailedDeals() {
+		failedDeals[i] = deals.DealConfig{
 			Miner:      dealConfig.GetMiner(),
 			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
 		}
 	}
 
-	return cids, outDealConfigs, nil
+	return cids, failedDeals, nil
 }

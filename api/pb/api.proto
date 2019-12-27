@@ -62,7 +62,7 @@ message StoreRequest {
 
 message StoreReply {
     repeated string cids = 1;
-    repeated DealConfig dealConfigs = 2;
+    repeated DealConfig failedDeals = 2;
 }
 
 message WatchRequest {
