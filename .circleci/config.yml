@@ -16,6 +16,10 @@ jobs:
           key: go-mod-v1-{{ checksum "go.sum" }}-{{ arch }}
           paths:
             - /go/pkg/mod
+      - run:
+          name: build code
+          command: |
+            go test ./... -v -run none
 
 workflows:
   version: 2
