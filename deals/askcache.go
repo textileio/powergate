@@ -3,12 +3,13 @@ package deals
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"sort"
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
+	"github.com/textileio/filecoin/lotus/types"
 )
 
 var (
@@ -54,7 +55,7 @@ func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
 		res = append(res, StorageAsk{
 			Price:        sa.Price.Uint64(),
 			MinPieceSize: sa.MinPieceSize,
-			Miner:        sa.Miner.String(),
+			Miner:        sa.Miner,
 			Timestamp:    sa.Timestamp,
 			Expiry:       sa.Expiry,
 		})
@@ -94,13 +95,14 @@ func (d *DealModule) updateMinerAsks() error {
 	})
 
 	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
 	for _, ask := range asks {
 		buf.Reset()
-		if err := ask.MarshalCBOR(&buf); err != nil {
+		if err := encoder.Encode(ask); err != nil {
 			log.Errorf("error when marshaling storage ask: %s", err)
 			return err
 		}
-		if err := d.ds.Put(dsStorageAskBase.ChildString(ask.Miner.String()), buf.Bytes()); err != nil {
+		if err := d.ds.Put(dsStorageAskBase.ChildString(ask.Miner), buf.Bytes()); err != nil {
 			log.Errorf("error when persiting storage ask: %s", err)
 			return err
 		}

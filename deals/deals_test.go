@@ -2,35 +2,20 @@ package deals
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"testing"
 
-	"github.com/filecoin-project/lotus/chain/address"
-	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/textileio/filecoin/client"
+	"github.com/textileio/filecoin/lotus"
+	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/tests"
 )
-
-var (
-	authToken = ""
-)
-
-func TestMain(m *testing.M) {
-	var err error
-	authToken, err = tests.GetLotusToken()
-	if err != nil {
-		fmt.Println("couldn't get/generate lotus authtoken")
-		os.Exit(-1)
-	}
-	os.Exit(m.Run())
-}
 
 func TestAskCache(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test since we're on short mode")
 	}
-	c, cls, err := client.New(tests.DaemonAddr, authToken)
+	addr, token := tests.ClientConfig(t)
+	c, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
 	defer cls()
 
@@ -47,10 +32,10 @@ func TestQueryAsk(t *testing.T) {
 	t.Parallel()
 	dm := DealModule{}
 	dm.askCache = []*types.StorageAsk{
-		{Price: types.NewInt(20), MinPieceSize: 128, Miner: newaddr("t01")},
-		{Price: types.NewInt(30), MinPieceSize: 64, Miner: newaddr("t02")},
-		{Price: types.NewInt(40), MinPieceSize: 256, Miner: newaddr("t03")},
-		{Price: types.NewInt(50), MinPieceSize: 16, Miner: newaddr("t04")},
+		{Price: types.NewInt(20), MinPieceSize: 128, Miner: "t01"},
+		{Price: types.NewInt(30), MinPieceSize: 64, Miner: "t02"},
+		{Price: types.NewInt(40), MinPieceSize: 256, Miner: "t03"},
+		{Price: types.NewInt(50), MinPieceSize: 16, Miner: "t04"},
 	}
 
 	facr := []StorageAsk{
@@ -85,14 +70,6 @@ func TestQueryAsk(t *testing.T) {
 			}
 		})
 	}
-}
-
-func newaddr(s string) address.Address {
-	a, err := address.NewFromString(s)
-	if err != nil {
-		panic("invalid address")
-	}
-	return a
 }
 
 func checkErr(t *testing.T, err error) {
