@@ -11,6 +11,8 @@ import (
 	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/util"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Client provides the client api
@@ -19,6 +21,12 @@ type Client struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	conn   *grpc.ClientConn
+}
+
+// WatchEvent is used to send data or error values for Watch
+type WatchEvent struct {
+	Deal deals.DealInfo
+	Err  error
 }
 
 // NewClient starts the client
@@ -135,4 +143,49 @@ func (c *Client) Store(addr string, data io.Reader, dealConfigs []deals.DealConf
 	}
 
 	return cids, failedDeals, nil
+}
+
+// Watch returnas a channel with state changes of indicated proposals
+func (c *Client) Watch(proposals []cid.Cid) (<-chan WatchEvent, context.CancelFunc, error) {
+	channel := make(chan WatchEvent)
+	ctx, cancel := context.WithCancel(c.ctx)
+	proposalStrings := make([]string, len(proposals))
+	for i, proposal := range proposals {
+		proposalStrings[i] = proposal.String()
+	}
+	stream, err := c.client.Watch(ctx, &pb.WatchRequest{Proposals: proposalStrings})
+	if err != nil {
+		cancel()
+		return nil, nil, err
+	}
+	go func() {
+		defer close(channel)
+		for {
+			event, err := stream.Recv()
+			if err != nil {
+				stat := status.Convert(err)
+				if stat == nil || (stat.Code() != codes.Canceled) {
+					channel <- WatchEvent{Err: err}
+				}
+				break
+			}
+			proposalCid, err := cid.Decode(event.GetDealInfo().GetProposalCid())
+			if err != nil {
+				channel <- WatchEvent{Err: err}
+				break
+			}
+			deal := deals.DealInfo{
+				ProposalCid:   proposalCid,
+				StateID:       event.GetDealInfo().GetStateID(),
+				StateName:     event.GetDealInfo().GetStateName(),
+				Miner:         event.GetDealInfo().GetMiner(),
+				PieceRef:      event.GetDealInfo().GetPieceRef(),
+				Size:          event.GetDealInfo().GetSize(),
+				PricePerEpoch: types.NewInt(event.GetDealInfo().GetPricePerEpoch()),
+				Duration:      event.GetDealInfo().GetDuration(),
+			}
+			channel <- WatchEvent{Deal: deal}
+		}
+	}()
+	return channel, cancel, nil
 }
