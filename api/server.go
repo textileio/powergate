@@ -34,7 +34,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	c, cls, err := lotus.New(lotusAddr, conf.LotusAuthToken)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// ToDo: use some other persistent data store

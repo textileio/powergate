@@ -14,7 +14,7 @@ import (
 )
 
 func TestClientVersion(t *testing.T) {
-	addr, token := tests.ClientConfig(t)
+	addr, token := tests.ClientConfig()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -35,7 +35,7 @@ func TestClientImport(t *testing.T) {
 	rand.Read(bts)
 	io.Copy(f, bytes.NewReader(bts))
 
-	addr, token := tests.ClientConfig(t)
+	addr, token := tests.ClientConfig()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -48,7 +48,7 @@ func TestClientImport(t *testing.T) {
 }
 
 func TestClientChainNotify(t *testing.T) {
-	addr, token := tests.ClientConfig(t)
+	addr, token := tests.ClientConfig()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()

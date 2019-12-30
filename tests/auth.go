@@ -1,10 +1,17 @@
 package tests
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"testing"
+
+	ma "github.com/multiformats/go-multiaddr"
+)
+
+var (
+	lotusHost = "127.0.0.1"
+	lotusPort = 1234
 )
 
 func GetLotusToken(lotusFolderPath string) (string, error) {
@@ -32,22 +39,36 @@ func createAdminToken() (string, error) {
 	return string(out), err
 }
 
-func ClientConfig(t *testing.T) (string, string) {
-	addr := "127.0.0.1:1234"
+func ClientConfig() (string, string) {
+	addr := fmt.Sprintf("%v:%v", lotusHost, lotusPort)
 	home, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
 	path := filepath.Join(home, ".lotus")
 	authToken, err := GetLotusToken(path)
-	checkErr(t, err)
+	if err != nil {
+		panic(err)
+	}
 
 	return addr, authToken
 }
 
-func checkErr(t *testing.T, err error) {
-	t.Helper()
+func ClientConfigMA() (ma.Multiaddr, string) {
+	addr := fmt.Sprintf("/ip4/%v/tcp/%v", lotusHost, lotusPort)
+	multi, err := ma.NewMultiaddr(addr)
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	path := filepath.Join(home, ".lotus")
+	authToken, err := GetLotusToken(path)
+	if err != nil {
+		panic(err)
+	}
+
+	return multi, authToken
 }
