@@ -1,6 +1,10 @@
 package types
 
-import "github.com/ipfs/go-cid"
+import (
+	"time"
+
+	"github.com/ipfs/go-cid"
+)
 
 type DealState = uint64
 
@@ -74,4 +78,31 @@ type Version struct {
 type HeadChange struct {
 	Type string
 	Val  *TipSet
+}
+
+type SyncStateStage int
+
+const (
+	StageIdle = SyncStateStage(iota)
+	StageHeaders
+	StagePersistHeaders
+	StageMessages
+	StageSyncComplete
+	StageSyncErrored
+)
+
+type ActiveSync struct {
+	Base   *TipSet
+	Target *TipSet
+
+	Stage  SyncStateStage
+	Height uint64
+
+	Start   time.Time
+	End     time.Time
+	Message string
+}
+
+type SyncState struct {
+	ActiveSyncs []ActiveSync
 }
