@@ -18,8 +18,6 @@ import (
 // Client provides the client api
 type Client struct {
 	client pb.APIClient
-	ctx    context.Context
-	cancel context.CancelFunc
 	conn   *grpc.ClientConn
 }
 
@@ -40,11 +38,8 @@ func NewClient(maddr ma.Multiaddr) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithCancel(context.Background())
 	client := &Client{
 		client: pb.NewAPIClient(conn),
-		ctx:    ctx,
-		cancel: cancel,
 		conn:   conn,
 	}
 	return client, nil
@@ -52,19 +47,18 @@ func NewClient(maddr ma.Multiaddr) (*Client, error) {
 
 // Close closes the client's grpc connection and cancels any active requests
 func (c *Client) Close() error {
-	c.cancel()
 	return c.conn.Close()
 }
 
 // AvailableAsks executes a query to retrieve active Asks
-func (c *Client) AvailableAsks(query deals.Query) ([]deals.StorageAsk, error) {
+func (c *Client) AvailableAsks(ctx context.Context, query deals.Query) ([]deals.StorageAsk, error) {
 	q := &pb.Query{
 		MaxPrice:  query.MaxPrice,
 		PieceSize: query.PieceSize,
 		Limit:     int32(query.Limit),
 		Offset:    int32(query.Offset),
 	}
-	reply, err := c.client.AvailableAsks(c.ctx, &pb.AvailableAsksRequest{Query: q})
+	reply, err := c.client.AvailableAsks(ctx, &pb.AvailableAsksRequest{Query: q})
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +77,8 @@ func (c *Client) AvailableAsks(query deals.Query) ([]deals.StorageAsk, error) {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (c *Client) Store(addr string, data io.Reader, dealConfigs []deals.DealConfig, duration uint64) ([]cid.Cid, []deals.DealConfig, error) {
-	stream, err := c.client.Store(c.ctx)
+func (c *Client) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.DealConfig, duration uint64) ([]cid.Cid, []deals.DealConfig, error) {
+	stream, err := c.client.Store(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -147,17 +141,15 @@ func (c *Client) Store(addr string, data io.Reader, dealConfigs []deals.DealConf
 }
 
 // Watch returnas a channel with state changes of indicated proposals
-func (c *Client) Watch(proposals []cid.Cid) (<-chan WatchEvent, context.CancelFunc, error) {
+func (c *Client) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEvent, error) {
 	channel := make(chan WatchEvent)
-	ctx, cancel := context.WithCancel(c.ctx)
 	proposalStrings := make([]string, len(proposals))
 	for i, proposal := range proposals {
 		proposalStrings[i] = proposal.String()
 	}
 	stream, err := c.client.Watch(ctx, &pb.WatchRequest{Proposals: proposalStrings})
 	if err != nil {
-		cancel()
-		return nil, nil, err
+		return nil, err
 	}
 	go func() {
 		defer close(channel)
@@ -188,5 +180,5 @@ func (c *Client) Watch(proposals []cid.Cid) (<-chan WatchEvent, context.CancelFu
 			channel <- WatchEvent{Deal: deal}
 		}
 	}()
-	return channel, cancel, nil
+	return channel, nil
 }

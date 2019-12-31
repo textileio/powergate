@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -12,13 +13,14 @@ import (
 
 var (
 	grpcHostAddr = "/ip4/127.0.0.1/tcp/50051"
+	ctx          = context.Background()
 )
 
 func TestQueryAsk(t *testing.T) {
 	client, done := setup(t)
 	defer done()
 
-	_, err := client.AvailableAsks(deals.Query{MaxPrice: 5})
+	_, err := client.AvailableAsks(ctx, deals.Query{MaxPrice: 5})
 	if err != nil {
 		t.Fatalf("failed to call AvailableAsks: %v", err)
 	}
@@ -29,7 +31,7 @@ func TestStore(t *testing.T) {
 	defer done()
 
 	r := strings.NewReader("store me")
-	_, _, err := client.Store("an address", r, make([]deals.DealConfig, 0), 1024)
+	_, _, err := client.Store(ctx, "an address", r, make([]deals.DealConfig, 0), 1024)
 	if err != nil {
 		t.Fatalf("failed to call Store: %v", err)
 	}
@@ -39,7 +41,7 @@ func TestWatch(t *testing.T) {
 	client, done := setup(t)
 	defer done()
 
-	_, _, err := client.Watch(make([]cid.Cid, 0))
+	_, err := client.Watch(ctx, make([]cid.Cid, 0))
 	if err != nil {
 		t.Fatalf("failed to call Watch: %v", err)
 	}
