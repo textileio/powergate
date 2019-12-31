@@ -7,6 +7,10 @@ import (
 	"testing"
 )
 
+const (
+	defaultAddr = "127.0.0.1:1234"
+)
+
 func GetLotusToken(lotusFolderPath string) (string, error) {
 	tokenFullPath := filepath.Join(lotusFolderPath, "token")
 	if _, err := os.Stat(tokenFullPath); err != nil {
@@ -33,7 +37,6 @@ func createAdminToken() (string, error) {
 }
 
 func ClientConfig(t *testing.T) (string, string) {
-	addr := "127.0.0.1:1234"
 	home, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
@@ -42,7 +45,11 @@ func ClientConfig(t *testing.T) (string, string) {
 	authToken, err := GetLotusToken(path)
 	checkErr(t, err)
 
-	return addr, authToken
+	return defaultAddr, authToken
+}
+
+func getDefaultAddr() string {
+	return defaultAddr
 }
 
 func checkErr(t *testing.T, err error) {

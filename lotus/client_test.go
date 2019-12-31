@@ -73,6 +73,19 @@ func TestClientChainNotify(t *testing.T) {
 	}
 }
 
+func TestSyncState(t *testing.T) {
+	addr, token := tests.ClientConfig(t)
+	c, cls, err := New(addr, token)
+	checkErr(t, err)
+	defer cls()
+
+	state, err := c.SyncState(context.Background())
+	checkErr(t, err)
+	if state.ActiveSyncs[0].Height == 0 {
+		t.Fatalf("current height can't be zero")
+	}
+}
+
 func checkErr(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {

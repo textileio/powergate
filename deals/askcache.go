@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/textileio/filecoin/lotus/types"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 )
 
 var (
@@ -73,7 +76,7 @@ func (d *DealModule) runBackgroundAskCache() {
 	}
 	for {
 		select {
-		case <-d.close:
+		case <-d.ctx.Done():
 			return
 		case <-time.After(askRefreshInterval):
 			log.Debug("refreshing ask cache")
@@ -85,7 +88,7 @@ func (d *DealModule) runBackgroundAskCache() {
 }
 
 func (d *DealModule) updateMinerAsks() error {
-	asks, err := takeFreshAskSnapshot(d.api)
+	asks, err := takeFreshAskSnapshot(d.ctx, d.api)
 	if err != nil {
 		return err
 	}
@@ -114,25 +117,28 @@ func (d *DealModule) updateMinerAsks() error {
 	return nil
 }
 
-func takeFreshAskSnapshot(api DealerAPI) ([]*types.StorageAsk, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+func takeFreshAskSnapshot(baseCtx context.Context, api DealerAPI) ([]*types.StorageAsk, error) {
+	startTime := time.Now()
+	defer stats.Record(context.Background(), mAskCacheFullRefreshTime.M(startTime.Sub(time.Now()).Milliseconds()))
+
+	ctx, cancel := context.WithTimeout(baseCtx, time.Second*5)
 	defer cancel()
 	rateLim := make(chan struct{}, queryAskRateLim)
 	addrs, err := api.StateListMiners(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
+	stats.Record(context.Background(), mMinerCount.M(int64(len(addrs))))
 
 	var wg sync.WaitGroup
 	askCh := make(chan *types.StorageAsk)
 	for _, a := range addrs {
-		a := a
 		wg.Add(1)
-		go func() {
-			rateLim <- struct{}{}
+		go func(a string) {
 			defer wg.Done()
+			rateLim <- struct{}{}
 			defer func() { <-rateLim }()
-			ctx, cancel := context.WithTimeout(context.Background(), queryAskTimeout)
+			ctx, cancel := context.WithTimeout(baseCtx, queryAskTimeout)
 			defer cancel()
 			pid, err := api.StateMinerPeerID(ctx, a, nil)
 			if err != nil {
@@ -142,11 +148,11 @@ func takeFreshAskSnapshot(api DealerAPI) ([]*types.StorageAsk, error) {
 
 			ask, err := api.ClientQueryAsk(ctx, pid, a)
 			if err != nil {
-				log.Errorf("error when query asking miner %s: %s", a, err)
 				return
 			}
+
 			askCh <- ask.Ask
-		}()
+		}(a)
 	}
 	go func() {
 		wg.Wait()
@@ -156,6 +162,17 @@ func takeFreshAskSnapshot(api DealerAPI) ([]*types.StorageAsk, error) {
 	for sa := range askCh {
 		asks = append(asks, sa)
 	}
+
+	select {
+	case <-baseCtx.Done():
+		return nil, fmt.Errorf("cancelled on request")
+	default:
+	}
+
+	ctx, _ = tag.New(context.Background(), tag.Insert(keyAskStatus, "FAIL"))
+	stats.Record(ctx, mAskQuery.M(int64(len(addrs)-len(asks))))
+	ctx, _ = tag.New(context.Background(), tag.Insert(keyAskStatus, "OK"))
+	stats.Record(ctx, mAskQuery.M(int64(len(asks))))
 
 	return asks, nil
 }

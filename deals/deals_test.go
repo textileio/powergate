@@ -1,6 +1,7 @@
 package deals
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -20,7 +21,7 @@ func TestAskCache(t *testing.T) {
 	defer cls()
 
 	queryAskRateLim = 2000
-	asks, err := takeFreshAskSnapshot(c)
+	asks, err := takeFreshAskSnapshot(context.Background(), c)
 	checkErr(t, err)
 	if len(asks) == 0 {
 		t.Fatalf("current asks can't be empty")
