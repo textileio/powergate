@@ -1,0 +1,56 @@
+version: '3.7'
+
+services:
+  textile-fc:
+    network_mode: host
+    build:
+      context: ../
+      dockerfile: cmd/server/Dockerfile
+    environment:
+      - TEXTILE_LOTUS_TOKEN=${TEXTILE_LOTUS_TOKEN}
+    ports:
+      - 8888:8888
+    restart: always
+    
+  prometheus:
+    network_mode: host
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    depends_on:
+      - cadvisor
+    restart: always
+
+  cadvisor:
+    network_mode: host
+    image: google/cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8080:8080
+    restart: always
+
+  grafana:
+    network_mode: host
+    image: grafana/grafana
+    user: "104"
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./grafana/config.monitoring
+    restart: always
+

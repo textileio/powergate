@@ -16,6 +16,7 @@ import (
 	logging "github.com/ipfs/go-log"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/textileio/filecoin/lotus/types"
+	"go.opencensus.io/stats/view"
 )
 
 const (
@@ -52,7 +53,8 @@ type DealModule struct {
 
 	lock        sync.Mutex
 	stateClosed bool
-	close       chan struct{}
+	ctx         context.Context
+	cancel      context.CancelFunc
 	closed      chan struct{}
 }
 
@@ -83,14 +85,19 @@ func New(api DealerAPI, ds datastore.Datastore) *DealModule {
 	if err != nil {
 		panic(err)
 	}
+	ctx, cancel := context.WithCancel(context.Background())
 	dm := &DealModule{
 		api:            api,
 		ds:             ds,
 		basePathImport: filepath.Join(home, "textilefc"),
-		close:          make(chan struct{}),
+		ctx:            ctx,
+		cancel:         cancel,
 		closed:         make(chan struct{}),
 	}
 	go dm.runBackgroundAskCache()
+	if err := view.Register(views...); err != nil {
+		log.Fatalf("Failed to register views: %v", err)
+	}
 	return dm
 }
 
@@ -101,7 +108,7 @@ func (d *DealModule) Close() {
 	if d.stateClosed {
 		return
 	}
-	close(d.close)
+	d.cancel()
 	<-d.closed
 	d.stateClosed = true
 }

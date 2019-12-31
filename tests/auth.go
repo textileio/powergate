@@ -9,7 +9,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-var (
+const (
 	lotusHost = "127.0.0.1"
 	lotusPort = 1234
 )
@@ -40,7 +40,6 @@ func createAdminToken() (string, error) {
 }
 
 func ClientConfig() (string, string) {
-	addr := fmt.Sprintf("%v:%v", lotusHost, lotusPort)
 	home, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
@@ -51,7 +50,11 @@ func ClientConfig() (string, string) {
 		panic(err)
 	}
 
-	return addr, authToken
+	return getDefaultAddr(), authToken
+}
+
+func getDefaultAddr() string {
+	return fmt.Sprintf("/ip4/%v/tcp/%v", lotusHost, lotusPort)
 }
 
 func ClientConfigMA() (ma.Multiaddr, string) {
