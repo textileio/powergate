@@ -11,20 +11,13 @@ import (
 )
 
 var (
-	server       *Server
-	client       *Client
 	grpcHostAddr = "/ip4/127.0.0.1/tcp/50051"
 )
 
-// func TestMain(m *testing.M) {
-// 	server = makeServer()
-// 	client = makeClient()
-// 	exitVal := m.Run()
-// 	shutdown()
-// 	os.Exit(exitVal)
-// }
-
 func TestQueryAsk(t *testing.T) {
+	client, done := setup(t)
+	defer done()
+
 	_, err := client.AvailableAsks(deals.Query{MaxPrice: 5})
 	if err != nil {
 		t.Fatalf("failed to call AvailableAsks: %v", err)
@@ -32,6 +25,9 @@ func TestQueryAsk(t *testing.T) {
 }
 
 func TestStore(t *testing.T) {
+	client, done := setup(t)
+	defer done()
+
 	r := strings.NewReader("store me")
 	_, _, err := client.Store("an address", r, make([]deals.DealConfig, 0), 1024)
 	if err != nil {
@@ -40,45 +36,34 @@ func TestStore(t *testing.T) {
 }
 
 func TestWatch(t *testing.T) {
+	client, done := setup(t)
+	defer done()
+
 	_, _, err := client.Watch(make([]cid.Cid, 0))
 	if err != nil {
 		t.Fatalf("failed to call Watch: %v", err)
 	}
 }
 
-func makeServer() *Server {
-	addr, token := tests.ClientConfigMA()
-	addr, err := ma.NewMultiaddr(grpcHostAddr)
-	if err != nil {
-		panic(err)
-	}
+func setup(t *testing.T) (*Client, func()) {
+	lotusAddr, token := tests.ClientConfigMA()
+	grpcAddr, err := ma.NewMultiaddr(grpcHostAddr)
+	checkErr(t, err)
 	conf := Config{
-		LotusAddress:    addr,
+		LotusAddress:    lotusAddr,
 		LotusAuthToken:  token,
-		GrpcHostAddress: addr,
+		GrpcHostAddress: grpcAddr,
 	}
 	server, err := NewServer(conf)
-	if err != nil {
-		panic(err)
-	}
-	return server
-}
+	checkErr(t, err)
 
-func makeClient() *Client {
-	addr, err := ma.NewMultiaddr(grpcHostAddr)
-	if err != nil {
-		panic(err)
-	}
-	client, err := NewClient(addr)
-	if err != nil {
-		panic(err)
-	}
-	return client
-}
+	client, err := NewClient(grpcAddr)
+	checkErr(t, err)
 
-func shutdown() {
-	client.Close()
-	server.Close()
+	return client, func() {
+		client.Close()
+		server.Close()
+	}
 }
 
 func checkErr(t *testing.T, err error) {

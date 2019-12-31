@@ -41,6 +41,7 @@ func NewServer(conf Config) (*Server, error) {
 	dm := deals.New(c, datastore.NewMapDatastore())
 
 	s := &Server{
+		// ToDo: Support secure connection
 		rpc:        grpc.NewServer(),
 		service:    &service{dealModule: dm},
 		closeLotus: cls,
