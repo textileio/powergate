@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
-	github.com/golang/protobuf v1.3.1
+	github.com/golang/protobuf v1.3.2
 	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/ipfs/go-cid v0.0.4
@@ -20,7 +20,8 @@ require (
 	github.com/whyrusleeping/cbor-gen v0.0.0-20191216205031-b047b6acb3c0
 	go.opencensus.io v0.22.2
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
-	google.golang.org/grpc v1.20.1
+	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
+	google.golang.org/grpc v1.25.1
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.4 // indirect
 )

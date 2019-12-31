@@ -34,13 +34,14 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	c, cls, err := lotus.New(lotusAddr, conf.LotusAuthToken)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// ToDo: use some other persistent data store
 	dm := deals.New(c, datastore.NewMapDatastore())
 
 	s := &Server{
+		// ToDo: Support secure connection
 		rpc:        grpc.NewServer(),
 		service:    &service{dealModule: dm},
 		closeLotus: cls,

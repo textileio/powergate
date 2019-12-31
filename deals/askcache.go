@@ -38,7 +38,7 @@ type StorageAsk struct {
 	Expiry       uint64
 }
 
-// AvailableAsk executes a query to retrieve active Asks
+// AvailableAsks executes a query to retrieve active Asks
 func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
 	d.askCacheLock.RLock()
 	defer d.askCacheLock.RUnlock()

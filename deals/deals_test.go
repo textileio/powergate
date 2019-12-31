@@ -15,7 +15,7 @@ func TestAskCache(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test since we're on short mode")
 	}
-	addr, token := tests.ClientConfig(t)
+	addr, token := tests.ClientConfig()
 	c, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
 	defer cls()
