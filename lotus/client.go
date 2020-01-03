@@ -30,6 +30,8 @@ type API struct {
 		StateMinerPeerID  func(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
 		Version           func(context.Context) (types.Version, error)
 		SyncState         func(context.Context) (*types.SyncState, error)
+		WalletNew         func(context.Context, string) (string, error)
+		WalletBalance     func(context.Context, string) (types.BigInt, error)
 	}
 }
 
@@ -87,6 +89,12 @@ func (a *API) Version(ctx context.Context) (types.Version, error) {
 }
 func (a *API) SyncState(ctx context.Context) (*types.SyncState, error) {
 	return a.Internal.SyncState(ctx)
+}
+func (a *API) WalletNew(ctx context.Context, typ string) (string, error) {
+	return a.Internal.WalletNew(ctx, typ)
+}
+func (a *API) WalletBalance(ctx context.Context, addr string) (types.BigInt, error) {
+	return a.Internal.WalletBalance(ctx, addr)
 }
 
 func monitorLotusSync(ctx context.Context, c *API) {
