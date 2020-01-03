@@ -109,6 +109,7 @@ func TestChainGetTipset(t *testing.T) {
 	ts, err := c.ChainHead(context.Background())
 	checkErr(t, err)
 	pts, err := c.ChainGetTipSet(context.Background(), types.NewTipSetKey(ts.Blocks[0].Parents...))
+	checkErr(t, err)
 	if len(pts.Cids) == 0 || len(pts.Blocks) == 0 || pts.Height != ts.Height-1 {
 		t.Fatalf("invalid tipset")
 	}

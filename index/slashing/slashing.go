@@ -162,9 +162,7 @@ func (s *SlashingIndex) updateConsensusSlashHistory(lastHeight uint64) error {
 	newHistory := make(map[string][]uint64, len(s.consensus.History))
 	for a := range s.consensus.History {
 		newHistory[a] = make([]uint64, len(s.consensus.History[a]))
-		for i, v := range s.consensus.History[a] {
-			newHistory[a][i] = v
-		}
+		copy(newHistory[a], s.consensus.History[a])
 	}
 
 	for i := len(path) - 1; i >= 1; i-- {

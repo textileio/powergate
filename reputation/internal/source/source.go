@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	log = logging.Logger("sourcestore")
+	log = logging.Logger("source")
 )
 
 type Source struct {

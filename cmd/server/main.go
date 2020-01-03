@@ -26,6 +26,9 @@ func main() {
 
 	lotusAddr, _ := tests.ClientConfigMA()
 	grpcAddr, err := ma.NewMultiaddr(grpcHostAddr)
+	if err != nil {
+		panic(err)
+	}
 	token, ok := os.LookupEnv("TEXTILE_LOTUS_TOKEN")
 	if !ok {
 		home, err := os.UserHomeDir()

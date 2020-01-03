@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -23,7 +22,6 @@ const (
 var (
 	dsBase = datastore.NewKey("/index/miner")
 
-	apiTimeout      = time.Second * 5
 	maxParallelCalc = 10
 
 	log = logging.Logger("index-slashing")
@@ -180,7 +178,7 @@ func (mi *MinerIndex) deltaRefresh(lastHeight uint64, ts *types.TipSet) error {
 			return err
 		}
 	}
-	var changedMiners map[string]struct{}
+	changedMiners := make(map[string]struct{})
 	for i := len(path) - 1; i >= 1; i-- {
 		chg, err := mi.c.StateChangedActors(mi.ctx, path[i-1].Blocks[0].ParentStateRoot, path[i].Blocks[0].ParentStateRoot)
 		if err != nil {

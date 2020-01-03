@@ -7,7 +7,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log"
-	peer "github.com/libp2p/go-libp2p-peer"
+	"github.com/libp2p/go-libp2p-core/peer"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/filecoin/lotus/jsonrpc"
 	"github.com/textileio/filecoin/lotus/types"
@@ -47,6 +47,9 @@ type API struct {
 // New creates a new client to Lotus API
 func New(maddr ma.Multiaddr, authToken string) (*API, func(), error) {
 	addr, err := util.TCPAddrFromMultiAddr(maddr)
+	if err != nil {
+		return nil, nil, err
+	}
 	headers := http.Header{
 		"Authorization": []string{"Bearer " + authToken},
 	}

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/ipfs/go-datastore"
-	peer "github.com/libp2p/go-libp2p-peer"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/prometheus/common/log"
 	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/signaler"
@@ -159,7 +159,7 @@ func (d *AskIndex) updateMinerAsks() error {
 
 func takeFreshAskSnapshot(baseCtx context.Context, api API) ([]*types.StorageAsk, error) {
 	startTime := time.Now()
-	defer stats.Record(context.Background(), mAskCacheFullRefreshTime.M(startTime.Sub(time.Now()).Milliseconds()))
+	defer stats.Record(context.Background(), mAskCacheFullRefreshTime.M(time.Until(startTime).Milliseconds()))
 
 	ctx, cancel := context.WithTimeout(baseCtx, time.Second*5)
 	defer cancel()
