@@ -54,7 +54,6 @@ func New(maddr ma.Multiaddr, authToken string) (*API, func(), error) {
 		"Authorization": []string{"Bearer " + authToken},
 	}
 	var api API
-	// ToDo: support for multiaddr
 	closer, err := jsonrpc.NewMergeClient("ws://"+addr+"/rpc/v0", "Filecoin",
 		[]interface{}{
 			&api.Internal,
