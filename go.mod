@@ -7,14 +7,15 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/golang/protobuf v1.3.2
-	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
 	github.com/gorilla/websocket v1.4.1
+	github.com/ipfs/go-block-format v0.0.2
 	github.com/ipfs/go-cid v0.0.4
 	github.com/ipfs/go-datastore v0.3.1
 	github.com/ipfs/go-ipld-cbor v0.0.3
 	github.com/ipfs/go-log v1.0.0
 	github.com/libp2p/go-libp2p-core v0.3.0
 	github.com/libp2p/go-libp2p-peer v0.2.0
+	github.com/minio/sha256-simd v0.1.1
 	github.com/multiformats/go-multiaddr v0.2.0
 	github.com/multiformats/go-multihash v0.0.10
 	github.com/multiformats/go-varint v0.0.2 // indirect

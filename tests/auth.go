@@ -39,6 +39,7 @@ func createAdminToken() (string, error) {
 	return string(out), err
 }
 
+// ToDo: eventually don't use it anymore
 func ClientConfig() (string, string) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -54,7 +55,7 @@ func ClientConfig() (string, string) {
 }
 
 func getDefaultAddr() string {
-	return fmt.Sprintf("/ip4/%v/tcp/%v", lotusHost, lotusPort)
+	return fmt.Sprintf("%s:%d", lotusHost, lotusPort)
 }
 
 func ClientConfigMA() (ma.Multiaddr, string) {
