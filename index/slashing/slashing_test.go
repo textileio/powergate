@@ -9,7 +9,9 @@ import (
 )
 
 func TestFreshIndex(t *testing.T) {
-	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping since is a short test run")
+	}
 	addr, token := tests.ClientConfig()
 	c, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
@@ -17,12 +19,12 @@ func TestFreshIndex(t *testing.T) {
 
 	sh := New(c, tests.NewTxMapDatastore())
 	select {
-	case <-time.After(time.Second * 30):
+	case <-time.After(time.Second * 60):
 		t.Fatal("timeout waiting for miner index full refresh")
 	case <-sh.Listen():
 	}
 	history := sh.ConsensusHistory()
-	if history.LastUpdated == 0 || len(history.Power) == 0 {
+	if history.LastUpdated == 0 || len(history.History) == 0 {
 		t.Fatalf("miner info state is invalid")
 	}
 }

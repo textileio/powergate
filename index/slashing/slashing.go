@@ -71,6 +71,17 @@ func New(c API, ds datastore.TxnDatastore) *SlashingIndex {
 	return s
 }
 
+func (s *SlashingIndex) ConsensusHistory() ConsensusHistory {
+	ch := ConsensusHistory{
+		LastUpdated: s.consensus.LastUpdated,
+		History:     make(map[string][]uint64, len(s.consensus.History)),
+	}
+	for k, v := range s.consensus.History {
+		ch.History[k] = v
+	}
+	return ch
+}
+
 func (s *SlashingIndex) Listen() <-chan struct{} {
 	return s.signaler.Listen()
 }
