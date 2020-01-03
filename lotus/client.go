@@ -21,17 +21,24 @@ var (
 
 type API struct {
 	Internal struct {
-		ClientStartDeal   func(ctx context.Context, data cid.Cid, addr string, miner string, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
-		ClientImport      func(ctx context.Context, path string) (cid.Cid, error)
-		ClientGetDealInfo func(context.Context, cid.Cid) (*types.DealInfo, error)
-		ChainNotify       func(context.Context) (<-chan []*types.HeadChange, error)
-		StateListMiners   func(context.Context, *types.TipSet) ([]string, error)
-		ClientQueryAsk    func(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
-		StateMinerPeerID  func(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
-		Version           func(context.Context) (types.Version, error)
-		SyncState         func(context.Context) (*types.SyncState, error)
-		WalletNew         func(context.Context, string) (string, error)
-		WalletBalance     func(context.Context, string) (types.BigInt, error)
+		ClientStartDeal    func(ctx context.Context, data cid.Cid, addr string, miner string, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
+		ClientImport       func(ctx context.Context, path string) (cid.Cid, error)
+		ClientGetDealInfo  func(context.Context, cid.Cid) (*types.DealInfo, error)
+		ChainNotify        func(context.Context) (<-chan []*types.HeadChange, error)
+		StateListMiners    func(context.Context, *types.TipSet) ([]string, error)
+		ClientQueryAsk     func(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
+		StateMinerPeerID   func(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
+		Version            func(context.Context) (types.Version, error)
+		SyncState          func(context.Context) (*types.SyncState, error)
+		WalletNew          func(context.Context, string) (string, error)
+		WalletBalance      func(context.Context, string) (types.BigInt, error)
+		StateMinerPower    func(context.Context, string, *types.TipSet) (types.MinerPower, error)
+		ChainHead          func(context.Context) (*types.TipSet, error)
+		ChainGetTipSet     func(context.Context, types.TipSetKey) (*types.TipSet, error)
+		StateChangedActors func(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
+		ChainReadObj       func(context.Context, cid.Cid) ([]byte, error)
+		StateReadState     func(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
+		StateGetActor      func(ctx context.Context, actor string, ts *types.TipSet) (*types.Actor, error)
 	}
 }
 
@@ -41,6 +48,7 @@ func New(addr string, authToken string) (*API, func(), error) {
 		"Authorization": []string{"Bearer " + authToken},
 	}
 	var api API
+	// ToDo: support for multiaddr
 	closer, err := jsonrpc.NewMergeClient("ws://"+addr+"/rpc/v0", "Filecoin",
 		[]interface{}{
 			&api.Internal,
@@ -95,6 +103,27 @@ func (a *API) WalletNew(ctx context.Context, typ string) (string, error) {
 }
 func (a *API) WalletBalance(ctx context.Context, addr string) (types.BigInt, error) {
 	return a.Internal.WalletBalance(ctx, addr)
+}
+func (a *API) StateMinerPower(ctx context.Context, addr string, ts *types.TipSet) (types.MinerPower, error) {
+	return a.Internal.StateMinerPower(ctx, addr, ts)
+}
+func (a *API) ChainHead(ctx context.Context) (*types.TipSet, error) {
+	return a.Internal.ChainHead(ctx)
+}
+func (a *API) ChainGetTipSet(ctx context.Context, tsk types.TipSetKey) (*types.TipSet, error) {
+	return a.Internal.ChainGetTipSet(ctx, tsk)
+}
+func (a *API) StateChangedActors(ctx context.Context, ocid cid.Cid, ncid cid.Cid) (map[string]types.Actor, error) {
+	return a.Internal.StateChangedActors(ctx, ocid, ncid)
+}
+func (a *API) ChainReadObj(ctx context.Context, cid cid.Cid) ([]byte, error) {
+	return a.Internal.ChainReadObj(ctx, cid)
+}
+func (a *API) StateReadState(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error) {
+	return a.Internal.StateReadState(ctx, act, ts)
+}
+func (a *API) StateGetActor(ctx context.Context, actor string, ts *types.TipSet) (*types.Actor, error) {
+	return a.Internal.StateGetActor(ctx, actor, ts)
 }
 
 func monitorLotusSync(ctx context.Context, c *API) {
