@@ -15,7 +15,7 @@ func TestFreshBuild(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test since we're on short mode")
 	}
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
 	defer cls()

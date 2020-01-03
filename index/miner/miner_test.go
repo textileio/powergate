@@ -10,7 +10,7 @@ import (
 
 func TestFullRefresh(t *testing.T) {
 	t.Parallel()
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
 	defer cls()

@@ -15,7 +15,7 @@ import (
 )
 
 func TestClientVersion(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -36,7 +36,7 @@ func TestClientImport(t *testing.T) {
 	rand.Read(bts)
 	io.Copy(f, bytes.NewReader(bts))
 
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -49,7 +49,7 @@ func TestClientImport(t *testing.T) {
 }
 
 func TestClientChainNotify(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -75,7 +75,7 @@ func TestClientChainNotify(t *testing.T) {
 }
 
 func TestSyncState(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -88,7 +88,7 @@ func TestSyncState(t *testing.T) {
 }
 
 func TestChainHead(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -101,7 +101,7 @@ func TestChainHead(t *testing.T) {
 }
 
 func TestChainGetTipset(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -115,7 +115,7 @@ func TestChainGetTipset(t *testing.T) {
 }
 
 func TestStateReadState(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()

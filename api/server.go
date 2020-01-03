@@ -39,11 +39,7 @@ type Config struct {
 
 // NewServer starts and returns a new server with the given configuration.
 func NewServer(conf Config) (*Server, error) {
-	lotusAddr, err := util.TCPAddrFromMultiAddr(conf.LotusAddress)
-	if err != nil {
-		return nil, err
-	}
-	c, cls, err := lotus.New(lotusAddr, conf.LotusAuthToken)
+	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
 	if err != nil {
 		return nil, err
 	}

@@ -12,7 +12,7 @@ func TestFreshIndex(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping since is a short test run")
 	}
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
 	defer cls()

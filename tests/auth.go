@@ -39,25 +39,6 @@ func createAdminToken() (string, error) {
 	return string(out), err
 }
 
-// ToDo: eventually don't use it anymore
-func ClientConfig() (string, string) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-	path := filepath.Join(home, ".lotus")
-	authToken, err := GetLotusToken(path)
-	if err != nil {
-		panic(err)
-	}
-
-	return getDefaultAddr(), authToken
-}
-
-func getDefaultAddr() string {
-	return fmt.Sprintf("%s:%d", lotusHost, lotusPort)
-}
-
 func ClientConfigMA() (ma.Multiaddr, string) {
 	addr := fmt.Sprintf("/ip4/%v/tcp/%v", lotusHost, lotusPort)
 	multi, err := ma.NewMultiaddr(addr)
