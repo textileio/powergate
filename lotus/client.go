@@ -127,21 +127,21 @@ func (a *API) StateGetActor(ctx context.Context, actor string, ts *types.TipSet)
 }
 
 func monitorLotusSync(ctx context.Context, c *API) {
-	refreshHeightMetric(c)
+	refreshHeightMetric(ctx, c)
 	for {
 		select {
 		case <-ctx.Done():
 			log.Debug("closing lotus sync monitor")
 			return
 		case <-time.After(lotusSyncStatusInterval):
-			refreshHeightMetric(c)
+			refreshHeightMetric(ctx, c)
 		}
 	}
 }
 
-func refreshHeightMetric(c *API) {
+func refreshHeightMetric(ctx context.Context, c *API) {
 	var h uint64
-	state, err := c.SyncState(context.Background())
+	state, err := c.SyncState(ctx)
 	if err != nil {
 		log.Errorf("error when getting lotus sync status: %s", err)
 		return

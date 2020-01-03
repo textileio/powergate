@@ -170,13 +170,11 @@ func takeFreshAskSnapshot(baseCtx context.Context, api API) ([]*types.StorageAsk
 	}
 	stats.Record(context.Background(), mMinerCount.M(int64(len(addrs))))
 
-	var wg sync.WaitGroup
-	askCh := make(chan *types.StorageAsk)
+	var lock sync.Mutex
+	asks := make([]*types.StorageAsk, 0, len(addrs))
 	for _, a := range addrs {
-		wg.Add(1)
+		rateLim <- struct{}{}
 		go func(a string) {
-			defer wg.Done()
-			rateLim <- struct{}{}
 			defer func() { <-rateLim }()
 			ctx, cancel := context.WithTimeout(baseCtx, queryAskTimeout)
 			defer cancel()
@@ -191,16 +189,13 @@ func takeFreshAskSnapshot(baseCtx context.Context, api API) ([]*types.StorageAsk
 				return
 			}
 
-			askCh <- ask.Ask
+			lock.Lock()
+			asks = append(asks, ask.Ask)
+			lock.Unlock()
 		}(a)
 	}
-	go func() {
-		wg.Wait()
-		close(askCh)
-	}()
-	asks := make([]*types.StorageAsk, 0, len(addrs))
-	for sa := range askCh {
-		asks = append(asks, sa)
+	for i := 0; i < queryAskRateLim; i++ {
+		rateLim <- struct{}{}
 	}
 
 	select {
