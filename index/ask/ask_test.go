@@ -1,4 +1,4 @@
-package deals
+package ask
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/textileio/filecoin/tests"
 )
 
-func TestAskCache(t *testing.T) {
+func TestFreshBuild(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test since we're on short mode")
 	}
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -31,8 +31,8 @@ func TestAskCache(t *testing.T) {
 
 func TestQueryAsk(t *testing.T) {
 	t.Parallel()
-	dm := DealModule{}
-	dm.askCache = []*types.StorageAsk{
+	dm := AskIndex{}
+	dm.cache = []*types.StorageAsk{
 		{Price: types.NewInt(20), MinPieceSize: 128, Miner: "t01"},
 		{Price: types.NewInt(30), MinPieceSize: 64, Miner: "t02"},
 		{Price: types.NewInt(40), MinPieceSize: 256, Miner: "t03"},

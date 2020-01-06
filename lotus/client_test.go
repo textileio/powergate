@@ -10,11 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/tests"
 )
 
 func TestClientVersion(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -35,7 +36,7 @@ func TestClientImport(t *testing.T) {
 	rand.Read(bts)
 	io.Copy(f, bytes.NewReader(bts))
 
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -48,7 +49,7 @@ func TestClientImport(t *testing.T) {
 }
 
 func TestClientChainNotify(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -74,7 +75,7 @@ func TestClientChainNotify(t *testing.T) {
 }
 
 func TestSyncState(t *testing.T) {
-	addr, token := tests.ClientConfig()
+	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
 	defer cls()
@@ -83,6 +84,54 @@ func TestSyncState(t *testing.T) {
 	checkErr(t, err)
 	if state.ActiveSyncs[0].Height == 0 {
 		t.Fatalf("current height can't be zero")
+	}
+}
+
+func TestChainHead(t *testing.T) {
+	addr, token := tests.ClientConfigMA()
+	c, cls, err := New(addr, token)
+	checkErr(t, err)
+	defer cls()
+
+	ts, err := c.ChainHead(context.Background())
+	checkErr(t, err)
+	if len(ts.Cids) == 0 || len(ts.Blocks) == 0 || ts.Height == 0 {
+		t.Fatalf("invalid tipset")
+	}
+}
+
+func TestChainGetTipset(t *testing.T) {
+	addr, token := tests.ClientConfigMA()
+	c, cls, err := New(addr, token)
+	checkErr(t, err)
+	defer cls()
+
+	ts, err := c.ChainHead(context.Background())
+	checkErr(t, err)
+	pts, err := c.ChainGetTipSet(context.Background(), types.NewTipSetKey(ts.Blocks[0].Parents...))
+	checkErr(t, err)
+	if len(pts.Cids) == 0 || len(pts.Blocks) == 0 || pts.Height != ts.Height-1 {
+		t.Fatalf("invalid tipset")
+	}
+}
+
+func TestStateReadState(t *testing.T) {
+	addr, token := tests.ClientConfigMA()
+	c, cls, err := New(addr, token)
+	checkErr(t, err)
+	defer cls()
+
+	addrs, err := c.StateListMiners(context.Background(), nil)
+	checkErr(t, err)
+
+	for _, a := range addrs {
+		actor, err := c.StateGetActor(context.Background(), a, nil)
+		checkErr(t, err)
+		s, err := c.StateReadState(context.Background(), actor, nil)
+		checkErr(t, err)
+		if s.State == nil {
+			t.Fatalf("state of actor %s can't be nil", a)
+		}
 	}
 }
 

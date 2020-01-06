@@ -1,4 +1,4 @@
-package deals
+package ask
 
 import (
 	"bytes"
@@ -10,16 +10,34 @@ import (
 	"time"
 
 	"github.com/ipfs/go-datastore"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/prometheus/common/log"
 	"github.com/textileio/filecoin/lotus/types"
+	"github.com/textileio/filecoin/signaler"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
 var (
-	queryAskRateLim  = 25
-	queryAskTimeout  = time.Second * 20
-	dsStorageAskBase = datastore.NewKey("/deals/storageask")
+	queryAskRateLim    = 25
+	queryAskTimeout    = time.Second * 20
+	askRefreshInterval = time.Second * 10
+	dsStorageAskBase   = datastore.NewKey("/index/ask")
 )
+
+type AskIndex struct {
+	signaler.Signaler
+	c  API
+	ds datastore.TxnDatastore
+
+	cache []*types.StorageAsk
+
+	lock     sync.Mutex
+	ctx      context.Context
+	cancel   context.CancelFunc
+	finished chan struct{}
+	closed   bool
+}
 
 // Query specifies filtering and paging data to retrieve active Asks
 type Query struct {
@@ -38,13 +56,35 @@ type StorageAsk struct {
 	Expiry       uint64
 }
 
+// API interacts with a Filecoin full-node
+type API interface {
+	StateListMiners(context.Context, *types.TipSet) ([]string, error)
+	ClientQueryAsk(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
+	StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
+}
+
+func New(ds datastore.TxnDatastore, c API) *AskIndex {
+	initMetrics()
+	ctx, cancel := context.WithCancel(context.Background())
+	ai := &AskIndex{
+		c:  c,
+		ds: ds,
+
+		ctx:      ctx,
+		cancel:   cancel,
+		finished: make(chan struct{}),
+	}
+	go ai.runBackgroundAskCache()
+	return ai
+}
+
 // AvailableAsks executes a query to retrieve active Asks
-func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
-	d.askCacheLock.RLock()
-	defer d.askCacheLock.RUnlock()
+func (d *AskIndex) AvailableAsks(q Query) ([]StorageAsk, error) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
 	var res []StorageAsk
 	offset := q.Offset
-	for _, sa := range d.askCache {
+	for _, sa := range d.cache {
 		if q.MaxPrice != 0 && types.BigCmp(sa.Price, types.NewInt(q.MaxPrice)) == 1 {
 			break
 		}
@@ -69,8 +109,8 @@ func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
 	return res, nil
 }
 
-func (d *DealModule) runBackgroundAskCache() {
-	defer close(d.closed)
+func (d *AskIndex) runBackgroundAskCache() {
+	defer close(d.finished)
 	if err := d.updateMinerAsks(); err != nil {
 		log.Errorf("error when updating miners asks: %s", err)
 	}
@@ -87,8 +127,8 @@ func (d *DealModule) runBackgroundAskCache() {
 	}
 }
 
-func (d *DealModule) updateMinerAsks() error {
-	asks, err := takeFreshAskSnapshot(d.ctx, d.api)
+func (d *AskIndex) updateMinerAsks() error {
+	asks, err := takeFreshAskSnapshot(d.ctx, d.c)
 	if err != nil {
 		return err
 	}
@@ -110,16 +150,16 @@ func (d *DealModule) updateMinerAsks() error {
 			return err
 		}
 	}
-	d.askCacheLock.Lock()
-	d.askCache = asks
-	d.askCacheLock.Unlock()
+	d.lock.Lock()
+	d.cache = asks
+	d.lock.Unlock()
 
 	return nil
 }
 
-func takeFreshAskSnapshot(baseCtx context.Context, api DealerAPI) ([]*types.StorageAsk, error) {
+func takeFreshAskSnapshot(baseCtx context.Context, api API) ([]*types.StorageAsk, error) {
 	startTime := time.Now()
-	defer stats.Record(context.Background(), mAskCacheFullRefreshTime.M(startTime.Sub(time.Now()).Milliseconds()))
+	defer stats.Record(context.Background(), mAskCacheFullRefreshTime.M(time.Until(startTime).Milliseconds()))
 
 	ctx, cancel := context.WithTimeout(baseCtx, time.Second*5)
 	defer cancel()
@@ -130,19 +170,17 @@ func takeFreshAskSnapshot(baseCtx context.Context, api DealerAPI) ([]*types.Stor
 	}
 	stats.Record(context.Background(), mMinerCount.M(int64(len(addrs))))
 
-	var wg sync.WaitGroup
-	askCh := make(chan *types.StorageAsk)
+	var lock sync.Mutex
+	asks := make([]*types.StorageAsk, 0, len(addrs))
 	for _, a := range addrs {
-		wg.Add(1)
+		rateLim <- struct{}{}
 		go func(a string) {
-			defer wg.Done()
-			rateLim <- struct{}{}
 			defer func() { <-rateLim }()
 			ctx, cancel := context.WithTimeout(baseCtx, queryAskTimeout)
 			defer cancel()
 			pid, err := api.StateMinerPeerID(ctx, a, nil)
 			if err != nil {
-				log.Info("error getting pid of %s: %s", a, err)
+				log.Infof("error getting pid of %s: %s", a, err)
 				return
 			}
 
@@ -151,16 +189,13 @@ func takeFreshAskSnapshot(baseCtx context.Context, api DealerAPI) ([]*types.Stor
 				return
 			}
 
-			askCh <- ask.Ask
+			lock.Lock()
+			asks = append(asks, ask.Ask)
+			lock.Unlock()
 		}(a)
 	}
-	go func() {
-		wg.Wait()
-		close(askCh)
-	}()
-	asks := make([]*types.StorageAsk, 0, len(addrs))
-	for sa := range askCh {
-		asks = append(asks, sa)
+	for i := 0; i < queryAskRateLim; i++ {
+		rateLim <- struct{}{}
 	}
 
 	select {
@@ -175,4 +210,15 @@ func takeFreshAskSnapshot(baseCtx context.Context, api DealerAPI) ([]*types.Stor
 	stats.Record(ctx, mAskQuery.M(int64(len(asks))))
 
 	return asks, nil
+}
+
+func (d *AskIndex) Close() {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	if d.closed {
+		return
+	}
+	d.cancel()
+	<-d.finished
+	d.closed = true
 }
