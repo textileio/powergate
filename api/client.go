@@ -6,7 +6,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	ma "github.com/multiformats/go-multiaddr"
-	pb "github.com/textileio/filecoin/api/pb"
+	pb "github.com/textileio/filecoin/deals/pb"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/util"

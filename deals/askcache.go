@@ -39,7 +39,7 @@ type StorageAsk struct {
 }
 
 // AvailableAsks executes a query to retrieve active Asks
-func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
+func (d *Module) AvailableAsks(q Query) ([]StorageAsk, error) {
 	d.askCacheLock.RLock()
 	defer d.askCacheLock.RUnlock()
 	var res []StorageAsk
@@ -69,7 +69,7 @@ func (d *DealModule) AvailableAsks(q Query) ([]StorageAsk, error) {
 	return res, nil
 }
 
-func (d *DealModule) runBackgroundAskCache() {
+func (d *Module) runBackgroundAskCache() {
 	defer close(d.closed)
 	if err := d.updateMinerAsks(); err != nil {
 		log.Errorf("error when updating miners asks: %s", err)
@@ -87,7 +87,7 @@ func (d *DealModule) runBackgroundAskCache() {
 	}
 }
 
-func (d *DealModule) updateMinerAsks() error {
+func (d *Module) updateMinerAsks() error {
 	asks, err := takeFreshAskSnapshot(d.ctx, d.api)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (d *DealModule) updateMinerAsks() error {
 	return nil
 }
 
-func takeFreshAskSnapshot(baseCtx context.Context, api DealerAPI) ([]*types.StorageAsk, error) {
+func takeFreshAskSnapshot(baseCtx context.Context, api API) ([]*types.StorageAsk, error) {
 	startTime := time.Now()
 	defer stats.Record(context.Background(), mAskCacheFullRefreshTime.M(startTime.Sub(time.Now()).Milliseconds()))
 

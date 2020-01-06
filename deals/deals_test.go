@@ -31,7 +31,7 @@ func TestAskCache(t *testing.T) {
 
 func TestQueryAsk(t *testing.T) {
 	t.Parallel()
-	dm := DealModule{}
+	dm := Module{}
 	dm.askCache = []*types.StorageAsk{
 		{Price: types.NewInt(20), MinPieceSize: 128, Miner: "t01"},
 		{Price: types.NewInt(30), MinPieceSize: 64, Miner: "t02"},

@@ -5,7 +5,8 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	ma "github.com/multiformats/go-multiaddr"
-	pb "github.com/textileio/filecoin/api/pb"
+	dealsPb "github.com/textileio/filecoin/deals/pb"
+	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/lotus"
 	"github.com/textileio/filecoin/util"
@@ -15,9 +16,10 @@ import (
 
 // Server represents the configured lotus client and filecoin grpc server
 type Server struct {
-	rpc        *grpc.Server
-	service    *service
-	closeLotus func()
+	rpc          *grpc.Server
+	dealsService *deals.Service
+	walletService *wallet.Service
+	closeLotus   func()
 }
 
 // Config specifies server settings.
@@ -45,10 +47,8 @@ func NewServer(conf Config) (*Server, error) {
 	s := &Server{
 		// ToDo: Support secure connection
 		rpc: grpc.NewServer(),
-		service: &service{
-			dealModule:   dm,
-			walletModule: wm,
-		},
+		dealsService: &deals.Service{Module: dm},
+		walletService: &wallet.Service{Module: wm},
 		closeLotus: cls,
 	}
 
@@ -61,7 +61,8 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, err
 	}
 	go func() {
-		pb.RegisterAPIServer(s.rpc, s.service)
+		dealsPb.RegisterAPIServer(s.rpc, s.dealsService)
+		walletPb.RegisterAPIServer(s.rpc, s.walletService)
 		s.rpc.Serve(listener)
 	}()
 
@@ -70,8 +71,8 @@ func NewServer(conf Config) (*Server, error) {
 
 // Close shuts down the server
 func (s *Server) Close() {
-	s.service.dealModule.Close()
-	s.service.walletModule.Close()
+	s.dealsService.Module.Close()
+	s.walletService.Module.Close()
 	s.closeLotus()
 	s.rpc.Stop()
 }

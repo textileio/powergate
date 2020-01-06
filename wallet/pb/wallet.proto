@@ -1,0 +1,28 @@
+syntax = "proto3";
+package filecoin.wallet.pb;
+
+option java_multiple_files = true;
+option java_package = "io.textile.wallet.pb";
+option java_outer_classname = "FilecoinWallet";
+option objc_class_prefix = "TTE";
+
+message NewWalletRequest {
+    string typ = 1;
+}
+
+message NewWalletReply {
+    string address = 1;
+}
+
+message WalletBalanceRequest {
+	string address = 1;
+}
+
+message WalletBalanceReply {
+    int64 balance = 1;
+}
+
+service API {
+    rpc NewWallet(NewWalletRequest) returns (NewWalletReply) {}
+    rpc WalletBalance(WalletBalanceRequest) returns (WalletBalanceReply) {}
+}

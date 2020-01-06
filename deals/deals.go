@@ -31,8 +31,8 @@ var (
 	log = logging.Logger("deals")
 )
 
-// DealerAPI interacts with a Filecoin full-node
-type DealerAPI interface {
+// API interacts with a Filecoin full-node
+type API interface {
 	ClientStartDeal(ctx context.Context, data cid.Cid, addr string, miner string, epochPrice types.BigInt, blocksDuration uint64) (*cid.Cid, error)
 	ClientImport(ctx context.Context, path string) (cid.Cid, error)
 	ClientGetDealInfo(context.Context, cid.Cid) (*types.DealInfo, error)
@@ -42,9 +42,9 @@ type DealerAPI interface {
 	StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
 }
 
-// DealModule exposes storage, monitoring, and Asks from the market.
-type DealModule struct {
-	api            DealerAPI
+// Module exposes storage, monitoring, and Asks from the market.
+type Module struct {
+	api            API
 	ds             datastore.Datastore
 	basePathImport string
 
@@ -79,14 +79,14 @@ type DealInfo struct {
 }
 
 // New creates a new deal module
-func New(api DealerAPI, ds datastore.Datastore) *DealModule {
+func New(api API, ds datastore.Datastore) *Module {
 	// can't avoid home base path, ipfs checks: cannot add filestore references outside ipfs root (home folder)
 	home, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	dm := &DealModule{
+	dm := &Module{
 		api:            api,
 		ds:             ds,
 		basePathImport: filepath.Join(home, "textilefc"),
@@ -102,7 +102,7 @@ func New(api DealerAPI, ds datastore.Datastore) *DealModule {
 }
 
 // Close closes the deal module
-func (d *DealModule) Close() {
+func (d *Module) Close() {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if d.stateClosed {
@@ -115,7 +115,7 @@ func (d *DealModule) Close() {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
+func (d *Module) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
 	tmpF, err := ioutil.TempFile(d.basePathImport, "import-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
@@ -150,7 +150,7 @@ func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dea
 }
 
 // Watch returnas a channel with state changes of indicated proposals
-func (d *DealModule) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
+func (d *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
 	ch := make(chan DealInfo)
 	w, err := d.api.ChainNotify(ctx)
 	if err != nil {
@@ -179,7 +179,7 @@ func (d *DealModule) Watch(ctx context.Context, proposals []cid.Cid) (<-chan Dea
 	return ch, nil
 }
 
-func (d *DealModule) pushNewChanges(ctx context.Context, currState map[cid.Cid]types.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func (d *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]types.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
 		dinfo, err := d.api.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
