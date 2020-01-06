@@ -9,6 +9,7 @@ import (
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/lotus"
 	"github.com/textileio/filecoin/util"
+	"github.com/textileio/filecoin/wallet"
 	"google.golang.org/grpc"
 )
 
@@ -39,11 +40,15 @@ func NewServer(conf Config) (*Server, error) {
 
 	// ToDo: use some other persistent data store
 	dm := deals.New(c, datastore.NewMapDatastore())
+	wm := wallet.New(c)
 
 	s := &Server{
 		// ToDo: Support secure connection
-		rpc:        grpc.NewServer(),
-		service:    &service{dealModule: dm},
+		rpc: grpc.NewServer(),
+		service: &service{
+			dealModule:   dm,
+			walletModule: wm,
+		},
 		closeLotus: cls,
 	}
 
@@ -66,6 +71,7 @@ func NewServer(conf Config) (*Server, error) {
 // Close shuts down the server
 func (s *Server) Close() {
 	s.service.dealModule.Close()
+	s.service.walletModule.Close()
 	s.closeLotus()
 	s.rpc.Stop()
 }

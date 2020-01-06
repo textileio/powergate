@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-cid"
 	pb "github.com/textileio/filecoin/api/pb"
 	"github.com/textileio/filecoin/deals"
+	"github.com/textileio/filecoin/wallet"
 	"github.com/textileio/filecoin/lotus/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,6 +17,7 @@ type service struct {
 	pb.UnimplementedAPIServer
 
 	dealModule *deals.DealModule
+	walletModule *wallet.Module
 }
 
 type storeResult struct {

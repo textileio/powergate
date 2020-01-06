@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/lotus"
 	"github.com/textileio/filecoin/tests"
+	"github.com/textileio/filecoin/wallet"
 )
 
 var (
@@ -40,7 +41,8 @@ func main() {
 		panic(err)
 	}
 	defer cls()
-	md := deals.New(c, datastore.NewMapDatastore())
+	dm := deals.New(c, datastore.NewMapDatastore())
+	wm := wallet.New(c)
 
 	instrumentationSetup()
 
@@ -48,7 +50,8 @@ func main() {
 	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
 	<-s
 	fmt.Println("Closing...")
-	md.Close()
+	dm.Close()
+	wm.Close()
 	fmt.Println("Closed")
 }
 
