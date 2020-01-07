@@ -1,48 +1,49 @@
-package api
+package deals
 
 import (
 	"context"
 	"io"
 
 	"github.com/ipfs/go-cid"
-	pb "github.com/textileio/filecoin/api/pb"
-	"github.com/textileio/filecoin/deals"
+	pb "github.com/textileio/filecoin/deals/pb"
 	"github.com/textileio/filecoin/index/ask"
 	"github.com/textileio/filecoin/lotus/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type service struct {
+// Service implements the gprc service
+type Service struct {
 	pb.UnimplementedAPIServer
 
-	askIndex   *ask.AskIndex
-	dealModule *deals.DealModule
+	askIndex *ask.AskIndex
+	Module   *Module
 }
 
 type storeResult struct {
 	Cids        []cid.Cid
-	FailedDeals []deals.DealConfig
+	FailedDeals []DealConfig
 	Err         error
 }
 
-func newService(dm *deals.DealModule, ai *ask.AskIndex) *service {
-	return &service{
-		dealModule: dm,
-		askIndex:   ai,
+// NewService is a helper to create a new Service
+func NewService(dm *Module, ai *ask.AskIndex) *Service {
+	return &Service{
+		Module:   dm,
+		askIndex: ai,
 	}
 }
 
-func store(ctx context.Context, dealModule *deals.DealModule, storeParams *pb.StoreParams, reader io.Reader, ch chan storeResult) {
+func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams, reader io.Reader, ch chan storeResult) {
 	defer close(ch)
-	dealConfigs := make([]deals.DealConfig, len(storeParams.GetDealConfigs()))
+	dealConfigs := make([]DealConfig, len(storeParams.GetDealConfigs()))
 	for i, dealConfig := range storeParams.GetDealConfigs() {
-		dealConfigs[i] = deals.DealConfig{
+		dealConfigs[i] = DealConfig{
 			Miner:      dealConfig.GetMiner(),
 			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
 		}
 	}
-	cids, failedDeals, err := dealModule.Store(ctx, storeParams.GetAddress(), reader, dealConfigs, storeParams.GetDuration())
+	cids, failedDeals, err := dealsModule.Store(ctx, storeParams.GetAddress(), reader, dealConfigs, storeParams.GetDuration())
 	if err != nil {
 		ch <- storeResult{Err: err}
 		return
@@ -50,7 +51,8 @@ func store(ctx context.Context, dealModule *deals.DealModule, storeParams *pb.St
 	ch <- storeResult{Cids: cids, FailedDeals: failedDeals}
 }
 
-func (s *service) AvailableAsks(ctx context.Context, req *pb.AvailableAsksRequest) (*pb.AvailableAsksReply, error) {
+// AvailableAsks calls deals.AvailableAsks
+func (s *Service) AvailableAsks(ctx context.Context, req *pb.AvailableAsksRequest) (*pb.AvailableAsksReply, error) {
 	q := ask.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),
@@ -74,7 +76,8 @@ func (s *service) AvailableAsks(ctx context.Context, req *pb.AvailableAsksReques
 	return &pb.AvailableAsksReply{Asks: replyAsks}, nil
 }
 
-func (s *service) Store(srv pb.API_StoreServer) error {
+// Store calls deals.Store
+func (s *Service) Store(srv pb.API_StoreServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
@@ -90,7 +93,7 @@ func (s *service) Store(srv pb.API_StoreServer) error {
 	reader, writer := io.Pipe()
 
 	storeChannel := make(chan storeResult)
-	go store(srv.Context(), s.dealModule, storeParams, reader, storeChannel)
+	go store(srv.Context(), s.Module, storeParams, reader, storeChannel)
 
 	for {
 		req, err := srv.Recv()
@@ -130,7 +133,8 @@ func (s *service) Store(srv pb.API_StoreServer) error {
 	return srv.SendAndClose(&pb.StoreReply{Cids: replyCids, FailedDeals: replyFailedDeals})
 }
 
-func (s *service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
+// Watch calls deals.Watch
+func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	proposals := make([]cid.Cid, len(req.GetProposals()))
 	for i, proposal := range req.GetProposals() {
 		id, err := cid.Decode(proposal)
@@ -139,7 +143,7 @@ func (s *service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 		}
 		proposals[i] = id
 	}
-	ch, err := s.dealModule.Watch(srv.Context(), proposals)
+	ch, err := s.Module.Watch(srv.Context(), proposals)
 	if err != nil {
 		return err
 	}

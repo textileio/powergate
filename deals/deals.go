@@ -27,8 +27,8 @@ var (
 	log = logging.Logger("deals")
 )
 
-// DealModule exposes storage, monitoring, and Asks from the market.
-type DealModule struct {
+// Module exposes storage, monitoring, and Asks from the market.
+type Module struct {
 	api            API
 	ds             datastore.Datastore
 	basePathImport string
@@ -63,13 +63,13 @@ type API interface {
 }
 
 // New creates a new deal module
-func New(api API, ds datastore.Datastore) *DealModule {
+func New(api API, ds datastore.Datastore) *Module {
 	// can't avoid home base path, ipfs checks: cannot add filestore references outside ipfs root (home folder)
 	home, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
-	dm := &DealModule{
+	dm := &Module{
 		api:            api,
 		ds:             ds,
 		basePathImport: filepath.Join(home, "textilefc"),
@@ -79,8 +79,8 @@ func New(api API, ds datastore.Datastore) *DealModule {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
-	tmpF, err := ioutil.TempFile(d.basePathImport, "import-*")
+func (m *Module) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
+	tmpF, err := ioutil.TempFile(m.basePathImport, "import-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
@@ -89,7 +89,7 @@ func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dea
 	if _, err := io.Copy(tmpF, data); err != nil {
 		return nil, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
-	dataCid, err := d.api.ClientImport(ctx, tmpF.Name())
+	dataCid, err := m.api.ClientImport(ctx, tmpF.Name())
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when importing data: %s", err)
 	}
@@ -102,7 +102,7 @@ func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dea
 			failed = append(failed, dconfig)
 			continue
 		}
-		proposal, err := d.api.ClientStartDeal(ctx, dataCid, addr, dconfig.Miner, dconfig.EpochPrice, duration)
+		proposal, err := m.api.ClientStartDeal(ctx, dataCid, addr, dconfig.Miner, dconfig.EpochPrice, duration)
 		if err != nil {
 			log.Errorf("error when starting deal with %v: %s", dconfig, err)
 			failed = append(failed, dconfig)
@@ -114,9 +114,9 @@ func (d *DealModule) Store(ctx context.Context, addr string, data io.Reader, dea
 }
 
 // Watch returnas a channel with state changes of indicated proposals
-func (d *DealModule) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
+func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
 	ch := make(chan DealInfo)
-	w, err := d.api.ChainNotify(ctx)
+	w, err := m.api.ChainNotify(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error when listening to chain changes: %s", err)
 	}
@@ -130,11 +130,11 @@ func (d *DealModule) Watch(ctx context.Context, proposals []cid.Cid) (<-chan Dea
 			case <-ctx.Done():
 				return
 			case <-tout:
-				if err := d.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
+				if err := m.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
 					log.Errorf("error when pushing new proposal states: %s", err)
 				}
 			case <-w:
-				if err := d.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
+				if err := m.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
 					log.Errorf("error when pushing new proposal states: %s", err)
 				}
 			}
@@ -143,9 +143,9 @@ func (d *DealModule) Watch(ctx context.Context, proposals []cid.Cid) (<-chan Dea
 	return ch, nil
 }
 
-func (d *DealModule) pushNewChanges(ctx context.Context, currState map[cid.Cid]types.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]types.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
-		dinfo, err := d.api.ClientGetDealInfo(ctx, pcid)
+		dinfo, err := m.api.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
 			log.Errorf("error when getting deal proposal info %s: %s", pcid, err)
 			continue

@@ -1,9 +1,9 @@
 syntax = "proto3";
-package filecoin.api.pb;
+package filecoin.deals.pb;
 
 option java_multiple_files = true;
-option java_package = "io.textile.grpc_textile_filecoin";
-option java_outer_classname = "Filecoin";
+option java_package = "io.textile.filecoin.deals.pb";
+option java_outer_classname = "FilecoinDeals";
 option objc_class_prefix = "TTE";
 
 message Query {

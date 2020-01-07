@@ -1,4 +1,4 @@
-package api
+package server
 
 import (
 	"net"
@@ -6,12 +6,14 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
-	pb "github.com/textileio/filecoin/api/pb"
 	"github.com/textileio/filecoin/deals"
+	dealsPb "github.com/textileio/filecoin/deals/pb"
 	"github.com/textileio/filecoin/index/ask"
 	"github.com/textileio/filecoin/lotus"
 	"github.com/textileio/filecoin/tests"
 	"github.com/textileio/filecoin/util"
+	"github.com/textileio/filecoin/wallet"
+	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
 )
 
@@ -22,12 +24,14 @@ var (
 // Server represents the configured lotus client and filecoin grpc server
 type Server struct {
 	ds datastore.TxnDatastore
-	dm *deals.DealModule
+	dm *deals.Module
 	ai *ask.AskIndex
+	wm *wallet.Module
 
-	rpc        *grpc.Server
-	service    *service
-	closeLotus func()
+	rpc           *grpc.Server
+	dealsService  *deals.Service
+	walletService *wallet.Service
+	closeLotus    func()
 }
 
 // Config specifies server settings.
@@ -49,16 +53,19 @@ func NewServer(conf Config) (*Server, error) {
 
 	ai := ask.New(ds, c)
 	dm := deals.New(c, ds)
-	service := newService(dm, ai)
+	wm := wallet.New(c)
+	dealsService := deals.NewService(dm, ai)
 
 	s := &Server{
 		// ToDo: Support secure connection
-		rpc:        grpc.NewServer(),
-		ds:         ds,
-		dm:         dm,
-		ai:         ai,
-		service:    service,
-		closeLotus: cls,
+		rpc:           grpc.NewServer(),
+		ds:            ds,
+		dm:            dm,
+		ai:            ai,
+		wm:            wm,
+		dealsService:  dealsService,
+		walletService: &wallet.Service{Module: wm},
+		closeLotus:    cls,
 	}
 
 	grpcAddr, err := util.TCPAddrFromMultiAddr(conf.GrpcHostAddress)
@@ -70,7 +77,8 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, err
 	}
 	go func() {
-		pb.RegisterAPIServer(s.rpc, s.service)
+		dealsPb.RegisterAPIServer(s.rpc, s.dealsService)
+		walletPb.RegisterAPIServer(s.rpc, s.walletService)
 		s.rpc.Serve(listener)
 	}()
 
