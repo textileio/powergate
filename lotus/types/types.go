@@ -50,6 +50,7 @@ type DealInfo struct {
 
 type TipSet struct {
 	Cids   []cid.Cid
+	Blocks []*BlockHeader
 	Height uint64
 }
 
@@ -74,6 +75,12 @@ type Version struct {
 	// Seconds
 	BlockDelay uint64
 }
+
+const (
+	HCRevert  = "revert"
+	HCApply   = "apply"
+	HCCurrent = "current"
+)
 
 type HeadChange struct {
 	Type string
@@ -105,4 +112,14 @@ type ActiveSync struct {
 
 type SyncState struct {
 	ActiveSyncs []ActiveSync
+}
+
+type MinerPower struct {
+	MinerPower BigInt
+	TotalPower BigInt
+}
+
+type ActorState struct {
+	Balance BigInt
+	State   interface{}
 }

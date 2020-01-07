@@ -1,6 +1,7 @@
-package deals
+package ask
 
 import (
+	"github.com/prometheus/common/log"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -34,3 +35,9 @@ var (
 
 	keyAskStatus, _ = tag.NewKey("askstatus")
 )
+
+func initMetrics() {
+	if err := view.Register(views...); err != nil {
+		log.Fatalf("Failed to register views: %v", err)
+	}
+}

@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"sync"
@@ -19,6 +20,12 @@ import (
 )
 
 var log = logging.Logger("rpc")
+
+const (
+	rpcParseError     = -32700
+	rpcMethodNotFound = -32601
+	rpcInvalidParams  = -32602
+)
 
 var (
 	errorType   = reflect.TypeOf(new(error)).Elem()
@@ -389,4 +396,34 @@ func (c *client) makeRpcFunc(f reflect.StructField) (reflect.Value, error) {
 	fun.retCh = fun.valOut != -1 && ftyp.Out(fun.valOut).Kind() == reflect.Chan
 
 	return reflect.MakeFunc(ftyp, fun.handleRpcCall), nil
+}
+
+func rpcError(wf func(func(io.Writer)), req *request, code int, err error) {
+	log.Errorf("RPC Error: %s", err)
+	wf(func(w io.Writer) {
+		if hw, ok := w.(http.ResponseWriter); ok {
+			hw.WriteHeader(500)
+		}
+
+		log.Warnf("rpc error: %s", err)
+
+		if req.ID == nil { // notification
+			return
+		}
+
+		resp := response{
+			Jsonrpc: "2.0",
+			ID:      *req.ID,
+			Error: &respError{
+				Code:    code,
+				Message: err.Error(),
+			},
+		}
+
+		err = json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			log.Warnf("failed to write rpc error: %s", err)
+			return
+		}
+	})
 }

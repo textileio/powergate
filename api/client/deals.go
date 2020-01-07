@@ -7,6 +7,7 @@ import (
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/filecoin/deals"
 	pb "github.com/textileio/filecoin/deals/pb"
+	"github.com/textileio/filecoin/index/ask"
 	"github.com/textileio/filecoin/lotus/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,7 +25,7 @@ type WatchEvent struct {
 }
 
 // AvailableAsks executes a query to retrieve active Asks
-func (d *Deals) AvailableAsks(ctx context.Context, query deals.Query) ([]deals.StorageAsk, error) {
+func (d *Deals) AvailableAsks(ctx context.Context, query ask.Query) ([]ask.StorageAsk, error) {
 	q := &pb.Query{
 		MaxPrice:  query.MaxPrice,
 		PieceSize: query.PieceSize,
@@ -35,14 +36,14 @@ func (d *Deals) AvailableAsks(ctx context.Context, query deals.Query) ([]deals.S
 	if err != nil {
 		return nil, err
 	}
-	asks := make([]deals.StorageAsk, len(reply.GetAsks()))
-	for i, ask := range reply.GetAsks() {
-		asks[i] = deals.StorageAsk{
-			Price:        ask.GetPrice(),
-			MinPieceSize: ask.GetMinPieceSize(),
-			Miner:        ask.GetMiner(),
-			Timestamp:    ask.GetTimestamp(),
-			Expiry:       ask.GetExpiry(),
+	asks := make([]ask.StorageAsk, len(reply.GetAsks()))
+	for i, a := range reply.GetAsks() {
+		asks[i] = ask.StorageAsk{
+			Price:        a.GetPrice(),
+			MinPieceSize: a.GetMinPieceSize(),
+			Miner:        a.GetMiner(),
+			Timestamp:    a.GetTimestamp(),
+			Expiry:       a.GetExpiry(),
 		}
 	}
 	return asks, nil

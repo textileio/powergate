@@ -4,22 +4,34 @@ import (
 	"net"
 
 	"github.com/ipfs/go-datastore"
+	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/filecoin/deals"
 	dealsPb "github.com/textileio/filecoin/deals/pb"
+	"github.com/textileio/filecoin/index/ask"
 	"github.com/textileio/filecoin/lotus"
+	"github.com/textileio/filecoin/tests"
 	"github.com/textileio/filecoin/util"
 	"github.com/textileio/filecoin/wallet"
 	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
 )
 
+var (
+	log = logging.Logger("server")
+)
+
 // Server represents the configured lotus client and filecoin grpc server
 type Server struct {
-	rpc           *grpc.Server
+	ds datastore.TxnDatastore
+	dm *deals.Module
+	ai *ask.AskIndex
+	wm *wallet.Module
+
+	rpc        *grpc.Server
 	dealsService  *deals.Service
 	walletService *wallet.Service
-	closeLotus    func()
+	closeLotus func()
 }
 
 // Config specifies server settings.
@@ -31,25 +43,28 @@ type Config struct {
 
 // NewServer starts and returns a new server with the given configuration.
 func NewServer(conf Config) (*Server, error) {
-	lotusAddr, err := util.TCPAddrFromMultiAddr(conf.LotusAddress)
-	if err != nil {
-		return nil, err
-	}
-	c, cls, err := lotus.New(lotusAddr, conf.LotusAuthToken)
+	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
 	if err != nil {
 		return nil, err
 	}
 
 	// ToDo: use some other persistent data store
-	dm := deals.New(c, datastore.NewMapDatastore())
+	ds := tests.NewTxMapDatastore()
+
+	ai := ask.New(ds, c)
+	dm := deals.New(c, ds)
 	wm := wallet.New(c)
+	service := deals.newService(dm, ai)
 
 	s := &Server{
 		// ToDo: Support secure connection
-		rpc:           grpc.NewServer(),
-		dealsService:  &deals.Service{Module: dm},
+		rpc:        grpc.NewServer(),
+		ds:         ds,
+		dm:         dm,
+		ai:         ai,
+		dealsService:    service,
 		walletService: &wallet.Service{Module: wm},
-		closeLotus:    cls,
+		closeLotus: cls,
 	}
 
 	grpcAddr, err := util.TCPAddrFromMultiAddr(conf.GrpcHostAddress)
@@ -71,8 +86,10 @@ func NewServer(conf Config) (*Server, error) {
 
 // Close shuts down the server
 func (s *Server) Close() {
-	s.dealsService.Module.Close()
-	s.walletService.Module.Close()
+	s.rpc.GracefulStop()
 	s.closeLotus()
-	s.rpc.Stop()
+	s.ai.Close()
+	if err := s.ds.Close(); err != nil {
+		log.Errorf("error when closing datastore: %s", err)
+	}
 }

@@ -1,58 +1,64 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
-	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
-	"github.com/textileio/filecoin/deals"
-	"github.com/textileio/filecoin/lotus"
+	ma "github.com/multiformats/go-multiaddr"
+	"github.com/textileio/filecoin/api"
 	"github.com/textileio/filecoin/tests"
 	"github.com/textileio/filecoin/wallet"
 )
 
 var (
+	grpcHostAddr = "/ip4/127.0.0.1/tcp/50051"
+
 	log = logging.Logger("main")
 )
 
 func main() {
+	logging.SetDebugLogging()
 	logging.SetLogLevel("deals", "warn")
+	instrumentationSetup()
 
-	addr := "127.0.0.1:1234"
-
-	home, err := os.UserHomeDir()
+	lotusAddr, _ := tests.ClientConfigMA()
+	grpcAddr, err := ma.NewMultiaddr(grpcHostAddr)
 	if err != nil {
 		panic(err)
 	}
 	token, ok := os.LookupEnv("TEXTILE_LOTUS_TOKEN")
 	if !ok {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
+		}
 		token, err = tests.GetLotusToken(home)
 		if err != nil {
 			panic(err)
 		}
 	}
-	c, cls, err := lotus.New(addr, token)
+	conf := api.Config{
+		LotusAddress:    lotusAddr,
+		LotusAuthToken:  token,
+		GrpcHostAddress: grpcAddr,
+	}
+	log.Info("starting server...")
+	server, err := api.NewServer(conf)
 	if err != nil {
 		panic(err)
 	}
-	defer cls()
-	dm := deals.New(c, datastore.NewMapDatastore())
-	wm := wallet.New(c)
-
-	instrumentationSetup()
+	log.Info("server started.")
 
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
 	<-s
-	fmt.Println("Closing...")
-	dm.Close()
-	wm.Close()
-	fmt.Println("Closed")
+	log.Info("Closing...")
+	server.Close()
+	log.Info("Closed")
 }
 
 func instrumentationSetup() {

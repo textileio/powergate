@@ -8,21 +8,17 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"sync"
 	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
-	peer "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/textileio/filecoin/lotus/types"
-	"go.opencensus.io/stats/view"
 )
 
 const (
-	initialWait        = time.Second * 5
-	chanWriteTimeout   = time.Second
-	askRefreshInterval = time.Second * 10
+	initialWait      = time.Second * 5
+	chanWriteTimeout = time.Second
 )
 
 var (
@@ -37,9 +33,6 @@ type API interface {
 	ClientImport(ctx context.Context, path string) (cid.Cid, error)
 	ClientGetDealInfo(context.Context, cid.Cid) (*types.DealInfo, error)
 	ChainNotify(context.Context) (<-chan []*types.HeadChange, error)
-	StateListMiners(context.Context, *types.TipSet) ([]string, error)
-	ClientQueryAsk(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
-	StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
 }
 
 // Module exposes storage, monitoring, and Asks from the market.
@@ -47,15 +40,6 @@ type Module struct {
 	api            API
 	ds             datastore.Datastore
 	basePathImport string
-
-	askCacheLock sync.RWMutex
-	askCache     []*types.StorageAsk
-
-	lock        sync.Mutex
-	stateClosed bool
-	ctx         context.Context
-	cancel      context.CancelFunc
-	closed      chan struct{}
 }
 
 // DealConfig contains information about a proposal for a particular miner
@@ -85,38 +69,18 @@ func New(api API, ds datastore.Datastore) *Module {
 	if err != nil {
 		panic(err)
 	}
-	ctx, cancel := context.WithCancel(context.Background())
 	dm := &Module{
 		api:            api,
 		ds:             ds,
 		basePathImport: filepath.Join(home, "textilefc"),
-		ctx:            ctx,
-		cancel:         cancel,
-		closed:         make(chan struct{}),
-	}
-	go dm.runBackgroundAskCache()
-	if err := view.Register(views...); err != nil {
-		log.Fatalf("Failed to register views: %v", err)
 	}
 	return dm
 }
 
-// Close closes the deal module
-func (d *Module) Close() {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-	if d.stateClosed {
-		return
-	}
-	d.cancel()
-	<-d.closed
-	d.stateClosed = true
-}
-
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *Module) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
-	tmpF, err := ioutil.TempFile(d.basePathImport, "import-*")
+func (m *Module) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
+	tmpF, err := ioutil.TempFile(m.basePathImport, "import-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
@@ -125,7 +89,7 @@ func (d *Module) Store(ctx context.Context, addr string, data io.Reader, dealCon
 	if _, err := io.Copy(tmpF, data); err != nil {
 		return nil, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
-	dataCid, err := d.api.ClientImport(ctx, tmpF.Name())
+	dataCid, err := m.api.ClientImport(ctx, tmpF.Name())
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when importing data: %s", err)
 	}
@@ -138,7 +102,7 @@ func (d *Module) Store(ctx context.Context, addr string, data io.Reader, dealCon
 			failed = append(failed, dconfig)
 			continue
 		}
-		proposal, err := d.api.ClientStartDeal(ctx, dataCid, addr, dconfig.Miner, dconfig.EpochPrice, duration)
+		proposal, err := m.api.ClientStartDeal(ctx, dataCid, addr, dconfig.Miner, dconfig.EpochPrice, duration)
 		if err != nil {
 			log.Errorf("error when starting deal with %v: %s", dconfig, err)
 			failed = append(failed, dconfig)
@@ -150,9 +114,9 @@ func (d *Module) Store(ctx context.Context, addr string, data io.Reader, dealCon
 }
 
 // Watch returnas a channel with state changes of indicated proposals
-func (d *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
+func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
 	ch := make(chan DealInfo)
-	w, err := d.api.ChainNotify(ctx)
+	w, err := m.api.ChainNotify(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error when listening to chain changes: %s", err)
 	}
@@ -166,11 +130,11 @@ func (d *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 			case <-ctx.Done():
 				return
 			case <-tout:
-				if err := d.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
+				if err := m.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
 					log.Errorf("error when pushing new proposal states: %s", err)
 				}
 			case <-w:
-				if err := d.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
+				if err := m.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
 					log.Errorf("error when pushing new proposal states: %s", err)
 				}
 			}
@@ -179,9 +143,9 @@ func (d *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func (d *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]types.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]types.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
-		dinfo, err := d.api.ClientGetDealInfo(ctx, pcid)
+		dinfo, err := m.api.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
 			log.Errorf("error when getting deal proposal info %s: %s", pcid, err)
 			continue

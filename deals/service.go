@@ -6,6 +6,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	pb "github.com/textileio/filecoin/deals/pb"
+	"github.com/textileio/filecoin/index/ask"
 	"github.com/textileio/filecoin/lotus/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,13 +16,21 @@ import (
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	Module *Module
+	askIndex *ask.AskIndex
+	Module   *Module
 }
 
 type storeResult struct {
 	Cids        []cid.Cid
 	FailedDeals []DealConfig
 	Err         error
+}
+
+func newService(dm *Module, ai *ask.AskIndex) *Service {
+	return &Service{
+		Module:   dm,
+		askIndex: ai,
+	}
 }
 
 func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams, reader io.Reader, ch chan storeResult) {
@@ -43,13 +52,13 @@ func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams
 
 // AvailableAsks calls deals.AvailableAsks
 func (s *Service) AvailableAsks(ctx context.Context, req *pb.AvailableAsksRequest) (*pb.AvailableAsksReply, error) {
-	query := Query{
+	q := ask.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),
 		Limit:     int(req.GetQuery().GetLimit()),
 		Offset:    int(req.GetQuery().GetOffset()),
 	}
-	asks, err := s.Module.AvailableAsks(query)
+	asks, err := s.askIndex.AvailableAsks(q)
 	if err != nil {
 		return nil, err
 	}

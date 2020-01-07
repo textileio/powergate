@@ -7,9 +7,11 @@ import (
 
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log"
-	peer "github.com/libp2p/go-libp2p-peer"
+	"github.com/libp2p/go-libp2p-core/peer"
+	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/filecoin/lotus/jsonrpc"
 	"github.com/textileio/filecoin/lotus/types"
+	"github.com/textileio/filecoin/util"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 )
@@ -21,22 +23,33 @@ var (
 
 type API struct {
 	Internal struct {
-		ClientStartDeal   func(ctx context.Context, data cid.Cid, addr string, miner string, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
-		ClientImport      func(ctx context.Context, path string) (cid.Cid, error)
-		ClientGetDealInfo func(context.Context, cid.Cid) (*types.DealInfo, error)
-		ChainNotify       func(context.Context) (<-chan []*types.HeadChange, error)
-		StateListMiners   func(context.Context, *types.TipSet) ([]string, error)
-		ClientQueryAsk    func(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
-		StateMinerPeerID  func(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
-		Version           func(context.Context) (types.Version, error)
-		SyncState         func(context.Context) (*types.SyncState, error)
-		WalletNew         func(context.Context, string) (string, error)
-		WalletBalance     func(context.Context, string) (types.BigInt, error)
+		ClientStartDeal    func(ctx context.Context, data cid.Cid, addr string, miner string, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
+		ClientImport       func(ctx context.Context, path string) (cid.Cid, error)
+		ClientGetDealInfo  func(context.Context, cid.Cid) (*types.DealInfo, error)
+		ChainNotify        func(context.Context) (<-chan []*types.HeadChange, error)
+		StateListMiners    func(context.Context, *types.TipSet) ([]string, error)
+		ClientQueryAsk     func(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
+		StateMinerPeerID   func(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
+		Version            func(context.Context) (types.Version, error)
+		SyncState          func(context.Context) (*types.SyncState, error)
+		WalletNew          func(context.Context, string) (string, error)
+		WalletBalance      func(context.Context, string) (types.BigInt, error)
+		StateMinerPower    func(context.Context, string, *types.TipSet) (types.MinerPower, error)
+		ChainHead          func(context.Context) (*types.TipSet, error)
+		ChainGetTipSet     func(context.Context, types.TipSetKey) (*types.TipSet, error)
+		StateChangedActors func(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
+		ChainReadObj       func(context.Context, cid.Cid) ([]byte, error)
+		StateReadState     func(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
+		StateGetActor      func(ctx context.Context, actor string, ts *types.TipSet) (*types.Actor, error)
 	}
 }
 
 // New creates a new client to Lotus API
-func New(addr string, authToken string) (*API, func(), error) {
+func New(maddr ma.Multiaddr, authToken string) (*API, func(), error) {
+	addr, err := util.TCPAddrFromMultiAddr(maddr)
+	if err != nil {
+		return nil, nil, err
+	}
 	headers := http.Header{
 		"Authorization": []string{"Bearer " + authToken},
 	}
@@ -96,23 +109,44 @@ func (a *API) WalletNew(ctx context.Context, typ string) (string, error) {
 func (a *API) WalletBalance(ctx context.Context, addr string) (types.BigInt, error) {
 	return a.Internal.WalletBalance(ctx, addr)
 }
+func (a *API) StateMinerPower(ctx context.Context, addr string, ts *types.TipSet) (types.MinerPower, error) {
+	return a.Internal.StateMinerPower(ctx, addr, ts)
+}
+func (a *API) ChainHead(ctx context.Context) (*types.TipSet, error) {
+	return a.Internal.ChainHead(ctx)
+}
+func (a *API) ChainGetTipSet(ctx context.Context, tsk types.TipSetKey) (*types.TipSet, error) {
+	return a.Internal.ChainGetTipSet(ctx, tsk)
+}
+func (a *API) StateChangedActors(ctx context.Context, ocid cid.Cid, ncid cid.Cid) (map[string]types.Actor, error) {
+	return a.Internal.StateChangedActors(ctx, ocid, ncid)
+}
+func (a *API) ChainReadObj(ctx context.Context, cid cid.Cid) ([]byte, error) {
+	return a.Internal.ChainReadObj(ctx, cid)
+}
+func (a *API) StateReadState(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error) {
+	return a.Internal.StateReadState(ctx, act, ts)
+}
+func (a *API) StateGetActor(ctx context.Context, actor string, ts *types.TipSet) (*types.Actor, error) {
+	return a.Internal.StateGetActor(ctx, actor, ts)
+}
 
 func monitorLotusSync(ctx context.Context, c *API) {
-	refreshHeightMetric(c)
+	refreshHeightMetric(ctx, c)
 	for {
 		select {
 		case <-ctx.Done():
 			log.Debug("closing lotus sync monitor")
 			return
 		case <-time.After(lotusSyncStatusInterval):
-			refreshHeightMetric(c)
+			refreshHeightMetric(ctx, c)
 		}
 	}
 }
 
-func refreshHeightMetric(c *API) {
+func refreshHeightMetric(ctx context.Context, c *API) {
 	var h uint64
-	state, err := c.SyncState(context.Background())
+	state, err := c.SyncState(ctx)
 	if err != nil {
 		log.Errorf("error when getting lotus sync status: %s", err)
 		return
