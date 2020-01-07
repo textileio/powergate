@@ -26,7 +26,8 @@ type storeResult struct {
 	Err         error
 }
 
-func newService(dm *Module, ai *ask.AskIndex) *Service {
+// NewService is a helper to create a new Service
+func NewService(dm *Module, ai *ask.AskIndex) *Service {
 	return &Service{
 		Module:   dm,
 		askIndex: ai,

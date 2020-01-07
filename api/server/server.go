@@ -28,10 +28,10 @@ type Server struct {
 	ai *ask.AskIndex
 	wm *wallet.Module
 
-	rpc        *grpc.Server
+	rpc           *grpc.Server
 	dealsService  *deals.Service
 	walletService *wallet.Service
-	closeLotus func()
+	closeLotus    func()
 }
 
 // Config specifies server settings.
@@ -54,17 +54,17 @@ func NewServer(conf Config) (*Server, error) {
 	ai := ask.New(ds, c)
 	dm := deals.New(c, ds)
 	wm := wallet.New(c)
-	service := deals.newService(dm, ai)
+	dealsService := deals.NewService(dm, ai)
 
 	s := &Server{
 		// ToDo: Support secure connection
-		rpc:        grpc.NewServer(),
-		ds:         ds,
-		dm:         dm,
-		ai:         ai,
-		dealsService:    service,
+		rpc:           grpc.NewServer(),
+		ds:            ds,
+		dm:            dm,
+		ai:            ai,
+		dealsService:  dealsService,
 		walletService: &wallet.Service{Module: wm},
-		closeLotus: cls,
+		closeLotus:    cls,
 	}
 
 	grpcAddr, err := util.TCPAddrFromMultiAddr(conf.GrpcHostAddress)

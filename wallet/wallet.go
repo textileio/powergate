@@ -32,10 +32,6 @@ func New(api API) *Module {
 	return m
 }
 
-// Close closes the wallet module
-func (m *Module) Close() {
-}
-
 // NewWallet creates a new wallet
 func (m *Module) NewWallet(ctx context.Context, typ string) (string, error) {
 	return m.api.WalletNew(ctx, typ)

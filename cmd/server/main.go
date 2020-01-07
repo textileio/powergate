@@ -9,9 +9,8 @@ import (
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/filecoin/api"
+	"github.com/textileio/filecoin/api/server"
 	"github.com/textileio/filecoin/tests"
-	"github.com/textileio/filecoin/wallet"
 )
 
 var (
@@ -41,23 +40,23 @@ func main() {
 			panic(err)
 		}
 	}
-	conf := api.Config{
+	conf := server.Config{
 		LotusAddress:    lotusAddr,
 		LotusAuthToken:  token,
 		GrpcHostAddress: grpcAddr,
 	}
 	log.Info("starting server...")
-	server, err := api.NewServer(conf)
+	s, err := server.NewServer(conf)
 	if err != nil {
 		panic(err)
 	}
 	log.Info("server started.")
 
-	s := make(chan os.Signal, 1)
-	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
-	<-s
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	<-ch
 	log.Info("Closing...")
-	server.Close()
+	s.Close()
 	log.Info("Closed")
 }
 

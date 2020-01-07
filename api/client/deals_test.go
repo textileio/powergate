@@ -7,13 +7,14 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/filecoin/deals"
 	pb "github.com/textileio/filecoin/deals/pb"
+	"github.com/textileio/filecoin/index/ask"
 )
 
 func TestQueryAsk(t *testing.T) {
 	d, done := setupDeals(t)
 	defer done()
 
-	_, err := d.AvailableAsks(ctx, deals.Query{MaxPrice: 5})
+	_, err := d.AvailableAsks(ctx, ask.Query{MaxPrice: 5})
 	if err != nil {
 		t.Fatalf("failed to call AvailableAsks: %v", err)
 	}
