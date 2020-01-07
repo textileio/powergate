@@ -62,6 +62,7 @@ func NewServer(conf Config) (*Server, error) {
 		ds:            ds,
 		dm:            dm,
 		ai:            ai,
+		wm:            wm,
 		dealsService:  dealsService,
 		walletService: &wallet.Service{Module: wm},
 		closeLotus:    cls,
