@@ -27,14 +27,6 @@ var (
 	log = logging.Logger("deals")
 )
 
-// API interacts with a Filecoin full-node
-type API interface {
-	ClientStartDeal(ctx context.Context, data cid.Cid, addr string, miner string, epochPrice types.BigInt, blocksDuration uint64) (*cid.Cid, error)
-	ClientImport(ctx context.Context, path string) (cid.Cid, error)
-	ClientGetDealInfo(context.Context, cid.Cid) (*types.DealInfo, error)
-	ChainNotify(context.Context) (<-chan []*types.HeadChange, error)
-}
-
 // Module exposes storage, monitoring, and Asks from the market.
 type Module struct {
 	api            API
@@ -60,6 +52,14 @@ type DealInfo struct {
 
 	PricePerEpoch types.BigInt
 	Duration      uint64
+}
+
+// API interacts with a Filecoin full-node
+type API interface {
+	ClientStartDeal(ctx context.Context, data cid.Cid, addr string, miner string, epochPrice types.BigInt, blocksDuration uint64) (*cid.Cid, error)
+	ClientImport(ctx context.Context, path string) (cid.Cid, error)
+	ClientGetDealInfo(context.Context, cid.Cid) (*types.DealInfo, error)
+	ChainNotify(context.Context) (<-chan []*types.HeadChange, error)
 }
 
 // New creates a new deal module
