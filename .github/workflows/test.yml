@@ -29,9 +29,7 @@ jobs:
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: |
           go mod download
-      - name: Install golint
-        run: go get -u golang.org/x/lint/golint
       - name: Lint
-        run: golint ./...
+        uses: Mushus/golangci-linter@v1
       - name: Test
         run: go test ./... -run none
