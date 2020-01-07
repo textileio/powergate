@@ -1,25 +1,25 @@
-package api
+package server
 
 import (
 	"net"
 
 	"github.com/ipfs/go-datastore"
 	ma "github.com/multiformats/go-multiaddr"
-	dealsPb "github.com/textileio/filecoin/deals/pb"
-	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"github.com/textileio/filecoin/deals"
+	dealsPb "github.com/textileio/filecoin/deals/pb"
 	"github.com/textileio/filecoin/lotus"
 	"github.com/textileio/filecoin/util"
 	"github.com/textileio/filecoin/wallet"
+	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
 )
 
 // Server represents the configured lotus client and filecoin grpc server
 type Server struct {
-	rpc          *grpc.Server
-	dealsService *deals.Service
+	rpc           *grpc.Server
+	dealsService  *deals.Service
 	walletService *wallet.Service
-	closeLotus   func()
+	closeLotus    func()
 }
 
 // Config specifies server settings.
@@ -46,10 +46,10 @@ func NewServer(conf Config) (*Server, error) {
 
 	s := &Server{
 		// ToDo: Support secure connection
-		rpc: grpc.NewServer(),
-		dealsService: &deals.Service{Module: dm},
+		rpc:           grpc.NewServer(),
+		dealsService:  &deals.Service{Module: dm},
 		walletService: &wallet.Service{Module: wm},
-		closeLotus: cls,
+		closeLotus:    cls,
 	}
 
 	grpcAddr, err := util.TCPAddrFromMultiAddr(conf.GrpcHostAddress)

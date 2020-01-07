@@ -1,24 +1,20 @@
-package api
+package client
 
 import (
 	"context"
 	"io"
 
-	"github.com/ipfs/go-cid"
-	ma "github.com/multiformats/go-multiaddr"
-	pb "github.com/textileio/filecoin/deals/pb"
+	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/filecoin/deals"
+	pb "github.com/textileio/filecoin/deals/pb"
 	"github.com/textileio/filecoin/lotus/types"
-	"github.com/textileio/filecoin/util"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// Client provides the client api
-type Client struct {
+// Deals provides an API for managing deals and storing data
+type Deals struct {
 	client pb.APIClient
-	conn   *grpc.ClientConn
 }
 
 // WatchEvent is used to send data or error values for Watch
@@ -27,38 +23,15 @@ type WatchEvent struct {
 	Err  error
 }
 
-// NewClient starts the client
-func NewClient(maddr ma.Multiaddr) (*Client, error) {
-	addr, err := util.TCPAddrFromMultiAddr(maddr)
-	if err != nil {
-		return nil, err
-	}
-	// ToDo: Support secure connection
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
-	if err != nil {
-		return nil, err
-	}
-	client := &Client{
-		client: pb.NewAPIClient(conn),
-		conn:   conn,
-	}
-	return client, nil
-}
-
-// Close closes the client's grpc connection and cancels any active requests
-func (c *Client) Close() error {
-	return c.conn.Close()
-}
-
 // AvailableAsks executes a query to retrieve active Asks
-func (c *Client) AvailableAsks(ctx context.Context, query deals.Query) ([]deals.StorageAsk, error) {
+func (d *Deals) AvailableAsks(ctx context.Context, query deals.Query) ([]deals.StorageAsk, error) {
 	q := &pb.Query{
 		MaxPrice:  query.MaxPrice,
 		PieceSize: query.PieceSize,
 		Limit:     int32(query.Limit),
 		Offset:    int32(query.Offset),
 	}
-	reply, err := c.client.AvailableAsks(ctx, &pb.AvailableAsksRequest{Query: q})
+	reply, err := d.client.AvailableAsks(ctx, &pb.AvailableAsksRequest{Query: q})
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +50,8 @@ func (c *Client) AvailableAsks(ctx context.Context, query deals.Query) ([]deals.
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (c *Client) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.DealConfig, duration uint64) ([]cid.Cid, []deals.DealConfig, error) {
-	stream, err := c.client.Store(ctx)
+func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.DealConfig, duration uint64) ([]cid.Cid, []deals.DealConfig, error) {
+	stream, err := d.client.Store(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -141,13 +114,13 @@ func (c *Client) Store(ctx context.Context, addr string, data io.Reader, dealCon
 }
 
 // Watch returnas a channel with state changes of indicated proposals
-func (c *Client) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEvent, error) {
+func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEvent, error) {
 	channel := make(chan WatchEvent)
 	proposalStrings := make([]string, len(proposals))
 	for i, proposal := range proposals {
 		proposalStrings[i] = proposal.String()
 	}
-	stream, err := c.client.Watch(ctx, &pb.WatchRequest{Proposals: proposalStrings})
+	stream, err := d.client.Watch(ctx, &pb.WatchRequest{Proposals: proposalStrings})
 	if err != nil {
 		return nil, err
 	}
