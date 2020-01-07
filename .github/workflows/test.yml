@@ -31,5 +31,7 @@ jobs:
           go mod download
       - name: Lint
         run: golint ./...
+      - name: Install golint
+        run: go get -u golang.org/x/lint/golint
       - name: Test
         run: go test ./... -run none
