@@ -31,5 +31,7 @@ jobs:
           go mod download
       - name: Lint
         uses: actions-contrib/golangci-lint@master
+        with:
+            args: run
       - name: Test
         run: go test ./... -run none
