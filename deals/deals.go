@@ -22,8 +22,6 @@ const (
 )
 
 var (
-	ErrCidIsNotImported = fmt.Errorf("data should be imported before staring a deal")
-
 	log = logging.Logger("deals")
 )
 

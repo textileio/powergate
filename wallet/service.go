@@ -13,6 +13,11 @@ type Service struct {
 	Module *Module
 }
 
+// NewService creates a new Service
+func NewService(m *Module) *Service {
+	return &Service{Module: m}
+}
+
 // NewWallet creates a new wallet
 func (s *Service) NewWallet(ctx context.Context, req *pb.NewWalletRequest) (*pb.NewWalletReply, error) {
 	res, err := s.Module.NewWallet(ctx, req.GetTyp())
