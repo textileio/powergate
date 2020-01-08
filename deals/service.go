@@ -27,9 +27,9 @@ type storeResult struct {
 }
 
 // NewService is a helper to create a new Service
-func NewService(dm *Module, ai *ask.AskIndex) *Service {
+func NewService(m *Module, ai *ask.AskIndex) *Service {
 	return &Service{
-		Module:   dm,
+		Module:   m,
 		askIndex: ai,
 	}
 }

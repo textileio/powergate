@@ -6,16 +6,12 @@ import (
 	pb "github.com/textileio/filecoin/wallet/pb"
 )
 
-var (
-	address string
-)
-
 func TestNewWallet(t *testing.T) {
 	w, done := setupWallet(t)
 	defer done()
 
 	var err error
-	address, err = w.NewWallet(ctx, "<a type>")
+	address, err := w.NewWallet(ctx, "bls")
 	if err != nil {
 		t.Fatalf("failed to create new wallet: %v", err)
 	}
@@ -28,9 +24,15 @@ func TestWalletBalance(t *testing.T) {
 	w, done := setupWallet(t)
 	defer done()
 
-	_, err := w.WalletBalance(ctx, address)
+	address, err := w.NewWallet(ctx, "bls")
+	checkErr(t, err)
+
+	bal, err := w.WalletBalance(ctx, address)
 	if err != nil {
 		t.Fatalf("failed to get wallet balance: %v", err)
+	}
+	if bal != 0 {
+		t.Fatalf("unexpected wallet balance: %v", bal)
 	}
 }
 

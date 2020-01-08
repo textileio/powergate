@@ -55,6 +55,7 @@ func NewServer(conf Config) (*Server, error) {
 	dm := deals.New(c, ds)
 	wm := wallet.New(c)
 	dealsService := deals.NewService(dm, ai)
+	walletService := wallet.NewService(wm)
 
 	s := &Server{
 		// ToDo: Support secure connection
@@ -64,7 +65,7 @@ func NewServer(conf Config) (*Server, error) {
 		ai:            ai,
 		wm:            wm,
 		dealsService:  dealsService,
-		walletService: &wallet.Service{Module: wm},
+		walletService: walletService,
 		closeLotus:    cls,
 	}
 
