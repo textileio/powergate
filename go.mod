@@ -11,7 +11,7 @@ require (
 	github.com/ipfs/go-cid v0.0.4
 	github.com/ipfs/go-datastore v0.3.1
 	github.com/ipfs/go-ipld-cbor v0.0.3
-	github.com/ipfs/go-log v1.0.0
+	github.com/ipfs/go-log v1.0.1
 	github.com/libp2p/go-libp2p-core v0.3.0
 	github.com/multiformats/go-multiaddr v0.2.0
 	github.com/multiformats/go-multihash v0.0.10
