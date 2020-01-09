@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	grpcHostAddr = "/ip4/127.0.0.1/tcp/50051"
+	grpcHostAddr = "/ip4/127.0.0.1/tcp/5002"
 
 	log = logging.Logger("main")
 )
