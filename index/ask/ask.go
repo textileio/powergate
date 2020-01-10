@@ -161,7 +161,6 @@ func (ai *AskIndex) refreshAsks() error {
 	for _, ask := range ai.index.Miners {
 		b, err := cbor.DumpObject(ask)
 		if err != nil {
-			panic(err)
 			log.Errorf("error when marshaling storage ask: %s", err)
 			return err
 		}
