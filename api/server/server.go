@@ -8,7 +8,11 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/filecoin/deals"
 	dealsPb "github.com/textileio/filecoin/deals/pb"
+	"github.com/textileio/filecoin/fchost"
 	"github.com/textileio/filecoin/index/ask"
+	"github.com/textileio/filecoin/index/miner"
+	"github.com/textileio/filecoin/index/slashing"
+	"github.com/textileio/filecoin/iplocation/ip2location"
 	"github.com/textileio/filecoin/lotus"
 	"github.com/textileio/filecoin/tests"
 	"github.com/textileio/filecoin/util"
@@ -27,6 +31,8 @@ type Server struct {
 	dm *deals.Module
 	ai *ask.AskIndex
 	wm *wallet.Module
+	si *slashing.SlashingIndex
+	mi *miner.MinerIndex
 
 	rpc           *grpc.Server
 	dealsService  *deals.Service
@@ -52,8 +58,19 @@ func NewServer(conf Config) (*Server, error) {
 	ds := tests.NewTxMapDatastore()
 
 	ai := ask.New(ds, c)
-	dm := deals.New(c, ds)
+	dm := deals.New(ds, c)
 	wm := wallet.New(c)
+	fchost, err := fchost.New()
+	if err != nil {
+		return nil, err
+	}
+	if err := fchost.Bootstrap(); err != nil {
+		return nil, err
+	}
+	// ToDo: Flags or embed
+	ip2l := ip2location.New([]string{"ip2location-ip4.bin"})
+	mi := miner.New(ds, c, fchost, ip2l)
+	si := slashing.New(ds, c)
 	dealsService := deals.NewService(dm, ai)
 	walletService := wallet.NewService(wm)
 
@@ -64,6 +81,8 @@ func NewServer(conf Config) (*Server, error) {
 		dm:            dm,
 		ai:            ai,
 		wm:            wm,
+		mi:            mi,
+		si:            si,
 		dealsService:  dealsService,
 		walletService: walletService,
 		closeLotus:    cls,
@@ -90,7 +109,15 @@ func NewServer(conf Config) (*Server, error) {
 func (s *Server) Close() {
 	s.rpc.GracefulStop()
 	s.closeLotus()
-	s.ai.Close()
+	if err := s.ai.Close(); err != nil {
+		log.Errorf("error when closing ask index: %s", err)
+	}
+	if err := s.mi.Close(); err != nil {
+		log.Errorf("error when closing miner index: %s", err)
+	}
+	if err := s.si.Close(); err != nil {
+		log.Errorf("error when closing slashing index: %s", err)
+	}
 	if err := s.ds.Close(); err != nil {
 		log.Errorf("error when closing datastore: %s", err)
 	}

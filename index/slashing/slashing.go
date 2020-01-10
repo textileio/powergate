@@ -2,23 +2,22 @@ package slashing
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
+	"github.com/textileio/filecoin/chainsync"
 	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/signaler"
+	"go.opencensus.io/stats"
 )
 
-// ToDo: metrics for last update/monitoring.
-
 var (
-	dsBase      = datastore.NewKey("/index/slashing")
-	dsConsensus = dsBase.ChildString("/index/slashing/consensus")
-	dsDeal      = datastore.NewKey("/index/slashing/deal")
+	dsBase    = datastore.NewKey("/index/slashing")
+	dsHistory = dsBase.ChildString("/index/slashing/history")
 
 	log = logging.Logger("index-slashing")
 )
@@ -36,52 +35,59 @@ type SlashingIndex struct {
 	ds       datastore.TxnDatastore
 	signaler *signaler.Signaler
 
-	consensus ConsensusHistory
-	// ToDo: deal storage consensus, wait for Lotus implementation
+	lock  sync.Mutex
+	index Index
 
-	lock     sync.Mutex
 	ctx      context.Context
 	cancel   context.CancelFunc
 	finished chan struct{}
 	closed   bool
 }
 
-// ToDo: handle proper forking, recent history, etc?
-type ConsensusHistory struct {
-	// LastUpdated is the block height of the information
-	LastUpdated uint64
-	// History has slashed height History of storage miners
-	History map[string][]uint64
+type Index struct {
+	Tipset types.TipSetKey
+	Miners map[string]Info
 }
 
-func New(c API, ds datastore.TxnDatastore) *SlashingIndex {
+type Info struct {
+	History []uint64
+}
+
+func New(ds datastore.TxnDatastore, c API) *SlashingIndex {
+	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
 	s := &SlashingIndex{
 		c:        c,
 		ds:       ds,
 		signaler: signaler.New(),
 		ctx:      ctx,
-		consensus: ConsensusHistory{
-			History: make(map[string][]uint64),
+		index: Index{
+			Miners: make(map[string]Info),
 		},
 		cancel:   cancel,
 		finished: make(chan struct{}),
 	}
 	go s.start()
+
 	return s
 }
 
-func (s *SlashingIndex) ConsensusHistory() ConsensusHistory {
-	ch := ConsensusHistory{
-		LastUpdated: s.consensus.LastUpdated,
-		History:     make(map[string][]uint64, len(s.consensus.History)),
+func (s *SlashingIndex) Get() Index {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	ii := Index{
+		Tipset: s.index.Tipset,
+		Miners: make(map[string]Info, len(s.index.Miners)),
 	}
-	for k, v := range s.consensus.History {
-		ch.History[k] = v
+	for addr, v := range s.index.Miners {
+		history := make([]uint64, len(v.History))
+		copy(history, v.History)
+		ii.Miners[addr] = Info{
+			History: history,
+		}
 	}
-	return ch
+	return ii
 }
-
 func (s *SlashingIndex) Listen() <-chan struct{} {
 	return s.signaler.Listen()
 }
@@ -104,125 +110,135 @@ func (s *SlashingIndex) start() {
 			return
 		case _, ok := <-n:
 			if !ok {
-				log.Fatalf("lotus notify channel closed: %s", err) // ToDo: recoverable?, think about what we should do
+				log.Fatalf("lotus notify channel closed: %s", err)
 			}
+			log.Info("updating slashing index...")
 			if err := s.update(); err != nil {
 				log.Errorf("error when updating storage reputation: %s", err)
 				continue
 			}
+			log.Info("slashing index updated")
 		}
 	}
 }
 
 func (s *SlashingIndex) update() error {
-	lastHeight := uint64(1)
-	dsConsensusLastHeightKey := dsConsensus.ChildString("height")
-	b, err := s.ds.Get(dsConsensusLastHeightKey)
-	if err != nil && err != datastore.ErrNotFound {
-		return fmt.Errorf("couldn't get stored last height: %s", err)
+	base, err := s.lastSyncedTipset()
+	if err != nil {
+		return err
 	}
-	if err != datastore.ErrNotFound {
-		lastHeight, _ = binary.Uvarint(b)
+	path, err := chainsync.GetPathToHead(s.ctx, s.c, base)
+	if err != nil {
+		return err
 	}
-	log.Debugf("updating from height: %d", lastHeight)
-
-	if err = s.updateConsensusSlashHistory(lastHeight); err != nil {
-		return fmt.Errorf("error getting up to date with slash history from height %d: %s", lastHeight, err)
+	if err = s.updatePath(path); err != nil {
+		return fmt.Errorf("error update history: %s", err)
 	}
-	// ToDo: save history in datastore
-	var buf [32]byte
-	n := binary.PutUvarint(buf[:], s.consensus.LastUpdated)
-	if err := s.ds.Put(dsConsensusLastHeightKey, buf[:n]); err != nil {
-		return fmt.Errorf("error saving new height in datastore: %s", err)
+	if err := s.save(); err != nil {
+		return err
 	}
 	s.signaler.Signal()
-
 	return nil
 }
 
-func (s *SlashingIndex) updateConsensusSlashHistory(lastHeight uint64) error {
-	ts, err := s.c.ChainHead(s.ctx) // ToDo: think if this is correct since we could have applys, rollbacks, etc
+func (s *SlashingIndex) lastSyncedTipset() (types.TipSetKey, error) {
+	tsk := types.TipSetKey{}
+	b, err := s.ds.Get(dsHistory.ChildString("tipset"))
+	if err != nil && err != datastore.ErrNotFound {
+		return tsk, err
+	}
+	tsk, err = types.TipSetKeyFromBytes(b)
 	if err != nil {
-		return fmt.Errorf("error when getting heaviest head from chain: %s", err)
+		return tsk, err
 	}
-	headHeight := ts.Height
-	if ts.Height < lastHeight {
-		log.Fatal("reversed node or chain rollback, current height %d, last height %d", ts.Height, lastHeight)
-	}
-
-	path := make([]*types.TipSet, 0, ts.Height-lastHeight)
-	for ts.Height != lastHeight {
-		path = append(path, ts)
-		ts, err = s.c.ChainGetTipSet(s.ctx, types.NewTipSetKey(ts.Blocks[0].Parents...))
-		if err != nil {
-			return err
-		}
-	}
-
-	newHistory := make(map[string][]uint64, len(s.consensus.History))
-	for a := range s.consensus.History {
-		newHistory[a] = make([]uint64, len(s.consensus.History[a]))
-		copy(newHistory[a], s.consensus.History[a])
-	}
-
-	for i := len(path) - 1; i >= 1; i-- {
-		deltaSlashState, err := slashedStateBetweenTipset(s.ctx, s.c, path[i-1], path[i])
-		if err != nil {
-			return err
-		}
-
-		for addr := range deltaSlashState {
-			if h, ok := newHistory[addr]; ok {
-				if h[len(h)-1] == deltaSlashState[addr] {
-					continue
-				}
-			}
-			newHistory[addr] = append(newHistory[addr], deltaSlashState[addr])
-		}
-	}
-
+	return tsk, nil
+}
+func (s *SlashingIndex) save() error {
 	s.lock.Lock()
-	s.consensus.History = newHistory
-	s.consensus.LastUpdated = headHeight
-	s.lock.Unlock()
+	defer s.lock.Unlock()
+	if err := s.ds.Put(dsHistory.ChildString("tipset"), s.index.Tipset.Bytes()); err != nil {
+		return fmt.Errorf("error saving new height in datastore: %s", err)
+	}
+	// ToDo: save rest of state in history, may be unnecessary if versioned map does it
+	return nil
+}
+
+func (s *SlashingIndex) updatePath(path []*types.TipSet) error {
+	ctx := context.Background()
+	start := time.Now()
+	for i := 1; i < len(path); i++ {
+		patch, err := historyPatch(s.ctx, s.c, path[i-1], path[i])
+		if err != nil {
+			return err
+		}
+		s.lock.Lock()
+		// ToDo: should changed to a versioned map history
+		state := s.index.Miners
+		for addr := range patch {
+			info, ok := state[addr]
+			if !ok {
+				info = Info{}
+				state[addr] = info
+			}
+			if info.History[len(info.History)-1] == patch[addr] {
+				continue
+			}
+			info.History = append(info.History, patch[addr])
+		}
+		s.lock.Unlock()
+		stats.Record(ctx, mRefreshProgress.M(1-float64(i)/float64(len(path))))
+	}
+
+	headts := path[len(path)-1]
+	stats.Record(ctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
+	stats.Record(ctx, mUpdatedHeight.M(int64(headts.Height)))
+	stats.Record(ctx, mRefreshProgress.M(1))
 
 	return nil
 }
 
-func slashedStateBetweenTipset(ctx context.Context, c API, pts *types.TipSet, ts *types.TipSet) (map[string]uint64, error) {
+func historyPatch(ctx context.Context, c API, pts *types.TipSet, ts *types.TipSet) (map[string]uint64, error) {
 	chg, err := c.StateChangedActors(ctx, pts.Blocks[0].ParentStateRoot, ts.Blocks[0].ParentStateRoot)
 	if err != nil {
 		return nil, err
 	}
 	ret := make(map[string]uint64)
+	var lock sync.Mutex
+	var wg sync.WaitGroup
+	wg.Add(len(chg))
 	for addr := range chg {
-		actor := chg[addr]
-		// ToDo: propose new API to get current slashedAt value?
-		as, err := c.StateReadState(ctx, &actor, ts)
-		if err != nil {
-			log.Errorf("error when reading state of %s at height: %d", addr, pts.Height)
-			continue
-		}
-		mas, ok := as.State.(map[string]interface{})
-		if !ok {
-			panic("read state should be a map interface result")
-		}
+		go func(addr string) {
+			defer wg.Done()
+			actor := chg[addr]
+			as, err := c.StateReadState(ctx, &actor, ts)
+			if err != nil {
+				log.Errorf("error when reading state of %s at height %d: %s", addr, pts.Height, err)
+				return
+			}
+			mas, ok := as.State.(map[string]interface{})
+			if !ok {
+				panic("read state should be a map interface result")
+			}
 
-		iSlashedAt, ok := mas["SlashedAt"]
-		if !ok {
-			log.Warnf("reading state of %s didn't have slashedAt attr", addr)
-			continue
-		}
-		fSlashedAt, ok := iSlashedAt.(float64)
-		if !ok {
-			log.Errorf("casting slashedAt %v from %s at %d failed", iSlashedAt, addr, pts.Height)
-			continue
-		}
-		slashedAt := uint64(fSlashedAt)
-		if slashedAt != 0 {
-			ret[addr] = (slashedAt)
-		}
+			iSlashedAt, ok := mas["SlashedAt"]
+			if !ok {
+				log.Warnf("reading state of %s didn't have slashedAt attr", addr)
+				return
+			}
+			fSlashedAt, ok := iSlashedAt.(float64)
+			if !ok {
+				log.Errorf("casting slashedAt %v from %s at %d failed", iSlashedAt, addr, pts.Height)
+				return
+			}
+			slashedAt := uint64(fSlashedAt)
+			if slashedAt != 0 {
+				lock.Lock()
+				ret[addr] = (slashedAt)
+				lock.Unlock()
+			}
+		}(addr)
 	}
+	wg.Wait()
 	return ret, nil
 }
 

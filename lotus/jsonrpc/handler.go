@@ -58,62 +58,10 @@ type response struct {
 	Error   *respError  `json:"error,omitempty"`
 }
 
-// Register
-
-func (h handlers) register(namespace string, r interface{}) {
-	val := reflect.ValueOf(r)
-	//TODO: expect ptr
-
-	for i := 0; i < val.NumMethod(); i++ {
-		method := val.Type().Method(i)
-
-		funcType := method.Func.Type()
-		hasCtx := 0
-		if funcType.NumIn() >= 2 && funcType.In(1) == contextType {
-			hasCtx = 1
-		}
-
-		ins := funcType.NumIn() - 1 - hasCtx
-		recvs := make([]reflect.Type, ins)
-		for i := 0; i < ins; i++ {
-			recvs[i] = method.Type.In(i + 1 + hasCtx)
-		}
-
-		valOut, errOut, _ := processFuncOut(funcType)
-
-		h[namespace+"."+method.Name] = rpcHandler{
-			paramReceivers: recvs,
-			nParams:        ins,
-
-			handlerFunc: method.Func,
-			receiver:    val,
-
-			hasCtx: hasCtx,
-
-			errOut: errOut,
-			valOut: valOut,
-		}
-	}
-}
-
 // Handle
 
 type rpcErrFunc func(w func(func(io.Writer)), req *request, code int, err error)
 type chanOut func(reflect.Value) interface{}
-
-func (h handlers) handleReader(ctx context.Context, r io.Reader, w io.Writer, rpcError rpcErrFunc) {
-	wf := func(cb func(io.Writer)) {
-		cb(w)
-	}
-
-	var req request
-	if err := json.NewDecoder(r).Decode(&req); err != nil {
-		rpcError(wf, &req, rpcParseError, xerrors.Errorf("unmarshaling request: %w", err))
-		return
-	}
-
-	h.handle(ctx, req, wf, rpcError, func(bool) {}, nil)
-}
 
 func doCall(methodName string, f reflect.Value, params []reflect.Value) (out []reflect.Value, err error) {
 	defer func() {
