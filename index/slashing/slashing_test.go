@@ -17,14 +17,14 @@ func TestFreshIndex(t *testing.T) {
 	checkErr(t, err)
 	defer cls()
 
-	sh := New(c, tests.NewTxMapDatastore())
+	sh := New(tests.NewTxMapDatastore(), c)
 	select {
 	case <-time.After(time.Second * 60):
 		t.Fatal("timeout waiting for miner index full refresh")
 	case <-sh.Listen():
 	}
-	history := sh.ConsensusHistory()
-	if history.LastUpdated == 0 || len(history.History) == 0 {
+	index := sh.Get()
+	if len(index.Tipset.Cids()) == 0 || len(index.Miners) == 0 {
 		t.Fatalf("miner info state is invalid")
 	}
 }

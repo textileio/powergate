@@ -2,15 +2,8 @@ package wallet
 
 import (
 	"context"
-	"time"
 
 	"github.com/textileio/filecoin/lotus/types"
-)
-
-const (
-	initialWait        = time.Second * 5
-	chanWriteTimeout   = time.Second
-	askRefreshInterval = time.Second * 10
 )
 
 // API interacts with a Filecoin full-node

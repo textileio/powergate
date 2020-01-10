@@ -5,18 +5,24 @@ import (
 	"encoding/binary"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/p2p/protocol/identify"
+	"github.com/textileio/filecoin/fchost"
+	"github.com/textileio/filecoin/iplocation"
 	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/signaler"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 )
-
-// ToDo: metrics
 
 const (
 	fullRefreshThreshold = 100
+	deltaRefreshHeight   = 100
 )
 
 var (
@@ -24,7 +30,7 @@ var (
 
 	maxParallelCalc = 10
 
-	log = logging.Logger("index-slashing")
+	log = logging.Logger("index-miner")
 )
 
 type API interface {
@@ -33,41 +39,51 @@ type API interface {
 	ChainNotify(context.Context) (<-chan []*types.HeadChange, error)
 	ChainHead(context.Context) (*types.TipSet, error)
 	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
+	ChainGetTipSetByHeight(context.Context, uint64, *types.TipSet) (*types.TipSet, error)
 	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
 	StateReadState(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
+	StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
 }
 
 type MinerIndex struct {
 	c        API
 	ds       datastore.TxnDatastore
+	h        *fchost.FilecoinHost
+	lr       iplocation.LocationResolver
 	signaler *signaler.Signaler
 
-	info IndexInfo
+	lock  sync.Mutex
+	index Index
 
-	lock     sync.Mutex
 	ctx      context.Context
 	cancel   context.CancelFunc
 	finished chan struct{}
 	closed   bool
 }
 
-type IndexInfo struct {
+type Index struct {
 	LastUpdated uint64
-	Power       map[string]*PowerInfo
-	// ToDo: geography/region information of miner
+	Miners      map[string]Info
 }
 
-type PowerInfo struct {
-	Power      uint64
-	TotalPower uint64
+type Info struct {
+	Static Static
+	Power  Power
 }
 
-func New(ds datastore.TxnDatastore, c API) *MinerIndex {
+type Power struct {
+	Power    uint64
+	Relative float64
+}
+
+func New(ds datastore.TxnDatastore, c API, h *fchost.FilecoinHost, lr iplocation.LocationResolver) *MinerIndex {
+	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
 	mi := &MinerIndex{
 		c:        c,
 		ds:       ds,
 		signaler: signaler.New(),
+		h:        h,
 		ctx:      ctx,
 		cancel:   cancel,
 		finished: make(chan struct{}),
@@ -76,18 +92,14 @@ func New(ds datastore.TxnDatastore, c API) *MinerIndex {
 	return mi
 }
 
-func (mi *MinerIndex) All() *IndexInfo {
+func (mi *MinerIndex) Get() Index {
 	mi.lock.Lock()
-	ii := &IndexInfo{
-		LastUpdated: mi.info.LastUpdated,
-		Power:       make(map[string]*PowerInfo, len(mi.info.Power)),
+	ii := Index{
+		LastUpdated: mi.index.LastUpdated,
+		Miners:      make(map[string]Info, len(mi.index.Miners)),
 	}
-	for addr := range mi.info.Power {
-		v := mi.info.Power[addr]
-		ii.Power[addr] = &PowerInfo{
-			Power:      v.Power,
-			TotalPower: v.TotalPower,
-		}
+	for addr, v := range mi.index.Miners {
+		ii.Miners[addr] = v
 	}
 	mi.lock.Unlock()
 	return ii
@@ -106,12 +118,14 @@ func (mi *MinerIndex) start() {
 			return
 		case _, ok := <-n:
 			if !ok {
-				log.Fatalf("lotus notify channel closed: %s", err) // ToDo: recoverable?
+				log.Fatalf("lotus notify channel closed: %s", err)
 			}
+			log.Info("updating miner index...")
 			if err := mi.update(); err != nil {
 				log.Errorf("error when updating miner index: %s", err)
 				continue
 			}
+			log.Info("miner index updated")
 		}
 	}
 }
@@ -141,72 +155,61 @@ func (mi *MinerIndex) update() error {
 		return fmt.Errorf("error when getting heaviest head from chain: %s", err)
 	}
 
+	ctx, _ := tag.New(context.Background())
+	start := time.Now()
 	if ts.Height-lastHeight > fullRefreshThreshold {
+		ctx, _ = tag.New(ctx, tag.Insert(kRefreshType, "full"))
 		log.Infof("doing full refresh, current %d,  last %d", ts.Height, lastHeight)
 		if err := mi.fullRefresh(ts); err != nil {
-			return err
+			return fmt.Errorf("error doing full refresh: %s", err)
 		}
 	} else {
-		log.Infof("doing delta refresh, current %d, last %d", ts.Height, lastHeight)
-		if err := mi.deltaRefresh(lastHeight, ts); err != nil {
-			return err
+		ctx, _ = tag.New(ctx, tag.Insert(kRefreshType, "delta"))
+		log.Debugf("doing delta refresh, current %d, last %d", ts.Height, lastHeight)
+		if err := mi.deltaRefresh(ts, deltaRefreshHeight); err != nil {
+			return fmt.Errorf("error doing delta refresh: %s", err)
 		}
+		log.Debug("delta refresh done")
 	}
+	stats.Record(ctx, mRefreshTime.M(int64(time.Since(start).Milliseconds())))
 
 	// ToDo: save miner index in datastore
 	var buf [32]byte
-	n := binary.PutUvarint(buf[:], mi.info.LastUpdated)
+	n := binary.PutUvarint(buf[:], mi.index.LastUpdated)
 	if err := mi.ds.Put(dsLastHeight, buf[:n]); err != nil {
 		return fmt.Errorf("error saving new height in datastore: %s", err)
 	}
 	mi.signaler.Signal()
+	stats.Record(context.Background(), mUpdatedHeight.M(int64(mi.index.LastUpdated)))
+
 	return nil
 }
 
-func (mi *MinerIndex) deltaRefresh(lastHeight uint64, ts *types.TipSet) error {
-	currHeight := ts.Height
-	if ts.Height < lastHeight {
-		log.Fatal("reversed node or chain rollback, current height %d, last height %d", ts.Height, lastHeight)
+func (mi *MinerIndex) deltaRefresh(ts *types.TipSet, deltaHeight int) error {
+	baseHeight := ts.Height - uint64(deltaHeight)
+	if ts.Height < baseHeight {
+		log.Fatal("reversed node or chain rollback, current height %d, base height %d", ts.Height, baseHeight)
 	}
 
+	currHeight := ts.Height
 	var err error
-	path := make([]*types.TipSet, 0, ts.Height-lastHeight)
-	for ts.Height != lastHeight+1 {
-		path = append(path, ts)
-		ts, err = mi.c.ChainGetTipSet(mi.ctx, types.NewTipSetKey(ts.Blocks[0].Parents...))
-		if err != nil {
-			return err
-		}
+	baseTs, err := mi.c.ChainGetTipSetByHeight(mi.ctx, baseHeight, ts)
+	if err != nil {
+		return err
+	}
+	chg, err := mi.c.StateChangedActors(mi.ctx, baseTs.Blocks[0].ParentStateRoot, ts.Blocks[0].ParentStateRoot)
+	if err != nil {
+		return err
 	}
 	changedMiners := make(map[string]struct{})
-	for i := len(path) - 1; i >= 1; i-- {
-		chg, err := mi.c.StateChangedActors(mi.ctx, path[i-1].Blocks[0].ParentStateRoot, path[i].Blocks[0].ParentStateRoot)
-		if err != nil {
-			return err
-		}
-		for addr := range chg {
-			changedMiners[addr] = struct{}{}
-		}
+	for addr := range chg {
+		changedMiners[addr] = struct{}{}
 	}
-	var lock sync.Mutex
-	delta := make(map[string]*PowerInfo)
+	addrs := make([]string, 0, len(changedMiners))
 	for addr := range changedMiners {
-		r, err := getPower(mi.ctx, mi.c, addr)
-		if err != nil {
-			log.Errorf("error generating reputation for miner %s: %s", addr, err)
-			continue
-		}
-		lock.Lock()
-		delta[addr] = r
-		lock.Unlock()
+		addrs = append(addrs, addr)
 	}
-
-	mi.lock.Lock()
-	for addr := range delta {
-		mi.info.Power[addr] = delta[addr]
-	}
-	mi.info.LastUpdated = currHeight
-	mi.lock.Unlock()
+	mi.updateForAddrs(addrs, currHeight)
 
 	return nil
 }
@@ -216,32 +219,80 @@ func (mi *MinerIndex) fullRefresh(head *types.TipSet) error {
 	if err != nil {
 		return err
 	}
+	mi.lock.Lock()
+	mi.index.Miners = make(map[string]Info)
+	mi.lock.Unlock()
+
+	mi.updateForAddrs(addrs, head.Height)
+
+	return nil
+}
+
+func (mi *MinerIndex) updateForAddrs(addrs []string, height uint64) {
 	rateLim := make(chan struct{}, maxParallelCalc)
-	var lock sync.Mutex
-	newPower := make(map[string]*PowerInfo)
-	for _, a := range addrs {
+	for i, a := range addrs {
 		rateLim <- struct{}{}
 		go func(addr string) {
 			defer func() { <-rateLim }()
-			r, err := getPower(mi.ctx, mi.c, addr)
-			if err != nil {
-				log.Errorf("error generating reputation for miner %s: %s", addr, err)
+			if err := mi.updateMinerInformation(addr); err != nil {
+				log.Debugf("error generating reputation for miner %s: %s", addr, err)
 				return
 			}
-			lock.Lock()
-			newPower[addr] = r
-			lock.Unlock()
 		}(a)
+		stats.Record(context.Background(), mRefreshProgress.M(float64(i)/float64(len(addrs))))
 	}
 	for i := 0; i < maxParallelCalc; i++ {
 		rateLim <- struct{}{}
 	}
+	stats.Record(context.Background(), mRefreshProgress.M(1))
+	mi.lock.Lock()
+	var online int64
+	for _, v := range mi.index.Miners {
+		if v.Static.Online {
+			online++
+		}
+	}
+	offline := int64(len(mi.index.Miners)) - online
+	mi.lock.Unlock()
+
+	ctx, _ := tag.New(context.Background(), tag.Insert(kOnline, "online"))
+	stats.Record(ctx, mMinerCount.M(online))
+	ctx, _ = tag.New(context.Background(), tag.Insert(kOnline, "offline"))
+	stats.Record(ctx, mMinerCount.M(offline))
+}
+
+func (mi *MinerIndex) updateMinerInformation(addr string) error {
+	r, err := getPower(mi.ctx, mi.c, addr)
+	if err != nil {
+		return fmt.Errorf("error getting power: %s", err)
+	}
+	si, err := getStaticInfo(mi.ctx, mi.c, mi.h, mi.lr, addr)
+	if err != nil {
+		log.Debugf("error getting static info: %s", err)
+	}
 
 	mi.lock.Lock()
-	mi.info.LastUpdated = head.Height
-	mi.info.Power = newPower
+	m, ok := mi.index.Miners[addr]
+	if !ok {
+		m = Info{}
+		mi.index.Miners[addr] = m
+	}
+	m.Power = r
+	m.Static = si
 	mi.lock.Unlock()
 	return nil
+}
+
+type Static struct {
+	UserAgent string
+	Location  Location
+	Online    bool
+}
+
+type Location struct {
+	Country   string
+	Longitude float32
+	Latitude  float32
 }
 
 func (mi *MinerIndex) Close() error {
@@ -256,13 +307,43 @@ func (mi *MinerIndex) Close() error {
 	return nil
 }
 
-func getPower(ctx context.Context, c API, addr string) (*PowerInfo, error) {
+func getPower(ctx context.Context, c API, addr string) (Power, error) {
 	mp, err := c.StateMinerPower(ctx, addr, nil)
 	if err != nil {
-		return nil, err
+		return Power{}, err
 	}
-	return &PowerInfo{
-		Power:      mp.MinerPower.Uint64(),
-		TotalPower: mp.TotalPower.Uint64(),
+	p := mp.MinerPower.Uint64()
+	tp := mp.TotalPower
+	return Power{
+		Power:    p,
+		Relative: float64(p) / float64(tp.Uint64()),
 	}, nil
+}
+
+func getStaticInfo(ctx context.Context, c API, h *fchost.FilecoinHost, lr iplocation.LocationResolver, addr string) (Static, error) {
+	si := Static{}
+	pid, err := c.StateMinerPeerID(ctx, addr, nil)
+	if err != nil {
+		return si, err
+	}
+	_, err = h.NewStream(ctx, pid, identify.ID)
+	if err != nil {
+		return si, err
+	}
+	si.Online = true
+
+	if v, err := h.Peerstore().Get(pid, "AgentVersion"); err == nil {
+		agent, ok := v.(string)
+		if ok {
+			si.UserAgent = agent
+		}
+	}
+	if l, err := lr.Resolve(h.Peerstore().Addrs(pid)); err == nil {
+		si.Location = Location{
+			Country:   l.Country,
+			Latitude:  l.Latitude,
+			Longitude: l.Longitude,
+		}
+	}
+	return si, nil
 }

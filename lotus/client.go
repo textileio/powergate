@@ -2,6 +2,7 @@ package lotus
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -23,24 +24,25 @@ var (
 
 type API struct {
 	Internal struct {
-		ClientStartDeal    func(ctx context.Context, data cid.Cid, addr string, miner string, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
-		ClientImport       func(ctx context.Context, path string) (cid.Cid, error)
-		ClientGetDealInfo  func(context.Context, cid.Cid) (*types.DealInfo, error)
-		ChainNotify        func(context.Context) (<-chan []*types.HeadChange, error)
-		StateListMiners    func(context.Context, *types.TipSet) ([]string, error)
-		ClientQueryAsk     func(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
-		StateMinerPeerID   func(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
-		Version            func(context.Context) (types.Version, error)
-		SyncState          func(context.Context) (*types.SyncState, error)
-		WalletNew          func(context.Context, string) (string, error)
-		WalletBalance      func(context.Context, string) (types.BigInt, error)
-		StateMinerPower    func(context.Context, string, *types.TipSet) (types.MinerPower, error)
-		ChainHead          func(context.Context) (*types.TipSet, error)
-		ChainGetTipSet     func(context.Context, types.TipSetKey) (*types.TipSet, error)
-		StateChangedActors func(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
-		ChainReadObj       func(context.Context, cid.Cid) ([]byte, error)
-		StateReadState     func(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
-		StateGetActor      func(ctx context.Context, actor string, ts *types.TipSet) (*types.Actor, error)
+		ClientStartDeal        func(ctx context.Context, data cid.Cid, addr string, miner string, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
+		ClientImport           func(ctx context.Context, path string) (cid.Cid, error)
+		ClientGetDealInfo      func(context.Context, cid.Cid) (*types.DealInfo, error)
+		ChainNotify            func(context.Context) (<-chan []*types.HeadChange, error)
+		StateListMiners        func(context.Context, *types.TipSet) ([]string, error)
+		ClientQueryAsk         func(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
+		StateMinerPeerID       func(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
+		Version                func(context.Context) (types.Version, error)
+		SyncState              func(context.Context) (*types.SyncState, error)
+		WalletNew              func(context.Context, string) (string, error)
+		WalletBalance          func(context.Context, string) (types.BigInt, error)
+		StateMinerPower        func(context.Context, string, *types.TipSet) (types.MinerPower, error)
+		ChainHead              func(context.Context) (*types.TipSet, error)
+		ChainGetTipSet         func(context.Context, types.TipSetKey) (*types.TipSet, error)
+		StateChangedActors     func(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
+		ChainReadObj           func(context.Context, cid.Cid) ([]byte, error)
+		StateReadState         func(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
+		StateGetActor          func(ctx context.Context, actor string, ts *types.TipSet) (*types.Actor, error)
+		ChainGetTipSetByHeight func(context.Context, uint64, *types.TipSet) (*types.TipSet, error)
 	}
 }
 
@@ -77,58 +79,137 @@ func New(maddr ma.Multiaddr, authToken string) (*API, func(), error) {
 }
 
 func (a *API) ClientStartDeal(ctx context.Context, data cid.Cid, addr string, miner string, price types.BigInt, blocksDuration uint64) (*cid.Cid, error) {
-	return a.Internal.ClientStartDeal(ctx, data, addr, miner, price, blocksDuration)
+	cid, err := a.Internal.ClientStartDeal(ctx, data, addr, miner, price, blocksDuration)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ClientStartDeal: %s", err)
+	}
+	return cid, nil
 }
 func (a *API) ClientImport(ctx context.Context, path string) (cid.Cid, error) {
-	return a.Internal.ClientImport(ctx, path)
+	c, err := a.Internal.ClientImport(ctx, path)
+	if err != nil {
+		return cid.Undef, fmt.Errorf("error when calling ClientImport: %s", err)
+	}
+	return c, nil
 }
 func (a *API) ClientGetDealInfo(ctx context.Context, cid cid.Cid) (*types.DealInfo, error) {
-	return a.Internal.ClientGetDealInfo(ctx, cid)
+	di, err := a.Internal.ClientGetDealInfo(ctx, cid)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ClientGetDealInfo: %s", err)
+	}
+	return di, err
 }
 func (a *API) ChainNotify(ctx context.Context) (<-chan []*types.HeadChange, error) {
-	return a.Internal.ChainNotify(ctx)
+	hc, err := a.Internal.ChainNotify(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ChainNotify: %s", err)
+	}
+	return hc, err
 }
 func (a *API) StateListMiners(ctx context.Context, tipset *types.TipSet) ([]string, error) {
-	return a.Internal.StateListMiners(ctx, tipset)
+	miners, err := a.Internal.StateListMiners(ctx, tipset)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling StateListMiners: %s", err)
+	}
+	return miners, nil
 }
 func (a *API) ClientQueryAsk(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error) {
-	return a.Internal.ClientQueryAsk(ctx, p, miner)
+	asks, err := a.Internal.ClientQueryAsk(ctx, p, miner)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ClientQueryAsk: %s", err)
+	}
+	return asks, nil
 }
 func (a *API) StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error) {
-	return a.Internal.StateMinerPeerID(ctx, m, ts)
+	pid, err := a.Internal.StateMinerPeerID(ctx, m, ts)
+	if err != nil {
+		return peer.ID(""), fmt.Errorf("error when calling StateMinerPeerID: %s", err)
+	}
+	return pid, nil
 }
 func (a *API) Version(ctx context.Context) (types.Version, error) {
-	return a.Internal.Version(ctx)
+	v, err := a.Internal.Version(ctx)
+	if err != nil {
+		return types.Version{}, fmt.Errorf("error when calling Version: %s", err)
+	}
+	return v, nil
 }
 func (a *API) SyncState(ctx context.Context) (*types.SyncState, error) {
-	return a.Internal.SyncState(ctx)
+	ss, err := a.Internal.SyncState(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling SyncState: %s", err)
+	}
+	return ss, nil
 }
 func (a *API) WalletNew(ctx context.Context, typ string) (string, error) {
-	return a.Internal.WalletNew(ctx, typ)
+	addr, err := a.Internal.WalletNew(ctx, typ)
+	if err != nil {
+		return "", fmt.Errorf("error when calling WalletNew: %s", err)
+	}
+	return addr, nil
 }
 func (a *API) WalletBalance(ctx context.Context, addr string) (types.BigInt, error) {
-	return a.Internal.WalletBalance(ctx, addr)
+	b, err := a.Internal.WalletBalance(ctx, addr)
+	if err != nil {
+		return types.NewInt(0), fmt.Errorf("error when calling WalletBalance: %s", err)
+	}
+	return b, nil
 }
 func (a *API) StateMinerPower(ctx context.Context, addr string, ts *types.TipSet) (types.MinerPower, error) {
-	return a.Internal.StateMinerPower(ctx, addr, ts)
+	mp, err := a.Internal.StateMinerPower(ctx, addr, ts)
+	if err != nil {
+		return types.MinerPower{}, fmt.Errorf("error when calling StateMinerPower: %s", err)
+	}
+	return mp, nil
 }
 func (a *API) ChainHead(ctx context.Context) (*types.TipSet, error) {
-	return a.Internal.ChainHead(ctx)
+	ts, err := a.Internal.ChainHead(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ChainHead: %s", err)
+	}
+	return ts, nil
 }
 func (a *API) ChainGetTipSet(ctx context.Context, tsk types.TipSetKey) (*types.TipSet, error) {
-	return a.Internal.ChainGetTipSet(ctx, tsk)
+	ts, err := a.Internal.ChainGetTipSet(ctx, tsk)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ChainGetTipSet: %s", err)
+	}
+	return ts, nil
 }
 func (a *API) StateChangedActors(ctx context.Context, ocid cid.Cid, ncid cid.Cid) (map[string]types.Actor, error) {
-	return a.Internal.StateChangedActors(ctx, ocid, ncid)
+	as, err := a.Internal.StateChangedActors(ctx, ocid, ncid)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling StateChangedActors: %s", err)
+	}
+	return as, nil
 }
 func (a *API) ChainReadObj(ctx context.Context, cid cid.Cid) ([]byte, error) {
-	return a.Internal.ChainReadObj(ctx, cid)
+	state, err := a.Internal.ChainReadObj(ctx, cid)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ChainReadObj: %s", err)
+	}
+	return state, nil
 }
 func (a *API) StateReadState(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error) {
-	return a.Internal.StateReadState(ctx, act, ts)
+	as, err := a.Internal.StateReadState(ctx, act, ts)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling StateReadState: %s", err)
+	}
+	return as, nil
 }
 func (a *API) StateGetActor(ctx context.Context, actor string, ts *types.TipSet) (*types.Actor, error) {
-	return a.Internal.StateGetActor(ctx, actor, ts)
+	ac, err := a.Internal.StateGetActor(ctx, actor, ts)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling StateGetActor: %s", err)
+	}
+	return ac, nil
+}
+func (a *API) ChainGetTipSetByHeight(ctx context.Context, height uint64, ts *types.TipSet) (*types.TipSet, error) {
+	ts, err := a.Internal.ChainGetTipSetByHeight(ctx, height, ts)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ChainGetTipSetByHeight: %s", err)
+	}
+	return ts, nil
 }
 
 func monitorLotusSync(ctx context.Context, c *API) {

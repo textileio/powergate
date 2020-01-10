@@ -21,24 +21,13 @@ var (
 
 func main() {
 	logging.SetDebugLogging()
-	logging.SetLogLevel("deals", "warn")
+	logging.SetLogLevel("*", "error")
 	instrumentationSetup()
 
-	lotusAddr, _ := tests.ClientConfigMA()
+	lotusAddr, token := tests.ClientConfigMA()
 	grpcAddr, err := ma.NewMultiaddr(grpcHostAddr)
 	if err != nil {
 		panic(err)
-	}
-	token, ok := os.LookupEnv("TEXTILE_LOTUS_TOKEN")
-	if !ok {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
-		}
-		token, err = tests.GetLotusToken(home)
-		if err != nil {
-			panic(err)
-		}
 	}
 	conf := server.Config{
 		LotusAddress:    lotusAddr,

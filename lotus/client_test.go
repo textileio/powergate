@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -133,6 +134,17 @@ func TestStateReadState(t *testing.T) {
 			t.Fatalf("state of actor %s can't be nil", a)
 		}
 	}
+}
+
+func TestGetPeerID(t *testing.T) {
+	addr, token := tests.ClientConfigMA()
+	c, cls, err := New(addr, token)
+	checkErr(t, err)
+	defer cls()
+
+	pid, err := c.StateMinerPeerID(context.Background(), "", nil)
+	checkErr(t, err)
+	fmt.Println(pid)
 }
 
 func checkErr(t *testing.T, err error) {

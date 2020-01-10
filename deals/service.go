@@ -27,9 +27,9 @@ type storeResult struct {
 }
 
 // NewService is a helper to create a new Service
-func NewService(m *Module, ai *ask.AskIndex) *Service {
+func NewService(dm *Module, ai *ask.AskIndex) *Service {
 	return &Service{
-		Module:   m,
+		Module:   dm,
 		askIndex: ai,
 	}
 }
@@ -59,7 +59,7 @@ func (s *Service) AvailableAsks(ctx context.Context, req *pb.AvailableAsksReques
 		Limit:     int(req.GetQuery().GetLimit()),
 		Offset:    int(req.GetQuery().GetOffset()),
 	}
-	asks, err := s.askIndex.AvailableAsks(q)
+	asks, err := s.askIndex.Query(q)
 	if err != nil {
 		return nil, err
 	}

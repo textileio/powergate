@@ -61,7 +61,7 @@ type API interface {
 }
 
 // New creates a new deal module
-func New(api API, ds datastore.Datastore) *Module {
+func New(ds datastore.Datastore, api API) *Module {
 	// can't avoid home base path, ipfs checks: cannot add filestore references outside ipfs root (home folder)
 	home, err := os.UserHomeDir()
 	if err != nil {
