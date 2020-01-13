@@ -10,6 +10,7 @@ import (
 	logging "github.com/ipfs/go-log"
 	"github.com/textileio/filecoin/api/server"
 	"github.com/textileio/filecoin/tests"
+	ma "github.com/multiformats/go-multiaddr"
 )
 
 var (
@@ -20,20 +21,12 @@ var (
 
 func main() {
 	logging.SetDebugLogging()
-	logging.SetLogLevel("deals", "warn")
+	logging.SetLogLevel("*", "error")
 	instrumentationSetup()
 
-	lotusAddr, _ := tests.ClientConfigMA()
-	token, ok := os.LookupEnv("TEXTILE_LOTUS_TOKEN")
-	if !ok {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
-		}
-		token, err = tests.GetLotusToken(home)
-		if err != nil {
-			panic(err)
-		}
+	lotusAddr, token := tests.ClientConfigMA()
+	if err != nil {
+		panic(err)
 	}
 	conf := server.Config{
 		LotusAddress:    lotusAddr,

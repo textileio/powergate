@@ -4,16 +4,13 @@ import (
 	"context"
 	"time"
 
-	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
-)
-
-var (
-	log = logging.Logger("source")
 )
 
 type Source struct {
 	Id          string
+	Weight      float64
+	Scores      map[string]int
 	Maddr       ma.Multiaddr
 	LastFetched *time.Time
 }

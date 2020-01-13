@@ -45,14 +45,17 @@ func ClientConfigMA() (ma.Multiaddr, string) {
 	if err != nil {
 		panic(err)
 	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-	path := filepath.Join(home, ".lotus")
-	authToken, err := GetLotusToken(path)
-	if err != nil {
-		panic(err)
+	authToken, ok := os.LookupEnv("TEXTILE_LOTUS_TOKEN")
+	if !ok {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
+		}
+		path := filepath.Join(home, ".lotus")
+		authToken, err = GetLotusToken(path)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return multi, authToken

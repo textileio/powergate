@@ -2,12 +2,10 @@ package ask
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/textileio/filecoin/lotus"
-	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/tests"
 )
 
@@ -21,22 +19,22 @@ func TestFreshBuild(t *testing.T) {
 	defer cls()
 
 	queryAskRateLim = 2000
-	asks, err := takeFreshAskSnapshot(context.Background(), c)
+	ai := &AskIndex{ctx: context.Background(), c: c}
+	err = ai.updateIndex()
 	checkErr(t, err)
-	if len(asks) == 0 {
+	if len(ai.Get().Miners) == 0 {
 		t.Fatalf("current asks can't be empty")
 	}
-	fmt.Printf("ask cache: %v\n", asks)
 }
 
 func TestQueryAsk(t *testing.T) {
 	t.Parallel()
 	dm := AskIndex{}
-	dm.cache = []*types.StorageAsk{
-		{Price: types.NewInt(20), MinPieceSize: 128, Miner: "t01"},
-		{Price: types.NewInt(30), MinPieceSize: 64, Miner: "t02"},
-		{Price: types.NewInt(40), MinPieceSize: 256, Miner: "t03"},
-		{Price: types.NewInt(50), MinPieceSize: 16, Miner: "t04"},
+	dm.queryCache = []*StorageAsk{
+		{Price: uint64(20), MinPieceSize: 128, Miner: "t01"},
+		{Price: uint64(30), MinPieceSize: 64, Miner: "t02"},
+		{Price: uint64(40), MinPieceSize: 256, Miner: "t03"},
+		{Price: uint64(50), MinPieceSize: 16, Miner: "t04"},
 	}
 
 	facr := []StorageAsk{
@@ -62,7 +60,7 @@ func TestQueryAsk(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := dm.AvailableAsks(tt.q)
+			got, err := dm.Query(tt.q)
 			if err != nil {
 				t.Fatal(err)
 			}
