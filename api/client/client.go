@@ -1,11 +1,10 @@
 package client
 
 import (
-	ma "github.com/multiformats/go-multiaddr"
 	dealsPb "github.com/textileio/filecoin/deals/pb"
-	"github.com/textileio/filecoin/util"
 	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // Client provides the client api
@@ -16,13 +15,14 @@ type Client struct {
 }
 
 // NewClient starts the client
-func NewClient(maddr ma.Multiaddr) (*Client, error) {
-	addr, err := util.TCPAddrFromMultiAddr(maddr)
-	if err != nil {
-		return nil, err
+func NewClient(target string, creds credentials.TransportCredentials) (*Client, error) {
+	var opts []grpc.DialOption
+	if creds != nil {
+		opts = append(opts, grpc.WithTransportCredentials(creds))
+	} else {
+		opts = append(opts, grpc.WithInsecure())
 	}
-	// ToDo: Support secure connection
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	conn, err := grpc.Dial(target, opts...)
 	if err != nil {
 		return nil, err
 	}

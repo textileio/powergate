@@ -8,13 +8,12 @@ import (
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log"
-	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/filecoin/api/server"
 	"github.com/textileio/filecoin/tests"
 )
 
 var (
-	grpcHostAddr = "/ip4/127.0.0.1/tcp/5002"
+	grpcHostAddr = "127.0.0.1:5002"
 
 	log = logging.Logger("main")
 )
@@ -25,10 +24,6 @@ func main() {
 	instrumentationSetup()
 
 	lotusAddr, _ := tests.ClientConfigMA()
-	grpcAddr, err := ma.NewMultiaddr(grpcHostAddr)
-	if err != nil {
-		panic(err)
-	}
 	token, ok := os.LookupEnv("TEXTILE_LOTUS_TOKEN")
 	if !ok {
 		home, err := os.UserHomeDir()
@@ -43,7 +38,8 @@ func main() {
 	conf := server.Config{
 		LotusAddress:    lotusAddr,
 		LotusAuthToken:  token,
-		GrpcHostAddress: grpcAddr,
+		GrpcHostNetwork: "tcp",
+		GrpcHostAddress: grpcHostAddr,
 	}
 	log.Info("starting server...")
 	s, err := server.NewServer(conf)
