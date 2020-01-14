@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/spf13/cobra"
 )
@@ -23,8 +22,6 @@ var newWalletCmd = &cobra.Command{
 
 		typ, err := cmd.Flags().GetString("type")
 		checkErr(err)
-
-		fmt.Println("type", typ)
 
 		address, err = fcClient.Wallet.NewWallet(ctx, typ)
 		checkErr(err)
