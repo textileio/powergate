@@ -251,6 +251,9 @@ func (ai *AskIndex) Close() error {
 }
 
 func calculateMedian(index map[string]StorageAsk) uint64 {
+	if len(index) == 0 {
+		return 0
+	}
 	prices := make([]uint64, 0, len(index))
 	for _, v := range index {
 		prices = append(prices, v.Price)
