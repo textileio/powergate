@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"strings"
@@ -86,12 +87,12 @@ func Fatal(err error, args ...interface{}) {
 	os.Exit(1)
 }
 
-func RenderTable(header []string, data [][]string) {
-	table := tablewriter.NewWriter(os.Stdout)
+func RenderTable(writer io.Writer, header []string, data [][]string) {
+	table := tablewriter.NewWriter(writer)
 	table.SetHeader(header)
 	table.SetAutoWrapText(false)
 	table.SetAutoFormatHeaders(true)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetHeaderAlignment(tablewriter.ALIGN_CENTER)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.SetCenterSeparator("")
 	table.SetColumnSeparator("")
@@ -107,7 +108,6 @@ func RenderTable(header []string, data [][]string) {
 	table.SetHeaderColor(headersColors...)
 	table.AppendBulk(data)
 	table.Render()
-	fmt.Println()
 }
 
 func checkErr(e error) {

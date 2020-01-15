@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"os"
 	"strconv"
 
 	"github.com/logrusorgru/aurora"
@@ -89,7 +90,7 @@ var asksCmd = &cobra.Command{
 					strconv.Itoa(int(a.Expiry)),
 				}
 			}
-			RenderTable([]string{"miner", "price", "min piece size", "timestamp", "expiry"}, data)
+			RenderTable(os.Stdout, []string{"miner", "price", "min piece size", "timestamp", "expiry"}, data)
 		}
 
 		Message("Found %d asks", aurora.White(len(asks)).Bold())

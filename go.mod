@@ -6,6 +6,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/golang/protobuf v1.3.2
 	github.com/gorilla/websocket v1.4.1
+	github.com/gosuri/uilive v0.0.4
 	github.com/ip2location/ip2location-go v8.2.0+incompatible
 	github.com/ipfs/go-cid v0.0.4
 	github.com/ipfs/go-datastore v0.3.1

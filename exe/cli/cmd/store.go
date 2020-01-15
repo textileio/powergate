@@ -118,7 +118,7 @@ var storeCmd = &cobra.Command{
 					strconv.Itoa(int(dealConfig.EpochPrice.Int64())),
 				}
 			}
-			RenderTable([]string{"miner", "price"}, data)
+			RenderTable(os.Stdout, []string{"miner", "price"}, data)
 		}
 
 	},
