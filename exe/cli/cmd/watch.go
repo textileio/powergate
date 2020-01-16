@@ -76,7 +76,11 @@ var watchCmd = &cobra.Command{
 		ch := make(chan client.WatchEvent)
 		go driveChannel(ch)
 
-		for event := range ch {
+		for {
+			event, ok := <-ch
+			if ok == false {
+				break
+			}
 			state[event.Deal.ProposalCid.String()] = &event
 			updateOutput(writer, state)
 			if isComplete(state) {
@@ -125,7 +129,7 @@ func isComplete(state map[string]*client.WatchEvent) bool {
 			value.Deal.StateName == "DealSealing" {
 			processing = true
 		}
-		if processing && value.Err == nil {
+		if processing && value != nil && value.Err == nil {
 			return false
 		}
 	}
