@@ -46,11 +46,11 @@ func New() (*FilecoinHost, error) {
 }
 
 func (fh *FilecoinHost) Bootstrap() error {
-	log.Info("bootstraping libp2p host")
+	log.Info("bootstraping libp2p host dht")
 	if err := fh.dht.Bootstrap(context.Background()); err != nil {
 		return err
 	}
-	log.Info("bootstraped!")
+	log.Info("dht bootstraped!")
 	return nil
 }
 
