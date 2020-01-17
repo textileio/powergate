@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/caarlos0/spin"
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/textileio/filecoin/index/ask"
@@ -16,7 +17,7 @@ func init() {
 	asksCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
 	asksCmd.Flags().IntP("offset", "o", -1, "offset of results")
 
-	rootCmd.AddCommand(asksCmd)
+	dealsCmd.AddCommand(asksCmd)
 }
 
 var asksCmd = &cobra.Command{
@@ -43,7 +44,10 @@ var asksCmd = &cobra.Command{
 			Offset:    o,
 		}
 
+		s := spin.New("%s Querying network for available storage asks...")
+		s.Start()
 		asks, err := fcClient.Deals.AvailableAsks(ctx, q)
+		s.Stop()
 		checkErr(err)
 
 		if len(asks) > 0 {

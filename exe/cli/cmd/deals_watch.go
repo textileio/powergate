@@ -27,7 +27,7 @@ import (
 func init() {
 	watchCmd.Flags().StringSliceP("cids", "c", []string{}, "List of deal cids to watch")
 
-	rootCmd.AddCommand(watchCmd)
+	dealsCmd.AddCommand(watchCmd)
 }
 
 var watchCmd = &cobra.Command{

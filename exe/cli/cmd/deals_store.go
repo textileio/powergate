@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/lotus/types"
@@ -18,7 +19,7 @@ func init() {
 	storeCmd.Flags().Int64SliceP("prices", "p", []int64{}, "prices of the deals to execute")
 	storeCmd.Flags().Uint64P("duration", "d", 0, "the duration to store the file for")
 
-	rootCmd.AddCommand(storeCmd)
+	dealsCmd.AddCommand(storeCmd)
 }
 
 var storeCmd = &cobra.Command{
@@ -74,7 +75,10 @@ var storeCmd = &cobra.Command{
 		duration, err := cmd.Flags().GetUint64("duration")
 		checkErr(err)
 
+		s := spin.New("%s Initiating specified storage deals...")
+		s.Start()
 		success, failed, err := fcClient.Deals.Store(ctx, addr, file, dealConfigs, duration)
+		s.Stop()
 		checkErr(err)
 
 		if len(success) > 0 {

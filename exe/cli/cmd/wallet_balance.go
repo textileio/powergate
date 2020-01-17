@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 
+	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	rootCmd.AddCommand(balanceCmd)
+	walletCmd.AddCommand(balanceCmd)
 }
 
 var balanceCmd = &cobra.Command{
@@ -26,7 +27,10 @@ var balanceCmd = &cobra.Command{
 			Fatal(errors.New("balance command needs a wallet address"))
 		}
 
+		s := spin.New("%s Checking wallet balance...")
+		s.Start()
 		bal, err := fcClient.Wallet.WalletBalance(ctx, addr)
+		s.Stop()
 		checkErr(err)
 
 		Success("Balance: %v", bal)

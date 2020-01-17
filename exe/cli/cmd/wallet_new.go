@@ -3,17 +3,18 @@ package cmd
 import (
 	"context"
 
+	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	newWalletCmd.Flags().StringP("type", "t", "bls", "Specifies the wallet type, either bls or secp256k1. Defaults to bls.")
+	newCmd.Flags().StringP("type", "t", "bls", "Specifies the wallet type, either bls or secp256k1. Defaults to bls.")
 
-	rootCmd.AddCommand(newWalletCmd)
+	walletCmd.AddCommand(newCmd)
 }
 
-var newWalletCmd = &cobra.Command{
-	Use:   "newWallet",
+var newCmd = &cobra.Command{
+	Use:   "new",
 	Short: "Create a new filecoin wallet",
 	Long:  `Create a new filecoin wallet`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -23,7 +24,10 @@ var newWalletCmd = &cobra.Command{
 		typ, err := cmd.Flags().GetString("type")
 		checkErr(err)
 
+		s := spin.New("%s Creating new wallet...")
+		s.Start()
 		address, err = fcClient.Wallet.NewWallet(ctx, typ)
+		s.Stop()
 		checkErr(err)
 
 		Success("Wallet address: %v", address)
