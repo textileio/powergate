@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"io"
 	"sort"
-	"time"
 
 	"github.com/gosuri/uilive"
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/textileio/filecoin/api/client"
-	"github.com/textileio/filecoin/deals"
 )
 
 // var DealStates = []string{
@@ -25,13 +23,6 @@ import (
 // 	"DealComplete",
 // 	"DealError",
 // }
-
-var completeStates = []string{
-	"DealRejected",
-	"DealFailed",
-	"DealComplete",
-	"DealError",
-}
 
 func init() {
 	watchCmd.Flags().StringSliceP("cids", "c", []string{}, "List of deal cids to watch")
@@ -70,11 +61,8 @@ var watchCmd = &cobra.Command{
 
 		updateOutput(writer, state)
 
-		// ch, err := fcClient.Deals.Watch(ctx, cids)
-		// checkErr(err)
-		cmd.Println(ctx)
-		ch := make(chan client.WatchEvent)
-		go driveChannel(ch)
+		ch, err := fcClient.Deals.Watch(ctx, cids)
+		checkErr(err)
 
 		for {
 			event, ok := <-ch
@@ -116,7 +104,7 @@ func updateOutput(writer io.Writer, state map[string]*client.WatchEvent) {
 			val,
 		}
 	}
-	RenderTable(writer, []string{"miner", "state"}, data)
+	RenderTable(writer, []string{"deal id", "state"}, data)
 }
 
 func isComplete(state map[string]*client.WatchEvent) bool {
@@ -134,84 +122,4 @@ func isComplete(state map[string]*client.WatchEvent) bool {
 		}
 	}
 	return true
-}
-
-func driveChannel(ch chan client.WatchEvent) {
-	cid1, _ := cid.Parse("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPU")
-	cid2, _ := cid.Parse("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPN")
-
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid1,
-			StateName:   "DealUnknown",
-		},
-	}
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid2,
-			StateName:   "DealUnknown",
-		},
-	}
-
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid1,
-			StateName:   "DealAccepted",
-		},
-	}
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid2,
-			StateName:   "DealAccepted",
-		},
-	}
-
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid1,
-			StateName:   "DealStaged",
-		},
-	}
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid2,
-			StateName:   "DealStaged",
-		},
-	}
-
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid1,
-			StateName:   "DealSealing",
-		},
-	}
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid2,
-			StateName:   "DealSealing",
-		},
-	}
-
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid1,
-			StateName:   "DealComplete",
-		},
-	}
-	time.Sleep(time.Second * 1)
-	ch <- client.WatchEvent{
-		Deal: deals.DealInfo{
-			ProposalCid: cid2,
-			StateName:   "DealComplete",
-		},
-	}
 }

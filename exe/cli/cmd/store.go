@@ -7,14 +7,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/lotus/types"
 )
-
-var success []cid.Cid
-var failed []deals.DealConfig
 
 func init() {
 	storeCmd.Flags().StringP("file", "f", "", "Path to the file to store")
@@ -23,26 +19,6 @@ func init() {
 	storeCmd.Flags().Uint64P("duration", "d", 0, "the duration to store the file for")
 
 	rootCmd.AddCommand(storeCmd)
-
-	success = make([]cid.Cid, 5)
-	for i := range success {
-		cid, _ := cid.Parse("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPU")
-		success[i] = cid
-	}
-	failed = []deals.DealConfig{
-		deals.DealConfig{
-			Miner:      "asdf3rerf34",
-			EpochPrice: types.NewInt(4567),
-		},
-		deals.DealConfig{
-			Miner:      "kjn34kjnf",
-			EpochPrice: types.NewInt(2345),
-		},
-		deals.DealConfig{
-			Miner:      "ubsdc7askj434",
-			EpochPrice: types.NewInt(8576),
-		},
-	}
 }
 
 var storeCmd = &cobra.Command{
@@ -57,7 +33,7 @@ var storeCmd = &cobra.Command{
 		checkErr(err)
 
 		if addr == "" {
-			Fatal(errors.New("balance command needs a wallet address"))
+			Fatal(errors.New("store command needs a wallet address"))
 		}
 
 		path, err := cmd.Flags().GetString("file")
@@ -98,9 +74,8 @@ var storeCmd = &cobra.Command{
 		duration, err := cmd.Flags().GetUint64("duration")
 		checkErr(err)
 
-		cmd.Println(ctx, addr, file, dealConfigs, duration)
-		// success, failed, err = fcClient.Deals.Store(ctx, addr, file, dealConfigs, duration)
-		// checkErr(err)
+		success, failed, err := fcClient.Deals.Store(ctx, addr, file, dealConfigs, duration)
+		checkErr(err)
 
 		if len(success) > 0 {
 			Success("Initiation of %v deals succeeded with cids:", len(success))
@@ -110,7 +85,7 @@ var storeCmd = &cobra.Command{
 		}
 		if len(failed) > 0 {
 			cmd.Println()
-			Message("Failed to initialize %v deals:", len(success))
+			Message("Failed to initialize %v deals:", len(failed))
 			data := make([][]string, len(failed))
 			for i, dealConfig := range failed {
 				data[i] = []string{

@@ -4,6 +4,8 @@ go 1.13
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
+	github.com/AlecAivazis/survey/v2 v2.0.5
+	github.com/caarlos0/spin v1.1.0
 	github.com/golang/protobuf v1.3.2
 	github.com/gorilla/websocket v1.4.1
 	github.com/gosuri/uilive v0.0.4
@@ -15,7 +17,6 @@ require (
 	github.com/libp2p/go-libp2p v0.5.0
 	github.com/libp2p/go-libp2p-core v0.3.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
-	github.com/libp2p/go-libp2p-pnet v0.1.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/multiformats/go-multiaddr v0.2.0

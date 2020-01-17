@@ -10,39 +10,7 @@ import (
 	"github.com/textileio/filecoin/index/ask"
 )
 
-var asks = []ask.StorageAsk{
-	ask.StorageAsk{
-		Miner:        "asdfzxvc123",
-		Price:        1245,
-		MinPieceSize: 1024,
-		Timestamp:    1123456,
-		Expiry:       12345677,
-	},
-	ask.StorageAsk{
-		Miner:        "xcvbfgfhh657",
-		Price:        3420,
-		MinPieceSize: 2048,
-		Timestamp:    89798,
-		Expiry:       12345677,
-	},
-	ask.StorageAsk{
-		Miner:        "asdfzxvc123",
-		Price:        1245,
-		MinPieceSize: 1024,
-		Timestamp:    1123456,
-		Expiry:       12345677,
-	},
-	ask.StorageAsk{
-		Miner:        "asdfzxvc123",
-		Price:        1245,
-		MinPieceSize: 1024,
-		Timestamp:    1123456,
-		Expiry:       12345677,
-	},
-}
-
 func init() {
-
 	asksCmd.Flags().Uint64P("maxPrice", "m", 0, "max price for asks query")
 	asksCmd.Flags().Uint64P("pieceSize", "p", 0, "piece size for asks query")
 	asksCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
@@ -75,9 +43,8 @@ var asksCmd = &cobra.Command{
 			Offset:    o,
 		}
 
-		cmd.Println(ctx, q)
-		// asks, err := fcClient.Deals.AvailableAsks(ctx, q)
-		// checkErr(err)
+		asks, err := fcClient.Deals.AvailableAsks(ctx, q)
+		checkErr(err)
 
 		if len(asks) > 0 {
 			data := make([][]string, len(asks))
