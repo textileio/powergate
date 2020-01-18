@@ -16,7 +16,6 @@ import (
 
 var (
 	// Used for flags.
-	address string
 	cfgFile string
 
 	fcClient *client.Client
@@ -52,15 +51,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
-	rootCmd.PersistentFlags().StringP("address", "a", "", "wallet address to run command on")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.filecoin.yaml)")
+	// rootCmd.PersistentFlags().StringP("address", "a", "", "wallet address to run command on")
 	// rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 	// viper.BindPFlag("address", rootCmd.PersistentFlags().Lookup("address"))
 	// viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
 	// viper.SetDefault("address", "")
-
-	// rootCmd.AddCommand(addCmd)
-	// rootCmd.AddCommand(initCmd)
 }
 
 func initConfig() {
@@ -72,9 +68,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		checkErr(err)
 
-		// Search config in home directory with name ".cobra" (without extension).
+		// Search config in home directory with name ".filecoin" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cobra")
+		viper.SetConfigName(".filecoin")
 	}
 
 	viper.AutomaticEnv()
