@@ -13,16 +13,16 @@ func TestFreshBuild(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test since we're on short mode")
 	}
+	ctx := context.Background()
 	addr, token := tests.ClientConfigMA()
-	c, cls, err := lotus.New(addr, token)
+	api, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
 	defer cls()
 
-	queryAskRateLim = 2000
-	ai := &AskIndex{ctx: context.Background(), c: c}
-	err = ai.updateIndex()
+	qaRatelim = 2000
+	index, err := generateIndex(ctx, api)
 	checkErr(t, err)
-	if len(ai.Get().Miners) == 0 {
+	if len(index.Storage) == 0 {
 		t.Fatalf("current asks can't be empty")
 	}
 }
@@ -30,7 +30,7 @@ func TestFreshBuild(t *testing.T) {
 func TestQueryAsk(t *testing.T) {
 	t.Parallel()
 	dm := AskIndex{}
-	dm.queryCache = []*StorageAsk{
+	dm.priceOrderedCache = []*StorageAsk{
 		{Price: uint64(20), MinPieceSize: 128, Miner: "t01"},
 		{Price: uint64(30), MinPieceSize: 64, Miner: "t02"},
 		{Price: uint64(40), MinPieceSize: 256, Miner: "t03"},

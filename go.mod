@@ -5,10 +5,12 @@ go 1.13
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/golang/protobuf v1.3.2
+	github.com/google/go-cmp v0.3.0
 	github.com/gorilla/websocket v1.4.1
 	github.com/ip2location/ip2location-go v8.2.0+incompatible
 	github.com/ipfs/go-cid v0.0.4
 	github.com/ipfs/go-datastore v0.3.1
+	github.com/ipfs/go-ds-badger v0.2.0
 	github.com/ipfs/go-ipld-cbor v0.0.3
 	github.com/ipfs/go-log v1.0.1
 	github.com/libp2p/go-libp2p v0.5.1
@@ -26,4 +28,5 @@ require (
 	google.golang.org/grpc v1.26.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.4 // indirect
+	gotest.tools v2.2.0+incompatible
 )

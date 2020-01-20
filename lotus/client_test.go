@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	cid "github.com/ipfs/go-cid"
 	"io"
 	"io/ioutil"
 	"os"
@@ -16,6 +17,7 @@ import (
 )
 
 func TestClientVersion(t *testing.T) {
+	skipIfShort(t)
 	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
@@ -26,6 +28,8 @@ func TestClientVersion(t *testing.T) {
 }
 
 func TestClientImport(t *testing.T) {
+	skipIfShort(t)
+
 	// can't avoid home base path, ipfs checks: cannot add filestore references outside ipfs root (home folder)
 	home, err := os.UserHomeDir()
 	checkErr(t, err)
@@ -50,6 +54,8 @@ func TestClientImport(t *testing.T) {
 }
 
 func TestClientChainNotify(t *testing.T) {
+	skipIfShort(t)
+
 	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
@@ -75,7 +81,29 @@ func TestClientChainNotify(t *testing.T) {
 	}
 }
 
+func TestClientChainNotifyFork(t *testing.T) {
+	skipIfShort(t)
+	ctx := context.Background()
+	addr, token := tests.ClientConfigMA()
+	c, cls, err := New(addr, token)
+	checkErr(t, err)
+	defer cls()
+
+	head, err := c.ChainHead(ctx)
+	checkErr(t, err)
+	cidv, err := cid.Decode("bafy2bzacebgyzknipe6gyzt4x3sydxsipvsfnwmeoygu5mzjarns4rty4ohii")
+	checkErr(t, err)
+	from := types.NewTipSetKey(cidv)
+	path, err := c.ChainGetPath(ctx, from, types.NewTipSetKey(head.Cids...))
+	checkErr(t, err)
+	for _, s := range path {
+		fmt.Printf("%s: %d %s\n", s.Type, s.Val.Height, s.Val.Cids)
+	}
+}
+
 func TestSyncState(t *testing.T) {
+	skipIfShort(t)
+
 	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
@@ -89,6 +117,8 @@ func TestSyncState(t *testing.T) {
 }
 
 func TestChainHead(t *testing.T) {
+	skipIfShort(t)
+
 	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
@@ -102,6 +132,8 @@ func TestChainHead(t *testing.T) {
 }
 
 func TestChainGetTipset(t *testing.T) {
+	skipIfShort(t)
+
 	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
@@ -117,6 +149,8 @@ func TestChainGetTipset(t *testing.T) {
 }
 
 func TestStateReadState(t *testing.T) {
+	skipIfShort(t)
+
 	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
@@ -137,6 +171,8 @@ func TestStateReadState(t *testing.T) {
 }
 
 func TestGetPeerID(t *testing.T) {
+	skipIfShort(t)
+
 	addr, token := tests.ClientConfigMA()
 	c, cls, err := New(addr, token)
 	checkErr(t, err)
@@ -151,5 +187,11 @@ func checkErr(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func skipIfShort(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test since we're on short mode")
 	}
 }

@@ -516,7 +516,7 @@
       "pluginVersion": "6.4.4",
       "targets": [
         {
-          "expr": "textilefc_index_miner_refresh_progress",
+          "expr": "textilefc_indexminer_refresh_progress",
           "legendFormat": "",
           "refId": "A"
         }
@@ -611,22 +611,7 @@
     },
     {
       "cacheTimeout": null,
-      "colorBackground": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
       "datasource": null,
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
       "gridPos": {
         "h": 4,
         "w": 2,
@@ -634,64 +619,55 @@
         "y": 5
       },
       "id": 12,
-      "interval": null,
       "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
+      "options": {
+        "displayMode": "basic",
+        "fieldOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "defaults": {
+            "mappings": [
+              {
+                "id": 0,
+                "op": "=",
+                "text": "N/A",
+                "type": 1,
+                "value": "null"
+              }
+            ],
+            "max": 100,
+            "min": 0,
+            "nullValueMode": "connected",
+            "thresholds": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ],
+            "unit": "none"
+          },
+          "override": {},
+          "values": false
         },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "options": {},
-      "postfix": "",
-      "postfixFontSize": "50%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": true,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true,
-        "ymax": null,
-        "ymin": null
+        "orientation": "vertical"
       },
-      "tableColumn": "",
+      "pluginVersion": "6.4.4",
       "targets": [
         {
-          "expr": "textilefc_index_miner_count",
-          "legendFormat": "miners on-chain",
+          "expr": "textilefc_indexminer_onchain_count",
+          "legendFormat": "{{ online }}",
           "refId": "A"
         }
       ],
-      "thresholds": "",
       "timeFrom": null,
       "timeShift": null,
       "title": "Current #Miners on-chain",
-      "type": "singlestat",
-      "valueFontSize": "80%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
+      "type": "bargauge"
     },
     {
       "cacheTimeout": null,
@@ -759,7 +735,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "textilefc_index_miner_refresh_time{refreshtype=\"full\"}",
+          "expr": "textilefc_indexminer_refresh_duration{refreshtype=\"full\"}",
           "instant": false,
           "legendFormat": "",
           "refId": "A"
@@ -844,7 +820,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "textilefc_index_miner_refresh_time{refreshtype=\"delta\"}",
+          "expr": "textilefc_indexminer_refresh_duration{refreshtype=\"delta\"}",
           "legendFormat": "delta-refresh-time",
           "refId": "A"
         }
@@ -919,7 +895,7 @@
       "pluginVersion": "6.4.4",
       "targets": [
         {
-          "expr": "textilefc_askcache_full_refresh_progress",
+          "expr": "textilefc_askindex_fullrefresh_progress",
           "refId": "A"
         }
       ],
@@ -992,7 +968,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "textilefc_askcache_full_refresh_time",
+          "expr": "textilefc_askindex_fullrefresh_duration",
           "refId": "A"
         }
       ],
@@ -1052,7 +1028,7 @@
       "pluginVersion": "6.4.4",
       "targets": [
         {
-          "expr": "textilefc_askcache_askquery",
+          "expr": "textilefc_askindex_queryask_result",
           "legendFormat": "{{ askstatus }}",
           "refId": "A"
         }
@@ -1073,7 +1049,7 @@
       },
       "id": 32,
       "panels": [],
-      "title": "Slashing",
+      "title": "Slashing Index",
       "type": "row"
     },
     {
@@ -1127,7 +1103,7 @@
       "pluginVersion": "6.4.4",
       "targets": [
         {
-          "expr": "textilefc_index_slashing_refresh_progress",
+          "expr": "textilefc_indexslashing_refresh_progress",
           "refId": "A"
         }
       ],

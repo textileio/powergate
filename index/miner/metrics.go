@@ -7,41 +7,41 @@ import (
 )
 
 var (
-	mRefreshProgress = stats.Float64("index/miner-refresh-progress", "Refresh progress", "By")
-	mRefreshTime     = stats.Int64("index/miner-refresh-time", "Seconds of full-refresh", "s")
-	mMinerCount      = stats.Int64("index/miner-count", "How many miners on-chain", "By")
-	mUpdatedHeight   = stats.Int64("index/miner-updated-height", "Last updated height", "By")
+	mRefreshProgress   = stats.Float64("indexminer/refresh-progress", "Refresh progress", "By")
+	mRefreshDuration   = stats.Int64("indexminer/refresh-duration", "Refresh duration in seconds", "s")
+	mMinerOnChainCount = stats.Int64("indexminer/onchain-count", "How many miners on-chain", "By")
+	mUpdatedHeight     = stats.Int64("indexminer/updated-height", "Last updated height", "By")
 
 	vRefreshTimeProgress = &view.View{
-		Name:        "index/miner-refresh-progress",
+		Name:        "indexminer/refresh-progress",
 		Measure:     mRefreshProgress,
-		Description: "Refresh time",
+		Description: "Refresh progress",
 		Aggregation: view.LastValue(),
 	}
-	vRefreshTime = &view.View{
-		Name:        "index/miner-refresh-time",
-		Measure:     mRefreshTime,
-		Description: "Refresh time",
-		TagKeys:     []tag.Key{kRefreshType},
+	vRefreshDuration = &view.View{
+		Name:        "indexminer/refresh-duration",
+		Measure:     mRefreshDuration,
+		Description: "Refresh duration",
+		TagKeys:     []tag.Key{metricRefreshType},
 		Aggregation: view.LastValue(),
 	}
-	vMinerCount = &view.View{
-		Name:        "index/miner-count",
-		Measure:     mMinerCount,
+	vMinerOnChainCount = &view.View{
+		Name:        "indexminer/onchain-count",
+		Measure:     mMinerOnChainCount,
 		Description: "Miners on chain",
-		TagKeys:     []tag.Key{kOnline},
+		TagKeys:     []tag.Key{metricOnline},
 		Aggregation: view.LastValue(),
 	}
-	vLastUpdatedHeight = &view.View{
+	vUpdatedHeight = &view.View{
 		Name:        "index/miner-updated-height",
 		Measure:     mUpdatedHeight,
 		Description: "Last updated height",
 		Aggregation: view.LastValue(),
 	}
-	kRefreshType, _ = tag.NewKey("refreshtype")
-	kOnline, _      = tag.NewKey("online")
+	metricRefreshType, _ = tag.NewKey("refreshtype")
+	metricOnline, _      = tag.NewKey("online")
 
-	views = []*view.View{vRefreshTime, vMinerCount, vLastUpdatedHeight, vRefreshTimeProgress}
+	views = []*view.View{vRefreshTimeProgress, vRefreshDuration, vMinerOnChainCount, vUpdatedHeight}
 )
 
 func initMetrics() {

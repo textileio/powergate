@@ -7,6 +7,7 @@ import (
 )
 
 func TestNewWallet(t *testing.T) {
+	skipIfShort(t)
 	w, done := setupWallet(t)
 	defer done()
 
@@ -37,6 +38,7 @@ func TestWalletBalance(t *testing.T) {
 }
 
 func setupWallet(t *testing.T) (*Wallet, func()) {
+	skipIfShort(t)
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
 	return &Wallet{client: pb.NewAPIClient(conn)}, func() {

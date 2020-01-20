@@ -11,6 +11,7 @@ import (
 )
 
 func TestQueryAsk(t *testing.T) {
+	skipIfShort(t)
 	d, done := setupDeals(t)
 	defer done()
 
@@ -21,6 +22,7 @@ func TestQueryAsk(t *testing.T) {
 }
 
 func TestStore(t *testing.T) {
+	skipIfShort(t)
 	d, done := setupDeals(t)
 	defer done()
 
@@ -32,6 +34,7 @@ func TestStore(t *testing.T) {
 }
 
 func TestWatch(t *testing.T) {
+	skipIfShort(t)
 	d, done := setupDeals(t)
 	defer done()
 
@@ -47,5 +50,11 @@ func setupDeals(t *testing.T) (*Deals, func()) {
 	return &Deals{client: pb.NewAPIClient(conn)}, func() {
 		done()
 		serverDone()
+	}
+}
+
+func skipIfShort(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping since is a short test run")
 	}
 }
