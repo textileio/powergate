@@ -11,10 +11,6 @@ import (
 )
 
 func init() {
-	balanceCmd.Flags().StringP("address", "a", "", "The wallet address to get the balance for")
-	viper.BindPFlag("address", balanceCmd.Flags().Lookup("address"))
-	viper.SetDefault("address", "")
-
 	walletCmd.AddCommand(balanceCmd)
 }
 

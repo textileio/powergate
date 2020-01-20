@@ -9,6 +9,7 @@ import (
 
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/lotus/types"
 )
@@ -17,7 +18,6 @@ func init() {
 	storeCmd.Flags().StringP("file", "f", "", "Path to the file to store")
 	storeCmd.Flags().StringSliceP("miners", "m", []string{}, "miner ids of the deals to execute")
 	storeCmd.Flags().Int64SliceP("prices", "p", []int64{}, "prices of the deals to execute")
-	storeCmd.Flags().Uint64P("duration", "d", 0, "the duration to store the file for")
 
 	dealsCmd.AddCommand(storeCmd)
 }
@@ -30,11 +30,15 @@ var storeCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		addr, err := cmd.Flags().GetString("address")
-		checkErr(err)
+		addr := viper.GetString("address")
+		duration := viper.GetUint64("duration")
 
 		if addr == "" {
 			Fatal(errors.New("store command needs a wallet address"))
+		}
+
+		if duration == 0 {
+			Fatal(errors.New("store command duration should be > 0"))
 		}
 
 		path, err := cmd.Flags().GetString("file")
@@ -71,9 +75,6 @@ var storeCmd = &cobra.Command{
 				EpochPrice: types.NewInt(uint64(prices[i])),
 			}
 		}
-
-		duration, err := cmd.Flags().GetUint64("duration")
-		checkErr(err)
 
 		s := spin.New("%s Initiating specified storage deals...")
 		s.Start()

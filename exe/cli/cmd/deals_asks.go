@@ -2,18 +2,18 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strconv"
 
 	"github.com/caarlos0/spin"
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/textileio/filecoin/index/ask"
 )
 
 func init() {
-	asksCmd.Flags().Uint64P("maxPrice", "m", 0, "max price for asks query")
-	asksCmd.Flags().Uint64P("pieceSize", "p", 0, "piece size for asks query")
 	asksCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
 	asksCmd.Flags().IntP("offset", "o", -1, "offset of results")
 
@@ -28,14 +28,21 @@ var asksCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		mp, err := cmd.Flags().GetUint64("maxPrice")
-		checkErr(err)
-		ps, err := cmd.Flags().GetUint64("pieceSize")
-		checkErr(err)
+		mp := viper.GetUint64("maxPrice")
+		ps := viper.GetUint64("pieceSize")
+
 		l, err := cmd.Flags().GetInt("limit")
 		checkErr(err)
 		o, err := cmd.Flags().GetInt("offset")
 		checkErr(err)
+
+		if mp == 0 {
+			Fatal(errors.New("maxPrice must be > 0"))
+		}
+
+		if ps == 0 {
+			Fatal(errors.New("pieceSize must be > 0"))
+		}
 
 		q := ask.Query{
 			MaxPrice:  mp,

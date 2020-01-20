@@ -9,20 +9,18 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/caarlos0/spin"
 	"github.com/gosuri/uilive"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/textileio/filecoin/api/client"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/index/ask"
 	"github.com/textileio/filecoin/lotus/types"
-	"github.com/caarlos0/spin"
 )
 
 func init() {
 	dealCmd.Flags().StringP("file", "f", "", "Path to the file to store")
-	dealCmd.Flags().Uint64P("duration", "d", 0, "the duration to store the file for")
-	dealCmd.Flags().Uint64P("maxPrice", "m", 0, "max price for asks query")
-	dealCmd.Flags().Uint64P("pieceSize", "p", 0, "piece size for asks query")
 	dealCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
 	dealCmd.Flags().IntP("offset", "o", -1, "offset of results")
 
@@ -37,22 +35,30 @@ var dealCmd = &cobra.Command{
 		asksCtx, asksCancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer asksCancel()
 
-		addr, err := cmd.Flags().GetString("address")
-		checkErr(err)
+		addr := viper.GetString("address")
+		duration := viper.GetUint64("duration")
+		mp := viper.GetUint64("maxPrice")
+		ps := viper.GetUint64("pieceSize")
 
 		if addr == "" {
 			Fatal(errors.New("deal command needs a wallet address"))
 		}
 
+		if duration == 0 {
+			Fatal(errors.New("deal command duration should be > 0"))
+		}
+
+		if mp == 0 {
+			Fatal(errors.New("maxPrice must be > 0"))
+		}
+
+		if ps == 0 {
+			Fatal(errors.New("pieceSize must be > 0"))
+		}
+
 		path, err := cmd.Flags().GetString("file")
 		checkErr(err)
 		file, err := os.Open(path)
-		checkErr(err)
-		duration, err := cmd.Flags().GetUint64("duration")
-		checkErr(err)
-		mp, err := cmd.Flags().GetUint64("maxPrice")
-		checkErr(err)
-		ps, err := cmd.Flags().GetUint64("pieceSize")
 		checkErr(err)
 		l, err := cmd.Flags().GetInt("limit")
 		checkErr(err)
