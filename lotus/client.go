@@ -43,6 +43,8 @@ type API struct {
 		StateReadState         func(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
 		StateGetActor          func(ctx context.Context, actor string, ts *types.TipSet) (*types.Actor, error)
 		ChainGetTipSetByHeight func(context.Context, uint64, *types.TipSet) (*types.TipSet, error)
+		ChainGetPath           func(context.Context, types.TipSetKey, types.TipSetKey) ([]*types.HeadChange, error)
+		ChainGetGenesis        func(context.Context) (*types.TipSet, error)
 	}
 }
 
@@ -210,6 +212,20 @@ func (a *API) ChainGetTipSetByHeight(ctx context.Context, height uint64, ts *typ
 		return nil, fmt.Errorf("error when calling ChainGetTipSetByHeight: %s", err)
 	}
 	return ts, nil
+}
+func (a *API) ChainGetPath(ctx context.Context, from types.TipSetKey, to types.TipSetKey) ([]*types.HeadChange, error) {
+	tss, err := a.Internal.ChainGetPath(ctx, from, to)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ChainGetPath: %s", err)
+	}
+	return tss, nil
+}
+func (a *API) ChainGetGenesis(ctx context.Context) (*types.TipSet, error) {
+	g, err := a.Internal.ChainGetGenesis(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error when calling ChainGetGenesis: %s", err)
+	}
+	return g, nil
 }
 
 func monitorLotusSync(ctx context.Context, c *API) {

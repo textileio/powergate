@@ -17,14 +17,15 @@ func TestFreshIndex(t *testing.T) {
 	checkErr(t, err)
 	defer cls()
 
-	sh := New(tests.NewTxMapDatastore(), c)
+	sh, err := New(tests.NewTxMapDatastore(), c)
+	checkErr(t, err)
 	select {
-	case <-time.After(time.Second * 60):
+	case <-time.After(time.Second * 240):
 		t.Fatal("timeout waiting for miner index full refresh")
 	case <-sh.Listen():
 	}
 	index := sh.Get()
-	if len(index.Tipset.Cids()) == 0 || len(index.Miners) == 0 {
+	if index.TipSetKey != "" || len(index.Miners) == 0 {
 		t.Fatalf("miner info state is invalid")
 	}
 }

@@ -18,9 +18,12 @@ var (
 
 var _ iplocation.LocationResolver = (*IP2Location)(nil)
 
+// IP2Location is a LocationResolver implementation to get geoinformation of
+// multiaddrs of a host
 type IP2Location struct {
 }
 
+// New returns a new IP2Location
 func New(paths []string) *IP2Location {
 	lock.Lock()
 	defer lock.Unlock()
@@ -35,6 +38,7 @@ func New(paths []string) *IP2Location {
 	return instance
 }
 
+// Resolve returns geoinformation about a set of multiaddresses of a single host
 func (il *IP2Location) Resolve(mas []multiaddr.Multiaddr) (iplocation.Location, error) {
 	for _, ma := range mas {
 		ip, err := util.TCPAddrFromMultiAddr(ma)
@@ -53,6 +57,7 @@ func (il *IP2Location) Resolve(mas []multiaddr.Multiaddr) (iplocation.Location, 
 	return iplocation.Location{}, iplocation.ErrCantResolve
 }
 
+// Close closes IPLocation resolver
 func (il *IP2Location) Close() {
 	lock.Lock()
 	defer lock.Unlock()

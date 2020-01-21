@@ -17,11 +17,13 @@ var (
 	log = logging.Logger("fchost")
 )
 
+// FilecoinHost is a libp2p host connected to the FC network
 type FilecoinHost struct {
 	host.Host
 	dht *dht.IpfsDHT
 }
 
+// New returns a new FilecoinHost
 func New() (*FilecoinHost, error) {
 	ctx := context.Background()
 	opts := getDefaultOpts()
@@ -45,6 +47,7 @@ func New() (*FilecoinHost, error) {
 	}, nil
 }
 
+// Bootstrap connects to the bootstrap peers
 func (fh *FilecoinHost) Bootstrap() error {
 	log.Info("bootstraping libp2p host dht")
 	if err := fh.dht.Bootstrap(context.Background()); err != nil {
