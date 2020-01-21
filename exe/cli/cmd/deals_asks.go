@@ -14,6 +14,8 @@ import (
 )
 
 func init() {
+	asksCmd.Flags().Uint64P("maxPrice", "m", 0, "max price of the asks to query")
+	asksCmd.Flags().IntP("pieceSize", "p", 0, "piece size of the asks to query")
 	asksCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
 	asksCmd.Flags().IntP("offset", "o", -1, "offset of results")
 
@@ -24,17 +26,20 @@ var asksCmd = &cobra.Command{
 	Use:   "asks",
 	Short: "Print the available asks",
 	Long:  `Print the available asks`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		checkErr(err)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
 		mp := viper.GetUint64("maxPrice")
 		ps := viper.GetUint64("pieceSize")
+		l := viper.GetInt("limit")
+		o := viper.GetInt("offset")
 
-		l, err := cmd.Flags().GetInt("limit")
-		checkErr(err)
-		o, err := cmd.Flags().GetInt("offset")
-		checkErr(err)
+		cmd.Println(mp, ps, l, o)
 
 		if mp == 0 {
 			Fatal(errors.New("maxPrice must be > 0"))

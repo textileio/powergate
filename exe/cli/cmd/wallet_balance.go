@@ -11,6 +11,8 @@ import (
 )
 
 func init() {
+	balanceCmd.Flags().StringP("address", "a", "", "wallet address to check the balance of")
+
 	walletCmd.AddCommand(balanceCmd)
 }
 
@@ -18,6 +20,10 @@ var balanceCmd = &cobra.Command{
 	Use:   "balance",
 	Short: "Print the balance of the specified wallet",
 	Long:  `Print the balance of the specified wallet`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		checkErr(err)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()

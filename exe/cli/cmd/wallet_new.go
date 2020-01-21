@@ -10,8 +10,8 @@ import (
 )
 
 func init() {
-	newCmd.Flags().StringP("type", "t", "bls", "Specifies the wallet type, either bls or secp256k1. Defaults to bls.")
-	newCmd.Flags().BoolP("switch", "s", false, "Whether or not to switch to the newly created wallet")
+	newCmd.Flags().StringP("type", "t", "bls", "specifies the wallet type, either bls or secp256k1. Defaults to bls.")
+	newCmd.Flags().BoolP("switch", "s", false, "whether or not to switch to the newly created wallet")
 
 	walletCmd.AddCommand(newCmd)
 }
@@ -20,6 +20,9 @@ var newCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new filecoin wallet",
 	Long:  `Create a new filecoin wallet`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.SetDefault("wallets", []string{})
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
@@ -39,10 +42,10 @@ var newCmd = &cobra.Command{
 		accounts = append(accounts, address)
 		viper.Set("wallets", accounts)
 
-		switchAccount, err := cmd.Flags().GetBool("switch")
+		switchWallet, err := cmd.Flags().GetBool("switch")
 		checkErr(err)
 
-		if switchAccount {
+		if switchWallet {
 			viper.Set("address", address)
 		}
 
@@ -50,7 +53,7 @@ var newCmd = &cobra.Command{
 		checkErr(err)
 
 		message := "Wallet list updated"
-		if switchAccount {
+		if switchWallet {
 			message = fmt.Sprintf("%v and default wallet set to %v", message, address)
 		}
 		Success(message)

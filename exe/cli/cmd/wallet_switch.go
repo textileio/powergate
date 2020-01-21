@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	switchCmd.Flags().StringP("wallet", "w", "", "Wallet address to make the new default")
+	switchCmd.Flags().StringP("wallet", "w", "", "wallet address to make the new default")
 
 	walletCmd.AddCommand(switchCmd)
 }
@@ -16,6 +16,9 @@ var switchCmd = &cobra.Command{
 	Use:   "switch",
 	Short: "Switch the default wallet address",
 	Long:  `Switch the default wallet address`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		viper.SetDefault("wallets", []string{})
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		wallet, err := cmd.Flags().GetString("wallet")
 		checkErr(err)

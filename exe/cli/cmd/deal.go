@@ -20,9 +20,13 @@ import (
 )
 
 func init() {
-	dealCmd.Flags().StringP("file", "f", "", "Path to the file to store")
-	dealCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
-	dealCmd.Flags().IntP("offset", "o", -1, "offset of results")
+	dealCmd.Flags().StringP("address", "a", "", "wallet address used to store the data")
+	dealCmd.Flags().Uint64P("duration", "d", 0, "duration to store the data for")
+	dealCmd.Flags().StringP("file", "f", "", "path to the file to store")
+	dealCmd.Flags().Uint64P("maxPrice", "m", 0, "max price of the asks to query")
+	dealCmd.Flags().IntP("pieceSize", "p", 0, "piece size of the asks to query")
+	dealCmd.Flags().IntP("limit", "l", -1, "limit the number of asks results")
+	dealCmd.Flags().IntP("offset", "o", -1, "offset of asks results")
 
 	rootCmd.AddCommand(dealCmd)
 }
@@ -31,14 +35,21 @@ var dealCmd = &cobra.Command{
 	Use:   "deal",
 	Short: "Interactive storage deal",
 	Long:  `Interactive storage deal`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		checkErr(err)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		asksCtx, asksCancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer asksCancel()
 
 		addr := viper.GetString("address")
 		duration := viper.GetUint64("duration")
+		path := viper.GetString("file")
 		mp := viper.GetUint64("maxPrice")
 		ps := viper.GetUint64("pieceSize")
+		l := viper.GetInt("limit")
+		o := viper.GetInt("offset")
 
 		if addr == "" {
 			Fatal(errors.New("deal command needs a wallet address"))
@@ -56,13 +67,7 @@ var dealCmd = &cobra.Command{
 			Fatal(errors.New("pieceSize must be > 0"))
 		}
 
-		path, err := cmd.Flags().GetString("file")
-		checkErr(err)
 		file, err := os.Open(path)
-		checkErr(err)
-		l, err := cmd.Flags().GetInt("limit")
-		checkErr(err)
-		o, err := cmd.Flags().GetInt("offset")
 		checkErr(err)
 
 		q := ask.Query{

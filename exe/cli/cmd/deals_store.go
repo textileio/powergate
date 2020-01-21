@@ -17,7 +17,9 @@ import (
 func init() {
 	storeCmd.Flags().StringP("file", "f", "", "Path to the file to store")
 	storeCmd.Flags().StringSliceP("miners", "m", []string{}, "miner ids of the deals to execute")
-	storeCmd.Flags().Int64SliceP("prices", "p", []int64{}, "prices of the deals to execute")
+	storeCmd.Flags().IntSliceP("prices", "p", []int{}, "prices of the deals to execute")
+	storeCmd.Flags().StringP("address", "a", "", "wallet address used to store the data")
+	storeCmd.Flags().Uint64P("duration", "d", 0, "duration to store the data for")
 
 	dealsCmd.AddCommand(storeCmd)
 }
@@ -26,12 +28,22 @@ var storeCmd = &cobra.Command{
 	Use:   "store",
 	Short: "Store data in filecoin",
 	Long:  `Store data in filecoin`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		checkErr(err)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
 		addr := viper.GetString("address")
 		duration := viper.GetUint64("duration")
+		path := viper.GetString("file")
+		miners := viper.GetStringSlice("miners")
+		prices := viper.GetIntSlice("prices")
+
+		lMiners := len(miners)
+		lPrices := len(prices)
 
 		if addr == "" {
 			Fatal(errors.New("store command needs a wallet address"))
@@ -41,20 +53,9 @@ var storeCmd = &cobra.Command{
 			Fatal(errors.New("store command duration should be > 0"))
 		}
 
-		path, err := cmd.Flags().GetString("file")
-		checkErr(err)
-
 		file, err := os.Open(path)
+		defer file.Close()
 		checkErr(err)
-
-		miners, err := cmd.Flags().GetStringSlice("miners")
-		checkErr(err)
-
-		prices, err := cmd.Flags().GetInt64Slice("prices")
-		checkErr(err)
-
-		lMiners := len(miners)
-		lPrices := len(prices)
 
 		if lMiners == 0 {
 			Fatal(errors.New("you must supply at least one miner"))
