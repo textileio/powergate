@@ -24,7 +24,8 @@ func main() {
 	logging.SetDebugLogging()
 	logging.SetLogLevel("*", "info")
 	logging.SetLogLevel("rpc", "error")
-	logging.SetLogLevel("index*", "debug")
+	logging.SetLogLevel("dht", "error")
+	logging.SetLogLevel("swarm2", "error")
 	instrumentationSetup()
 
 	// ToDo: Flags for configuration

@@ -200,6 +200,7 @@ func (s *Store) loadCheckpoints() error {
 	if err != nil {
 		return err
 	}
+	defer res.Close()
 	es, err := res.Rest()
 	if err != nil {
 		return err

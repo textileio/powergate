@@ -37,12 +37,13 @@ var (
 
 // Server represents the configured lotus client and filecoin grpc server
 type Server struct {
-	ds datastore.TxnDatastore
-	dm *deals.Module
-	ai *ask.AskIndex
-	wm *wallet.Module
-	si *slashing.SlashingIndex
-	mi *miner.MinerIndex
+	ds   datastore.TxnDatastore
+	dm   *deals.Module
+	ai   *ask.AskIndex
+	wm   *wallet.Module
+	si   *slashing.SlashingIndex
+	mi   *miner.MinerIndex
+	ip2l *ip2location.IP2Location
 
 	rpc           *grpc.Server
 	dealsService  *deals.Service
@@ -83,7 +84,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	dm := deals.New(txndstr.Wrap(ds, "dealmodule"), c)
 
-	ip2l := ip2location.New([]string{"ip2location-ip4.bin"}) // ToDo: Flags or embed
+	ip2l := ip2location.New([]string{"./ip2location-ip4.bin"})
 	mi, err := miner.New(txndstr.Wrap(ds, "index/miner"), c, fchost, ip2l)
 	if err != nil {
 		return nil, fmt.Errorf("error when creating miner index: %s", err)
@@ -112,6 +113,7 @@ func NewServer(conf Config) (*Server, error) {
 		wm:            wm,
 		mi:            mi,
 		si:            si,
+		ip2l:          ip2l,
 		dealsService:  dealsService,
 		walletService: walletService,
 		closeLotus:    cls,
@@ -184,4 +186,5 @@ func (s *Server) Close() {
 		log.Errorf("error when closing datastore: %s", err)
 	}
 	s.closeLotus()
+	s.ip2l.Close()
 }

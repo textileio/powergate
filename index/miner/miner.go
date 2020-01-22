@@ -80,6 +80,7 @@ func New(ds datastore.TxnDatastore, api API, h *fchost.FilecoinHost, lr iplocati
 		store:    store,
 		signaler: signaler.New(),
 		h:        h,
+		lr:       lr,
 		chMeta:   make(chan struct{}, 1),
 		ctx:      ctx,
 		cancel:   cancel,
@@ -165,6 +166,7 @@ func (mi *MinerIndex) start() {
 			select {
 			case mi.chMeta <- struct{}{}:
 			default:
+				log.Info("skipping meta index update since it's busy")
 			}
 		case hcs, ok := <-n:
 			if !ok {

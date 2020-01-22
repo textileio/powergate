@@ -243,9 +243,8 @@ func epochPatch(ctx context.Context, c API, pts *types.TipSet, ts *types.TipSet)
 			}
 			mas, ok := as.State.(map[string]interface{})
 			if !ok {
-				panic("read state should be a map interface result")
+				log.Debugf("read state should be a map interface result: %#v", as.State)
 			}
-
 			iSlashedAt, ok := mas["SlashedAt"]
 			if !ok {
 				log.Debugf("reading state of %s didn't have slashedAt attr", addr)
