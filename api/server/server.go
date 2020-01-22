@@ -84,7 +84,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	dm := deals.New(txndstr.Wrap(ds, "dealmodule"), c)
 
-	ip2l := ip2location.New([]string{"./ip2location-ip4.bin"}) // ToDo: Flags or embed
+	ip2l := ip2location.New([]string{"./ip2location-ip4.bin"})
 	mi, err := miner.New(txndstr.Wrap(ds, "index/miner"), c, fchost, ip2l)
 	if err != nil {
 		return nil, fmt.Errorf("error when creating miner index: %s", err)
