@@ -2,11 +2,12 @@ package miner
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
-	"github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	"github.com/textileio/filecoin/fchost"
 	"github.com/textileio/filecoin/iplocation"
 	"go.opencensus.io/stats"
@@ -15,6 +16,8 @@ import (
 
 const (
 	metadataRefreshInterval = time.Second * 30
+	pingTimeout             = time.Second * 3
+	pingRateLim             = 100
 )
 
 var (
@@ -65,26 +68,40 @@ func updateMetaIndex(ctx context.Context, api API, h *fchost.FilecoinHost, lr ip
 	index := MetaIndex{
 		Info: make(map[string]Meta),
 	}
-	for _, a := range addrs {
-		si, err := getMeta(ctx, api, h, lr, a)
-		if err != nil {
-			log.Debugf("error getting static info: %s", err)
-			continue
+	rl := make(chan struct{}, pingRateLim)
+	var lock sync.Mutex
+	for i, a := range addrs {
+		rl <- struct{}{}
+		go func(a string) {
+			defer func() { <-rl }()
+			si, err := getMeta(ctx, api, h, lr, a)
+			if err != nil {
+				log.Debugf("error getting static info: %s", err)
+				return
+			}
+			lock.Lock()
+			index.Info[a] = si
+			lock.Unlock()
+		}(a)
+		if i%100 == 0 {
+			stats.Record(context.Background(), mMetaRefreshProgress.M(float64(i)/float64(len(addrs))))
 		}
-		index.Info[a] = si
+	}
+	for i := 0; i < pingRateLim; i++ {
+		rl <- struct{}{}
 	}
 	for _, v := range index.Info {
 		if v.Online {
 			index.Online++
 		}
 	}
-	total := uint32(len(index.Info))
-	index.Offline = total - index.Online
+	index.Offline = uint32(len(addrs)) - index.Online
 
+	stats.Record(context.Background(), mMetaRefreshProgress.M(1))
 	ctx, _ = tag.New(context.Background(), tag.Insert(metricOnline, "online"))
-	stats.Record(ctx, mMinerOnChainCount.M(int64(index.Online)))
+	stats.Record(ctx, mMetaPingCount.M(int64(index.Online)))
 	ctx, _ = tag.New(context.Background(), tag.Insert(metricOnline, "offline"))
-	stats.Record(ctx, mMinerOnChainCount.M(int64(index.Offline)))
+	stats.Record(ctx, mMetaPingCount.M(int64(index.Offline)))
 
 	return index, nil
 }
@@ -98,19 +115,22 @@ func getMeta(ctx context.Context, c API, h *fchost.FilecoinHost, lr iplocation.L
 	if err != nil {
 		return si, err
 	}
-	_, err = h.NewStream(ctx, pid, identify.ID)
-	if err != nil {
-		return si, err
+	ctx, cancel := context.WithTimeout(ctx, pingTimeout)
+	defer cancel()
+	if alive := h.Ping(ctx, pid); !alive {
+		return si, fmt.Errorf("peer didn't pong")
 	}
 	si.Online = true
 
-	if v, err := h.Peerstore().Get(pid, "AgentVersion"); err == nil {
-		agent, ok := v.(string)
-		if ok {
-			si.UserAgent = agent
-		}
+	if av := h.GetAgentVersion(pid); av != "" {
+		si.UserAgent = av
 	}
-	if l, err := lr.Resolve(h.Peerstore().Addrs(pid)); err == nil {
+
+	addrs := h.Addrs(pid)
+	if len(addrs) == 0 {
+		return si, nil
+	}
+	if l, err := lr.Resolve(addrs); err == nil {
 		si.Location = Location{
 			Country:   l.Country,
 			Latitude:  l.Latitude,

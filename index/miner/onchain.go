@@ -114,12 +114,12 @@ func updateForAddrs(ctx context.Context, api API, chainIndex *ChainIndex, addrs 
 			chainIndex.Power[addr] = pw
 			l.Unlock()
 		}(a)
-		stats.Record(context.Background(), mRefreshProgress.M(float64(i)/float64(len(addrs))))
+		stats.Record(context.Background(), mOnChainRefreshProgress.M(float64(i)/float64(len(addrs))))
 	}
 	for i := 0; i < maxParallelism; i++ {
 		rl <- struct{}{}
 	}
-	stats.Record(context.Background(), mRefreshProgress.M(1))
+	stats.Record(context.Background(), mOnChainRefreshProgress.M(1))
 
 	select {
 	case <-ctx.Done():

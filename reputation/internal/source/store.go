@@ -76,6 +76,7 @@ func (ss *Store) GetAll() ([]Source, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Close()
 	var ret []Source
 	for r := range res.Next() {
 		s := Source{}

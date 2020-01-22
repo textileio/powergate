@@ -7,15 +7,22 @@ import (
 )
 
 var (
-	mRefreshProgress   = stats.Float64("indexminer/refresh-progress", "Refresh progress", "By")
-	mRefreshDuration   = stats.Int64("indexminer/refresh-duration", "Refresh duration in seconds", "s")
-	mMinerOnChainCount = stats.Int64("indexminer/onchain-count", "How many miners on-chain", "By")
-	mUpdatedHeight     = stats.Int64("indexminer/updated-height", "Last updated height", "By")
+	mOnChainRefreshProgress = stats.Float64("indexminer/onchain-refresh-progress", "On-chain refresh progress", "By")
+	mMetaRefreshProgress    = stats.Float64("indexminer/meta-refresh-progress", "Meta refresh progress", "By")
+	mRefreshDuration        = stats.Int64("indexminer/refresh-duration", "Refresh duration in seconds", "s")
+	mMetaPingCount          = stats.Int64("indexminer/meta-ping-count", "On-chain miners ping response", "By")
+	mUpdatedHeight          = stats.Int64("indexminer/updated-height", "Last updated height", "By")
 
-	vRefreshTimeProgress = &view.View{
-		Name:        "indexminer/refresh-progress",
-		Measure:     mRefreshProgress,
-		Description: "Refresh progress",
+	vOnChainRefreshTimeProgress = &view.View{
+		Name:        "indexminer/onchain-refresh-progress",
+		Measure:     mOnChainRefreshProgress,
+		Description: "OnChain refresh progress",
+		Aggregation: view.LastValue(),
+	}
+	vMetaRefreshTimeProgress = &view.View{
+		Name:        "indexminer/meta-refresh-progress",
+		Measure:     mMetaRefreshProgress,
+		Description: "Meta refresh progress",
 		Aggregation: view.LastValue(),
 	}
 	vRefreshDuration = &view.View{
@@ -25,10 +32,10 @@ var (
 		TagKeys:     []tag.Key{metricRefreshType},
 		Aggregation: view.LastValue(),
 	}
-	vMinerOnChainCount = &view.View{
-		Name:        "indexminer/onchain-count",
-		Measure:     mMinerOnChainCount,
-		Description: "Miners on chain",
+	vMetaPingCount = &view.View{
+		Name:        "indexminer/meta-ping-count",
+		Measure:     mMetaPingCount,
+		Description: "On-chain miners ping response",
 		TagKeys:     []tag.Key{metricOnline},
 		Aggregation: view.LastValue(),
 	}
@@ -41,7 +48,7 @@ var (
 	metricRefreshType, _ = tag.NewKey("refreshtype")
 	metricOnline, _      = tag.NewKey("online")
 
-	views = []*view.View{vRefreshTimeProgress, vRefreshDuration, vMinerOnChainCount, vUpdatedHeight}
+	views = []*view.View{vOnChainRefreshTimeProgress, vRefreshDuration, vMetaPingCount, vUpdatedHeight, vMetaRefreshTimeProgress}
 )
 
 func initMetrics() {
