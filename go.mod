@@ -5,7 +5,7 @@ go 1.13
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/golang/protobuf v1.3.2
-	github.com/google/go-cmp v0.3.0
+	github.com/google/go-cmp v0.4.0
 	github.com/gorilla/websocket v1.4.1
 	github.com/ip2location/ip2location-go v8.2.0+incompatible
 	github.com/ipfs/go-cid v0.0.4
