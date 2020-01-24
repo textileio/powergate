@@ -73,11 +73,13 @@ func TestClientChainNotify(t *testing.T) {
 		t.Fatalf("current head has invalid values")
 	}
 
-	select {
-	case <-time.After(time.Second * 50):
-		t.Fatalf("a new block should be received in less than ~45s")
-	case <-ch:
-		return
+	for {
+		select {
+		case <-time.After(time.Second * 50):
+			t.Fatalf("a new block should be received in less than ~45s")
+		case _, ok := <-ch:
+			fmt.Println(ok)
+		}
 	}
 }
 
@@ -125,6 +127,10 @@ func TestChainHead(t *testing.T) {
 	defer cls()
 
 	ts, err := c.ChainHead(context.Background())
+	if err != nil {
+		fmt.Println("LOL")
+	}
+	ts, err = c.ChainHead(context.Background())
 	checkErr(t, err)
 	if len(ts.Cids) == 0 || len(ts.Blocks) == 0 || ts.Height == 0 {
 		t.Fatalf("invalid tipset")

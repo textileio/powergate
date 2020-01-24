@@ -16,6 +16,8 @@ import (
 	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/signaler"
 	txndstr "github.com/textileio/filecoin/txndstransform"
+	"github.com/textileio/filecoin/util"
+	cbor "github.com/ipfs/go-ipld-cbor"
 )
 
 const (
@@ -33,7 +35,6 @@ var (
 type API interface {
 	StateListMiners(context.Context, *types.TipSet) ([]string, error)
 	StateMinerPower(context.Context, string, *types.TipSet) (types.MinerPower, error)
-	ChainNotify(context.Context) (<-chan []*types.HeadChange, error)
 	ChainHead(context.Context) (*types.TipSet, error)
 	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
 	ChainGetTipSetByHeight(context.Context, uint64, *types.TipSet) (*types.TipSet, error)
@@ -153,10 +154,11 @@ func (mi *MinerIndex) Close() error {
 // miners.
 func (mi *MinerIndex) start() {
 	defer func() { mi.finished <- struct{}{} }()
-	n, err := mi.api.ChainNotify(mi.ctx)
-	if err != nil {
-		log.Fatalf("error when getting notify channel from lotus: %s", err)
+
+	if err := mi.updateOnChainIndex(); err != nil {
+		log.Errorf("error on initial updating miner index: %s", err)
 	}
+	mi.chMeta <- struct{}{}
 	for {
 		select {
 		case <-mi.ctx.Done():
@@ -168,16 +170,42 @@ func (mi *MinerIndex) start() {
 			default:
 				log.Info("skipping meta index update since it's busy")
 			}
-		case hcs, ok := <-n:
-			if !ok {
-				log.Error("lotus notify channel closed")
-				return
-			}
-			// ToDo: consider if offseting might be a more safe choice.
-			if err := mi.updateOnChainIndex(hcs[len(hcs)-1].Val); err != nil {
+		case <-time.After(util.AvgBlockTime):
+			if err := mi.updateOnChainIndex(); err != nil {
 				log.Errorf("error when updating miner index: %s", err)
 				continue
 			}
 		}
 	}
+}
+
+// loadFromDS loads persisted indexes to memory datastructures. No locks needed
+// since its only called from New().
+func (mi *MinerIndex) loadFromDS() error {
+	buf, err := mi.ds.Get(dsKeyMetaIndex)
+	if err != nil {
+		if err == datastore.ErrNotFound {
+			log.Info("no metadata index exists in datastore")
+			mi.index = Index{
+				Meta:  MetaIndex{Info: make(map[string]Meta)},
+				Chain: ChainIndex{Power: make(map[string]Power)},
+			}
+			return nil
+		}
+		return err
+	}
+	var metaIndex MetaIndex
+	if err := cbor.DecodeInto(buf, &metaIndex); err != nil {
+		return err
+	}
+
+	var chainIndex ChainIndex
+	if _, err := mi.store.GetLastCheckpoint(&chainIndex); err != nil {
+		return err
+	}
+
+	mi.index.Meta = metaIndex
+	mi.index.Chain = chainIndex
+
+	return nil
 }

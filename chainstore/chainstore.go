@@ -102,9 +102,10 @@ func (s *Store) LoadAndPrune(ctx context.Context, currHead types.TipSetKey, valu
 }
 
 func (s *Store) load(tsk types.TipSetKey, v interface{}) error {
-	buf, err := s.ds.Get(toKeyData(tsk))
+	key := toKeyData(tsk)
+	buf, err := s.ds.Get(key)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting key %s: %s", key, err)
 	}
 	if err := cbor.DecodeInto(buf, v); err != nil {
 		return err

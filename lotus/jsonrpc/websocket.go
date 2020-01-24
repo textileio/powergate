@@ -9,8 +9,10 @@ import (
 	"reflect"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/gorilla/websocket"
+	"golang.org/x/xerrors"
 )
 
 const wsCancel = "xrpc.cancel"
@@ -33,17 +35,20 @@ type frame struct {
 }
 
 type outChanReg struct {
-	id uint64
-	ch reflect.Value
+	reqID int64
+
+	chID uint64
+	ch   reflect.Value
 }
 
 type wsConn struct {
 	// outside params
-	conn     *websocket.Conn
-	handler  handlers
-	requests <-chan clientRequest
-	stop     <-chan struct{}
-	exiting  chan struct{}
+	conn        *websocket.Conn
+	connFactory func() (*websocket.Conn, error)
+	handler     handlers
+	requests    <-chan clientRequest
+	stop        <-chan struct{}
+	exiting     chan struct{}
 
 	// incoming messages
 	incoming    chan io.Reader
@@ -134,51 +139,80 @@ func (c *wsConn) sendRequest(req request) {
 // (forwards channel messages to client)
 func (c *wsConn) handleOutChans() {
 	regV := reflect.ValueOf(c.registerCh)
+	exitV := reflect.ValueOf(c.exiting)
 
 	cases := []reflect.SelectCase{
 		{ // registration chan always 0
 			Dir:  reflect.SelectRecv,
 			Chan: regV,
 		},
+		{ // exit chan always 1
+			Dir:  reflect.SelectRecv,
+			Chan: exitV,
+		},
 	}
+	internal := len(cases)
 	var caseToID []uint64
 
 	for {
 		chosen, val, ok := reflect.Select(cases)
 
-		if chosen == 0 { // control channel
+		switch chosen {
+		case 0: // registration channel
 			if !ok {
 				// control channel closed - signals closed connection
+				// This shouldn't happen, instead the exiting channel should get closed
+				log.Warn("control channel closed")
+				return
+			}
+
+			registration := val.Interface().(outChanReg)
+
+			caseToID = append(caseToID, registration.chID)
+			cases = append(cases, reflect.SelectCase{
+				Dir:  reflect.SelectRecv,
+				Chan: registration.ch,
+			})
+
+			c.nextWriter(func(w io.Writer) {
+				resp := &response{
+					Jsonrpc: "2.0",
+					ID:      registration.reqID,
+					Result:  registration.chID,
+				}
+
+				if err := json.NewEncoder(w).Encode(resp); err != nil {
+					log.Error(err)
+					return
+				}
+			})
+
+			continue
+		case 1: // exiting channel
+			if !ok {
+				// exiting channel closed - signals closed connection
 				//
 				// We're not closing any channels as we're on receiving end.
 				// Also, context cancellation below should take care of any running
 				// requests
 				return
 			}
-
-			registration := val.Interface().(outChanReg)
-
-			caseToID = append(caseToID, registration.id)
-			cases = append(cases, reflect.SelectCase{
-				Dir:  reflect.SelectRecv,
-				Chan: registration.ch,
-			})
-
+			log.Warn("exiting channel received a message")
 			continue
 		}
 
 		if !ok {
 			// Output channel closed, cleanup, and tell remote that this happened
 
-			n := len(caseToID)
+			n := len(cases) - 1
 			if n > 0 {
 				cases[chosen] = cases[n]
-				caseToID[chosen-1] = caseToID[n-1]
+				caseToID[chosen-internal] = caseToID[n-internal]
 			}
 
-			id := caseToID[chosen-1]
+			id := caseToID[chosen-internal]
 			cases = cases[:n]
-			caseToID = caseToID[:n-1]
+			caseToID = caseToID[:n-internal]
 
 			c.sendRequest(request{
 				Jsonrpc: "2.0",
@@ -194,24 +228,29 @@ func (c *wsConn) handleOutChans() {
 			Jsonrpc: "2.0",
 			ID:      nil, // notification
 			Method:  chValue,
-			Params:  []param{{v: reflect.ValueOf(caseToID[chosen-1])}, {v: val}},
+			Params:  []param{{v: reflect.ValueOf(caseToID[chosen-internal])}, {v: val}},
 		})
 	}
 }
 
 // handleChanOut registers output channel for forwarding to client
-func (c *wsConn) handleChanOut(ch reflect.Value) interface{} {
+func (c *wsConn) handleChanOut(ch reflect.Value, req int64) error {
 	c.spawnOutChanHandlerOnce.Do(func() {
 		go c.handleOutChans()
 	})
 	id := atomic.AddUint64(&c.chanCtr, 1)
 
-	c.registerCh <- outChanReg{
-		id: id,
-		ch: ch,
-	}
+	select {
+	case c.registerCh <- outChanReg{
+		reqID: req,
 
-	return id
+		chID: id,
+		ch:   ch,
+	}:
+		return nil
+	case <-c.exiting:
+		return xerrors.New("connection closing")
+	}
 }
 
 //                          //
@@ -382,7 +421,25 @@ func (c *wsConn) handleFrame(ctx context.Context, frame frame) {
 	}
 }
 
-func (c *wsConn) handleWsConn(ctx context.Context) {
+func (c *wsConn) closeInFlight() {
+	for id, req := range c.inflight {
+		req.ready <- clientResponse{
+			Jsonrpc: "2.0",
+			ID:      id,
+			Error: &respError{
+				Message: "handler: websocket connection closed",
+			},
+		}
+
+		c.handlingLk.Lock()
+		for _, cancel := range c.handling {
+			cancel()
+		}
+		c.handlingLk.Unlock()
+	}
+}
+
+func (c *wsConn) handleWsConn(ctx context.Context, rc ReconnectConfig) {
 	c.incoming = make(chan io.Reader)
 	c.inflight = map[int64]clientRequest{}
 	c.handling = map[int64]context.CancelFunc{}
@@ -396,23 +453,7 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 
 	// on close, make sure to return from all pending calls, and cancel context
 	//  on all calls we handle
-	defer func() {
-		for id, req := range c.inflight {
-			req.ready <- clientResponse{
-				Jsonrpc: "2.0",
-				ID:      id,
-				Error: &respError{
-					Message: "handler: websocket connection closed",
-				},
-			}
-
-			c.handlingLk.Lock()
-			for _, cancel := range c.handling {
-				cancel()
-			}
-			c.handlingLk.Unlock()
-		}
-	}()
+	defer c.closeInFlight()
 
 	// wait for the first message
 	go c.nextMessage()
@@ -424,6 +465,24 @@ func (c *wsConn) handleWsConn(ctx context.Context) {
 				if c.incomingErr != nil {
 					if !websocket.IsCloseError(c.incomingErr, websocket.CloseNormalClosure) {
 						log.Debugw("websocket error", "error", c.incomingErr)
+						if rc.Reconnect {
+							c.conn = nil
+							retries := 1
+							c.closeInFlight()
+							for c.conn == nil && (rc.MaxRetries == 0 || retries <= rc.MaxRetries) {
+								time.Sleep(rc.WaitInterval)
+								var err error
+								if c.conn, err = c.connFactory(); err != nil {
+									log.Debugw("websocket connection retried failed", "error", err)
+								}
+								retries++
+							}
+							if c.conn != nil {
+								c.incoming = make(chan io.Reader)
+								go c.nextMessage()
+								continue
+							}
+						}
 					}
 				}
 				return // remote closed

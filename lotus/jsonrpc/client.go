@@ -85,10 +85,19 @@ type client struct {
 
 // NewMergeClient is like NewClient, but allows to specify multiple structs
 // to be filled in the same namespace, using one connection
-func NewMergeClient(addr string, namespace string, outs []interface{}, requestHeader http.Header) (ClientCloser, error) {
-	conn, _, err := websocket.DefaultDialer.Dial(addr, requestHeader)
+func NewMergeClient(addr string, namespace string, outs []interface{}, requestHeader http.Header, opts ...Option) (ClientCloser, error) {
+	connFactory := func() (*websocket.Conn, error) {
+		conn, _, err := websocket.DefaultDialer.Dial(addr, requestHeader)
+		return conn, err
+	}
+	conn, err := connFactory()
 	if err != nil {
 		return nil, err
+	}
+
+	var config Config
+	for _, o := range opts {
+		o(&config)
 	}
 
 	c := client{
@@ -102,12 +111,13 @@ func NewMergeClient(addr string, namespace string, outs []interface{}, requestHe
 
 	handlers := map[string]rpcHandler{}
 	go (&wsConn{
-		conn:     conn,
-		handler:  handlers,
-		requests: c.requests,
-		stop:     stop,
-		exiting:  exiting,
-	}).handleWsConn(context.TODO())
+		conn:        conn,
+		connFactory: connFactory,
+		handler:     handlers,
+		requests:    c.requests,
+		stop:        stop,
+		exiting:     exiting,
+	}).handleWsConn(context.TODO(), config.Reconnect)
 
 	for _, handler := range outs {
 		htyp := reflect.TypeOf(handler)

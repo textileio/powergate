@@ -61,7 +61,7 @@ func New(maddr ma.Multiaddr, authToken string) (*API, func(), error) {
 	closer, err := jsonrpc.NewMergeClient("ws://"+addr+"/rpc/v0", "Filecoin",
 		[]interface{}{
 			&api.Internal,
-		}, headers)
+		}, headers, jsonrpc.WithReconnect(true, time.Second*3, 0))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -242,16 +242,10 @@ func monitorLotusSync(ctx context.Context, c *API) {
 }
 
 func refreshHeightMetric(ctx context.Context, c *API) {
-	var h uint64
-	state, err := c.SyncState(ctx)
+	heaviest, err := c.ChainHead(ctx)
 	if err != nil {
 		log.Errorf("error when getting lotus sync status: %s", err)
 		return
 	}
-	for _, w := range state.ActiveSyncs {
-		if w.Height > h {
-			h = w.Height
-		}
-	}
-	stats.Record(context.Background(), mLotusHeight.M(int64(h)))
+	stats.Record(context.Background(), mLotusHeight.M(int64(heaviest.Height)))
 }

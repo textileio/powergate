@@ -2,8 +2,13 @@ package util
 
 import (
 	"fmt"
+	"time"
 
 	ma "github.com/multiformats/go-multiaddr"
+)
+
+const (
+	AvgBlockTime = time.Second * 30
 )
 
 // TCPAddrFromMultiAddr converts a multiaddress to a string representation of a tcp address

@@ -12,28 +12,48 @@ import (
 )
 
 const (
-	fullRefreshThreshold = 100
-	heightOffset         = uint64(20)
+	// fullThreshold is the maximum height difference between last saved
+	// state and new selected tipset that would be a delta-refresh; if greater
+	// will do a full refresh.
+	fullThreshold = 100
+	// hOffset is the # of tipsets from the heaviest chain to
+	// consider for index updating; this to reduce sensibility to
+	// chain reorgs
+	hOffset = uint64(5)
 )
 
-// updateOnChainIndex updates on-chain index information when a new tipset
-func (mi *MinerIndex) updateOnChainIndex(new *types.TipSet) error {
+// updateOnChainIndex updates on-chain index information in the direction of heaviest tipset
+// with some height offset to reduce sensibility to reorgs
+func (mi *MinerIndex) updateOnChainIndex() error {
 	log.Info("updating on-chain index...")
+	heaviest, err := mi.api.ChainHead(mi.ctx)
+	if err != nil {
+		return err
+	}
+	new, err := mi.api.ChainGetTipSetByHeight(mi.ctx, heaviest.Height-hOffset, heaviest)
+	if err != nil {
+		return err
+	}
+
 	var chainIndex ChainIndex
 	newtsk := types.NewTipSetKey(new.Cids...)
 	ts, err := mi.store.LoadAndPrune(mi.ctx, newtsk, &chainIndex)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting last saved from store: %s", err)
 	}
 	if chainIndex.Power == nil {
 		chainIndex.Power = make(map[string]Power)
 	}
+	hdiff := new.Height - chainIndex.LastUpdated
+	if hdiff == 0 {
+		return nil
+	}
+
 	mctx := context.Background()
 	start := time.Now()
 	log.Infof("current state height %d, new tipset height %d", chainIndex.LastUpdated, new.Height)
-	if new.Height-chainIndex.LastUpdated > fullRefreshThreshold {
+	if hdiff > fullThreshold {
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "full"))
-		new, err = mi.api.ChainGetTipSetByHeight(mi.ctx, new.Height-heightOffset, new)
 		if err != nil {
 			return err
 		}
@@ -55,7 +75,7 @@ func (mi *MinerIndex) updateOnChainIndex(new *types.TipSet) error {
 	mi.lock.Unlock()
 
 	if err := mi.store.Save(mi.ctx, types.NewTipSetKey(new.Cids...), chainIndex); err != nil {
-		return err
+		return fmt.Errorf("error when saving state to store: %s", err)
 	}
 	mi.signaler.Signal()
 	stats.Record(context.Background(), mUpdatedHeight.M(int64(chainIndex.LastUpdated)))
