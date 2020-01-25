@@ -23,7 +23,7 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 ### Lotus (`lotus`)
 
-See [https://lotu.sh/](https://lotu.sh/). Required for client.
+See [https://lotu.sh/](https://lotu.sh/). Required for client. Lotus is an implementation of the Filecoin Distributed Storage Network—we run the Lotus client to join the Filecoin Testnet.
 
 ### Client (`filcoin`)
 
