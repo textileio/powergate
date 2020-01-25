@@ -27,8 +27,13 @@ See [https://lotu.sh/](https://lotu.sh/). Required for client. Lotus is an imple
 
 ### Client (`filcoin`)
 
-    go build -i -o filecoin exe/cli/main.go 
-    chmod +x filecoin 
+Note to developers—as of 1/25/2020, the main line of development for the filecoin client is happening in the `asutula/cli` branch.
+
+```bash
+# from the asutula/cli branch
+go build -i -o filecoin exe/cli/main.go 
+chmod +x filecoin 
+```
 
 Try `filecoin --help`.
 
