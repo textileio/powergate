@@ -7,6 +7,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
+	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/textileio/filecoin/chainstore"
@@ -17,7 +18,6 @@ import (
 	"github.com/textileio/filecoin/signaler"
 	txndstr "github.com/textileio/filecoin/txndstransform"
 	"github.com/textileio/filecoin/util"
-	cbor "github.com/ipfs/go-ipld-cbor"
 )
 
 const (
@@ -182,29 +182,26 @@ func (mi *MinerIndex) start() {
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed
 // since its only called from New().
 func (mi *MinerIndex) loadFromDS() error {
+	mi.index = Index{
+		Meta:  MetaIndex{Info: make(map[string]Meta)},
+		Chain: ChainIndex{Power: make(map[string]Power)},
+	}
 	buf, err := mi.ds.Get(dsKeyMetaIndex)
-	if err != nil {
-		if err == datastore.ErrNotFound {
-			log.Info("no metadata index exists in datastore")
-			mi.index = Index{
-				Meta:  MetaIndex{Info: make(map[string]Meta)},
-				Chain: ChainIndex{Power: make(map[string]Power)},
-			}
-			return nil
-		}
+	if err != nil && err != datastore.ErrNotFound {
 		return err
 	}
-	var metaIndex MetaIndex
-	if err := cbor.DecodeInto(buf, &metaIndex); err != nil {
-		return err
+	if err == nil {
+		var metaIndex MetaIndex
+		if err := cbor.DecodeInto(buf, &metaIndex); err != nil {
+			return err
+		}
+		mi.index.Meta = metaIndex
 	}
 
 	var chainIndex ChainIndex
 	if _, err := mi.store.GetLastCheckpoint(&chainIndex); err != nil {
 		return err
 	}
-
-	mi.index.Meta = metaIndex
 	mi.index.Chain = chainIndex
 
 	return nil
