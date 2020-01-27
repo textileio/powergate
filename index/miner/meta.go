@@ -49,6 +49,7 @@ func (mi *MinerIndex) metaWorker() {
 			newIndex, err := updateMetaIndex(mi.ctx, mi.api, mi.h, mi.lr, addrs)
 			if err != nil {
 				log.Errorf("error when updating meta index: %s", err)
+				break
 			}
 			if err := mi.persistMetaIndex(newIndex); err != nil {
 				log.Errorf("error when persisting meta index: %s", err)

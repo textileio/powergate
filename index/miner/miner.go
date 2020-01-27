@@ -101,7 +101,9 @@ func (mi *MinerIndex) Get() Index {
 	defer mi.lock.Unlock()
 	ii := Index{
 		Meta: MetaIndex{
-			Info: make(map[string]Meta, len(mi.index.Meta.Info)),
+			Online:  mi.index.Meta.Online,
+			Offline: mi.index.Meta.Offline,
+			Info:    make(map[string]Meta, len(mi.index.Meta.Info)),
 		},
 		Chain: ChainIndex{
 			LastUpdated: mi.index.Chain.LastUpdated,
