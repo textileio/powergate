@@ -39,8 +39,6 @@ var asksCmd = &cobra.Command{
 		l := viper.GetInt("limit")
 		o := viper.GetInt("offset")
 
-		cmd.Println(mp, ps, l, o)
-
 		if mp == 0 {
 			Fatal(errors.New("maxPrice must be > 0"))
 		}

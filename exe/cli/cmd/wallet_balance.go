@@ -18,8 +18,8 @@ func init() {
 
 var balanceCmd = &cobra.Command{
 	Use:   "balance",
-	Short: "Print the balance of the specified wallet",
-	Long:  `Print the balance of the specified wallet`,
+	Short: "Print the balance of the specified wallet address",
+	Long:  `Print the balance of the specified wallet address`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)

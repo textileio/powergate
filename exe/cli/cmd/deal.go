@@ -10,10 +10,8 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/caarlos0/spin"
-	"github.com/gosuri/uilive"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/filecoin/api/client"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/index/ask"
 	"github.com/textileio/filecoin/lotus/types"
@@ -142,33 +140,9 @@ var dealCmd = &cobra.Command{
 		Message("Watching progress of %v deals:", len(succeeded))
 		cmd.Println()
 
-		state := make(map[string]*client.WatchEvent, len(succeeded))
-		for _, cid := range succeeded {
-			state[cid.String()] = nil
-		}
-
-		writer := uilive.New()
-		writer.Start()
-
-		updateOutput(writer, state)
-
 		watchCtx, watchCancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer watchCancel()
 
-		ch, err := fcClient.Deals.Watch(watchCtx, succeeded)
-		checkErr(err)
-
-		for {
-			event, ok := <-ch
-			if ok == false {
-				break
-			}
-			state[event.Deal.ProposalCid.String()] = &event
-			updateOutput(writer, state)
-			if isComplete(state) {
-				break
-			}
-		}
-		writer.Stop()
+		processWatchEventsUntilDone(watchCtx, succeeded)
 	},
 }

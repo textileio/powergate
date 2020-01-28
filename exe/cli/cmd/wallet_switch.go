@@ -33,7 +33,7 @@ var switchCmd = &cobra.Command{
 			}
 		} else {
 			prompt := promptui.Select{
-				Label: "Select a default wallet",
+				Label: "Select a default wallet address",
 				Items: wallets,
 			}
 			index, _, err := prompt.Run()
@@ -44,7 +44,7 @@ var switchCmd = &cobra.Command{
 		err = viper.WriteConfig()
 		checkErr(err)
 
-		Success("Default wallet set to %v", viper.GetString("address"))
+		Success("Default wallet address set to %v", viper.GetString("address"))
 	},
 }
 

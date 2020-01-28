@@ -13,17 +13,6 @@ import (
 	"github.com/textileio/filecoin/api/client"
 )
 
-// var DealStates = []string{
-// 	"DealUnknown",
-// 	"DealRejected",
-// 	"DealAccepted",
-// 	"DealStaged",
-// 	"DealSealing",
-// 	"DealFailed",
-// 	"DealComplete",
-// 	"DealError",
-// }
-
 func init() {
 	watchCmd.Flags().StringSliceP("cids", "c", []string{}, "List of deal cids to watch")
 
@@ -51,33 +40,37 @@ var watchCmd = &cobra.Command{
 			cids[i] = cid
 		}
 
-		state := make(map[string]*client.WatchEvent, len(cids))
-		for _, cid := range cids {
-			state[cid.String()] = nil
-		}
-
-		writer := uilive.New()
-		writer.Start()
-
-		updateOutput(writer, state)
-
-		ch, err := fcClient.Deals.Watch(ctx, cids)
-		checkErr(err)
-
-		for {
-			event, ok := <-ch
-			if ok == false {
-				break
-			}
-			state[event.Deal.ProposalCid.String()] = &event
-			updateOutput(writer, state)
-			if isComplete(state) {
-				break
-			}
-		}
-
-		writer.Stop()
+		processWatchEventsUntilDone(ctx, cids)
 	},
+}
+
+func processWatchEventsUntilDone(ctx context.Context, cids []cid.Cid) {
+	state := make(map[string]*client.WatchEvent, len(cids))
+	for _, cid := range cids {
+		state[cid.String()] = nil
+	}
+
+	writer := uilive.New()
+	writer.Start()
+
+	updateOutput(writer, state)
+
+	ch, err := fcClient.Deals.Watch(ctx, cids)
+	checkErr(err)
+
+	for {
+		event, ok := <-ch
+		if !ok {
+			break
+		}
+		state[event.Deal.ProposalCid.String()] = &event
+		updateOutput(writer, state)
+		if isComplete(state) {
+			break
+		}
+	}
+
+	writer.Stop()
 }
 
 func updateOutput(writer io.Writer, state map[string]*client.WatchEvent) {

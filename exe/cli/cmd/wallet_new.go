@@ -18,8 +18,8 @@ func init() {
 
 var newCmd = &cobra.Command{
 	Use:   "new",
-	Short: "Create a new filecoin wallet",
-	Long:  `Create a new filecoin wallet`,
+	Short: "Create a new filecoin wallet with a single address",
+	Long:  `Create a new filecoin wallet with a single address`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		viper.SetDefault("wallets", []string{})
 	},
@@ -52,9 +52,9 @@ var newCmd = &cobra.Command{
 		err = viper.WriteConfig()
 		checkErr(err)
 
-		message := "Wallet list updated"
+		message := "Wallet addresses list updated"
 		if switchWallet {
-			message = fmt.Sprintf("%v and default wallet set to %v", message, address)
+			message = fmt.Sprintf("%v and default wallet address set to %v", message, address)
 		}
 		Success(message)
 	},
