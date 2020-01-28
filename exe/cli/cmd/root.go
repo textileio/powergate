@@ -61,7 +61,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.filecoin.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fil-tools.yaml)")
 	rootCmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the filecoin service api")
 }
 
@@ -74,9 +74,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		checkErr(err)
 
-		// Search config in home directory with name ".filecoin" (without extension).
+		// Search config in home directory with name ".fil-tools" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".filecoin")
+		viper.SetConfigName(".fil-tools")
 	}
 
 	viper.AutomaticEnv()
