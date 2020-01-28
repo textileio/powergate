@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/textileio/filecoin/exe/cli/cmd"
+	"github.com/textileio/filecoin/exe/fil-tools/cmd"
 )
 
 func main() {
