@@ -9,13 +9,12 @@ import (
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log"
-	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/filecoin/api/server"
 	"github.com/textileio/filecoin/tests"
 )
 
 var (
-	grpcHostAddr = "/ip4/127.0.0.1/tcp/5002"
+	grpcHostAddr = "127.0.0.1:5002"
 
 	log = logging.Logger("main")
 )
@@ -31,11 +30,6 @@ func main() {
 	// ToDo: Flags for configuration
 
 	lotusAddr, token := tests.ClientConfigMA()
-	grpcAddr, err := ma.NewMultiaddr(grpcHostAddr)
-	if err != nil {
-		log.Errorf("invalid grpc host addr: %s", err)
-		os.Exit(-1)
-	}
 	repoPath, err := os.UserHomeDir()
 	if err != nil {
 		log.Errorf("error getting home dir: %s", err)
@@ -44,7 +38,8 @@ func main() {
 	conf := server.Config{
 		LotusAddress:    lotusAddr,
 		LotusAuthToken:  token,
-		GrpcHostAddress: grpcAddr,
+		GrpcHostNetwork: "tcp",
+		GrpcHostAddress: grpcHostAddr,
 		RepoPath:        filepath.Join(repoPath, ".texfc"),
 	}
 	log.Info("starting server...")

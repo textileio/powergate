@@ -21,7 +21,6 @@ import (
 	"github.com/textileio/filecoin/iplocation/ip2location"
 	"github.com/textileio/filecoin/lotus"
 	txndstr "github.com/textileio/filecoin/txndstransform"
-	"github.com/textileio/filecoin/util"
 	"github.com/textileio/filecoin/wallet"
 	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
@@ -55,7 +54,8 @@ type Server struct {
 type Config struct {
 	LotusAddress    ma.Multiaddr
 	LotusAuthToken  string
-	GrpcHostAddress ma.Multiaddr
+	GrpcHostNetwork string
+	GrpcHostAddress string
 	RepoPath        string
 }
 
@@ -119,11 +119,7 @@ func NewServer(conf Config) (*Server, error) {
 		closeLotus:    cls,
 	}
 
-	grpcAddr, err := util.TCPAddrFromMultiAddr(conf.GrpcHostAddress)
-	if err != nil {
-		return nil, fmt.Errorf("error when transforming multiaddr to tcpaddr: %s", err)
-	}
-	listener, err := net.Listen("tcp", grpcAddr)
+	listener, err := net.Listen(conf.GrpcHostNetwork, conf.GrpcHostAddress)
 	if err != nil {
 		return nil, fmt.Errorf("error when listening to grpc: %s", err)
 	}

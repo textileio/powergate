@@ -11,7 +11,7 @@ func TestClient(t *testing.T) {
 	done := setupServer(t)
 	defer done()
 
-	client, err := NewClient(getHostMultiaddress(t))
+	client, err := NewClient(grpcHostAddress)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
