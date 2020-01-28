@@ -21,7 +21,6 @@ import (
 	"github.com/textileio/filecoin/iplocation/ip2location"
 	"github.com/textileio/filecoin/lotus"
 	txndstr "github.com/textileio/filecoin/txndstransform"
-	"github.com/textileio/filecoin/util"
 	"github.com/textileio/filecoin/wallet"
 	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
