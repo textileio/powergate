@@ -23,12 +23,17 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 ### Lotus (`lotus`)
 
-See [https://lotu.sh/](https://lotu.sh/). Required for client.
+See [https://lotu.sh/](https://lotu.sh/). Required for client. Lotus is an implementation of the Filecoin Distributed Storage Network—we run the Lotus client to join the Filecoin Testnet.
 
 ### Client (`filcoin`)
 
-    go build -i -o filecoin exe/cli/main.go 
-    chmod +x filecoin 
+Note to developers—as of 1/25/2020, the main line of development for the filecoin client is happening in the `asutula/cli` branch.
+
+```bash
+# from the asutula/cli branch
+go build -i -o filecoin exe/cli/main.go 
+chmod +x filecoin 
+```
 
 Try `filecoin --help`.
 
