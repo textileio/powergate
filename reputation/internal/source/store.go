@@ -9,30 +9,35 @@ import (
 )
 
 var (
-	ErrAlreadyExists     = errors.New("source already exists")
-	ErrSourceDoesntExist = errors.New("source doesn't exist")
+	// ErrAlreadyExists returns when the soure already exists in Store
+	ErrAlreadyExists = errors.New("source already exists")
+	// ErrDoesntExists returns when the source isn't in the Store
+	ErrDoesntExists = errors.New("source doesn't exist")
 
 	baseKey = datastore.NewKey("/reputation/store")
 )
 
-type SourceStore struct {
+// Store contains Sources information
+type Store struct {
 	ds datastore.TxnDatastore
 }
 
-func NewStore(ds datastore.TxnDatastore) *SourceStore {
-	return &SourceStore{
+// NewStore returns a new SourceStore
+func NewStore(ds datastore.TxnDatastore) *Store {
+	return &Store{
 		ds: ds,
 	}
 }
 
-func (ss *SourceStore) Add(s Source) error {
+// Add adds a new Source to the store
+func (ss *Store) Add(s Source) error {
 	txn, err := ss.ds.NewTransaction(false)
 	if err != nil {
 		return err
 	}
 	defer txn.Discard()
 
-	k := genKey(s.Id)
+	k := genKey(s.ID)
 	ok, err := txn.Has(k)
 	if err != nil {
 		return err
@@ -43,23 +48,25 @@ func (ss *SourceStore) Add(s Source) error {
 	return ss.put(txn, s)
 }
 
-func (ss *SourceStore) Update(s Source) error {
+// Update updates a Source
+func (ss *Store) Update(s Source) error {
 	txn, err := ss.ds.NewTransaction(false)
 	if err != nil {
 		return err
 	}
-	k := genKey(s.Id)
+	k := genKey(s.ID)
 	ok, err := txn.Has(k)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		return ErrSourceDoesntExist
+		return ErrDoesntExists
 	}
 	return ss.put(txn, s)
 }
 
-func (ss *SourceStore) GetAll() ([]Source, error) {
+// GetAll returns all Sources
+func (ss *Store) GetAll() ([]Source, error) {
 	txn, err := ss.ds.NewTransaction(true)
 	if err != nil {
 		return nil, err
@@ -69,6 +76,7 @@ func (ss *SourceStore) GetAll() ([]Source, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Close()
 	var ret []Source
 	for r := range res.Next() {
 		s := Source{}
@@ -80,12 +88,12 @@ func (ss *SourceStore) GetAll() ([]Source, error) {
 	return ret, nil
 }
 
-func (ss *SourceStore) put(txn datastore.Txn, s Source) error {
+func (ss *Store) put(txn datastore.Txn, s Source) error {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return err
 	}
-	if err := txn.Put(genKey(s.Id), b); err != nil {
+	if err := txn.Put(genKey(s.ID), b); err != nil {
 		return err
 	}
 	return txn.Commit()

@@ -1,4 +1,5 @@
 LT = $(shell cat ~/.lotus/token)
+#LT = $(shell docker exec lotustest cat /root/.lotus/token)
 
 fresh: down up
 .PHONY: fresh-up

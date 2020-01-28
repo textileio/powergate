@@ -30,4 +30,4 @@ jobs:
         run: |
           go mod download
       - name: Test
-        run: go test ./... -run none
+        run: go test ./... -short

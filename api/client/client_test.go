@@ -5,6 +5,9 @@ import (
 )
 
 func TestClient(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping since is a short test run")
+	}
 	done := setupServer(t)
 	defer done()
 

@@ -21,9 +21,11 @@ var (
 	log                   = logging.Logger("reputation")
 )
 
+// ReputationModule consolidates different sources of information to create a
+// reputation rank of FC miners
 type ReputationModule struct {
 	ds      datastore.TxnDatastore
-	sources *source.SourceStore
+	sources *source.Store
 
 	mi *miner.MinerIndex
 
@@ -44,11 +46,13 @@ type ReputationModule struct {
 	cancel context.CancelFunc
 }
 
+// MinerScore contains a score for a miner
 type MinerScore struct {
 	Addr  string
 	Score int
 }
 
+// New returns a new ReputationModule
 func New(ds datastore.TxnDatastore, mi *miner.MinerIndex, si *slashing.SlashingIndex, ai *ask.AskIndex) *ReputationModule {
 	ctx, cancel := context.WithCancel(context.Background())
 	rm := &ReputationModule{
@@ -70,10 +74,12 @@ func New(ds datastore.TxnDatastore, mi *miner.MinerIndex, si *slashing.SlashingI
 	return rm
 }
 
+// AddSource adds a new external Source to be considered for reputation generation
 func (rm *ReputationModule) AddSource(id string, maddr ma.Multiaddr) error {
-	return rm.sources.Add(source.Source{Id: id, Maddr: maddr})
+	return rm.sources.Add(source.Source{ID: id, Maddr: maddr})
 }
 
+// GetTopMiners gets the top n miners with best score
 func (rm *ReputationModule) GetTopMiners(n int) ([]MinerScore, error) {
 	mr := make([]MinerScore, 0, n)
 	rm.lockScores.Lock()
@@ -84,11 +90,13 @@ func (rm *ReputationModule) GetTopMiners(n int) ([]MinerScore, error) {
 	return mr, nil
 }
 
+// Close closes the ReputationModule
 func (rm *ReputationModule) Close() error {
 	rm.cancel()
 	return nil
 }
 
+// subscribeIndexes listen to all sources changes to trigger score regeneration
 func (rm *ReputationModule) subscribeIndexes() {
 	subMi := rm.mi.Listen()
 	subSi := rm.si.Listen()
@@ -116,6 +124,7 @@ func (rm *ReputationModule) subscribeIndexes() {
 	}
 }
 
+// indexBuilder regenerates score information from all known sources
 func (rm *ReputationModule) indexBuilder() {
 	for range rm.rebuild {
 		log.Debug("rebuilding index")
@@ -132,8 +141,8 @@ func (rm *ReputationModule) indexBuilder() {
 		askIndex := rm.aIndex
 		rm.lockIndex.Unlock()
 
-		scores := make([]MinerScore, 0, len(minerIndex.Miners))
-		for addr := range minerIndex.Miners {
+		scores := make([]MinerScore, 0, len(minerIndex.Chain.Power))
+		for addr := range minerIndex.Chain.Power {
 			score := calculateScore(addr, minerIndex, slashIndex, askIndex, sources)
 			scores = append(scores, score)
 		}
@@ -149,13 +158,14 @@ func (rm *ReputationModule) indexBuilder() {
 	}
 }
 
+// calculateScore calculates the score for a miner
 func calculateScore(addr string, mi miner.Index, si slashing.Index, ai ask.Index, ss []source.Source) MinerScore {
-	minfo := mi.Miners[addr]
-	powerScore := minfo.Power.Relative
+	power := mi.Chain.Power[addr]
+	powerScore := power.Relative
 
 	var slashScore float64
-	if si, ok := si.Miners[addr]; ok {
-		slashScore = 1 / math.Pow(2, float64(len(si.History)))
+	if slashes, ok := si.Miners[addr]; ok {
+		slashScore = 1 / math.Pow(2, float64(len(slashes.Epochs)))
 	}
 
 	var externalScore float64
@@ -168,7 +178,7 @@ func calculateScore(addr string, mi miner.Index, si slashing.Index, ai ask.Index
 	}
 
 	var askScore float64
-	if a, ok := ai.Miners[addr]; ok && a.Price < ai.MedianPrice {
+	if a, ok := ai.Storage[addr]; ok && a.Price < ai.StorageMedianPrice {
 		askScore = 1
 	}
 
@@ -197,11 +207,11 @@ func (rm *ReputationModule) updateSources() {
 				go func(s source.Source) {
 					defer wg.Done()
 					if err := s.Refresh(rm.ctx); err != nil {
-						log.Error("error refreshing source %s: %s", s.Id, err)
+						log.Error("error refreshing source %s: %s", s.ID, err)
 						return
 					}
 					if err := rm.sources.Update(s); err != nil {
-						log.Error("error persisting updated source %s: %s", s.Id, err)
+						log.Error("error persisting updated source %s: %s", s.ID, err)
 						return
 					}
 				}(s)

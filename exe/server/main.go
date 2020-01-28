@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
@@ -20,20 +21,32 @@ var (
 
 func main() {
 	logging.SetDebugLogging()
-	logging.SetLogLevel("*", "error")
+	logging.SetLogLevel("*", "info")
+	logging.SetLogLevel("rpc", "error")
+	logging.SetLogLevel("dht", "error")
+	logging.SetLogLevel("swarm2", "error")
 	instrumentationSetup()
 
+	// ToDo: Flags for configuration
+
 	lotusAddr, token := tests.ClientConfigMA()
+	repoPath, err := os.UserHomeDir()
+	if err != nil {
+		log.Errorf("error getting home dir: %s", err)
+		os.Exit(-1)
+	}
 	conf := server.Config{
 		LotusAddress:    lotusAddr,
 		LotusAuthToken:  token,
 		GrpcHostNetwork: "tcp",
 		GrpcHostAddress: grpcHostAddr,
+		RepoPath:        filepath.Join(repoPath, ".texfc"),
 	}
 	log.Info("starting server...")
 	s, err := server.NewServer(conf)
 	if err != nil {
-		panic(err)
+		log.Errorf("error starting server: %s", err)
+		os.Exit(-1)
 	}
 	log.Info("server started.")
 

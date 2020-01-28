@@ -2,42 +2,70 @@ package chainsync
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/textileio/filecoin/lotus/types"
 )
 
-// ToDo: consider avoiding the API and ask for deps in parameters
-
-// API provides an abstraction to a lotus node
+// API provides an abstraction to a Filecoin full-node
 type API interface {
-	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
-	ChainHead(context.Context) (*types.TipSet, error)
+	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*types.HeadChange, error)
+	ChainGetGenesis(context.Context) (*types.TipSet, error)
 }
 
-// GetPathToHead returns an ordered tipset slice from the base tipset to the current
-// head.
-func GetPathToHead(ctx context.Context, c API, base types.TipSetKey) ([]*types.TipSet, error) {
-	// ToDo: this is a temporary impl to start preparing for a possible new API that can
-	// return HeadChanges from a checkpoint tipset to the head.
-	bts, err := c.ChainGetTipSet(ctx, base)
+// ChainSync provides methods to resolve chain syncing situations
+type ChainSync struct {
+	api API
+}
+
+// New returns a new ChainSync
+func New(api API) *ChainSync {
+	return &ChainSync{
+		api: api,
+	}
+}
+
+// Precedes returns true if from and to don't live in different chain forks, and
+// from is at a lower epoch than to.
+func (cs *ChainSync) Precedes(ctx context.Context, from, to types.TipSetKey) (bool, error) {
+	fpath, err := cs.api.ChainGetPath(ctx, from, to)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	ts, err := c.ChainHead(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error when getting heaviest head from chain: %s", err)
+	if len(fpath) == 0 {
+		return true, nil
 	}
-	if ts.Height < bts.Height {
-		return nil, fmt.Errorf("reversed node or chain rollback, current height %d, last height %d", ts.Height, bts.Height)
-	}
-	path := make([]*types.TipSet, 0, ts.Height-bts.Height+1)
-	for ts.Height >= bts.Height {
-		path = append(path, ts)
-		ts, err = c.ChainGetTipSet(ctx, types.NewTipSetKey(ts.Blocks[0].Parents...))
+	norevert := fpath[0].Type == types.HCApply
+	return norevert, nil
+}
+
+// ResolveBase returns the base TipSetKey that both left and right TipSetKey share,
+// plus a Revert/Apply set of operations to get from last to new.
+func ResolveBase(ctx context.Context, api API, left *types.TipSetKey, right types.TipSetKey) (*types.TipSetKey, []*types.TipSet, error) {
+	var path []*types.TipSet
+	if left == nil {
+		genesis, err := api.ChainGetGenesis(ctx)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
+		}
+		path = append(path, genesis)
+		gtsk := types.NewTipSetKey(genesis.Cids...)
+		left = &gtsk
+	}
+
+	fpath, err := api.ChainGetPath(ctx, *left, right)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var base *types.TipSetKey
+	for _, ts := range fpath {
+		if ts.Type == types.HCApply {
+			if base == nil {
+				b := types.NewTipSetKey(ts.Val.Blocks[0].Parents...)
+				base = &b
+			}
+			path = append(path, ts.Val)
 		}
 	}
-	return path, nil
+	return base, path, nil
 }

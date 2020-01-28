@@ -11,13 +11,16 @@ import (
 )
 
 func TestFullRefresh(t *testing.T) {
-	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping test since we're on short mode")
+	}
 	addr, token := tests.ClientConfigMA()
 	c, cls, err := lotus.New(addr, token)
 	checkErr(t, err)
 	defer cls()
 
-	mi := New(tests.NewTxMapDatastore(), c, nil, &LRMock{})
+	mi, err := New(tests.NewTxMapDatastore(), c, nil, &LRMock{})
+	checkErr(t, err)
 
 	select {
 	case <-time.After(time.Second * 30):
@@ -25,7 +28,7 @@ func TestFullRefresh(t *testing.T) {
 	case <-mi.Listen():
 	}
 	info := mi.Get()
-	if info.LastUpdated == 0 || len(info.Miners) == 0 {
+	if info.Chain.LastUpdated == 0 || len(info.Chain.Power) == 0 {
 		t.Fatalf("miner info state is invalid")
 	}
 }

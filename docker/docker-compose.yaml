@@ -36,8 +36,10 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    command:
+       - '--port=8082'
     ports:
-      - 8080:8080
+      - 8082:8082
     restart: always
 
   grafana:

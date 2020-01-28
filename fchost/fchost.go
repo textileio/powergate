@@ -10,18 +10,24 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	dhtopts "github.com/libp2p/go-libp2p-kad-dht/opts"
 	routedhost "github.com/libp2p/go-libp2p/p2p/host/routed"
+	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
+	"github.com/multiformats/go-multiaddr"
 )
 
 var (
 	log = logging.Logger("fchost")
 )
 
+// FilecoinHost is a libp2p host connected to the FC network
 type FilecoinHost struct {
-	host.Host
-	dht *dht.IpfsDHT
+	ping *ping.PingService
+	h    host.Host
+	dht  *dht.IpfsDHT
 }
 
+// New returns a new FilecoinHost
 func New() (*FilecoinHost, error) {
 	ctx := context.Background()
 	opts := getDefaultOpts()
@@ -30,7 +36,7 @@ func New() (*FilecoinHost, error) {
 		return nil, err
 	}
 
-	dht, err := dht.New(ctx, h)
+	dht, err := dht.New(ctx, h, dhtopts.Protocols("/lotus/kad/1.0.0"))
 	if err != nil {
 		return nil, err
 	}
@@ -39,12 +45,15 @@ func New() (*FilecoinHost, error) {
 		return nil, err
 	}
 
+	h = routedhost.Wrap(h, dht)
 	return &FilecoinHost{
-		Host: routedhost.Wrap(h, dht),
+		h:    h,
 		dht:  dht,
+		ping: ping.NewPingService(h),
 	}, nil
 }
 
+// Bootstrap connects to the bootstrap peers
 func (fh *FilecoinHost) Bootstrap() error {
 	log.Info("bootstraping libp2p host dht")
 	if err := fh.dht.Bootstrap(context.Background()); err != nil {
@@ -52,6 +61,25 @@ func (fh *FilecoinHost) Bootstrap() error {
 	}
 	log.Info("dht bootstraped!")
 	return nil
+}
+
+func (fc *FilecoinHost) Ping(ctx context.Context, pid peer.ID) bool {
+	r := <-fc.ping.Ping(ctx, pid)
+	return r.Error == nil
+}
+
+func (fc *FilecoinHost) GetAgentVersion(pid peer.ID) string {
+	if v, err := fc.h.Peerstore().Get(pid, "AgentVersion"); err == nil {
+		agent, ok := v.(string)
+		if ok {
+			return agent
+		}
+	}
+	return ""
+}
+
+func (fc *FilecoinHost) Addrs(pid peer.ID) []multiaddr.Multiaddr {
+	return fc.h.Peerstore().Addrs(pid)
 }
 
 func connectToBootstrapPeers(h host.Host) error {
