@@ -4,7 +4,6 @@ import (
 	dealsPb "github.com/textileio/filecoin/deals/pb"
 	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 // Client provides the client api
@@ -15,13 +14,7 @@ type Client struct {
 }
 
 // NewClient starts the client
-func NewClient(target string, creds credentials.TransportCredentials) (*Client, error) {
-	var opts []grpc.DialOption
-	if creds != nil {
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-	} else {
-		opts = append(opts, grpc.WithInsecure())
-	}
+func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 	conn, err := grpc.Dial(target, opts...)
 	if err != nil {
 		return nil, err

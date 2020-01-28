@@ -1,7 +1,7 @@
 package stub
 
 import (
-	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc"
 )
 
 // Client provides the client api
@@ -11,7 +11,7 @@ type Client struct {
 }
 
 // NewClient starts the client
-func NewClient(target string, creds credentials.TransportCredentials) (*Client, error) {
+func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 	client := &Client{
 		Deals:  &Deals{},
 		Wallet: &Wallet{},

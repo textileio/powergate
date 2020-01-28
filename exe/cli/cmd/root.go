@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	client "github.com/textileio/filecoin/api/stub"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -30,11 +31,20 @@ var (
 			checkErr(err)
 
 			target := viper.GetString("serverAddress")
+
 			var creds credentials.TransportCredentials
 			if strings.Contains(target, "443") {
 				creds = credentials.NewTLS(&tls.Config{})
 			}
-			fcClient, err = client.NewClient(target, creds)
+
+			var opts []grpc.DialOption
+			if creds != nil {
+				opts = append(opts, grpc.WithTransportCredentials(creds))
+			} else {
+				opts = append(opts, grpc.WithInsecure())
+			}
+
+			fcClient, err = client.NewClient(target, opts...)
 			checkErr(err)
 		},
 	}
