@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . . 
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/server/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o main exe/server/main.go
 
 FROM alpine
 COPY --from=builder /app/api/server/ip2location-ip4.bin /app/ip2location-ip4.bin
