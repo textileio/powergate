@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/textileio/filecoin/fchost"
 	"github.com/textileio/filecoin/iplocation"
@@ -15,7 +14,7 @@ import (
 )
 
 const (
-	metadataRefreshInterval = time.Second * 30
+	metadataRefreshInterval = time.Second * 45
 	pingTimeout             = time.Second * 3
 	pingRateLim             = 100
 )
@@ -50,6 +49,7 @@ func (mi *MinerIndex) metaWorker() {
 			newIndex, err := updateMetaIndex(mi.ctx, mi.api, mi.h, mi.lr, addrs)
 			if err != nil {
 				log.Errorf("error when updating meta index: %s", err)
+				break
 			}
 			if err := mi.persistMetaIndex(newIndex); err != nil {
 				log.Errorf("error when persisting meta index: %s", err)
@@ -149,35 +149,5 @@ func (mi *MinerIndex) persistMetaIndex(index MetaIndex) error {
 	if err := mi.ds.Put(dsKeyMetaIndex, buf); err != nil {
 		return err
 	}
-	return nil
-}
-
-// loadFromDS loads persisted indexes to memory datastructures. No locks needed
-// since its only called from New().
-func (mi *MinerIndex) loadFromDS() error {
-	buf, err := mi.ds.Get(dsKeyMetaIndex)
-	if err != nil {
-		if err == datastore.ErrNotFound {
-			mi.index = Index{
-				Meta:  MetaIndex{Info: make(map[string]Meta)},
-				Chain: ChainIndex{Power: make(map[string]Power)},
-			}
-			return nil
-		}
-		return err
-	}
-	var metaIndex MetaIndex
-	if err := cbor.DecodeInto(buf, &metaIndex); err != nil {
-		return err
-	}
-
-	var chainIndex ChainIndex
-	if _, err := mi.store.GetLastCheckpoint(&chainIndex); err != nil {
-		return err
-	}
-
-	mi.index.Meta = metaIndex
-	mi.index.Chain = chainIndex
-
 	return nil
 }

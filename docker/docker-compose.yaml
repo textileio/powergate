@@ -1,5 +1,8 @@
 version: '3.7'
 
+volumes:
+  textile-fc-data:
+
 services:
   textile-fc:
     network_mode: host
@@ -10,7 +13,10 @@ services:
       - TEXTILE_LOTUS_TOKEN=${TEXTILE_LOTUS_TOKEN}
     ports:
       - 8888:8888
+      - 6060:6060
     restart: always
+    volumes:
+      - textile-fc-data:/root/.texfc
     
   prometheus:
     network_mode: host

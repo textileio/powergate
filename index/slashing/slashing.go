@@ -14,6 +14,7 @@ import (
 	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/signaler"
 	txndstr "github.com/textileio/filecoin/txndstransform"
+	"github.com/textileio/filecoin/util"
 	"go.opencensus.io/stats"
 )
 
@@ -22,18 +23,23 @@ const (
 )
 
 var (
+	// hOffset is the # of tipsets from the heaviest chain to
+	// consider for index updating; this to reduce sensibility to
+	// chain reorgs
+	hOffset = uint64(5)
+
 	log = logging.Logger("index-slashing")
 )
 
 // API provides an abstraction to a Filecoin full-node
 type API interface {
-	ChainNotify(context.Context) (<-chan []*types.HeadChange, error)
 	ChainHead(context.Context) (*types.TipSet, error)
 	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
 	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
 	StateReadState(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
 	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*types.HeadChange, error)
 	ChainGetGenesis(context.Context) (*types.TipSet, error)
+	ChainGetTipSetByHeight(context.Context, uint64, *types.TipSet) (*types.TipSet, error)
 }
 
 // SlashingIndex builds and provides slashing history of miners
@@ -72,6 +78,9 @@ func New(ds datastore.TxnDatastore, api API) (*SlashingIndex, error) {
 		ctx:      ctx,
 		cancel:   cancel,
 		finished: make(chan struct{}),
+	}
+	if err := s.loadFromDS(); err != nil {
+		return nil, err
 	}
 	go s.start()
 	return s, nil
@@ -123,42 +132,45 @@ func (s *SlashingIndex) Close() error {
 // start is a long running job that keeps the index up to date with chain updates
 func (s *SlashingIndex) start() {
 	defer close(s.finished)
-	n, err := s.api.ChainNotify(s.ctx)
-	if err != nil {
-		log.Fatalf("error when getting notify channel from lotus: %s", err)
+	if err := s.updateIndex(); err != nil {
+		log.Errorf("error on first updating slashing history: %s", err)
 	}
 	for {
 		select {
 		case <-s.ctx.Done():
 			log.Info("graceful shutdown of background slashing updater")
 			return
-		case hcs, ok := <-n:
-			if !ok {
-				log.Error("lotus notify channel closed")
-				return
-			}
-			log.Info("updating slashing index...")
-			currHeadTsk := types.NewTipSetKey(hcs[len(hcs)-1].Val.Cids...)
-			if err := s.updateIndex(currHeadTsk); err != nil {
+		case <-time.After(util.AvgBlockTime):
+
+			if err := s.updateIndex(); err != nil {
 				log.Errorf("error when updating slashing history: %s", err)
 				continue
 			}
-			log.Info("slashing index updated")
 		}
 	}
 }
 
 // updateIndex updates current index with a new discovered chain head.
-func (s *SlashingIndex) updateIndex(new types.TipSetKey) error {
+func (s *SlashingIndex) updateIndex() error {
+	log.Info("updating slashing index...")
+	heaviest, err := s.api.ChainHead(s.ctx)
+	if err != nil {
+		return err
+	}
+	new, err := s.api.ChainGetTipSetByHeight(s.ctx, heaviest.Height-hOffset, heaviest)
+	if err != nil {
+		return err
+	}
+	newtsk := types.NewTipSetKey(new.Cids...)
 	var index Index
-	ts, err := s.store.LoadAndPrune(s.ctx, new, &index)
+	ts, err := s.store.LoadAndPrune(s.ctx, newtsk, &index)
 	if err != nil {
 		return err
 	}
 	if index.Miners == nil {
 		index.Miners = make(map[string]Slashes)
 	}
-	_, path, err := chainsync.ResolveBase(s.ctx, s.api, ts, new)
+	_, path, err := chainsync.ResolveBase(s.ctx, s.api, ts, newtsk)
 	if err != nil {
 		return err
 	}
@@ -178,9 +190,8 @@ func (s *SlashingIndex) updateIndex(new types.TipSetKey) error {
 		stats.Record(mctx, mRefreshProgress.M(float64(i)/float64(len(path))))
 	}
 
-	headts := path[len(path)-1]
 	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
-	stats.Record(mctx, mUpdatedHeight.M(int64(headts.Height)))
+	stats.Record(mctx, mUpdatedHeight.M(int64(new.Height)))
 	stats.Record(mctx, mRefreshProgress.M(1))
 
 	s.lock.Lock()
@@ -188,6 +199,8 @@ func (s *SlashingIndex) updateIndex(new types.TipSetKey) error {
 	s.lock.Unlock()
 
 	s.signaler.Signal()
+	log.Info("slashing index updated")
+
 	return nil
 }
 
@@ -200,15 +213,12 @@ func updateFromPath(ctx context.Context, api API, index *Index, path []*types.Ti
 			return err
 		}
 		for addr := range patch {
-			info, ok := index.Miners[addr]
-			if !ok {
-				info = Slashes{}
-				index.Miners[addr] = info
-			}
+			info := index.Miners[addr]
 			if len(info.Epochs) > 0 && info.Epochs[len(info.Epochs)-1] == patch[addr] {
 				continue
 			}
 			info.Epochs = append(info.Epochs, patch[addr])
+			index.Miners[addr] = info
 		}
 	}
 	index.TipSetKey = types.NewTipSetKey(path[len(path)-1].Cids...).String()
@@ -289,4 +299,15 @@ func areConsecutiveEpochs(pts, ts *types.TipSet) bool {
 		}
 	}
 	return true
+}
+
+// loadFromDS loads persisted indexes to memory datastructures. No locks needed
+// since its only called from New().
+func (si *SlashingIndex) loadFromDS() error {
+	var index Index
+	if _, err := si.store.GetLastCheckpoint(&index); err != nil {
+		return err
+	}
+	si.index = index
+	return nil
 }
