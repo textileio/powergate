@@ -10,19 +10,19 @@ import (
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	askIndex *AskIndex
+	index *AskIndex
 }
 
 // NewService is a helper to create a new Service
 func NewService(ai *AskIndex) *Service {
 	return &Service{
-		askIndex: ai,
+		index: ai,
 	}
 }
 
 // Get calls askIndex.Get
 func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, error) {
-	index := s.askIndex.Get()
+	index := s.index.Get()
 	storage := make(map[string]*pb.StorageAsk, len(index.Storage))
 	for key, ask := range index.Storage {
 		storage[key] = &pb.StorageAsk{
@@ -34,7 +34,7 @@ func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, er
 		}
 	}
 	pbIndex := &pb.Index{
-		LastUpdated:        uint64(index.LastUpdated.Unix()),
+		LastUpdated:        index.LastUpdated.Unix(),
 		StorageMedianPrice: index.StorageMedianPrice,
 		Storage:            storage,
 	}
@@ -49,7 +49,7 @@ func (s *Service) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryRep
 		Limit:     int(req.GetQuery().GetLimit()),
 		Offset:    int(req.GetQuery().GetOffset()),
 	}
-	asks, err := s.askIndex.Query(q)
+	asks, err := s.index.Query(q)
 	if err != nil {
 		return nil, err
 	}

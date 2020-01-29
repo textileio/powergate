@@ -7,10 +7,10 @@ option java_outer_classname = "FilecoinAsk";
 option objc_class_prefix = "TTE";
 
 message Query {
-    uint64 MaxPrice = 1;
-	uint64 PieceSize = 2;
-	int32 Limit = 3;
-	int32 Offset = 4;
+    uint64 maxPrice = 1;
+	uint64 pieceSize = 2;
+	int32 limit = 3;
+	int32 offset = 4;
 }
 
 message StorageAsk {
@@ -22,7 +22,7 @@ message StorageAsk {
 }
 
 message Index {
-    uint64 lastUpdated = 1;
+    int64 lastUpdated = 1;
     uint64 storageMedianPrice = 2;
     map<string, StorageAsk> storage = 3;
 }
