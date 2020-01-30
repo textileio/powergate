@@ -5,18 +5,20 @@ import (
 	asksPb "github.com/textileio/filecoin/index/ask/pb"
 	minerPb "github.com/textileio/filecoin/index/miner/pb"
 	slashingPb "github.com/textileio/filecoin/index/slashing/pb"
+	reputationPb "github.com/textileio/filecoin/reputation/pb"
 	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
 )
 
 // Client provides the client api
 type Client struct {
-	Asks     *Asks
-	Miners   *Miners
-	Slashing *Slashing
-	Deals    *Deals
-	Wallet   *Wallet
-	conn     *grpc.ClientConn
+	Asks       *Asks
+	Miners     *Miners
+	Slashing   *Slashing
+	Deals      *Deals
+	Wallet     *Wallet
+	Reputation *Reputation
+	conn       *grpc.ClientConn
 }
 
 // NewClient starts the client
@@ -26,12 +28,13 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 		return nil, err
 	}
 	client := &Client{
-		Asks:     &Asks{client: asksPb.NewAPIClient(conn)},
-		Miners:   &Miners{client: minerPb.NewAPIClient(conn)},
-		Slashing: &Slashing{client: slashingPb.NewAPIClient(conn)},
-		Deals:    &Deals{client: dealsPb.NewAPIClient(conn)},
-		Wallet:   &Wallet{client: walletPb.NewAPIClient(conn)},
-		conn:     conn,
+		Asks:       &Asks{client: asksPb.NewAPIClient(conn)},
+		Miners:     &Miners{client: minerPb.NewAPIClient(conn)},
+		Slashing:   &Slashing{client: slashingPb.NewAPIClient(conn)},
+		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
+		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
+		Reputation: &Reputation{client: reputationPb.NewAPIClient(conn)},
+		conn:       conn,
 	}
 	return client, nil
 }
