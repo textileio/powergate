@@ -21,9 +21,9 @@ var (
 	log                   = logging.Logger("reputation")
 )
 
-// ReputationModule consolidates different sources of information to create a
+// Module consolidates different sources of information to create a
 // reputation rank of FC miners
-type ReputationModule struct {
+type Module struct {
 	ds      datastore.TxnDatastore
 	sources *source.Store
 
@@ -52,10 +52,10 @@ type MinerScore struct {
 	Score int
 }
 
-// New returns a new ReputationModule
-func New(ds datastore.TxnDatastore, mi *miner.MinerIndex, si *slashing.SlashingIndex, ai *ask.AskIndex) *ReputationModule {
+// New returns a new reputation Module
+func New(ds datastore.TxnDatastore, mi *miner.MinerIndex, si *slashing.SlashingIndex, ai *ask.AskIndex) *Module {
 	ctx, cancel := context.WithCancel(context.Background())
-	rm := &ReputationModule{
+	rm := &Module{
 		ds: ds,
 		mi: mi,
 		si: si,
@@ -75,12 +75,12 @@ func New(ds datastore.TxnDatastore, mi *miner.MinerIndex, si *slashing.SlashingI
 }
 
 // AddSource adds a new external Source to be considered for reputation generation
-func (rm *ReputationModule) AddSource(id string, maddr ma.Multiaddr) error {
+func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 	return rm.sources.Add(source.Source{ID: id, Maddr: maddr})
 }
 
 // GetTopMiners gets the top n miners with best score
-func (rm *ReputationModule) GetTopMiners(n int) ([]MinerScore, error) {
+func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
 	mr := make([]MinerScore, 0, n)
 	rm.lockScores.Lock()
 	for i := 0; i < n; i++ {
@@ -90,14 +90,14 @@ func (rm *ReputationModule) GetTopMiners(n int) ([]MinerScore, error) {
 	return mr, nil
 }
 
-// Close closes the ReputationModule
-func (rm *ReputationModule) Close() error {
+// Close closes the reputation Module
+func (rm *Module) Close() error {
 	rm.cancel()
 	return nil
 }
 
 // subscribeIndexes listen to all sources changes to trigger score regeneration
-func (rm *ReputationModule) subscribeIndexes() {
+func (rm *Module) subscribeIndexes() {
 	subMi := rm.mi.Listen()
 	subSi := rm.si.Listen()
 	subAi := rm.ai.Listen()
@@ -125,7 +125,7 @@ func (rm *ReputationModule) subscribeIndexes() {
 }
 
 // indexBuilder regenerates score information from all known sources
-func (rm *ReputationModule) indexBuilder() {
+func (rm *Module) indexBuilder() {
 	for range rm.rebuild {
 		log.Debug("rebuilding index")
 		start := time.Now()
@@ -189,7 +189,7 @@ func calculateScore(addr string, mi miner.Index, si slashing.Index, ai ask.Index
 	}
 }
 
-func (rm *ReputationModule) updateSources() {
+func (rm *Module) updateSources() {
 	for {
 		select {
 		case <-rm.ctx.Done():

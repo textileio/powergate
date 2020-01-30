@@ -11,17 +11,17 @@ import (
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	module *ReputationModule
+	module *Module
 }
 
 // NewService is a helper to create a new Service
-func NewService(m *ReputationModule) *Service {
+func NewService(m *Module) *Service {
 	return &Service{
 		module: m,
 	}
 }
 
-// AddSource calls ReputationModule.AddSource
+// AddSource calls Module.AddSource
 func (s *Service) AddSource(ctx context.Context, req *pb.AddSourceRequest) (*pb.AddSourceReply, error) {
 	maddr, err := ma.NewMultiaddr(req.GetMaddr())
 	if err != nil {
@@ -33,7 +33,7 @@ func (s *Service) AddSource(ctx context.Context, req *pb.AddSourceRequest) (*pb.
 	return &pb.AddSourceReply{}, nil
 }
 
-// GetTopMiners calls ReputationModule.GetTopMiners
+// GetTopMiners calls Module.GetTopMiners
 func (s *Service) GetTopMiners(ctx context.Context, req *pb.GetTopMinersRequest) (*pb.GetTopMinersReply, error) {
 	minerScores, err := s.module.GetTopMiners(int(req.GetLimit()))
 	if err != nil {
