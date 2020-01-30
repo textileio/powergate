@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/textileio/filecoin/lotus"
-	"github.com/textileio/filecoin/lotus/types"
+
 	"github.com/textileio/filecoin/tests"
 )
 
@@ -24,8 +25,8 @@ func TestPrecede(t *testing.T) {
 	checkErr(t, err)
 
 	csync := New(c)
-	head := types.NewTipSetKey(h.Cids...)
-	prevhead := types.NewTipSetKey(h.Blocks[0].Parents...)
+	head := h.Key()
+	prevhead := types.NewTipSetKey(h.Blocks()[0].Parents...)
 	yes, err := csync.Precedes(ctx, prevhead, head)
 	checkErr(t, err)
 	if !yes {

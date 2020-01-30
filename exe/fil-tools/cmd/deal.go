@@ -10,11 +10,11 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/caarlos0/spin"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/filecoin/deals"
 	"github.com/textileio/filecoin/index/ask"
-	"github.com/textileio/filecoin/lotus/types"
 )
 
 func init() {

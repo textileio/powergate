@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/filecoin-project/go-address"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/textileio/filecoin/fchost"
 	"github.com/textileio/filecoin/iplocation"
@@ -107,9 +108,13 @@ func updateMetaIndex(ctx context.Context, api API, h *fchost.FilecoinHost, lr ip
 }
 
 // getMeta returns fresh metadata information about a miner
-func getMeta(ctx context.Context, c API, h *fchost.FilecoinHost, lr iplocation.LocationResolver, addr string) (Meta, error) {
+func getMeta(ctx context.Context, c API, h *fchost.FilecoinHost, lr iplocation.LocationResolver, straddr string) (Meta, error) {
 	si := Meta{
 		LastUpdated: time.Now(),
+	}
+	addr, err := address.NewFromString(straddr)
+	if err != nil {
+		return si, err
 	}
 	pid, err := c.StateMinerPeerID(ctx, addr, nil)
 	if err != nil {

@@ -4,11 +4,13 @@ import (
 	"context"
 	"io"
 
+	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/types"
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/filecoin/deals"
 	pb "github.com/textileio/filecoin/deals/pb"
 	"github.com/textileio/filecoin/index/ask"
-	"github.com/textileio/filecoin/lotus/types"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -105,8 +107,12 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 
 	failedDeals := make([]deals.DealConfig, len(reply.GetFailedDeals()))
 	for i, dealConfig := range reply.GetFailedDeals() {
+		addr, err := address.NewFromString(dealConfig.GetMiner())
+		if err != nil {
+			return nil, nil, err
+		}
 		failedDeals[i] = deals.DealConfig{
-			Miner:      dealConfig.GetMiner(),
+			Miner:      addr.String(),
 			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
 		}
 	}

@@ -16,3 +16,6 @@
 
 # vscode config folder
 .vscode/
+
+.filecoin-build
+.update-modules

@@ -7,11 +7,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/signaler"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -45,9 +46,9 @@ type AskIndex struct {
 
 // API provides an abstraction to a Filecoin full-node
 type API interface {
-	StateListMiners(context.Context, *types.TipSet) ([]string, error)
-	ClientQueryAsk(ctx context.Context, p peer.ID, miner string) (*types.SignedStorageAsk, error)
-	StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
+	StateListMiners(context.Context, *types.TipSet) ([]address.Address, error)
+	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*types.SignedStorageAsk, error)
+	StateMinerPeerID(ctx context.Context, m address.Address, ts *types.TipSet) (peer.ID, error)
 }
 
 // New returnas a new AskIndex. It loads saved information from ds, and immeediatelly
@@ -203,7 +204,7 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 	newAsks := make(map[string]StorageAsk)
 	for i, addr := range addrs {
 		rateLim <- struct{}{}
-		go func(addr string) {
+		go func(addr address.Address) {
 			defer func() { <-rateLim }()
 			ictx, cancel := context.WithTimeout(ctx, qaTimeout)
 			defer cancel()
@@ -218,8 +219,8 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 				return
 			}
 			lock.Lock()
-			newAsks[addr] = StorageAsk{
-				Miner:        ask.Ask.Miner,
+			newAsks[addr.String()] = StorageAsk{
+				Miner:        ask.Ask.Miner.String(),
 				Price:        ask.Ask.Price.Uint64(),
 				MinPieceSize: ask.Ask.MinPieceSize,
 				Timestamp:    ask.Ask.Timestamp,
