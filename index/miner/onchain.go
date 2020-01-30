@@ -6,7 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/textileio/filecoin/lotus/types"
+	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/types"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -30,13 +31,13 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 	if err != nil {
 		return err
 	}
-	new, err := mi.api.ChainGetTipSetByHeight(mi.ctx, heaviest.Height-hOffset, heaviest)
+	new, err := mi.api.ChainGetTipSetByHeight(mi.ctx, heaviest.Height()-hOffset, heaviest)
 	if err != nil {
 		return err
 	}
 
 	var chainIndex ChainIndex
-	newtsk := types.NewTipSetKey(new.Cids...)
+	newtsk := new.Key()
 	ts, err := mi.store.LoadAndPrune(mi.ctx, newtsk, &chainIndex)
 	if err != nil {
 		return fmt.Errorf("error getting last saved from store: %s", err)
@@ -44,7 +45,7 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 	if chainIndex.Power == nil {
 		chainIndex.Power = make(map[string]Power)
 	}
-	hdiff := new.Height - chainIndex.LastUpdated
+	hdiff := new.Height() - chainIndex.LastUpdated
 	if hdiff == 0 {
 		return nil
 	}
@@ -67,14 +68,14 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 			return fmt.Errorf("error doing delta refresh: %s", err)
 		}
 	}
-	chainIndex.LastUpdated = new.Height
+	chainIndex.LastUpdated = new.Height()
 	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
 
 	mi.lock.Lock()
 	mi.index.Chain = chainIndex
 	mi.lock.Unlock()
 
-	if err := mi.store.Save(mi.ctx, types.NewTipSetKey(new.Cids...), chainIndex); err != nil {
+	if err := mi.store.Save(mi.ctx, new.Key(), chainIndex); err != nil {
 		return fmt.Errorf("error when saving state to store: %s", err)
 	}
 	mi.signaler.Signal()
@@ -90,13 +91,17 @@ func deltaRefresh(ctx context.Context, api API, chainIndex *ChainIndex, fromKey 
 	if err != nil {
 		return err
 	}
-	chg, err := api.StateChangedActors(ctx, from.Blocks[0].ParentStateRoot, to.Blocks[0].ParentStateRoot)
+	chg, err := api.StateChangedActors(ctx, from.Blocks()[0].ParentStateRoot, to.Blocks()[0].ParentStateRoot)
 	if err != nil {
 		return err
 	}
-	addrs := make([]string, 0, len(chg))
+	addrs := make([]address.Address, 0, len(chg))
 	for addr := range chg {
-		addrs = append(addrs, addr)
+		a, err := address.NewFromString(addr)
+		if err != nil {
+			return err
+		}
+		addrs = append(addrs, a)
 	}
 	updateForAddrs(ctx, api, chainIndex, addrs)
 	return nil
@@ -118,12 +123,12 @@ func fullRefresh(ctx context.Context, api API, chainIndex *ChainIndex) error {
 }
 
 // updateForAddrs updates chainIndex information for a particular set of addrs.
-func updateForAddrs(ctx context.Context, api API, chainIndex *ChainIndex, addrs []string) error {
+func updateForAddrs(ctx context.Context, api API, chainIndex *ChainIndex, addrs []address.Address) error {
 	var l sync.Mutex
 	rl := make(chan struct{}, maxParallelism)
 	for i, a := range addrs {
 		rl <- struct{}{}
-		go func(addr string) {
+		go func(addr address.Address) {
 			defer func() { <-rl }()
 			pw, err := getPower(ctx, api, addr)
 			if err != nil {
@@ -131,7 +136,7 @@ func updateForAddrs(ctx context.Context, api API, chainIndex *ChainIndex, addrs 
 				return
 			}
 			l.Lock()
-			chainIndex.Power[addr] = pw
+			chainIndex.Power[addr.String()] = pw
 			l.Unlock()
 		}(a)
 		stats.Record(context.Background(), mOnChainRefreshProgress.M(float64(i)/float64(len(addrs))))
@@ -150,7 +155,7 @@ func updateForAddrs(ctx context.Context, api API, chainIndex *ChainIndex, addrs 
 }
 
 // getPower returns current on-chain power information for a miner
-func getPower(ctx context.Context, c API, addr string) (Power, error) {
+func getPower(ctx context.Context, c API, addr address.Address) (Power, error) {
 	mp, err := c.StateMinerPower(ctx, addr, nil)
 	if err != nil {
 		return Power{}, err

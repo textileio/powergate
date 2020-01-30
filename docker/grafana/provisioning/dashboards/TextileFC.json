@@ -184,7 +184,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "container_memory_max_usage_bytes{name=\"docker_textile-fc_1\"}",
+          "expr": "container_memory_working_set_bytes{name=\"docker_textile-fc_1\"}",
           "interval": "10s",
           "legendFormat": "textile-fc",
           "refId": "A"
@@ -1248,7 +1248,7 @@
     "list": []
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {

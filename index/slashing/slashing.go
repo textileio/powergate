@@ -6,12 +6,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/chain/store"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
 	"github.com/textileio/filecoin/chainstore"
 	"github.com/textileio/filecoin/chainsync"
-	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/signaler"
 	txndstr "github.com/textileio/filecoin/txndstransform"
 	"github.com/textileio/filecoin/util"
@@ -36,8 +38,8 @@ type API interface {
 	ChainHead(context.Context) (*types.TipSet, error)
 	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
 	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
-	StateReadState(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
-	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*types.HeadChange, error)
+	StateReadState(context.Context, *types.Actor, *types.TipSet) (*api.ActorState, error)
+	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*store.HeadChange, error)
 	ChainGetGenesis(context.Context) (*types.TipSet, error)
 	ChainGetTipSetByHeight(context.Context, uint64, *types.TipSet) (*types.TipSet, error)
 }
@@ -157,11 +159,11 @@ func (s *SlashingIndex) updateIndex() error {
 	if err != nil {
 		return err
 	}
-	new, err := s.api.ChainGetTipSetByHeight(s.ctx, heaviest.Height-hOffset, heaviest)
+	new, err := s.api.ChainGetTipSetByHeight(s.ctx, heaviest.Height()-hOffset, heaviest)
 	if err != nil {
 		return err
 	}
-	newtsk := types.NewTipSetKey(new.Cids...)
+	newtsk := types.NewTipSetKey(new.Cids()...)
 	var index Index
 	ts, err := s.store.LoadAndPrune(s.ctx, newtsk, &index)
 	if err != nil {
@@ -184,14 +186,14 @@ func (s *SlashingIndex) updateIndex() error {
 		if err := updateFromPath(s.ctx, s.api, &index, path[i:j]); err != nil {
 			return err
 		}
-		if err := s.store.Save(s.ctx, types.NewTipSetKey(path[j-1].Cids...), index); err != nil {
+		if err := s.store.Save(s.ctx, types.NewTipSetKey(path[j-1].Cids()...), index); err != nil {
 			return err
 		}
 		stats.Record(mctx, mRefreshProgress.M(float64(i)/float64(len(path))))
 	}
 
 	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
-	stats.Record(mctx, mUpdatedHeight.M(int64(new.Height)))
+	stats.Record(mctx, mUpdatedHeight.M(int64(new.Height())))
 	stats.Record(mctx, mRefreshProgress.M(1))
 
 	s.lock.Lock()
@@ -221,7 +223,7 @@ func updateFromPath(ctx context.Context, api API, index *Index, path []*types.Ti
 			index.Miners[addr] = info
 		}
 	}
-	index.TipSetKey = types.NewTipSetKey(path[len(path)-1].Cids...).String()
+	index.TipSetKey = types.NewTipSetKey(path[len(path)-1].Cids()...).String()
 
 	return nil
 }
@@ -233,7 +235,7 @@ func epochPatch(ctx context.Context, c API, pts *types.TipSet, ts *types.TipSet)
 		return nil, fmt.Errorf("epoch patch can only be called between parent-child tipsets")
 	}
 
-	chg, err := c.StateChangedActors(ctx, pts.Blocks[0].ParentStateRoot, ts.Blocks[0].ParentStateRoot)
+	chg, err := c.StateChangedActors(ctx, pts.Blocks()[0].ParentStateRoot, ts.Blocks()[0].ParentStateRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -285,11 +287,11 @@ func epochPatch(ctx context.Context, c API, pts *types.TipSet, ts *types.TipSet)
 }
 
 func areConsecutiveEpochs(pts, ts *types.TipSet) bool {
-	if pts.Height >= ts.Height {
+	if pts.Height() >= ts.Height() {
 		return false
 	}
-	cidsP := pts.Cids
-	cidsC := ts.Blocks[0].Parents
+	cidsP := pts.Cids()
+	cidsC := ts.Blocks()[0].Parents
 	if len(cidsP) != len(cidsC) {
 		return false
 	}

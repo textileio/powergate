@@ -5,6 +5,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/chain/store"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
@@ -14,7 +18,6 @@ import (
 	"github.com/textileio/filecoin/chainsync"
 	"github.com/textileio/filecoin/fchost"
 	"github.com/textileio/filecoin/iplocation"
-	"github.com/textileio/filecoin/lotus/types"
 	"github.com/textileio/filecoin/signaler"
 	txndstr "github.com/textileio/filecoin/txndstransform"
 	"github.com/textileio/filecoin/util"
@@ -33,16 +36,16 @@ var (
 
 // API provides an abstraction to a Filecoin full-node
 type API interface {
-	StateListMiners(context.Context, *types.TipSet) ([]string, error)
-	StateMinerPower(context.Context, string, *types.TipSet) (types.MinerPower, error)
+	StateListMiners(context.Context, *types.TipSet) ([]address.Address, error)
+	StateMinerPower(context.Context, address.Address, *types.TipSet) (api.MinerPower, error)
 	ChainHead(context.Context) (*types.TipSet, error)
 	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
 	ChainGetTipSetByHeight(context.Context, uint64, *types.TipSet) (*types.TipSet, error)
 	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
-	StateReadState(ctx context.Context, act *types.Actor, ts *types.TipSet) (*types.ActorState, error)
-	StateMinerPeerID(ctx context.Context, m string, ts *types.TipSet) (peer.ID, error)
+	StateReadState(context.Context, *types.Actor, *types.TipSet) (*api.ActorState, error)
+	StateMinerPeerID(ctx context.Context, m address.Address, ts *types.TipSet) (peer.ID, error)
 	ChainGetGenesis(context.Context) (*types.TipSet, error)
-	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*types.HeadChange, error)
+	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*store.HeadChange, error)
 }
 
 // MinerIndex builds and provides information about FC miners
