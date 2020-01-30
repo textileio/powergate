@@ -81,7 +81,6 @@ func (m *Module) Store(ctx context.Context, strAddr string, data io.Reader, deal
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
-	defer os.Remove(tmpF.Name())
 	defer tmpF.Close()
 	if _, err := io.Copy(tmpF, data); err != nil {
 		return nil, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
