@@ -16,8 +16,11 @@ import (
 	dealsPb "github.com/textileio/filecoin/deals/pb"
 	"github.com/textileio/filecoin/fchost"
 	"github.com/textileio/filecoin/index/ask"
+	askPb "github.com/textileio/filecoin/index/ask/pb"
 	"github.com/textileio/filecoin/index/miner"
+	minerPb "github.com/textileio/filecoin/index/miner/pb"
 	"github.com/textileio/filecoin/index/slashing"
+	slashingPb "github.com/textileio/filecoin/index/slashing/pb"
 	"github.com/textileio/filecoin/iplocation/ip2location"
 	"github.com/textileio/filecoin/lotus"
 	txndstr "github.com/textileio/filecoin/txndstransform"
@@ -44,10 +47,15 @@ type Server struct {
 	mi   *miner.MinerIndex
 	ip2l *ip2location.IP2Location
 
-	rpc           *grpc.Server
-	dealsService  *deals.Service
-	walletService *wallet.Service
-	closeLotus    func()
+	rpc *grpc.Server
+
+	dealsService    *deals.Service
+	walletService   *wallet.Service
+	askService      *ask.Service
+	minerService    *miner.Service
+	slashingService *slashing.Service
+
+	closeLotus func()
 }
 
 // Config specifies server settings.
@@ -104,19 +112,28 @@ func NewServer(conf Config) (*Server, error) {
 	wm := wallet.New(c)
 	walletService := wallet.NewService(wm)
 
+	askService := ask.NewService(ai)
+
+	minerService := miner.NewService(mi)
+
+	slashingService := slashing.NewService(si)
+
 	s := &Server{
 		// ToDo: Support secure connection
-		rpc:           grpc.NewServer(),
-		ds:            ds,
-		dm:            dm,
-		ai:            ai,
-		wm:            wm,
-		mi:            mi,
-		si:            si,
-		ip2l:          ip2l,
-		dealsService:  dealsService,
-		walletService: walletService,
-		closeLotus:    cls,
+		rpc:             grpc.NewServer(),
+		ds:              ds,
+		dm:              dm,
+		ai:              ai,
+		wm:              wm,
+		mi:              mi,
+		si:              si,
+		ip2l:            ip2l,
+		dealsService:    dealsService,
+		walletService:   walletService,
+		askService:      askService,
+		minerService:    minerService,
+		slashingService: slashingService,
+		closeLotus:      cls,
 	}
 
 	listener, err := net.Listen(conf.GrpcHostNetwork, conf.GrpcHostAddress)
@@ -126,6 +143,9 @@ func NewServer(conf Config) (*Server, error) {
 	go func() {
 		dealsPb.RegisterAPIServer(s.rpc, s.dealsService)
 		walletPb.RegisterAPIServer(s.rpc, s.walletService)
+		askPb.RegisterAPIServer(s.rpc, s.askService)
+		minerPb.RegisterAPIServer(s.rpc, s.minerService)
+		slashingPb.RegisterAPIServer(s.rpc, s.slashingService)
 		s.rpc.Serve(listener)
 	}()
 
