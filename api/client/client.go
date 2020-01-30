@@ -3,6 +3,7 @@ package client
 import (
 	dealsPb "github.com/textileio/filecoin/deals/pb"
 	asksPb "github.com/textileio/filecoin/index/ask/pb"
+	minerPb "github.com/textileio/filecoin/index/miner/pb"
 	walletPb "github.com/textileio/filecoin/wallet/pb"
 	"google.golang.org/grpc"
 )
@@ -10,6 +11,7 @@ import (
 // Client provides the client api
 type Client struct {
 	Asks   *Asks
+	Miners *Miners
 	Deals  *Deals
 	Wallet *Wallet
 	conn   *grpc.ClientConn
@@ -23,6 +25,7 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 	}
 	client := &Client{
 		Asks:   &Asks{client: asksPb.NewAPIClient(conn)},
+		Miners: &Miners{client: minerPb.NewAPIClient(conn)},
 		Deals:  &Deals{client: dealsPb.NewAPIClient(conn)},
 		Wallet: &Wallet{client: walletPb.NewAPIClient(conn)},
 		conn:   conn,

@@ -7,7 +7,7 @@ import (
 	pb "github.com/textileio/filecoin/index/ask/pb"
 )
 
-func TestGet(t *testing.T) {
+func TestGetAsks(t *testing.T) {
 	skipIfShort(t)
 	a, done := setupAsks(t)
 	defer done()
