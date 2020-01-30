@@ -52,9 +52,3 @@ func setupDeals(t *testing.T) (*Deals, func()) {
 		serverDone()
 	}
 }
-
-func skipIfShort(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping since is a short test run")
-	}
-}
