@@ -45,3 +45,9 @@ func checkErr(t *testing.T, err error) {
 		t.Fatal(err)
 	}
 }
+
+func skipIfShort(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping since is a short test run")
+	}
+}

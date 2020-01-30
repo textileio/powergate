@@ -50,7 +50,7 @@ type Server struct {
 	si *slashing.SlashingIndex
 	dm *deals.Module
 	wm *wallet.Module
-	rm *reputation.ReputationModule
+	rm *reputation.Module
 
 	dealsService      *deals.Service
 	walletService     *wallet.Service
