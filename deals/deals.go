@@ -10,10 +10,13 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/api"
+	str "github.com/filecoin-project/lotus/chain/store"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
-	"github.com/textileio/filecoin/lotus/types"
 )
 
 const (
@@ -28,7 +31,6 @@ var (
 // Module exposes storage, monitoring, and Asks from the market.
 type Module struct {
 	api            API
-	ds             datastore.Datastore
 	basePathImport string
 }
 
@@ -54,22 +56,19 @@ type DealInfo struct {
 
 // API interacts with a Filecoin full-node
 type API interface {
-	ClientStartDeal(ctx context.Context, data cid.Cid, addr string, miner string, epochPrice types.BigInt, blocksDuration uint64) (*cid.Cid, error)
+	ClientStartDeal(ctx context.Context, data cid.Cid, addr address.Address, miner address.Address, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
 	ClientImport(ctx context.Context, path string) (cid.Cid, error)
-	ClientGetDealInfo(context.Context, cid.Cid) (*types.DealInfo, error)
-	ChainNotify(context.Context) (<-chan []*types.HeadChange, error)
+	ClientGetDealInfo(context.Context, cid.Cid) (*api.DealInfo, error)
+	ChainNotify(ctx context.Context) (<-chan []*str.HeadChange, error)
 }
 
 // New creates a new deal module
 func New(ds datastore.Datastore, api API) *Module {
 	// can't avoid home base path, ipfs checks: cannot add filestore references outside ipfs root (home folder)
-	home, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
+	home := os.TempDir()
+	os.MkdirAll(filepath.Join(home, "textilefc"), os.ModePerm)
 	dm := &Module{
 		api:            api,
-		ds:             ds,
 		basePathImport: filepath.Join(home, "textilefc"),
 	}
 	return dm
@@ -77,12 +76,11 @@ func New(ds datastore.Datastore, api API) *Module {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
+func (m *Module) Store(ctx context.Context, strAddr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
 	tmpF, err := ioutil.TempFile(m.basePathImport, "import-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
-	defer os.Remove(tmpF.Name())
 	defer tmpF.Close()
 	if _, err := io.Copy(tmpF, data); err != nil {
 		return nil, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
@@ -91,19 +89,24 @@ func (m *Module) Store(ctx context.Context, addr string, data io.Reader, dealCon
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when importing data: %s", err)
 	}
+	addr, err := address.NewFromString(strAddr)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	var proposals []cid.Cid
 	var failed []DealConfig
-	for _, dconfig := range dealConfigs {
+	for _, c := range dealConfigs {
+		maddr, err := address.NewFromString(c.Miner)
 		if err != nil {
-			log.Errorf("miner addr is invalid %v: %s", dconfig, err)
-			failed = append(failed, dconfig)
+			log.Errorf("invalid miner address %v: %s", c, err)
+			failed = append(failed, c)
 			continue
 		}
-		proposal, err := m.api.ClientStartDeal(ctx, dataCid, addr, dconfig.Miner, dconfig.EpochPrice, duration)
+		proposal, err := m.api.ClientStartDeal(ctx, dataCid, addr, maddr, c.EpochPrice, duration)
 		if err != nil {
-			log.Errorf("error when starting deal with %v: %s", dconfig, err)
-			failed = append(failed, dconfig)
+			log.Errorf("starting deal with %v: %s", c, err)
+			failed = append(failed, c)
 			continue
 		}
 		proposals = append(proposals, *proposal)
@@ -121,7 +124,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	go func() {
 		defer close(ch)
 
-		currentState := make(map[cid.Cid]types.DealInfo)
+		currentState := make(map[cid.Cid]api.DealInfo)
 		tout := time.After(initialWait)
 		for {
 			select {
@@ -141,7 +144,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]types.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
 		dinfo, err := m.api.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
@@ -153,8 +156,8 @@ func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]types
 			newState := DealInfo{
 				ProposalCid:   dinfo.ProposalCid,
 				StateID:       dinfo.State,
-				StateName:     types.DealStates[dinfo.State],
-				Miner:         dinfo.Provider,
+				StateName:     api.DealStates[dinfo.State],
+				Miner:         dinfo.Provider.String(),
 				PieceRef:      dinfo.PieceRef,
 				Size:          dinfo.Size,
 				PricePerEpoch: dinfo.PricePerEpoch,

@@ -3,12 +3,13 @@ package chainsync
 import (
 	"context"
 
-	"github.com/textileio/filecoin/lotus/types"
+	"github.com/filecoin-project/lotus/chain/store"
+	"github.com/filecoin-project/lotus/chain/types"
 )
 
 // API provides an abstraction to a Filecoin full-node
 type API interface {
-	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*types.HeadChange, error)
+	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*store.HeadChange, error)
 	ChainGetGenesis(context.Context) (*types.TipSet, error)
 }
 
@@ -34,7 +35,7 @@ func (cs *ChainSync) Precedes(ctx context.Context, from, to types.TipSetKey) (bo
 	if len(fpath) == 0 {
 		return true, nil
 	}
-	norevert := fpath[0].Type == types.HCApply
+	norevert := fpath[0].Type == store.HCApply
 	return norevert, nil
 }
 
@@ -48,7 +49,7 @@ func ResolveBase(ctx context.Context, api API, left *types.TipSetKey, right type
 			return nil, nil, err
 		}
 		path = append(path, genesis)
-		gtsk := types.NewTipSetKey(genesis.Cids...)
+		gtsk := types.NewTipSetKey(genesis.Cids()...)
 		left = &gtsk
 	}
 
@@ -59,9 +60,9 @@ func ResolveBase(ctx context.Context, api API, left *types.TipSetKey, right type
 
 	var base *types.TipSetKey
 	for _, ts := range fpath {
-		if ts.Type == types.HCApply {
+		if ts.Type == store.HCApply {
 			if base == nil {
-				b := types.NewTipSetKey(ts.Val.Blocks[0].Parents...)
+				b := types.NewTipSetKey(ts.Val.Blocks()[0].Parents...)
 				base = &b
 			}
 			path = append(path, ts.Val)
