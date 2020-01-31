@@ -14,18 +14,18 @@ import (
 )
 
 func init() {
-	asksCmd.Flags().Uint64P("maxPrice", "m", 0, "max price of the asks to query")
-	asksCmd.Flags().IntP("pieceSize", "p", 0, "piece size of the asks to query")
-	asksCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
-	asksCmd.Flags().IntP("offset", "o", -1, "offset of results")
+	queryCmd.Flags().Uint64P("maxPrice", "m", 0, "max price of the asks to query")
+	queryCmd.Flags().IntP("pieceSize", "p", 0, "piece size of the asks to query")
+	queryCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
+	queryCmd.Flags().IntP("offset", "o", -1, "offset of results")
 
-	dealsCmd.AddCommand(asksCmd)
+	asksCmd.AddCommand(queryCmd)
 }
 
-var asksCmd = &cobra.Command{
-	Use:   "asks",
-	Short: "Print the available asks",
-	Long:  `Print the available asks`,
+var queryCmd = &cobra.Command{
+	Use:   "query",
+	Short: "Query the available asks",
+	Long:  `Query the available asks`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -56,7 +56,7 @@ var asksCmd = &cobra.Command{
 
 		s := spin.New("%s Querying network for available storage asks...")
 		s.Start()
-		asks, err := fcClient.Deals.AvailableAsks(ctx, q)
+		asks, err := fcClient.Asks.Query(ctx, q)
 		s.Stop()
 		checkErr(err)
 

@@ -28,7 +28,7 @@ var (
 	log = logging.Logger("deals")
 )
 
-// Module exposes storage, monitoring, and Asks from the market.
+// Module exposes storage and monitoring from the market.
 type Module struct {
 	api            API
 	basePathImport string

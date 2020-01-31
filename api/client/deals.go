@@ -9,7 +9,6 @@ import (
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/filecoin/deals"
 	pb "github.com/textileio/filecoin/deals/pb"
-	"github.com/textileio/filecoin/index/ask"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,31 +23,6 @@ type Deals struct {
 type WatchEvent struct {
 	Deal deals.DealInfo
 	Err  error
-}
-
-// AvailableAsks executes a query to retrieve active Asks
-func (d *Deals) AvailableAsks(ctx context.Context, query ask.Query) ([]ask.StorageAsk, error) {
-	q := &pb.Query{
-		MaxPrice:  query.MaxPrice,
-		PieceSize: query.PieceSize,
-		Limit:     int32(query.Limit),
-		Offset:    int32(query.Offset),
-	}
-	reply, err := d.client.AvailableAsks(ctx, &pb.AvailableAsksRequest{Query: q})
-	if err != nil {
-		return nil, err
-	}
-	asks := make([]ask.StorageAsk, len(reply.GetAsks()))
-	for i, a := range reply.GetAsks() {
-		asks[i] = ask.StorageAsk{
-			Price:        a.GetPrice(),
-			MinPieceSize: a.GetMinPieceSize(),
-			Miner:        a.GetMiner(),
-			Timestamp:    a.GetTimestamp(),
-			Expiry:       a.GetExpiry(),
-		}
-	}
-	return asks, nil
 }
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated

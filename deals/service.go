@@ -7,7 +7,6 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	pb "github.com/textileio/filecoin/deals/pb"
-	"github.com/textileio/filecoin/index/ask"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,8 +16,7 @@ import (
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	askIndex *ask.AskIndex
-	Module   *Module
+	Module *Module
 }
 
 type storeResult struct {
@@ -28,10 +26,9 @@ type storeResult struct {
 }
 
 // NewService is a helper to create a new Service
-func NewService(dm *Module, ai *ask.AskIndex) *Service {
+func NewService(dm *Module) *Service {
 	return &Service{
-		Module:   dm,
-		askIndex: ai,
+		Module: dm,
 	}
 }
 
@@ -50,31 +47,6 @@ func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams
 		return
 	}
 	ch <- storeResult{Cids: cids, FailedDeals: failedDeals}
-}
-
-// AvailableAsks calls deals.AvailableAsks
-func (s *Service) AvailableAsks(ctx context.Context, req *pb.AvailableAsksRequest) (*pb.AvailableAsksReply, error) {
-	q := ask.Query{
-		MaxPrice:  req.GetQuery().GetMaxPrice(),
-		PieceSize: req.GetQuery().GetPieceSize(),
-		Limit:     int(req.GetQuery().GetLimit()),
-		Offset:    int(req.GetQuery().GetOffset()),
-	}
-	asks, err := s.askIndex.Query(q)
-	if err != nil {
-		return nil, err
-	}
-	replyAsks := make([]*pb.StorageAsk, len(asks))
-	for i, ask := range asks {
-		replyAsks[i] = &pb.StorageAsk{
-			Price:        ask.Price,
-			MinPieceSize: ask.MinPieceSize,
-			Miner:        ask.Miner,
-			Timestamp:    ask.Timestamp,
-			Expiry:       ask.Expiry,
-		}
-	}
-	return &pb.AvailableAsksReply{Asks: replyAsks}, nil
 }
 
 // Store calls deals.Store

@@ -8,7 +8,6 @@ import (
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/filecoin/api/client"
 	"github.com/textileio/filecoin/deals"
-	"github.com/textileio/filecoin/index/ask"
 )
 
 // Deals provides an API for managing deals and storing data
@@ -36,42 +35,6 @@ func init() {
 	cid9, _ := cid.Parse("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPI")
 	cid10, _ := cid.Parse("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPJ")
 	cids = append(cids, cid1, cid2, cid3, cid4, cid5, cid6, cid7, cid8, cid9, cid10)
-}
-
-// AvailableAsks executes a query to retrieve active Asks
-func (d *Deals) AvailableAsks(ctx context.Context, query ask.Query) ([]ask.StorageAsk, error) {
-	time.Sleep(time.Second * 3)
-	var asks = []ask.StorageAsk{
-		ask.StorageAsk{
-			Miner:        "asdfzxvc123",
-			Price:        1245,
-			MinPieceSize: 1024,
-			Timestamp:    1123456,
-			Expiry:       12345677,
-		},
-		ask.StorageAsk{
-			Miner:        "xcvbfgfhh657",
-			Price:        3420,
-			MinPieceSize: 2048,
-			Timestamp:    89798,
-			Expiry:       12345677,
-		},
-		ask.StorageAsk{
-			Miner:        "asdfzxvc123",
-			Price:        1245,
-			MinPieceSize: 1024,
-			Timestamp:    1123456,
-			Expiry:       12345677,
-		},
-		ask.StorageAsk{
-			Miner:        "asdfzxvc123",
-			Price:        1245,
-			MinPieceSize: 1024,
-			Timestamp:    1123456,
-			Expiry:       12345677,
-		},
-	}
-	return asks, nil
 }
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
