@@ -20,7 +20,7 @@ require (
 	github.com/ipfs/go-ipld-cbor v0.0.3
 	github.com/ipfs/go-log v1.0.1
 	github.com/ipfs/go-log/v2 v2.0.2
-	github.com/libp2p/go-libp2p v0.5.0
+	github.com/libp2p/go-libp2p v0.5.1
 	github.com/libp2p/go-libp2p-core v0.3.0
 	github.com/libp2p/go-libp2p-crypto v0.1.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
