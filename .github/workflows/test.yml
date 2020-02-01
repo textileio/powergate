@@ -20,8 +20,8 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - name: OpenCL dependencies
-        run: sudo apt-get install mesa-opencl-icd ocl-icd-opencl-dev
+      - name: Install OpenCL
+        run: sudo apt-get update && sudo apt-get install mesa-opencl-icd ocl-icd-opencl-dev
       - name: Check out code
         uses: actions/checkout@v1
       - name: Cache dependencies
