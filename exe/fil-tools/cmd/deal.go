@@ -77,7 +77,7 @@ var dealCmd = &cobra.Command{
 
 		s := spin.New("%s Querying network for available storage asks...")
 		s.Start()
-		asks, err := fcClient.Deals.AvailableAsks(asksCtx, q)
+		asks, err := fcClient.Asks.Query(asksCtx, q)
 		s.Stop()
 		checkErr(err)
 

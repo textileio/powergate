@@ -6,15 +6,23 @@ import (
 
 // Client provides the client api
 type Client struct {
-	Deals  *Deals
-	Wallet *Wallet
+	Asks       *Asks
+	Miners     *Miners
+	Slashing   *Slashing
+	Deals      *Deals
+	Wallet     *Wallet
+	Reputation *Reputation
 }
 
 // NewClient starts the client
 func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 	client := &Client{
-		Deals:  &Deals{},
-		Wallet: &Wallet{},
+		Asks:       &Asks{},
+		Miners:     &Miners{},
+		Slashing:   &Slashing{},
+		Deals:      &Deals{},
+		Wallet:     &Wallet{},
+		Reputation: &Reputation{},
 	}
 	return client, nil
 }

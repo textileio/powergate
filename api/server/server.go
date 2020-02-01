@@ -116,7 +116,7 @@ func NewServer(conf Config) (*Server, error) {
 	wm := wallet.New(c)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
 
-	dealsService := deals.NewService(dm, ai)
+	dealsService := deals.NewService(dm)
 	walletService := wallet.NewService(wm)
 	reputationService := reputation.NewService(rm)
 	askService := ask.NewService(ai)
