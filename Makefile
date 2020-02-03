@@ -1,6 +1,3 @@
-all: build
-.PHONY: all
-
 SUBMODULES=.update-modules
 
 FFI_PATH:=./extern/filecoin-ffi/
@@ -18,7 +15,15 @@ $(FFI_DEPS): .filecoin-build ;
 	@touch $@
 
 build: .update-modules .filecoin-build
+.PHONY: build
 
 clean:
 	rm -f .filecoin-build
 	rm -f .update-modules
+
+test: build
+	mkdir -p /var/tmp/filecoin-proof-parameters
+	cat build/proof-params/parameters.json | jq 'keys[]' | xargs touch
+	mv v20* /var/tmp/filecoin-proof-parameters	
+	go test ./... -short
+.PHONY: test
