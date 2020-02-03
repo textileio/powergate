@@ -24,6 +24,7 @@ clean:
 test: build
 	mkdir -p /var/tmp/filecoin-proof-parameters
 	cat build/proof-params/parameters.json | jq 'keys[]' | xargs touch
-	mv v20* /var/tmp/filecoin-proof-parameters	
+	mv -n v20* /var/tmp/filecoin-proof-parameters
+	rm v20* || true
 	go test ./... -short
 .PHONY: test
