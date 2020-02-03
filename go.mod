@@ -7,6 +7,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.0.5
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/caarlos0/spin v1.1.0
+	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/filecoin-project/go-address v0.0.0-20200107215422-da8eea2842b5
 	github.com/filecoin-project/go-sectorbuilder v0.0.2-0.20200123143044-d9cc96c53c55
 	github.com/filecoin-project/lotus v0.2.7-0.20200129090654-df747c8216b2
@@ -14,6 +15,7 @@ require (
 	github.com/google/go-cmp v0.4.0
 	github.com/gorilla/websocket v1.4.1
 	github.com/gosuri/uilive v0.0.4
+	github.com/improbable-eng/grpc-web v0.12.0
 	github.com/ip2location/ip2location-go v8.2.0+incompatible
 	github.com/ipfs/go-cid v0.0.4
 	github.com/ipfs/go-datastore v0.3.1
@@ -30,6 +32,7 @@ require (
 	github.com/multiformats/go-multiaddr v0.2.0
 	github.com/multiformats/go-multihash v0.0.10
 	github.com/olekukonko/tablewriter v0.0.4
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.4.0
