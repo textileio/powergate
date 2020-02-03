@@ -7,7 +7,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-const (
+var (
 	AvgBlockTime = time.Second * 30
 )
 

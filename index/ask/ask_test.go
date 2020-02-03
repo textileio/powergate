@@ -2,28 +2,41 @@ package ask
 
 import (
 	"context"
+	"os"
 	"reflect"
 	"testing"
 
-	"github.com/textileio/filecoin/lotus"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/filecoin/tests"
 )
 
-func TestFreshBuild(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test since we're on short mode")
-	}
-	ctx := context.Background()
-	addr, token := tests.ClientConfigMA()
-	api, cls, err := lotus.New(addr, token)
-	checkErr(t, err)
-	defer cls()
+func TestMain(m *testing.M) {
+	logging.SetAllLoggers(logging.LevelError)
+	os.Exit(m.Run())
+}
 
-	qaRatelim = 2000
-	index, err := generateIndex(ctx, api)
+func TestFreshBuild(t *testing.T) {
+	ctx := context.Background()
+	dnet, _, miners, close := tests.CreateLocalDevnet(t, 1)
+	defer close()
+
+	index, err := generateIndex(ctx, dnet.Client)
 	checkErr(t, err)
-	if len(index.Storage) == 0 {
-		t.Fatalf("current asks can't be empty")
+
+	// We should have storage info about every miner in devnet
+	for _, m := range miners {
+		info, ok := index.Storage[m.String()]
+		if !ok {
+			t.Fatalf("missing storage ask info for miner %s", m.String())
+		}
+		if info.Miner != m.String() || info.Price == 0 ||
+			info.MinPieceSize == 0 || info.Timestamp == 0 ||
+			info.Expiry == 0 {
+			t.Fatalf("invalid storage state for miner %s: %v", m.String(), info)
+		}
+	}
+	if index.StorageMedianPrice == 0 {
+		t.Fatalf("median storage price should be greater than zero")
 	}
 }
 

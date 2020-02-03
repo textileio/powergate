@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"io/ioutil"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -28,8 +28,8 @@ import (
 	"github.com/filecoin-project/lotus/node/repo"
 	"github.com/filecoin-project/lotus/storage/sbmock"
 	"github.com/ipfs/go-datastore"
-	crypto "github.com/libp2p/go-libp2p-crypto"
-	peer "github.com/libp2p/go-libp2p-peer"
+	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/peer"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -37,11 +37,11 @@ import (
 func init() {
 	build.SectorSizes = []uint64{1024}
 	build.MinimumMinerPower = 1024
+	os.Setenv("TRUST_PARAMS", "1")
 }
 
 type LocalDevnet struct {
 	Client *apistruct.FullNodeStruct
-	Miner  address.Address
 
 	numMiners int
 	cancel    context.CancelFunc
@@ -63,7 +63,6 @@ func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
 	miners := make([]int, numMiners)
 	n, sn, closer := rpcBuilder(t, 1, miners)
 	client := n[0].FullNode.(*apistruct.FullNodeStruct)
-	miner := sn[0]
 	ctx, cancel := context.WithCancel(context.Background())
 	addrinfo, err := client.NetAddrsListen(ctx)
 	if err != nil {
@@ -83,7 +82,7 @@ func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
 		go func(i int) {
 			defer func() { done <- struct{}{} }()
 			for mine {
-				time.Sleep(10 * time.Millisecond)
+				time.Sleep(100 * time.Millisecond)
 				if ctx.Err() != nil {
 					mine = false
 					continue
@@ -94,14 +93,25 @@ func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
 			}
 		}(i)
 	}
-	minerAddr, err := miner.ActorAddress(ctx)
-	if err != nil {
-		t.Fatal(err)
+	for i := range miners {
+		for j := range miners {
+			if j == i {
+				continue
+			}
+			mainfo, err := sn[j].NetAddrsListen(ctx)
+			if err != nil {
+				t.Fatal(t, err)
+			}
+			if err := sn[i].NetConnect(ctx, mainfo); err != nil {
+				cancel()
+				return nil, err
+			}
+		}
 	}
+
 	time.Sleep(time.Millisecond * 500) // Give time to mine at least 1 block
 	return &LocalDevnet{
 		Client:    client,
-		Miner:     minerAddr,
 		closer:    closer,
 		cancel:    cancel,
 		done:      done,
@@ -154,27 +164,24 @@ func mockSbBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []t
 	fulls := make([]test.TestNode, nFull)
 	storers := make([]test.TestStorageNode, len(storage))
 
-	pk, _, err := crypto.GenerateEd25519Key(rand.Reader)
-	require.NoError(t, err)
-
 	gmc := &gen.GenMinerCfg{
 		PreSeals: map[string]genesis.GenesisMiner{},
 	}
+
+	var storagePks []crypto.PrivKey
 	for i := 0; i < len(storage); i++ {
+		pk, _, err := crypto.GenerateEd25519Key(rand.Reader)
+		require.NoError(t, err)
 		pid, err := peer.IDFromPrivateKey(pk)
 		require.NoError(t, err)
 		gmc.PeerIDs = append(gmc.PeerIDs, pid)
+		storagePks = append(storagePks, pk)
 	}
 
 	// PRESEAL SECTION, TRY TO REPLACE WITH BETTER IN THE FUTURE
 	// TODO: would be great if there was a better way to fake the preseals
-	var presealDirs []string
 	for i := 0; i < len(storage); i++ {
 		maddr, err := address.NewIDAddress(300 + uint64(i))
-		if err != nil {
-			t.Fatal(err)
-		}
-		tdir, err := ioutil.TempDir("", "preseal-memgen")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -183,7 +190,6 @@ func mockSbBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []t
 			t.Fatal(err)
 		}
 
-		presealDirs = append(presealDirs, tdir)
 		gmc.MinerAddrs = append(gmc.MinerAddrs, maddr)
 		gmc.PreSeals[maddr.String()] = *genm
 	}
@@ -228,7 +234,7 @@ func mockSbBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []t
 		genMiner := gmc.MinerAddrs[i]
 		wa := gmc.PreSeals[genMiner.String()].Worker
 
-		storers[i] = testStorageNode(ctx, t, wa, genMiner, pk, f, mn, node.Options(
+		storers[i] = testStorageNode(ctx, t, wa, genMiner, storagePks[i], f, mn, node.Options(
 			node.Override(new(sectorbuilder.Interface), sbmock.NewMockSectorBuilder(5, build.SectorSizes[0])),
 		))
 	}

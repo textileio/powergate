@@ -8,13 +8,12 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	cbor "github.com/ipfs/go-ipld-cbor"
-	"github.com/textileio/filecoin/fchost"
 	"github.com/textileio/filecoin/iplocation"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
-const (
+var (
 	metadataRefreshInterval = time.Second * 45
 	pingTimeout             = time.Second * 3
 	pingRateLim             = 100
@@ -65,7 +64,7 @@ func (mi *MinerIndex) metaWorker() {
 
 // updateMetaIndex generates a new index that contains fresh metadata information
 // of addrs miners.
-func updateMetaIndex(ctx context.Context, api API, h *fchost.FilecoinHost, lr iplocation.LocationResolver, addrs []string) (MetaIndex, error) {
+func updateMetaIndex(ctx context.Context, api API, h P2PHost, lr iplocation.LocationResolver, addrs []string) (MetaIndex, error) {
 	index := MetaIndex{
 		Info: make(map[string]Meta),
 	}
@@ -108,7 +107,7 @@ func updateMetaIndex(ctx context.Context, api API, h *fchost.FilecoinHost, lr ip
 }
 
 // getMeta returns fresh metadata information about a miner
-func getMeta(ctx context.Context, c API, h *fchost.FilecoinHost, lr iplocation.LocationResolver, straddr string) (Meta, error) {
+func getMeta(ctx context.Context, c API, h P2PHost, lr iplocation.LocationResolver, straddr string) (Meta, error) {
 	si := Meta{
 		LastUpdated: time.Now(),
 	}
