@@ -8,7 +8,7 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	cbor "github.com/ipfs/go-ipld-cbor"
-	"github.com/textileio/filecoin/iplocation"
+	"github.com/textileio/fil-tools/iplocation"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )

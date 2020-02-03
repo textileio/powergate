@@ -12,7 +12,7 @@ import (
 
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/filecoin/ldevnet"
+	"github.com/textileio/fil-tools/ldevnet"
 )
 
 func TestMain(m *testing.M) {

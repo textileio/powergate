@@ -7,7 +7,7 @@ import (
 
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log"
-	"github.com/textileio/filecoin/tests"
+	"github.com/textileio/fil-tools/tests"
 )
 
 func TestMain(m *testing.M) {

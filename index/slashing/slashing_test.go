@@ -6,8 +6,8 @@ import (
 	"time"
 
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/filecoin/tests"
-	"github.com/textileio/filecoin/util"
+	"github.com/textileio/fil-tools/tests"
+	"github.com/textileio/fil-tools/util"
 )
 
 func TestMain(m *testing.M) {

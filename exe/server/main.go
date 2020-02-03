@@ -9,8 +9,8 @@ import (
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log"
-	"github.com/textileio/filecoin/api/server"
-	"github.com/textileio/filecoin/tests"
+	"github.com/textileio/fil-tools/api/server"
+	"github.com/textileio/fil-tools/tests"
 	_ "net/http/pprof"
 )
 
