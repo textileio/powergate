@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
-	"path/filepath"
-	"reflect"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -15,7 +12,6 @@ import (
 	str "github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
 )
 
@@ -30,28 +26,8 @@ var (
 
 // Module exposes storage and monitoring from the market.
 type Module struct {
-	api            API
-	basePathImport string
-}
-
-// DealConfig contains information about a proposal for a particular miner
-type DealConfig struct {
-	Miner      string
-	EpochPrice types.BigInt
-}
-
-// DealInfo contains information about a proposal storage deal
-type DealInfo struct {
-	ProposalCid cid.Cid
-	StateID     uint64
-	StateName   string
-	Miner       string
-
-	PieceRef []byte
-	Size     uint64
-
-	PricePerEpoch types.BigInt
-	Duration      uint64
+	api API
+	cfg *Config
 }
 
 // API interacts with a Filecoin full-node
@@ -63,47 +39,52 @@ type API interface {
 }
 
 // New creates a new deal module
-func New(ds datastore.Datastore, api API) *Module {
-	// can't avoid home base path, ipfs checks: cannot add filestore references outside ipfs root (home folder)
-	home := os.TempDir()
-	os.MkdirAll(filepath.Join(home, "textilefc"), os.ModePerm)
-	dm := &Module{
-		api:            api,
-		basePathImport: filepath.Join(home, "textilefc"),
+func New(api API, opts ...Option) (*Module, error) {
+	var cfg Config
+	for _, o := range opts {
+		if err := o(&cfg); err != nil {
+			return nil, err
+		}
 	}
-	return dm
+	if cfg.ImportPath == "" {
+		return nil, fmt.Errorf("import path can't be empty")
+	}
+	return &Module{
+		api: api,
+		cfg: &cfg,
+	}, nil
 }
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, strAddr string, data io.Reader, dealConfigs []DealConfig, duration uint64) ([]cid.Cid, []DealConfig, error) {
-	tmpF, err := ioutil.TempFile(m.basePathImport, "import-*")
+func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []DealConfig, dur uint64) ([]cid.Cid, []DealConfig, error) {
+	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
-	defer tmpF.Close()
-	if _, err := io.Copy(tmpF, data); err != nil {
+	defer f.Close()
+	if _, err := io.Copy(f, data); err != nil {
 		return nil, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
-	dataCid, err := m.api.ClientImport(ctx, tmpF.Name())
+	dataCid, err := m.api.ClientImport(ctx, f.Name())
 	if err != nil {
 		return nil, nil, fmt.Errorf("error when importing data: %s", err)
 	}
-	addr, err := address.NewFromString(strAddr)
+	addr, err := address.NewFromString(waddr)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	var proposals []cid.Cid
 	var failed []DealConfig
-	for _, c := range dealConfigs {
+	for _, c := range dcfgs {
 		maddr, err := address.NewFromString(c.Miner)
 		if err != nil {
 			log.Errorf("invalid miner address %v: %s", c, err)
 			failed = append(failed, c)
 			continue
 		}
-		proposal, err := m.api.ClientStartDeal(ctx, dataCid, addr, maddr, c.EpochPrice, duration)
+		proposal, err := m.api.ClientStartDeal(ctx, dataCid, addr, maddr, c.EpochPrice, dur)
 		if err != nil {
 			log.Errorf("starting deal with %v: %s", c, err)
 			failed = append(failed, c)
@@ -123,17 +104,11 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	}
 	go func() {
 		defer close(ch)
-
-		currentState := make(map[cid.Cid]api.DealInfo)
-		tout := time.After(initialWait)
+		currentState := make(map[cid.Cid]*api.DealInfo)
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case <-tout:
-				if err := m.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
-					log.Errorf("error when pushing new proposal states: %s", err)
-				}
 			case <-w:
 				if err := m.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
 					log.Errorf("error when pushing new proposal states: %s", err)
@@ -144,15 +119,15 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
 		dinfo, err := m.api.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
 			log.Errorf("error when getting deal proposal info %s: %s", pcid, err)
 			continue
 		}
-		if !reflect.DeepEqual(currState[pcid], dinfo) {
-			currState[pcid] = *dinfo
+		if currState[pcid] == nil || (*currState[pcid]).State != dinfo.State {
+			currState[pcid] = dinfo
 			newState := DealInfo{
 				ProposalCid:   dinfo.ProposalCid,
 				StateID:       dinfo.State,
