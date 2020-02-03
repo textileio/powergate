@@ -2,29 +2,28 @@ package chainsync
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/textileio/filecoin/lotus"
-
+	logging "github.com/ipfs/go-log"
 	"github.com/textileio/filecoin/tests"
 )
 
-func TestPrecede(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping since is a short test run")
-	}
+func TestMain(m *testing.M) {
+	logging.SetAllLoggers(logging.LevelError)
+	os.Exit(m.Run())
+}
 
-	addr, token := tests.ClientConfigMA()
-	c, cls, err := lotus.New(addr, token)
-	checkErr(t, err)
-	defer cls()
+func TestPrecede(t *testing.T) {
+	dnet, _, _, close := tests.CreateLocalDevnet(t, 1)
+	defer close()
 	ctx := context.Background()
 
-	h, err := c.ChainHead(ctx)
+	h, err := dnet.Client.ChainHead(ctx)
 	checkErr(t, err)
 
-	csync := New(c)
+	csync := New(dnet.Client)
 	head := h.Key()
 	prevhead := types.NewTipSetKey(h.Blocks()[0].Parents...)
 	yes, err := csync.Precedes(ctx, prevhead, head)
