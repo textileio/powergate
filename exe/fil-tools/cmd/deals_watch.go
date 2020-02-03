@@ -10,7 +10,7 @@ import (
 	"github.com/gosuri/uilive"
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
-	"github.com/textileio/filecoin/api/client"
+	"github.com/textileio/fil-tools/api/client"
 )
 
 func init() {

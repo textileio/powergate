@@ -15,12 +15,12 @@ import (
 	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/textileio/filecoin/chainstore"
-	"github.com/textileio/filecoin/chainsync"
-	"github.com/textileio/filecoin/iplocation"
-	"github.com/textileio/filecoin/signaler"
-	txndstr "github.com/textileio/filecoin/txndstransform"
-	"github.com/textileio/filecoin/util"
+	"github.com/textileio/fil-tools/chainstore"
+	"github.com/textileio/fil-tools/chainsync"
+	"github.com/textileio/fil-tools/iplocation"
+	"github.com/textileio/fil-tools/signaler"
+	txndstr "github.com/textileio/fil-tools/txndstransform"
+	"github.com/textileio/fil-tools/util"
 )
 
 const (

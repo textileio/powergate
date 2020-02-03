@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/textileio/filecoin/index/miner"
+	"github.com/textileio/fil-tools/index/miner"
 )
 
 // Miners provides an API for viewing miner data

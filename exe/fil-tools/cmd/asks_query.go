@@ -10,7 +10,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/filecoin/index/ask"
+	"github.com/textileio/fil-tools/index/ask"
 )
 
 func init() {

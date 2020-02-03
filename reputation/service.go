@@ -4,7 +4,7 @@ import (
 	"context"
 
 	ma "github.com/multiformats/go-multiaddr"
-	pb "github.com/textileio/filecoin/reputation/pb"
+	pb "github.com/textileio/fil-tools/reputation/pb"
 )
 
 // Service implements the gprc service

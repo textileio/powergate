@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	pb "github.com/textileio/filecoin/wallet/pb"
+	pb "github.com/textileio/fil-tools/wallet/pb"
 )
 
 func TestNewWallet(t *testing.T) {

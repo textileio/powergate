@@ -12,11 +12,11 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
-	"github.com/textileio/filecoin/chainstore"
-	"github.com/textileio/filecoin/chainsync"
-	"github.com/textileio/filecoin/signaler"
-	txndstr "github.com/textileio/filecoin/txndstransform"
-	"github.com/textileio/filecoin/util"
+	"github.com/textileio/fil-tools/chainstore"
+	"github.com/textileio/fil-tools/chainsync"
+	"github.com/textileio/fil-tools/signaler"
+	txndstr "github.com/textileio/fil-tools/txndstransform"
+	"github.com/textileio/fil-tools/util"
 	"go.opencensus.io/stats"
 )
 

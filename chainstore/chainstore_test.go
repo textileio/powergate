@@ -11,7 +11,7 @@ import (
 	"github.com/ipfs/go-cid"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/multiformats/go-multihash"
-	"github.com/textileio/filecoin/tests"
+	"github.com/textileio/fil-tools/tests"
 )
 
 type data struct {

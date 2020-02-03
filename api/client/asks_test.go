@@ -3,8 +3,8 @@ package client
 import (
 	"testing"
 
-	"github.com/textileio/filecoin/index/ask"
-	pb "github.com/textileio/filecoin/index/ask/pb"
+	"github.com/textileio/fil-tools/index/ask"
+	pb "github.com/textileio/fil-tools/index/ask/pb"
 )
 
 func TestGetAsks(t *testing.T) {

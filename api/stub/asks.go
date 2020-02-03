@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/textileio/filecoin/index/ask"
+	"github.com/textileio/fil-tools/index/ask"
 )
 
 // Asks stub

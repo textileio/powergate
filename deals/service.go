@@ -6,7 +6,7 @@ import (
 
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
-	pb "github.com/textileio/filecoin/deals/pb"
+	pb "github.com/textileio/fil-tools/deals/pb"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

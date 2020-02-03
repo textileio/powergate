@@ -6,8 +6,8 @@ import (
 	"time"
 
 	cid "github.com/ipfs/go-cid"
-	"github.com/textileio/filecoin/api/client"
-	"github.com/textileio/filecoin/deals"
+	"github.com/textileio/fil-tools/api/client"
+	"github.com/textileio/fil-tools/deals"
 )
 
 // Deals provides an API for managing deals and storing data
