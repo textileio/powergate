@@ -5,6 +5,7 @@ go 1.13
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/AlecAivazis/survey/v2 v2.0.5
+	github.com/GeertJohan/go.rice v1.0.0
 	github.com/caarlos0/spin v1.1.0
 	github.com/filecoin-project/go-address v0.0.0-20200107215422-da8eea2842b5
 	github.com/filecoin-project/go-sectorbuilder v0.0.2-0.20200123143044-d9cc96c53c55
@@ -16,15 +17,13 @@ require (
 	github.com/ip2location/ip2location-go v8.2.0+incompatible
 	github.com/ipfs/go-cid v0.0.4
 	github.com/ipfs/go-datastore v0.3.1
-	github.com/ipfs/go-ds-badger v0.2.0
-	github.com/ipfs/go-ipld-cbor v0.0.4
+	github.com/ipfs/go-ds-badger2 v0.0.0-20200123200730-d75eb2678a5d
+	github.com/ipfs/go-ipld-cbor v0.0.3
 	github.com/ipfs/go-log v1.0.1
 	github.com/ipfs/go-log/v2 v2.0.2
 	github.com/libp2p/go-libp2p v0.5.0
 	github.com/libp2p/go-libp2p-core v0.3.0
-	github.com/libp2p/go-libp2p-crypto v0.1.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
-	github.com/libp2p/go-libp2p-peer v0.2.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0
 	github.com/mitchellh/go-homedir v1.1.0
