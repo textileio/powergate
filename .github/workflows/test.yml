@@ -15,11 +15,11 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
-      - name: Install Rust
+      - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
-          override: true
       - name: Install OpenCL
         run: sudo apt-get update && sudo apt-get install mesa-opencl-icd ocl-icd-opencl-dev
       - name: Check out code
@@ -32,7 +32,5 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Get extern dependencies
-        run: make all
       - name: Test
-        run: TRUST_PARAMS=1 go test ./... -short -v
+        run: make test

@@ -19,3 +19,5 @@
 
 .filecoin-build
 .update-modules
+
+api/client/datastore

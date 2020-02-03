@@ -21,7 +21,6 @@ func TestMain(m *testing.M) {
 }
 
 func TestClientVersion(t *testing.T) {
-	t.Parallel()
 	dnet, err := ldevnet.New(t, 1)
 	checkErr(t, err)
 	defer dnet.Close()
@@ -32,7 +31,6 @@ func TestClientVersion(t *testing.T) {
 }
 
 func TestClientImport(t *testing.T) {
-	t.Parallel()
 	dnet, err := ldevnet.New(t, 1)
 	checkErr(t, err)
 	defer dnet.Close()
@@ -55,7 +53,6 @@ func TestClientImport(t *testing.T) {
 }
 
 func TestClientChainNotify(t *testing.T) {
-	t.Parallel()
 	dnet, err := ldevnet.New(t, 1)
 	checkErr(t, err)
 
@@ -80,7 +77,6 @@ func TestClientChainNotify(t *testing.T) {
 }
 
 func TestChainHead(t *testing.T) {
-	t.Parallel()
 	dnet, err := ldevnet.New(t, 1)
 	checkErr(t, err)
 
@@ -92,7 +88,6 @@ func TestChainHead(t *testing.T) {
 }
 
 func TestChainGetTipset(t *testing.T) {
-	t.Parallel()
 	dnet, err := ldevnet.New(t, 1)
 	checkErr(t, err)
 
@@ -106,7 +101,6 @@ func TestChainGetTipset(t *testing.T) {
 }
 
 func TestStateReadState(t *testing.T) {
-	t.Parallel()
 	dnet, err := ldevnet.New(t, 1)
 	checkErr(t, err)
 
@@ -125,11 +119,13 @@ func TestStateReadState(t *testing.T) {
 }
 
 func TestGetPeerID(t *testing.T) {
-	t.Parallel()
 	dnet, err := ldevnet.New(t, 1)
 	checkErr(t, err)
 
-	pid, err := dnet.Client.StateMinerPeerID(context.Background(), dnet.Miner, nil)
+	miners, err := dnet.Client.StateListMiners(context.Background(), nil)
+	checkErr(t, err)
+
+	pid, err := dnet.Client.StateMinerPeerID(context.Background(), miners[0], nil)
 	checkErr(t, err)
 	checkErr(t, pid.Validate())
 }

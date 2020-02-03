@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/ipfs/go-datastore"
-	badger "github.com/ipfs/go-ds-badger"
+	badger "github.com/ipfs/go-ds-badger2"
 	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/filecoin/deals"
@@ -97,7 +97,6 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error when opening datastore on repo: %s", err)
 	}
-
 	ip2l := ip2location.New([]string{"./ip2location-ip4.bin"})
 
 	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), c)
@@ -112,7 +111,10 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error when creating slashing index: %s", err)
 	}
-	dm := deals.New(txndstr.Wrap(ds, "dealmodule"), c)
+	dm, err := deals.New(c, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
+	if err != nil {
+		return nil, fmt.Errorf("error when creating deal module: %s", err)
+	}
 	wm := wallet.New(c)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
 

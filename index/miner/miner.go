@@ -14,9 +14,9 @@ import (
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/filecoin/chainstore"
 	"github.com/textileio/filecoin/chainsync"
-	"github.com/textileio/filecoin/fchost"
 	"github.com/textileio/filecoin/iplocation"
 	"github.com/textileio/filecoin/signaler"
 	txndstr "github.com/textileio/filecoin/txndstransform"
@@ -48,12 +48,18 @@ type API interface {
 	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*store.HeadChange, error)
 }
 
+type P2PHost interface {
+	Addrs(pid peer.ID) []multiaddr.Multiaddr
+	Ping(ctx context.Context, pid peer.ID) bool
+	GetAgentVersion(pid peer.ID) string
+}
+
 // MinerIndex builds and provides information about FC miners
 type MinerIndex struct {
 	api      API
 	ds       datastore.TxnDatastore
 	store    *chainstore.Store
-	h        *fchost.FilecoinHost
+	h        P2PHost
 	lr       iplocation.LocationResolver
 	signaler *signaler.Signaler
 
@@ -70,7 +76,7 @@ type MinerIndex struct {
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
-func New(ds datastore.TxnDatastore, api API, h *fchost.FilecoinHost, lr iplocation.LocationResolver) (*MinerIndex, error) {
+func New(ds datastore.TxnDatastore, api API, h P2PHost, lr iplocation.LocationResolver) (*MinerIndex, error) {
 	cs := chainsync.New(api)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {

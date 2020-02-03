@@ -52,8 +52,8 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 
 	mctx := context.Background()
 	start := time.Now()
-	log.Infof("current state height %d, new tipset height %d", chainIndex.LastUpdated, new.Height)
-	if hdiff > fullThreshold {
+	log.Infof("current state height %d, new tipset height %d", chainIndex.LastUpdated, new.Height())
+	if hdiff > fullThreshold || chainIndex.LastUpdated == 0 {
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "full"))
 		if err != nil {
 			return err

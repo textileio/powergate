@@ -23,7 +23,7 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 ### Lotus (`lotus`)
 
-See [https://lotu.sh/](https://lotu.sh/). Required for client. Lotus is an implementation of the Filecoin Distributed Storage Network—we run the Lotus client to join the Filecoin Testnet.
+See [https://lotu.sh/](https://lotu.sh/). Required for client. Lotus is an implementation of the Filecoin Distributed Storage Network—we run the Lotus client to join the Filecoin Testnet. 
 
 ### Client (`filcoin`)
 
@@ -36,6 +36,38 @@ chmod +x filecoin
 ```
 
 Try `filecoin --help`.
+
+### Server 
+The server connects to Lotus and enables multiple modules, such as:
+- Reputations module:
+   - Miners index: with on-chain and metadata information.
+   - Ask index: with an up-to-date information about available _Storage Ask_ in the network.
+   - Slashing index: contains a history of all miner-slashes.
+- Deals Module:
+    - Contain helper features for making and watching deals.
+### Prerequisites
+Currently, the server needs the same dependencies as Lotus, so most probably they will be already installed if you run the server in _dev mode_ (`go run` syntax). If that's not the case, [see here](https://docs.lotu.sh/en+install-lotus-ubuntu).
+
+### Run in _dev mode_
+The server can be run in _dev mode_ with `go run exe/server/main.go`. 
+
+### Run in _docker mode_
+You can run the server in a _Docker Compose_ enviroment with _Prometheus_ and _Grafana_ to have a health-monitoring for the server.
+To do so:
+```
+cd docker
+make fresh
+```
+This will do whatever it takes to get all systems running:
+- `localhost:3000`: Grafana dashboard with anonymous setup. _admin_:_foobar_ are  admin credentials.
+- `localhost:9090`: Prometheus enpoint.
+- `localhost:8888`: Server Prometheus endpoint for metric scraping.
+- `localhost:8889`: HTTP endpoint for current index values (`index/miners`, `index/slashing`, `index/ask`).
+
+It's important to mention that the _Docker Compose_ is run in _host_ _network mode_, which is only supported in Linux. Eventually we'll include Lotus inside the compose file allowing for default network modes.
+
+## Test
+For running tests: `make test`
 
 ## Contributing
 
