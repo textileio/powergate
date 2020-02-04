@@ -2,6 +2,7 @@ package deals
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -21,6 +22,8 @@ const (
 )
 
 var (
+	ErrNoOffersAvailable = errors.New("no offers available to retrieve the data")
+
 	log = logging.Logger("deals")
 )
 
@@ -36,6 +39,8 @@ type API interface {
 	ClientImport(ctx context.Context, path string) (cid.Cid, error)
 	ClientGetDealInfo(context.Context, cid.Cid) (*api.DealInfo, error)
 	ChainNotify(ctx context.Context) (<-chan []*str.HeadChange, error)
+	ClientRetrieve(ctx context.Context, order api.RetrievalOrder, path string) error
+	ClientFindData(ctx context.Context, root cid.Cid) ([]api.QueryOffer, error)
 }
 
 // New creates a new deal module
@@ -57,26 +62,26 @@ func New(api API, opts ...Option) (*Module, error) {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []DealConfig, dur uint64) ([]cid.Cid, []DealConfig, error) {
+func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64) (cid.Cid, []cid.Cid, []StorageDealConfig, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
-		return nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
+		return cid.Undef, nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
 	defer f.Close()
 	if _, err := io.Copy(f, data); err != nil {
-		return nil, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
+		return cid.Undef, nil, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
 	dataCid, err := m.api.ClientImport(ctx, f.Name())
 	if err != nil {
-		return nil, nil, fmt.Errorf("error when importing data: %s", err)
+		return cid.Undef, nil, nil, fmt.Errorf("error when importing data: %s", err)
 	}
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
-		return nil, nil, err
+		return cid.Undef, nil, nil, err
 	}
 
 	var proposals []cid.Cid
-	var failed []DealConfig
+	var failed []StorageDealConfig
 	for _, c := range dcfgs {
 		maddr, err := address.NewFromString(c.Miner)
 		if err != nil {
@@ -92,7 +97,34 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 		}
 		proposals = append(proposals, *proposal)
 	}
-	return proposals, failed, nil
+	return dataCid, proposals, failed, nil
+}
+
+func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.ReadCloser, error) {
+	f, err := ioutil.TempFile(m.cfg.ImportPath, "retrieve-*")
+	if err != nil {
+		return nil, fmt.Errorf("error when creating tmpfile: %s", err)
+	}
+	addr, err := address.NewFromString(waddr)
+	if err != nil {
+		return nil, err
+	}
+	offers, err := m.api.ClientFindData(ctx, cid)
+	if err != nil {
+		return nil, err
+	}
+	if len(offers) == 0 {
+		return nil, ErrNoOffersAvailable
+	}
+	for _, o := range offers {
+		fmt.Printf(o.Miner.String())
+		if err := m.api.ClientRetrieve(ctx, o.Order(addr), f.Name()); err != nil {
+			log.Debug("error retrieving cid %s from %s: %s", cid, o.Miner, err)
+			continue
+		}
+
+	}
+	return f, nil
 }
 
 // Watch returnas a channel with state changes of indicated proposals

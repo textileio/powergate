@@ -39,10 +39,10 @@ func init() {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.DealConfig, duration uint64) ([]cid.Cid, []deals.DealConfig, error) {
+func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, duration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
 	time.Sleep(time.Second * 3)
 	success := []cid.Cid{}
-	failed := []deals.DealConfig{}
+	failed := []deals.StorageDealConfig{}
 	for i, dealConfig := range dealConfigs {
 		if i == 0 {
 			failed = append(failed, dealConfig)

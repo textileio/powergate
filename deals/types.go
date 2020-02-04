@@ -1,13 +1,14 @@
 package deals
 
 import (
+	"os"
+
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
-	"os"
 )
 
-// DealConfig contains information about a proposal for a particular miner
-type DealConfig struct {
+// StorageDealConfig contains information about a storage proposal for a miner
+type StorageDealConfig struct {
 	Miner      string
 	EpochPrice types.BigInt
 }

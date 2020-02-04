@@ -20,9 +20,10 @@ type Service struct {
 }
 
 type storeResult struct {
-	Cids        []cid.Cid
-	FailedDeals []DealConfig
-	Err         error
+	DataCid      cid.Cid
+	ProposalCids []cid.Cid
+	FailedDeals  []StorageDealConfig
+	Err          error
 }
 
 // NewService is a helper to create a new Service
@@ -34,19 +35,19 @@ func NewService(dm *Module) *Service {
 
 func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams, reader io.Reader, ch chan storeResult) {
 	defer close(ch)
-	dealConfigs := make([]DealConfig, len(storeParams.GetDealConfigs()))
+	dealConfigs := make([]StorageDealConfig, len(storeParams.GetDealConfigs()))
 	for i, dealConfig := range storeParams.GetDealConfigs() {
-		dealConfigs[i] = DealConfig{
+		dealConfigs[i] = StorageDealConfig{
 			Miner:      dealConfig.GetMiner(),
 			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
 		}
 	}
-	cids, failedDeals, err := dealsModule.Store(ctx, storeParams.GetAddress(), reader, dealConfigs, storeParams.GetDuration())
+	dcid, pcids, failedDeals, err := dealsModule.Store(ctx, storeParams.GetAddress(), reader, dealConfigs, storeParams.GetDuration())
 	if err != nil {
 		ch <- storeResult{Err: err}
 		return
 	}
-	ch <- storeResult{Cids: cids, FailedDeals: failedDeals}
+	ch <- storeResult{DataCid: dcid, ProposalCids: pcids, FailedDeals: failedDeals}
 }
 
 // Store calls deals.Store
@@ -93,8 +94,8 @@ func (s *Service) Store(srv pb.API_StoreServer) error {
 		return storeResult.Err
 	}
 
-	replyCids := make([]string, len(storeResult.Cids))
-	for i, cid := range storeResult.Cids {
+	replyCids := make([]string, len(storeResult.ProposalCids))
+	for i, cid := range storeResult.ProposalCids {
 		replyCids[i] = cid.String()
 	}
 
@@ -103,7 +104,7 @@ func (s *Service) Store(srv pb.API_StoreServer) error {
 		replyFailedDeals[i] = &pb.DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice.Uint64()}
 	}
 
-	return srv.SendAndClose(&pb.StoreReply{Cids: replyCids, FailedDeals: replyFailedDeals})
+	return srv.SendAndClose(&pb.StoreReply{DataCid: storeResult.DataCid.String(), ProposalCids: replyCids, FailedDeals: replyFailedDeals})
 }
 
 // Watch calls deals.Watch

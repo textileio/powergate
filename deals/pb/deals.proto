@@ -38,8 +38,9 @@ message StoreRequest {
 }
 
 message StoreReply {
-    repeated string cids = 1;
-    repeated DealConfig failedDeals = 2;
+    string dataCid = 1;
+    repeated string proposalCids = 2;
+    repeated DealConfig failedDeals = 3;
 }
 
 message WatchRequest {

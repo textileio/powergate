@@ -27,7 +27,7 @@ type WatchEvent struct {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.DealConfig, duration uint64) ([]cid.Cid, []deals.DealConfig, error) {
+func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, duration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
 	stream, err := d.client.Store(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -70,8 +70,8 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 		return nil, nil, err
 	}
 
-	cids := make([]cid.Cid, len(reply.GetCids()))
-	for i, replyCid := range reply.GetCids() {
+	cids := make([]cid.Cid, len(reply.GetProposalCids()))
+	for i, replyCid := range reply.GetProposalCids() {
 		id, err := cid.Decode(replyCid)
 		if err != nil {
 			return nil, nil, err
@@ -79,13 +79,13 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 		cids[i] = id
 	}
 
-	failedDeals := make([]deals.DealConfig, len(reply.GetFailedDeals()))
+	failedDeals := make([]deals.StorageDealConfig, len(reply.GetFailedDeals()))
 	for i, dealConfig := range reply.GetFailedDeals() {
 		addr, err := address.NewFromString(dealConfig.GetMiner())
 		if err != nil {
 			return nil, nil, err
 		}
-		failedDeals[i] = deals.DealConfig{
+		failedDeals[i] = deals.StorageDealConfig{
 			Miner:      addr.String(),
 			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
 		}
