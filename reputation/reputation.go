@@ -10,10 +10,10 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/filecoin/index/ask"
-	"github.com/textileio/filecoin/index/miner"
-	"github.com/textileio/filecoin/index/slashing"
-	"github.com/textileio/filecoin/reputation/internal/source"
+	"github.com/textileio/fil-tools/index/ask"
+	"github.com/textileio/fil-tools/index/miner"
+	"github.com/textileio/fil-tools/index/slashing"
+	"github.com/textileio/fil-tools/reputation/internal/source"
 )
 
 var (

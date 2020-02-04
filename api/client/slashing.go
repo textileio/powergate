@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 
-	"github.com/textileio/filecoin/index/slashing"
-	pb "github.com/textileio/filecoin/index/slashing/pb"
+	"github.com/textileio/fil-tools/index/slashing"
+	pb "github.com/textileio/fil-tools/index/slashing/pb"
 )
 
 // Slashing provides an API for viewing slashing data

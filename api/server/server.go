@@ -1,33 +1,36 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/ipfs/go-datastore"
 	badger "github.com/ipfs/go-ds-badger2"
 	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/filecoin/deals"
-	dealsPb "github.com/textileio/filecoin/deals/pb"
-	"github.com/textileio/filecoin/fchost"
-	"github.com/textileio/filecoin/index/ask"
-	askPb "github.com/textileio/filecoin/index/ask/pb"
-	"github.com/textileio/filecoin/index/miner"
-	minerPb "github.com/textileio/filecoin/index/miner/pb"
-	"github.com/textileio/filecoin/index/slashing"
-	slashingPb "github.com/textileio/filecoin/index/slashing/pb"
-	"github.com/textileio/filecoin/iplocation/ip2location"
-	"github.com/textileio/filecoin/lotus"
-	"github.com/textileio/filecoin/reputation"
-	reputationPb "github.com/textileio/filecoin/reputation/pb"
-	txndstr "github.com/textileio/filecoin/txndstransform"
-	"github.com/textileio/filecoin/wallet"
-	walletPb "github.com/textileio/filecoin/wallet/pb"
+	"github.com/textileio/fil-tools/deals"
+	dealsPb "github.com/textileio/fil-tools/deals/pb"
+	"github.com/textileio/fil-tools/fchost"
+	"github.com/textileio/fil-tools/index/ask"
+	askPb "github.com/textileio/fil-tools/index/ask/pb"
+	"github.com/textileio/fil-tools/index/miner"
+	minerPb "github.com/textileio/fil-tools/index/miner/pb"
+	"github.com/textileio/fil-tools/index/slashing"
+	slashingPb "github.com/textileio/fil-tools/index/slashing/pb"
+	"github.com/textileio/fil-tools/iplocation/ip2location"
+	"github.com/textileio/fil-tools/lotus"
+	"github.com/textileio/fil-tools/reputation"
+	reputationPb "github.com/textileio/fil-tools/reputation/pb"
+	txndstr "github.com/textileio/fil-tools/txndstransform"
+	"github.com/textileio/fil-tools/wallet"
+	walletPb "github.com/textileio/fil-tools/wallet/pb"
 	"google.golang.org/grpc"
 )
 
@@ -59,18 +62,21 @@ type Server struct {
 	minerService      *miner.Service
 	slashingService   *slashing.Service
 
-	rpc *grpc.Server
+	grpcServer   *grpc.Server
+	grpcWebProxy *http.Server
 
 	closeLotus func()
 }
 
 // Config specifies server settings.
 type Config struct {
-	LotusAddress    ma.Multiaddr
-	LotusAuthToken  string
-	GrpcHostNetwork string
-	GrpcHostAddress string
-	RepoPath        string
+	LotusAddress        ma.Multiaddr
+	LotusAuthToken      string
+	GrpcHostNetwork     string
+	GrpcHostAddress     string
+	GrpcServerOpts      []grpc.ServerOption
+	GrpcWebProxyAddress string
+	RepoPath            string
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -125,6 +131,30 @@ func NewServer(conf Config) (*Server, error) {
 	minerService := miner.NewService(mi)
 	slashingService := slashing.NewService(si)
 
+	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
+
+	wrappedServer := grpcweb.WrapServer(
+		grpcServer,
+		grpcweb.WithOriginFunc(func(origin string) bool {
+			return true
+		}),
+		grpcweb.WithWebsockets(true),
+		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool {
+			return true
+		}),
+	)
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if wrappedServer.IsGrpcWebRequest(r) ||
+			wrappedServer.IsAcceptableGrpcCorsRequest(r) ||
+			wrappedServer.IsGrpcWebSocketRequest(r) {
+			wrappedServer.ServeHTTP(w, r)
+		}
+	})
+	grpcWebProxy := &http.Server{
+		Addr:    conf.GrpcWebProxyAddress,
+		Handler: handler,
+	}
+
 	s := &Server{
 		ds: ds,
 
@@ -144,8 +174,8 @@ func NewServer(conf Config) (*Server, error) {
 		minerService:      minerService,
 		slashingService:   slashingService,
 
-		// ToDo: Support secure connection
-		rpc: grpc.NewServer(),
+		grpcServer:   grpcServer,
+		grpcWebProxy: grpcWebProxy,
 
 		closeLotus: cls,
 	}
@@ -155,13 +185,17 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("error when listening to grpc: %s", err)
 	}
 	go func() {
-		dealsPb.RegisterAPIServer(s.rpc, s.dealsService)
-		walletPb.RegisterAPIServer(s.rpc, s.walletService)
-		reputationPb.RegisterAPIServer(s.rpc, s.reputationService)
-		askPb.RegisterAPIServer(s.rpc, s.askService)
-		minerPb.RegisterAPIServer(s.rpc, s.minerService)
-		slashingPb.RegisterAPIServer(s.rpc, s.slashingService)
-		s.rpc.Serve(listener)
+		dealsPb.RegisterAPIServer(grpcServer, s.dealsService)
+		walletPb.RegisterAPIServer(grpcServer, s.walletService)
+		reputationPb.RegisterAPIServer(grpcServer, s.reputationService)
+		askPb.RegisterAPIServer(grpcServer, s.askService)
+		minerPb.RegisterAPIServer(grpcServer, s.minerService)
+		slashingPb.RegisterAPIServer(grpcServer, s.slashingService)
+		grpcServer.Serve(listener)
+	}()
+
+	go func() {
+		grpcWebProxy.ListenAndServe()
 	}()
 
 	go func() {
@@ -203,7 +237,13 @@ func NewServer(conf Config) (*Server, error) {
 
 // Close shuts down the server
 func (s *Server) Close() {
-	s.rpc.GracefulStop()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	if err := s.grpcWebProxy.Shutdown(ctx); err != nil {
+		log.Errorf("error shutting down proxy: %s", err)
+	}
+	s.grpcServer.GracefulStop()
 	if err := s.ai.Close(); err != nil {
 		log.Errorf("error when closing ask index: %s", err)
 	}

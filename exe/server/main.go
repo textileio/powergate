@@ -7,15 +7,17 @@ import (
 	"path/filepath"
 	"syscall"
 
+	_ "net/http/pprof"
+
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log"
-	"github.com/textileio/filecoin/api/server"
-	"github.com/textileio/filecoin/tests"
-	_ "net/http/pprof"
+	"github.com/textileio/fil-tools/api/server"
+	"github.com/textileio/fil-tools/tests"
 )
 
 var (
-	grpcHostAddr = "127.0.0.1:5002"
+	grpcHostAddr     = "0.0.0.0:5002"
+	grpcWebProxyAddr = "0.0.0.0:6002"
 
 	log = logging.Logger("main")
 )
@@ -38,12 +40,15 @@ func main() {
 		log.Errorf("error getting home dir: %s", err)
 		os.Exit(-1)
 	}
+	// ToDo: Support secure gRPC connection
 	conf := server.Config{
-		LotusAddress:    lotusAddr,
-		LotusAuthToken:  token,
-		GrpcHostNetwork: "tcp",
-		GrpcHostAddress: grpcHostAddr,
-		RepoPath:        filepath.Join(repoPath, ".texfc"),
+		LotusAddress:   lotusAddr,
+		LotusAuthToken: token,
+		// ToDo: Support secure gRPC connection
+		GrpcHostNetwork:     "tcp",
+		GrpcHostAddress:     grpcHostAddr,
+		GrpcWebProxyAddress: grpcWebProxyAddr,
+		RepoPath:            filepath.Join(repoPath, ".texfc"),
 	}
 	log.Info("starting server...")
 	s, err := server.NewServer(conf)

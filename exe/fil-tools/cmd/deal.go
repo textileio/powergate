@@ -13,8 +13,8 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/filecoin/deals"
-	"github.com/textileio/filecoin/index/ask"
+	"github.com/textileio/fil-tools/deals"
+	"github.com/textileio/fil-tools/index/ask"
 )
 
 func init() {

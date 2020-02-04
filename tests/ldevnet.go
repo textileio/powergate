@@ -6,7 +6,7 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/build"
-	"github.com/textileio/filecoin/ldevnet"
+	"github.com/textileio/fil-tools/ldevnet"
 )
 
 func init() {

@@ -8,9 +8,9 @@ import (
 	"github.com/filecoin-project/lotus/api/apistruct"
 	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/filecoin/lotus/jsonrpc"
+	"github.com/textileio/fil-tools/lotus/jsonrpc"
 
-	"github.com/textileio/filecoin/util"
+	"github.com/textileio/fil-tools/util"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 )

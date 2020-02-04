@@ -3,7 +3,7 @@ package slashing
 import (
 	"context"
 
-	pb "github.com/textileio/filecoin/index/slashing/pb"
+	pb "github.com/textileio/fil-tools/index/slashing/pb"
 )
 
 // Service implements the gprc service

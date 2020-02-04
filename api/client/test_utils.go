@@ -4,24 +4,27 @@ import (
 	"context"
 	"testing"
 
-	"github.com/textileio/filecoin/api/server"
-	"github.com/textileio/filecoin/tests"
+	"github.com/textileio/fil-tools/api/server"
+	"github.com/textileio/fil-tools/tests"
 	"google.golang.org/grpc"
 )
 
 var (
-	grpcHostNetwork = "tcp"
-	grpcHostAddress = "127.0.0.1:50051"
-	ctx             = context.Background()
+	grpcHostNetwork     = "tcp"
+	grpcHostAddress     = "127.0.0.1:5002"
+	grpcWebProxyAddress = "127.0.0.1:6002"
+	ctx                 = context.Background()
 )
 
 func setupServer(t *testing.T) func() {
 	lotusAddr, token := tests.ClientConfigMA()
 	conf := server.Config{
-		LotusAddress:    lotusAddr,
-		LotusAuthToken:  token,
-		GrpcHostNetwork: grpcHostNetwork,
-		GrpcHostAddress: grpcHostAddress,
+		LotusAddress:   lotusAddr,
+		LotusAuthToken: token,
+		// ToDo: Support secure gRPC connection
+		GrpcHostNetwork:     grpcHostNetwork,
+		GrpcHostAddress:     grpcHostAddress,
+		GrpcWebProxyAddress: grpcWebProxyAddress,
 	}
 	server, err := server.NewServer(conf)
 	checkErr(t, err)

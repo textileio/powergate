@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/textileio/filecoin/index/slashing"
+	"github.com/textileio/fil-tools/index/slashing"
 )
 
 // Slashing provides an API for viewing slashing data

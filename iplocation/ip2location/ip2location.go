@@ -7,8 +7,8 @@ import (
 	"github.com/ip2location/ip2location-go"
 	logging "github.com/ipfs/go-log"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/textileio/filecoin/iplocation"
-	"github.com/textileio/filecoin/util"
+	"github.com/textileio/fil-tools/iplocation"
+	"github.com/textileio/fil-tools/util"
 )
 
 // Need of using package globals since the library has global state initialization.

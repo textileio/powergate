@@ -1,12 +1,12 @@
 package client
 
 import (
-	dealsPb "github.com/textileio/filecoin/deals/pb"
-	asksPb "github.com/textileio/filecoin/index/ask/pb"
-	minerPb "github.com/textileio/filecoin/index/miner/pb"
-	slashingPb "github.com/textileio/filecoin/index/slashing/pb"
-	reputationPb "github.com/textileio/filecoin/reputation/pb"
-	walletPb "github.com/textileio/filecoin/wallet/pb"
+	dealsPb "github.com/textileio/fil-tools/deals/pb"
+	asksPb "github.com/textileio/fil-tools/index/ask/pb"
+	minerPb "github.com/textileio/fil-tools/index/miner/pb"
+	slashingPb "github.com/textileio/fil-tools/index/slashing/pb"
+	reputationPb "github.com/textileio/fil-tools/reputation/pb"
+	walletPb "github.com/textileio/fil-tools/wallet/pb"
 	"google.golang.org/grpc"
 )
 

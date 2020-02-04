@@ -5,7 +5,7 @@ import (
 	"time"
 
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/filecoin/reputation"
+	"github.com/textileio/fil-tools/reputation"
 )
 
 // Reputation provides an API for viewing reputation data
