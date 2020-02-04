@@ -30,7 +30,7 @@ require (
 	github.com/manifoldco/promptui v0.7.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/multiformats/go-multiaddr v0.2.0
-	github.com/multiformats/go-multihash v0.0.10
+	github.com/multiformats/go-multihash v0.0.13
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/spf13/cobra v0.0.5
