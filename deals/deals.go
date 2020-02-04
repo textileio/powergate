@@ -22,7 +22,8 @@ const (
 )
 
 var (
-	ErrNoOffersAvailable = errors.New("no offers available to retrieve the data")
+	ErrNoOffersAvailable          = errors.New("no offers available to retrieve the data")
+	ErrRetrivingDataFromAnyMiners = errors.New("couldn't retrieve data from any miners")
 
 	log = logging.Logger("deals")
 )
@@ -117,14 +118,14 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 		return nil, ErrNoOffersAvailable
 	}
 	for _, o := range offers {
-		fmt.Printf(o.Miner.String())
+		log.Debugf("trying to retrieve data from %s", o.Miner)
 		if err := m.api.ClientRetrieve(ctx, o.Order(addr), f.Name()); err != nil {
 			log.Debug("error retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
-
+		return f, nil
 	}
-	return f, nil
+	return nil, ErrRetrivingDataFromAnyMiners
 }
 
 // Watch returnas a channel with state changes of indicated proposals
