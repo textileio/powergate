@@ -3,7 +3,7 @@ import logo from './logo.svg'
 import './App.css'
 
 import {grpc} from '@improbable-eng/grpc-web'
-import {APIClient} from './_proto/ask_pb_service'
+import {API} from './_proto/ask_pb_service'
 import {GetRequest} from './_proto/ask_pb'
 
 const App = () => {
@@ -28,16 +28,31 @@ const App = () => {
 }
 
 function getAsks() {
-  const c = new APIClient("40.117.82.59:5002")
+  // const c = new APIClient("40.117.82.59:6002")
   const r = new GetRequest()
-  const resp = c.get(r, (err, resp) => {
-    if (err) {
-      console.log("got error: ", err)
-    }
-    if (resp) {
-      console.log("got response: ", resp)
+
+  grpc.unary(API.Get, {
+    request: r,
+    host: "40.117.82.59:6002",
+    onEnd: res => {
+      const { status, statusMessage, headers, message, trailers } = res;
+      console.log("getBook.onEnd.status", status, statusMessage);
+      console.log("getBook.onEnd.headers", headers);
+      if (status === grpc.Code.OK && message) {
+        console.log("getBook.onEnd.message", message.toObject());
+      }
+      console.log("getBook.onEnd.trailers", trailers);
     }
   })
+
+  // const resp = c.get(r, (err, resp) => {
+  //   if (err) {
+  //     console.log("got error: ", err)
+  //   }
+  //   if (resp) {
+  //     console.log("got response: ", resp)
+  //   }
+  // })
 }
 
 getAsks()
