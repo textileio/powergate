@@ -157,8 +157,7 @@ func (s *Service) Retrieve(req *pb.RetrieveRequest, srv pb.API_RetrieveServer) e
 		if err != nil && err != io.EOF {
 			return nil
 		}
-		sendErr := srv.Send(&pb.RetrieveReply{Chunk: buffer[:bytesRead]})
-		if sendErr != nil {
+		if sendErr := srv.Send(&pb.RetrieveReply{Chunk: buffer[:bytesRead]}); sendErr != nil {
 			return sendErr
 		}
 		if err == io.EOF {
