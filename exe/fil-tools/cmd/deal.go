@@ -99,10 +99,10 @@ var dealCmd = &cobra.Command{
 		survey.AskOne(prompt, &selectedAsks, survey.WithValidator(survey.Required))
 		cmd.Println()
 
-		dealConfigs := make([]deals.DealConfig, len(selectedAsks))
+		dealConfigs := make([]deals.StorageDealConfig, len(selectedAsks))
 		for i, val := range selectedAsks {
 			ask := asks[val]
-			dealConfigs[i] = deals.DealConfig{
+			dealConfigs[i] = deals.StorageDealConfig{
 				Miner:      ask.Miner,
 				EpochPrice: types.NewInt(ask.Price),
 			}

@@ -69,9 +69,9 @@ var storeCmd = &cobra.Command{
 			Fatal(fmt.Errorf("number of miners and prices must be equal but received %v miners and %v prices", lMiners, lPrices))
 		}
 
-		dealConfigs := make([]deals.DealConfig, lMiners)
+		dealConfigs := make([]deals.StorageDealConfig, lMiners)
 		for i, miner := range miners {
-			dealConfigs[i] = deals.DealConfig{
+			dealConfigs[i] = deals.StorageDealConfig{
 				Miner:      miner,
 				EpochPrice: types.NewInt(uint64(prices[i])),
 			}

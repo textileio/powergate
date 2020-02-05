@@ -15,7 +15,7 @@ func TestStore(t *testing.T) {
 	defer done()
 
 	r := strings.NewReader("store me")
-	_, _, err := d.Store(ctx, "an address", r, make([]deals.DealConfig, 0), 1024)
+	_, _, err := d.Store(ctx, "an address", r, make([]deals.StorageDealConfig, 0), 1024)
 	if err != nil {
 		t.Fatalf("failed to call Store: %v", err)
 	}

@@ -78,11 +78,11 @@ func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
 		}
 		time.Sleep(time.Second)
 
-		mine := true
+		mine := i == 0
 		go func(i int) {
 			defer func() { done <- struct{}{} }()
 			for mine {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 				if ctx.Err() != nil {
 					mine = false
 					continue

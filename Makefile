@@ -26,5 +26,5 @@ test: build
 	cat build/proof-params/parameters.json | jq 'keys[]' | xargs touch
 	mv -n v20* /var/tmp/filecoin-proof-parameters
 	rm v20* || true
-	go test ./... -short
+	go test -short -p 1 -v -count 1 ./... 
 .PHONY: test
