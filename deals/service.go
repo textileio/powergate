@@ -155,15 +155,13 @@ func (s *Service) Retrieve(req *pb.RetrieveRequest, srv pb.API_RetrieveServer) e
 	for {
 		bytesRead, err := reader.Read(buffer)
 		if err != nil && err != io.EOF {
-			return nil
+			return err
 		}
 		if sendErr := srv.Send(&pb.RetrieveReply{Chunk: buffer[:bytesRead]}); sendErr != nil {
 			return sendErr
 		}
 		if err == io.EOF {
-			break
+			return nil
 		}
 	}
-
-	return nil
 }
