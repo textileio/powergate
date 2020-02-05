@@ -152,13 +152,6 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 
 	go func() {
 		for {
-			// Check if the context has been canceled, and if so, close the writer an finish
-			_, ok := <-ctx.Done()
-			if !ok {
-				_ = writer.Close()
-				break
-			}
-
 			reply, err := stream.Recv()
 			if err == io.EOF {
 				_ = writer.Close()
