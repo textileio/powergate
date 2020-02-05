@@ -136,3 +136,37 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 	}()
 	return channel, nil
 }
+
+// Retrieve is used to fetch data from filecoin
+func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Reader, error) {
+	req := &pb.RetrieveRequest{
+		Address: waddr,
+		Cid:     cid.String(),
+	}
+	stream, err := d.client.Retrieve(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	reader, writer := io.Pipe()
+
+	go func() {
+		for {
+			reply, err := stream.Recv()
+			if err == io.EOF {
+				_ = writer.Close()
+				break
+			} else if err != nil {
+				_ = writer.CloseWithError(err)
+				break
+			}
+			_, err = writer.Write(reply.GetChunk())
+			if err != nil {
+				_ = writer.CloseWithError(err)
+				break
+			}
+		}
+	}()
+
+	return reader, nil
+}

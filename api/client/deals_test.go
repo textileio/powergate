@@ -32,6 +32,19 @@ func TestWatch(t *testing.T) {
 	}
 }
 
+func TestRetrieve(t *testing.T) {
+	skipIfShort(t)
+	d, done := setupDeals(t)
+	defer done()
+
+	cid, _ := cid.Parse("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPA")
+
+	_, err := d.Retrieve(ctx, "an address", cid)
+	if err != nil {
+		t.Fatalf("failed to call Retrieve: %v", err)
+	}
+}
+
 func setupDeals(t *testing.T) (*Deals, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)

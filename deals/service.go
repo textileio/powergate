@@ -137,3 +137,31 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	}
 	return nil
 }
+
+// Retrieve calls deals.Retreive
+func (s *Service) Retrieve(req *pb.RetrieveRequest, srv pb.API_RetrieveServer) error {
+	cid, err := cid.Parse(req.GetCid())
+	if err != nil {
+		return err
+	}
+
+	reader, err := s.Module.Retrieve(srv.Context(), req.GetAddress(), cid)
+	defer reader.Close()
+	if err != nil {
+		return err
+	}
+
+	buffer := make([]byte, 1024*32) // 32KB
+	for {
+		bytesRead, err := reader.Read(buffer)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if sendErr := srv.Send(&pb.RetrieveReply{Chunk: buffer[:bytesRead]}); sendErr != nil {
+			return sendErr
+		}
+		if err == io.EOF {
+			return nil
+		}
+	}
+}
