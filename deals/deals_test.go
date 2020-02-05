@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestStore(t *testing.T) {
-	numMiners := []int{1, 3, 5}
+	numMiners := []int{1, 3}
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			dnet, _, _, close := tests.CreateLocalDevnet(t, nm)
