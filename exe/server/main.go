@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	log    = logging.Logger("fil-tools")
+	log    = logging.Logger("fil-toolsd")
 	config = viper.New()
 )
 
