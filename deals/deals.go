@@ -101,6 +101,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 	return dataCid, proposals, failed, nil
 }
 
+// Retrieve fetches the data stored in filecoin at a particular cid
 func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.ReadCloser, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
@@ -128,7 +129,7 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 	return nil, ErrRetrivingDataFromAnyMiners
 }
 
-// Watch returnas a channel with state changes of indicated proposals
+// Watch returns a channel with state changes of indicated proposals
 func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
 	ch := make(chan DealInfo)
 	w, err := m.api.ChainNotify(ctx)

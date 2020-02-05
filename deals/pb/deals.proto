@@ -51,7 +51,17 @@ message WatchReply {
     DealInfo dealInfo = 1;
 }
 
+message RetrieveRequest {
+    string address = 1;
+    string cid = 2;
+}
+
+message RetrieveReply {
+    bytes chunk = 1;
+}
+
 service API {
     rpc Store(stream StoreRequest) returns (StoreReply) {}
     rpc Watch(WatchRequest) returns (stream WatchReply) {}
+    rpc Retrieve(RetrieveRequest) returns (stream RetrieveReply) {}
 }
