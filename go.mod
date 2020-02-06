@@ -34,12 +34,12 @@ require (
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.3
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.4.0
 	go.opencensus.io v0.22.3
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
-	google.golang.org/grpc v1.27.0
+	google.golang.org/grpc v1.27.1
 )
 
 replace github.com/coreos/go-systemd => github.com/coreos/go-systemd/v22 v22.0.0
