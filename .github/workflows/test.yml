@@ -21,7 +21,7 @@ jobs:
           profile: minimal
           toolchain: stable
       - name: Install OpenCL
-        run: sudo apt-get update && sudo apt-get install mesa-opencl-icd ocl-icd-opencl-dev
+        run: sudo apt-get update && sudo apt-get -y install mesa-opencl-icd ocl-icd-opencl-dev
       - name: Check out code
         uses: actions/checkout@v1
       - name: Test
