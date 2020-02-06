@@ -14,17 +14,17 @@ import (
 )
 
 func init() {
-	retrieveCmd.Flags().StringP("address", "a", "", "wallet address of the file to fetch")
-	retrieveCmd.Flags().StringP("cid", "c", "", "cid of the file to fetch")
-	retrieveCmd.Flags().StringP("out", "o", "", "path to write the file to")
+	retrieveCmd.Flags().StringP("address", "a", "", "wallet address to fund retrieval")
+	retrieveCmd.Flags().StringP("cid", "c", "", "cid of the data to fetch")
+	retrieveCmd.Flags().StringP("out", "o", "", "file path to write the data to")
 
 	dealsCmd.AddCommand(retrieveCmd)
 }
 
 var retrieveCmd = &cobra.Command{
 	Use:   "retrieve",
-	Short: "Retrieve a file",
-	Long:  `Retrieve a file`,
+	Short: "Retrieve data from filecoin",
+	Long:  `Retrieve data from filecoin`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -46,13 +46,13 @@ var retrieveCmd = &cobra.Command{
 		}
 
 		if out == "" {
-			Fatal(errors.New("store command needs an out path to write the file to"))
+			Fatal(errors.New("store command needs an out path to write the data to"))
 		}
 
 		cid, err := cid.Parse(cidString)
 		checkErr(err)
 
-		s := spin.New("%s Retrieving specified file...")
+		s := spin.New("%s Retrieving specified data...")
 		s.Start()
 		reader, err := fcClient.Deals.Retrieve(ctx, addr, cid)
 		checkErr(err)
