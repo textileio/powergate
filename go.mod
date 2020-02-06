@@ -39,7 +39,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	go.opencensus.io v0.22.3
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
-	google.golang.org/grpc v1.27.0
+	google.golang.org/grpc v1.27.1
 )
 
 replace github.com/coreos/go-systemd => github.com/coreos/go-systemd/v22 v22.0.0
