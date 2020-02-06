@@ -3,6 +3,7 @@ package stub
 import (
 	"context"
 	"io"
+	"strings"
 	"time"
 
 	cid "github.com/ipfs/go-cid"
@@ -73,4 +74,10 @@ func driveChannel(ch chan client.WatchEvent, proposals []cid.Cid) {
 		}
 	}
 	close(ch)
+}
+
+// Retrieve is used to fetch data from filecoin
+func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Reader, error) {
+	time.Sleep(time.Second * 3)
+	return strings.NewReader("hello there"), nil
 }
