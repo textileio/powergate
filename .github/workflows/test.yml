@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
@@ -21,16 +21,8 @@ jobs:
           profile: minimal
           toolchain: stable
       - name: Install OpenCL
-        run: sudo apt-get update && sudo apt-get install mesa-opencl-icd ocl-icd-opencl-dev
+        run: sudo apt-get update && sudo apt-get -y install mesa-opencl-icd ocl-icd-opencl-dev
       - name: Check out code
         uses: actions/checkout@v1
-      - name: Cache dependencies
-        id: cache-dependencies
-        uses: actions/cache@v1
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       - name: Test
         run: make test

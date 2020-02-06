@@ -3,6 +3,7 @@ package stub
 import (
 	"context"
 	"io"
+	"strings"
 	"time"
 
 	cid "github.com/ipfs/go-cid"
@@ -39,10 +40,10 @@ func init() {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.DealConfig, duration uint64) ([]cid.Cid, []deals.DealConfig, error) {
+func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, duration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
 	time.Sleep(time.Second * 3)
 	success := []cid.Cid{}
-	failed := []deals.DealConfig{}
+	failed := []deals.StorageDealConfig{}
 	for i, dealConfig := range dealConfigs {
 		if i == 0 {
 			failed = append(failed, dealConfig)
@@ -73,4 +74,10 @@ func driveChannel(ch chan client.WatchEvent, proposals []cid.Cid) {
 		}
 	}
 	close(ch)
+}
+
+// Retrieve is used to fetch data from filecoin
+func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Reader, error) {
+	time.Sleep(time.Second * 3)
+	return strings.NewReader("hello there"), nil
 }

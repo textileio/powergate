@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -24,9 +25,43 @@ func TestMain(m *testing.M) {
 }
 
 func TestStore(t *testing.T) {
-	numMiners := []int{1}
+	numMiners := []int{1, 3}
 	for _, nm := range numMiners {
-		t.Run(fmt.Sprintf("CantMiners%d", nm), storeMultiMiner(t, nm))
+		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
+			dnet, _, _, close := tests.CreateLocalDevnet(t, nm)
+			defer close()
+			m, err := New(dnet.Client, WithImportPath(filepath.Join(os.TempDir(), "imports")))
+			checkErr(t, err)
+			_, err = storeMultiMiner(m, dnet, nm, randomBytes(1000))
+			checkErr(t, err)
+		})
+	}
+}
+
+func TestRetrieve(t *testing.T) {
+	numMiners := []int{1} // go-fil-markets: doesn't support remembering more than 1 miner
+	data := randomBytes(1000)
+	for _, nm := range numMiners {
+		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
+			dnet, addr, _, close := tests.CreateLocalDevnet(t, nm)
+			defer close()
+			m, err := New(dnet.Client, WithImportPath(filepath.Join(os.TempDir(), "imports")))
+			checkErr(t, err)
+
+			dcid, err := storeMultiMiner(m, dnet, nm, data)
+			checkErr(t, err)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+			defer cancel()
+
+			r, err := m.Retrieve(ctx, addr.String(), dcid)
+			checkErr(t, err)
+			defer r.Close()
+			rdata, err := ioutil.ReadAll(r)
+			checkErr(t, err)
+			if !bytes.Equal(data, rdata) {
+				t.Fatal("retrieved data doesn't match with stored data")
+			}
+		})
 	}
 }
 
@@ -37,19 +72,19 @@ func TestWatchStore(t *testing.T) {
 	m, err := New(dnet.Client, WithImportPath(filepath.Join(os.TempDir(), "imports")))
 	checkErr(t, err)
 
-	cfgs := []DealConfig{DealConfig{Miner: miners[0].String(), EpochPrice: types.NewInt(40000000)}}
-	cids, failed, err := m.Store(ctx, addr.String(), bytes.NewReader(randomBytes(1000)), cfgs, 100)
+	cfgs := []StorageDealConfig{StorageDealConfig{Miner: miners[0].String(), EpochPrice: types.NewInt(40000000)}}
+	_, pcids, failed, err := m.Store(ctx, addr.String(), bytes.NewReader(randomBytes(1000)), cfgs, 100)
 	checkErr(t, err)
 	if len(failed) > 0 {
 		t.Fatalf("%d deal configurations failed", len(failed))
 	}
-	if len(cids) != len(cfgs) {
-		t.Fatalf("some deal cids are missing, got %d, expected %d", len(cids), len(cfgs))
+	if len(pcids) != len(cfgs) {
+		t.Fatalf("some deal cids are missing, got %d, expected %d", len(pcids), len(cfgs))
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	chDealInfo, err := m.Watch(ctx, cids)
+	chDealInfo, err := m.Watch(ctx, pcids)
 	checkErr(t, err)
 	expectedStatePath := []api.DealState{
 		api.DealUnknown,
@@ -71,56 +106,73 @@ func TestWatchStore(t *testing.T) {
 	}
 }
 
-func storeMultiMiner(t *testing.T, numMiners int) func(t *testing.T) {
-	return func(t *testing.T) {
-		dnet, addr, miners, close := tests.CreateLocalDevnet(t, numMiners)
-		defer close()
-		ctx := context.Background()
-		m, err := New(dnet.Client, WithImportPath(filepath.Join(os.TempDir(), "imports")))
-		checkErr(t, err)
+func storeMultiMiner(m *Module, dnet *ldevnet.LocalDevnet, numMiners int, data []byte) (cid.Cid, error) {
+	ctx := context.Background()
+	miners, err := dnet.Client.StateListMiners(ctx, nil)
+	if err != nil {
+		return cid.Undef, err
+	}
+	if len(miners) != numMiners {
+		return cid.Undef, fmt.Errorf("unexpected number of miners in the network")
+	}
+	addr, err := dnet.Client.WalletDefaultAddress(ctx)
+	if err != nil {
+		return cid.Undef, err
+	}
 
-		cfgs := make([]DealConfig, numMiners)
-		for i := 0; i < numMiners; i++ {
-			cfgs[i] = DealConfig{
-				Miner:      miners[i].String(),
-				EpochPrice: types.NewInt(40000000),
-			}
-		}
-		cids, failed, err := m.Store(ctx, addr.String(), bytes.NewReader(randomBytes(1000)), cfgs, 100)
-		checkErr(t, err)
-		if len(failed) > 0 {
-			t.Fatalf("%d deal configurations failed", len(failed))
-		}
-		if len(cids) != len(cfgs) {
-			t.Fatalf("some deal cids are missing, got %d, expected %d", len(cids), len(cfgs))
-		}
-		if err := waitForDealComplete(dnet, cids); err != nil {
-			t.Fatal(err)
+	cfgs := make([]StorageDealConfig, numMiners)
+	for i := 0; i < numMiners; i++ {
+		cfgs[i] = StorageDealConfig{
+			Miner:      miners[i].String(),
+			EpochPrice: types.NewInt(40000000),
 		}
 	}
+	dcid, pcids, failed, err := m.Store(ctx, addr.String(), bytes.NewReader(data), cfgs, 100)
+	if err != nil {
+		return cid.Undef, fmt.Errorf("error when calling Store()")
+	}
+	if !dcid.Defined() {
+		return cid.Undef, fmt.Errorf("data cid is undefined")
+	}
+	if len(failed) > 0 {
+		return cid.Undef, fmt.Errorf("%d deal configurations failed", len(failed))
+	}
+	if len(pcids) != len(cfgs) {
+		return cid.Undef, fmt.Errorf("some deal cids are missing, got %d, expected %d", len(pcids), len(cfgs))
+	}
+	if err := waitForDealComplete(dnet, pcids); err != nil {
+		return cid.Undef, fmt.Errorf("error waiting for deal to complete: %s", err)
+	}
+	return dcid, nil
 }
 
 func waitForDealComplete(dnet *ldevnet.LocalDevnet, deals []cid.Cid) error {
 	ctx := context.Background()
-	for {
+	finished := make(map[cid.Cid]struct{})
+	for len(finished) != len(deals) {
 		time.Sleep(time.Second)
 		for _, d := range deals {
+			if _, ok := finished[d]; ok {
+				continue
+			}
+
 			di, err := dnet.Client.ClientGetDealInfo(ctx, d)
 			if err != nil {
 				return err
 			}
 			if di.State == api.DealComplete {
-				return nil
+				finished[d] = struct{}{}
+				continue
 			}
 			if di.State != api.DealUnknown &&
 				di.State != api.DealAccepted &&
 				di.State != api.DealStaged &&
 				di.State != api.DealSealing {
-				return fmt.Errorf("unexpected deal state: %s", err)
+				return fmt.Errorf("unexpected deal state: %s", api.DealStates[di.State])
 			}
-			fmt.Printf("Deal %s in state %d\n", d, di.State)
 		}
 	}
+	return nil
 }
 
 func checkErr(t *testing.T, err error) {

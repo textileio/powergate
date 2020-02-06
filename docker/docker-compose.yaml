@@ -10,7 +10,7 @@ services:
       context: ../
       dockerfile: exe/server/Dockerfile
     environment:
-      - TEXTILE_LOTUS_TOKEN=${TEXTILE_LOTUS_TOKEN}
+      - TEXFILTOOLS_LOTUSTOKEN=${TEXFILTOOLS_LOTUSTOKEN}
     ports:
       - 8888:8888
       - 6060:6060
