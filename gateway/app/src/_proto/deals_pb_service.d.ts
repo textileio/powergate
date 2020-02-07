@@ -22,10 +22,20 @@ type APIWatch = {
   readonly responseType: typeof deals_pb.WatchReply;
 };
 
+type APIRetrieve = {
+  readonly methodName: string;
+  readonly service: typeof API;
+  readonly requestStream: false;
+  readonly responseStream: true;
+  readonly requestType: typeof deals_pb.RetrieveRequest;
+  readonly responseType: typeof deals_pb.RetrieveReply;
+};
+
 export class API {
   static readonly serviceName: string;
   static readonly Store: APIStore;
   static readonly Watch: APIWatch;
+  static readonly Retrieve: APIRetrieve;
 }
 
 export type ServiceError = { message: string, code: number; metadata: grpc.Metadata }
@@ -62,5 +72,6 @@ export class APIClient {
   constructor(serviceHost: string, options?: grpc.RpcOptions);
   store(metadata?: grpc.Metadata): RequestStream<deals_pb.StoreRequest>;
   watch(requestMessage: deals_pb.WatchRequest, metadata?: grpc.Metadata): ResponseStream<deals_pb.WatchReply>;
+  retrieve(requestMessage: deals_pb.RetrieveRequest, metadata?: grpc.Metadata): ResponseStream<deals_pb.RetrieveReply>;
 }
 

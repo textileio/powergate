@@ -145,10 +145,13 @@ export namespace StoreRequest {
 }
 
 export class StoreReply extends jspb.Message {
-  clearCidsList(): void;
-  getCidsList(): Array<string>;
-  setCidsList(value: Array<string>): void;
-  addCids(value: string, index?: number): string;
+  getDatacid(): string;
+  setDatacid(value: string): void;
+
+  clearProposalcidsList(): void;
+  getProposalcidsList(): Array<string>;
+  setProposalcidsList(value: Array<string>): void;
+  addProposalcids(value: string, index?: number): string;
 
   clearFaileddealsList(): void;
   getFaileddealsList(): Array<DealConfig>;
@@ -167,7 +170,8 @@ export class StoreReply extends jspb.Message {
 
 export namespace StoreReply {
   export type AsObject = {
-    cidsList: Array<string>,
+    datacid: string,
+    proposalcidsList: Array<string>,
     faileddealsList: Array<DealConfig.AsObject>,
   }
 }
@@ -213,6 +217,52 @@ export class WatchReply extends jspb.Message {
 export namespace WatchReply {
   export type AsObject = {
     dealinfo?: DealInfo.AsObject,
+  }
+}
+
+export class RetrieveRequest extends jspb.Message {
+  getAddress(): string;
+  setAddress(value: string): void;
+
+  getCid(): string;
+  setCid(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RetrieveRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: RetrieveRequest): RetrieveRequest.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RetrieveRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RetrieveRequest;
+  static deserializeBinaryFromReader(message: RetrieveRequest, reader: jspb.BinaryReader): RetrieveRequest;
+}
+
+export namespace RetrieveRequest {
+  export type AsObject = {
+    address: string,
+    cid: string,
+  }
+}
+
+export class RetrieveReply extends jspb.Message {
+  getChunk(): Uint8Array | string;
+  getChunk_asU8(): Uint8Array;
+  getChunk_asB64(): string;
+  setChunk(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): RetrieveReply.AsObject;
+  static toObject(includeInstance: boolean, msg: RetrieveReply): RetrieveReply.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: RetrieveReply, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RetrieveReply;
+  static deserializeBinaryFromReader(message: RetrieveReply, reader: jspb.BinaryReader): RetrieveReply;
+}
+
+export namespace RetrieveReply {
+  export type AsObject = {
+    chunk: Uint8Array | string,
   }
 }
 
