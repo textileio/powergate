@@ -38,6 +38,8 @@ const Miners: FunctionComponent = () => {
           const items = resp.toObject().index?.meta?.infoMap?.map(info => {
             const id = info[0]
             const meta = info[1]
+            const d = new Date(0)
+            d.setUTCSeconds(meta.lastupdated)
             const item: Item = {
               id,
               online: meta.online,
@@ -45,7 +47,7 @@ const Miners: FunctionComponent = () => {
               latitude: meta.location?.latitude || -999,
               longitude: meta.location?.longitude || -999,
               userAgent: meta.useragent,
-              lastUpdated: new Date(meta.lastupdated)
+              lastUpdated: d
             }
             return item
           })
