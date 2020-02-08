@@ -78,20 +78,4 @@ const Miners: FunctionComponent = () => {
     )
 }
 
-function getData() {
-  const r = new GetRequest()
-  const c = new APIClient("http://40.117.82.59:6002")
-  const resp = c.get(r, (err, resp) => {
-    if (err) {
-      console.log("got error: ", err)
-    }
-    if (resp) {
-      console.log("got miners response: ", resp.getIndex()?.toObject())
-      const foo = resp.toObject()
-    }
-  })
-}
-
-getData()
-
 export default Miners
