@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { FunctionComponent, useState } from 'react'
 import clsx from 'clsx'
 import { makeStyles } from '@material-ui/core/styles'
 import Drawer from '@material-ui/core/Drawer'
@@ -6,28 +6,32 @@ import Box from '@material-ui/core/Box'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import DashboardIcon from '@material-ui/icons/Dashboard';
+import LocalOfferIcon from '@material-ui/icons/LocalOffer';
+import PeopleIcon from '@material-ui/icons/People';
+import BlockIcon from '@material-ui/icons/Block';
+import ThumbsUpDownIcon from '@material-ui/icons/ThumbsUpDown';
 import Typography from '@material-ui/core/Typography'
 import Divider from '@material-ui/core/Divider'
 import IconButton from '@material-ui/core/IconButton'
 import Badge from '@material-ui/core/Badge'
 import Container from '@material-ui/core/Container'
-import Grid from '@material-ui/core/Grid'
-import Paper from '@material-ui/core/Paper'
 import Link from '@material-ui/core/Link'
 import MenuIcon from '@material-ui/icons/Menu'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 import NotificationsIcon from '@material-ui/icons/Notifications'
-import { mainListItems, secondaryListItems } from './listItems'
-import Chart from './chart'
-import Deposits from './Deposits'
-import Orders from './Orders'
+import Overview from './overview'
+import Miners from './miners'
 
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        Your Website
+      <Link color="inherit" href="https://textile.io/">
+        Textile
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -105,27 +109,66 @@ const useStyles = makeStyles(theme => ({
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
-  paper: {
-    padding: theme.spacing(2),
-    display: 'flex',
-    overflow: 'auto',
-    flexDirection: 'column',
-  },
-  fixedHeight: {
-    height: 240,
-  },
 }))
 
-export default function Dashboard() {
+const menuItems = [
+  {
+    title: 'Overview',
+    icon: DashboardIcon,
+    component: Overview
+  },
+  {
+    title: 'Miners',
+    icon: PeopleIcon,
+    component: Miners
+  },
+  {
+    title: 'Asks',
+    icon: LocalOfferIcon,
+    component: Overview
+  },
+  {
+    title: 'Slashing',
+    icon: BlockIcon,
+    component: Overview
+  },
+  {
+    title: 'Reputation',
+    icon: ThumbsUpDownIcon,
+    component: Overview
+  }
+]
+
+const Dashboard: FunctionComponent = () => {
   const classes = useStyles()
-  const [open, setOpen] = React.useState(true)
+  
+  const [open, setOpen] = useState(true)
+  const [selected, setSelected] = useState(0)
+
   const handleDrawerOpen = () => {
     setOpen(true)
   }
   const handleDrawerClose = () => {
     setOpen(false)
   }
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight)
+
+  const menuListItems = menuItems.map((item, i) => {
+    const IconType = item.icon
+    return (
+      <ListItem 
+        button 
+        selected={i === selected}
+        onClick={event => setSelected(i)}
+      >
+        <ListItemIcon>
+          <IconType />
+        </ListItemIcon>
+        <ListItemText primary={item.title} />
+      </ListItem>
+    )
+  })
+
+  const ComponetType = menuItems[selected].component
 
   return (
     <div className={classes.root}>
@@ -141,7 +184,7 @@ export default function Dashboard() {
             <MenuIcon />
           </IconButton>
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-            Dashboard
+            {menuItems[selected].title}
           </Typography>
           <IconButton color="inherit">
             <Badge badgeContent={4} color="secondary">
@@ -163,33 +206,12 @@ export default function Dashboard() {
           </IconButton>
         </div>
         <Divider />
-        <List>{mainListItems}</List>
-        <Divider />
-        <List>{secondaryListItems}</List>
+        <List>{menuListItems}</List>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <Grid container spacing={3}>
-            {/* Chart */}
-            <Grid item xs={12} md={8} lg={9}>
-              <Paper className={fixedHeightPaper}>
-                <Chart />
-              </Paper>
-            </Grid>
-            {/* Recent Deposits */}
-            <Grid item xs={12} md={4} lg={3}>
-              <Paper className={fixedHeightPaper}>
-                <Deposits />
-              </Paper>
-            </Grid>
-            {/* Recent Orders */}
-            <Grid item xs={12}>
-              <Paper className={classes.paper}>
-                <Orders />
-              </Paper>
-            </Grid>
-          </Grid>
+          <ComponetType />
           <Box pt={4}>
             <Copyright />
           </Box>
@@ -198,3 +220,5 @@ export default function Dashboard() {
     </div>
   )
 }
+
+export default Dashboard
