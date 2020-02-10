@@ -1,12 +1,14 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import CssBaseline from '@material-ui/core/CssBaseline'
-
-import {APIClient} from './_proto/ask_pb_service'
-import {GetRequest} from './_proto/ask_pb'
-
+import Client from './client'
 import Dashboard from './dashboard/Dashboard'
 
 export default function App() {
+
+  useEffect(() => {
+    Client.initialize("http://40.117.82.59:6002")
+  }, [])
+
   return (
     <React.Fragment>
       <CssBaseline />

@@ -9,6 +9,7 @@ import Orders from './Orders'
 import MinersMeta, {Item} from './miners_meta'
 import {APIClient} from '../_proto/miner_pb_service'
 import {GetRequest} from '../_proto/miner_pb'
+import Client from '../client'
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -28,32 +29,27 @@ const Miners: FunctionComponent = () => {
 
     const [items, setItems] = useState<Item[]>([])
     useEffect(() => {
-      const c = new APIClient("http://40.117.82.59:6002")
-      const resp = c.get(new GetRequest(), (err, resp) => {
-        if (err) {
-          console.log("got error: ", err)
-        }
-        if (resp) {
-          console.log("got miners response: ", resp.getIndex()?.toObject())
-          const items = resp.toObject().index?.meta?.infoMap?.map(info => {
-            const id = info[0]
-            const meta = info[1]
-            const d = new Date(0)
-            d.setUTCSeconds(meta.lastupdated)
-            const item: Item = {
-              id,
-              online: meta.online,
-              country: meta.location?.country || "unknown",
-              latitude: meta.location?.latitude || -999,
-              longitude: meta.location?.longitude || -999,
-              userAgent: meta.useragent,
-              lastUpdated: d
-            }
-            return item
-          })
-          setItems(items || [])
-        }
-      })
+      const fetchData = async () => {
+        const index = await Client.shared().miners.get()
+        const items = index.meta?.infoMap?.map(info => {
+          const id = info[0]
+          const meta = info[1]
+          const d = new Date(0)
+          d.setUTCSeconds(meta.lastupdated)
+          const item: Item = {
+            id,
+            online: meta.online,
+            country: meta.location?.country || "unknown",
+            latitude: meta.location?.latitude || -999,
+            longitude: meta.location?.longitude || -999,
+            userAgent: meta.useragent,
+            lastUpdated: d
+          }
+          return item
+        })
+        setItems(items || [])
+      }
+      fetchData()
     }, [])
 
     return (
