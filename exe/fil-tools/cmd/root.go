@@ -10,7 +10,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	client "github.com/textileio/fil-tools/api/stub"
+	client "github.com/textileio/fil-tools/api/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
