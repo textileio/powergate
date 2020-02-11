@@ -14,6 +14,7 @@ import (
 	logging "github.com/ipfs/go-log"
 	"github.com/textileio/fil-tools/chainstore"
 	"github.com/textileio/fil-tools/chainsync"
+	t "github.com/textileio/fil-tools/index/slashing/types"
 	"github.com/textileio/fil-tools/signaler"
 	txndstr "github.com/textileio/fil-tools/txndstransform"
 	"github.com/textileio/fil-tools/util"
@@ -51,7 +52,7 @@ type SlashingIndex struct {
 	signaler *signaler.Signaler
 
 	lock  sync.Mutex
-	index Index
+	index t.Index
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -74,8 +75,8 @@ func New(ds datastore.TxnDatastore, api API) (*SlashingIndex, error) {
 		api:      api,
 		store:    store,
 		signaler: signaler.New(),
-		index: Index{
-			Miners: make(map[string]Slashes),
+		index: t.Index{
+			Miners: make(map[string]t.Slashes),
 		},
 		ctx:      ctx,
 		cancel:   cancel,
@@ -89,17 +90,17 @@ func New(ds datastore.TxnDatastore, api API) (*SlashingIndex, error) {
 }
 
 // Get returns a copy of the current index information
-func (s *SlashingIndex) Get() Index {
+func (s *SlashingIndex) Get() t.Index {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	ii := Index{
+	ii := t.Index{
 		TipSetKey: s.index.TipSetKey,
-		Miners:    make(map[string]Slashes, len(s.index.Miners)),
+		Miners:    make(map[string]t.Slashes, len(s.index.Miners)),
 	}
 	for addr, v := range s.index.Miners {
 		history := make([]uint64, len(v.Epochs))
 		copy(history, v.Epochs)
-		ii.Miners[addr] = Slashes{
+		ii.Miners[addr] = t.Slashes{
 			Epochs: history,
 		}
 	}
@@ -164,13 +165,13 @@ func (s *SlashingIndex) updateIndex() error {
 		return err
 	}
 	newtsk := types.NewTipSetKey(new.Cids()...)
-	var index Index
+	var index t.Index
 	ts, err := s.store.LoadAndPrune(s.ctx, newtsk, &index)
 	if err != nil {
 		return err
 	}
 	if index.Miners == nil {
-		index.Miners = make(map[string]Slashes)
+		index.Miners = make(map[string]t.Slashes)
 	}
 	_, path, err := chainsync.ResolveBase(s.ctx, s.api, ts, newtsk)
 	if err != nil {
@@ -208,7 +209,7 @@ func (s *SlashingIndex) updateIndex() error {
 
 // updateFromPath updates a saved index state walking a chain path. The path
 // usually should be the next epoch from index up to the current head TipSet.
-func updateFromPath(ctx context.Context, api API, index *Index, path []*types.TipSet) error {
+func updateFromPath(ctx context.Context, api API, index *t.Index, path []*types.TipSet) error {
 	for i := 1; i < len(path); i++ {
 		patch, err := epochPatch(ctx, api, path[i-1], path[i])
 		if err != nil {
@@ -305,11 +306,11 @@ func areConsecutiveEpochs(pts, ts *types.TipSet) bool {
 
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed
 // since its only called from New().
-func (si *SlashingIndex) loadFromDS() error {
-	var index Index
-	if _, err := si.store.GetLastCheckpoint(&index); err != nil {
+func (s *SlashingIndex) loadFromDS() error {
+	var index t.Index
+	if _, err := s.store.GetLastCheckpoint(&index); err != nil {
 		return err
 	}
-	si.index = index
+	s.index = index
 	return nil
 }

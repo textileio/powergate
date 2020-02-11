@@ -1,8 +1,9 @@
-package miner
+package types
 
 import (
-	cbor "github.com/ipfs/go-ipld-cbor"
 	"time"
+
+	cbor "github.com/ipfs/go-ipld-cbor"
 )
 
 func init() {

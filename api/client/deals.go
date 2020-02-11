@@ -7,8 +7,8 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/chain/types"
 	cid "github.com/ipfs/go-cid"
-	"github.com/textileio/fil-tools/deals"
 	pb "github.com/textileio/fil-tools/deals/pb"
+	t "github.com/textileio/fil-tools/deals/types"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,13 +21,13 @@ type Deals struct {
 
 // WatchEvent is used to send data or error values for Watch
 type WatchEvent struct {
-	Deal deals.DealInfo
+	Deal t.DealInfo
 	Err  error
 }
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, duration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
+func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []t.StorageDealConfig, duration uint64) ([]cid.Cid, []t.StorageDealConfig, error) {
 	stream, err := d.client.Store(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -79,13 +79,13 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 		cids[i] = id
 	}
 
-	failedDeals := make([]deals.StorageDealConfig, len(reply.GetFailedDeals()))
+	failedDeals := make([]t.StorageDealConfig, len(reply.GetFailedDeals()))
 	for i, dealConfig := range reply.GetFailedDeals() {
 		addr, err := address.NewFromString(dealConfig.GetMiner())
 		if err != nil {
 			return nil, nil, err
 		}
-		failedDeals[i] = deals.StorageDealConfig{
+		failedDeals[i] = t.StorageDealConfig{
 			Miner:      addr.String(),
 			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
 		}
@@ -121,7 +121,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				channel <- WatchEvent{Err: err}
 				break
 			}
-			deal := deals.DealInfo{
+			deal := t.DealInfo{
 				ProposalCid:   proposalCid,
 				StateID:       event.GetDealInfo().GetStateID(),
 				StateName:     event.GetDealInfo().GetStateName(),

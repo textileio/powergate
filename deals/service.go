@@ -7,6 +7,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	pb "github.com/textileio/fil-tools/deals/pb"
+	t "github.com/textileio/fil-tools/deals/types"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,7 +23,7 @@ type Service struct {
 type storeResult struct {
 	DataCid      cid.Cid
 	ProposalCids []cid.Cid
-	FailedDeals  []StorageDealConfig
+	FailedDeals  []t.StorageDealConfig
 	Err          error
 }
 
@@ -35,9 +36,9 @@ func NewService(dm *Module) *Service {
 
 func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams, reader io.Reader, ch chan storeResult) {
 	defer close(ch)
-	dealConfigs := make([]StorageDealConfig, len(storeParams.GetDealConfigs()))
+	dealConfigs := make([]t.StorageDealConfig, len(storeParams.GetDealConfigs()))
 	for i, dealConfig := range storeParams.GetDealConfigs() {
-		dealConfigs[i] = StorageDealConfig{
+		dealConfigs[i] = t.StorageDealConfig{
 			Miner:      dealConfig.GetMiner(),
 			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
 		}

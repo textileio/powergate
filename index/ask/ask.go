@@ -13,6 +13,7 @@ import (
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-core/peer"
+	t "github.com/textileio/fil-tools/index/ask/types"
 	"github.com/textileio/fil-tools/signaler"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -34,8 +35,8 @@ type AskIndex struct {
 	signaler *signaler.Signaler
 
 	lock              sync.Mutex
-	index             Index
-	priceOrderedCache []*StorageAsk
+	index             t.Index
+	priceOrderedCache []*t.StorageAsk
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -72,13 +73,13 @@ func New(ds datastore.TxnDatastore, api API) (*AskIndex, error) {
 }
 
 // Get returns a copy of the current index data
-func (ai *AskIndex) Get() Index {
+func (ai *AskIndex) Get() t.Index {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
-	index := Index{
+	index := t.Index{
 		LastUpdated:        ai.index.LastUpdated,
 		StorageMedianPrice: ai.index.StorageMedianPrice,
-		Storage:            make(map[string]StorageAsk, len(ai.index.Storage)),
+		Storage:            make(map[string]t.StorageAsk, len(ai.index.Storage)),
 	}
 	for addr, v := range ai.index.Storage {
 		index.Storage[addr] = v
@@ -87,10 +88,10 @@ func (ai *AskIndex) Get() Index {
 }
 
 // Query executes a query to retrieve active Asks
-func (ai *AskIndex) Query(q Query) ([]StorageAsk, error) {
+func (ai *AskIndex) Query(q t.Query) ([]t.StorageAsk, error) {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
-	var res []StorageAsk
+	var res []t.StorageAsk
 	offset := q.Offset
 	for _, sa := range ai.priceOrderedCache {
 		if q.MaxPrice != 0 && sa.Price > q.MaxPrice {
@@ -174,7 +175,7 @@ func (ai *AskIndex) update() error {
 		return err
 	}
 
-	cache := make([]*StorageAsk, 0, len(ai.index.Storage))
+	cache := make([]*t.StorageAsk, 0, len(ai.index.Storage))
 	for _, v := range ai.index.Storage {
 		cache = append(cache, &v)
 	}
@@ -193,7 +194,7 @@ func (ai *AskIndex) update() error {
 }
 
 // generateIndex returns a fresh index
-func generateIndex(ctx context.Context, api API) (*Index, error) {
+func generateIndex(ctx context.Context, api API) (*t.Index, error) {
 	addrs, err := api.StateListMiners(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -201,7 +202,7 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 
 	rateLim := make(chan struct{}, qaRatelim)
 	var lock sync.Mutex
-	newAsks := make(map[string]StorageAsk)
+	newAsks := make(map[string]t.StorageAsk)
 	for i, addr := range addrs {
 		rateLim <- struct{}{}
 		go func(addr address.Address) {
@@ -219,7 +220,7 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 				return
 			}
 			lock.Lock()
-			newAsks[addr.String()] = StorageAsk{
+			newAsks[addr.String()] = t.StorageAsk{
 				Miner:        ask.Ask.Miner.String(),
 				Price:        ask.Ask.Price.Uint64(),
 				MinPieceSize: ask.Ask.MinPieceSize,
@@ -249,14 +250,14 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 	ctx, _ = tag.New(context.Background(), tag.Insert(keyAskStatus, "OK"))
 	stats.Record(ctx, mAskQueryResult.M(int64(len(newAsks))))
 
-	return &Index{
+	return &t.Index{
 		LastUpdated:        time.Now(),
 		StorageMedianPrice: calculateMedian(newAsks),
 		Storage:            newAsks,
 	}, nil
 }
 
-func calculateMedian(index map[string]StorageAsk) uint64 {
+func calculateMedian(index map[string]t.StorageAsk) uint64 {
 	if len(index) == 0 {
 		return 0
 	}
@@ -281,7 +282,7 @@ func (ai *AskIndex) loadFromStore() error {
 	buf, err := ai.ds.Get(dsIndex)
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			ai.index = Index{Storage: make(map[string]StorageAsk)}
+			ai.index = t.Index{Storage: make(map[string]t.StorageAsk)}
 			return nil
 		}
 		return err

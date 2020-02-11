@@ -4,6 +4,7 @@ import (
 	"context"
 
 	pb "github.com/textileio/fil-tools/index/ask/pb"
+	t "github.com/textileio/fil-tools/index/ask/types"
 )
 
 // Service implements the gprc service
@@ -43,7 +44,7 @@ func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, er
 
 // Query calls askIndex.Query
 func (s *Service) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryReply, error) {
-	q := Query{
+	q := t.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),
 		Limit:     int(req.GetQuery().GetLimit()),

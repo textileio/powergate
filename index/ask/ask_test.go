@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	logging "github.com/ipfs/go-log/v2"
+	types "github.com/textileio/fil-tools/index/ask/types"
 	"github.com/textileio/fil-tools/tests"
 )
 
@@ -43,14 +44,14 @@ func TestFreshBuild(t *testing.T) {
 func TestQueryAsk(t *testing.T) {
 	t.Parallel()
 	dm := AskIndex{}
-	dm.priceOrderedCache = []*StorageAsk{
+	dm.priceOrderedCache = []*types.StorageAsk{
 		{Price: uint64(20), MinPieceSize: 128, Miner: "t01"},
 		{Price: uint64(30), MinPieceSize: 64, Miner: "t02"},
 		{Price: uint64(40), MinPieceSize: 256, Miner: "t03"},
 		{Price: uint64(50), MinPieceSize: 16, Miner: "t04"},
 	}
 
-	facr := []StorageAsk{
+	facr := []types.StorageAsk{
 		{Price: 20, MinPieceSize: 128, Miner: "t01"},
 		{Price: 30, MinPieceSize: 64, Miner: "t02"},
 		{Price: 40, MinPieceSize: 256, Miner: "t03"},
@@ -59,14 +60,14 @@ func TestQueryAsk(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		q      Query
-		expect []StorageAsk
+		q      types.Query
+		expect []types.StorageAsk
 	}{
-		{name: "All", q: Query{}, expect: facr},
-		{name: "LeqPrice35", q: Query{MaxPrice: 35}, expect: []StorageAsk{facr[0], facr[1]}},
-		{name: "LeqPrice50", q: Query{MaxPrice: 50}, expect: facr},
-		{name: "LeqPrice40Piece96", q: Query{MaxPrice: 35, PieceSize: 96}, expect: []StorageAsk{facr[1]}},
-		{name: "AllLimit2Offset1", q: Query{Limit: 2, Offset: 1}, expect: []StorageAsk{facr[1], facr[2]}},
+		{name: "All", q: types.Query{}, expect: facr},
+		{name: "LeqPrice35", q: types.Query{MaxPrice: 35}, expect: []types.StorageAsk{facr[0], facr[1]}},
+		{name: "LeqPrice50", q: types.Query{MaxPrice: 50}, expect: facr},
+		{name: "LeqPrice40Piece96", q: types.Query{MaxPrice: 35, PieceSize: 96}, expect: []types.StorageAsk{facr[1]}},
+		{name: "AllLimit2Offset1", q: types.Query{Limit: 2, Offset: 1}, expect: []types.StorageAsk{facr[1], facr[2]}},
 	}
 
 	for _, tt := range tests {

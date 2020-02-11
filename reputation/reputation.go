@@ -11,9 +11,13 @@ import (
 	logging "github.com/ipfs/go-log"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/fil-tools/index/ask"
+	at "github.com/textileio/fil-tools/index/ask/types"
 	"github.com/textileio/fil-tools/index/miner"
+	mt "github.com/textileio/fil-tools/index/miner/types"
 	"github.com/textileio/fil-tools/index/slashing"
+	st "github.com/textileio/fil-tools/index/slashing/types"
 	"github.com/textileio/fil-tools/reputation/internal/source"
+	rt "github.com/textileio/fil-tools/reputation/types"
 )
 
 var (
@@ -34,22 +38,16 @@ type Module struct {
 	ai *ask.AskIndex
 
 	lockIndex sync.Mutex
-	mIndex    miner.Index
-	sIndex    slashing.Index
-	aIndex    ask.Index
+	mIndex    mt.Index
+	sIndex    st.Index
+	aIndex    at.Index
 
 	lockScores sync.Mutex
 	rebuild    chan struct{}
-	scores     []MinerScore
+	scores     []rt.MinerScore
 
 	ctx    context.Context
 	cancel context.CancelFunc
-}
-
-// MinerScore contains a score for a miner
-type MinerScore struct {
-	Addr  string
-	Score int
 }
 
 // New returns a new reputation Module
@@ -80,8 +78,8 @@ func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 }
 
 // GetTopMiners gets the top n miners with best score
-func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
-	mr := make([]MinerScore, 0, n)
+func (rm *Module) GetTopMiners(n int) ([]rt.MinerScore, error) {
+	mr := make([]rt.MinerScore, 0, n)
 	rm.lockScores.Lock()
 	for i := 0; i < n; i++ {
 		mr = append(mr, rm.scores[i])
@@ -141,7 +139,7 @@ func (rm *Module) indexBuilder() {
 		askIndex := rm.aIndex
 		rm.lockIndex.Unlock()
 
-		scores := make([]MinerScore, 0, len(minerIndex.Chain.Power))
+		scores := make([]rt.MinerScore, 0, len(minerIndex.Chain.Power))
 		for addr := range minerIndex.Chain.Power {
 			score := calculateScore(addr, minerIndex, slashIndex, askIndex, sources)
 			scores = append(scores, score)
@@ -159,7 +157,7 @@ func (rm *Module) indexBuilder() {
 }
 
 // calculateScore calculates the score for a miner
-func calculateScore(addr string, mi miner.Index, si slashing.Index, ai ask.Index, ss []source.Source) MinerScore {
+func calculateScore(addr string, mi mt.Index, si st.Index, ai at.Index, ss []source.Source) rt.MinerScore {
 	power := mi.Chain.Power[addr]
 	powerScore := power.Relative
 
@@ -183,7 +181,7 @@ func calculateScore(addr string, mi miner.Index, si slashing.Index, ai ask.Index
 	}
 
 	score := 50*slashScore + 20*powerScore + 20*externalScore + 10*askScore
-	return MinerScore{
+	return rt.MinerScore{
 		Addr:  addr,
 		Score: int(score),
 	}

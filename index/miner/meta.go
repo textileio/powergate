@@ -8,6 +8,7 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	cbor "github.com/ipfs/go-ipld-cbor"
+	t "github.com/textileio/fil-tools/index/miner/types"
 	"github.com/textileio/fil-tools/iplocation"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -64,9 +65,9 @@ func (mi *MinerIndex) metaWorker() {
 
 // updateMetaIndex generates a new index that contains fresh metadata information
 // of addrs miners.
-func updateMetaIndex(ctx context.Context, api API, h P2PHost, lr iplocation.LocationResolver, addrs []string) (MetaIndex, error) {
-	index := MetaIndex{
-		Info: make(map[string]Meta),
+func updateMetaIndex(ctx context.Context, api API, h P2PHost, lr iplocation.LocationResolver, addrs []string) (t.MetaIndex, error) {
+	index := t.MetaIndex{
+		Info: make(map[string]t.Meta),
 	}
 	rl := make(chan struct{}, pingRateLim)
 	var lock sync.Mutex
@@ -107,8 +108,8 @@ func updateMetaIndex(ctx context.Context, api API, h P2PHost, lr iplocation.Loca
 }
 
 // getMeta returns fresh metadata information about a miner
-func getMeta(ctx context.Context, c API, h P2PHost, lr iplocation.LocationResolver, straddr string) (Meta, error) {
-	si := Meta{
+func getMeta(ctx context.Context, c API, h P2PHost, lr iplocation.LocationResolver, straddr string) (t.Meta, error) {
+	si := t.Meta{
 		LastUpdated: time.Now(),
 	}
 	addr, err := address.NewFromString(straddr)
@@ -135,7 +136,7 @@ func getMeta(ctx context.Context, c API, h P2PHost, lr iplocation.LocationResolv
 		return si, nil
 	}
 	if l, err := lr.Resolve(addrs); err == nil {
-		si.Location = Location{
+		si.Location = t.Location{
 			Country:   l.Country,
 			Latitude:  l.Latitude,
 			Longitude: l.Longitude,
@@ -145,7 +146,7 @@ func getMeta(ctx context.Context, c API, h P2PHost, lr iplocation.LocationResolv
 }
 
 // persisteMetaIndex saves to datastore a new MetaIndex
-func (mi *MinerIndex) persistMetaIndex(index MetaIndex) error {
+func (mi *MinerIndex) persistMetaIndex(index t.MetaIndex) error {
 	buf, err := cbor.DumpObject(index)
 	if err != nil {
 		return err

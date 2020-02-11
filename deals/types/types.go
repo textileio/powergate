@@ -1,4 +1,4 @@
-package deals
+package types
 
 import (
 	"os"

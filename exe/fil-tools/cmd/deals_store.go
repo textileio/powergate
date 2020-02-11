@@ -11,7 +11,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/fil-tools/deals"
+	dt "github.com/textileio/fil-tools/deals/types"
 )
 
 func init() {
@@ -69,9 +69,9 @@ var storeCmd = &cobra.Command{
 			Fatal(fmt.Errorf("number of miners and prices must be equal but received %v miners and %v prices", lMiners, lPrices))
 		}
 
-		dealConfigs := make([]deals.StorageDealConfig, lMiners)
+		dealConfigs := make([]dt.StorageDealConfig, lMiners)
 		for i, miner := range miners {
-			dealConfigs[i] = deals.StorageDealConfig{
+			dealConfigs[i] = dt.StorageDealConfig{
 				Miner:      miner,
 				EpochPrice: types.NewInt(uint64(prices[i])),
 			}

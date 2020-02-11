@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/fil-tools/deals"
 	pb "github.com/textileio/fil-tools/deals/pb"
+	"github.com/textileio/fil-tools/deals/types"
 )
 
 func TestStore(t *testing.T) {
@@ -15,7 +15,7 @@ func TestStore(t *testing.T) {
 	defer done()
 
 	r := strings.NewReader("store me")
-	_, _, err := d.Store(ctx, "an address", r, make([]deals.StorageDealConfig, 0), 1024)
+	_, _, err := d.Store(ctx, "an address", r, make([]types.StorageDealConfig, 0), 1024)
 	if err != nil {
 		t.Fatalf("failed to call Store: %v", err)
 	}

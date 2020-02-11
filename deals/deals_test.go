@@ -15,6 +15,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
+	dt "github.com/textileio/fil-tools/deals/types"
 	"github.com/textileio/fil-tools/ldevnet"
 	"github.com/textileio/fil-tools/tests"
 )
@@ -30,7 +31,7 @@ func TestStore(t *testing.T) {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			dnet, _, _, close := tests.CreateLocalDevnet(t, nm)
 			defer close()
-			m, err := New(dnet.Client, WithImportPath(filepath.Join(os.TempDir(), "imports")))
+			m, err := New(dnet.Client, dt.WithImportPath(filepath.Join(os.TempDir(), "imports")))
 			checkErr(t, err)
 			_, err = storeMultiMiner(m, dnet, nm, randomBytes(1000))
 			checkErr(t, err)
@@ -45,7 +46,7 @@ func TestRetrieve(t *testing.T) {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			dnet, addr, _, close := tests.CreateLocalDevnet(t, nm)
 			defer close()
-			m, err := New(dnet.Client, WithImportPath(filepath.Join(os.TempDir(), "imports")))
+			m, err := New(dnet.Client, dt.WithImportPath(filepath.Join(os.TempDir(), "imports")))
 			checkErr(t, err)
 
 			dcid, err := storeMultiMiner(m, dnet, nm, data)
@@ -69,10 +70,10 @@ func TestWatchStore(t *testing.T) {
 	dnet, addr, miners, close := tests.CreateLocalDevnet(t, 1)
 	defer close()
 	ctx := context.Background()
-	m, err := New(dnet.Client, WithImportPath(filepath.Join(os.TempDir(), "imports")))
+	m, err := New(dnet.Client, dt.WithImportPath(filepath.Join(os.TempDir(), "imports")))
 	checkErr(t, err)
 
-	cfgs := []StorageDealConfig{StorageDealConfig{Miner: miners[0].String(), EpochPrice: types.NewInt(40000000)}}
+	cfgs := []dt.StorageDealConfig{dt.StorageDealConfig{Miner: miners[0].String(), EpochPrice: types.NewInt(40000000)}}
 	_, pcids, failed, err := m.Store(ctx, addr.String(), bytes.NewReader(randomBytes(1000)), cfgs, 100)
 	checkErr(t, err)
 	if len(failed) > 0 {
@@ -120,9 +121,9 @@ func storeMultiMiner(m *Module, dnet *ldevnet.LocalDevnet, numMiners int, data [
 		return cid.Undef, err
 	}
 
-	cfgs := make([]StorageDealConfig, numMiners)
+	cfgs := make([]dt.StorageDealConfig, numMiners)
 	for i := 0; i < numMiners; i++ {
-		cfgs[i] = StorageDealConfig{
+		cfgs[i] = dt.StorageDealConfig{
 			Miner:      miners[i].String(),
 			EpochPrice: types.NewInt(40000000),
 		}

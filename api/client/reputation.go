@@ -4,8 +4,8 @@ import (
 	"context"
 
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/fil-tools/reputation"
 	pb "github.com/textileio/fil-tools/reputation/pb"
+	"github.com/textileio/fil-tools/reputation/types"
 )
 
 // Reputation provides an API for viewing reputation data
@@ -24,15 +24,15 @@ func (r *Reputation) AddSource(ctx context.Context, id string, maddr ma.Multiadd
 }
 
 // GetTopMiners gets the top n miners with best score
-func (r *Reputation) GetTopMiners(ctx context.Context, limit int) ([]reputation.MinerScore, error) {
+func (r *Reputation) GetTopMiners(ctx context.Context, limit int) ([]types.MinerScore, error) {
 	req := &pb.GetTopMinersRequest{Limit: int32(limit)}
 	reply, err := r.client.GetTopMiners(ctx, req)
 	if err != nil {
-		return []reputation.MinerScore{}, err
+		return []types.MinerScore{}, err
 	}
-	topMiners := make([]reputation.MinerScore, len(reply.GetTopMiners()))
+	topMiners := make([]types.MinerScore, len(reply.GetTopMiners()))
 	for i, val := range reply.GetTopMiners() {
-		topMiners[i] = reputation.MinerScore{
+		topMiners[i] = types.MinerScore{
 			Addr:  val.GetAddr(),
 			Score: int(val.GetScore()),
 		}

@@ -17,6 +17,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/fil-tools/chainstore"
 	"github.com/textileio/fil-tools/chainsync"
+	t "github.com/textileio/fil-tools/index/miner/types"
 	"github.com/textileio/fil-tools/iplocation"
 	"github.com/textileio/fil-tools/signaler"
 	txndstr "github.com/textileio/fil-tools/txndstransform"
@@ -65,7 +66,7 @@ type MinerIndex struct {
 
 	chMeta chan struct{}
 	lock   sync.Mutex
-	index  Index
+	index  t.Index
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -105,18 +106,18 @@ func New(ds datastore.TxnDatastore, api API, h P2PHost, lr iplocation.LocationRe
 }
 
 // Get returns a copy of the current index information
-func (mi *MinerIndex) Get() Index {
+func (mi *MinerIndex) Get() t.Index {
 	mi.lock.Lock()
 	defer mi.lock.Unlock()
-	ii := Index{
-		Meta: MetaIndex{
+	ii := t.Index{
+		Meta: t.MetaIndex{
 			Online:  mi.index.Meta.Online,
 			Offline: mi.index.Meta.Offline,
-			Info:    make(map[string]Meta, len(mi.index.Meta.Info)),
+			Info:    make(map[string]t.Meta, len(mi.index.Meta.Info)),
 		},
-		Chain: ChainIndex{
+		Chain: t.ChainIndex{
 			LastUpdated: mi.index.Chain.LastUpdated,
-			Power:       make(map[string]Power, len(mi.index.Chain.Power)),
+			Power:       make(map[string]t.Power, len(mi.index.Chain.Power)),
 		},
 	}
 	for addr, v := range mi.index.Meta.Info {
@@ -193,23 +194,23 @@ func (mi *MinerIndex) start() {
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed
 // since its only called from New().
 func (mi *MinerIndex) loadFromDS() error {
-	mi.index = Index{
-		Meta:  MetaIndex{Info: make(map[string]Meta)},
-		Chain: ChainIndex{Power: make(map[string]Power)},
+	mi.index = t.Index{
+		Meta:  t.MetaIndex{Info: make(map[string]t.Meta)},
+		Chain: t.ChainIndex{Power: make(map[string]t.Power)},
 	}
 	buf, err := mi.ds.Get(dsKeyMetaIndex)
 	if err != nil && err != datastore.ErrNotFound {
 		return err
 	}
 	if err == nil {
-		var metaIndex MetaIndex
+		var metaIndex t.MetaIndex
 		if err := cbor.DecodeInto(buf, &metaIndex); err != nil {
 			return err
 		}
 		mi.index.Meta = metaIndex
 	}
 
-	var chainIndex ChainIndex
+	var chainIndex t.ChainIndex
 	if _, err := mi.store.GetLastCheckpoint(&chainIndex); err != nil {
 		return err
 	}

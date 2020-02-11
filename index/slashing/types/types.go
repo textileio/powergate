@@ -1,4 +1,4 @@
-package slashing
+package types
 
 import cbor "github.com/ipfs/go-ipld-cbor"
 

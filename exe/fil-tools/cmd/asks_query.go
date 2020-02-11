@@ -10,7 +10,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/fil-tools/index/ask"
+	"github.com/textileio/fil-tools/index/ask/types"
 )
 
 func init() {
@@ -47,7 +47,7 @@ var queryCmd = &cobra.Command{
 			Fatal(errors.New("pieceSize must be > 0"))
 		}
 
-		q := ask.Query{
+		q := types.Query{
 			MaxPrice:  mp,
 			PieceSize: ps,
 			Limit:     l,

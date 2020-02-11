@@ -17,6 +17,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/fil-tools/deals"
 	dealsPb "github.com/textileio/fil-tools/deals/pb"
+	dt "github.com/textileio/fil-tools/deals/types"
 	"github.com/textileio/fil-tools/fchost"
 	"github.com/textileio/fil-tools/index/ask"
 	askPb "github.com/textileio/fil-tools/index/ask/pb"
@@ -117,7 +118,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error when creating slashing index: %s", err)
 	}
-	dm, err := deals.New(c, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
+	dm, err := deals.New(c, dt.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("error when creating deal module: %s", err)
 	}

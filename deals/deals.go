@@ -14,6 +14,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log"
+	t "github.com/textileio/fil-tools/deals/types"
 )
 
 const (
@@ -31,7 +32,7 @@ var (
 // Module exposes storage and monitoring from the market.
 type Module struct {
 	api API
-	cfg *Config
+	cfg *t.Config
 }
 
 // API interacts with a Filecoin full-node
@@ -45,8 +46,8 @@ type API interface {
 }
 
 // New creates a new deal module
-func New(api API, opts ...Option) (*Module, error) {
-	var cfg Config
+func New(api API, opts ...t.Option) (*Module, error) {
+	var cfg t.Config
 	for _, o := range opts {
 		if err := o(&cfg); err != nil {
 			return nil, err
@@ -63,7 +64,7 @@ func New(api API, opts ...Option) (*Module, error) {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64) (cid.Cid, []cid.Cid, []StorageDealConfig, error) {
+func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []t.StorageDealConfig, dur uint64) (cid.Cid, []cid.Cid, []t.StorageDealConfig, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
 		return cid.Undef, nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
@@ -82,7 +83,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 	}
 
 	var proposals []cid.Cid
-	var failed []StorageDealConfig
+	var failed []t.StorageDealConfig
 	for _, c := range dcfgs {
 		maddr, err := address.NewFromString(c.Miner)
 		if err != nil {
@@ -130,8 +131,8 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 }
 
 // Watch returns a channel with state changes of indicated proposals
-func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
-	ch := make(chan DealInfo)
+func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan t.DealInfo, error) {
+	ch := make(chan t.DealInfo)
 	w, err := m.api.ChainNotify(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error when listening to chain changes: %s", err)
@@ -153,7 +154,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- t.DealInfo) error {
 	for _, pcid := range proposals {
 		dinfo, err := m.api.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
@@ -162,7 +163,7 @@ func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]*api.
 		}
 		if currState[pcid] == nil || (*currState[pcid]).State != dinfo.State {
 			currState[pcid] = dinfo
-			newState := DealInfo{
+			newState := t.DealInfo{
 				ProposalCid:   dinfo.ProposalCid,
 				StateID:       dinfo.State,
 				StateName:     api.DealStates[dinfo.State],

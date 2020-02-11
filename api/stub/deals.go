@@ -8,7 +8,7 @@ import (
 
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/fil-tools/api/client"
-	"github.com/textileio/fil-tools/deals"
+	"github.com/textileio/fil-tools/deals/types"
 )
 
 // Deals provides an API for managing deals and storing data
@@ -40,10 +40,10 @@ func init() {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, duration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
+func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []types.StorageDealConfig, duration uint64) ([]cid.Cid, []types.StorageDealConfig, error) {
 	time.Sleep(time.Second * 3)
 	success := []cid.Cid{}
-	failed := []deals.StorageDealConfig{}
+	failed := []types.StorageDealConfig{}
 	for i, dealConfig := range dealConfigs {
 		if i == 0 {
 			failed = append(failed, dealConfig)
@@ -66,7 +66,7 @@ func driveChannel(ch chan client.WatchEvent, proposals []cid.Cid) {
 		for _, proposal := range proposals {
 			time.Sleep(time.Millisecond * 1000)
 			ch <- client.WatchEvent{
-				Deal: deals.DealInfo{
+				Deal: types.DealInfo{
 					ProposalCid: proposal,
 					StateName:   dealState,
 				},

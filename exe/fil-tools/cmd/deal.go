@@ -13,8 +13,8 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/fil-tools/deals"
-	"github.com/textileio/fil-tools/index/ask"
+	dt "github.com/textileio/fil-tools/deals/types"
+	at "github.com/textileio/fil-tools/index/ask/types"
 )
 
 func init() {
@@ -68,7 +68,7 @@ var dealCmd = &cobra.Command{
 		file, err := os.Open(path)
 		checkErr(err)
 
-		q := ask.Query{
+		q := at.Query{
 			MaxPrice:  mp,
 			PieceSize: ps,
 			Limit:     l,
@@ -99,10 +99,10 @@ var dealCmd = &cobra.Command{
 		survey.AskOne(prompt, &selectedAsks, survey.WithValidator(survey.Required))
 		cmd.Println()
 
-		dealConfigs := make([]deals.StorageDealConfig, len(selectedAsks))
+		dealConfigs := make([]dt.StorageDealConfig, len(selectedAsks))
 		for i, val := range selectedAsks {
 			ask := asks[val]
-			dealConfigs[i] = deals.StorageDealConfig{
+			dealConfigs[i] = dt.StorageDealConfig{
 				Miner:      ask.Miner,
 				EpochPrice: types.NewInt(ask.Price),
 			}
