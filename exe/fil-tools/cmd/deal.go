@@ -88,7 +88,8 @@ var dealCmd = &cobra.Command{
 
 		choices := make([]string, len(asks))
 		for i, ask := range asks {
-			choices[i] = fmt.Sprintf("Price of %v with min piece size %v expiring %v", ask.Price, ask.MinPieceSize, ask.Expiry)
+			expiry := time.Unix(int64(ask.Expiry), 0).Format("01/02/06 15:04:05 MST")
+			choices[i] = fmt.Sprintf("Price of %v with min piece size %v expiring %v", ask.Price, ask.MinPieceSize, expiry)
 		}
 
 		selectedAsks := []int{}
