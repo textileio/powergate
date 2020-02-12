@@ -31,7 +31,7 @@ var getCmd = &cobra.Command{
 
 		if len(index.Storage) > 0 {
 			Message("Storage median price price: %v", index.StorageMedianPrice)
-			Message("Last updated: %v", index.LastUpdated)
+			Message("Last updated: %v", index.LastUpdated.Format("01/02/06 15:04 MST"))
 			data := make([][]string, len(index.Storage))
 			i := 0
 			for _, a := range index.Storage {
