@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/caarlos0/spin"
 	"github.com/logrusorgru/aurora"
@@ -44,7 +45,7 @@ var getMinersCmd = &cobra.Command{
 				meta.UserAgent,
 				meta.Location.Country,
 				fmt.Sprintf("%v", meta.Online),
-				meta.LastUpdated.String(),
+				meta.LastUpdated.Format("01/02/06 15:04 MST"),
 			}
 			i++
 		}
@@ -69,7 +70,9 @@ var getMinersCmd = &cobra.Command{
 
 		RenderTable(os.Stdout, []string{"miner", "power", "relative"}, chainData)
 
+		lastUpdated := time.Unix(int64(index.Chain.LastUpdated), 0).Format("01/02/06 15:04 MST")
+
 		Message("Found on chain data for %d miners", aurora.White(len(index.Chain.Power)).Bold())
-		Message("Chain data last updated %v", aurora.White(index.Chain.LastUpdated).Bold())
+		Message("Chain data last updated %v", aurora.White(lastUpdated).Bold())
 	},
 }
