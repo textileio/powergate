@@ -16,7 +16,7 @@ require (
 	github.com/gorilla/websocket v1.4.1
 	github.com/gosuri/uilive v0.0.4
 	github.com/improbable-eng/grpc-web v0.12.0
-	github.com/ip2location/ip2location-go v8.2.0+incompatible
+	github.com/ip2location/ip2location-go v8.3.0+incompatible
 	github.com/ipfs/go-cid v0.0.5
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ds-badger2 v0.0.0-20200123200730-d75eb2678a5d
