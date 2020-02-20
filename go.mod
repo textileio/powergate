@@ -33,7 +33,7 @@ require (
 	github.com/multiformats/go-multihash v0.0.13
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/rs/cors v1.7.0 // indirect
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v0.0.6
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.0
