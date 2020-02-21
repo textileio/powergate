@@ -2,6 +2,7 @@ package chainsync
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
@@ -30,7 +31,7 @@ func New(api API) *ChainSync {
 func (cs *ChainSync) Precedes(ctx context.Context, from, to types.TipSetKey) (bool, error) {
 	fpath, err := cs.api.ChainGetPath(ctx, from, to)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("getting path from %v to %v: %s", from.Cids(), to.Cids(), err)
 	}
 	if len(fpath) == 0 {
 		return true, nil
@@ -46,7 +47,7 @@ func ResolveBase(ctx context.Context, api API, left *types.TipSetKey, right type
 	if left == nil {
 		genesis, err := api.ChainGetGenesis(ctx)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("getting genesis tipset: %s", err)
 		}
 		path = append(path, genesis)
 		gtsk := types.NewTipSetKey(genesis.Cids()...)

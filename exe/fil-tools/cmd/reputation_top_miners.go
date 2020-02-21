@@ -43,6 +43,6 @@ var topMinersCmd = &cobra.Command{
 
 		RenderTable(os.Stdout, []string{"miner", "score"}, data)
 
-		Message("Showting data for %d miners", aurora.White(len(topMiners)).Bold())
+		Message("Showing data for %d miners", aurora.White(len(topMiners)).Bold())
 	},
 }

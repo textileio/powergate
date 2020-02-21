@@ -2,24 +2,52 @@ version: '3.7'
 
 volumes:
   textile-fc-data:
+  textile-fc-ipfs:
+  textile-fc-lotus:
 
 services:
-  textile-fc:
-    network_mode: host
+  
+  fil-tools:
     build:
       context: ../
       dockerfile: exe/server/Dockerfile
-    environment:
-      - TEXFILTOOLS_LOTUSTOKEN=${TEXFILTOOLS_LOTUSTOKEN}
     ports:
+      - 8889:8889
       - 8888:8888
       - 6060:6060
-    restart: always
+      - 5002:5002
+      - 6002:6002
+    depends_on:
+      - ipfs
+      - lotus
+    environment:
+      - TEXFILTOOLS_LOTUSHOST=/dns4/lotus/tcp/1234
+      - TEXFILTOOLS_IPFSAPIADDR=/dns4/ipfs/tcp/5001
+      - TEXFILTOOLS_LOTUSTOKENFILE=/root/lotus/.lotus/token
+      - TEXFILTOOLS_REPOPATH=/root/fil-tools/.texfc
+    restart: unless-stopped
     volumes:
-      - textile-fc-data:/root/.texfc
+      - textile-fc-data:/root/fil-tools
+      - textile-fc-lotus:/root/lotus
+  
+  lotus:
+    image: textile/lotus:latest
+    volumes:
+      - textile-fc-lotus:/data
+    ports:
+      - 1234:1234
+      - 5678:5678
+    restart: unless-stopped
+
+  ipfs:
+    image: ipfs/go-ipfs:latest
+    ports:
+      - 5001:5001
+    volumes:
+      - textile-fc-ipfs:/data/ipfs
+    restart: unless-stopped    
     
   prometheus:
-    network_mode: host
     image: prom/prometheus:v2.1.0
     volumes:
       - ./prometheus/:/etc/prometheus/
@@ -32,10 +60,9 @@ services:
       - 9090:9090
     depends_on:
       - cadvisor
-    restart: always
+    restart: unless-stopped
 
   cadvisor:
-    network_mode: host
     image: google/cadvisor
     volumes:
       - /:/rootfs:ro
@@ -46,10 +73,9 @@ services:
        - '--port=8082'
     ports:
       - 8082:8082
-    restart: always
+    restart: unless-stopped
 
   grafana:
-    network_mode: host
     image: grafana/grafana
     user: "104"
     depends_on:
@@ -60,5 +86,5 @@ services:
       - ./grafana/provisioning/:/etc/grafana/provisioning/
     env_file:
       - ./grafana/config.monitoring
-    restart: always
+    restart: unless-stopped
 

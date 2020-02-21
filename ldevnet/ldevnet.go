@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"fmt"
 	"net/http/httptest"
 	"os"
-	"testing"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -31,8 +31,9 @@ import (
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
-	"github.com/stretchr/testify/require"
 )
+
+var DefaultDuration = time.Millisecond * 100
 
 func init() {
 	build.SectorSizes = []uint64{1024}
@@ -59,9 +60,12 @@ func (ld *LocalDevnet) Close() {
 	ld.closer()
 }
 
-func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
+func New(numMiners int, blockDur time.Duration) (*LocalDevnet, error) {
 	miners := make([]int, numMiners)
-	n, sn, closer := rpcBuilder(t, 1, miners)
+	n, sn, closer, err := rpcBuilder(1, miners)
+	if err != nil {
+		return nil, err
+	}
 	client := n[0].FullNode.(*apistruct.FullNodeStruct)
 	ctx, cancel := context.WithCancel(context.Background())
 	addrinfo, err := client.NetAddrsListen(ctx)
@@ -82,7 +86,7 @@ func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
 		go func(i int) {
 			defer func() { done <- struct{}{} }()
 			for mine {
-				time.Sleep(50 * time.Millisecond)
+				time.Sleep(blockDur)
 				if ctx.Err() != nil {
 					mine = false
 					continue
@@ -100,7 +104,8 @@ func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
 			}
 			mainfo, err := sn[j].NetAddrsListen(ctx)
 			if err != nil {
-				t.Fatal(t, err)
+				cancel()
+				return nil, err
 			}
 			if err := sn[i].NetConnect(ctx, mainfo); err != nil {
 				cancel()
@@ -109,7 +114,7 @@ func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
 		}
 	}
 
-	time.Sleep(time.Millisecond * 500) // Give time to mine at least 1 block
+	time.Sleep(blockDur * 5) // Give time to mine at least 1 block
 	return &LocalDevnet{
 		Client:    client,
 		closer:    closer,
@@ -119,8 +124,11 @@ func New(t *testing.T, numMiners int) (*LocalDevnet, error) {
 	}, nil
 }
 
-func rpcBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []test.TestStorageNode, func()) {
-	fullApis, storaApis := mockSbBuilder(t, nFull, storage)
+func rpcBuilder(nFull int, storage []int) ([]test.TestNode, []test.TestStorageNode, func(), error) {
+	fullApis, storaApis, err := mockSbBuilder(nFull, storage)
+	if err != nil {
+		return nil, nil, nil, err
+	}
 	fulls := make([]test.TestNode, nFull)
 	storers := make([]test.TestStorageNode, len(storage))
 
@@ -133,7 +141,7 @@ func rpcBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []test
 		var err error
 		fulls[i].FullNode, _, err = client.NewFullNodeRPC("ws://"+testServ.Listener.Addr().String(), nil)
 		if err != nil {
-			t.Fatal(err)
+			return nil, nil, nil, err
 		}
 	}
 
@@ -146,7 +154,7 @@ func rpcBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []test
 		var err error
 		storers[i].StorageMiner, _, err = client.NewStorageMinerRPC("ws://"+testServ.Listener.Addr().String(), nil)
 		if err != nil {
-			t.Fatal(err)
+			return nil, nil, nil, err
 		}
 		storers[i].MineOne = a.MineOne
 	}
@@ -155,9 +163,9 @@ func rpcBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []test
 		for _, c := range closers {
 			c()
 		}
-	}
+	}, nil
 }
-func mockSbBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []test.TestStorageNode) {
+func mockSbBuilder(nFull int, storage []int) ([]test.TestNode, []test.TestStorageNode, error) {
 	ctx := context.Background()
 	mn := mocknet.New(ctx)
 
@@ -171,9 +179,13 @@ func mockSbBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []t
 	var storagePks []crypto.PrivKey
 	for i := 0; i < len(storage); i++ {
 		pk, _, err := crypto.GenerateEd25519Key(rand.Reader)
-		require.NoError(t, err)
+		if err != nil {
+			return nil, nil, err
+		}
 		pid, err := peer.IDFromPrivateKey(pk)
-		require.NoError(t, err)
+		if err != nil {
+			return nil, nil, err
+		}
 		gmc.PeerIDs = append(gmc.PeerIDs, pid)
 		storagePks = append(storagePks, pk)
 	}
@@ -183,11 +195,11 @@ func mockSbBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []t
 	for i := 0; i < len(storage); i++ {
 		maddr, err := address.NewIDAddress(300 + uint64(i))
 		if err != nil {
-			t.Fatal(err)
+			return nil, nil, err
 		}
 		genm, err := sbmock.PreSeal(1024, maddr, 1)
 		if err != nil {
-			t.Fatal(err)
+			return nil, nil, err
 		}
 
 		gmc.MinerAddrs = append(gmc.MinerAddrs, maddr)
@@ -219,14 +231,14 @@ func mockSbBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []t
 			genesis,
 		)
 		if err != nil {
-			t.Fatal(err)
+			return nil, nil, err
 		}
 
 	}
 
 	for i, full := range storage {
 		if full != 0 {
-			t.Fatal("storage nodes only supported on the first full node")
+			return nil, nil, fmt.Errorf("storage nodes only supported on the first full node")
 		}
 
 		f := fulls[full]
@@ -234,49 +246,71 @@ func mockSbBuilder(t *testing.T, nFull int, storage []int) ([]test.TestNode, []t
 		genMiner := gmc.MinerAddrs[i]
 		wa := gmc.PreSeals[genMiner.String()].Worker
 
-		storers[i] = testStorageNode(ctx, t, wa, genMiner, storagePks[i], f, mn, node.Options(
+		var err error
+		storers[i], err = testStorageNode(ctx, wa, genMiner, storagePks[i], f, mn, node.Options(
 			node.Override(new(sectorbuilder.Interface), sbmock.NewMockSectorBuilder(5, build.SectorSizes[0])),
 		))
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	if err := mn.LinkAll(); err != nil {
-		t.Fatal(err)
+		return nil, nil, err
 	}
 
-	return fulls, storers
+	return fulls, storers, nil
 }
 
-func testStorageNode(ctx context.Context, t *testing.T, waddr address.Address, act address.Address, pk crypto.PrivKey, tnd test.TestNode, mn mocknet.Mocknet, opts node.Option) test.TestStorageNode {
+func testStorageNode(ctx context.Context, waddr address.Address, act address.Address, pk crypto.PrivKey, tnd test.TestNode, mn mocknet.Mocknet, opts node.Option) (test.TestStorageNode, error) {
 	r := repo.NewMemory(nil)
 
 	lr, err := r.Lock(repo.StorageMiner)
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	ks, err := lr.KeyStore()
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	kbytes, err := pk.Bytes()
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	err = ks.Put("libp2p-host", types.KeyInfo{
 		Type:       "libp2p-host",
 		PrivateKey: kbytes,
 	})
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	ds, err := lr.Datastore("/metadata")
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 	err = ds.Put(datastore.NewKey("miner-address"), act.Bytes())
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	err = lr.Close()
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	peerid, err := peer.IDFromPrivateKey(pk)
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	enc, err := actors.SerializeParams(&actors.UpdatePeerIDParams{PeerID: peerid})
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	msg := &types.Message{
 		To:       act,
@@ -289,7 +323,9 @@ func testStorageNode(ctx context.Context, t *testing.T, waddr address.Address, a
 	}
 
 	_, err = tnd.MpoolPushMessage(ctx, msg)
-	require.NoError(t, err)
+	if err != nil {
+		return test.TestStorageNode{}, err
+	}
 
 	// start node
 	var minerapi api.StorageMiner
@@ -310,7 +346,7 @@ func testStorageNode(ctx context.Context, t *testing.T, waddr address.Address, a
 		opts,
 	)
 	if err != nil {
-		t.Fatalf("failed to construct node: %v", err)
+		return test.TestStorageNode{}, err
 	}
 
 	/*// Bootstrap with full node
@@ -328,5 +364,5 @@ func testStorageNode(ctx context.Context, t *testing.T, waddr address.Address, a
 		}
 	}
 
-	return test.TestStorageNode{StorageMiner: minerapi, MineOne: mineOne}
+	return test.TestStorageNode{StorageMiner: minerapi, MineOne: mineOne}, nil
 }

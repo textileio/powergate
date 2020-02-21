@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestClientVersion(t *testing.T) {
-	dnet, err := ldevnet.New(t, 1)
+	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 	defer dnet.Close()
 
@@ -31,7 +31,7 @@ func TestClientVersion(t *testing.T) {
 }
 
 func TestClientImport(t *testing.T) {
-	dnet, err := ldevnet.New(t, 1)
+	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 	defer dnet.Close()
 
@@ -53,7 +53,7 @@ func TestClientImport(t *testing.T) {
 }
 
 func TestClientChainNotify(t *testing.T) {
-	dnet, err := ldevnet.New(t, 1)
+	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 
 	ch, err := dnet.Client.ChainNotify(context.Background())
@@ -77,7 +77,7 @@ func TestClientChainNotify(t *testing.T) {
 }
 
 func TestChainHead(t *testing.T) {
-	dnet, err := ldevnet.New(t, 1)
+	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 
 	ts, err := dnet.Client.ChainHead(context.Background())
@@ -88,7 +88,7 @@ func TestChainHead(t *testing.T) {
 }
 
 func TestChainGetTipset(t *testing.T) {
-	dnet, err := ldevnet.New(t, 1)
+	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 
 	ts, err := dnet.Client.ChainHead(context.Background())
@@ -101,7 +101,7 @@ func TestChainGetTipset(t *testing.T) {
 }
 
 func TestStateReadState(t *testing.T) {
-	dnet, err := ldevnet.New(t, 1)
+	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 
 	addrs, err := dnet.Client.StateListMiners(context.Background(), nil)
@@ -119,7 +119,7 @@ func TestStateReadState(t *testing.T) {
 }
 
 func TestGetPeerID(t *testing.T) {
-	dnet, err := ldevnet.New(t, 1)
+	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 
 	miners, err := dnet.Client.StateListMiners(context.Background(), nil)

@@ -1,11 +1,21 @@
 FROM golang:1.13.7 as builder
 RUN apt-get update && apt-get install -y mesa-opencl-icd ocl-icd-opencl-dev
+
+WORKDIR /tmp
+RUN curl https://sh.rustup.rs -sSf > rustup.sh
+RUN chmod 755 rustup.sh
+RUN ./rustup.sh -y
+RUN rm /tmp/rustup.sh
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 RUN mkdir /app 
 WORKDIR /app 
 COPY extern extern
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . . 
+COPY . .
+ 
+RUN make clean build
 RUN GOOS=linux go build -o fil-toolsd exe/server/main.go && \
 go run github.com/GeertJohan/go.rice/rice append --exec fil-toolsd -i ./build
 

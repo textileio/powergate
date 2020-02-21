@@ -29,9 +29,9 @@ func (s *Service) NewWallet(ctx context.Context, req *pb.NewWalletRequest) (*pb.
 
 // WalletBalance checks a wallet balance
 func (s *Service) WalletBalance(ctx context.Context, req *pb.WalletBalanceRequest) (*pb.WalletBalanceReply, error) {
-	res, err := s.Module.WalletBalance(ctx, req.GetAddress())
+	res, err := s.Module.Balance(ctx, req.GetAddress())
 	if err != nil {
 		return nil, err
 	}
-	return &pb.WalletBalanceReply{Balance: res.Int64()}, nil
+	return &pb.WalletBalanceReply{Balance: res}, nil
 }
