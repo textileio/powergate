@@ -30,7 +30,7 @@ type Instance struct {
 	dm      *deals.Module
 	ms      ftypes.MinerSelector
 	wm      ftypes.WalletManager
-	auditer ftypes.Auditer
+	auditor ftypes.Auditor
 
 	lock sync.Mutex
 	info info
@@ -42,7 +42,7 @@ func New(ctx context.Context,
 	ipfs iface.CoreAPI,
 	dm *deals.Module,
 	ms ftypes.MinerSelector,
-	a ftypes.Auditer,
+	a ftypes.Auditor,
 	wm ftypes.WalletManager) (*Instance, error) {
 	addr, err := wm.NewWallet(ctx, defaultWalletType)
 	if err != nil {
@@ -58,7 +58,7 @@ func New(ctx context.Context,
 		ipfs:    ipfs,
 		dm:      dm,
 		ms:      ms,
-		auditer: a,
+		auditor: a,
 		wm:      wm,
 		info:    info,
 	}
@@ -72,7 +72,7 @@ func LoadFromID(store ds.Datastore,
 	ipfsClient iface.CoreAPI,
 	dm *deals.Module,
 	ms ftypes.MinerSelector,
-	a ftypes.Auditer,
+	a ftypes.Auditor,
 	wm ftypes.WalletManager,
 	id ID) (*Instance, error) {
 	buf, err := store.Get(makeKeyInstance(id))
@@ -92,7 +92,7 @@ func LoadFromID(store ds.Datastore,
 		dm:      dm,
 		ms:      ms,
 		wm:      wm,
-		auditer: a,
+		auditor: a,
 		info:    info,
 	}, nil
 }

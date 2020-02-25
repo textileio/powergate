@@ -26,7 +26,7 @@ type Manager struct {
 	wm   types.WalletManager
 	dm   *deals.Module
 	ms   types.MinerSelector
-	au   types.Auditer
+	au   types.Auditor
 	ipfs iface.CoreAPI
 
 	lock sync.Mutex
@@ -36,7 +36,7 @@ type Manager struct {
 	closed bool
 }
 
-func New(ds ds.Datastore, wm types.WalletManager, dm *deals.Module, ms types.MinerSelector, au types.Auditer, ipfs iface.CoreAPI) (*Manager, error) {
+func New(ds ds.Datastore, wm types.WalletManager, dm *deals.Module, ms types.MinerSelector, au types.Auditor, ipfs iface.CoreAPI) (*Manager, error) {
 	return &Manager{
 		auth: auth.New(ds),
 		ds:   ds,

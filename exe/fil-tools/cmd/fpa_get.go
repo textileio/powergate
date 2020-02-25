@@ -47,7 +47,7 @@ var fpaGetCmd = &cobra.Command{
 		}
 
 		if out == "" {
-			Fatal(errors.New("store command needs an out path to write the data to"))
+			Fatal(errors.New("get command needs an out path to write the data to"))
 		}
 
 		c, err := cid.Parse(cidString)

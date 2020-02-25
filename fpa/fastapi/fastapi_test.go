@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/fil-tools/deals"
 	"github.com/textileio/fil-tools/fpa/minerselector/fixed"
-	"github.com/textileio/fil-tools/fpa/noopauditer"
+	"github.com/textileio/fil-tools/fpa/noopauditor"
 	"github.com/textileio/fil-tools/tests"
 	"github.com/textileio/fil-tools/util"
 	"github.com/textileio/fil-tools/wallet"
@@ -175,7 +175,7 @@ func newFastAPI(t *testing.T) (*httpapi.HttpApi, *Instance, func()) {
 	require.Nil(t, err)
 
 	ms := fixed.New("t0300", 4000000)
-	fapi, err := New(ctx, ds, ipfsClient, m, ms, &noopauditer.Auditer{}, wm)
+	fapi, err := New(ctx, ds, ipfsClient, m, ms, &noopauditor.Auditor{}, wm)
 	require.Nil(t, err)
 	time.Sleep(time.Second)
 

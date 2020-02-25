@@ -1,4 +1,4 @@
-package jsonauditer
+package jsonauditor
 
 import (
 	"context"
@@ -13,19 +13,19 @@ var (
 	dsInstanceBaseKey = datastore.NewKey("instance")
 )
 
-type JSONAuditer struct {
+type JSONAuditor struct {
 	ds datastore.Datastore
 }
 
-func New(ds datastore.Datastore) *JSONAuditer {
-	return &JSONAuditer{
+func New(ds datastore.Datastore) *JSONAuditor {
+	return &JSONAuditor{
 		ds: ds,
 	}
 }
 
-func (ja *JSONAuditer) Start(ctx context.Context, instanceID string) types.OpAuditer {
+func (ja *JSONAuditor) Start(ctx context.Context, instanceID string) types.OpAuditor {
 	opID := uuid.New().String()
-	opa := &JSONOpAuditer{
+	opa := &JSONOpAuditor{
 		id: opID,
 		ds: namespace.Wrap(ja.ds, auditDsKey(instanceID, opID)),
 	}
@@ -36,27 +36,27 @@ func auditDsKey(iID string, opID string) datastore.Key {
 	return dsInstanceBaseKey.ChildString(iID).ChildString(opID)
 }
 
-type JSONOpAuditer struct {
+type JSONOpAuditor struct {
 	id string
 	ds datastore.Datastore
 }
 
-func (joa *JSONOpAuditer) ID() string {
+func (joa *JSONOpAuditor) ID() string {
 	return joa.id
 }
 
-func (joa *JSONOpAuditer) Success() {
+func (joa *JSONOpAuditor) Success() {
 	panic("TODO")
 }
-func (joa *JSONOpAuditer) Errored(err error) {
+func (joa *JSONOpAuditor) Errored(err error) {
 	panic("TODO")
 }
-func (joa *JSONOpAuditer) Log(event interface{}) {
+func (joa *JSONOpAuditor) Log(event interface{}) {
 	panic("TODO")
 }
-func (joa *JSONOpAuditer) Close() {
+func (joa *JSONOpAuditor) Close() {
 	panic("TODO")
 }
 
-var _ types.Auditer = (*JSONAuditer)(nil)
-var _ types.OpAuditer = (*JSONOpAuditer)(nil)
+var _ types.Auditor = (*JSONAuditor)(nil)
+var _ types.OpAuditor = (*JSONOpAuditor)(nil)

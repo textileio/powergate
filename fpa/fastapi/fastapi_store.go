@@ -24,7 +24,7 @@ var (
 )
 
 func (i *Instance) Put(ctx context.Context, c cid.Cid) error {
-	ar := i.auditer.Start(ctx, i.info.ID.String())
+	ar := i.auditor.Start(ctx, i.info.ID.String())
 	ar.Close()
 	if err := i.put(ctx, ar, c); err != nil {
 		ar.Errored(err)
@@ -34,7 +34,7 @@ func (i *Instance) Put(ctx context.Context, c cid.Cid) error {
 	return nil
 }
 
-func (i *Instance) put(ctx context.Context, oa ftypes.OpAuditer, c cid.Cid) error {
+func (i *Instance) put(ctx context.Context, oa ftypes.OpAuditor, c cid.Cid) error {
 	// ToDo: register put start for tracking
 	_, ok, err := i.getCidInfo(c)
 	if err != nil {

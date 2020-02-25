@@ -24,7 +24,7 @@ import (
 	"github.com/textileio/fil-tools/fchost"
 	"github.com/textileio/fil-tools/fpa"
 	"github.com/textileio/fil-tools/fpa/minerselector/reptop"
-	"github.com/textileio/fil-tools/fpa/noopauditer"
+	"github.com/textileio/fil-tools/fpa/noopauditor"
 	fpaPb "github.com/textileio/fil-tools/fpa/pb"
 	"github.com/textileio/fil-tools/index/ask"
 	askPb "github.com/textileio/fil-tools/index/ask/pb"
@@ -158,7 +158,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	reptop := reptop.New(rm, ai)
-	fpamanager, err := fpa.New(txndstr.Wrap(ds, "fpa"), wm, dm, reptop, &noopauditer.Auditer{}, ipfs)
+	fpamanager, err := fpa.New(txndstr.Wrap(ds, "fpa"), wm, dm, reptop, &noopauditor.Auditor{}, ipfs)
 	if err != nil {
 		return nil, fmt.Errorf("creating fpa instance: %s", err)
 	}

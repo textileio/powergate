@@ -18,10 +18,10 @@ type MinerSelector interface {
 	GetTopMiners(n int) ([]MinerProposal, error)
 }
 
-type Auditer interface {
-	Start(ctx context.Context, instanceID string) OpAuditer
+type Auditor interface {
+	Start(ctx context.Context, instanceID string) OpAuditor
 }
-type OpAuditer interface {
+type OpAuditor interface {
 	ID() string
 	Success()
 	Errored(error)

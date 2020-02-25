@@ -12,7 +12,7 @@ import (
 )
 
 func (i *Instance) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
-	ar := i.auditer.Start(ctx, i.ID().String())
+	ar := i.auditor.Start(ctx, i.ID().String())
 	ar.Close()
 	r, err := i.get(ctx, ar, c)
 	if err != nil {
@@ -23,7 +23,7 @@ func (i *Instance) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return r, nil
 }
 
-func (i *Instance) get(ctx context.Context, oa ftypes.OpAuditer, c cid.Cid) (io.Reader, error) {
+func (i *Instance) get(ctx context.Context, oa ftypes.OpAuditor, c cid.Cid) (io.Reader, error) {
 	n, err := i.ipfs.Unixfs().Get(ctx, path.IpfsPath(c))
 	if err != nil {
 		return nil, err
