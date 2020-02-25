@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/api"
 	str "github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
-	logging "github.com/ipfs/go-log"
+	logging "github.com/ipfs/go-log/v2"
 )
 
 const (
@@ -63,42 +64,50 @@ func New(api API, opts ...Option) (*Module, error) {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64) (cid.Cid, []cid.Cid, []StorageDealConfig, error) {
+func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64) (cid.Cid, []StoreResult, error) {
+
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
-		return cid.Undef, nil, nil, fmt.Errorf("error when creating tmpfile: %s", err)
+		return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
 	defer f.Close()
 	if _, err := io.Copy(f, data); err != nil {
-		return cid.Undef, nil, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
+		return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
 	dataCid, err := m.api.ClientImport(ctx, f.Name())
 	if err != nil {
-		return cid.Undef, nil, nil, fmt.Errorf("error when importing data: %s", err)
+		return cid.Undef, nil, fmt.Errorf("error when importing data: %s", err)
 	}
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
-		return cid.Undef, nil, nil, err
+		return cid.Undef, nil, err
 	}
 
-	var proposals []cid.Cid
-	var failed []StorageDealConfig
-	for _, c := range dcfgs {
+	res := make([]StoreResult, len(dcfgs))
+	for i, c := range dcfgs {
 		maddr, err := address.NewFromString(c.Miner)
 		if err != nil {
 			log.Errorf("invalid miner address %v: %s", c, err)
-			failed = append(failed, c)
+			res[i] = StoreResult{
+				Config: c,
+			}
 			continue
 		}
-		proposal, err := m.api.ClientStartDeal(ctx, dataCid, addr, maddr, c.EpochPrice, dur)
+		p, err := m.api.ClientStartDeal(ctx, dataCid, addr, maddr, types.NewInt(c.EpochPrice), dur)
 		if err != nil {
 			log.Errorf("starting deal with %v: %s", c, err)
-			failed = append(failed, c)
+			res[i] = StoreResult{
+				Config: c,
+			}
 			continue
 		}
-		proposals = append(proposals, *proposal)
+		res[i] = StoreResult{
+			Config:      c,
+			ProposalCid: *p,
+			Success:     true,
+		}
 	}
-	return dataCid, proposals, failed, nil
+	return dataCid, res, nil
 }
 
 // Retrieve fetches the data stored in filecoin at a particular cid
@@ -165,11 +174,11 @@ func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]*api.
 			newState := DealInfo{
 				ProposalCid:   dinfo.ProposalCid,
 				StateID:       dinfo.State,
-				StateName:     api.DealStates[dinfo.State],
+				StateName:     storagemarket.DealStates[dinfo.State],
 				Miner:         dinfo.Provider.String(),
 				PieceRef:      dinfo.PieceRef,
 				Size:          dinfo.Size,
-				PricePerEpoch: dinfo.PricePerEpoch,
+				PricePerEpoch: dinfo.PricePerEpoch.Uint64(),
 				Duration:      dinfo.Duration,
 			}
 			select {

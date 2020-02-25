@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/filecoin-project/lotus/chain/types"
-	logging "github.com/ipfs/go-log"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/fil-tools/tests"
 )
 

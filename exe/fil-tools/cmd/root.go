@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"os"
@@ -44,6 +45,8 @@ var (
 				opts = append(opts, grpc.WithInsecure())
 			}
 
+			auth := tokenAuth{}
+			opts = append(opts, grpc.WithPerRPCCredentials(auth))
 			fcClient, err = client.NewClient(target, opts...)
 			checkErr(err)
 		},
@@ -84,4 +87,23 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+type authKey string
+
+type tokenAuth struct {
+	secure bool
+}
+
+func (t tokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
+	md := map[string]string{}
+	token, ok := ctx.Value(authKey("fpatoken")).(string)
+	if ok && token != "" {
+		md["X-fpa-Token"] = token
+	}
+	return md, nil
+}
+
+func (t tokenAuth) RequireTransportSecurity() bool {
+	return t.secure
 }

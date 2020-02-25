@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/ip2location/ip2location-go"
-	logging "github.com/ipfs/go-log"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/fil-tools/iplocation"
 	"github.com/textileio/fil-tools/util"

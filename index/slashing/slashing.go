@@ -11,7 +11,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
-	logging "github.com/ipfs/go-log"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/fil-tools/chainstore"
 	"github.com/textileio/fil-tools/chainsync"
 	"github.com/textileio/fil-tools/signaler"
@@ -159,6 +159,9 @@ func (s *SlashingIndex) updateIndex() error {
 	if err != nil {
 		return err
 	}
+	if heaviest.Height()-hOffset <= 0 {
+		return nil
+	}
 	new, err := s.api.ChainGetTipSetByHeight(s.ctx, heaviest.Height()-hOffset, heaviest)
 	if err != nil {
 		return err
@@ -189,6 +192,7 @@ func (s *SlashingIndex) updateIndex() error {
 		if err := s.store.Save(s.ctx, types.NewTipSetKey(path[j-1].Cids()...), index); err != nil {
 			return err
 		}
+		log.Infof("processed from %d to %d", path[i].Height(), path[j-1].Height())
 		stats.Record(mctx, mRefreshProgress.M(float64(i)/float64(len(path))))
 	}
 

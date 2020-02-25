@@ -21,10 +21,10 @@ func (w *Wallet) NewWallet(ctx context.Context, typ string) (string, error) {
 }
 
 // WalletBalance gets a filecoin wallet's balance
-func (w *Wallet) WalletBalance(ctx context.Context, address string) (int64, error) {
+func (w *Wallet) WalletBalance(ctx context.Context, address string) (uint64, error) {
 	resp, err := w.client.WalletBalance(ctx, &pb.WalletBalanceRequest{Address: address})
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 	return resp.GetBalance(), nil
 }
