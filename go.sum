@@ -405,6 +405,8 @@ github.com/ipfs/go-verifcid v0.0.1 h1:m2HI7zIuR5TFyQ1b79Da5N9dnnCP1vcu2QqawmWlK2
 github.com/ipfs/go-verifcid v0.0.1/go.mod h1:5Hrva5KBeIog4A+UpqlaIU+DEstipcJYQQZc0g37pY0=
 github.com/ipfs/interface-go-ipfs-core v0.2.3 h1:E6uQ+1fJjkxJWlL9lAE72a5FWeyeeNL3GitLy8+jq3Y=
 github.com/ipfs/interface-go-ipfs-core v0.2.3/go.mod h1:Tihp8zxGpUeE3Tokr94L6zWZZdkRQvG5TL6i9MuNE+s=
+github.com/ipfs/interface-go-ipfs-core v0.2.6 h1:4eeGPJUDWblEurSzpAtL2znDG1xqAoX2aNNIoOFwyuc=
+github.com/ipfs/interface-go-ipfs-core v0.2.6/go.mod h1:Tihp8zxGpUeE3Tokr94L6zWZZdkRQvG5TL6i9MuNE+s=
 github.com/ipfs/iptb v1.4.0 h1:YFYTrCkLMRwk/35IMyC6+yjoQSHTEcNcefBStLJzgvo=
 github.com/ipfs/iptb v1.4.0/go.mod h1:1rzHpCYtNp87/+hTxG5TfCVn/yMY3dKnLn8tBiMfdmg=
 github.com/ipfs/iptb-plugins v0.2.1 h1:au4HWn9/pRPbkxA08pDx2oRAs4cnbgQWgV0teYXuuGA=
