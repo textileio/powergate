@@ -23,6 +23,17 @@ type Props = {
 }
 
 const MinersMeta: FunctionComponent<Props> = (props) => {
+  const rows = props.data.map(item => (
+    <TableRow key={item.id}>
+      <TableCell>{item.id}</TableCell>
+      <TableCell>{item.online ? "true" : "false"}</TableCell>
+      <TableCell>{item.country}</TableCell>
+      <TableCell>{item.latitude}</TableCell>
+      <TableCell>{item.longitude}</TableCell>
+      <TableCell>{item.userAgent}</TableCell>
+      <TableCell align="right">{item.lastUpdated.toLocaleString()}</TableCell>
+    </TableRow>
+  ))
   return (
     <React.Fragment>
       <Title>Miner Metadata</Title>
@@ -39,17 +50,7 @@ const MinersMeta: FunctionComponent<Props> = (props) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.data.map(item => (
-            <TableRow key={item.id}>
-              <TableCell>{item.id}</TableCell>
-              <TableCell>{item.online ? "true" : "false"}</TableCell>
-              <TableCell>{item.country}</TableCell>
-              <TableCell>{item.latitude}</TableCell>
-              <TableCell>{item.longitude}</TableCell>
-              <TableCell>{item.userAgent}</TableCell>
-              <TableCell align="right">{item.lastUpdated.toString()}</TableCell>
-            </TableRow>
-          ))}
+          {rows}
         </TableBody>
       </Table>
     </React.Fragment>
