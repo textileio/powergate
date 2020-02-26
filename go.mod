@@ -24,7 +24,7 @@ require (
 	github.com/gorilla/websocket v1.4.1
 	github.com/gosuri/uilive v0.0.4
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/improbable-eng/grpc-web v0.12.0
 	github.com/ip2location/ip2location-go v8.3.0+incompatible
 	github.com/ipfs/go-car v0.0.3-0.20200131220434-3f68f6ebd093
