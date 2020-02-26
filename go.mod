@@ -36,7 +36,7 @@ require (
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
 	github.com/ipfs/go-log v1.0.2 // indirect
 	github.com/ipfs/go-log/v2 v2.0.2
-	github.com/ipfs/interface-go-ipfs-core v0.2.3
+	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/libp2p/go-libp2p v0.5.0
 	github.com/libp2p/go-libp2p-core v0.3.1
