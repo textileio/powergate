@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/caarlos0/spin"
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/fil-tools/deals"
@@ -73,7 +72,7 @@ var storeCmd = &cobra.Command{
 		for i, miner := range miners {
 			dealConfigs[i] = deals.StorageDealConfig{
 				Miner:      miner,
-				EpochPrice: types.NewInt(uint64(prices[i])),
+				EpochPrice: uint64(prices[i]),
 			}
 		}
 
@@ -96,7 +95,7 @@ var storeCmd = &cobra.Command{
 			for i, dealConfig := range failed {
 				data[i] = []string{
 					dealConfig.Miner,
-					strconv.Itoa(int(dealConfig.EpochPrice.Int64())),
+					strconv.Itoa(int(dealConfig.EpochPrice)),
 				}
 			}
 			RenderTable(os.Stdout, []string{"miner", "price"}, data)

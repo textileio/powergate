@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/chain/types"
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/fil-tools/deals"
 	pb "github.com/textileio/fil-tools/deals/pb"
@@ -37,7 +36,7 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 	for i, dealConfig := range dealConfigs {
 		reqDealConfigs[i] = &pb.DealConfig{
 			Miner:      dealConfig.Miner,
-			EpochPrice: dealConfig.EpochPrice.Uint64(),
+			EpochPrice: dealConfig.EpochPrice,
 		}
 	}
 	storeParams := &pb.StoreParams{
@@ -87,7 +86,7 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 		}
 		failedDeals[i] = deals.StorageDealConfig{
 			Miner:      addr.String(),
-			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
+			EpochPrice: dealConfig.GetEpochPrice(),
 		}
 	}
 
@@ -128,7 +127,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				Miner:         event.GetDealInfo().GetMiner(),
 				PieceRef:      event.GetDealInfo().GetPieceRef(),
 				Size:          event.GetDealInfo().GetSize(),
-				PricePerEpoch: types.NewInt(event.GetDealInfo().GetPricePerEpoch()),
+				PricePerEpoch: event.GetDealInfo().GetPricePerEpoch(),
 				Duration:      event.GetDealInfo().GetDuration(),
 			}
 			channel <- WatchEvent{Deal: deal}

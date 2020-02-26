@@ -80,7 +80,7 @@ func updateMetaIndex(ctx context.Context, api API, h P2PHost, lr iplocation.Loca
 				return
 			}
 			lock.Lock()
-			index.Info[a] = si
+			index.Info[a] = merge(index.Info[a], si)
 			lock.Unlock()
 		}(a)
 		if i%100 == 0 {
@@ -104,6 +104,22 @@ func updateMetaIndex(ctx context.Context, api API, h P2PHost, lr iplocation.Loca
 	stats.Record(ctx, mMetaPingCount.M(int64(index.Offline)))
 
 	return index, nil
+}
+
+func merge(old Meta, upt Meta) Meta {
+	if upt.Location.Country == "" {
+		upt.Location.Country = old.Location.Country
+	}
+
+	if upt.Location.Latitude == 0 {
+		upt.Location.Latitude = old.Location.Latitude
+	}
+
+	if upt.Location.Longitude == 0 {
+		upt.Location.Longitude = old.Location.Longitude
+	}
+
+	return upt
 }
 
 // getMeta returns fresh metadata information about a miner

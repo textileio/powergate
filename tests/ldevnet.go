@@ -14,7 +14,7 @@ func init() {
 }
 
 func CreateLocalDevnet(t *testing.T, numMiners int) (*ldevnet.LocalDevnet, address.Address, []address.Address, func()) {
-	dnet, err := ldevnet.New(t, numMiners)
+	dnet, err := ldevnet.New(numMiners, ldevnet.DefaultDuration)
 	if err != nil {
 		t.Fatal(err)
 	}

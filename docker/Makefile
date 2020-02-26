@@ -1,13 +1,12 @@
-LT = $(shell cat ~/.lotus/token)
-#LT = $(shell docker exec lotustest cat /root/.lotus/token)
-
-fresh: down up
-.PHONY: fresh-up
-
 down:
-	@TEXFILTOOLS_LOTUSTOKEN=$(LT) docker-compose down
+	docker-compose down
+	docker-compose -p embed down
 .PHONY: down
 
-up: 
-	TEXFILTOOLS_LOTUSTOKEN=$(LT) docker-compose up --build 
-.PHONY: up
+fresh: down
+	docker-compose up --build 
+.PHONY: fresh-up
+
+embed: 
+	docker-compose -p embed -f docker-compose-embedded.yaml up --build -V
+.PHONY: embed

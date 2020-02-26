@@ -1,10 +1,12 @@
 package util
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	ma "github.com/multiformats/go-multiaddr"
+	dns "github.com/multiformats/go-multiaddr-dns"
 )
 
 var (
@@ -17,6 +19,21 @@ func TCPAddrFromMultiAddr(maddr ma.Multiaddr) (addr string, err error) {
 		err = fmt.Errorf("invalid address")
 		return
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := maddr.ValueForProtocol(ma.P_DNS4); err == nil {
+		maddrs, err := dns.Resolve(ctx, maddr)
+		if err != nil {
+			return "", err
+		}
+		for _, m := range maddrs {
+			if _, err := m.ValueForProtocol(ma.P_IP4); err == nil {
+				maddr = m
+				break
+			}
+		}
+	}
+
 	ip4, err := maddr.ValueForProtocol(ma.P_IP4)
 	if err != nil {
 		return
@@ -26,4 +43,12 @@ func TCPAddrFromMultiAddr(maddr ma.Multiaddr) (addr string, err error) {
 		return
 	}
 	return fmt.Sprintf("%s:%s", ip4, tcp), nil
+}
+
+func MustParseAddr(str string) ma.Multiaddr {
+	addr, err := ma.NewMultiaddr(str)
+	if err != nil {
+		panic(err)
+	}
+	return addr
 }

@@ -19,7 +19,7 @@ message WalletBalanceRequest {
 }
 
 message WalletBalanceReply {
-    int64 balance = 1;
+    uint64 balance = 1;
 }
 
 service API {

@@ -144,15 +144,12 @@ func (s *Store) save(ts types.TipSetKey, state interface{}) error {
 	if err != nil {
 		return err
 	}
-	if err != nil {
-		return err
-	}
 	c := checkpoint{id: s.lastID + 1, ts: ts}
-	if err := s.ds.Put(toKeyData(c.ts), buf); err != nil {
+	if err := txn.Put(toKeyData(c.ts), buf); err != nil {
 		return err
 	}
-	if err := s.ds.Put(toKeyID(c.id), c.ts.Bytes()); err != nil {
-		return nil
+	if err := txn.Put(toKeyID(c.id), c.ts.Bytes()); err != nil {
+		return err
 	}
 	if err := txn.Commit(); err != nil {
 		return err

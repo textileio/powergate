@@ -2,13 +2,14 @@ package reputation
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/ipfs/go-datastore"
-	logging "github.com/ipfs/go-log"
+	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/fil-tools/index/ask"
 	"github.com/textileio/fil-tools/index/miner"
@@ -81,6 +82,9 @@ func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 
 // GetTopMiners gets the top n miners with best score
 func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
+	if n < 1 {
+		return nil, fmt.Errorf("the number of miners should be greater than zero")
+	}
 	mr := make([]MinerScore, 0, n)
 	rm.lockScores.Lock()
 	for i := 0; i < n; i++ {
@@ -154,7 +158,7 @@ func (rm *Module) indexBuilder() {
 		rm.scores = scores
 		rm.lockScores.Unlock()
 
-		log.Debug("index rebuilt int %dms", time.Since(start).Milliseconds())
+		log.Debugf("index rebuilt int %dms", time.Since(start).Milliseconds())
 	}
 }
 

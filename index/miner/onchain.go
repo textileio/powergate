@@ -31,6 +31,9 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 	if err != nil {
 		return err
 	}
+	if heaviest.Height()-hOffset <= 0 {
+		return nil
+	}
 	new, err := mi.api.ChainGetTipSetByHeight(mi.ctx, heaviest.Height()-hOffset, heaviest)
 	if err != nil {
 		return err
@@ -55,9 +58,6 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 	log.Infof("current state height %d, new tipset height %d", chainIndex.LastUpdated, new.Height())
 	if hdiff > fullThreshold || chainIndex.LastUpdated == 0 {
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "full"))
-		if err != nil {
-			return err
-		}
 		if err := fullRefresh(mi.ctx, mi.api, &chainIndex); err != nil {
 			return fmt.Errorf("error doing full refresh: %s", err)
 		}

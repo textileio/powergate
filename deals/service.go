@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	pb "github.com/textileio/fil-tools/deals/pb"
 
@@ -33,19 +32,28 @@ func NewService(dm *Module) *Service {
 	}
 }
 
-func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams, reader io.Reader, ch chan storeResult) {
+func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams, r io.Reader, ch chan storeResult) {
 	defer close(ch)
 	dealConfigs := make([]StorageDealConfig, len(storeParams.GetDealConfigs()))
 	for i, dealConfig := range storeParams.GetDealConfigs() {
 		dealConfigs[i] = StorageDealConfig{
 			Miner:      dealConfig.GetMiner(),
-			EpochPrice: types.NewInt(dealConfig.GetEpochPrice()),
+			EpochPrice: dealConfig.GetEpochPrice(),
 		}
 	}
-	dcid, pcids, failedDeals, err := dealsModule.Store(ctx, storeParams.GetAddress(), reader, dealConfigs, storeParams.GetDuration())
+	dcid, sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), r, dealConfigs, storeParams.GetDuration())
 	if err != nil {
 		ch <- storeResult{Err: err}
 		return
+	}
+	var failedDeals []StorageDealConfig
+	var pcids []cid.Cid
+	for _, res := range sr {
+		if res.Success {
+			pcids = append(pcids, res.ProposalCid)
+		} else {
+			failedDeals = append(failedDeals, res.Config)
+		}
 	}
 	ch <- storeResult{DataCid: dcid, ProposalCids: pcids, FailedDeals: failedDeals}
 }
@@ -101,7 +109,7 @@ func (s *Service) Store(srv pb.API_StoreServer) error {
 
 	replyFailedDeals := make([]*pb.DealConfig, len(storeResult.FailedDeals))
 	for i, dealConfig := range storeResult.FailedDeals {
-		replyFailedDeals[i] = &pb.DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice.Uint64()}
+		replyFailedDeals[i] = &pb.DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice}
 	}
 
 	return srv.SendAndClose(&pb.StoreReply{DataCid: storeResult.DataCid.String(), ProposalCids: replyCids, FailedDeals: replyFailedDeals})
@@ -130,7 +138,7 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 			Miner:         update.Miner,
 			PieceRef:      update.PieceRef,
 			Size:          update.Size,
-			PricePerEpoch: update.PricePerEpoch.Uint64(),
+			PricePerEpoch: update.PricePerEpoch,
 			Duration:      update.Duration,
 		}
 		srv.Send(&pb.WatchReply{DealInfo: dealInfo})

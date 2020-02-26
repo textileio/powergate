@@ -11,7 +11,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
-	logging "github.com/ipfs/go-log"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/textileio/fil-tools/signaler"
 	"go.opencensus.io/stats"
@@ -210,12 +210,12 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 			defer cancel()
 			pid, err := api.StateMinerPeerID(ictx, addr, nil)
 			if err != nil {
-				log.Debug("error getting pid of %s: %s", addr, err)
+				log.Debugf("error getting pid of %s: %s", addr, err)
 				return
 			}
 			ask, err := api.ClientQueryAsk(ictx, pid, addr)
 			if err != nil {
-				log.Debug("error query-asking miner: %s", err)
+				log.Debugf("error query-asking miner: %s", err)
 				return
 			}
 			lock.Lock()
@@ -230,7 +230,7 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 		}(addr)
 		if i%100 == 0 {
 			stats.Record(context.Background(), mFullRefreshProgress.M(float64(i)/float64(len(addrs))))
-			log.Debug("progress %d/%d", i, len(addrs))
+			log.Debugf("progress %d/%d", i, len(addrs))
 		}
 	}
 	for i := 0; i < qaRatelim; i++ {

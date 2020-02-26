@@ -10,7 +10,6 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/caarlos0/spin"
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/fil-tools/deals"
@@ -105,7 +104,7 @@ var dealCmd = &cobra.Command{
 			ask := asks[val]
 			dealConfigs[i] = deals.StorageDealConfig{
 				Miner:      ask.Miner,
-				EpochPrice: types.NewInt(ask.Price),
+				EpochPrice: ask.Price,
 			}
 		}
 
@@ -125,7 +124,7 @@ var dealCmd = &cobra.Command{
 			for i, dealConfig := range failed {
 				data[i] = []string{
 					dealConfig.Miner,
-					strconv.Itoa(int(dealConfig.EpochPrice.Int64())),
+					strconv.Itoa(int(dealConfig.EpochPrice)),
 				}
 			}
 			RenderTable(os.Stdout, []string{"miner", "price"}, data)

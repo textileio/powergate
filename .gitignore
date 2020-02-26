@@ -21,3 +21,5 @@
 .update-modules
 
 api/client/datastore
+
+tags

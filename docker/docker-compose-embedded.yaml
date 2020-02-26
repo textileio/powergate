@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  
+  fil-tools:
+    build:
+      context: ../
+      dockerfile: exe/server/Dockerfile
+    ports:
+      - 8889:8889
+      - 8888:8888
+      - 6060:6060
+      - 5002:5002
+      - 6002:6002
+    depends_on:
+      - ipfs
+    environment:
+      - TEXFILTOOLS_EMBEDDED=true
+      - TEXFILTOOLS_REPOPATH=/tmp/.texfc
+      - TEXFILTOOLS_IPFSAPIADDR=/dns4/ipfs/tcp/5001
+      - TEXFILTOOLS_LOTUSHOST=/dns4/lotus/tcp/1234
+    restart: unless-stopped
+
+  ipfs:
+    image: ipfs/go-ipfs:latest
+    ports:
+      - 5001:5001
+    restart: unless-stopped    

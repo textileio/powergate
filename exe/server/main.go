@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"math/big"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,11 +14,12 @@ import (
 	_ "net/http/pprof"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
-	logging "github.com/ipfs/go-log"
+	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/textileio/fil-tools/api/server"
+	"github.com/textileio/fil-tools/util"
 )
 
 var (
@@ -29,9 +32,13 @@ func main() {
 	pflag.Bool("pprof", false, "enable pprof endpoint")
 	pflag.String("grpchostaddr", "0.0.0.0:5002", "grpc host listening address")
 	pflag.String("grpcwebproxyaddr", "0.0.0.0:6002", "grpc webproxy listening address")
-	pflag.String("lotushost", "127.0.0.1:1234", "lotus full-node address")
+	pflag.String("lotushost", "/ip4/127.0.0.1/tcp/1234", "lotus full-node address")
 	pflag.String("lotustoken", "", "lotus full-node auth token")
+	pflag.String("lotustokenfile", "", "lotus full-node auth token file")
 	pflag.String("repopath", "${HOME}/.texfc", "repo-path")
+	pflag.Bool("embedded", false, "run in embedded ephemeral FIL network")
+	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "ipfs api multiaddr")
+	pflag.Int64("walletinitialfund", 5000000000000, "created wallets initial fund in attoFIL")
 	pflag.Parse()
 
 	config.SetEnvPrefix("TEXFILTOOLS")
@@ -42,26 +49,37 @@ func main() {
 	setupInstrumentation()
 	setupPprof()
 
-	maddr, err := getLotusMaddr()
-	if err != nil {
-		log.Fatal(err)
-	}
-	lotusToken, err := getLotusToken()
-	if err != nil {
-		log.Fatal(err)
-	}
+	embedded := config.GetBool("embedded")
 
-	repoPath := config.GetString("repopath")
-	if repoPath == "" {
-		repoPath, err = os.UserHomeDir()
+	var maddr ma.Multiaddr
+	var lotusToken string
+	var err error
+	if !embedded {
+		maddr, err = getLotusMaddr()
 		if err != nil {
-			log.Fatal("error when setting default repo path to home dir")
+			log.Fatal(err)
+		}
+		lotusToken, err = getLotusToken()
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 
+	repoPath := config.GetString("repopath")
+	if repoPath == "${HOME}/.texfc" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatalf("error when setting default repo path to home dir: %s", err)
+		}
+		repoPath = strings.Replace(repoPath, "${HOME}", home, -1)
+	}
+
 	conf := server.Config{
-		LotusAddress:   maddr,
-		LotusAuthToken: lotusToken,
+		WalletInitialFunds: *big.NewInt(config.GetInt64("walletinitialfund")),
+		IpfsApiAddr:        util.MustParseAddr(config.GetString("ipfsapiaddr")),
+		LotusAddress:       maddr,
+		LotusAuthToken:     lotusToken,
+		Embedded:           embedded,
 		// ToDo: Support secure gRPC connection
 		GrpcHostNetwork:     "tcp",
 		GrpcHostAddress:     config.GetString("grpchostaddr"),
@@ -106,12 +124,16 @@ func setupInstrumentation() {
 }
 
 func setupLogging() {
-	logging.SetDebugLogging()
-	if !config.GetBool("debug") {
-		logging.SetLogLevel("*", "info")
-		logging.SetLogLevel("rpc", "error")
-		logging.SetLogLevel("dht", "error")
-		logging.SetLogLevel("swarm2", "error")
+	logging.SetLogLevel("*", "error")
+	loggers := []string{"index-miner", "index-ask", "index-slashing", "server",
+		"deals", "fil-toolsd", "fchost", "fpaauth", "fastapi", "ip2location", "reputation"}
+	for _, l := range loggers {
+		logging.SetLogLevel(l, "info")
+	}
+	if config.GetBool("debug") {
+		for _, l := range loggers {
+			logging.SetLogLevel(l, "debug")
+		}
 	}
 }
 
@@ -125,12 +147,7 @@ func setupPprof() {
 }
 
 func getLotusMaddr() (ma.Multiaddr, error) {
-	addrsplt := strings.Split(config.GetString("lotushost"), ":")
-	if len(addrsplt) != 2 {
-		return nil, fmt.Errorf("lotus addr is invalid")
-	}
-	addr := fmt.Sprintf("/ip4/%v/tcp/%v", addrsplt[0], addrsplt[1])
-	maddr, err := ma.NewMultiaddr(addr)
+	maddr, err := ma.NewMultiaddr(config.GetString("lotushost"))
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +157,15 @@ func getLotusMaddr() (ma.Multiaddr, error) {
 func getLotusToken() (string, error) {
 	token := config.GetString("lotustoken")
 	if token == "" {
-		return "", fmt.Errorf("lotus auth token can't be empty")
+		path := config.GetString("lotustokenfile")
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			return "", fmt.Errorf("lotus auth token can't be empty")
+		}
+		b, err := ioutil.ReadFile(path)
+		if err != nil {
+			return "", fmt.Errorf("reading token file from lotus")
+		}
+		token = string(b)
 	}
 	return token, nil
 }

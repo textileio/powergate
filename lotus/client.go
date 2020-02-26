@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/filecoin-project/lotus/api/apistruct"
-	logging "github.com/ipfs/go-log"
+	"github.com/filecoin-project/lotus/build"
+	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
+	"github.com/textileio/fil-tools/ldevnet"
 	"github.com/textileio/fil-tools/lotus/jsonrpc"
 
 	"github.com/textileio/fil-tools/util"
@@ -50,6 +52,16 @@ func New(maddr ma.Multiaddr, authToken string) (*apistruct.FullNodeStruct, func(
 		closer()
 	}, nil
 
+}
+
+func NewEmbedded() (*apistruct.FullNodeStruct, func(), error) {
+	util.AvgBlockTime = time.Second * 1
+	dnet, err := ldevnet.New(1, util.AvgBlockTime)
+	if err != nil {
+		return nil, nil, err
+	}
+	build.InsecurePoStValidation = true
+	return dnet.Client, dnet.Close, nil
 }
 
 func monitorLotusSync(ctx context.Context, c *apistruct.FullNodeStruct) {
