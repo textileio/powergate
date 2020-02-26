@@ -57,13 +57,9 @@ require (
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
 	go.opencensus.io v0.22.3
-<<<<<<< HEAD
-	golang.org/x/crypto v0.0.0-20200204104054-c9f3fb736b72 // indirect
-=======
 	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad // indirect
 	golang.org/x/net v0.0.0-20191003171128-d98b1b443823 // indirect
 	golang.org/x/sys v0.0.0-20200121082415-34d275377bf9 // indirect
->>>>>>> origin/master
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 	google.golang.org/grpc v1.27.1
 	gopkg.in/yaml.v2 v2.2.7 // indirect
