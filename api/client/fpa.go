@@ -22,14 +22,46 @@ func (f *fpa) Show(ctx context.Context, c cid.Cid) (*pb.ShowReply, error) {
 	})
 }
 
-func (f *fpa) Store(ctx context.Context, c cid.Cid) error {
-	_, err := f.client.Store(ctx, &pb.StoreRequest{
+func (f *fpa) StoreCid(ctx context.Context, c cid.Cid) error {
+	_, err := f.client.StoreCid(ctx, &pb.StoreCidRequest{
 		Cid: c.String(),
 	})
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (f *fpa) StoreData(ctx context.Context, data io.Reader) (*cid.Cid, error) {
+	stream, err := f.client.StoreData(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	buffer := make([]byte, 1024*32) // 32KB
+	for {
+		bytesRead, err := data.Read(buffer)
+		if err != nil && err != io.EOF {
+			return nil, err
+		}
+		sendErr := stream.Send(&pb.StoreDataRequest{Chunk: buffer[:bytesRead]})
+		if sendErr != nil {
+			return nil, sendErr
+		}
+		if err == io.EOF {
+			break
+		}
+	}
+	reply, err := stream.CloseAndRecv()
+	if err != nil {
+		return nil, err
+	}
+
+	cid, err := cid.Decode(reply.GetCid())
+	if err != nil {
+		return nil, err
+	}
+	return &cid, nil
 }
 
 func (f *fpa) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {

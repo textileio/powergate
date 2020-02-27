@@ -23,15 +23,36 @@ var (
 	ErrNotStored     = errors.New("cid not stored")
 )
 
+func (i *Instance) PutData(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
+	ar := i.auditor.Start(ctx, i.info.ID.String())
+	defer ar.Close()
+	cid, err := i.putData(ctx, ar, reader)
+	if err != nil {
+		ar.Errored(err)
+		return nil, err
+	}
+	ar.Success()
+	return cid, nil
+}
+
 func (i *Instance) Put(ctx context.Context, c cid.Cid) error {
 	ar := i.auditor.Start(ctx, i.info.ID.String())
-	ar.Close()
+	defer ar.Close()
 	if err := i.put(ctx, ar, c); err != nil {
 		ar.Errored(err)
 		return err
 	}
 	ar.Success()
 	return nil
+}
+
+func (i *Instance) putData(ctx context.Context, oa ftypes.OpAuditor, reader io.Reader) (*cid.Cid, error) {
+	cid, err := i.addToHotLayer(ctx, reader)
+	if err != nil {
+		return nil, fmt.Errorf("adding data to hot layer: %s", err)
+	}
+	err = i.put(ctx, oa, *cid)
+	return cid, err
 }
 
 func (i *Instance) put(ctx context.Context, oa ftypes.OpAuditor, c cid.Cid) error {
@@ -108,6 +129,15 @@ func (i *Instance) storeInFIL(ctx context.Context, c cid.Cid) (ColdInfo, error) 
 		}
 	}
 	return ci, nil
+}
+
+func (i *Instance) addToHotLayer(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
+	path, err := i.ipfs.Object().Put(ctx, reader)
+	if err != nil {
+		return nil, err
+	}
+	cid := path.Cid()
+	return &cid, nil
 }
 
 func (i *Instance) pinToHotLayer(ctx context.Context, c cid.Cid) (HotInfo, error) {

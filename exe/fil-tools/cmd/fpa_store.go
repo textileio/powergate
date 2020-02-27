@@ -13,7 +13,7 @@ import (
 
 func init() {
 	fpaStoreCmd.Flags().StringP("cid", "c", "", "cid of the data to pin")
-	fpaStoreCmd.Flags().StringP("token", "t", "", "wallet address used to store the data")
+	fpaStoreCmd.Flags().StringP("token", "t", "", "FPA access token")
 
 	fpaCmd.AddCommand(fpaStoreCmd)
 }
@@ -47,7 +47,7 @@ var fpaStoreCmd = &cobra.Command{
 
 		s := spin.New("%s Pinning specified cid...")
 		s.Start()
-		err = fcClient.Fpa.Store(ctx, c)
+		err = fcClient.Fpa.StoreCid(ctx, c)
 		s.Stop()
 		checkErr(err)
 	},

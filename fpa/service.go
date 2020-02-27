@@ -95,7 +95,7 @@ func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply,
 	return reply, nil
 }
 
-func (s *Service) Store(ctx context.Context, req *pb.StoreRequest) (*pb.StoreReply, error) {
+func (s *Service) StoreCid(ctx context.Context, req *pb.StoreCidRequest) (*pb.StoreCidReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,56 @@ func (s *Service) Store(ctx context.Context, req *pb.StoreRequest) (*pb.StoreRep
 	if err := i.Put(ctx, c); err != nil {
 		return nil, err
 	}
-	return &pb.StoreReply{}, nil
+	return &pb.StoreCidReply{}, nil
+}
+
+type storeDataResult struct {
+	cid *cid.Cid
+	err error
+}
+
+func storeData(ctx context.Context, f func(ctx context.Context, reader io.Reader) (*cid.Cid, error), reader io.Reader, ch chan storeDataResult) {
+	defer close(ch)
+	cid, err := f(ctx, reader)
+	if err != nil {
+		ch <- storeDataResult{err: err}
+		return
+	}
+	ch <- storeDataResult{cid: cid}
+}
+
+func (s *Service) StoreData(srv pb.API_StoreDataServer) error {
+	i, err := s.getInstanceByToken(srv.Context())
+	if err != nil {
+		return err
+	}
+
+	reader, writer := io.Pipe()
+
+	storeDataChannel := make(chan storeDataResult)
+	go storeData(srv.Context(), i.PutData, reader, storeDataChannel)
+
+	for {
+		req, err := srv.Recv()
+		if err == io.EOF {
+			_ = writer.Close()
+			break
+		} else if err != nil {
+			_ = writer.CloseWithError(err)
+			break
+		}
+		_, writeErr := writer.Write(req.GetChunk())
+		if writeErr != nil {
+			return writeErr
+		}
+	}
+
+	storeDataResult := <-storeDataChannel
+	if storeDataResult.err != nil {
+		return storeDataResult.err
+	}
+
+	return srv.SendAndClose(&pb.StoreDataReply{Cid: storeDataResult.cid.String()})
 }
 
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
