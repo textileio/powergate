@@ -66,8 +66,8 @@ func TestAdd(t *testing.T) {
 		require.Equal(t, ErrAlreadyPinned, err)
 	})
 
-	r := rand.New(rand.NewSource(33))
-	data := randomBytes(r, 500)
+	r2 := rand.New(rand.NewSource(33))
+	data := randomBytes(r2, 500)
 	t.Run("AddFileSuccess", func(t *testing.T) {
 		cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
 		require.Nil(t, err)
