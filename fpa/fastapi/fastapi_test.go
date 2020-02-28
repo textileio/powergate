@@ -75,7 +75,7 @@ func TestAdd(t *testing.T) {
 	})
 
 	t.Run("AddFilePinned", func(t *testing.T) {
-		cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
+		_, err := fapi.AddFile(ctx, bytes.NewReader(data))
 		require.Equal(t, ErrAlreadyPinned, err)
 	})
 }
