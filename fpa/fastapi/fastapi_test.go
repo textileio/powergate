@@ -56,22 +56,27 @@ func TestAdd(t *testing.T) {
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
-	t.Run("AddSuccess", func(t *testing.T) {
+	t.Run("AddCidSuccess", func(t *testing.T) {
 		err := fapi.AddCid(ctx, cid)
 		require.Nil(t, err)
 	})
 
-	t.Run("AddPinned", func(t *testing.T) {
+	t.Run("AddCidPinned", func(t *testing.T) {
 		err := fapi.AddCid(ctx, cid)
 		require.Equal(t, ErrAlreadyPinned, err)
 	})
 
-	t.Run("AddFile", func(t *testing.T) {
-		r := rand.New(rand.NewSource(22))
-		data := randomBytes(r, 500)
+	r := rand.New(rand.NewSource(33))
+	data := randomBytes(r, 500)
+	t.Run("AddFileSuccess", func(t *testing.T) {
 		cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
 		require.Nil(t, err)
 		require.NotNil(t, cid)
+	})
+
+	t.Run("AddFilePinned", func(t *testing.T) {
+		cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
+		require.Equal(t, ErrAlreadyPinned, err)
 	})
 }
 
