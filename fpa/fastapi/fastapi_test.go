@@ -65,6 +65,14 @@ func TestAdd(t *testing.T) {
 		err := fapi.AddCid(ctx, cid)
 		require.Equal(t, ErrAlreadyPinned, err)
 	})
+
+	t.Run("AddFile", func(t *testing.T) {
+		r := rand.New(rand.NewSource(22))
+		data := randomBytes(r, 500)
+		cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
+		require.Nil(t, err)
+		require.NotNil(t, cid)
+	})
 }
 
 func TestGet(t *testing.T) {
