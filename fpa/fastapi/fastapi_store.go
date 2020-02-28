@@ -10,6 +10,7 @@ import (
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
+	files "github.com/ipfs/go-ipfs-files"
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -51,8 +52,7 @@ func (i *Instance) putData(ctx context.Context, oa ftypes.OpAuditor, reader io.R
 	if err != nil {
 		return nil, fmt.Errorf("adding data to hot layer: %s", err)
 	}
-	err = i.put(ctx, oa, *cid)
-	return cid, err
+	return cid, i.put(ctx, oa, *cid)
 }
 
 func (i *Instance) put(ctx context.Context, oa ftypes.OpAuditor, c cid.Cid) error {
@@ -132,7 +132,7 @@ func (i *Instance) storeInFIL(ctx context.Context, c cid.Cid) (ColdInfo, error) 
 }
 
 func (i *Instance) addToHotLayer(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
-	path, err := i.ipfs.Object().Put(ctx, reader)
+	path, err := i.ipfs.Unixfs().Add(ctx, files.NewReaderFile(reader), options.Unixfs.Pin(false))
 	if err != nil {
 		return nil, err
 	}

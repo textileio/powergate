@@ -46,6 +46,10 @@ func (f *fpa) StoreData(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		}
 		sendErr := stream.Send(&pb.StoreDataRequest{Chunk: buffer[:bytesRead]})
 		if sendErr != nil {
+			if sendErr == io.EOF {
+				var noOp interface{}
+				return nil, stream.RecvMsg(noOp)
+			}
 			return nil, sendErr
 		}
 		if err == io.EOF {

@@ -115,27 +115,7 @@ type storeDataResult struct {
 	err error
 }
 
-func storeData(ctx context.Context, f func(ctx context.Context, reader io.Reader) (*cid.Cid, error), reader io.Reader, ch chan storeDataResult) {
-	defer close(ch)
-	cid, err := f(ctx, reader)
-	if err != nil {
-		ch <- storeDataResult{err: err}
-		return
-	}
-	ch <- storeDataResult{cid: cid}
-}
-
-func (s *Service) StoreData(srv pb.API_StoreDataServer) error {
-	i, err := s.getInstanceByToken(srv.Context())
-	if err != nil {
-		return err
-	}
-
-	reader, writer := io.Pipe()
-
-	storeDataChannel := make(chan storeDataResult)
-	go storeData(srv.Context(), i.PutData, reader, storeDataChannel)
-
+func receiveData(srv pb.API_StoreDataServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {
@@ -147,16 +127,28 @@ func (s *Service) StoreData(srv pb.API_StoreDataServer) error {
 		}
 		_, writeErr := writer.Write(req.GetChunk())
 		if writeErr != nil {
-			return writeErr
+			writer.CloseWithError(writeErr)
 		}
 	}
+}
 
-	storeDataResult := <-storeDataChannel
-	if storeDataResult.err != nil {
-		return storeDataResult.err
+func (s *Service) StoreData(srv pb.API_StoreDataServer) error {
+	i, err := s.getInstanceByToken(srv.Context())
+	if err != nil {
+		return err
 	}
 
-	return srv.SendAndClose(&pb.StoreDataReply{Cid: storeDataResult.cid.String()})
+	reader, writer := io.Pipe()
+	defer reader.Close()
+
+	go receiveData(srv, writer)
+
+	cid, err := i.PutData(srv.Context(), reader)
+	if err != nil {
+		return err
+	}
+
+	return srv.SendAndClose(&pb.StoreDataReply{Cid: cid.String()})
 }
 
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
