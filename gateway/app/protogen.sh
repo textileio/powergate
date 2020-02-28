@@ -17,6 +17,7 @@ protoc \
   -I ../../deals/pb \
   -I ../../reputation/pb \
   -I ../../wallet/pb \
+  -I ../../fpa/pb \
   --js_out=import_style=commonjs,binary:./src/_proto \
   --ts_out=service=grpc-web:./src/_proto \
   ../../index/ask/pb/ask.proto \
@@ -24,7 +25,8 @@ protoc \
   ../../index/slashing/pb/slashing.proto \
   ../../deals/pb/deals.proto \
   ../../reputation/pb/reputation.proto \
-  ../../wallet/pb/wallet.proto
+  ../../wallet/pb/wallet.proto \
+  ../../fpa/pb/fpa.proto
 
 for f in ./src/_proto/*.js
 do

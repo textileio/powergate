@@ -561,7 +561,7 @@ proto.filecoin.wallet.pb.WalletBalanceReply.deserializeBinaryFromReader = functi
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readInt64());
+      var value = /** @type {number} */ (reader.readUint64());
       msg.setBalance(value);
       break;
     default:
@@ -595,7 +595,7 @@ proto.filecoin.wallet.pb.WalletBalanceReply.serializeBinaryToWriter = function(m
   var f = undefined;
   f = message.getBalance();
   if (f !== 0) {
-    writer.writeInt64(
+    writer.writeUint64(
       1,
       f
     );
@@ -604,7 +604,7 @@ proto.filecoin.wallet.pb.WalletBalanceReply.serializeBinaryToWriter = function(m
 
 
 /**
- * optional int64 balance = 1;
+ * optional uint64 balance = 1;
  * @return {number}
  */
 proto.filecoin.wallet.pb.WalletBalanceReply.prototype.getBalance = function() {
