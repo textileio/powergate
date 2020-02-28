@@ -42,7 +42,7 @@ func RenderTable(writer io.Writer, header []string, data [][]string) {
 	table.SetBorder(false)
 	table.SetTablePadding("\t")
 	table.SetNoWhiteSpace(true)
-	headersColors := make([]tablewriter.Colors, len(data[0]))
+	headersColors := make([]tablewriter.Colors, len(header))
 	for i := range headersColors {
 		headersColors[i] = tablewriter.Colors{tablewriter.FgHiBlackColor}
 	}

@@ -95,7 +95,7 @@ func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply,
 	return reply, nil
 }
 
-func (s *Service) Store(ctx context.Context, req *pb.StoreRequest) (*pb.StoreReply, error) {
+func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCidReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -104,10 +104,46 @@ func (s *Service) Store(ctx context.Context, req *pb.StoreRequest) (*pb.StoreRep
 	if err != nil {
 		return nil, err
 	}
-	if err := i.Put(ctx, c); err != nil {
+	if err := i.AddCid(ctx, c); err != nil {
 		return nil, err
 	}
-	return &pb.StoreReply{}, nil
+	return &pb.AddCidReply{}, nil
+}
+
+func receiveFile(srv pb.API_AddFileServer, writer *io.PipeWriter) {
+	for {
+		req, err := srv.Recv()
+		if err == io.EOF {
+			_ = writer.Close()
+			break
+		} else if err != nil {
+			_ = writer.CloseWithError(err)
+			break
+		}
+		_, writeErr := writer.Write(req.GetChunk())
+		if writeErr != nil {
+			writer.CloseWithError(writeErr)
+		}
+	}
+}
+
+func (s *Service) AddFile(srv pb.API_AddFileServer) error {
+	i, err := s.getInstanceByToken(srv.Context())
+	if err != nil {
+		return err
+	}
+
+	reader, writer := io.Pipe()
+	defer reader.Close()
+
+	go receiveFile(srv, writer)
+
+	cid, err := i.AddFile(srv.Context(), reader)
+	if err != nil {
+		return err
+	}
+
+	return srv.SendAndClose(&pb.AddFileReply{Cid: cid.String()})
 }
 
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {

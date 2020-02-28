@@ -24,19 +24,19 @@ require (
 	github.com/gorilla/websocket v1.4.1
 	github.com/gosuri/uilive v0.0.4
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/improbable-eng/grpc-web v0.12.0
 	github.com/ip2location/ip2location-go v8.3.0+incompatible
 	github.com/ipfs/go-car v0.0.3-0.20200131220434-3f68f6ebd093
 	github.com/ipfs/go-cid v0.0.5
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ds-badger2 v0.0.0-20200123200730-d75eb2678a5d
-	github.com/ipfs/go-ipfs-files v0.0.4
+	github.com/ipfs/go-ipfs-files v0.0.6
 	github.com/ipfs/go-ipfs-http-client v0.0.5
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
 	github.com/ipfs/go-log v1.0.2 // indirect
 	github.com/ipfs/go-log/v2 v2.0.2
-	github.com/ipfs/interface-go-ipfs-core v0.2.3
+	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/libp2p/go-libp2p v0.5.0
 	github.com/libp2p/go-libp2p-core v0.3.1
