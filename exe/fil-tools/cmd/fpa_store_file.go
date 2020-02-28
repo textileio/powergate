@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"time"
 
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
@@ -26,7 +27,7 @@ var storeFileCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 		defer cancel()
 
 		path := viper.GetString("file")
