@@ -104,18 +104,13 @@ func (s *Service) StoreCid(ctx context.Context, req *pb.StoreCidRequest) (*pb.St
 	if err != nil {
 		return nil, err
 	}
-	if err := i.Put(ctx, c); err != nil {
+	if err := i.PutCid(ctx, c); err != nil {
 		return nil, err
 	}
 	return &pb.StoreCidReply{}, nil
 }
 
-type storeDataResult struct {
-	cid *cid.Cid
-	err error
-}
-
-func receiveData(srv pb.API_StoreDataServer, writer *io.PipeWriter) {
+func receiveFile(srv pb.API_StoreFileServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {
@@ -132,7 +127,7 @@ func receiveData(srv pb.API_StoreDataServer, writer *io.PipeWriter) {
 	}
 }
 
-func (s *Service) StoreData(srv pb.API_StoreDataServer) error {
+func (s *Service) StoreFile(srv pb.API_StoreFileServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -141,14 +136,14 @@ func (s *Service) StoreData(srv pb.API_StoreDataServer) error {
 	reader, writer := io.Pipe()
 	defer reader.Close()
 
-	go receiveData(srv, writer)
+	go receiveFile(srv, writer)
 
-	cid, err := i.PutData(srv.Context(), reader)
+	cid, err := i.PutFile(srv.Context(), reader)
 	if err != nil {
 		return err
 	}
 
-	return srv.SendAndClose(&pb.StoreDataReply{Cid: cid.String()})
+	return srv.SendAndClose(&pb.StoreFileReply{Cid: cid.String()})
 }
 
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {

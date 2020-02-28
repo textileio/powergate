@@ -24,10 +24,10 @@ var (
 	ErrNotStored     = errors.New("cid not stored")
 )
 
-func (i *Instance) PutData(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
+func (i *Instance) PutFile(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
 	ar := i.auditor.Start(ctx, i.info.ID.String())
 	defer ar.Close()
-	cid, err := i.putData(ctx, ar, reader)
+	cid, err := i.putFile(ctx, ar, reader)
 	if err != nil {
 		ar.Errored(err)
 		return nil, err
@@ -36,7 +36,7 @@ func (i *Instance) PutData(ctx context.Context, reader io.Reader) (*cid.Cid, err
 	return cid, nil
 }
 
-func (i *Instance) Put(ctx context.Context, c cid.Cid) error {
+func (i *Instance) PutCid(ctx context.Context, c cid.Cid) error {
 	ar := i.auditor.Start(ctx, i.info.ID.String())
 	defer ar.Close()
 	if err := i.put(ctx, ar, c); err != nil {
@@ -47,7 +47,7 @@ func (i *Instance) Put(ctx context.Context, c cid.Cid) error {
 	return nil
 }
 
-func (i *Instance) putData(ctx context.Context, oa ftypes.OpAuditor, reader io.Reader) (*cid.Cid, error) {
+func (i *Instance) putFile(ctx context.Context, oa ftypes.OpAuditor, reader io.Reader) (*cid.Cid, error) {
 	cid, err := i.addToHotLayer(ctx, reader)
 	if err != nil {
 		return nil, fmt.Errorf("adding data to hot layer: %s", err)

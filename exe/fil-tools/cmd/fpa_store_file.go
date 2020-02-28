@@ -44,7 +44,7 @@ var storeFileCmd = &cobra.Command{
 
 		s := spin.New("%s Storing specified file in FPA...")
 		s.Start()
-		cid, err := fcClient.Fpa.StoreData(ctx, file)
+		cid, err := fcClient.Fpa.StoreFile(ctx, file)
 		s.Stop()
 		checkErr(err)
 

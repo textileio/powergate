@@ -13,11 +13,11 @@ message StoreCidRequest {
 message StoreCidReply {
 }
 
-message StoreDataRequest {
+message StoreFileRequest {
    bytes chunk = 1;
 }
 
-message StoreDataReply {
+message StoreFileReply {
    string cid = 1;
 }
 
@@ -89,7 +89,7 @@ message ShowReply {
 
 service API {
     rpc StoreCid(StoreCidRequest) returns (StoreCidReply) {}
-    rpc StoreData(stream StoreDataRequest) returns (StoreDataReply) {}
+    rpc StoreFile(stream StoreFileRequest) returns (StoreFileReply) {}
     rpc Get(GetRequest) returns (stream GetReply) {}
     rpc Create(CreateRequest) returns (CreateReply) {}
     rpc Info(InfoRequest) returns (InfoReply) {}
