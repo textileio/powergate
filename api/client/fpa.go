@@ -22,8 +22,8 @@ func (f *fpa) Show(ctx context.Context, c cid.Cid) (*pb.ShowReply, error) {
 	})
 }
 
-func (f *fpa) StoreCid(ctx context.Context, c cid.Cid) error {
-	_, err := f.client.StoreCid(ctx, &pb.StoreCidRequest{
+func (f *fpa) AddCid(ctx context.Context, c cid.Cid) error {
+	_, err := f.client.AddCid(ctx, &pb.AddCidRequest{
 		Cid: c.String(),
 	})
 	if err != nil {
@@ -32,8 +32,8 @@ func (f *fpa) StoreCid(ctx context.Context, c cid.Cid) error {
 	return nil
 }
 
-func (f *fpa) StoreFile(ctx context.Context, data io.Reader) (*cid.Cid, error) {
-	stream, err := f.client.StoreFile(ctx)
+func (f *fpa) AddFile(ctx context.Context, data io.Reader) (*cid.Cid, error) {
+	stream, err := f.client.AddFile(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (f *fpa) StoreFile(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		sendErr := stream.Send(&pb.StoreFileRequest{Chunk: buffer[:bytesRead]})
+		sendErr := stream.Send(&pb.AddFileRequest{Chunk: buffer[:bytesRead]})
 		if sendErr != nil {
 			if sendErr == io.EOF {
 				var noOp interface{}

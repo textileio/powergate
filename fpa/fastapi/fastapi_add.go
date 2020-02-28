@@ -24,10 +24,10 @@ var (
 	ErrNotStored     = errors.New("cid not stored")
 )
 
-func (i *Instance) PutFile(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
+func (i *Instance) AddFile(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
 	ar := i.auditor.Start(ctx, i.info.ID.String())
 	defer ar.Close()
-	cid, err := i.putFile(ctx, ar, reader)
+	cid, err := i.addFile(ctx, ar, reader)
 	if err != nil {
 		ar.Errored(err)
 		return nil, err
@@ -36,10 +36,10 @@ func (i *Instance) PutFile(ctx context.Context, reader io.Reader) (*cid.Cid, err
 	return cid, nil
 }
 
-func (i *Instance) PutCid(ctx context.Context, c cid.Cid) error {
+func (i *Instance) AddCid(ctx context.Context, c cid.Cid) error {
 	ar := i.auditor.Start(ctx, i.info.ID.String())
 	defer ar.Close()
-	if err := i.put(ctx, ar, c); err != nil {
+	if err := i.add(ctx, ar, c); err != nil {
 		ar.Errored(err)
 		return err
 	}
@@ -47,16 +47,16 @@ func (i *Instance) PutCid(ctx context.Context, c cid.Cid) error {
 	return nil
 }
 
-func (i *Instance) putFile(ctx context.Context, oa ftypes.OpAuditor, reader io.Reader) (*cid.Cid, error) {
+func (i *Instance) addFile(ctx context.Context, oa ftypes.OpAuditor, reader io.Reader) (*cid.Cid, error) {
 	cid, err := i.addToHotLayer(ctx, reader)
 	if err != nil {
 		return nil, fmt.Errorf("adding data to hot layer: %s", err)
 	}
-	return cid, i.put(ctx, oa, *cid)
+	return cid, i.add(ctx, oa, *cid)
 }
 
-func (i *Instance) put(ctx context.Context, oa ftypes.OpAuditor, c cid.Cid) error {
-	// ToDo: register put start for tracking
+func (i *Instance) add(ctx context.Context, oa ftypes.OpAuditor, c cid.Cid) error {
+	// ToDo: register add start for tracking
 	_, ok, err := i.getCidInfo(c)
 	if err != nil {
 		return fmt.Errorf("getting cid %s information: %s", c, err)
