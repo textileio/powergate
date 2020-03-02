@@ -8,7 +8,7 @@ import Deposits from './Deposits'
 import Orders from './Orders'
 import MinersMeta, {Item} from './miners_meta'
 import {APIClient} from '../_proto/miner_pb_service'
-import {GetRequest} from '../_proto/miner_pb'
+import {GetRequest, Index} from '../_proto/miner_pb'
 import Client from '../client'
 
 const useStyles = makeStyles(theme => ({
@@ -23,34 +23,30 @@ const useStyles = makeStyles(theme => ({
     },
   }))
 
-const Miners: FunctionComponent = () => {
+interface Props {
+  index?: Index.AsObject
+}
+
+const Miners: FunctionComponent<Props> = (props) => {
     const classes = useStyles()
     const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight)
 
-    const [items, setItems] = useState<Item[]>([])
-    useEffect(() => {
-      const fetchData = async () => {
-        const index = await Client.shared().miners.get()
-        const items = index.meta?.infoMap?.map(info => {
-          const id = info[0]
-          const meta = info[1]
-          const d = new Date(0)
-          d.setUTCSeconds(meta.lastupdated)
-          const item: Item = {
-            id,
-            online: meta.online,
-            country: meta.location?.country || "unknown",
-            latitude: meta.location?.latitude || -999,
-            longitude: meta.location?.longitude || -999,
-            userAgent: meta.useragent,
-            lastUpdated: d
-          }
-          return item
-        })
-        setItems(items || [])
+    const items = props.index?.meta?.infoMap?.map(info => {
+      const id = info[0]
+      const meta = info[1]
+      const d = new Date(0)
+      d.setUTCSeconds(meta.lastupdated)
+      const item: Item = {
+        id,
+        online: meta.online,
+        country: meta.location?.country || "unknown",
+        latitude: meta.location?.latitude || -999,
+        longitude: meta.location?.longitude || -999,
+        userAgent: meta.useragent,
+        lastUpdated: d
       }
-      fetchData()
-    }, [])
+      return item
+    })
 
     return (
         <Grid container spacing={3}>

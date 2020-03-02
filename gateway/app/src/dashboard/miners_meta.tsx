@@ -19,11 +19,11 @@ export type Item = {
 }
 
 type Props = {
-  data: Item[]
+  data?: Item[]
 }
 
 const MinersMeta: FunctionComponent<Props> = (props) => {
-  const rows = props.data.map(item => (
+  const rows = props.data?.map(item => (
     <TableRow key={item.id}>
       <TableCell>{item.id}</TableCell>
       <TableCell>{item.online ? "true" : "false"}</TableCell>

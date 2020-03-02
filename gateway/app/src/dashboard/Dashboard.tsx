@@ -25,6 +25,10 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 import NotificationsIcon from '@material-ui/icons/Notifications'
 import Overview from './overview'
 import Miners from './miners'
+import {Index as MinerIndex} from '../_proto/miner_pb'
+import {Index as AskIndex} from '../_proto/ask_pb'
+import {Index as SlashingIndex} from '../_proto/slashing_pb'
+import {MinerScore} from '../_proto/reputation_pb'
 
 function Copyright() {
   return (
@@ -115,31 +119,53 @@ const menuItems = [
   {
     title: 'Overview',
     icon: DashboardIcon,
-    component: Overview
+    component: Overview,
+    selectProps: (props: Props) => {
+      return undefined
+    }
   },
   {
     title: 'Miners',
     icon: PeopleIcon,
-    component: Miners
+    component: Miners,
+    selectProps: (props: Props) => {
+      return { index: props.minerIndex }
+    }
   },
   {
     title: 'Asks',
     icon: LocalOfferIcon,
-    component: Overview
+    component: Overview,
+    selectProps: (props: Props) => {
+      return undefined
+    }
   },
   {
     title: 'Slashing',
     icon: BlockIcon,
-    component: Overview
+    component: Overview,
+    selectProps: (props: Props) => {
+      return undefined
+    }
   },
   {
     title: 'Reputation',
     icon: ThumbsUpDownIcon,
-    component: Overview
+    component: Overview,
+    selectProps: (props: Props) => {
+      return undefined
+    }
   }
 ]
 
-const Dashboard: FunctionComponent = () => {
+interface Props {
+  minerIndex?: MinerIndex.AsObject
+  askIndex?: AskIndex.AsObject
+  slashingIndex?: SlashingIndex.AsObject
+  topMiners?: MinerScore.AsObject[]
+}
+
+const Dashboard: FunctionComponent<Props> = (props) => {
   const classes = useStyles()
   
   const [open, setOpen] = useState(true)
@@ -169,6 +195,8 @@ const Dashboard: FunctionComponent = () => {
   })
 
   const ComponetType = menuItems[selected].component
+  const selectProps = menuItems[selected].selectProps
+  const selectedProps = selectProps(props)
 
   return (
     <div className={classes.root}>
@@ -211,7 +239,7 @@ const Dashboard: FunctionComponent = () => {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <ComponetType />
+          <ComponetType {...selectedProps} />
           <Box pt={4}>
             <Copyright />
           </Box>

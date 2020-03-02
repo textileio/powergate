@@ -27,51 +27,6 @@ export namespace MinerScore {
   }
 }
 
-export class Index extends jspb.Message {
-  getTipsetkey(): string;
-  setTipsetkey(value: string): void;
-
-  getMinersMap(): jspb.Map<string, Slashes>;
-  clearMinersMap(): void;
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Index.AsObject;
-  static toObject(includeInstance: boolean, msg: Index): Index.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Index, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Index;
-  static deserializeBinaryFromReader(message: Index, reader: jspb.BinaryReader): Index;
-}
-
-export namespace Index {
-  export type AsObject = {
-    tipsetkey: string,
-    minersMap: Array<[string, Slashes.AsObject]>,
-  }
-}
-
-export class Slashes extends jspb.Message {
-  clearEpochsList(): void;
-  getEpochsList(): Array<number>;
-  setEpochsList(value: Array<number>): void;
-  addEpochs(value: number, index?: number): number;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Slashes.AsObject;
-  static toObject(includeInstance: boolean, msg: Slashes): Slashes.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: Slashes, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Slashes;
-  static deserializeBinaryFromReader(message: Slashes, reader: jspb.BinaryReader): Slashes;
-}
-
-export namespace Slashes {
-  export type AsObject = {
-    epochsList: Array<number>,
-  }
-}
-
 export class AddSourceRequest extends jspb.Message {
   getId(): string;
   setId(value: string): void;

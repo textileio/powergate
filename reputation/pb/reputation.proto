@@ -11,15 +11,6 @@ message MinerScore {
     int32 score = 2;
 }
 
-message Index {
-    string tipSetKey = 1;
-    map<string, Slashes> miners = 2;
-}
-
-message Slashes {
-    repeated uint64 epochs = 1;
-}
-
 message AddSourceRequest {
     string id = 1;
     string maddr = 2;

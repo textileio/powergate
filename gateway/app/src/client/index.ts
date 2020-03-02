@@ -1,6 +1,8 @@
 import {grpc} from '@improbable-eng/grpc-web'
 import Miners from './miners'
 import Asks from './asks'
+import Slashing from './slashing'
+import Reputation from './reputation'
 
 export default class Client {
 
@@ -10,6 +12,8 @@ export default class Client {
 
   miners: Miners
   asks: Asks
+  slashing: Slashing
+  reputation: Reputation
 
   static initialize(serviceHost: string, options?: grpc.RpcOptions) {
     Client.serviceHost = serviceHost
@@ -26,5 +30,7 @@ export default class Client {
   private constructor() {
     this.miners = new Miners(Client.serviceHost, Client.options)
     this.asks = new Asks(Client.serviceHost, Client.options)
+    this.slashing = new Slashing(Client.serviceHost, Client.options)
+    this.reputation = new Reputation(Client.serviceHost, Client.options)
   }
 }

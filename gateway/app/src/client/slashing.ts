@@ -1,8 +1,8 @@
 import {grpc} from '@improbable-eng/grpc-web'
-import {APIClient} from '../_proto/miner_pb_service'
-import {GetRequest, Index} from '../_proto/miner_pb'
+import {APIClient} from '../_proto/slashing_pb_service'
+import {GetRequest, Index} from '../_proto/slashing_pb'
 
-export default class Miners {
+export default class Slashing {
 
   private client: APIClient
 
