@@ -31,7 +31,7 @@ var fpaAddCmd = &cobra.Command{
 		defer cancel()
 
 		if len(args) != 1 {
-			Fatal(errors.New("you must provide a valid cid or file path"))
+			Fatal(errors.New("you must provide a cid or file path"))
 		}
 
 		token := viper.GetString("token")
