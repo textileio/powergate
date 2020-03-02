@@ -10,6 +10,7 @@ import (
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
+	files "github.com/ipfs/go-ipfs-files"
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -23,10 +24,22 @@ var (
 	ErrNotStored     = errors.New("cid not stored")
 )
 
-func (i *Instance) Put(ctx context.Context, c cid.Cid) error {
+func (i *Instance) AddFile(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
 	ar := i.auditor.Start(ctx, i.info.ID.String())
-	ar.Close()
-	if err := i.put(ctx, ar, c); err != nil {
+	defer ar.Close()
+	cid, err := i.addFile(ctx, ar, reader)
+	if err != nil {
+		ar.Errored(err)
+		return nil, err
+	}
+	ar.Success()
+	return cid, nil
+}
+
+func (i *Instance) AddCid(ctx context.Context, c cid.Cid) error {
+	ar := i.auditor.Start(ctx, i.info.ID.String())
+	defer ar.Close()
+	if err := i.add(ctx, ar, c); err != nil {
 		ar.Errored(err)
 		return err
 	}
@@ -34,8 +47,16 @@ func (i *Instance) Put(ctx context.Context, c cid.Cid) error {
 	return nil
 }
 
-func (i *Instance) put(ctx context.Context, oa ftypes.OpAuditor, c cid.Cid) error {
-	// ToDo: register put start for tracking
+func (i *Instance) addFile(ctx context.Context, oa ftypes.OpAuditor, reader io.Reader) (*cid.Cid, error) {
+	cid, err := i.addToHotLayer(ctx, reader)
+	if err != nil {
+		return nil, fmt.Errorf("adding data to hot layer: %s", err)
+	}
+	return cid, i.add(ctx, oa, *cid)
+}
+
+func (i *Instance) add(ctx context.Context, oa ftypes.OpAuditor, c cid.Cid) error {
+	// ToDo: register add start for tracking
 	_, ok, err := i.getCidInfo(c)
 	if err != nil {
 		return fmt.Errorf("getting cid %s information: %s", c, err)
@@ -108,6 +129,15 @@ func (i *Instance) storeInFIL(ctx context.Context, c cid.Cid) (ColdInfo, error) 
 		}
 	}
 	return ci, nil
+}
+
+func (i *Instance) addToHotLayer(ctx context.Context, reader io.Reader) (*cid.Cid, error) {
+	path, err := i.ipfs.Unixfs().Add(ctx, files.NewReaderFile(reader), options.Unixfs.Pin(false))
+	if err != nil {
+		return nil, err
+	}
+	cid := path.Cid()
+	return &cid, nil
 }
 
 func (i *Instance) pinToHotLayer(ctx context.Context, c cid.Cid) (HotInfo, error) {

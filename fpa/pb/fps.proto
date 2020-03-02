@@ -6,11 +6,19 @@ option java_package = "io.textile.filecoin.fpa.pb";
 option java_outer_classname = "Filecoinfpa";
 option objc_class_prefix = "TTE";
 
-message StoreRequest {
+message AddCidRequest {
     string cid = 1;
 }
 
-message StoreReply {
+message AddCidReply {
+}
+
+message AddFileRequest {
+   bytes chunk = 1;
+}
+
+message AddFileReply {
+   string cid = 1;
 }
 
 message GetRequest {
@@ -80,7 +88,8 @@ message ShowReply {
 }
 
 service API {
-    rpc Store(StoreRequest) returns (StoreReply) {}
+    rpc AddCid(AddCidRequest) returns (AddCidReply) {}
+    rpc AddFile(stream AddFileRequest) returns (AddFileReply) {}
     rpc Get(GetRequest) returns (stream GetReply) {}
     rpc Create(CreateRequest) returns (CreateReply) {}
     rpc Info(InfoRequest) returns (InfoReply) {}

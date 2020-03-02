@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestPut(t *testing.T) {
+func TestAdd(t *testing.T) {
 	ctx := context.Background()
 	ipfsApi, fapi, cls := newFastAPI(t)
 	defer cls()
@@ -50,19 +50,32 @@ func TestPut(t *testing.T) {
 		ctx, cancel := context.WithTimeout(ctx, time.Microsecond) // Simulate timeout, fast.
 		defer cancel()
 		c, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z") // ipfs hello-world not in the node
-		err := fapi.Put(ctx, c)
+		err := fapi.AddCid(ctx, c)
 		require.Equal(t, ErrCantPin, err)
 	})
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
-	t.Run("PutSuccess", func(t *testing.T) {
-		err := fapi.Put(ctx, cid)
+	t.Run("AddCidSuccess", func(t *testing.T) {
+		err := fapi.AddCid(ctx, cid)
 		require.Nil(t, err)
 	})
 
-	t.Run("PutPinned", func(t *testing.T) {
-		err := fapi.Put(ctx, cid)
+	t.Run("AddCidPinned", func(t *testing.T) {
+		err := fapi.AddCid(ctx, cid)
+		require.Equal(t, ErrAlreadyPinned, err)
+	})
+
+	r2 := rand.New(rand.NewSource(33))
+	data := randomBytes(r2, 500)
+	t.Run("AddFileSuccess", func(t *testing.T) {
+		cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
+		require.Nil(t, err)
+		require.NotNil(t, cid)
+	})
+
+	t.Run("AddFilePinned", func(t *testing.T) {
+		_, err := fapi.AddFile(ctx, bytes.NewReader(data))
 		require.Equal(t, ErrAlreadyPinned, err)
 	})
 }
@@ -74,7 +87,7 @@ func TestGet(t *testing.T) {
 
 	r := rand.New(rand.NewSource(22))
 	cid, data := addRandomFile(t, r, ipfs)
-	err := fapi.Put(ctx, cid)
+	err := fapi.AddCid(ctx, cid)
 	require.Nil(t, err)
 
 	t.Run("FromAPI", func(t *testing.T) {
@@ -106,11 +119,11 @@ func TestInfo(t *testing.T) {
 	n := 3
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
-		err := fapi.Put(ctx, cid)
+		err := fapi.AddCid(ctx, cid)
 		require.Nil(t, err)
 	}
 
-	t.Run("WithThreePuts", func(t *testing.T) {
+	t.Run("WithThreeAdds", func(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.Nil(t, err)
 		require.Equal(t, second.ID, first.ID)
@@ -134,7 +147,7 @@ func TestShow(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfs)
-		err := fapi.Put(ctx, cid)
+		err := fapi.AddCid(ctx, cid)
 		require.Nil(t, err)
 		inf, err := fapi.Info(ctx)
 		require.Nil(t, err)
