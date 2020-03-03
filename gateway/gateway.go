@@ -171,12 +171,57 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 		i++
 	}
 
+	foo := [][]string{
+		[]string{
+			"asdfsad",
+			"1234",
+			"253",
+			"Timestamp",
+			"Expiry",
+		},
+		[]string{
+			"asdfsad",
+			"1234",
+			"253",
+			"Timestamp",
+			"Expiry",
+		},
+		[]string{
+			"asdfsad",
+			"1234",
+			"253",
+			"Timestamp",
+			"Expiry",
+		},
+		[]string{
+			"asdfsad",
+			"1234",
+			"253",
+			"Timestamp",
+			"Expiry",
+		},
+		[]string{
+			"asdfsad",
+			"1234",
+			"253",
+			"Timestamp",
+			"Expiry",
+		},
+		[]string{
+			"asdfsad",
+			"1234",
+			"253",
+			"Timestamp",
+			"Expiry",
+		},
+	}
+
 	c.HTML(http.StatusOK, "/public/html/asks.gohtml", gin.H{
 		"MenuItems": menuItems,
 		"Title":     "Available Asks",
 		"Subtitle":  subtitle,
 		"Headers":   headers,
-		"Rows":      rows,
+		"Rows":      foo,
 	})
 }
 

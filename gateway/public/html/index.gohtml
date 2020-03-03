@@ -18,16 +18,18 @@
 {{end}}
 
 {{define "menu"}}
-            <div class="navbar">
-            {{range .MenuItems}}
-                <a href="/{{.Path}}">{{.Name}}</a>
-            {{end}}
+            <div>
+                <div class="navbar">
+                {{range .MenuItems}}
+                    <a href="/{{.Path}}">{{.Name}}</a>
+                {{end}}
+                </div>
             </div>
 {{end}}
 
 {{define "table"}}
-            <div>{{.Title}}</div>
-            <div>{{.Subtitle}}</div>
+            <div class="title">{{.Title}}</div>
+            <div class="subtitle">{{.Subtitle}}</div>
             <table>
                 <tr>
                 {{range $header := .Headers}}

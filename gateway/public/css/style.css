@@ -23,21 +23,21 @@ body {
 }
 
 .title {
-    line-height: 2em;
-    font-size: 0.9em;
-    margin-top: 5em;
-    margin-bottom: 1em;
+    margin-bottom: 0.5em;
+    color: white;
+    font-weight: bold;
 }
 
-.title span.yellow {
-    color: #FFCE00;
+.subtitle {
+    font-size: 0.8em;
+    margin-bottom: 0.5em;
 }
 
 .navbar {
+    width: 100%;
     line-height: 2em;
     font-size: 0.9em;
-    margin-top: 5em;
-    margin-bottom: 1em;
+    margin: 5em auto 1em;
 }
 
 a {
@@ -70,6 +70,29 @@ li:nth-child(even) {
 
 li:nth-child(odd) {
     background: none;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1em;
+}
+
+td, th {
+    border: 1px solid #666666;
+    padding: 8px;
+}
+
+tr:nth-child(odd){background-color: #252525;}
+
+tr:hover {background-color: rgb(49, 49, 49);}
+
+th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: rgb(15, 15, 15);
+    color: white;
 }
 
 .aligner {
