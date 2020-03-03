@@ -18,7 +18,7 @@ require (
 	github.com/filecoin-project/go-fil-markets v0.0.0-20200206024724-973498b060e3
 	github.com/filecoin-project/go-sectorbuilder v0.0.2-0.20200203173614-42d67726bb62
 	github.com/filecoin-project/lotus v0.2.8-0.20200212194405-7dc40c45168d
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.3.4
 	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1
