@@ -20,8 +20,7 @@ var (
 	// ErrAuthTokenNotFound returns when an auth-token doesn't exist.
 	ErrAuthTokenNotFound = errors.New("auth token not found")
 
-	bKey = ds.NewKey("manager")
-	log  = logging.Logger("fpa-manager")
+	log = logging.Logger("fpa-manager")
 )
 
 // Manager creates FastAPI instances, or loads existing ones them from an auth-token.
@@ -86,7 +85,7 @@ func (m *Manager) GetByAuthToken(token string) (*fastapi.Instance, error) {
 	if !ok {
 		log.Infof("loading uncached instance %s", iid)
 		confstore := store.New(iid, namespace.Wrap(m.ds, datastore.NewKey("fpa/fastapi/store")))
-		i, err = fastapi.Load(confstore, m.sched, m.wm)
+		i, err = fastapi.Load(iid, confstore, m.sched, m.wm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)
 		}

@@ -59,6 +59,25 @@ func New(ctx context.Context, iid fpa.InstanceID, confstore ConfigStore, sch fpa
 		WalletAddr: addr,
 	}
 	ctx, cancel := context.WithCancel(context.Background())
+	i := new(iid, confstore, wm, config, sch, ctx, cancel)
+	if err := i.store.SaveConfig(config); err != nil {
+		return nil, fmt.Errorf("saving new instance %s: %s", i.config.ID, err)
+	}
+	return i, nil
+}
+
+// Load loads a saved FastAPI instance from its ConfigStore.
+func Load(iid fpa.InstanceID, confstore ConfigStore, sched fpa.Scheduler, wm fpa.WalletManager) (*Instance, error) {
+	config, err := confstore.GetConfig()
+	if err != nil {
+		return nil, fmt.Errorf("loading instance: %s", err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	return new(iid, confstore, wm, *config, sched, ctx, cancel), nil
+}
+
+func new(iid fpa.InstanceID, confstore ConfigStore, wm fpa.WalletManager, config Config, sch fpa.Scheduler,
+	ctx context.Context, cancel context.CancelFunc) *Instance {
 	i := &Instance{
 		store:   confstore,
 		wm:      wm,
@@ -71,24 +90,7 @@ func New(ctx context.Context, iid fpa.InstanceID, confstore ConfigStore, sch fpa
 		finished: make(chan struct{}),
 	}
 	go i.watchJobs()
-	if err := i.store.SaveConfig(config); err != nil {
-		return nil, fmt.Errorf("saving new instance %s: %s", i.config.ID, err)
-	}
-	return i, nil
-}
-
-// Load loads a saved FastAPI instance from its ConfigStore.
-func Load(confstore ConfigStore, sch fpa.Scheduler, wm fpa.WalletManager) (*Instance, error) {
-	config, err := confstore.GetConfig()
-	if err != nil {
-		return nil, fmt.Errorf("loading instance: %s", err)
-	}
-	return &Instance{
-		store:  confstore,
-		wm:     wm,
-		config: *config,
-		sched:  sch,
-	}, nil
+	return i
 }
 
 // ID returns the InstanceID of the instance.
