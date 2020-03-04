@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	log = logger.Logger("filcold")
+	log = logger.Logger("fpa-filcold")
 )
 
+// FilCold is a fpa.ColdLayer implementation that stores data in Filecoin.
 type FilCold struct {
 	ms  fpa.MinerSelector
 	dm  *deals.Module
@@ -26,6 +27,7 @@ type FilCold struct {
 
 var _ fpa.ColdLayer = (*FilCold)(nil)
 
+// New returns a new FilCold instance
 func New(ms fpa.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold {
 	return &FilCold{
 		ms:  ms,
@@ -34,50 +36,63 @@ func New(ms fpa.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold
 	}
 }
 
+// Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
+// the DAGService registered on instance creation. Currently, a default configuration is used.
+// (TODO: ColdConfig will enable more configurations in the future)
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, conf fpa.ColdConfig) (fpa.ColdInfo, error) {
 	var ci fpa.ColdInfo
 	ci.Filecoin = fpa.FilInfo{
-		Duration: uint64(1000), // ToDo: will evolve as instance/methdo-call has more config. Use ColdConfig
+		Duration: uint64(1000),
 	}
-
-	config, err := makeStorageConfig(ctx, fc.ms) // ToDo: will evolve as instance/methdo-call has more config
+	config, err := makeStorageConfig(ctx, fc.ms)
 	if err != nil {
 		return ci, fmt.Errorf("selecting miners to make the deal: %s", err)
 	}
 	r := ipldToFileTransform(ctx, fc.dag, c)
 	log.Infof("storing deals in filecoin...")
-	dataCid, result, err := fc.dm.Store(ctx, conf.Filecoin.WalletAddr, r, config, ci.Filecoin.Duration)
+	dataCid, res, err := fc.dm.Store(ctx, conf.Filecoin.WalletAddr, r, config, ci.Filecoin.Duration)
 	if err != nil {
-		return ci, err
+		return ci, fmt.Errorf("storing deals in deal manager: %s", err)
 	}
 	ci.Filecoin.PayloadCID = dataCid
 
+	if ci.Filecoin.Proposals, err = fc.waitForDeals(ctx, res); err != nil {
+		return ci, fmt.Errorf("waiting for deals to finish: %s", err)
+	}
+	return ci, nil
+}
+
+func (fc *FilCold) waitForDeals(ctx context.Context, res []deals.StoreResult) ([]fpa.FilStorage, error) {
 	notDone := make(map[cid.Cid]struct{})
-	propcids := make([]cid.Cid, len(result))
-	ci.Filecoin.Proposals = make([]fpa.FilStorage, len(result))
-	for i, d := range result {
-		ci.Filecoin.Proposals[i] = fpa.FilStorage{
-			ProposalCid: d.ProposalCid,
-			Failed:      !d.Success,
+	var propcids []cid.Cid
+	var filstrg []fpa.FilStorage
+	for _, d := range res {
+		if d.Success {
+			filstrg = append(filstrg, fpa.FilStorage{
+				ProposalCid: d.ProposalCid,
+				Failed:      !d.Success,
+			})
+			propcids = append(propcids, d.ProposalCid)
+			notDone[d.ProposalCid] = struct{}{}
 		}
-		propcids[i] = d.ProposalCid
-		notDone[d.ProposalCid] = struct{}{}
 	}
 
 	log.Infof("watching deals unfold...")
 	chDi, err := fc.dm.Watch(ctx, propcids)
-
+	if err != nil {
+		return nil, err
+	}
 	for di := range chDi {
+		// ToDo: check state coverage, changes return since deals can fail
 		if di.StateID == storagemarket.StorageDealActive {
 			delete(notDone, di.ProposalCid)
 		}
-		// ToDo: handle other states
 		if len(notDone) == 0 {
 			break
 		}
 	}
 	log.Infof("done")
-	return ci, nil
+	return filstrg, nil
 }
 
 func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) io.Reader {

@@ -138,9 +138,9 @@ func setupInstrumentation() {
 func setupLogging() {
 	logging.SetLogLevel("*", "error")
 	loggers := []string{"index-miner", "index-ask", "index-slashing",
-		"server", "deals", "fil-toolsd", "fchost", "fpaauth", "fastapi",
-		"ip2location", "reputation", "scheduler", "fpa-manager",
-		"fpa-grpc-service", "filcold", "coreipfs", "jobstore"}
+		"server", "deals", "fil-toolsd", "fchost", "ip2location", "reputation",
+		"fpa-scheduler", "fpa-manager", "fpa-auth", "fpa-fastapi",
+		"fpa-coreipfs", "fpa-grpc-service", "fpa-filcold", "fpa-sched-jobstore"}
 	for _, l := range loggers {
 		logging.SetLogLevel(l, "info")
 	}

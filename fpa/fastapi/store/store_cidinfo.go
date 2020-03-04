@@ -8,23 +8,26 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	"github.com/textileio/fil-tools/fpa"
+	"github.com/textileio/fil-tools/fpa/fastapi"
 )
 
-func (cs *ConfigStore) GetCidInfo(c cid.Cid) (fpa.CidInfo, bool, error) {
+// GetCid info gets the current stored state of a Cid
+func (cs *ConfigStore) GetCidInfo(c cid.Cid) (fpa.CidInfo, error) {
 	var ci fpa.CidInfo
 	buf, err := cs.ds.Get(makeCidInfoKey(cs.iid, c))
 	if err == datastore.ErrNotFound {
-		return ci, false, nil
+		return ci, fastapi.ErrCidInfoNotFound
 	}
 	if err != nil {
-		return ci, false, err
+		return ci, fmt.Errorf("getting cidinfo %s from store: %s", c, err)
 	}
 	if err := json.Unmarshal(buf, &ci); err != nil {
-		return ci, false, err
+		return ci, fmt.Errorf("unmarshaling cidinfo %s: %s", c, err)
 	}
-	return ci, true, err
+	return ci, nil
 }
 
+// SaveCidInfo saves a new storing state for a Cid
 func (cs *ConfigStore) SaveCidInfo(cinfo fpa.CidInfo) error {
 	buf, err := json.Marshal(cinfo)
 	if err != nil {
@@ -36,14 +39,17 @@ func (cs *ConfigStore) SaveCidInfo(cinfo fpa.CidInfo) error {
 	return nil
 }
 
+// Cids returns a slice of Cids which have sotring state
 func (cs *ConfigStore) Cids() ([]cid.Cid, error) {
+	cs.lock.Lock()
+	defer cs.lock.Unlock()
 	q := query.Query{
 		Prefix:   makeInstanceKey(cs.iid).String(),
 		KeysOnly: true,
 	}
 	res, err := cs.ds.Query(q)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("querying for cids: %s", err)
 	}
 	defer res.Close()
 

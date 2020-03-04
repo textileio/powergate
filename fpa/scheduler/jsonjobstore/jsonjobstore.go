@@ -13,28 +13,32 @@ import (
 )
 
 var (
-	log = logging.Logger("jobstore")
+	log = logging.Logger("fpa-sched-jobstore")
 )
 
+// JobStore is an scheduler.JobStore implementation that saves
+// state of scheduler Jobs in a Datastore.
 type JobStore struct {
 	lock     sync.Mutex
 	ds       datastore.Datastore
 	watchers []watcher
 }
 
+var _ scheduler.JobStore = (*JobStore)(nil)
+
 type watcher struct {
 	iid fpa.InstanceID
 	ch  chan fpa.Job
 }
 
-var _ scheduler.JobStore = (*JobStore)(nil)
-
+// New returns a new JobStore backed by the Datastore.
 func New(ds datastore.Datastore) *JobStore {
 	return &JobStore{
 		ds: ds,
 	}
 }
 
+// GetByStatus returns all Jobs with the specified JobStatus.
 func (js *JobStore) GetByStatus(status fpa.JobStatus) ([]fpa.Job, error) {
 	js.lock.Lock()
 	defer js.lock.Unlock()
@@ -57,6 +61,7 @@ func (js *JobStore) GetByStatus(status fpa.JobStatus) ([]fpa.Job, error) {
 	return ret, nil
 }
 
+// Put saves Job's data in the Datastore.
 func (js *JobStore) Put(j fpa.Job) error {
 	js.lock.Lock()
 	defer js.lock.Unlock()
@@ -74,13 +79,21 @@ func (js *JobStore) Put(j fpa.Job) error {
 	return nil
 }
 
+// Watch subscribes to Job changes from a specified FastAPI instance.
 func (js *JobStore) Watch(iid fpa.InstanceID) <-chan fpa.Job {
+	js.lock.Lock()
+	defer js.lock.Unlock()
+
 	ch := make(chan fpa.Job, 1)
 	js.watchers = append(js.watchers, watcher{iid: iid, ch: ch})
 	return ch
 }
 
+// Unwatch unregisters a channel returned from Watch().
 func (js *JobStore) Unwatch(ch <-chan fpa.Job) {
+	js.lock.Lock()
+	defer js.lock.Unlock()
+
 	for i := range js.watchers {
 		if js.watchers[i].ch == ch {
 			close(js.watchers[i].ch)
@@ -88,6 +101,17 @@ func (js *JobStore) Unwatch(ch <-chan fpa.Job) {
 			js.watchers = js.watchers[:len(js.watchers)-1]
 		}
 	}
+}
+
+// Close closes the JobStore, unregistering any subscribed watchers.
+func (js *JobStore) Close() error {
+	js.lock.Lock()
+	defer js.lock.Unlock()
+
+	for i := range js.watchers {
+		close(js.watchers[i].ch)
+	}
+	return nil
 }
 
 func (js *JobStore) notifyWatchers(j fpa.Job) {

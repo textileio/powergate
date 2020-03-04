@@ -13,13 +13,15 @@ import (
 )
 
 var (
+	// ErrNotFound indicates that the auth-token isn't registered
 	ErrNotFound = errors.New("auth token not found")
 
 	dsBase = ds.NewKey("auth")
-	log    = logging.Logger("fpaauth")
+	log    = logging.Logger("fpa-auth")
 )
 
-type Repo struct {
+// Auth contains a mapping between auth-tokens and FastAPI instances.
+type Auth struct {
 	lock sync.Mutex
 	ds   ds.Datastore
 }
@@ -30,31 +32,35 @@ type entry struct {
 	// This can be extended to have permissions
 }
 
-func New(store ds.Datastore) *Repo {
-	return &Repo{
+// New returns a new Auth
+func New(store ds.Datastore) *Auth {
+	return &Auth{
 		ds: store,
 	}
 }
 
-func (r *Repo) Generate(id fpa.InstanceID) (string, error) {
+// Generate generates a new returned auth-token mapped to the iid
+func (r *Auth) Generate(iid fpa.InstanceID) (string, error) {
+	log.Infof("generating auth-token for instance %s", iid)
 	r.lock.Lock()
 	defer r.lock.Unlock()
-
 	e := entry{
 		Token:      uuid.New().String(),
-		InstanceID: id,
+		InstanceID: iid,
 	}
 	buf, err := json.Marshal(&e)
 	if err != nil {
-		return "", fmt.Errorf("marshaling new auth token for instance %s: %s", id, err)
+		return "", fmt.Errorf("marshaling new auth token for instance %s: %s", iid, err)
 	}
 	if err := r.ds.Put(makeKey(e.Token), buf); err != nil {
-		return "", fmt.Errorf("saving generated token from %s to datastore: %s", id, err)
+		return "", fmt.Errorf("saving generated token from %s to datastore: %s", iid, err)
 	}
 	return e.Token, nil
 }
 
-func (r *Repo) Get(token string) (fpa.InstanceID, error) {
+// Get returns the InstanceID associated with token.
+// It returns ErrNotFound if there isn't such.
+func (r *Auth) Get(token string) (fpa.InstanceID, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 

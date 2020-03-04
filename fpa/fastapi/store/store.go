@@ -15,6 +15,7 @@ var (
 	dsBaseCidInfo   = datastore.NewKey("cidinfo")
 )
 
+// ConfigStore is an implementation of fastapi.ConfigStore interface
 type ConfigStore struct {
 	lock sync.Mutex
 	ds   datastore.Datastore
@@ -23,6 +24,7 @@ type ConfigStore struct {
 
 var _ fastapi.ConfigStore = (*ConfigStore)(nil)
 
+// New returns a new ConfigStore
 func New(iid fpa.InstanceID, ds datastore.Datastore) *ConfigStore {
 	return &ConfigStore{
 		iid: iid,

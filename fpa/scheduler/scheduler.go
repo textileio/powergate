@@ -3,17 +3,22 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	"sync"
+	"io"
 	"time"
 
+	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/fil-tools/fpa"
 )
 
 var (
-	log = logging.Logger("scheduler")
+	log = logging.Logger("fpa-scheduler")
 )
 
+// Scheduler receives actions to store a Cid in Hot and Cold layers. These actions are
+// created as Jobs which have a lifecycle that can be watched by external actors.
+// This Jobs are executed by delegating the work to the Hot and Cold layers configured for
+// the scheduler.
 type Scheduler struct {
 	cold  fpa.ColdLayer
 	hot   fpa.HotLayer
@@ -24,13 +29,12 @@ type Scheduler struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	finished chan struct{}
-
-	lock   sync.Mutex
-	queued []fpa.Job
 }
 
 var _ fpa.Scheduler = (*Scheduler)(nil)
 
+// New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
+// HotLayer for the hot layer, and ColdLayer for the cold layer.
 func New(store JobStore, hot fpa.HotLayer, cold fpa.ColdLayer) *Scheduler {
 	ctx, cancel := context.WithCancel(context.Background())
 	sch := &Scheduler{
@@ -48,9 +52,9 @@ func New(store JobStore, hot fpa.HotLayer, cold fpa.ColdLayer) *Scheduler {
 	return sch
 }
 
+// Enqueue queues the specified CidConfig to be executed as a new Job. It returns
+// the created JobID for further tracking of its state.
 func (s *Scheduler) Enqueue(c fpa.CidConfig) (fpa.JobID, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
 	jid := fpa.NewJobID()
 	log.Infof("enqueuing %s", jid)
 	j := fpa.Job{
@@ -73,14 +77,28 @@ func (s *Scheduler) Enqueue(c fpa.CidConfig) (fpa.JobID, error) {
 	return jid, nil
 }
 
+// GetFromHot returns an io.Reader of the data from the hot layer.
+// (TODO: in the future rate-limiting can be applied.)
+func (s *Scheduler) GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
+	r, err := s.hot.Get(ctx, c)
+	if err != nil {
+		return nil, fmt.Errorf("getting %s from hot layer: %s", c, err)
+	}
+	return r, nil
+}
+
+// Watch returns a channel to listen to Job status changes from a specified
+// FastAPI instance.
 func (s *Scheduler) Watch(iid fpa.InstanceID) <-chan fpa.Job {
 	return s.store.Watch(iid)
 }
 
+// Unwatch unregisters a subscribing channel created by Watch().
 func (s *Scheduler) Unwatch(ch <-chan fpa.Job) {
 	s.store.Unwatch(ch)
 }
 
+// Close terminates the scheduler.
 func (s *Scheduler) Close() error {
 	s.cancel()
 	<-s.finished
@@ -107,7 +125,7 @@ func (s *Scheduler) run() {
 					log.Errorf("executing job %s: %s", j.ID, err)
 					continue
 				}
-				log.Infof("job %s executed with final state %d and errcause %s", j.ID, j.Status, j.ErrCause)
+				log.Infof("job %s executed with final state %d and errcause %q", j.ID, j.Status, j.ErrCause)
 				if err := s.store.Put(j); err != nil {
 					log.Errorf("saving job %s: %s", j.ID, err)
 				}

@@ -1,70 +1,92 @@
 package fpa
 
 import (
-	"context"
-	"io"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 )
 
-type WalletManager interface {
-	NewWallet(ctx context.Context, typ string) (string, error)
-	Balance(ctx context.Context, addr string) (uint64, error)
-}
-
-type Auditor interface {
-	Start(ctx context.Context, instanceID string) OpAuditor
-}
-type OpAuditor interface {
-	ID() string
-	Success()
-	Errored(error)
-	Log(event interface{})
-	Close()
-}
-
-type Scheduler interface {
-	Enqueue(CidConfig) (JobID, error)
-
-	Watch(InstanceID) <-chan Job
-	Unwatch(<-chan Job)
-}
-
-type HotLayer interface {
-	Add(context.Context, io.Reader) (cid.Cid, error)
-	Get(context.Context, cid.Cid) (io.Reader, error)
-	Pin(context.Context, cid.Cid) (HotInfo, error)
-}
-
-type ColdLayer interface {
-	Store(ctx context.Context, c cid.Cid, conf ColdConfig) (ColdInfo, error)
-}
-
 var (
+	// EmptyJobID represents an empty JobID.
 	EmptyJobID = JobID("")
 )
 
+// JobID is an identifier for a fpa.Job.
 type JobID string
 
+// NewJobID returns a new JobID.
 func NewJobID() JobID {
 	return JobID(uuid.New().String())
 }
 
+// String returns a string representation of JobID.
 func (jid JobID) String() string {
 	return string(jid)
 }
 
+// InstanceID
+var (
+	EmptyID = InstanceID("")
+)
+
+// InstanceID is an identifier for a FastAPI instance.
+type InstanceID string
+
+// NewInstanceID returns a new InstanceID.
+func NewInstanceID() InstanceID {
+	return InstanceID(uuid.New().String())
+}
+
+// Valid returns true if the InstanceID is valid, false
+// otherwise.
+func (i InstanceID) Valid() bool {
+	_, err := uuid.Parse(string(i))
+	return err == nil
+}
+
+// String returns a string representation of InstanceID.
+func (i InstanceID) String() string {
+	return string(i)
+}
+
+// JobStatus
 type JobStatus int
 
 const (
+	// Queued indicates the Job is queued in the Scheduler.
 	Queued JobStatus = iota
+	// Failed indicates the Job failed, with job.ErrCause with
+	// the error cause.
 	Failed
+	// Cancelled indicates the Job was cancelled from Queued,
+	// and didn't reach executing.
 	Cancelled
+	// Done indicates the Job was successfully executed.
 	Done
 )
 
+// CidConfigID is an identifier for a Cid configuration.
+type CidConfigID string
+
+// NewCidConfigID returns a new CidConfigID.
+func NewCidConfigID() CidConfigID {
+	return CidConfigID(uuid.New().String())
+}
+
+// Valid returns true if is a valid CidConfiID, false
+// otherwise.
+func (i CidConfigID) Valid() bool {
+	_, err := uuid.Parse(string(i))
+	return err == nil
+}
+
+// String returns a string representation of a CidConfigID.
+func (i CidConfigID) String() string {
+	return string(i)
+}
+
+// Job is a task to enforce CidConfig for a Cid.
 type Job struct {
 	ID       JobID
 	Status   JobStatus
@@ -73,108 +95,75 @@ type Job struct {
 	CidInfo  CidInfo
 }
 
-type Config struct {
-	Hot  HotConfig
-	Cold ColdConfig
-}
-
-type HotConfig struct {
-	Ipfs IpfsConfig
-}
-
-type IpfsConfig struct {
-	Enabled bool
-}
-
-type ColdConfig struct {
-	Filecoin FilecoinConfig
-}
-
-type FilecoinConfig struct {
-	Enabled    bool
-	WalletAddr string
-}
-
+// CidConfig is the desired state of storage for a Cid.
 type CidConfig struct {
-	ID         ConfigID
+	ID         CidConfigID
 	InstanceID InstanceID
 	Cid        cid.Cid
 	Hot        HotConfig
 	Cold       ColdConfig
 }
 
-type MinerSelector interface {
-	GetTopMiners(n int) ([]MinerProposal, error)
+// Hotconfig is the desired storage of a Cid in a hot layer.
+type HotConfig struct {
+	Ipfs IpfsConfig
 }
 
-type MinerProposal struct {
-	Addr       string
-	EpochPrice uint64
+// IpfsConfig is the desired storage of a Cid in IPFS.
+type IpfsConfig struct {
+	Enabled bool
 }
 
-var (
-	EmptyID = InstanceID("")
-)
-
-type InstanceID string
-
-func (i InstanceID) Valid() bool {
-	_, err := uuid.Parse(string(i))
-	return err == nil
-}
-func (i InstanceID) String() string {
-	return string(i)
+// ColdConfig is the desired state of a Cid in a cold layer.
+type ColdConfig struct {
+	Filecoin FilecoinConfig
 }
 
-func NewID() InstanceID {
-	return InstanceID(uuid.New().String())
+// FilecoinConfig is the desired state of a Cid in the
+// Filecoin network.
+type FilecoinConfig struct {
+	Enabled    bool
+	WalletAddr string
 }
 
-var (
-	EmptyConfigID = ConfigID("")
-)
-
-type ConfigID string
-
-func (i ConfigID) Valid() bool {
-	_, err := uuid.Parse(string(i))
-	return err == nil
-}
-func (i ConfigID) String() string {
-	return string(i)
-}
-
-func NewConfigID() ConfigID {
-	return ConfigID(uuid.New().String())
-}
-
+// CidInfo contains information about the current storage state
+// of a Cid.
 type CidInfo struct {
-	ConfigID ConfigID
+	ConfigID CidConfigID
 	Cid      cid.Cid
 	Created  time.Time
 	Hot      HotInfo
 	Cold     ColdInfo
 }
 
+// HotInfo contains information about the current storage state
+// of a Cid in the hot layer.
 type HotInfo struct {
 	Size int
 	Ipfs IpfsHotInfo
 }
 
+// IpfsHotInfo contains information about the current storage state
+// of a Cid in an IPFS node.
 type IpfsHotInfo struct {
 	Created time.Time
 }
 
+// ColdInfo contains information about the current storage state
+// of a Cid in the cold layer.
 type ColdInfo struct {
 	Filecoin FilInfo
 }
 
+// FilInfo contains information about the current storage state
+// of a Cid in the Filecoin network.
 type FilInfo struct {
 	PayloadCID cid.Cid
 	Duration   uint64
 	Proposals  []FilStorage
 }
 
+// FilStorage contains Deal information of a storage in Filecoin.
 type FilStorage struct {
 	ProposalCid cid.Cid
 	Failed      bool

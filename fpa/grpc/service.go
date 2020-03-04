@@ -24,12 +24,14 @@ var (
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	m *manager.Manager
+	m   *manager.Manager
+	hot fpa.HotLayer
 }
 
-func NewService(m *manager.Manager) *Service {
+func NewService(m *manager.Manager, hot fpa.HotLayer) *Service {
 	return &Service{
-		m: m,
+		m:   m,
+		hot: hot,
 	}
 }
 
@@ -156,7 +158,12 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 
 	go receiveFile(srv, writer)
 
-	jid, cid, err := i.AddFile(srv.Context(), reader)
+	c, err := s.hot.Add(srv.Context(), reader)
+	if err != nil {
+		return fmt.Errorf("adding data to hot layer: %s", err)
+	}
+
+	jid, err := i.AddCid(c)
 	if err != nil {
 		return err
 	}
@@ -169,7 +176,7 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 		}
 	}
 
-	return srv.SendAndClose(&pb.AddFileReply{Cid: cid.String()})
+	return srv.SendAndClose(&pb.AddFileReply{Cid: c.String()})
 }
 
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {

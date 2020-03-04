@@ -9,9 +9,8 @@ import (
 	"github.com/textileio/fil-tools/fpa/fastapi"
 )
 
+// SaveConfig persist Config information of the FastAPI instance
 func (cs *ConfigStore) SaveConfig(c fastapi.Config) error {
-	cs.lock.Lock()
-	defer cs.lock.Unlock()
 	buf, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling config: %s", err)
@@ -22,13 +21,15 @@ func (cs *ConfigStore) SaveConfig(c fastapi.Config) error {
 	return nil
 }
 
+// GetConfig gets the current configuration of the FastAPI instance.
+// If no configuration exist, it returns ErrConfigNotFound.
 func (cs *ConfigStore) GetConfig() (*fastapi.Config, error) {
 	buf, err := cs.ds.Get(makeConfigKey(cs.iid))
 	if err != nil {
 		if err == datastore.ErrNotFound {
 			return nil, fastapi.ErrConfigNotFound
 		}
-		return nil, err
+		return nil, fmt.Errorf("getting config from store: %s", err)
 	}
 	var c fastapi.Config
 	if err := json.Unmarshal(buf, &c); err != nil {

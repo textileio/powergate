@@ -2,9 +2,11 @@ package manager
 
 import (
 	"context"
+	"io"
 	"math/big"
 	"testing"
 
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/fil-tools/fpa"
@@ -67,7 +69,7 @@ func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	dnet, addr, _, close := tests.CreateLocalDevnet(t, 1)
 	wm, err := wallet.New(dnet.Client, &addr, *big.NewInt(5000000000000))
 	require.Nil(t, err)
-	m, err := New(ds, wm, &mockSched{}, nil)
+	m, err := New(ds, wm, &mockSched{})
 	require.Nil(t, err)
 	cls := func() {
 		require.Nil(t, m.Close())
@@ -80,6 +82,9 @@ type mockSched struct{}
 
 func (ms *mockSched) Enqueue(c fpa.CidConfig) (fpa.JobID, error) {
 	return fpa.NewJobID(), nil
+}
+func (ms *mockSched) GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
+	return nil, nil
 }
 func (ms *mockSched) Watch(iid fpa.InstanceID) <-chan fpa.Job {
 	return nil

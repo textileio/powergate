@@ -10,17 +10,19 @@ import (
 	"github.com/textileio/fil-tools/fpa/fastapi"
 )
 
+// PushCidConfig saves a new desired configuration for storing a Cid
 func (cs *ConfigStore) PushCidConfig(c fpa.CidConfig) error {
 	buf, err := json.Marshal(c)
 	if err != nil {
-		return fmt.Errorf("marshaling cid config: %s", err)
+		return fmt.Errorf("marshaling cidconfig: %s", err)
 	}
 	if err := cs.ds.Put(makeCidConfigKey(cs.iid, c.Cid), buf); err != nil {
-		return fmt.Errorf("saving cid config to store: %s", err)
+		return fmt.Errorf("saving cidconfig to store: %s", err)
 	}
 	return nil
 }
 
+// GetCidConfig returns the current desired config for the Cid
 func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*fpa.CidConfig, error) {
 	buf, err := cs.ds.Get(makeCidConfigKey(cs.iid, c))
 	if err != nil {

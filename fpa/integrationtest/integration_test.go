@@ -54,7 +54,6 @@ func TestMain(m *testing.M) {
 }
 
 func TestAdd(t *testing.T) {
-	ctx := context.Background()
 	ipfsApi, fapi, cls := newFastAPI(t)
 	defer cls()
 
@@ -70,15 +69,6 @@ func TestAdd(t *testing.T) {
 	t.Run("AddCidSuccess", func(t *testing.T) {
 		jid, err := fapi.AddCid(cid)
 		require.Nil(t, err)
-		requireJobState(t, fapi, jid, fpa.Done)
-	})
-
-	r2 := rand.New(rand.NewSource(33))
-	data := randomBytes(r2, 500)
-	t.Run("AddFileSuccess", func(t *testing.T) {
-		jid, cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
-		require.Nil(t, err)
-		require.NotNil(t, cid)
 		requireJobState(t, fapi, jid, fpa.Done)
 	})
 }
@@ -200,8 +190,8 @@ func newFastAPI(t *testing.T) (*httpapi.HttpApi, *fastapi.Instance, func()) {
 
 	wm, err := wallet.New(dnet.Client, &addr, *big.NewInt(5000000000000))
 	require.Nil(t, err)
-	id := fpa.NewID()
-	fapi, err := fastapi.New(ctx, id, store.New(id, txndstr.Wrap(ds, "fpa/fastapi/store")), sch, wm, hl)
+	id := fpa.NewInstanceID()
+	fapi, err := fastapi.New(ctx, id, store.New(id, txndstr.Wrap(ds, "fpa/fastapi/store")), sch, wm)
 	require.Nil(t, err)
 	time.Sleep(time.Second)
 

@@ -8,11 +8,17 @@ import (
 	"github.com/textileio/fil-tools/reputation"
 )
 
+// RepTop is a fpa.MinerSelector implementation that returns the top N
+// miners from a Reputations Module and an Ask Index.
 type RepTop struct {
 	rm *reputation.Module
 	ai *ask.AskIndex
 }
 
+var _ fpa.MinerSelector = (*RepTop)(nil)
+
+// New returns a new RetTop instance that uses the specified Reputation Module
+// to select miners and the AskIndex for their epoch prices.
 func New(rm *reputation.Module, ai *ask.AskIndex) *RepTop {
 	return &RepTop{
 		rm: rm,
@@ -20,10 +26,12 @@ func New(rm *reputation.Module, ai *ask.AskIndex) *RepTop {
 	}
 }
 
+// GetTopMiners returns n miners using the configured Reputation Module and
+// Ask Index.
 func (rt *RepTop) GetTopMiners(n int) ([]fpa.MinerProposal, error) {
 	ms, err := rt.rm.GetTopMiners(n)
 	if err != nil {
-		return nil, fmt.Errorf("getting top N miners from reputation: %s", err)
+		return nil, fmt.Errorf("getting top %d miners from reputation module: %s", n, err)
 	}
 	aidx := rt.ai.Get()
 	res := make([]fpa.MinerProposal, 0, len(ms))
@@ -39,5 +47,3 @@ func (rt *RepTop) GetTopMiners(n int) ([]fpa.MinerProposal, error) {
 	}
 	return res, nil
 }
-
-var _ fpa.MinerSelector = (*RepTop)(nil)
