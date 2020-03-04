@@ -18,13 +18,15 @@
 {{end}}
 
 {{define "menu"}}
-            <div>
-                <div class="navbar">
-                {{range .MenuItems}}
-                    <a href="/{{.Path}}">{{.Name}}</a>
+            <ul class="navbar">
+            {{range .MenuItems}}
+                {{if .Selected}}
+                    <li><a class="selected" href="/{{.Path}}">{{.Name}}</a></li>
+                {{else}}
+                    <li><a href="/{{.Path}}">{{.Name}}</a></li>
                 {{end}}
-                </div>
-            </div>
+            {{end}}
+            </ul>
 {{end}}
 
 {{define "table"}}

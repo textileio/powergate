@@ -34,42 +34,35 @@ body {
 }
 
 .navbar {
-    width: 100%;
-    line-height: 2em;
-    font-size: 0.9em;
-    margin: 5em auto 1em;
+    list-style: none;
+    text-align: center;
+    margin-bottom: 2em;
+    margin-top: 2em;
+    font-size: 0.8em;
+    text-transform: uppercase;
+}
+
+.navbar li {
+    display: inline;
+}
+
+.navbar a{
+    display: inline-block;
+    padding: 10px;
+}
+
+.navbar a.selected {
+    color: white;
+    font-weight: bold;
 }
 
 a {
-    color: #FFB6D5;
     text-decoration: none;
+    color: #666666;
 }
 
-ul, li {
-    list-style: none;
-    width: 100%;
-}
-
-ul {
-    margin: 0;
-    padding: 0;
-}
-
-li {
-    line-height: 2em;
-    font-size: 0.9em;
-}
-
-li span.right {
-    float: right;
-}
-
-li:nth-child(even) {
-    background: rgba(255,182,213,0.05);
-}
-
-li:nth-child(odd) {
-    background: none;
+a:hover {
+    text-decoration: underline;
 }
 
 table {
@@ -93,6 +86,8 @@ th {
     text-align: left;
     background-color: rgb(15, 15, 15);
     color: white;
+    font-size: 0.8em;
+    text-transform: uppercase;
 }
 
 .aligner {
