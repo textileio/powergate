@@ -12,7 +12,6 @@ import (
 	"github.com/gin-contrib/location"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	logger "github.com/ipfs/go-log"
 	assets "github.com/jessevdk/go-assets"
 	"github.com/rs/cors"
@@ -21,10 +20,7 @@ import (
 	"github.com/textileio/fil-tools/index/miner"
 	"github.com/textileio/fil-tools/index/slashing"
 	"github.com/textileio/fil-tools/reputation"
-	"github.com/textileio/go-threads/broadcast"
 )
-
-const handlerTimeout = time.Second * 10
 
 var log = logger.Logger("gateway")
 
@@ -52,7 +48,6 @@ type Gateway struct {
 	minerIndex       *miner.MinerIndex
 	slashingIndex    *slashing.SlashingIndex
 	reputationModule *reputation.Module
-	sessionBus       *broadcast.Broadcaster
 }
 
 // NewGateway returns a new gateway.
@@ -90,14 +85,15 @@ func (g *Gateway) Start() {
 
 	router.Use(static.Serve("", &fileSystem{Assets}))
 
-	router.GET("/health", func(c *gin.Context) {
-		c.Writer.WriteHeader(http.StatusNoContent)
-	})
-
 	router.GET("/asks", g.asksHandler)
 	router.GET("/miners", g.minersHandler)
 	router.GET("/slashing", g.slashingHandler)
 	router.GET("/reputation", g.reputationHandler)
+
+	router.GET("/", func(c *gin.Context) {
+		c.Request.URL.Path = "/asks"
+		router.HandleContext(c)
+	})
 
 	router.NoRoute(func(c *gin.Context) {
 		g.render404(c)
@@ -171,57 +167,12 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 		i++
 	}
 
-	foo := [][]string{
-		[]string{
-			"asdfsad",
-			"1234",
-			"253",
-			"Timestamp",
-			"Expiry",
-		},
-		[]string{
-			"asdfsad",
-			"1234",
-			"253",
-			"Timestamp",
-			"Expiry",
-		},
-		[]string{
-			"asdfsad",
-			"1234",
-			"253",
-			"Timestamp",
-			"Expiry",
-		},
-		[]string{
-			"asdfsad",
-			"1234",
-			"253",
-			"Timestamp",
-			"Expiry",
-		},
-		[]string{
-			"asdfsad",
-			"1234",
-			"253",
-			"Timestamp",
-			"Expiry",
-		},
-		[]string{
-			"asdfsad",
-			"1234",
-			"253",
-			"Timestamp",
-			"Expiry",
-		},
-	}
-
 	c.HTML(http.StatusOK, "/public/html/asks.gohtml", gin.H{
 		"MenuItems": menuItems,
 		"Title":     "Available Asks",
 		"Subtitle":  subtitle,
 		"Headers":   headers,
-		"Rows":      foo,
+		"Rows":      rows,
 	})
 }
 
@@ -267,7 +218,7 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 			"Rows":     metaRows,
 		},
 		"ChainData": gin.H{
-			"Title":    "Miner on chain data",
+			"Title":    "Miner On-Chain Data",
 			"Subtitle": chainSubtitle,
 			"Headers":  chainHeaders,
 			"Rows":     chainRows,
@@ -388,13 +339,6 @@ func (g *Gateway) renderError(c *gin.Context, code int, err error) {
 	})
 }
 
-// abort the request with code and error.
-func abort(c *gin.Context, code int, err error) {
-	c.AbortWithStatusJSON(code, gin.H{
-		"error": err.Error(),
-	})
-}
-
 // loadTemplate loads HTML templates.
 func loadTemplate() (*template.Template, error) {
 	t := template.New("")
@@ -419,28 +363,4 @@ func formatError(err error) string {
 	words := strings.SplitN(err.Error(), " ", 2)
 	words[0] = strings.Title(words[0])
 	return strings.Join(words, " ") + "."
-}
-
-// byteCountDecimal formats bytes
-func byteCountDecimal(b int64) string {
-	const unit = 1000
-	if b < unit {
-		return fmt.Sprintf("%d B", b)
-	}
-	div, exp := int64(unit), 0
-	for n := b / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "kMGTPE"[exp])
-}
-
-// parseUUID parses a string as a UUID, adding back hyphens.
-func (g *Gateway) parseUUID(c *gin.Context, param string) (parsed string) {
-	id, err := uuid.Parse(param)
-	if err != nil {
-		g.render404(c)
-		return
-	}
-	return id.String()
 }
