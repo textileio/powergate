@@ -1,68 +1,19 @@
 package fastapi
 
 import (
-	"time"
+	"errors"
 
-	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/fil-tools/fpa"
 )
 
-var (
-	EmptyID = ID("")
-)
-
-type ID string
-
-func (i ID) Valid() bool {
-	_, err := uuid.Parse(string(i))
-	return err == nil
-}
-func (i ID) String() string {
-	return string(i)
-}
-
-func NewID() ID {
-	return ID(uuid.New().String())
-}
-
-type info struct {
-	ID         ID
+type Config struct {
+	ID         fpa.InstanceID
 	WalletAddr string
 }
 
-type CidInfo struct {
-	Cid     cid.Cid
-	Created time.Time
-	Hot     HotInfo
-	Cold    ColdInfo
-}
-
-type HotInfo struct {
-	Size int
-	Ipfs IpfsHotInfo
-}
-
-type IpfsHotInfo struct {
-	Created time.Time
-}
-
-type ColdInfo struct {
-	Filecoin FilInfo
-}
-
-type FilInfo struct {
-	PayloadCID cid.Cid
-	Duration   uint64
-	Proposals  []FilStorage
-}
-
-type FilStorage struct {
-	ProposalCid cid.Cid
-	Failed      bool
-}
-
-type Info struct {
-	ID     ID
+type InstanceInfo struct {
+	ID     fpa.InstanceID
 	Wallet WalletInfo
 	Pins   []cid.Cid
 }
@@ -70,4 +21,21 @@ type Info struct {
 type WalletInfo struct {
 	Address string
 	Balance uint64
+}
+
+var (
+	ErrConfigNotFound    = errors.New("config not found")
+	ErrCidConfigNotFound = errors.New("cid config not found")
+)
+
+type ConfigStore interface {
+	SaveConfig(c Config) error
+	GetConfig() (*Config, error)
+
+	GetCidConfig(cid.Cid) (*fpa.CidConfig, error)
+	PushCidConfig(fpa.CidConfig) error
+
+	SaveCidInfo(fpa.CidInfo) error
+	GetCidInfo(cid.Cid) (fpa.CidInfo, bool, error)
+	Cids() ([]cid.Cid, error)
 }

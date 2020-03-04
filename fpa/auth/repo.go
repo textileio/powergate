@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	ds "github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
-	fa "github.com/textileio/fil-tools/fpa/fastapi"
+	"github.com/textileio/fil-tools/fpa"
 )
 
 var (
@@ -26,7 +26,7 @@ type Repo struct {
 
 type entry struct {
 	Token      string
-	InstanceID fa.ID
+	InstanceID fpa.InstanceID
 	// This can be extended to have permissions
 }
 
@@ -36,7 +36,7 @@ func New(store ds.Datastore) *Repo {
 	}
 }
 
-func (r *Repo) Generate(id fa.ID) (string, error) {
+func (r *Repo) Generate(id fpa.InstanceID) (string, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -54,20 +54,20 @@ func (r *Repo) Generate(id fa.ID) (string, error) {
 	return e.Token, nil
 }
 
-func (r *Repo) Get(token string) (fa.ID, error) {
+func (r *Repo) Get(token string) (fpa.InstanceID, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
 	buf, err := r.ds.Get(makeKey(token))
 	if err != nil && err == ds.ErrNotFound {
-		return fa.EmptyID, ErrNotFound
+		return fpa.EmptyID, ErrNotFound
 	}
 	if err != nil {
-		return fa.EmptyID, fmt.Errorf("getting token %s from datastore: %s", token, err)
+		return fpa.EmptyID, fmt.Errorf("getting token %s from datastore: %s", token, err)
 	}
 	var e entry
 	if err := json.Unmarshal(buf, &e); err != nil {
-		return fa.EmptyID, fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
+		return fpa.EmptyID, fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
 	}
 	return e.InstanceID, nil
 }

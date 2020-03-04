@@ -1,27 +1,33 @@
-package fpa
+package grpc
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/ipfs/go-cid"
+	logger "github.com/ipfs/go-log/v2"
+	"github.com/textileio/fil-tools/fpa"
 	"github.com/textileio/fil-tools/fpa/fastapi"
+	"github.com/textileio/fil-tools/fpa/manager"
 	pb "github.com/textileio/fil-tools/fpa/pb"
 )
 
 var (
 	ErrEmptyAuthToken = errors.New("auth token can't be empty")
+
+	log = logger.Logger("fpa-grpc-service")
 )
 
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	m *Manager
+	m *manager.Manager
 }
 
-func NewService(m *Manager) *Service {
+func NewService(m *manager.Manager) *Service {
 	return &Service{
 		m: m,
 	}
@@ -104,8 +110,20 @@ func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCid
 	if err != nil {
 		return nil, err
 	}
-	if err := i.AddCid(ctx, c); err != nil {
+	log.Infof("adding cid %s", c)
+	jid, err := i.AddCid(c)
+	if err != nil {
 		return nil, err
+	}
+
+	ch := i.Watch(jid)
+	defer i.Unwatch(ch)
+	for job := range ch {
+		if job.Status == fpa.Done {
+			break
+		} else if job.Status != fpa.Queued && job.Status != fpa.Done {
+			return nil, fmt.Errorf("error adding cid: %s", job.ErrCause)
+		}
 	}
 	return &pb.AddCidReply{}, nil
 }
@@ -138,9 +156,17 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 
 	go receiveFile(srv, writer)
 
-	cid, err := i.AddFile(srv.Context(), reader)
+	jid, cid, err := i.AddFile(srv.Context(), reader)
 	if err != nil {
 		return err
+	}
+	ch := i.Watch(jid)
+	for job := range ch {
+		if job.Status == fpa.Done {
+			break
+		} else if job.Status == fpa.Failed {
+			return fmt.Errorf("error adding cid: %s", job.ErrCause)
+		}
 	}
 
 	return srv.SendAndClose(&pb.AddFileReply{Cid: cid.String()})

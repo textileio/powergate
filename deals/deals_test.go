@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/fil-tools/ldevnet"
@@ -111,7 +112,7 @@ func TestWatchStore(t *testing.T) {
 
 func storeMultiMiner(m *Module, dnet *ldevnet.LocalDevnet, numMiners int, data []byte) (cid.Cid, error) {
 	ctx := context.Background()
-	miners, err := dnet.Client.StateListMiners(ctx, nil)
+	miners, err := dnet.Client.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		return cid.Undef, err
 	}

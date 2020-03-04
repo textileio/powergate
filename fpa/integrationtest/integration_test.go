@@ -1,4 +1,4 @@
-package fastapi
+package integrationtest
 
 import (
 	"bytes"
@@ -20,9 +20,16 @@ import (
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/fil-tools/deals"
+	"github.com/textileio/fil-tools/fpa"
+	"github.com/textileio/fil-tools/fpa/coreipfs"
+	"github.com/textileio/fil-tools/fpa/fastapi"
+	"github.com/textileio/fil-tools/fpa/fastapi/store"
+	"github.com/textileio/fil-tools/fpa/filcold"
 	"github.com/textileio/fil-tools/fpa/minerselector/fixed"
-	"github.com/textileio/fil-tools/fpa/noopauditor"
+	"github.com/textileio/fil-tools/fpa/scheduler"
+	"github.com/textileio/fil-tools/fpa/scheduler/jsonjobstore"
 	"github.com/textileio/fil-tools/tests"
+	txndstr "github.com/textileio/fil-tools/txndstransform"
 	"github.com/textileio/fil-tools/util"
 	"github.com/textileio/fil-tools/wallet"
 )
@@ -33,6 +40,11 @@ var (
 
 func TestMain(m *testing.M) {
 	logging.SetAllLoggers(logging.LevelError)
+
+	// logging.SetLogLevel("scheduler", "debug")
+	// logging.SetLogLevel("fastapi", "debug")
+	// logging.SetLogLevel("jobstore", "debug")
+	// logging.SetLogLevel("coreipfs", "debug")
 
 	var cls func()
 	ipfsDocker, cls = tests.LaunchDocker()
@@ -47,36 +59,27 @@ func TestAdd(t *testing.T) {
 	defer cls()
 
 	t.Run("Unretrievable", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(ctx, time.Microsecond) // Simulate timeout, fast.
-		defer cancel()
 		c, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z") // ipfs hello-world not in the node
-		err := fapi.AddCid(ctx, c)
-		require.Equal(t, ErrCantPin, err)
+		jid, err := fapi.AddCid(c)
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, fpa.Failed)
 	})
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	t.Run("AddCidSuccess", func(t *testing.T) {
-		err := fapi.AddCid(ctx, cid)
+		jid, err := fapi.AddCid(cid)
 		require.Nil(t, err)
-	})
-
-	t.Run("AddCidPinned", func(t *testing.T) {
-		err := fapi.AddCid(ctx, cid)
-		require.Equal(t, ErrAlreadyPinned, err)
+		requireJobState(t, fapi, jid, fpa.Done)
 	})
 
 	r2 := rand.New(rand.NewSource(33))
 	data := randomBytes(r2, 500)
 	t.Run("AddFileSuccess", func(t *testing.T) {
-		cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
+		jid, cid, err := fapi.AddFile(ctx, bytes.NewReader(data))
 		require.Nil(t, err)
 		require.NotNil(t, cid)
-	})
-
-	t.Run("AddFilePinned", func(t *testing.T) {
-		_, err := fapi.AddFile(ctx, bytes.NewReader(data))
-		require.Equal(t, ErrAlreadyPinned, err)
+		requireJobState(t, fapi, jid, fpa.Done)
 	})
 }
 
@@ -85,10 +88,11 @@ func TestGet(t *testing.T) {
 	ipfs, fapi, cls := newFastAPI(t)
 	defer cls()
 
-	r := rand.New(rand.NewSource(22))
+	r := rand.New(rand.NewSource(11))
 	cid, data := addRandomFile(t, r, ipfs)
-	err := fapi.AddCid(ctx, cid)
+	jid, err := fapi.AddCid(cid)
 	require.Nil(t, err)
+	requireJobState(t, fapi, jid, fpa.Done)
 
 	t.Run("FromAPI", func(t *testing.T) {
 		r, err := fapi.Get(ctx, cid)
@@ -105,7 +109,7 @@ func TestInfo(t *testing.T) {
 	defer cls()
 
 	var err error
-	var first Info
+	var first fastapi.InstanceInfo
 	t.Run("Minimal", func(t *testing.T) {
 		first, err = fapi.Info(ctx)
 		require.Nil(t, err)
@@ -119,8 +123,9 @@ func TestInfo(t *testing.T) {
 	n := 3
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
-		err := fapi.AddCid(ctx, cid)
+		jid, err := fapi.AddCid(cid)
 		require.Nil(t, err)
+		requireJobState(t, fapi, jid, fpa.Done)
 	}
 
 	t.Run("WithThreeAdds", func(t *testing.T) {
@@ -141,16 +146,19 @@ func TestShow(t *testing.T) {
 	t.Run("NotStored", func(t *testing.T) {
 		c, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 		_, err := fapi.Show(c)
-		require.Equal(t, ErrNotStored, err)
+		require.Equal(t, fastapi.ErrNotStored, err)
 	})
 
 	t.Run("Success", func(t *testing.T) {
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfs)
-		err := fapi.AddCid(ctx, cid)
+		jid, err := fapi.AddCid(cid)
 		require.Nil(t, err)
+		requireJobState(t, fapi, jid, fpa.Done)
+
 		inf, err := fapi.Info(ctx)
 		require.Nil(t, err)
+		require.Equal(t, 1, len(inf.Pins))
 
 		c := inf.Pins[0]
 
@@ -172,7 +180,7 @@ func TestShow(t *testing.T) {
 	})
 }
 
-func newFastAPI(t *testing.T) (*httpapi.HttpApi, *Instance, func()) {
+func newFastAPI(t *testing.T) (*httpapi.HttpApi, *fastapi.Instance, func()) {
 	ctx := context.Background()
 	ds := tests.NewTxMapDatastore()
 
@@ -181,18 +189,49 @@ func newFastAPI(t *testing.T) (*httpapi.HttpApi, *Instance, func()) {
 	require.Nil(t, err)
 
 	dnet, addr, _, close := tests.CreateLocalDevnet(t, 1)
-	m, err := deals.New(dnet.Client, deals.WithImportPath(filepath.Join(os.TempDir(), "imports")))
-	require.Nil(t, err)
-
-	wm, err := wallet.New(dnet.Client, &addr, *big.NewInt(5000000000000))
+	dm, err := deals.New(dnet.Client, deals.WithImportPath(filepath.Join(os.TempDir(), "imports")))
 	require.Nil(t, err)
 
 	ms := fixed.New("t0300", 4000000)
-	fapi, err := New(ctx, ds, ipfsClient, m, ms, &noopauditor.Auditor{}, wm)
+
+	jobstore := jsonjobstore.New(txndstr.Wrap(ds, "fpa/scheduler/jsonjobstore"))
+	hl := coreipfs.New(ipfsClient)
+	sch := scheduler.New(jobstore, hl, filcold.New(ms, dm, ipfsClient.Dag()))
+
+	wm, err := wallet.New(dnet.Client, &addr, *big.NewInt(5000000000000))
+	require.Nil(t, err)
+	id := fpa.NewID()
+	fapi, err := fastapi.New(ctx, id, store.New(id, txndstr.Wrap(ds, "fpa/fastapi/store")), sch, wm, hl)
 	require.Nil(t, err)
 	time.Sleep(time.Second)
 
-	return ipfsClient, fapi, close
+	return ipfsClient, fapi, func() {
+		fapi.Close()
+		sch.Close()
+		close()
+	}
+}
+
+func requireJobState(t *testing.T, fapi *fastapi.Instance, jid fpa.JobID, status fpa.JobStatus) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	ch := fapi.Watch(jid)
+	defer fapi.Unwatch(ch)
+	stop := false
+	for !stop {
+		select {
+		case <-ctx.Done():
+			t.Fatalf("waiting for job update timeout")
+		case job, ok := <-ch:
+			require.True(t, ok)
+			require.Equal(t, jid, job.ID)
+			if job.Status == fpa.Queued {
+				continue
+			}
+			require.Equal(t, status, job.Status)
+			stop = true
+		}
+	}
 }
 
 func randomBytes(r *rand.Rand, size int) []byte {

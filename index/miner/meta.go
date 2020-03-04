@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/types"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/textileio/fil-tools/iplocation"
 	"go.opencensus.io/stats"
@@ -131,7 +132,7 @@ func getMeta(ctx context.Context, c API, h P2PHost, lr iplocation.LocationResolv
 	if err != nil {
 		return si, err
 	}
-	pid, err := c.StateMinerPeerID(ctx, addr, nil)
+	pid, err := c.StateMinerPeerID(ctx, addr, types.EmptyTSK)
 	if err != nil {
 		return si, err
 	}

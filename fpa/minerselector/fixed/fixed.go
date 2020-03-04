@@ -3,7 +3,7 @@ package fixed
 import (
 	"fmt"
 
-	"github.com/textileio/fil-tools/fpa/types"
+	"github.com/textileio/fil-tools/fpa"
 )
 
 type FixedMinerSelector struct {
@@ -18,11 +18,11 @@ func New(addr string, epochPrice uint64) *FixedMinerSelector {
 	}
 }
 
-func (fms *FixedMinerSelector) GetTopMiners(n int) ([]types.MinerProposal, error) {
+func (fms *FixedMinerSelector) GetTopMiners(n int) ([]fpa.MinerProposal, error) {
 	if n != 1 {
 		return nil, fmt.Errorf("fixed miner selector can only return 1 result")
 	}
-	return []types.MinerProposal{
+	return []fpa.MinerProposal{
 		{
 			Addr:       fms.addr,
 			EpochPrice: fms.epochPrice,
@@ -30,4 +30,4 @@ func (fms *FixedMinerSelector) GetTopMiners(n int) ([]types.MinerProposal, error
 	}, nil
 }
 
-var _ types.MinerSelector = (*FixedMinerSelector)(nil)
+var _ fpa.MinerSelector = (*FixedMinerSelector)(nil)

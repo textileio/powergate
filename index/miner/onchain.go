@@ -34,7 +34,7 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 	if heaviest.Height()-hOffset <= 0 {
 		return nil
 	}
-	new, err := mi.api.ChainGetTipSetByHeight(mi.ctx, heaviest.Height()-hOffset, heaviest)
+	new, err := mi.api.ChainGetTipSetByHeight(mi.ctx, heaviest.Height()-hOffset, heaviest.Key())
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func fullRefresh(ctx context.Context, api API, chainIndex *ChainIndex) error {
 	if err != nil {
 		return err
 	}
-	addrs, err := api.StateListMiners(ctx, ts)
+	addrs, err := api.StateListMiners(ctx, ts.Key())
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func updateForAddrs(ctx context.Context, api API, chainIndex *ChainIndex, addrs 
 
 // getPower returns current on-chain power information for a miner
 func getPower(ctx context.Context, c API, addr address.Address) (Power, error) {
-	mp, err := c.StateMinerPower(ctx, addr, nil)
+	mp, err := c.StateMinerPower(ctx, addr, types.EmptyTSK)
 	if err != nil {
 		return Power{}, err
 	}

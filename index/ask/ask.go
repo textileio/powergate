@@ -46,9 +46,9 @@ type AskIndex struct {
 
 // API provides an abstraction to a Filecoin full-node
 type API interface {
-	StateListMiners(context.Context, *types.TipSet) ([]address.Address, error)
+	StateListMiners(context.Context, types.TipSetKey) ([]address.Address, error)
 	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*types.SignedStorageAsk, error)
-	StateMinerPeerID(ctx context.Context, m address.Address, ts *types.TipSet) (peer.ID, error)
+	StateMinerPeerID(ctx context.Context, m address.Address, ts types.TipSetKey) (peer.ID, error)
 }
 
 // New returnas a new AskIndex. It loads saved information from ds, and immeediatelly
@@ -194,7 +194,7 @@ func (ai *AskIndex) update() error {
 
 // generateIndex returns a fresh index
 func generateIndex(ctx context.Context, api API) (*Index, error) {
-	addrs, err := api.StateListMiners(ctx, nil)
+	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 			defer func() { <-rateLim }()
 			ictx, cancel := context.WithTimeout(ctx, qaTimeout)
 			defer cancel()
-			pid, err := api.StateMinerPeerID(ictx, addr, nil)
+			pid, err := api.StateMinerPeerID(ictx, addr, types.EmptyTSK)
 			if err != nil {
 				log.Debugf("error getting pid of %s: %s", addr, err)
 				return

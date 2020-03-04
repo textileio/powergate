@@ -104,13 +104,13 @@ func TestStateReadState(t *testing.T) {
 	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 
-	addrs, err := dnet.Client.StateListMiners(context.Background(), nil)
+	addrs, err := dnet.Client.StateListMiners(context.Background(), types.EmptyTSK)
 	checkErr(t, err)
 
 	for _, a := range addrs {
-		actor, err := dnet.Client.StateGetActor(context.Background(), a, nil)
+		actor, err := dnet.Client.StateGetActor(context.Background(), a, types.EmptyTSK)
 		checkErr(t, err)
-		s, err := dnet.Client.StateReadState(context.Background(), actor, nil)
+		s, err := dnet.Client.StateReadState(context.Background(), actor, types.EmptyTSK)
 		checkErr(t, err)
 		if s.State == nil {
 			t.Fatalf("state of actor %s can't be nil", a)
@@ -122,10 +122,10 @@ func TestGetPeerID(t *testing.T) {
 	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
 	checkErr(t, err)
 
-	miners, err := dnet.Client.StateListMiners(context.Background(), nil)
+	miners, err := dnet.Client.StateListMiners(context.Background(), types.EmptyTSK)
 	checkErr(t, err)
 
-	pid, err := dnet.Client.StateMinerPeerID(context.Background(), miners[0], nil)
+	pid, err := dnet.Client.StateMinerPeerID(context.Background(), miners[0], types.EmptyTSK)
 	checkErr(t, err)
 	checkErr(t, pid.Validate())
 }

@@ -1,4 +1,4 @@
-package fpa
+package manager
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/stretchr/testify/require"
+	"github.com/textileio/fil-tools/fpa"
 	"github.com/textileio/fil-tools/fpa/fastapi"
 	"github.com/textileio/fil-tools/tests"
 	"github.com/textileio/fil-tools/wallet"
@@ -31,7 +32,7 @@ func TestInstance(t *testing.T) {
 		defer cls()
 
 		var err error
-		var id fastapi.ID
+		var id fpa.InstanceID
 		id, auth, err = m.Create(ctx)
 		require.Nil(t, err)
 		require.NotEmpty(t, auth)
@@ -66,7 +67,7 @@ func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	dnet, addr, _, close := tests.CreateLocalDevnet(t, 1)
 	wm, err := wallet.New(dnet.Client, &addr, *big.NewInt(5000000000000))
 	require.Nil(t, err)
-	m, err := New(ds, wm, nil, nil, nil, nil)
+	m, err := New(ds, wm, &mockSched{}, nil)
 	require.Nil(t, err)
 	cls := func() {
 		require.Nil(t, m.Close())
@@ -74,3 +75,13 @@ func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	}
 	return m, cls
 }
+
+type mockSched struct{}
+
+func (ms *mockSched) Enqueue(c fpa.CidConfig) (fpa.JobID, error) {
+	return fpa.NewJobID(), nil
+}
+func (ms *mockSched) Watch(iid fpa.InstanceID) <-chan fpa.Job {
+	return nil
+}
+func (ms *mockSched) Unwatch(<-chan fpa.Job) {}

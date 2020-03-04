@@ -22,10 +22,14 @@ import (
 	"github.com/textileio/fil-tools/deals"
 	dealsPb "github.com/textileio/fil-tools/deals/pb"
 	"github.com/textileio/fil-tools/fchost"
-	"github.com/textileio/fil-tools/fpa"
+	"github.com/textileio/fil-tools/fpa/coreipfs"
+	"github.com/textileio/fil-tools/fpa/filcold"
+	fpaGrpc "github.com/textileio/fil-tools/fpa/grpc"
+	"github.com/textileio/fil-tools/fpa/manager"
 	"github.com/textileio/fil-tools/fpa/minerselector/reptop"
-	"github.com/textileio/fil-tools/fpa/noopauditor"
 	fpaPb "github.com/textileio/fil-tools/fpa/pb"
+	"github.com/textileio/fil-tools/fpa/scheduler"
+	"github.com/textileio/fil-tools/fpa/scheduler/jsonjobstore"
 	"github.com/textileio/fil-tools/gateway"
 	"github.com/textileio/fil-tools/index/ask"
 	askPb "github.com/textileio/fil-tools/index/ask/pb"
@@ -70,7 +74,7 @@ type Server struct {
 	askService        *ask.Service
 	minerService      *miner.Service
 	slashingService   *slashing.Service
-	fpaService        *fpa.Service
+	fpaService        *fpaGrpc.Service
 
 	grpcServer   *grpc.Server
 	grpcWebProxy *http.Server
@@ -161,8 +165,11 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	reptop := reptop.New(rm, ai)
-	fpamanager, err := fpa.New(txndstr.Wrap(ds, "fpa"), wm, dm, reptop, &noopauditor.Auditor{}, ipfs)
+	cl := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag())
+	hl := coreipfs.New(ipfs)
+	jobstore := jsonjobstore.New(txndstr.Wrap(ds, "fpa/scheduler/jsonjobstore"))
+	sched := scheduler.New(jobstore, hl, cl)
+	fpamanager, err := manager.New(txndstr.Wrap(ds, "fpa/manager"), wm, sched, hl)
 	if err != nil {
 		return nil, fmt.Errorf("creating fpa instance: %s", err)
 	}
@@ -173,7 +180,7 @@ func NewServer(conf Config) (*Server, error) {
 	askService := ask.NewService(ai)
 	minerService := miner.NewService(mi)
 	slashingService := slashing.NewService(si)
-	fpaService := fpa.NewService(fpamanager)
+	fpaService := fpaGrpc.NewService(fpamanager)
 
 	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
 
@@ -295,7 +302,18 @@ func (s *Server) Close() {
 	if err := s.grpcWebProxy.Shutdown(ctx); err != nil {
 		log.Errorf("error shutting down proxy: %s", err)
 	}
-	s.grpcServer.GracefulStop()
+	stopped := make(chan struct{})
+	go func() {
+		s.grpcServer.GracefulStop()
+		close(stopped)
+	}()
+	t := time.NewTimer(10 * time.Second)
+	select {
+	case <-t.C:
+		s.grpcServer.Stop()
+	case <-stopped:
+		t.Stop()
+	}
 	if err := s.ai.Close(); err != nil {
 		log.Errorf("closing ask index: %s", err)
 	}
