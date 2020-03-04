@@ -26,6 +26,7 @@ import (
 	"github.com/textileio/fil-tools/fpa/minerselector/reptop"
 	"github.com/textileio/fil-tools/fpa/noopauditor"
 	fpaPb "github.com/textileio/fil-tools/fpa/pb"
+	"github.com/textileio/fil-tools/gateway"
 	"github.com/textileio/fil-tools/index/ask"
 	askPb "github.com/textileio/fil-tools/index/ask/pb"
 	"github.com/textileio/fil-tools/index/miner"
@@ -74,6 +75,8 @@ type Server struct {
 	grpcServer   *grpc.Server
 	grpcWebProxy *http.Server
 
+	gateway *gateway.Gateway
+
 	closeLotus func()
 }
 
@@ -89,6 +92,7 @@ type Config struct {
 	GrpcServerOpts      []grpc.ServerOption
 	GrpcWebProxyAddress string
 	RepoPath            string
+	GatewayHostAddr     string
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -195,6 +199,8 @@ func NewServer(conf Config) (*Server, error) {
 		Handler: handler,
 	}
 
+	g := gateway.NewGateway(conf.GatewayHostAddr, ai, mi, si, rm)
+
 	s := &Server{
 		ds: ds,
 
@@ -219,6 +225,8 @@ func NewServer(conf Config) (*Server, error) {
 		grpcWebProxy: grpcWebProxy,
 
 		closeLotus: cls,
+
+		gateway: g,
 	}
 
 	listener, err := net.Listen(conf.GrpcHostNetwork, conf.GrpcHostAddress)
@@ -239,6 +247,8 @@ func NewServer(conf Config) (*Server, error) {
 	go func() {
 		grpcWebProxy.ListenAndServe()
 	}()
+
+	g.Start()
 
 	go func() {
 		mux := http.NewServeMux()
@@ -297,6 +307,9 @@ func (s *Server) Close() {
 	}
 	if err := s.ds.Close(); err != nil {
 		log.Errorf("closing datastore: %s", err)
+	}
+	if err := s.gateway.Stop(); err != nil {
+		log.Errorf("closing gateway: %s", err)
 	}
 	s.closeLotus()
 	s.ip2l.Close()

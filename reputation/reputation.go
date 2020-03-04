@@ -85,8 +85,11 @@ func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
 	if n < 1 {
 		return nil, fmt.Errorf("the number of miners should be greater than zero")
 	}
-	mr := make([]MinerScore, 0, n)
 	rm.lockScores.Lock()
+	if n > len(rm.scores) {
+		n = len(rm.scores)
+	}
+	mr := make([]MinerScore, 0, n)
 	for i := 0; i < n; i++ {
 		mr = append(mr, rm.scores[i])
 	}
