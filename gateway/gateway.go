@@ -22,6 +22,8 @@ import (
 	"github.com/textileio/fil-tools/reputation"
 )
 
+const numTopMiners = 30
+
 var log = logger.Logger("gateway")
 
 // fileSystem extends the binary asset file system with Exists,
@@ -114,10 +116,10 @@ func (g *Gateway) Start() {
 			select {
 			case err, ok := <-errc:
 				if err != nil {
-					if err == http.ErrServerClosed {
-						return
+					if err != http.ErrServerClosed {
+						log.Errorf("gateway error: %s", err)
 					}
-					log.Errorf("gateway error: %s", err)
+					return
 				}
 				if !ok {
 					log.Info("gateway was shutdown")
@@ -261,7 +263,7 @@ func (g *Gateway) slashingHandler(c *gin.Context) {
 func (g *Gateway) reputationHandler(c *gin.Context) {
 	menuItems := makeMenuItems(3)
 
-	topMiners, err := g.reputationModule.GetTopMiners(30)
+	topMiners, err := g.reputationModule.GetTopMiners(numTopMiners)
 	if err != nil {
 		g.renderError(c, http.StatusInternalServerError, err)
 		return
@@ -279,7 +281,7 @@ func (g *Gateway) reputationHandler(c *gin.Context) {
 
 	c.HTML(http.StatusOK, "/public/html/reputation.gohtml", gin.H{
 		"MenuItems": menuItems,
-		"Title":     "Top 30 Miners",
+		"Title":     fmt.Sprintf("Top %v Miners", numTopMiners),
 		"Headers":   headers,
 		"Rows":      rows,
 	})
