@@ -284,7 +284,7 @@ func requireJobState(t *testing.T, fapi *fastapi.Instance, jid fpa.JobID, status
 		case job, ok := <-ch:
 			require.True(t, ok)
 			require.Equal(t, jid, job.ID)
-			if job.Status == fpa.Queued {
+			if job.Status == fpa.Queued || job.Status == fpa.InProgress {
 				continue
 			}
 			require.Equal(t, status, job.Status)

@@ -129,6 +129,11 @@ func (s *Scheduler) run() {
 			log.Infof("detected %d queued jobs", len(js))
 			for _, j := range js {
 				log.Infof("executing job %s", j.ID)
+				j.Status = fpa.InProgress
+				if err := s.store.Put(j); err != nil {
+					log.Errorf("switching job to InProgress: %s", err)
+					continue
+				}
 				if err := s.execute(s.ctx, &j); err != nil {
 					log.Errorf("executing job %s: %s", j.ID, err)
 					continue
