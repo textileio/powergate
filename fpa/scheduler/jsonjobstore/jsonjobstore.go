@@ -93,7 +93,6 @@ func (js *JobStore) Watch(iid fpa.InstanceID) <-chan fpa.Job {
 func (js *JobStore) Unwatch(ch <-chan fpa.Job) {
 	js.lock.Lock()
 	defer js.lock.Unlock()
-
 	for i := range js.watchers {
 		if js.watchers[i].ch == ch {
 			close(js.watchers[i].ch)
@@ -107,7 +106,6 @@ func (js *JobStore) Unwatch(ch <-chan fpa.Job) {
 func (js *JobStore) Close() error {
 	js.lock.Lock()
 	defer js.lock.Unlock()
-
 	for i := range js.watchers {
 		close(js.watchers[i].ch)
 	}

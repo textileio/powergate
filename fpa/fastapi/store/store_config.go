@@ -39,5 +39,5 @@ func (cs *ConfigStore) GetConfig() (*fastapi.Config, error) {
 }
 
 func makeConfigKey(iid fpa.InstanceID) datastore.Key {
-	return dsBase.Child(dsBaseConfig)
+	return makeInstanceKey(iid).Child(dsBaseConfig)
 }

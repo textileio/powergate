@@ -31,3 +31,7 @@ func New(iid fpa.InstanceID, ds datastore.Datastore) *ConfigStore {
 		ds:  ds,
 	}
 }
+
+func makeInstanceKey(iid fpa.InstanceID) datastore.Key {
+	return dsBase.ChildString(iid.String())
+}

@@ -29,6 +29,9 @@ func (cs *ConfigStore) GetCidInfo(c cid.Cid) (fpa.CidInfo, error) {
 
 // SaveCidInfo saves a new storing state for a Cid
 func (cs *ConfigStore) SaveCidInfo(cinfo fpa.CidInfo) error {
+	if !cinfo.Cid.Defined() {
+		return fmt.Errorf("cid can't be undefined")
+	}
 	buf, err := json.Marshal(cinfo)
 	if err != nil {
 		return fmt.Errorf("marshaling cidinfo: %s", err)
@@ -44,7 +47,7 @@ func (cs *ConfigStore) Cids() ([]cid.Cid, error) {
 	cs.lock.Lock()
 	defer cs.lock.Unlock()
 	q := query.Query{
-		Prefix:   makeInstanceKey(cs.iid).String(),
+		Prefix:   makeInstanceKey(cs.iid).Child(dsBaseCidInfo).String(),
 		KeysOnly: true,
 	}
 	res, err := cs.ds.Query(q)
@@ -66,9 +69,5 @@ func (cs *ConfigStore) Cids() ([]cid.Cid, error) {
 }
 
 func makeCidInfoKey(iid fpa.InstanceID, c cid.Cid) datastore.Key {
-	return makeInstanceKey(iid).ChildString(c.String())
-}
-
-func makeInstanceKey(iid fpa.InstanceID) datastore.Key {
-	return dsBase.ChildString(iid.String()).Child(dsBaseCidInfo)
+	return makeInstanceKey(iid).Child(dsBaseCidInfo).ChildString(c.String())
 }

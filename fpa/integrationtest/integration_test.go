@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-datastore"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
@@ -170,35 +172,101 @@ func TestShow(t *testing.T) {
 	})
 }
 
-func newFastAPI(t *testing.T) (*httpapi.HttpApi, *fastapi.Instance, func()) {
+func TestColdInstanceLoad(t *testing.T) {
 	ctx := context.Background()
 	ds := tests.NewTxMapDatastore()
+	dnet, addr, _, closeDevnet := tests.CreateLocalDevnet(t, 1)
+	defer closeDevnet()
 
+	ipfsApi, fapi, cls := newFastAPIFromDs(t, ds, fpa.EmptyID, dnet.Client, addr)
+	ra := rand.New(rand.NewSource(22))
+	cid, data := addRandomFile(t, ra, ipfsApi)
+	jid, err := fapi.AddCid(cid)
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, fpa.Done)
+	info, err := fapi.Info(ctx)
+	require.Nil(t, err)
+	shw, err := fapi.Show(cid)
+	require.Nil(t, err)
+	cls()
+
+	_, fapi, cls = newFastAPIFromDs(t, ds, fapi.ID(), dnet.Client, addr)
+	defer cls()
+	ninfo, err := fapi.Info(ctx)
+	require.Nil(t, err)
+	require.Equal(t, info.ID, ninfo.ID)
+	require.Equal(t, info.Wallet.Address, ninfo.Wallet.Address)
+	require.Equal(t, info.Wallet.Balance, ninfo.Wallet.Balance)
+	require.ElementsMatch(t, info.Pins, ninfo.Pins)
+	require.Equal(t, info, ninfo)
+
+	nshw, err := fapi.Show(cid)
+	require.Nil(t, err)
+	require.Equal(t, shw.Cid, nshw.Cid)
+	require.Equal(t, shw.Cold, nshw.Cold)
+	require.Equal(t, shw.ConfigID, nshw.ConfigID)
+	require.Equal(t, shw.Created, nshw.Created)
+	require.Equal(t, shw.Hot, nshw.Hot)
+	require.Equal(t, shw, nshw)
+
+	r, err := fapi.Get(ctx, cid)
+	require.Nil(t, err)
+	fetched, err := ioutil.ReadAll(r)
+	require.Nil(t, err)
+	require.True(t, bytes.Equal(data, fetched))
+}
+
+func newFastAPI(t *testing.T) (*httpapi.HttpApi, *fastapi.Instance, func()) {
+	ds := tests.NewTxMapDatastore()
+	dnet, addr, _, close := tests.CreateLocalDevnet(t, 1)
+	ipfsApi, fapi, closeInternal := newFastAPIFromDs(t, ds, fpa.EmptyID, dnet.Client, addr)
+	return ipfsApi, fapi, func() {
+		closeInternal()
+		close()
+	}
+}
+
+func newFastAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid fpa.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address) (*httpapi.HttpApi, *fastapi.Instance, func()) {
+	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
 	require.Nil(t, err)
 
-	dnet, addr, _, close := tests.CreateLocalDevnet(t, 1)
-	dm, err := deals.New(dnet.Client, deals.WithImportPath(filepath.Join(os.TempDir(), "imports")))
+	dm, err := deals.New(client, deals.WithImportPath(filepath.Join(os.TempDir(), "imports")))
 	require.Nil(t, err)
 
 	ms := fixed.New("t0300", 4000000)
-
+	cl := filcold.New(ms, dm, ipfsClient.Dag())
 	jobstore := jsonjobstore.New(txndstr.Wrap(ds, "fpa/scheduler/jsonjobstore"))
 	hl := coreipfs.New(ipfsClient)
-	sch := scheduler.New(jobstore, hl, filcold.New(ms, dm, ipfsClient.Dag()))
+	sched := scheduler.New(jobstore, hl, cl)
 
-	wm, err := wallet.New(dnet.Client, &addr, *big.NewInt(5000000000000))
+	wm, err := wallet.New(client, &waddr, *big.NewInt(5000000000000))
 	require.Nil(t, err)
-	id := fpa.NewInstanceID()
-	fapi, err := fastapi.New(ctx, id, store.New(id, txndstr.Wrap(ds, "fpa/fastapi/store")), sch, wm)
-	require.Nil(t, err)
+
+	var fapi *fastapi.Instance
+	if iid == fpa.EmptyID {
+		iid = fpa.NewInstanceID()
+		confstore := store.New(iid, txndstr.Wrap(ds, "fpa/fastapi/store"))
+		fapi, err = fastapi.New(ctx, iid, confstore, sched, wm)
+		require.Nil(t, err)
+	} else {
+		confstore := store.New(iid, txndstr.Wrap(ds, "fpa/fastapi/store"))
+		fapi, err = fastapi.Load(iid, confstore, sched, wm)
+		require.Nil(t, err)
+	}
 	time.Sleep(time.Second)
 
 	return ipfsClient, fapi, func() {
-		fapi.Close()
-		sch.Close()
-		close()
+		if err := fapi.Close(); err != nil {
+			t.Fatalf("closing fastapi: %s", err)
+		}
+		if err := sched.Close(); err != nil {
+			t.Fatalf("closing scheduler: %s", err)
+		}
+		if err := jobstore.Close(); err != nil {
+			t.Fatalf("closing jobstore: %s", err)
+		}
 	}
 }
 
@@ -237,12 +305,4 @@ func addRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, 
 	require.Nil(t, err)
 
 	return node.Cid(), data
-}
-
-type walletManagerMock struct {
-	addr address.Address
-}
-
-func (wmm *walletManagerMock) NewWallet(ctx context.Context, typ string) (string, error) {
-	return wmm.addr.String(), nil
 }

@@ -227,9 +227,11 @@ func (i *Instance) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 
 // Close terminates the running Instance.
 func (i *Instance) Close() error {
-	i.sched.Unwatch(i.chSched)
+	i.lock.Lock()
+	defer i.lock.Unlock()
 	i.cancel()
 	<-i.finished
+	i.sched.Unwatch(i.chSched)
 	return nil
 }
 
@@ -238,16 +240,18 @@ func (i *Instance) watchJobs() {
 	for {
 		select {
 		case <-i.ctx.Done():
-			log.Infof("terminating job watching in fastapi %s", i.config.ID)
+			log.Infof("terminating job watching in %s", i.config.ID)
 			return
-		case j := <-i.chSched:
-			i.lock.Lock()
+		case j, ok := <-i.chSched:
+			if !ok {
+				panic("scheduler closed the watching channel")
+			}
 			log.Info("received notification from jobstore")
 			if err := i.store.SaveCidInfo(j.CidInfo); err != nil {
-				i.lock.Unlock()
 				log.Errorf("saving cid info %s: %s", j.CidInfo.Cid, err)
 				continue
 			}
+			i.lock.Lock()
 			log.Infof("notifying %d subscribed watchers", len(i.watchers))
 			for k, w := range i.watchers {
 				shouldNotify := len(w.jobIDs) == 0

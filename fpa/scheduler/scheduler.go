@@ -55,6 +55,9 @@ func New(store JobStore, hot fpa.HotLayer, cold fpa.ColdLayer) *Scheduler {
 // Enqueue queues the specified CidConfig to be executed as a new Job. It returns
 // the created JobID for further tracking of its state.
 func (s *Scheduler) Enqueue(c fpa.CidConfig) (fpa.JobID, error) {
+	if !c.Cid.Defined() {
+		return fpa.EmptyJobID, fmt.Errorf("cid can't be undefined")
+	}
 	jid := fpa.NewJobID()
 	log.Infof("enqueuing %s", jid)
 	j := fpa.Job{
