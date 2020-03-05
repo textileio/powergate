@@ -4,16 +4,22 @@ import (
 	"context"
 	"io"
 	"math/big"
+	"os"
 	"testing"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/fil-tools/fpa"
-	"github.com/textileio/fil-tools/fpa/fastapi"
 	"github.com/textileio/fil-tools/tests"
 	"github.com/textileio/fil-tools/wallet"
 )
+
+func TestMain(m *testing.M) {
+	logging.SetAllLoggers(logging.LevelError)
+	os.Exit(m.Run())
+}
 
 func TestNewManager(t *testing.T) {
 	t.Parallel()
@@ -22,43 +28,43 @@ func TestNewManager(t *testing.T) {
 	defer cls()
 }
 
-func TestInstance(t *testing.T) {
+func TestCreate(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
+	ctx := context.Background()
+	m, cls := newManager(t, ds)
+	defer cls()
 
-	var auth string
-	var new *fastapi.Instance
-	t.Run("CreateFromNewManager", func(t *testing.T) {
-		ctx := context.Background()
-		m, cls := newManager(t, ds)
-		defer cls()
+	id, auth, err := m.Create(ctx)
+	require.Nil(t, err)
+	require.NotEmpty(t, auth)
+	require.True(t, id.Valid())
+}
 
-		var err error
-		var id fpa.InstanceID
-		id, auth, err = m.Create(ctx)
+func TestGetByAuthToken(t *testing.T) {
+	t.Parallel()
+	ds := tests.NewTxMapDatastore()
+	ctx := context.Background()
+	m, cls := newManager(t, ds)
+	defer cls()
+	id, auth, err := m.Create(ctx)
+	require.Nil(t, err)
+
+	t.Run("Hot", func(t *testing.T) {
+		new, err := m.GetByAuthToken(auth)
 		require.Nil(t, err)
-		require.NotEmpty(t, auth)
-		require.True(t, id.Valid())
-
-		new, err = m.GetByAuthToken(auth)
-		require.Nil(t, err)
-		require.NotEmpty(t, new.ID())
+		require.Equal(t, id, new.ID())
 		require.NotEmpty(t, new.WalletAddr())
 	})
-
-	t.Run("ReloadManagerAndGetByAuth", func(t *testing.T) {
+	t.Run("Cold", func(t *testing.T) {
 		m, cls := newManager(t, ds)
 		defer cls()
-
-		i, err := m.GetByAuthToken(auth)
+		new, err := m.GetByAuthToken(auth)
 		require.Nil(t, err)
-		require.True(t, i.ID() == new.ID() && i.WalletAddr() == new.WalletAddr())
+		require.Equal(t, id, new.ID())
+		require.NotEmpty(t, new.WalletAddr())
 	})
-
-	t.Run("LoadNonExistentAuth", func(t *testing.T) {
-		m, cls := newManager(t, ds)
-		defer cls()
-
+	t.Run("NonExistant", func(t *testing.T) {
 		i, err := m.GetByAuthToken(string("123"))
 		require.Equal(t, err, ErrAuthTokenNotFound)
 		require.Nil(t, i)
