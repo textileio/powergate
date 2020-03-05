@@ -12,7 +12,7 @@ import (
 	"github.com/gin-contrib/location"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	logger "github.com/ipfs/go-log"
+	logger "github.com/ipfs/go-log/v2"
 	assets "github.com/jessevdk/go-assets"
 	"github.com/rs/cors"
 	gincors "github.com/rs/cors/wrapper/gin"

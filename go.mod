@@ -41,7 +41,6 @@ require (
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200205134739-3a5ff46efba6
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
 	github.com/ipfs/go-ipld-format v0.0.2
-	github.com/ipfs/go-log v1.0.2
 	github.com/ipfs/go-log/v2 v2.0.2
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
