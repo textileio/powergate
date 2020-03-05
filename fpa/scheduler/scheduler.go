@@ -90,8 +90,13 @@ func (s *Scheduler) GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error
 	return r, nil
 }
 
+// GetJob the current state of a Job.
+func (s *Scheduler) GetJob(jid fpa.JobID) (fpa.Job, error) {
+	return s.store.Get(jid)
+}
+
 // Watch returns a channel to listen to Job status changes from a specified
-// FastAPI instance.
+// FastAPI instance. It immediately pushes the current Job state to the channel.
 func (s *Scheduler) Watch(iid fpa.InstanceID) <-chan fpa.Job {
 	return s.store.Watch(iid)
 }

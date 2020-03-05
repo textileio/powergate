@@ -92,6 +92,9 @@ func (ms *mockSched) Enqueue(c fpa.CidConfig) (fpa.JobID, error) {
 func (ms *mockSched) GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return nil, nil
 }
+func (ms *mockSched) GetJob(jid fpa.JobID) (fpa.Job, error) {
+	return fpa.Job{}, nil
+}
 func (ms *mockSched) Watch(iid fpa.InstanceID) <-chan fpa.Job {
 	return nil
 }

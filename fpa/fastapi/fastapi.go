@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/fil-tools/fpa"
+	"github.com/textileio/fil-tools/fpa/scheduler"
 )
 
 var (
@@ -140,14 +141,31 @@ func (i *Instance) Info(ctx context.Context) (InstanceInfo, error) {
 
 // Watch subscribes to Job status changes. If jids is empty, it subscribes to
 // all Job status changes corresonding to the instance.
-func (i *Instance) Watch(jids ...fpa.JobID) <-chan fpa.Job {
+func (i *Instance) Watch(jids ...fpa.JobID) (<-chan fpa.Job, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	log.Info("registering watcher")
 	ch := make(chan fpa.Job, 1)
 	i.watchers = append(i.watchers, watcher{jobIDs: jids, ch: ch})
 
-	return ch
+	for _, jid := range jids {
+		j, err := i.sched.GetJob(jid)
+		if err == scheduler.ErrNotFound {
+			continue
+		}
+		if err != nil {
+			i.watchers = i.watchers[:len(i.watchers)-1]
+			close(ch)
+			return nil, fmt.Errorf("getting current job state: %s", err)
+		}
+		select {
+		case ch <- j:
+		default:
+			log.Warnf("dropped notifying current job state on slow receiver on %s", i.config.ID)
+		}
+	}
+
+	return ch, nil
 }
 
 // Unwatch unregisters a ch returned by Watch to stop receiving updates.

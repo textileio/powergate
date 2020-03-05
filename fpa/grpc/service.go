@@ -118,7 +118,10 @@ func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCid
 		return nil, err
 	}
 
-	ch := i.Watch(jid)
+	ch, err := i.Watch(jid)
+	if err != nil {
+		return nil, fmt.Errorf("watching add cid created job: %s", err)
+	}
 	defer i.Unwatch(ch)
 	for job := range ch {
 		if job.Status == fpa.Done {
@@ -167,7 +170,10 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 	if err != nil {
 		return err
 	}
-	ch := i.Watch(jid)
+	ch, err := i.Watch(jid)
+	if err != nil {
+		return fmt.Errorf("watching add file created job: %s", err)
+	}
 	for job := range ch {
 		if job.Status == fpa.Done {
 			break

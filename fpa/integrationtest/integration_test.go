@@ -273,7 +273,8 @@ func newFastAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid fpa.InstanceI
 func requireJobState(t *testing.T, fapi *fastapi.Instance, jid fpa.JobID, status fpa.JobStatus) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	ch := fapi.Watch(jid)
+	ch, err := fapi.Watch(jid)
+	require.Nil(t, err)
 	defer fapi.Unwatch(ch)
 	stop := false
 	for !stop {

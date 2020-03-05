@@ -19,6 +19,7 @@ type WalletManager interface {
 type Scheduler interface {
 	Enqueue(CidConfig) (JobID, error)
 	GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error)
+	GetJob(JobID) (Job, error)
 
 	Watch(InstanceID) <-chan Job
 	Unwatch(<-chan Job)

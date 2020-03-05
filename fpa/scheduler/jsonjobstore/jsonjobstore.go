@@ -79,6 +79,27 @@ func (js *JobStore) Put(j fpa.Job) error {
 	return nil
 }
 
+// Get returns the current state of Job. If doesn't exist, returns
+// ErrNotFound.
+func (js *JobStore) Get(jid fpa.JobID) (fpa.Job, error) {
+	js.lock.Lock()
+	defer js.lock.Unlock()
+
+	k := makeJobKey(jid)
+	buf, err := js.ds.Get(k)
+	job := fpa.Job{}
+	if err == datastore.ErrNotFound {
+		return job, scheduler.ErrNotFound
+	}
+	if err != nil {
+		return job, fmt.Errorf("getting job from datastore: %s", err)
+	}
+	if err := json.Unmarshal(buf, &job); err != nil {
+		return job, fmt.Errorf("unmarshaling job: %s", err)
+	}
+	return job, nil
+}
+
 // Watch subscribes to Job changes from a specified FastAPI instance.
 func (js *JobStore) Watch(iid fpa.InstanceID) <-chan fpa.Job {
 	js.lock.Lock()
