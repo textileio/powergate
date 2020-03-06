@@ -126,7 +126,7 @@ func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCid
 	for job := range ch {
 		if job.Status == fpa.Done {
 			break
-		} else if job.Status != fpa.Queued && job.Status != fpa.Done {
+		} else if job.Status == fpa.Cancelled || job.Status == fpa.Failed {
 			return nil, fmt.Errorf("error adding cid: %s", job.ErrCause)
 		}
 	}

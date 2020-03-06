@@ -61,7 +61,7 @@ func (ci *CoreIpfs) Pin(ctx context.Context, c cid.Cid) (fpa.HotInfo, error) {
 	log.Infof("pinning %s", c)
 	var i fpa.HotInfo
 	pth := path.IpfsPath(c)
-	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 	if err := ci.ipfs.Pin().Add(ctx, pth, options.Pin.Recursive(true)); err != nil {
 		return i, fmt.Errorf("pinning cid %s: %s", c, err)

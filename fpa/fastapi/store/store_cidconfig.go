@@ -12,6 +12,9 @@ import (
 
 // PushCidConfig saves a new desired configuration for storing a Cid
 func (cs *ConfigStore) PushCidConfig(c fpa.CidConfig) error {
+	if !c.Cid.Defined() {
+		return fmt.Errorf("cid can't be undefined")
+	}
 	buf, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling cidconfig: %s", err)
@@ -32,7 +35,7 @@ func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*fpa.CidConfig, error) {
 		return nil, err
 	}
 	var conf fpa.CidConfig
-	if err := json.Unmarshal(buf, &c); err != nil {
+	if err := json.Unmarshal(buf, &conf); err != nil {
 		return nil, fmt.Errorf("unmarshaling config: %s", err)
 	}
 	return &conf, nil
