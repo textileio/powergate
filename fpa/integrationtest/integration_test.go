@@ -59,13 +59,6 @@ func TestAdd(t *testing.T) {
 	ipfsApi, fapi, cls := newFastAPI(t)
 	defer cls()
 
-	t.Run("Unretrievable", func(t *testing.T) {
-		c, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z") // ipfs hello-world not in the node
-		jid, err := fapi.AddCid(c)
-		require.Nil(t, err)
-		requireJobState(t, fapi, jid, fpa.Failed)
-	})
-
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	t.Run("AddCidSuccess", func(t *testing.T) {
