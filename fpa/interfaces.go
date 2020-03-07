@@ -41,7 +41,7 @@ type ColdLayer interface {
 // MinerSelector returns miner addresses and ask storage information using a
 // desired strategy.
 type MinerSelector interface {
-	GetTopMiners(n int) ([]MinerProposal, error)
+	GetMiners(n int) ([]MinerProposal, error)
 }
 
 // MinerProposal contains a miners address and storage ask information

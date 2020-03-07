@@ -6,10 +6,10 @@ import (
 	"io"
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
+	"github.com/ipld/go-car"
 	"github.com/textileio/fil-tools/deals"
 	"github.com/textileio/fil-tools/fpa"
 )
@@ -107,7 +107,7 @@ func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) 
 }
 
 func makeStorageConfig(ctx context.Context, ms fpa.MinerSelector) ([]deals.StorageDealConfig, error) {
-	mps, err := ms.GetTopMiners(1) // ToDo: hardcoded 1 will change when config will be added to instance/method-call
+	mps, err := ms.GetMiners(1) // ToDo: hardcoded 1 will change when config will be added to instance/method-call
 	if err != nil {
 		return nil, err
 	}

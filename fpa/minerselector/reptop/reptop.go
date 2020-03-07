@@ -28,7 +28,7 @@ func New(rm *reputation.Module, ai *ask.AskIndex) *RepTop {
 
 // GetTopMiners returns n miners using the configured Reputation Module and
 // Ask Index.
-func (rt *RepTop) GetTopMiners(n int) ([]fpa.MinerProposal, error) {
+func (rt *RepTop) GetMiners(n int) ([]fpa.MinerProposal, error) {
 	ms, err := rt.rm.GetTopMiners(n)
 	if err != nil {
 		return nil, fmt.Errorf("getting top %d miners from reputation module: %s", n, err)

@@ -10,7 +10,6 @@ import (
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/fil-tools/fpa"
-	"github.com/textileio/fil-tools/fpa/scheduler"
 )
 
 var (
@@ -140,24 +139,25 @@ func (i *Instance) Info(ctx context.Context) (InstanceInfo, error) {
 }
 
 // Watch subscribes to Job status changes. If jids is empty, it subscribes to
-// all Job status changes corresonding to the instance.
+// all Job status changes corresonding to the instance. If jids is not empty,
+// it immediately sends current state of those Jobs. If empty, it doesn't.
 func (i *Instance) Watch(jids ...fpa.JobID) (<-chan fpa.Job, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	log.Info("registering watcher")
-	ch := make(chan fpa.Job, 1)
-	i.watchers = append(i.watchers, watcher{jobIDs: jids, ch: ch})
 
+	var jobs []fpa.Job
 	for _, jid := range jids {
 		j, err := i.sched.GetJob(jid)
-		if err == scheduler.ErrNotFound {
-			continue
-		}
 		if err != nil {
-			i.watchers = i.watchers[:len(i.watchers)-1]
-			close(ch)
 			return nil, fmt.Errorf("getting current job state: %s", err)
 		}
+		jobs = append(jobs, j)
+	}
+
+	ch := make(chan fpa.Job, 1)
+	i.watchers = append(i.watchers, watcher{jobIDs: jids, ch: ch})
+	for _, j := range jobs {
 		select {
 		case ch <- j:
 		default:
