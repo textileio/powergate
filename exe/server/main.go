@@ -8,13 +8,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	_ "net/http/pprof"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log/v2"
+	homedir "github.com/mitchellh/go-homedir"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -35,7 +35,7 @@ func main() {
 	pflag.String("lotushost", "/ip4/127.0.0.1/tcp/1234", "lotus full-node address")
 	pflag.String("lotustoken", "", "lotus full-node auth token")
 	pflag.String("lotustokenfile", "", "lotus full-node auth token file")
-	pflag.String("repopath", "${HOME}/.texfc", "repo-path")
+	pflag.String("repopath", "~/.texfc", "repo-path")
 	pflag.Bool("embedded", false, "run in embedded ephemeral FIL network")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "ipfs api multiaddr")
 	pflag.Int64("walletinitialfund", 5000000000000, "created wallets initial fund in attoFIL")
@@ -65,13 +65,13 @@ func main() {
 			log.Fatal(err)
 		}
 
-		repoPath := config.GetString("repopath")
-		if repoPath == "${HOME}/.texfc" {
-			home, err := os.UserHomeDir()
+		repoPath = config.GetString("repopath")
+		if repoPath == "~/.texfc" {
+			expandedPath, err := homedir.Expand(repoPath)
 			if err != nil {
-				log.Fatalf("error when setting default repo path to home dir: %s", err)
+				log.Fatalf("expanding homedir: %s", err)
 			}
-			repoPath = strings.Replace(repoPath, "${HOME}", home, -1)
+			repoPath = expandedPath
 		}
 	} else {
 		repoPath, err = ioutil.TempDir("", ".texfc-*")
