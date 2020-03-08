@@ -12,12 +12,14 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/caarlos0/spin v1.1.0
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/containerd/continuity v0.0.0-20200107194136-26c1120b8d41 // indirect
+	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/filecoin-project/go-address v0.0.0-20200107215422-da8eea2842b5
+	github.com/filecoin-project/go-address v0.0.2-0.20200218010043-eb9bb40ed5be
 	github.com/filecoin-project/go-fil-markets v0.0.0-20200206024724-973498b060e3
 	github.com/filecoin-project/go-sectorbuilder v0.0.2-0.20200203173614-42d67726bb62
-	github.com/filecoin-project/lotus v0.2.8-0.20200212194405-7dc40c45168d
+	github.com/filecoin-project/lotus v0.2.9-0.20200224163046-bde3f86ccc4e
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.5.0
@@ -38,22 +40,27 @@ require (
 	github.com/ipfs/go-ipfs-files v0.0.6
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200205134739-3a5ff46efba6
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
-	github.com/ipfs/go-log v1.0.2
+	github.com/ipfs/go-ipld-format v0.0.2
 	github.com/ipfs/go-log/v2 v2.0.2
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
+	github.com/ipld/go-car v0.0.4
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/libp2p/go-libp2p v0.5.0
-	github.com/libp2p/go-libp2p-core v0.3.1
+	github.com/libp2p/go-libp2p-core v0.4.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
+	github.com/libp2p/go-libp2p-tls v0.1.2 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0
+	github.com/mattn/go-isatty v0.0.11 // indirect
+	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/multiformats/go-multiaddr v0.2.1
 	github.com/multiformats/go-multiaddr-dns v0.2.0
 	github.com/multiformats/go-multihash v0.0.13
+	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/opencontainers/runc v0.1.1 // indirect
@@ -63,16 +70,15 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
-	github.com/textileio/go-threads v0.1.9
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad // indirect
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
 	golang.org/x/sys v0.0.0-20200121082415-34d275377bf9 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
+	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
 	google.golang.org/grpc v1.27.1
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
-
-replace github.com/coreos/go-systemd => github.com/coreos/go-systemd/v22 v22.0.0
 
 replace github.com/filecoin-project/filecoin-ffi => ./extern/filecoin-ffi

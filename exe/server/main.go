@@ -53,7 +53,7 @@ func main() {
 	embedded := config.GetBool("embedded")
 
 	var maddr ma.Multiaddr
-	var lotusToken string
+	var lotusToken, repoPath string
 	var err error
 	if !embedded {
 		maddr, err = getLotusMaddr()
@@ -64,15 +64,20 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-	}
 
-	repoPath := config.GetString("repopath")
-	if repoPath == "${HOME}/.texfc" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatalf("error when setting default repo path to home dir: %s", err)
+		repoPath := config.GetString("repopath")
+		if repoPath == "${HOME}/.texfc" {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				log.Fatalf("error when setting default repo path to home dir: %s", err)
+			}
+			repoPath = strings.Replace(repoPath, "${HOME}", home, -1)
 		}
-		repoPath = strings.Replace(repoPath, "${HOME}", home, -1)
+	} else {
+		repoPath, err = ioutil.TempDir("", ".texfc-*")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	conf := server.Config{
@@ -106,6 +111,11 @@ func main() {
 	<-ch
 	log.Info("Closing...")
 	s.Close()
+	if embedded {
+		if err := os.RemoveAll(repoPath); err != nil {
+			log.Error(err)
+		}
+	}
 	log.Info("Closed")
 }
 
@@ -127,8 +137,10 @@ func setupInstrumentation() {
 
 func setupLogging() {
 	logging.SetLogLevel("*", "error")
-	loggers := []string{"index-miner", "index-ask", "index-slashing", "server",
-		"deals", "fil-toolsd", "fchost", "fpaauth", "fastapi", "ip2location", "reputation"}
+	loggers := []string{"index-miner", "index-ask", "index-slashing",
+		"server", "deals", "fil-toolsd", "fchost", "ip2location", "reputation",
+		"fpa-scheduler", "fpa-manager", "fpa-auth", "fpa-fastapi",
+		"fpa-coreipfs", "fpa-grpc-service", "fpa-filcold", "fpa-sched-jobstore"}
 	for _, l := range loggers {
 		logging.SetLogLevel(l, "info")
 	}

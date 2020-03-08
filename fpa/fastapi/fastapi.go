@@ -2,208 +2,294 @@ package fastapi
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-datastore"
-	ds "github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
-	iface "github.com/ipfs/interface-go-ipfs-core"
-	"github.com/textileio/fil-tools/deals"
-	ftypes "github.com/textileio/fil-tools/fpa/types"
+	"github.com/textileio/fil-tools/fpa"
 )
 
 var (
-	dsKeyInstance = ds.NewKey("instance")
-	dsKeyCid      = ds.NewKey("cid")
-
 	defaultWalletType = "bls"
 
-	log = logging.Logger("fastapi")
+	log = logging.Logger("fpa-fastapi")
 )
 
-type Instance struct {
-	ipfs    iface.CoreAPI
-	dm      *deals.Module
-	ms      ftypes.MinerSelector
-	wm      ftypes.WalletManager
-	auditor ftypes.Auditor
+var (
+	// ErrAlreaadyPinned returned when trying to push an initial config
+	// for storing a Cid.
+	ErrAlreadyPinned = errors.New("cid already pinned")
+	// ErNotStored returned when there isn't CidInfo for a Cid
+	ErrNotStored = errors.New("cid isn't stored")
+)
 
-	lock sync.Mutex
-	info info
-	ds   ds.Datastore
+// Instance is an FastAPI instance, which owns a Lotus Address and allows to
+// Store and Retrieve Cids from Hot and Cold layers.
+type Instance struct {
+	store ConfigStore
+	wm    fpa.WalletManager
+
+	sched   fpa.Scheduler
+	chSched <-chan fpa.Job
+
+	lock     sync.Mutex
+	config   Config
+	watchers []watcher
+	ctx      context.Context
+	cancel   context.CancelFunc
+	finished chan struct{}
 }
 
-func New(ctx context.Context,
-	store ds.Datastore,
-	ipfs iface.CoreAPI,
-	dm *deals.Module,
-	ms ftypes.MinerSelector,
-	a ftypes.Auditor,
-	wm ftypes.WalletManager) (*Instance, error) {
+type watcher struct {
+	jobIDs []fpa.JobID
+	ch     chan fpa.Job
+}
+
+// New returns a new FastAPI instance.
+func New(ctx context.Context, iid fpa.InstanceID, confstore ConfigStore, sch fpa.Scheduler, wm fpa.WalletManager) (*Instance, error) {
 	addr, err := wm.NewWallet(ctx, defaultWalletType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
 	}
-
-	info := info{
-		ID:         NewID(),
+	config := Config{
+		ID:         iid,
 		WalletAddr: addr,
 	}
-	i := &Instance{
-		ds:      store,
-		ipfs:    ipfs,
-		dm:      dm,
-		ms:      ms,
-		auditor: a,
-		wm:      wm,
-		info:    info,
-	}
-	if err := i.saveInfo(); err != nil {
-		return nil, fmt.Errorf("saving new instance %s: %s", i.info.ID, err)
+	ctx, cancel := context.WithCancel(context.Background())
+	i := new(iid, confstore, wm, config, sch, ctx, cancel)
+	if err := i.store.SaveConfig(config); err != nil {
+		return nil, fmt.Errorf("saving new instance %s: %s", i.config.ID, err)
 	}
 	return i, nil
 }
 
-func LoadFromID(store ds.Datastore,
-	ipfsClient iface.CoreAPI,
-	dm *deals.Module,
-	ms ftypes.MinerSelector,
-	a ftypes.Auditor,
-	wm ftypes.WalletManager,
-	id ID) (*Instance, error) {
-	buf, err := store.Get(makeKeyInstance(id))
-	if err != nil && err == ds.ErrNotFound {
-		return nil, fmt.Errorf("instance doesn't exist")
-	}
+// Load loads a saved FastAPI instance from its ConfigStore.
+func Load(iid fpa.InstanceID, confstore ConfigStore, sched fpa.Scheduler, wm fpa.WalletManager) (*Instance, error) {
+	config, err := confstore.GetConfig()
 	if err != nil {
-		return nil, fmt.Errorf("loading instance %s: %s", id, err)
+		return nil, fmt.Errorf("loading instance: %s", err)
 	}
-	var info info
-	if err := json.Unmarshal(buf, &info); err != nil {
-		return nil, fmt.Errorf("loading instance %s from datastore: %s", id, err)
-	}
-	return &Instance{
-		ds:      store,
-		ipfs:    ipfsClient,
-		dm:      dm,
-		ms:      ms,
+	ctx, cancel := context.WithCancel(context.Background())
+	return new(iid, confstore, wm, *config, sched, ctx, cancel), nil
+}
+
+func new(iid fpa.InstanceID, confstore ConfigStore, wm fpa.WalletManager, config Config, sch fpa.Scheduler,
+	ctx context.Context, cancel context.CancelFunc) *Instance {
+	i := &Instance{
+		store:   confstore,
 		wm:      wm,
-		auditor: a,
-		info:    info,
-	}, nil
+		config:  config,
+		sched:   sch,
+		chSched: sch.Watch(iid),
+
+		cancel:   cancel,
+		ctx:      ctx,
+		finished: make(chan struct{}),
+	}
+	go i.watchJobs()
+	return i
 }
 
-func (i *Instance) ID() ID {
-	return i.info.ID
+// ID returns the InstanceID of the instance.
+func (i *Instance) ID() fpa.InstanceID {
+	return i.config.ID
 }
 
+// WalletAddr returns the Lotus wallet address of the instance.
 func (i *Instance) WalletAddr() string {
-	return i.info.WalletAddr
+	return i.config.WalletAddr
 }
 
-func (i *Instance) Show(c cid.Cid) (CidInfo, error) {
-	var ci CidInfo
-	info, exist, err := i.getCidInfo(c)
+// Show returns the information about a stored Cid. If no information is available,
+// since the Cid was never stored, it returns ErrNotStore.
+func (i *Instance) Show(c cid.Cid) (fpa.CidInfo, error) {
+	inf, err := i.store.GetCidInfo(c)
+	if err == ErrCidInfoNotFound {
+		return inf, ErrNotStored
+	}
 	if err != nil {
-		return ci, fmt.Errorf("getting cid information: %s", err)
+		return inf, fmt.Errorf("getting cid information: %s", err)
 	}
-	if !exist {
-		return ci, ErrNotStored
-	}
-	return info, nil
+	return inf, nil
 }
 
-func (i *Instance) Info(ctx context.Context) (Info, error) {
-	inf := Info{
-		ID: i.info.ID,
+// Info returns instance information
+func (i *Instance) Info(ctx context.Context) (InstanceInfo, error) {
+	inf := InstanceInfo{
+		ID: i.config.ID,
 		Wallet: WalletInfo{
-			Address: i.info.WalletAddr,
+			Address: i.config.WalletAddr,
 		},
 	}
-
 	var err error
-	inf.Pins, err = i.getPinnedCids()
+	inf.Pins, err = i.store.Cids()
 	if err != nil {
 		return inf, fmt.Errorf("getting pins from instance: %s", err)
 	}
 
-	inf.Wallet.Balance, err = i.wm.Balance(ctx, i.info.WalletAddr)
+	inf.Wallet.Balance, err = i.wm.Balance(ctx, i.config.WalletAddr)
 	if err != nil {
-		return inf, fmt.Errorf("getting balance of %s: %s", i.info.WalletAddr, err)
+		return inf, fmt.Errorf("getting balance of %s: %s", i.config.WalletAddr, err)
 	}
 
 	return inf, nil
 }
 
-func (i *Instance) saveCidInfo(cinfo CidInfo) error {
-	buf, err := json.Marshal(cinfo)
-	if err != nil {
-		return err
-	}
-	if err := i.ds.Put(makeKeyCid(i.info.ID, cinfo.Cid), buf); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (i *Instance) getCidInfo(c cid.Cid) (CidInfo, bool, error) {
-	var ci CidInfo
-	buf, err := i.ds.Get(makeKeyCid(i.info.ID, c))
-	if err == ds.ErrNotFound {
-		return ci, false, nil
-	}
-	if err != nil {
-		return ci, false, err
-	}
-	if err := json.Unmarshal(buf, &ci); err != nil {
-		return ci, false, err
-	}
-	return ci, true, err
-}
-
-func (i *Instance) getPinnedCids() ([]cid.Cid, error) {
-	q := query.Query{
-		Prefix:   makeKeyInstance(i.info.ID).Child(dsKeyCid).String(),
-		KeysOnly: true,
-	}
-	res, err := i.ds.Query(q)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Close()
-
-	var cids []cid.Cid
-	for r := range res.Next() {
-		strCid := ds.RawKey(r.Key).Name()
-		c, _ := cid.Decode(strCid)
-		cids = append(cids, c)
-	}
-	return cids, nil
-}
-
-func (i *Instance) saveInfo() error {
+// Watch subscribes to Job status changes. If jids is empty, it subscribes to
+// all Job status changes corresonding to the instance. If jids is not empty,
+// it immediately sends current state of those Jobs. If empty, it doesn't.
+func (i *Instance) Watch(jids ...fpa.JobID) (<-chan fpa.Job, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
+	log.Info("registering watcher")
 
-	k := makeKeyInstance(i.info.ID)
-	buf, err := json.Marshal(i.info)
+	var jobs []fpa.Job
+	for _, jid := range jids {
+		j, err := i.sched.GetJob(jid)
+		if err != nil {
+			return nil, fmt.Errorf("getting current job state: %s", err)
+		}
+		jobs = append(jobs, j)
+	}
+
+	ch := make(chan fpa.Job, 1)
+	i.watchers = append(i.watchers, watcher{jobIDs: jids, ch: ch})
+	for _, j := range jobs {
+		select {
+		case ch <- j:
+		default:
+			log.Warnf("dropped notifying current job state on slow receiver on %s", i.config.ID)
+		}
+	}
+
+	return ch, nil
+}
+
+// Unwatch unregisters a ch returned by Watch to stop receiving updates.
+func (i *Instance) Unwatch(ch <-chan fpa.Job) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	for j, w := range i.watchers {
+		if w.ch == ch {
+			close(w.ch)
+			i.watchers[j] = i.watchers[len(i.watchers)-1]
+			i.watchers = i.watchers[:len(i.watchers)-1]
+			return
+		}
+	}
+}
+
+// AddCid push a new default configuration for the Cid in the Hot and
+// Cold layer. (TODO: Soon the configuration will be received as a param,
+// to allow different strategies in the Hot and Cold layer. Now a second AddCid
+// will error with ErrAlreadyPinned. This might change depending if changing config
+// for an existing Cid will use this same API, or another. In any case sounds safer to
+// consider some option to specify we want to add a config without overriding some
+// existing one.)
+func (i *Instance) AddCid(c cid.Cid) (fpa.JobID, error) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	_, err := i.store.GetCidConfig(c)
+	if err == nil {
+		return fpa.EmptyJobID, ErrAlreadyPinned
+	}
+	if err != ErrConfigNotFound {
+		return fpa.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
+	}
+
+	// TODO: this is a temporal default config for all Cids, this will go
+	// away since it will be received as a param.
+	cidconf := fpa.CidConfig{
+		InstanceID: i.config.ID,
+		ID:         fpa.NewCidConfigID(),
+		Cid:        c,
+		Hot: fpa.HotConfig{
+			Ipfs: fpa.IpfsConfig{
+				Enabled: true,
+			},
+		},
+		Cold: fpa.ColdConfig{
+			Filecoin: fpa.FilecoinConfig{
+				Enabled:    true,
+				WalletAddr: i.config.WalletAddr,
+			},
+		},
+	}
+	log.Infof("adding cid %s to scheduler queue", c)
+	jid, err := i.sched.Enqueue(cidconf)
 	if err != nil {
-		return err
+		return fpa.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
 	}
-	if err := i.ds.Put(k, buf); err != nil {
-		return err
+	if err := i.store.PushCidConfig(cidconf); err != nil {
+		return fpa.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
+	return jid, nil
+}
+
+// Get returns an io.Reader for reading a stored Cid.
+// (TODO: this API will change to accept different strategies, like HotOnly,
+// UnfreezeCold, or similar. Most prob it will become async, or there will be different
+// APIs).
+// (TODO: Scheduler.GetFromHot might have to return an error if we want to rate-limit
+// hot layer retrievals)
+func (i *Instance) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
+	r, err := i.sched.GetFromHot(ctx, c)
+	if err != nil {
+		return nil, fmt.Errorf("getting from hot layer %s: %s", c, err)
+	}
+	return r, nil
+}
+
+// Close terminates the running Instance.
+func (i *Instance) Close() error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	i.cancel()
+	<-i.finished
+	i.sched.Unwatch(i.chSched)
 	return nil
 }
 
-func makeKeyCid(iid ID, c cid.Cid) datastore.Key {
-	return makeKeyInstance(iid).Child(dsKeyCid).ChildString(c.String())
-}
-
-func makeKeyInstance(id ID) ds.Key {
-	return dsKeyInstance.ChildString(id.String())
+func (i *Instance) watchJobs() {
+	defer close(i.finished)
+	for {
+		select {
+		case <-i.ctx.Done():
+			log.Infof("terminating job watching in %s", i.config.ID)
+			return
+		case j, ok := <-i.chSched:
+			if !ok {
+				panic("scheduler closed the watching channel")
+			}
+			log.Info("received notification from jobstore")
+			if err := i.store.SaveCidInfo(j.CidInfo); err != nil {
+				log.Errorf("saving cid info %s: %s", j.CidInfo.Cid, err)
+				continue
+			}
+			i.lock.Lock()
+			log.Infof("notifying %d subscribed watchers", len(i.watchers))
+			for k, w := range i.watchers {
+				shouldNotify := len(w.jobIDs) == 0
+				for _, jid := range w.jobIDs {
+					if jid == j.ID {
+						shouldNotify = true
+						break
+					}
+				}
+				log.Infof("evaluating watcher %d, shouldNotify %s", k, shouldNotify)
+				if shouldNotify {
+					select {
+					case w.ch <- j:
+						log.Info("notifying watcher")
+					default:
+						log.Warnf("skipping slow fastapi watcher")
+					}
+				}
+			}
+			i.lock.Unlock()
+		}
+	}
 }

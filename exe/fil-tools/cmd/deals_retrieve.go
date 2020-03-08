@@ -38,15 +38,15 @@ var retrieveCmd = &cobra.Command{
 		out := viper.GetString("out")
 
 		if addr == "" {
-			Fatal(errors.New("retrieve command needs a wallet address"))
+			Fatal(errors.New("get command needs a wallet address"))
 		}
 
 		if cidString == "" {
-			Fatal(errors.New("store command needs a cid"))
+			Fatal(errors.New("get command needs a cid"))
 		}
 
 		if out == "" {
-			Fatal(errors.New("store command needs an out path to write the data to"))
+			Fatal(errors.New("get command needs an out path to write the data to"))
 		}
 
 		cid, err := cid.Parse(cidString)

@@ -22,10 +22,14 @@ import (
 	"github.com/textileio/fil-tools/deals"
 	dealsPb "github.com/textileio/fil-tools/deals/pb"
 	"github.com/textileio/fil-tools/fchost"
-	"github.com/textileio/fil-tools/fpa"
+	"github.com/textileio/fil-tools/fpa/coreipfs"
+	"github.com/textileio/fil-tools/fpa/filcold"
+	fpaGrpc "github.com/textileio/fil-tools/fpa/grpc"
+	"github.com/textileio/fil-tools/fpa/manager"
 	"github.com/textileio/fil-tools/fpa/minerselector/reptop"
-	"github.com/textileio/fil-tools/fpa/noopauditor"
 	fpaPb "github.com/textileio/fil-tools/fpa/pb"
+	"github.com/textileio/fil-tools/fpa/scheduler"
+	"github.com/textileio/fil-tools/fpa/scheduler/jsonjobstore"
 	"github.com/textileio/fil-tools/gateway"
 	"github.com/textileio/fil-tools/index/ask"
 	askPb "github.com/textileio/fil-tools/index/ask/pb"
@@ -70,7 +74,11 @@ type Server struct {
 	askService        *ask.Service
 	minerService      *miner.Service
 	slashingService   *slashing.Service
-	fpaService        *fpa.Service
+	fpaService        *fpaGrpc.Service
+
+	fpaManager *manager.Manager
+	jobStore   *jsonjobstore.JobStore
+	sched      *scheduler.Scheduler
 
 	grpcServer   *grpc.Server
 	grpcWebProxy *http.Server
@@ -103,6 +111,9 @@ func NewServer(conf Config) (*Server, error) {
 	var masterAddr address.Address
 	if conf.Embedded {
 		c, cls, err = lotus.NewEmbedded()
+		if err != nil {
+			return nil, fmt.Errorf("creating the embedded network: %s", err)
+		}
 		masterAddr, err = c.WalletDefaultAddress(context.Background())
 		if err != nil {
 			return nil, fmt.Errorf("getting default address: %s", err)
@@ -161,8 +172,12 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	reptop := reptop.New(rm, ai)
-	fpamanager, err := fpa.New(txndstr.Wrap(ds, "fpa"), wm, dm, reptop, &noopauditor.Auditor{}, ipfs)
+	cl := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag())
+	hl := coreipfs.New(ipfs)
+	jobStore := jsonjobstore.New(txndstr.Wrap(ds, "fpa/scheduler/jsonjobstore"))
+	sched := scheduler.New(jobStore, hl, cl)
+
+	fpaManager, err := manager.New(txndstr.Wrap(ds, "fpa/manager"), wm, sched)
 	if err != nil {
 		return nil, fmt.Errorf("creating fpa instance: %s", err)
 	}
@@ -173,7 +188,7 @@ func NewServer(conf Config) (*Server, error) {
 	askService := ask.NewService(ai)
 	minerService := miner.NewService(mi)
 	slashingService := slashing.NewService(si)
-	fpaService := fpa.NewService(fpamanager)
+	fpaService := fpaGrpc.NewService(fpaManager, hl)
 
 	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
 
@@ -220,6 +235,10 @@ func NewServer(conf Config) (*Server, error) {
 		minerService:      minerService,
 		slashingService:   slashingService,
 		fpaService:        fpaService,
+
+		fpaManager: fpaManager,
+		sched:      sched,
+		jobStore:   jobStore,
 
 		grpcServer:   grpcServer,
 		grpcWebProxy: grpcWebProxy,
@@ -295,7 +314,30 @@ func (s *Server) Close() {
 	if err := s.grpcWebProxy.Shutdown(ctx); err != nil {
 		log.Errorf("error shutting down proxy: %s", err)
 	}
-	s.grpcServer.GracefulStop()
+	stopped := make(chan struct{})
+	go func() {
+		s.grpcServer.GracefulStop()
+		close(stopped)
+	}()
+	t := time.NewTimer(10 * time.Second)
+	select {
+	case <-t.C:
+		s.grpcServer.Stop()
+	case <-stopped:
+		t.Stop()
+	}
+	if err := s.fpaManager.Close(); err != nil {
+		log.Errorf("closing fpa manager: %s", err)
+	}
+	if err := s.sched.Close(); err != nil {
+		log.Errorf("closing fpa scheduler: %s", err)
+	}
+	if err := s.jobStore.Close(); err != nil {
+		log.Errorf("closing scheduler jobstore: %s", err)
+	}
+	if err := s.rm.Close(); err != nil {
+		log.Errorf("closing reputation module: %s", err)
+	}
 	if err := s.ai.Close(); err != nil {
 		log.Errorf("closing ask index: %s", err)
 	}

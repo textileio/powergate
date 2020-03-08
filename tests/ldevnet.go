@@ -6,6 +6,7 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/build"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/textileio/fil-tools/ldevnet"
 )
 
@@ -25,7 +26,7 @@ func CreateLocalDevnet(t *testing.T, numMiners int) (*ldevnet.LocalDevnet, addre
 		t.Fatal(err)
 	}
 
-	miners, err := dnet.Client.StateListMiners(ctx, nil)
+	miners, err := dnet.Client.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		t.Fatal(err)
 	}

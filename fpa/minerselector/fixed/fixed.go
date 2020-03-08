@@ -3,14 +3,20 @@ package fixed
 import (
 	"fmt"
 
-	"github.com/textileio/fil-tools/fpa/types"
+	"github.com/textileio/fil-tools/fpa"
 )
 
+// FixedMinerSelector is a fpa.MinerSelector implementation which
+// always return a single miner address with an fixed epochPrice.
 type FixedMinerSelector struct {
 	addr       string
 	epochPrice uint64
 }
 
+var _ fpa.MinerSelector = (*FixedMinerSelector)(nil)
+
+// New returns a new FixedMinerSelector that always return addr as the miner address
+// and epochPrice.
 func New(addr string, epochPrice uint64) *FixedMinerSelector {
 	return &FixedMinerSelector{
 		addr:       addr,
@@ -18,16 +24,13 @@ func New(addr string, epochPrice uint64) *FixedMinerSelector {
 	}
 }
 
-func (fms *FixedMinerSelector) GetTopMiners(n int) ([]types.MinerProposal, error) {
+// GetTopMiners returns the single allowed miner in the selector.
+func (fms *FixedMinerSelector) GetMiners(n int) ([]fpa.MinerProposal, error) {
 	if n != 1 {
 		return nil, fmt.Errorf("fixed miner selector can only return 1 result")
 	}
-	return []types.MinerProposal{
-		{
-			Addr:       fms.addr,
-			EpochPrice: fms.epochPrice,
-		},
-	}, nil
+	return []fpa.MinerProposal{{
+		Addr:       fms.addr,
+		EpochPrice: fms.epochPrice,
+	}}, nil
 }
-
-var _ types.MinerSelector = (*FixedMinerSelector)(nil)

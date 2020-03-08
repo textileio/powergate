@@ -1,72 +1,51 @@
 package fastapi
 
 import (
-	"time"
+	"errors"
 
-	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/fil-tools/fpa"
 )
 
 var (
-	EmptyID = ID("")
+	// ErrConfigNotFound returned when instance configuration doesn't exist
+	// in ConfigStore.
+	ErrConfigNotFound = errors.New("config not found")
+	// ErrCidConfigNotFound returned when cid configuration doesn't exist in
+	// ConfigStore.
+	ErrCidConfigNotFound = errors.New("cid config not found")
+	// ErrCidInfoNotFound returned if no storing state exists for a Cid.
+	ErrCidInfoNotFound = errors.New("the cid doesn't have any saved state")
 )
 
-type ID string
+// ConfigStore is a repository for all state of a FastAPI.
+type ConfigStore interface {
+	SaveConfig(c Config) error
+	GetConfig() (*Config, error)
 
-func (i ID) Valid() bool {
-	_, err := uuid.Parse(string(i))
-	return err == nil
-}
-func (i ID) String() string {
-	return string(i)
+	GetCidConfig(cid.Cid) (*fpa.CidConfig, error)
+	PushCidConfig(fpa.CidConfig) error
+
+	SaveCidInfo(fpa.CidInfo) error
+	GetCidInfo(cid.Cid) (fpa.CidInfo, error)
+	Cids() ([]cid.Cid, error)
 }
 
-func NewID() ID {
-	return ID(uuid.New().String())
-}
-
-type info struct {
-	ID         ID
+// Config has general information about a FastAPI instance.
+type Config struct {
+	ID         fpa.InstanceID
 	WalletAddr string
 }
 
-type CidInfo struct {
-	Cid     cid.Cid
-	Created time.Time
-	Hot     HotInfo
-	Cold    ColdInfo
-}
-
-type HotInfo struct {
-	Size int
-	Ipfs IpfsHotInfo
-}
-
-type IpfsHotInfo struct {
-	Created time.Time
-}
-
-type ColdInfo struct {
-	Filecoin FilInfo
-}
-
-type FilInfo struct {
-	PayloadCID cid.Cid
-	Duration   uint64
-	Proposals  []FilStorage
-}
-
-type FilStorage struct {
-	ProposalCid cid.Cid
-	Failed      bool
-}
-
-type Info struct {
-	ID     ID
+// InstanceInfo has general information about a running FastAPI instance.
+type InstanceInfo struct {
+	ID     fpa.InstanceID
 	Wallet WalletInfo
 	Pins   []cid.Cid
 }
 
+// WalletInfo contains information about the Wallet associated with
+// the FastAPI instance.
 type WalletInfo struct {
 	Address string
 	Balance uint64

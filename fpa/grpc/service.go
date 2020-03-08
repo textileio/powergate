@@ -1,29 +1,37 @@
-package fpa
+package grpc
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/ipfs/go-cid"
+	logger "github.com/ipfs/go-log/v2"
+	"github.com/textileio/fil-tools/fpa"
 	"github.com/textileio/fil-tools/fpa/fastapi"
+	"github.com/textileio/fil-tools/fpa/manager"
 	pb "github.com/textileio/fil-tools/fpa/pb"
 )
 
 var (
 	ErrEmptyAuthToken = errors.New("auth token can't be empty")
+
+	log = logger.Logger("fpa-grpc-service")
 )
 
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	m *Manager
+	m   *manager.Manager
+	hot fpa.HotLayer
 }
 
-func NewService(m *Manager) *Service {
+func NewService(m *manager.Manager, hot fpa.HotLayer) *Service {
 	return &Service{
-		m: m,
+		m:   m,
+		hot: hot,
 	}
 }
 
@@ -104,8 +112,23 @@ func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCid
 	if err != nil {
 		return nil, err
 	}
-	if err := i.AddCid(ctx, c); err != nil {
+	log.Infof("adding cid %s", c)
+	jid, err := i.AddCid(c)
+	if err != nil {
 		return nil, err
+	}
+
+	ch, err := i.Watch(jid)
+	if err != nil {
+		return nil, fmt.Errorf("watching add cid created job: %s", err)
+	}
+	defer i.Unwatch(ch)
+	for job := range ch {
+		if job.Status == fpa.Done {
+			break
+		} else if job.Status == fpa.Cancelled || job.Status == fpa.Failed {
+			return nil, fmt.Errorf("error adding cid: %s", job.ErrCause)
+		}
 	}
 	return &pb.AddCidReply{}, nil
 }
@@ -138,12 +161,28 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 
 	go receiveFile(srv, writer)
 
-	cid, err := i.AddFile(srv.Context(), reader)
+	c, err := s.hot.Add(srv.Context(), reader)
+	if err != nil {
+		return fmt.Errorf("adding data to hot layer: %s", err)
+	}
+
+	jid, err := i.AddCid(c)
 	if err != nil {
 		return err
 	}
+	ch, err := i.Watch(jid)
+	if err != nil {
+		return fmt.Errorf("watching add file created job: %s", err)
+	}
+	for job := range ch {
+		if job.Status == fpa.Done {
+			break
+		} else if job.Status == fpa.Failed {
+			return fmt.Errorf("error adding cid: %s", job.ErrCause)
+		}
+	}
 
-	return srv.SendAndClose(&pb.AddFileReply{Cid: cid.String()})
+	return srv.SendAndClose(&pb.AddFileReply{Cid: c.String()})
 }
 
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {

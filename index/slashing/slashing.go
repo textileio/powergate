@@ -38,10 +38,10 @@ type API interface {
 	ChainHead(context.Context) (*types.TipSet, error)
 	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
 	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
-	StateReadState(context.Context, *types.Actor, *types.TipSet) (*api.ActorState, error)
+	StateReadState(context.Context, *types.Actor, types.TipSetKey) (*api.ActorState, error)
 	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*store.HeadChange, error)
 	ChainGetGenesis(context.Context) (*types.TipSet, error)
-	ChainGetTipSetByHeight(context.Context, uint64, *types.TipSet) (*types.TipSet, error)
+	ChainGetTipSetByHeight(context.Context, uint64, types.TipSetKey) (*types.TipSet, error)
 }
 
 // SlashingIndex builds and provides slashing history of miners
@@ -162,7 +162,7 @@ func (s *SlashingIndex) updateIndex() error {
 	if heaviest.Height()-hOffset <= 0 {
 		return nil
 	}
-	new, err := s.api.ChainGetTipSetByHeight(s.ctx, heaviest.Height()-hOffset, heaviest)
+	new, err := s.api.ChainGetTipSetByHeight(s.ctx, heaviest.Height()-hOffset, heaviest.Key())
 	if err != nil {
 		return err
 	}
@@ -252,7 +252,7 @@ func epochPatch(ctx context.Context, c API, pts *types.TipSet, ts *types.TipSet)
 		go func(addr string) {
 			defer wg.Done()
 			actor := chg[addr]
-			as, err := c.StateReadState(ctx, &actor, ts)
+			as, err := c.StateReadState(ctx, &actor, ts.Key())
 			if err != nil {
 				log.Debugf("error when reading state of %s at height %d: %s", addr, pts.Height, err)
 				return
