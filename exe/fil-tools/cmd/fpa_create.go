@@ -9,13 +9,13 @@ import (
 )
 
 func init() {
-	fpaCmd.AddCommand(fpaCreateCmd)
+	ffsCmd.AddCommand(ffsCreateCmd)
 }
 
-var fpaCreateCmd = &cobra.Command{
+var ffsCreateCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Create fpa instance",
-	Long:  `Create fpa instance`,
+	Short: "Create ffs instance",
+	Long:  `Create ffs instance`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -24,9 +24,9 @@ var fpaCreateCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Creating fpa instance...")
+		s := spin.New("%s Creating ffs instance...")
 		s.Start()
-		id, token, err := fcClient.Fpa.Create(ctx)
+		id, token, err := fcClient.Ffs.Create(ctx)
 		checkErr(err)
 		s.Stop()
 		Message("Instance created with id %s and token %s.", id, token)

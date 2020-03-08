@@ -5,24 +5,24 @@ import (
 	"io"
 
 	cid "github.com/ipfs/go-cid"
-	pb "github.com/textileio/fil-tools/fpa/pb"
+	pb "github.com/textileio/fil-tools/ffs/pb"
 )
 
-type fpa struct {
+type ffs struct {
 	client pb.APIClient
 }
 
-func (f *fpa) Info(ctx context.Context) (*pb.InfoReply, error) {
+func (f *ffs) Info(ctx context.Context) (*pb.InfoReply, error) {
 	return f.client.Info(ctx, &pb.InfoRequest{})
 }
 
-func (f *fpa) Show(ctx context.Context, c cid.Cid) (*pb.ShowReply, error) {
+func (f *ffs) Show(ctx context.Context, c cid.Cid) (*pb.ShowReply, error) {
 	return f.client.Show(ctx, &pb.ShowRequest{
 		Cid: c.String(),
 	})
 }
 
-func (f *fpa) AddCid(ctx context.Context, c cid.Cid) error {
+func (f *ffs) AddCid(ctx context.Context, c cid.Cid) error {
 	_, err := f.client.AddCid(ctx, &pb.AddCidRequest{
 		Cid: c.String(),
 	})
@@ -32,7 +32,7 @@ func (f *fpa) AddCid(ctx context.Context, c cid.Cid) error {
 	return nil
 }
 
-func (f *fpa) AddFile(ctx context.Context, data io.Reader) (*cid.Cid, error) {
+func (f *ffs) AddFile(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	stream, err := f.client.AddFile(ctx)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (f *fpa) AddFile(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	return &cid, nil
 }
 
-func (f *fpa) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
+func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	stream, err := f.client.Get(ctx, &pb.GetRequest{
 		Cid: c.String(),
 	})
@@ -97,7 +97,7 @@ func (f *fpa) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return reader, nil
 }
 
-func (f *fpa) Create(ctx context.Context) (string, string, error) {
+func (f *ffs) Create(ctx context.Context) (string, string, error) {
 	r, err := f.client.Create(ctx, &pb.CreateRequest{})
 	if err != nil {
 		return "", "", err

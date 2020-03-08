@@ -13,13 +13,13 @@ import (
 )
 
 func init() {
-	fpaShowCmd.Flags().StringP("cid", "c", "", "cid of the data to pin")
-	fpaShowCmd.Flags().StringP("token", "t", "", "wallet address used to store the data")
+	ffsShowCmd.Flags().StringP("cid", "c", "", "cid of the data to pin")
+	ffsShowCmd.Flags().StringP("token", "t", "", "wallet address used to store the data")
 
-	fpaCmd.AddCommand(fpaShowCmd)
+	ffsCmd.AddCommand(ffsShowCmd)
 }
 
-var fpaShowCmd = &cobra.Command{
+var ffsShowCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Show pinned cid data",
 	Long:  `Show pinned cid data`,
@@ -37,7 +37,7 @@ var fpaShowCmd = &cobra.Command{
 		if token == "" {
 			Fatal(errors.New("get requires token"))
 		}
-		ctx = context.WithValue(ctx, authKey("fpatoken"), token)
+		ctx = context.WithValue(ctx, authKey("ffstoken"), token)
 
 		if cidString == "" {
 			Fatal(errors.New("store command needs a cid"))
@@ -48,7 +48,7 @@ var fpaShowCmd = &cobra.Command{
 
 		s := spin.New("%s Getting info from cid...")
 		s.Start()
-		info, err := fcClient.Fpa.Show(ctx, c)
+		info, err := fcClient.Ffs.Show(ctx, c)
 		s.Stop()
 		checkErr(err)
 

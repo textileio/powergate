@@ -12,15 +12,15 @@ import (
 )
 
 func init() {
-	fpaInfoCmd.Flags().StringP("token", "t", "", "token of the request")
+	ffsInfoCmd.Flags().StringP("token", "t", "", "token of the request")
 
-	fpaCmd.AddCommand(fpaInfoCmd)
+	ffsCmd.AddCommand(ffsInfoCmd)
 }
 
-var fpaInfoCmd = &cobra.Command{
+var ffsInfoCmd = &cobra.Command{
 	Use:   "info",
-	Short: "Get info from fpa instance",
-	Long:  `Get info from fpa instance`,
+	Short: "Get info from ffs instance",
+	Long:  `Get info from ffs instance`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -34,11 +34,11 @@ var fpaInfoCmd = &cobra.Command{
 		if token == "" {
 			Fatal(errors.New("get requires token"))
 		}
-		ctx = context.WithValue(ctx, authKey("fpatoken"), token)
+		ctx = context.WithValue(ctx, authKey("ffstoken"), token)
 
 		s := spin.New("%s Retrieving instance info...")
 		s.Start()
-		info, err := fcClient.Fpa.Info(ctx)
+		info, err := fcClient.Ffs.Info(ctx)
 		checkErr(err)
 		s.Stop()
 		Message("Information from instance ID %s:", aurora.White(info.Id).Bold())

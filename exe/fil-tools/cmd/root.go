@@ -97,9 +97,9 @@ type tokenAuth struct {
 
 func (t tokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
 	md := map[string]string{}
-	token, ok := ctx.Value(authKey("fpatoken")).(string)
+	token, ok := ctx.Value(authKey("ffstoken")).(string)
 	if ok && token != "" {
-		md["X-fpa-Token"] = token
+		md["X-ffs-Token"] = token
 	}
 	return md, nil
 }

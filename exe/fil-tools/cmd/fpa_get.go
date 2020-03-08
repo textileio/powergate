@@ -14,17 +14,17 @@ import (
 )
 
 func init() {
-	fpaGetCmd.Flags().StringP("token", "t", "", "token of the request")
-	fpaGetCmd.Flags().StringP("cid", "c", "", "cid of the data to fetch")
-	fpaGetCmd.Flags().StringP("out", "o", "", "file path to write the data to")
+	ffsGetCmd.Flags().StringP("token", "t", "", "token of the request")
+	ffsGetCmd.Flags().StringP("cid", "c", "", "cid of the data to fetch")
+	ffsGetCmd.Flags().StringP("out", "o", "", "file path to write the data to")
 
-	fpaCmd.AddCommand(fpaGetCmd)
+	ffsCmd.AddCommand(ffsGetCmd)
 }
 
-var fpaGetCmd = &cobra.Command{
+var ffsGetCmd = &cobra.Command{
 	Use:   "get",
-	Short: "Get data from fpa",
-	Long:  `Get data from fpa`,
+	Short: "Get data from ffs",
+	Long:  `Get data from ffs`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -40,7 +40,7 @@ var fpaGetCmd = &cobra.Command{
 		if token == "" {
 			Fatal(errors.New("get requires token"))
 		}
-		ctx = context.WithValue(ctx, authKey("fpatoken"), token)
+		ctx = context.WithValue(ctx, authKey("ffstoken"), token)
 
 		if cidString == "" {
 			Fatal(errors.New("store command needs a cid"))
@@ -55,7 +55,7 @@ var fpaGetCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving specified data...")
 		s.Start()
-		reader, err := fcClient.Fpa.Get(ctx, c)
+		reader, err := fcClient.Ffs.Get(ctx, c)
 		checkErr(err)
 
 		dir := path.Dir(out)

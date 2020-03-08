@@ -5,11 +5,11 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(fpaCmd)
+	rootCmd.AddCommand(ffsCmd)
 }
 
-var fpaCmd = &cobra.Command{
-	Use:   "fpa",
-	Short: "Provides commands to manage fpa",
-	Long:  `Provides commands to manage fpa`,
+var ffsCmd = &cobra.Command{
+	Use:   "ffs",
+	Short: "Provides commands to manage ffs",
+	Long:  `Provides commands to manage ffs`,
 }
