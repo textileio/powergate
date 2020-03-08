@@ -20,7 +20,7 @@ var (
 	log    = logging.Logger("fpa-auth")
 )
 
-// Auth contains a mapping between auth-tokens and FastAPI instances.
+// Auth contains a mapping between auth-tokens and Powergate instances.
 type Auth struct {
 	lock sync.Mutex
 	ds   ds.Datastore

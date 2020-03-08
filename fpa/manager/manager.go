@@ -12,8 +12,8 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/fil-tools/fpa"
 	"github.com/textileio/fil-tools/fpa/auth"
-	"github.com/textileio/fil-tools/fpa/fastapi"
-	"github.com/textileio/fil-tools/fpa/fastapi/store"
+	"github.com/textileio/fil-tools/fpa/pg"
+	"github.com/textileio/fil-tools/fpa/pg/store"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 	log = logging.Logger("fpa-manager")
 )
 
-// Manager creates FastAPI instances, or loads existing ones them from an auth-token.
+// Manager creates Powergate instances, or loads existing ones them from an auth-token.
 type Manager struct {
 	wm    fpa.WalletManager
 	sched fpa.Scheduler
@@ -31,7 +31,7 @@ type Manager struct {
 	lock      sync.Mutex
 	ds        ds.Datastore
 	auth      *auth.Auth
-	instances map[fpa.InstanceID]*fastapi.Instance
+	instances map[fpa.InstanceID]*pg.Instance
 
 	closed bool
 }
@@ -43,19 +43,19 @@ func New(ds ds.Datastore, wm fpa.WalletManager, sched fpa.Scheduler) (*Manager, 
 		ds:        ds,
 		wm:        wm,
 		sched:     sched,
-		instances: make(map[fpa.InstanceID]*fastapi.Instance),
+		instances: make(map[fpa.InstanceID]*pg.Instance),
 	}, nil
 }
 
-// Create creates a new FastAPI instance and an auth-token mapped to it.
+// Create creates a new Powergate instance and an auth-token mapped to it.
 func (m *Manager) Create(ctx context.Context) (fpa.InstanceID, string, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
 	log.Info("creating instance")
 	iid := fpa.NewInstanceID()
-	confstore := store.New(iid, namespace.Wrap(m.ds, datastore.NewKey("fpa/fastapi/store")))
-	fapi, err := fastapi.New(ctx, iid, confstore, m.sched, m.wm)
+	confstore := store.New(iid, namespace.Wrap(m.ds, datastore.NewKey("fpa/pg/store")))
+	fapi, err := pg.New(ctx, iid, confstore, m.sched, m.wm)
 	if err != nil {
 		return fpa.EmptyID, "", fmt.Errorf("creating new instance: %s", err)
 	}
@@ -72,7 +72,7 @@ func (m *Manager) Create(ctx context.Context) (fpa.InstanceID, string, error) {
 
 // GetByAuthToken loads an existing instance using an auth-token. If auth-token doesn't exist,
 // it returns ErrAuthTokenNotFound.
-func (m *Manager) GetByAuthToken(token string) (*fastapi.Instance, error) {
+func (m *Manager) GetByAuthToken(token string) (*pg.Instance, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -84,8 +84,8 @@ func (m *Manager) GetByAuthToken(token string) (*fastapi.Instance, error) {
 	i, ok := m.instances[iid]
 	if !ok {
 		log.Infof("loading uncached instance %s", iid)
-		confstore := store.New(iid, namespace.Wrap(m.ds, datastore.NewKey("fpa/fastapi/store")))
-		i, err = fastapi.Load(iid, confstore, m.sched, m.wm)
+		confstore := store.New(iid, namespace.Wrap(m.ds, datastore.NewKey("fpa/pg/store")))
+		i, err = pg.Load(iid, confstore, m.sched, m.wm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)
 		}

@@ -100,7 +100,7 @@ func (js *JobStore) Get(jid fpa.JobID) (fpa.Job, error) {
 	return job, nil
 }
 
-// Watch subscribes to Job changes from a specified FastAPI instance.
+// Watch subscribes to Job changes from a specified Powergate instance.
 func (js *JobStore) Watch(iid fpa.InstanceID) <-chan fpa.Job {
 	js.lock.Lock()
 	defer js.lock.Unlock()

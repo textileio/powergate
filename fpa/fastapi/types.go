@@ -1,4 +1,4 @@
-package fastapi
+package pg
 
 import (
 	"errors"
@@ -18,7 +18,7 @@ var (
 	ErrCidInfoNotFound = errors.New("the cid doesn't have any saved state")
 )
 
-// ConfigStore is a repository for all state of a FastAPI.
+// ConfigStore is a repository for all state of a Powergate.
 type ConfigStore interface {
 	SaveConfig(c Config) error
 	GetConfig() (*Config, error)
@@ -31,13 +31,13 @@ type ConfigStore interface {
 	Cids() ([]cid.Cid, error)
 }
 
-// Config has general information about a FastAPI instance.
+// Config has general information about a Powergate instance.
 type Config struct {
 	ID         fpa.InstanceID
 	WalletAddr string
 }
 
-// InstanceInfo has general information about a running FastAPI instance.
+// InstanceInfo has general information about a running Powergate instance.
 type InstanceInfo struct {
 	ID     fpa.InstanceID
 	Wallet WalletInfo
@@ -45,7 +45,7 @@ type InstanceInfo struct {
 }
 
 // WalletInfo contains information about the Wallet associated with
-// the FastAPI instance.
+// the Powergate instance.
 type WalletInfo struct {
 	Address string
 	Balance uint64

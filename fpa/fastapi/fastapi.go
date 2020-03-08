@@ -1,4 +1,4 @@
-package fastapi
+package pg
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 var (
 	defaultWalletType = "bls"
 
-	log = logging.Logger("fpa-fastapi")
+	log = logging.Logger("fpa-pg")
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 	ErrNotStored = errors.New("cid isn't stored")
 )
 
-// Instance is an FastAPI instance, which owns a Lotus Address and allows to
+// Instance is an Powergate instance, which owns a Lotus Address and allows to
 // Store and Retrieve Cids from Hot and Cold layers.
 type Instance struct {
 	store ConfigStore
@@ -48,7 +48,7 @@ type watcher struct {
 	ch     chan fpa.Job
 }
 
-// New returns a new FastAPI instance.
+// New returns a new Powergate instance.
 func New(ctx context.Context, iid fpa.InstanceID, confstore ConfigStore, sch fpa.Scheduler, wm fpa.WalletManager) (*Instance, error) {
 	addr, err := wm.NewWallet(ctx, defaultWalletType)
 	if err != nil {
@@ -66,7 +66,7 @@ func New(ctx context.Context, iid fpa.InstanceID, confstore ConfigStore, sch fpa
 	return i, nil
 }
 
-// Load loads a saved FastAPI instance from its ConfigStore.
+// Load loads a saved Powergate instance from its ConfigStore.
 func Load(iid fpa.InstanceID, confstore ConfigStore, sched fpa.Scheduler, wm fpa.WalletManager) (*Instance, error) {
 	config, err := confstore.GetConfig()
 	if err != nil {
@@ -285,7 +285,7 @@ func (i *Instance) watchJobs() {
 					case w.ch <- j:
 						log.Info("notifying watcher")
 					default:
-						log.Warnf("skipping slow fastapi watcher")
+						log.Warnf("skipping slow pg watcher")
 					}
 				}
 			}

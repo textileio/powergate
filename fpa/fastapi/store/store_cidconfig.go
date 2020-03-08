@@ -7,7 +7,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/textileio/fil-tools/fpa"
-	"github.com/textileio/fil-tools/fpa/fastapi"
+	"github.com/textileio/fil-tools/fpa/pg"
 )
 
 // PushCidConfig saves a new desired configuration for storing a Cid
@@ -30,7 +30,7 @@ func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*fpa.CidConfig, error) {
 	buf, err := cs.ds.Get(makeCidConfigKey(cs.iid, c))
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			return nil, fastapi.ErrConfigNotFound
+			return nil, pg.ErrConfigNotFound
 		}
 		return nil, err
 	}

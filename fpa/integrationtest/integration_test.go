@@ -24,10 +24,10 @@ import (
 	"github.com/textileio/fil-tools/deals"
 	"github.com/textileio/fil-tools/fpa"
 	"github.com/textileio/fil-tools/fpa/coreipfs"
-	"github.com/textileio/fil-tools/fpa/fastapi"
-	"github.com/textileio/fil-tools/fpa/fastapi/store"
 	"github.com/textileio/fil-tools/fpa/filcold"
 	"github.com/textileio/fil-tools/fpa/minerselector/fixed"
+	"github.com/textileio/fil-tools/fpa/pg"
+	"github.com/textileio/fil-tools/fpa/pg/store"
 	"github.com/textileio/fil-tools/fpa/scheduler"
 	"github.com/textileio/fil-tools/fpa/scheduler/jsonjobstore"
 	"github.com/textileio/fil-tools/tests"
@@ -44,7 +44,7 @@ func TestMain(m *testing.M) {
 	logging.SetAllLoggers(logging.LevelError)
 
 	// logging.SetLogLevel("scheduler", "debug")
-	// logging.SetLogLevel("fastapi", "debug")
+	// logging.SetLogLevel("pg", "debug")
 	// logging.SetLogLevel("jobstore", "debug")
 	// logging.SetLogLevel("coreipfs", "debug")
 
@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestAdd(t *testing.T) {
-	ipfsApi, fapi, cls := newFastAPI(t)
+	ipfsApi, fapi, cls := newPowergate(t)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -70,7 +70,7 @@ func TestAdd(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newFastAPI(t)
+	ipfs, fapi, cls := newPowergate(t)
 	defer cls()
 
 	r := rand.New(rand.NewSource(11))
@@ -90,11 +90,11 @@ func TestGet(t *testing.T) {
 
 func TestInfo(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newFastAPI(t)
+	ipfs, fapi, cls := newPowergate(t)
 	defer cls()
 
 	var err error
-	var first fastapi.InstanceInfo
+	var first pg.InstanceInfo
 	t.Run("Minimal", func(t *testing.T) {
 		first, err = fapi.Info(ctx)
 		require.Nil(t, err)
@@ -125,13 +125,13 @@ func TestInfo(t *testing.T) {
 
 func TestShow(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newFastAPI(t)
+	ipfs, fapi, cls := newPowergate(t)
 	defer cls()
 
 	t.Run("NotStored", func(t *testing.T) {
 		c, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 		_, err := fapi.Show(c)
-		require.Equal(t, fastapi.ErrNotStored, err)
+		require.Equal(t, pg.ErrNotStored, err)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -171,7 +171,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	dnet, addr, _, closeDevnet := tests.CreateLocalDevnet(t, 1)
 	defer closeDevnet()
 
-	ipfsApi, fapi, cls := newFastAPIFromDs(t, ds, fpa.EmptyID, dnet.Client, addr)
+	ipfsApi, fapi, cls := newPowergateFromDs(t, ds, fpa.EmptyID, dnet.Client, addr)
 	ra := rand.New(rand.NewSource(22))
 	cid, data := addRandomFile(t, ra, ipfsApi)
 	jid, err := fapi.AddCid(cid)
@@ -183,7 +183,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.Nil(t, err)
 	cls()
 
-	_, fapi, cls = newFastAPIFromDs(t, ds, fapi.ID(), dnet.Client, addr)
+	_, fapi, cls = newPowergateFromDs(t, ds, fapi.ID(), dnet.Client, addr)
 	defer cls()
 	ninfo, err := fapi.Info(ctx)
 	require.Nil(t, err)
@@ -209,17 +209,17 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.True(t, bytes.Equal(data, fetched))
 }
 
-func newFastAPI(t *testing.T) (*httpapi.HttpApi, *fastapi.Instance, func()) {
+func newPowergate(t *testing.T) (*httpapi.HttpApi, *pg.Instance, func()) {
 	ds := tests.NewTxMapDatastore()
 	dnet, addr, _, close := tests.CreateLocalDevnet(t, 1)
-	ipfsApi, fapi, closeInternal := newFastAPIFromDs(t, ds, fpa.EmptyID, dnet.Client, addr)
+	ipfsApi, fapi, closeInternal := newPowergateFromDs(t, ds, fpa.EmptyID, dnet.Client, addr)
 	return ipfsApi, fapi, func() {
 		closeInternal()
 		close()
 	}
 }
 
-func newFastAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid fpa.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address) (*httpapi.HttpApi, *fastapi.Instance, func()) {
+func newPowergateFromDs(t *testing.T, ds datastore.TxnDatastore, iid fpa.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address) (*httpapi.HttpApi, *pg.Instance, func()) {
 	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
@@ -237,22 +237,22 @@ func newFastAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid fpa.InstanceI
 	wm, err := wallet.New(client, &waddr, *big.NewInt(5000000000000))
 	require.Nil(t, err)
 
-	var fapi *fastapi.Instance
+	var fapi *pg.Instance
 	if iid == fpa.EmptyID {
 		iid = fpa.NewInstanceID()
-		confstore := store.New(iid, txndstr.Wrap(ds, "fpa/fastapi/store"))
-		fapi, err = fastapi.New(ctx, iid, confstore, sched, wm)
+		confstore := store.New(iid, txndstr.Wrap(ds, "fpa/pg/store"))
+		fapi, err = pg.New(ctx, iid, confstore, sched, wm)
 		require.Nil(t, err)
 	} else {
-		confstore := store.New(iid, txndstr.Wrap(ds, "fpa/fastapi/store"))
-		fapi, err = fastapi.Load(iid, confstore, sched, wm)
+		confstore := store.New(iid, txndstr.Wrap(ds, "fpa/pg/store"))
+		fapi, err = pg.Load(iid, confstore, sched, wm)
 		require.Nil(t, err)
 	}
 	time.Sleep(time.Second)
 
 	return ipfsClient, fapi, func() {
 		if err := fapi.Close(); err != nil {
-			t.Fatalf("closing fastapi: %s", err)
+			t.Fatalf("closing pg: %s", err)
 		}
 		if err := sched.Close(); err != nil {
 			t.Fatalf("closing scheduler: %s", err)
@@ -263,7 +263,7 @@ func newFastAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid fpa.InstanceI
 	}
 }
 
-func requireJobState(t *testing.T, fapi *fastapi.Instance, jid fpa.JobID, status fpa.JobStatus) {
+func requireJobState(t *testing.T, fapi *pg.Instance, jid fpa.JobID, status fpa.JobStatus) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	ch, err := fapi.Watch(jid)

@@ -8,7 +8,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	"github.com/textileio/fil-tools/fpa"
-	"github.com/textileio/fil-tools/fpa/fastapi"
+	"github.com/textileio/fil-tools/fpa/pg"
 )
 
 // GetCid info gets the current stored state of a Cid
@@ -16,7 +16,7 @@ func (cs *ConfigStore) GetCidInfo(c cid.Cid) (fpa.CidInfo, error) {
 	var ci fpa.CidInfo
 	buf, err := cs.ds.Get(makeCidInfoKey(cs.iid, c))
 	if err == datastore.ErrNotFound {
-		return ci, fastapi.ErrCidInfoNotFound
+		return ci, pg.ErrCidInfoNotFound
 	}
 	if err != nil {
 		return ci, fmt.Errorf("getting cidinfo %s from store: %s", c, err)

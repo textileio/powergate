@@ -6,11 +6,11 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/textileio/fil-tools/fpa"
-	"github.com/textileio/fil-tools/fpa/fastapi"
+	"github.com/textileio/fil-tools/fpa/pg"
 )
 
-// SaveConfig persist Config information of the FastAPI instance
-func (cs *ConfigStore) SaveConfig(c fastapi.Config) error {
+// SaveConfig persist Config information of the Powergate instance
+func (cs *ConfigStore) SaveConfig(c pg.Config) error {
 	buf, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling config: %s", err)
@@ -21,17 +21,17 @@ func (cs *ConfigStore) SaveConfig(c fastapi.Config) error {
 	return nil
 }
 
-// GetConfig gets the current configuration of the FastAPI instance.
+// GetConfig gets the current configuration of the Powergate instance.
 // If no configuration exist, it returns ErrConfigNotFound.
-func (cs *ConfigStore) GetConfig() (*fastapi.Config, error) {
+func (cs *ConfigStore) GetConfig() (*pg.Config, error) {
 	buf, err := cs.ds.Get(makeConfigKey(cs.iid))
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			return nil, fastapi.ErrConfigNotFound
+			return nil, pg.ErrConfigNotFound
 		}
 		return nil, fmt.Errorf("getting config from store: %s", err)
 	}
-	var c fastapi.Config
+	var c pg.Config
 	if err := json.Unmarshal(buf, &c); err != nil {
 		return nil, fmt.Errorf("unmarshaling config: %s", err)
 	}

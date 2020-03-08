@@ -10,9 +10,9 @@ import (
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/fil-tools/fpa"
-	"github.com/textileio/fil-tools/fpa/fastapi"
 	"github.com/textileio/fil-tools/fpa/manager"
 	pb "github.com/textileio/fil-tools/fpa/pb"
+	"github.com/textileio/fil-tools/fpa/pg"
 )
 
 var (
@@ -226,7 +226,7 @@ func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.Create
 	}, nil
 }
 
-func (s *Service) getInstanceByToken(ctx context.Context) (*fastapi.Instance, error) {
+func (s *Service) getInstanceByToken(ctx context.Context) (*pg.Instance, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-fpa-Token")
 	if token == "" {
 		return nil, ErrEmptyAuthToken
