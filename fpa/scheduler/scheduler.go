@@ -148,26 +148,25 @@ func (s *Scheduler) run() {
 }
 
 func (s *Scheduler) execute(ctx context.Context, job *fpa.Job) error {
-	cinfo := fpa.CidInfo{
+	job.CidInfo = fpa.CidInfo{
 		ConfigID: job.Config.ID,
 		Cid:      job.Config.Cid,
 		Created:  time.Now(),
 	}
 	var err error
-	cinfo.Hot, err = s.hot.Pin(ctx, job.Config.Cid)
+	job.CidInfo.Hot, err = s.hot.Pin(ctx, job.Config.Cid)
 	if err != nil {
 		job.Status = fpa.Failed
 		job.ErrCause = err.Error()
 		return nil
 	}
 
-	cinfo.Cold, err = s.cold.Store(ctx, job.Config.Cid, job.Config.Cold)
+	job.CidInfo.Cold, err = s.cold.Store(ctx, job.Config.Cid, job.Config.Cold)
 	if err != nil {
 		job.Status = fpa.Failed
 		job.ErrCause = err.Error()
 		return nil
 	}
-	job.CidInfo = cinfo
 	job.Status = fpa.Done
 	return nil
 }

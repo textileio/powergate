@@ -19,6 +19,24 @@ func NewTxMapDatastore() *TxMapDatastore {
 	}
 }
 
+func (d *TxMapDatastore) Get(key datastore.Key) ([]byte, error) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.MapDatastore.Get(key)
+}
+
+func (d *TxMapDatastore) Put(key datastore.Key, data []byte) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.MapDatastore.Put(key, data)
+}
+
+func (d *TxMapDatastore) Query(q query.Query) (query.Results, error) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.MapDatastore.Query(q)
+}
+
 func (d *TxMapDatastore) NewTransaction(readOnly bool) (datastore.Txn, error) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
