@@ -3,7 +3,7 @@ package miner
 import (
 	"context"
 
-	pb "github.com/textileio/fil-tools/index/miner/pb"
+	pb "github.com/textileio/powergate/index/miner/pb"
 )
 
 // Service implements the gprc service

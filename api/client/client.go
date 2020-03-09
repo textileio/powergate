@@ -1,13 +1,13 @@
 package client
 
 import (
-	dealsPb "github.com/textileio/fil-tools/deals/pb"
-	fpaPb "github.com/textileio/fil-tools/fpa/pb"
-	asksPb "github.com/textileio/fil-tools/index/ask/pb"
-	minerPb "github.com/textileio/fil-tools/index/miner/pb"
-	slashingPb "github.com/textileio/fil-tools/index/slashing/pb"
-	reputationPb "github.com/textileio/fil-tools/reputation/pb"
-	walletPb "github.com/textileio/fil-tools/wallet/pb"
+	dealsPb "github.com/textileio/powergate/deals/pb"
+	ffsPb "github.com/textileio/powergate/ffs/pb"
+	asksPb "github.com/textileio/powergate/index/ask/pb"
+	minerPb "github.com/textileio/powergate/index/miner/pb"
+	slashingPb "github.com/textileio/powergate/index/slashing/pb"
+	reputationPb "github.com/textileio/powergate/reputation/pb"
+	walletPb "github.com/textileio/powergate/wallet/pb"
 	"google.golang.org/grpc"
 )
 
@@ -19,7 +19,7 @@ type Client struct {
 	Deals      *Deals
 	Wallet     *Wallet
 	Reputation *Reputation
-	Fpa        *fpa
+	Ffs        *ffs
 	conn       *grpc.ClientConn
 }
 
@@ -36,7 +36,7 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
 		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationPb.NewAPIClient(conn)},
-		Fpa:        &fpa{client: fpaPb.NewAPIClient(conn)},
+		Ffs:        &ffs{client: ffsPb.NewAPIClient(conn)},
 		conn:       conn,
 	}
 	return client, nil

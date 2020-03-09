@@ -3,7 +3,7 @@ package ask
 import (
 	"context"
 
-	pb "github.com/textileio/fil-tools/index/ask/pb"
+	pb "github.com/textileio/powergate/index/ask/pb"
 )
 
 // Service implements the gprc service

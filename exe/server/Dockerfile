@@ -1,4 +1,4 @@
-FROM golang:1.13.7 as builder
+FROM golang:1.14 as builder
 RUN apt-get update && apt-get install -y mesa-opencl-icd ocl-icd-opencl-dev
 
 WORKDIR /tmp
@@ -23,12 +23,12 @@ RUN make .filecoin-build
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN GOOS=linux go build -o fil-toolsd exe/server/main.go && \
-go run github.com/GeertJohan/go.rice/rice append --exec fil-toolsd -i ./build
+RUN GOOS=linux go build -o powd exe/server/main.go && \
+go run github.com/GeertJohan/go.rice/rice append --exec powd -i ./build
 
 FROM ubuntu
 RUN apt-get update && apt-get install -y mesa-opencl-icd ocl-icd-opencl-dev
 COPY --from=builder /app/api/server/ip2location-ip4.bin /app/ip2location-ip4.bin
-COPY --from=builder /app/fil-toolsd /app/fil-toolsd
+COPY --from=builder /app/powd /app/powd
 WORKDIR /app 
-ENTRYPOINT ["./fil-toolsd"]
+ENTRYPOINT ["./powd"]

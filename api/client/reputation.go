@@ -4,8 +4,8 @@ import (
 	"context"
 
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/fil-tools/reputation"
-	pb "github.com/textileio/fil-tools/reputation/pb"
+	"github.com/textileio/powergate/reputation"
+	pb "github.com/textileio/powergate/reputation/pb"
 )
 
 // Reputation provides an API for viewing reputation data

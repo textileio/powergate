@@ -3,7 +3,7 @@ package wallet
 import (
 	"context"
 
-	pb "github.com/textileio/fil-tools/wallet/pb"
+	pb "github.com/textileio/powergate/wallet/pb"
 )
 
 // Service implements the gprc service

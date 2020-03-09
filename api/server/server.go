@@ -19,31 +19,31 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/fil-tools/deals"
-	dealsPb "github.com/textileio/fil-tools/deals/pb"
-	"github.com/textileio/fil-tools/fchost"
-	"github.com/textileio/fil-tools/fpa/coreipfs"
-	"github.com/textileio/fil-tools/fpa/filcold"
-	fpaGrpc "github.com/textileio/fil-tools/fpa/grpc"
-	"github.com/textileio/fil-tools/fpa/manager"
-	"github.com/textileio/fil-tools/fpa/minerselector/reptop"
-	fpaPb "github.com/textileio/fil-tools/fpa/pb"
-	"github.com/textileio/fil-tools/fpa/scheduler"
-	"github.com/textileio/fil-tools/fpa/scheduler/jsonjobstore"
-	"github.com/textileio/fil-tools/gateway"
-	"github.com/textileio/fil-tools/index/ask"
-	askPb "github.com/textileio/fil-tools/index/ask/pb"
-	"github.com/textileio/fil-tools/index/miner"
-	minerPb "github.com/textileio/fil-tools/index/miner/pb"
-	"github.com/textileio/fil-tools/index/slashing"
-	slashingPb "github.com/textileio/fil-tools/index/slashing/pb"
-	"github.com/textileio/fil-tools/iplocation/ip2location"
-	"github.com/textileio/fil-tools/lotus"
-	"github.com/textileio/fil-tools/reputation"
-	reputationPb "github.com/textileio/fil-tools/reputation/pb"
-	txndstr "github.com/textileio/fil-tools/txndstransform"
-	"github.com/textileio/fil-tools/wallet"
-	walletPb "github.com/textileio/fil-tools/wallet/pb"
+	"github.com/textileio/powergate/deals"
+	dealsPb "github.com/textileio/powergate/deals/pb"
+	"github.com/textileio/powergate/fchost"
+	"github.com/textileio/powergate/ffs/coreipfs"
+	"github.com/textileio/powergate/ffs/filcold"
+	ffsGrpc "github.com/textileio/powergate/ffs/grpc"
+	"github.com/textileio/powergate/ffs/manager"
+	"github.com/textileio/powergate/ffs/minerselector/reptop"
+	ffsPb "github.com/textileio/powergate/ffs/pb"
+	"github.com/textileio/powergate/ffs/scheduler"
+	"github.com/textileio/powergate/ffs/scheduler/jsonjobstore"
+	"github.com/textileio/powergate/gateway"
+	"github.com/textileio/powergate/index/ask"
+	askPb "github.com/textileio/powergate/index/ask/pb"
+	"github.com/textileio/powergate/index/miner"
+	minerPb "github.com/textileio/powergate/index/miner/pb"
+	"github.com/textileio/powergate/index/slashing"
+	slashingPb "github.com/textileio/powergate/index/slashing/pb"
+	"github.com/textileio/powergate/iplocation/ip2location"
+	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/reputation"
+	reputationPb "github.com/textileio/powergate/reputation/pb"
+	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/wallet"
+	walletPb "github.com/textileio/powergate/wallet/pb"
 	"google.golang.org/grpc"
 )
 
@@ -74,9 +74,9 @@ type Server struct {
 	askService        *ask.Service
 	minerService      *miner.Service
 	slashingService   *slashing.Service
-	fpaService        *fpaGrpc.Service
+	ffsService        *ffsGrpc.Service
 
-	fpaManager *manager.Manager
+	ffsManager *manager.Manager
 	jobStore   *jsonjobstore.JobStore
 	sched      *scheduler.Scheduler
 
@@ -174,12 +174,12 @@ func NewServer(conf Config) (*Server, error) {
 
 	cl := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag())
 	hl := coreipfs.New(ipfs)
-	jobStore := jsonjobstore.New(txndstr.Wrap(ds, "fpa/scheduler/jsonjobstore"))
+	jobStore := jsonjobstore.New(txndstr.Wrap(ds, "ffs/scheduler/jsonjobstore"))
 	sched := scheduler.New(jobStore, hl, cl)
 
-	fpaManager, err := manager.New(txndstr.Wrap(ds, "fpa/manager"), wm, sched)
+	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
-		return nil, fmt.Errorf("creating fpa instance: %s", err)
+		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}
 
 	dealsService := deals.NewService(dm)
@@ -188,7 +188,7 @@ func NewServer(conf Config) (*Server, error) {
 	askService := ask.NewService(ai)
 	minerService := miner.NewService(mi)
 	slashingService := slashing.NewService(si)
-	fpaService := fpaGrpc.NewService(fpaManager, hl)
+	ffsService := ffsGrpc.NewService(ffsManager, hl)
 
 	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
 
@@ -234,9 +234,9 @@ func NewServer(conf Config) (*Server, error) {
 		askService:        askService,
 		minerService:      minerService,
 		slashingService:   slashingService,
-		fpaService:        fpaService,
+		ffsService:        ffsService,
 
-		fpaManager: fpaManager,
+		ffsManager: ffsManager,
 		sched:      sched,
 		jobStore:   jobStore,
 
@@ -259,7 +259,7 @@ func NewServer(conf Config) (*Server, error) {
 		askPb.RegisterAPIServer(grpcServer, s.askService)
 		minerPb.RegisterAPIServer(grpcServer, s.minerService)
 		slashingPb.RegisterAPIServer(grpcServer, s.slashingService)
-		fpaPb.RegisterAPIServer(grpcServer, s.fpaService)
+		ffsPb.RegisterAPIServer(grpcServer, s.ffsService)
 		grpcServer.Serve(listener)
 	}()
 
@@ -326,11 +326,11 @@ func (s *Server) Close() {
 	case <-stopped:
 		t.Stop()
 	}
-	if err := s.fpaManager.Close(); err != nil {
-		log.Errorf("closing fpa manager: %s", err)
+	if err := s.ffsManager.Close(); err != nil {
+		log.Errorf("closing ffs manager: %s", err)
 	}
 	if err := s.sched.Close(); err != nil {
-		log.Errorf("closing fpa scheduler: %s", err)
+		log.Errorf("closing ffs scheduler: %s", err)
 	}
 	if err := s.jobStore.Close(); err != nil {
 		log.Errorf("closing scheduler jobstore: %s", err)

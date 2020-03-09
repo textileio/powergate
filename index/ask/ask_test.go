@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/fil-tools/tests"
+	"github.com/textileio/powergate/tests"
 )
 
 func TestMain(m *testing.M) {

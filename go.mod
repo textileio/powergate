@@ -1,6 +1,6 @@
-module github.com/textileio/fil-tools
+module github.com/textileio/powergate
 
-go 1.13
+go 1.14
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
@@ -33,7 +33,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/improbable-eng/grpc-web v0.12.0
 	github.com/ip2location/ip2location-go v8.3.0+incompatible
-	github.com/ipfs/go-car v0.0.3-0.20200131220434-3f68f6ebd093
 	github.com/ipfs/go-cid v0.0.5
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ds-badger2 v0.0.0-20200123200730-d75eb2678a5d
@@ -70,6 +69,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
+	github.com/textileio/fil-tools v0.0.0-20200308200722-3219c456571a
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad // indirect
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect

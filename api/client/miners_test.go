@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	pb "github.com/textileio/fil-tools/index/miner/pb"
+	pb "github.com/textileio/powergate/index/miner/pb"
 )
 
 func TestGetMiners(t *testing.T) {

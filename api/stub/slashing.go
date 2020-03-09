@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/textileio/fil-tools/index/slashing"
+	"github.com/textileio/powergate/index/slashing"
 )
 
 // Slashing provides an API for viewing slashing data

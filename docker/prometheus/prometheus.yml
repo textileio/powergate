@@ -20,4 +20,4 @@ scrape_configs:
   - job_name: 'textile-fc'
     scrape_interval: 5s
     static_configs:
-          - targets: ['fil-tools:8888']
+          - targets: ['powergate:8888']

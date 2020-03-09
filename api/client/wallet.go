@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	pb "github.com/textileio/fil-tools/wallet/pb"
+	pb "github.com/textileio/powergate/wallet/pb"
 )
 
 // Wallet provides an API for managing filecoin wallets

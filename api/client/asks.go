@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/textileio/fil-tools/index/ask"
-	pb "github.com/textileio/fil-tools/index/ask/pb"
+	"github.com/textileio/powergate/index/ask"
+	pb "github.com/textileio/powergate/index/ask/pb"
 )
 
 // Asks provides an API for viewing asks data

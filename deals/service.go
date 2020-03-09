@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/ipfs/go-cid"
-	pb "github.com/textileio/fil-tools/deals/pb"
+	pb "github.com/textileio/powergate/deals/pb"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

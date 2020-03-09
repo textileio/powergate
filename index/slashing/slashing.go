@@ -12,11 +12,11 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/fil-tools/chainstore"
-	"github.com/textileio/fil-tools/chainsync"
-	"github.com/textileio/fil-tools/signaler"
-	txndstr "github.com/textileio/fil-tools/txndstransform"
-	"github.com/textileio/fil-tools/util"
+	"github.com/textileio/powergate/chainstore"
+	"github.com/textileio/powergate/chainsync"
+	"github.com/textileio/powergate/signaler"
+	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
 )
 
@@ -193,16 +193,15 @@ func (s *SlashingIndex) updateIndex() error {
 			return err
 		}
 		log.Infof("processed from %d to %d", path[i].Height(), path[j-1].Height())
+		s.lock.Lock()
+		s.index = index
+		s.lock.Unlock()
 		stats.Record(mctx, mRefreshProgress.M(float64(i)/float64(len(path))))
 	}
 
 	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
 	stats.Record(mctx, mUpdatedHeight.M(int64(new.Height())))
 	stats.Record(mctx, mRefreshProgress.M(1))
-
-	s.lock.Lock()
-	s.index = index
-	s.lock.Unlock()
 
 	s.signaler.Signal()
 	log.Info("slashing index updated")

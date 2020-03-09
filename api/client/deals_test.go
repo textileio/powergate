@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/fil-tools/deals"
-	pb "github.com/textileio/fil-tools/deals/pb"
+	"github.com/textileio/powergate/deals"
+	pb "github.com/textileio/powergate/deals/pb"
 )
 
 func TestStore(t *testing.T) {

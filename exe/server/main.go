@@ -8,22 +8,22 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	_ "net/http/pprof"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log/v2"
+	homedir "github.com/mitchellh/go-homedir"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"github.com/textileio/fil-tools/api/server"
-	"github.com/textileio/fil-tools/util"
+	"github.com/textileio/powergate/api/server"
+	"github.com/textileio/powergate/util"
 )
 
 var (
-	log    = logging.Logger("fil-toolsd")
+	log    = logging.Logger("powergated")
 	config = viper.New()
 )
 
@@ -35,14 +35,14 @@ func main() {
 	pflag.String("lotushost", "/ip4/127.0.0.1/tcp/1234", "lotus full-node address")
 	pflag.String("lotustoken", "", "lotus full-node auth token")
 	pflag.String("lotustokenfile", "", "lotus full-node auth token file")
-	pflag.String("repopath", "${HOME}/.texfc", "repo-path")
+	pflag.String("repopath", "~/.powergate", "repo-path")
 	pflag.Bool("embedded", false, "run in embedded ephemeral FIL network")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "ipfs api multiaddr")
 	pflag.Int64("walletinitialfund", 5000000000000, "created wallets initial fund in attoFIL")
 	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "gateway host listening address")
 	pflag.Parse()
 
-	config.SetEnvPrefix("TEXFILTOOLS")
+	config.SetEnvPrefix("TEXPOWERGATE")
 	config.AutomaticEnv()
 	config.BindPFlags(pflag.CommandLine)
 
@@ -65,16 +65,16 @@ func main() {
 			log.Fatal(err)
 		}
 
-		repoPath := config.GetString("repopath")
-		if repoPath == "${HOME}/.texfc" {
-			home, err := os.UserHomeDir()
+		repoPath = config.GetString("repopath")
+		if repoPath == "~/.powergate" {
+			expandedPath, err := homedir.Expand(repoPath)
 			if err != nil {
-				log.Fatalf("error when setting default repo path to home dir: %s", err)
+				log.Fatalf("expanding homedir: %s", err)
 			}
-			repoPath = strings.Replace(repoPath, "${HOME}", home, -1)
+			repoPath = expandedPath
 		}
 	} else {
-		repoPath, err = ioutil.TempDir("", ".texfc-*")
+		repoPath, err = ioutil.TempDir("", ".powergate-*")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -138,9 +138,9 @@ func setupInstrumentation() {
 func setupLogging() {
 	logging.SetLogLevel("*", "error")
 	loggers := []string{"index-miner", "index-ask", "index-slashing",
-		"server", "deals", "fil-toolsd", "fchost", "ip2location", "reputation",
-		"fpa-scheduler", "fpa-manager", "fpa-auth", "fpa-fastapi",
-		"fpa-coreipfs", "fpa-grpc-service", "fpa-filcold", "fpa-sched-jobstore"}
+		"server", "deals", "powergated", "fchost", "ip2location", "reputation",
+		"ffs-scheduler", "ffs-manager", "ffs-auth", "ffs-api",
+		"ffs-coreipfs", "ffs-grpc-service", "ffs-filcold", "ffs-sched-jobstore"}
 	for _, l := range loggers {
 		logging.SetLogLevel(l, "info")
 	}

@@ -15,8 +15,8 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/fil-tools/ldevnet"
-	"github.com/textileio/fil-tools/tests"
+	"github.com/textileio/powergate/ldevnet"
+	"github.com/textileio/powergate/tests"
 )
 
 func TestMain(m *testing.M) {
