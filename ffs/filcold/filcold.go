@@ -18,14 +18,14 @@ var (
 	log = logger.Logger("ffs-filcold")
 )
 
-// FilCold is a ffs.ColdLayer implementation that stores data in Filecoin.
+// FilCold is a ffs.ColdStorage implementation that stores data in Filecoin.
 type FilCold struct {
 	ms  ffs.MinerSelector
 	dm  *deals.Module
 	dag format.DAGService
 }
 
-var _ ffs.ColdLayer = (*FilCold)(nil)
+var _ ffs.ColdStorage = (*FilCold)(nil)
 
 // New returns a new FilCold instance
 func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold {

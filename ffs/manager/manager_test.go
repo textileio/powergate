@@ -86,10 +86,10 @@ func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 
 type mockSched struct{}
 
-func (ms *mockSched) Enqueue(c ffs.CidConfig) (ffs.JobID, error) {
+func (ms *mockSched) EnqueueCid(c ffs.CidConfig) (ffs.JobID, error) {
 	return ffs.NewJobID(), nil
 }
-func (ms *mockSched) GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
+func (ms *mockSched) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return nil, nil
 }
 func (ms *mockSched) GetJob(jid ffs.JobID) (ffs.Job, error) {

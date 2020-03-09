@@ -17,24 +17,24 @@ type WalletManager interface {
 // in Hot and Cold layers, enables retrieval from those layers, and
 // allows watching for Job state changes.
 type Scheduler interface {
-	Enqueue(CidConfig) (JobID, error)
-	GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error)
-	GetJob(JobID) (Job, error)
+	EnqueueCid(CidConfig) (JobID, error)
+	GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error)
 
+	GetJob(JobID) (Job, error)
 	Watch(InstanceID) <-chan Job
 	Unwatch(<-chan Job)
 }
 
-// HotLyer is a fast datastorage layer for storing and retrieving raw
+// HotStorage is a fast datastorage layer for storing and retrieving raw
 // data or Cids.
-type HotLayer interface {
+type HotStorage interface {
 	Add(context.Context, io.Reader) (cid.Cid, error)
 	Get(context.Context, cid.Cid) (io.Reader, error)
 	Pin(context.Context, cid.Cid) (HotInfo, error)
 }
 
-// ColdLayer is a slow datastorage layer for storing Cids.
-type ColdLayer interface {
+// ColdStorage is a slow datastorage layer for storing Cids.
+type ColdStorage interface {
 	Store(ctx context.Context, c cid.Cid, conf ColdConfig) (ColdInfo, error)
 }
 

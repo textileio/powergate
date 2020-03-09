@@ -219,7 +219,7 @@ func (i *Instance) AddCid(c cid.Cid) (ffs.JobID, error) {
 		},
 	}
 	log.Infof("adding cid %s to scheduler queue", c)
-	jid, err := i.sched.Enqueue(cidconf)
+	jid, err := i.sched.EnqueueCid(cidconf)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
 	}
@@ -236,7 +236,7 @@ func (i *Instance) AddCid(c cid.Cid) (ffs.JobID, error) {
 // (TODO: Scheduler.GetFromHot might have to return an error if we want to rate-limit
 // hot layer retrievals)
 func (i *Instance) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
-	r, err := i.sched.GetFromHot(ctx, c)
+	r, err := i.sched.GetCidFromHot(ctx, c)
 	if err != nil {
 		return nil, fmt.Errorf("getting from hot layer %s: %s", c, err)
 	}

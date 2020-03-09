@@ -25,10 +25,10 @@ type Service struct {
 	pb.UnimplementedAPIServer
 
 	m   *manager.Manager
-	hot ffs.HotLayer
+	hot ffs.HotStorage
 }
 
-func NewService(m *manager.Manager, hot ffs.HotLayer) *Service {
+func NewService(m *manager.Manager, hot ffs.HotStorage) *Service {
 	return &Service{
 		m:   m,
 		hot: hot,

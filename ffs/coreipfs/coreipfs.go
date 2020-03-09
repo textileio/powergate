@@ -19,13 +19,13 @@ var (
 	log = logging.Logger("ffs-coreipfs")
 )
 
-// CoreIpfs is an implementation of HotLayer interface which saves data
+// CoreIpfs is an implementation of HotStorage interface which saves data
 // into a remote go-ipfs using the HTTP API.
 type CoreIpfs struct {
 	ipfs iface.CoreAPI
 }
 
-var _ ffs.HotLayer = (*CoreIpfs)(nil)
+var _ ffs.HotStorage = (*CoreIpfs)(nil)
 
 // New returns a new CoreIpfs instance
 func New(ipfs iface.CoreAPI) *CoreIpfs {

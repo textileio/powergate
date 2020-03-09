@@ -20,8 +20,8 @@ var (
 // This Jobs are executed by delegating the work to the Hot and Cold layers configured for
 // the scheduler.
 type Scheduler struct {
-	cold  ffs.ColdLayer
-	hot   ffs.HotLayer
+	cold  ffs.ColdStorage
+	hot   ffs.HotStorage
 	store JobStore
 
 	work chan struct{}
@@ -34,8 +34,8 @@ type Scheduler struct {
 var _ ffs.Scheduler = (*Scheduler)(nil)
 
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
-// HotLayer for the hot layer, and ColdLayer for the cold layer.
-func New(store JobStore, hot ffs.HotLayer, cold ffs.ColdLayer) *Scheduler {
+// HotStorage for the hot layer, and ColdStorage for the cold layer.
+func New(store JobStore, hot ffs.HotStorage, cold ffs.ColdStorage) *Scheduler {
 	ctx, cancel := context.WithCancel(context.Background())
 	sch := &Scheduler{
 		store: store,
@@ -52,9 +52,9 @@ func New(store JobStore, hot ffs.HotLayer, cold ffs.ColdLayer) *Scheduler {
 	return sch
 }
 
-// Enqueue queues the specified CidConfig to be executed as a new Job. It returns
+// EnqueueCid queues the specified CidConfig to be executed as a new Job. It returns
 // the created JobID for further tracking of its state.
-func (s *Scheduler) Enqueue(c ffs.CidConfig) (ffs.JobID, error) {
+func (s *Scheduler) EnqueueCid(c ffs.CidConfig) (ffs.JobID, error) {
 	if !c.Cid.Defined() {
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
 	}
@@ -82,7 +82,7 @@ func (s *Scheduler) Enqueue(c ffs.CidConfig) (ffs.JobID, error) {
 
 // GetFromHot returns an io.Reader of the data from the hot layer.
 // (TODO: in the future rate-limiting can be applied.)
-func (s *Scheduler) GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
+func (s *Scheduler) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	r, err := s.hot.Get(ctx, c)
 	if err != nil {
 		return nil, fmt.Errorf("getting %s from hot layer: %s", c, err)

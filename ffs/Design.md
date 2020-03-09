@@ -41,14 +41,14 @@ The _Scheduler_ doesn't know about the particular implementations of _Hot Layer_
 ```go
 // HotLyer is a fast datastorage layer for storing and retrieving raw
 // data or Cids.
-type HotLayer interface {
+type HotStorage interface {
     Add(context.Context, io.Reader) (cid.Cid, error)
     Get(context.Context, cid.Cid) (io.Reader, error)
     Pin(context.Context, cid.Cid) (HotInfo, error)
 }
 
-// ColdLayer is a slow datastorage layer for storing Cids.
-type ColdLayer interface {
+// ColdStorage is a slow datastorage layer for storing Cids.
+type ColdStorage interface {
     Store(ctx context.Context, c cid.Cid, conf ColdConfig) (ColdInfo, error)
 }
 ```
@@ -67,9 +67,9 @@ Particular implementations of _MinerSelector_ includes:
 
 In summary, a _Scheduler_ instance act differently depending on which instances on its _Hot Layer_, _Cold Layer_, and _Miner Selector_ implementations. In the diagram above shows two configurations (surrounded by dotted boxes).
 
-In the first dotted box, a _Scheduler_ uses an _IPFS Node_ as the _HotLayer_ using the _CoreIPFS_ adapter as the interface implementation, which uses the _http api_ client to talk with the _IPFS node_. It also uses the _ColdFil_ adapter as the _ColdLayer_ implementation, which uses the _DealModule_ to make deals with a _Lotus instance_. It uses a _ReputationSorted_ implementation of _MinerSelector_ to fetch the best miners from a miner's reputation system.
+In the first dotted box, a _Scheduler_ uses an _IPFS Node_ as the _HotStorage_ using the _CoreIPFS_ adapter as the interface implementation, which uses the _http api_ client to talk with the _IPFS node_. It also uses the _ColdFil_ adapter as the _ColdStorage_ implementation, which uses the _DealModule_ to make deals with a _Lotus instance_. It uses a _ReputationSorted_ implementation of _MinerSelector_ to fetch the best miners from a miner's reputation system.
 
-In the second dotted box, shows another possible configuration in which uses an _IPFS Cluster_ with a _HotIpfsCluster_ adapter of _HotLayer_; or even a more advanced _HotLayer_ called _HotS3IpfsCluster_ which saves _Cid_ into _IPFS Cluster_ and some _AWS S3_ instance. The _MinerSelector_ implementation for the _ColdLayer_ is _FixedMiners_ which always returns a configured fixed list of miners to make deals with.
+In the second dotted box, shows another possible configuration in which uses an _IPFS Cluster_ with a _HotIpfsCluster_ adapter of _HotStorage_; or even a more advanced _HotStorage_ called _HotS3IpfsCluster_ which saves _Cid_ into _IPFS Cluster_ and some _AWS S3_ instance. The _MinerSelector_ implementation for the _ColdStorage_ is _FixedMiners_ which always returns a configured fixed list of miners to make deals with.
 
 Finally, _Powergate_ instances are wired to different _Scheduler_ instances depending on which _Scheduler_-configuration may suit better for them. This is a possibility of the current design.
 
@@ -81,7 +81,7 @@ Considering the _Scheduler_ interface:
 // allows watching for Job state changes.
 // (TODO: Still incomplete for retrieval apis and rough edges)
 type Scheduler interface {
-    Enqueue(CidConfig) (JobID, error)
+    EnqueueCid
     GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error)
     GetJob(JobID) (Job, error)
 
