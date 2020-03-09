@@ -202,7 +202,7 @@ func (i *Instance) Unwatch(ch <-chan ffs.Job) {
 // for an existing Cid will use this same API, or another. In any case sounds safer to
 // consider some option to specify we want to add a config without overriding some
 // existing one.)
-func (i *Instance) AddCid(c cid.Cid) (ffs.JobID, error) {
+func (i *Instance) AddCid(c cid.Cid, opts ...AddCidOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	_, err := i.store.GetCidConfig(c)
@@ -213,13 +213,18 @@ func (i *Instance) AddCid(c cid.Cid) (ffs.JobID, error) {
 		return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
 	}
 
-	// TODO: this is a temporal default config for all Cids, this will go
-	// away since it will be received as a param.
+	addConfig := newDefaultAddCidConfig(i.config.DefaultConfig)
+	for _, opt := range opts {
+		if err := opt(&addConfig); err != nil {
+			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)
+		}
+	}
+
 	cidconf := ffs.AddAction{
 		InstanceID: i.config.ID,
 		ID:         ffs.NewCidConfigID(),
 		Cid:        c,
-		Config:     i.config.DefaultConfig,
+		Config:     addConfig.Config,
 		Meta: ffs.AddMeta{
 			WalletAddr: i.config.WalletAddr,
 		},

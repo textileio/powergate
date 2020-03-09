@@ -83,10 +83,30 @@ func TestAdd(t *testing.T) {
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
-	t.Run("AddCidSuccess", func(t *testing.T) {
+	t.Run("WithDefaultConfig", func(t *testing.T) {
 		jid, err := fapi.AddCid(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Done)
+	})
+
+	cid, _ = addRandomFile(t, r, ipfsApi)
+	t.Run("WithCustomConfig", func(t *testing.T) {
+		config := ffs.CidConfig{
+			Hot: ffs.HotConfig{
+				Ipfs: ffs.IpfsConfig{
+					Enabled: false,
+				},
+			},
+			Cold: ffs.ColdConfig{
+				Filecoin: ffs.FilecoinConfig{
+					Enabled: true,
+				},
+			},
+		}
+		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		job := requireJobState(t, fapi, jid, ffs.Done)
+		require.Equal(t, config, job.Action.Config)
 	})
 }
 
@@ -288,13 +308,14 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 	}
 }
 
-func requireJobState(t *testing.T, fapi *api.Instance, jid ffs.JobID, status ffs.JobStatus) {
+func requireJobState(t *testing.T, fapi *api.Instance, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	ch, err := fapi.Watch(jid)
 	require.Nil(t, err)
 	defer fapi.Unwatch(ch)
 	stop := false
+	var res ffs.Job
 	for !stop {
 		select {
 		case <-ctx.Done():
@@ -307,8 +328,10 @@ func requireJobState(t *testing.T, fapi *api.Instance, jid ffs.JobID, status ffs
 			}
 			require.Equal(t, status, job.Status)
 			stop = true
+			res = job
 		}
 	}
+	return res
 }
 
 func randomBytes(r *rand.Rand, size int) []byte {
