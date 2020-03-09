@@ -49,14 +49,15 @@ type watcher struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs.Scheduler, wm ffs.WalletManager) (*Instance, error) {
+func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.CidConfig) (*Instance, error) {
 	addr, err := wm.NewWallet(ctx, defaultWalletType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
 	}
 	config := Config{
-		ID:         iid,
-		WalletAddr: addr,
+		ID:            iid,
+		WalletAddr:    addr,
+		DefaultConfig: dc,
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	i := new(iid, confstore, wm, config, sch, ctx, cancel)
@@ -101,6 +102,19 @@ func (i *Instance) ID() ffs.InstanceID {
 // WalletAddr returns the Lotus wallet address of the instance.
 func (i *Instance) WalletAddr() string {
 	return i.config.WalletAddr
+}
+
+func (i *Instance) GetDefaultCidConfig() ffs.CidConfig {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	return i.config.DefaultConfig
+}
+
+func (i *Instance) SetDefaultCidConfig(c ffs.CidConfig) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	i.config.DefaultConfig = c
+	return nil
 }
 
 // Show returns the information about a stored Cid. If no information is available,
@@ -202,20 +216,13 @@ func (i *Instance) AddCid(c cid.Cid) (ffs.JobID, error) {
 
 	// TODO: this is a temporal default config for all Cids, this will go
 	// away since it will be received as a param.
-	cidconf := ffs.CidConfig{
+	cidconf := ffs.AddAction{
 		InstanceID: i.config.ID,
 		ID:         ffs.NewCidConfigID(),
 		Cid:        c,
-		Hot: ffs.HotConfig{
-			Ipfs: ffs.IpfsConfig{
-				Enabled: true,
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Filecoin: ffs.FilecoinConfig{
-				Enabled:    true,
-				WalletAddr: i.config.WalletAddr,
-			},
+		Config:     i.config.DefaultConfig,
+		Meta: ffs.AddMeta{
+			WalletAddr: i.config.WalletAddr,
 		},
 	}
 	log.Infof("adding cid %s to scheduler queue", c)

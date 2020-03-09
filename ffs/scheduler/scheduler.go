@@ -54,7 +54,7 @@ func New(store JobStore, hot ffs.HotStorage, cold ffs.ColdStorage) *Scheduler {
 
 // EnqueueCid queues the specified CidConfig to be executed as a new Job. It returns
 // the created JobID for further tracking of its state.
-func (s *Scheduler) EnqueueCid(c ffs.CidConfig) (ffs.JobID, error) {
+func (s *Scheduler) EnqueueCid(c ffs.AddAction) (ffs.JobID, error) {
 	if !c.Cid.Defined() {
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
 	}
@@ -63,7 +63,7 @@ func (s *Scheduler) EnqueueCid(c ffs.CidConfig) (ffs.JobID, error) {
 	j := ffs.Job{
 		ID:     jid,
 		Status: ffs.Queued,
-		Config: c,
+		Action: c,
 		CidInfo: ffs.CidInfo{
 			ConfigID: c.ID,
 			Cid:      c.Cid,
@@ -149,19 +149,19 @@ func (s *Scheduler) run() {
 
 func (s *Scheduler) execute(ctx context.Context, job *ffs.Job) error {
 	job.CidInfo = ffs.CidInfo{
-		ConfigID: job.Config.ID,
-		Cid:      job.Config.Cid,
+		ConfigID: job.Action.ID,
+		Cid:      job.Action.Cid,
 		Created:  time.Now(),
 	}
 	var err error
-	job.CidInfo.Hot, err = s.hot.Pin(ctx, job.Config.Cid)
+	job.CidInfo.Hot, err = s.hot.Pin(ctx, job.Action.Cid)
 	if err != nil {
 		job.Status = ffs.Failed
 		job.ErrCause = err.Error()
 		return nil
 	}
 
-	job.CidInfo.Cold, err = s.cold.Store(ctx, job.Config.Cid, job.Config.Cold)
+	job.CidInfo.Cold, err = s.cold.Store(ctx, job.Action.Cid, job.Action.Meta.WalletAddr, job.Action.Config.Cold)
 	if err != nil {
 		job.Status = ffs.Failed
 		job.ErrCause = err.Error()

@@ -17,7 +17,7 @@ type WalletManager interface {
 // in Hot and Cold layers, enables retrieval from those layers, and
 // allows watching for Job state changes.
 type Scheduler interface {
-	EnqueueCid(CidConfig) (JobID, error)
+	EnqueueCid(AddAction) (JobID, error)
 	GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error)
 
 	GetJob(JobID) (Job, error)
@@ -35,7 +35,7 @@ type HotStorage interface {
 
 // ColdStorage is a slow datastorage layer for storing Cids.
 type ColdStorage interface {
-	Store(ctx context.Context, c cid.Cid, conf ColdConfig) (ColdInfo, error)
+	Store(ctx context.Context, c cid.Cid, waddr string, conf ColdConfig) (ColdInfo, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a

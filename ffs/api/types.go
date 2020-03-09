@@ -23,8 +23,8 @@ type ConfigStore interface {
 	SaveConfig(c Config) error
 	GetConfig() (*Config, error)
 
-	GetCidConfig(cid.Cid) (*ffs.CidConfig, error)
-	PushCidConfig(ffs.CidConfig) error
+	GetCidConfig(cid.Cid) (*ffs.AddAction, error)
+	PushCidConfig(ffs.AddAction) error
 
 	SaveCidInfo(ffs.CidInfo) error
 	GetCidInfo(cid.Cid) (ffs.CidInfo, error)
@@ -33,8 +33,9 @@ type ConfigStore interface {
 
 // Config has general information about a Api instance.
 type Config struct {
-	ID         ffs.InstanceID
-	WalletAddr string
+	ID            ffs.InstanceID
+	WalletAddr    string
+	DefaultConfig ffs.CidConfig
 }
 
 // InstanceInfo has general information about a running Api instance.

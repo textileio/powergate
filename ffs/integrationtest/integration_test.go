@@ -55,6 +55,28 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func TestDefaultConfig(t *testing.T) {
+	_, fapi, cls := newApi(t)
+	defer cls()
+
+	new := ffs.CidConfig{
+		Hot: ffs.HotConfig{
+			Ipfs: ffs.IpfsConfig{
+				Enabled: false,
+			},
+		},
+		Cold: ffs.ColdConfig{
+			Filecoin: ffs.FilecoinConfig{
+				Enabled: false,
+			},
+		},
+	}
+	err := fapi.SetDefaultCidConfig(new)
+	require.Nil(t, err)
+	gNew := fapi.GetDefaultCidConfig()
+	require.Equal(t, new, gNew)
+}
+
 func TestAdd(t *testing.T) {
 	ipfsApi, fapi, cls := newApi(t)
 	defer cls()
@@ -241,7 +263,19 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 	if iid == ffs.EmptyID {
 		iid = ffs.NewInstanceID()
 		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/api/store"))
-		fapi, err = api.New(ctx, iid, confstore, sched, wm)
+		defConfig := ffs.CidConfig{
+			Hot: ffs.HotConfig{
+				Ipfs: ffs.IpfsConfig{
+					Enabled: true,
+				},
+			},
+			Cold: ffs.ColdConfig{
+				Filecoin: ffs.FilecoinConfig{
+					Enabled: true,
+				},
+			},
+		}
+		fapi, err = api.New(ctx, iid, confstore, sched, wm, defConfig)
 		require.Nil(t, err)
 	} else {
 		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/api/store"))

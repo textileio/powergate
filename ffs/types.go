@@ -94,17 +94,27 @@ type Job struct {
 	ID       JobID
 	Status   JobStatus
 	ErrCause string
-	Config   CidConfig
+	Action   AddAction
 	CidInfo  CidInfo
 }
 
-// CidConfig is the desired state of storage for a Cid.
 type CidConfig struct {
+	Hot  HotConfig
+	Cold ColdConfig
+}
+
+// AddAction is the desired state of storage for a Cid.
+type AddAction struct {
 	ID         CidConfigID
 	InstanceID InstanceID
 	Cid        cid.Cid
-	Hot        HotConfig
-	Cold       ColdConfig
+	Config     CidConfig
+	Meta       AddMeta
+}
+
+// AddMeta contains necessary metadata to execute the Add action.
+type AddMeta struct {
+	WalletAddr string
 }
 
 // Hotconfig is the desired storage of a Cid in a hot layer.
@@ -125,8 +135,7 @@ type ColdConfig struct {
 // FilecoinConfig is the desired state of a Cid in the
 // Filecoin network.
 type FilecoinConfig struct {
-	Enabled    bool
-	WalletAddr string
+	Enabled bool
 }
 
 // CidInfo contains information about the current storage state

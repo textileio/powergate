@@ -11,7 +11,7 @@ import (
 )
 
 // PushCidConfig saves a new desired configuration for storing a Cid
-func (cs *ConfigStore) PushCidConfig(c ffs.CidConfig) error {
+func (cs *ConfigStore) PushCidConfig(c ffs.AddAction) error {
 	if !c.Cid.Defined() {
 		return fmt.Errorf("cid can't be undefined")
 	}
@@ -26,7 +26,7 @@ func (cs *ConfigStore) PushCidConfig(c ffs.CidConfig) error {
 }
 
 // GetCidConfig returns the current desired config for the Cid
-func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*ffs.CidConfig, error) {
+func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*ffs.AddAction, error) {
 	buf, err := cs.ds.Get(makeCidConfigKey(cs.iid, c))
 	if err != nil {
 		if err == datastore.ErrNotFound {
@@ -34,7 +34,7 @@ func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*ffs.CidConfig, error) {
 		}
 		return nil, err
 	}
-	var conf ffs.CidConfig
+	var conf ffs.AddAction
 	if err := json.Unmarshal(buf, &conf); err != nil {
 		return nil, fmt.Errorf("unmarshaling config: %s", err)
 	}

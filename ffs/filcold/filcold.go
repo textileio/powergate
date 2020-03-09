@@ -39,7 +39,7 @@ func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation. Currently, a default configuration is used.
 // (TODO: ColdConfig will enable more configurations in the future)
-func (fc *FilCold) Store(ctx context.Context, c cid.Cid, conf ffs.ColdConfig) (ffs.ColdInfo, error) {
+func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, conf ffs.ColdConfig) (ffs.ColdInfo, error) {
 	var ci ffs.ColdInfo
 	ci.Filecoin = ffs.FilInfo{
 		Duration: uint64(1000),
@@ -50,7 +50,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, conf ffs.ColdConfig) (f
 	}
 	r := ipldToFileTransform(ctx, fc.dag, c)
 	log.Infof("storing deals in filecoin...")
-	dataCid, res, err := fc.dm.Store(ctx, conf.Filecoin.WalletAddr, r, config, ci.Filecoin.Duration)
+	dataCid, res, err := fc.dm.Store(ctx, waddr, r, config, ci.Filecoin.Duration)
 	if err != nil {
 		return ci, fmt.Errorf("storing deals in deal manager: %s", err)
 	}

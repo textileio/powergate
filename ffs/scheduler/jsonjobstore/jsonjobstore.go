@@ -135,7 +135,7 @@ func (js *JobStore) Close() error {
 
 func (js *JobStore) notifyWatchers(j ffs.Job) {
 	for _, w := range js.watchers {
-		if w.iid != j.Config.InstanceID {
+		if w.iid != j.Action.InstanceID {
 			continue
 		}
 		select {
