@@ -15,9 +15,9 @@ services:
     depends_on:
       - ipfs
     environment:
-      - TEXFILTOOLS_EMBEDDED=true
-      - TEXFILTOOLS_IPFSAPIADDR=/dns4/ipfs/tcp/5001
-      - TEXFILTOOLS_LOTUSHOST=/dns4/lotus/tcp/1234
+      - TEXPOWERGATE_EMBEDDED=true
+      - TEXPOWERGATE_IPFSAPIADDR=/dns4/ipfs/tcp/5001
+      - TEXPOWERGATE_LOTUSHOST=/dns4/lotus/tcp/1234
     restart: unless-stopped
 
   ipfs:

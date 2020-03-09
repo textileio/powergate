@@ -1,4 +1,4 @@
-# filecoin
+# Powergate
 
 [![Made by Textile](https://img.shields.io/badge/made%20by-Textile-informational.svg?style=popout-square)](https://textile.io)
 [![Chat on Slack](https://img.shields.io/badge/slack-slack.textile.io-informational.svg?style=popout-square)](https://slack.textile.io)
@@ -25,17 +25,14 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 See [https://lotu.sh/](https://lotu.sh/). Required for client. Lotus is an implementation of the Filecoin Distributed Storage Network—we run the Lotus client to join the Filecoin Testnet. 
 
-### Client (`filcoin`)
-
-Note to developers—as of 1/25/2020, the main line of development for the filecoin client is happening in the `asutula/cli` branch.
+### Client (`pow`)
 
 ```bash
-# from the asutula/cli branch
-go build -i -o filecoin exe/cli/main.go 
-chmod +x filecoin 
+go build -i -o pow exe/cli/main.go 
+chmod +x pow 
 ```
 
-Try `filecoin --help`.
+Try `pow --help`.
 
 ### Server 
 The server connects to Lotus and enables multiple modules, such as:

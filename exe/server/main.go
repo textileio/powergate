@@ -42,7 +42,7 @@ func main() {
 	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "gateway host listening address")
 	pflag.Parse()
 
-	config.SetEnvPrefix("TEXFILTOOLS")
+	config.SetEnvPrefix("TEXPOWERGATE")
 	config.AutomaticEnv()
 	config.BindPFlags(pflag.CommandLine)
 
