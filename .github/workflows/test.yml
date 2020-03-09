@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - jsign/fastapi3
   pull_request:
     branches:
       - master
