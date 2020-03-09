@@ -132,24 +132,23 @@ func (i *Instance) Show(c cid.Cid) (ffs.CidInfo, error) {
 
 // Info returns instance information
 func (i *Instance) Info(ctx context.Context) (InstanceInfo, error) {
-	inf := InstanceInfo{
-		ID: i.config.ID,
+	pins, err := i.store.Cids()
+	if err != nil {
+		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
+	}
+	balance, err := i.wm.Balance(ctx, i.config.WalletAddr)
+	if err != nil {
+		return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", i.config.WalletAddr, err)
+	}
+	return InstanceInfo{
+		ID:               i.config.ID,
+		DefaultCidConfig: i.config.DefaultConfig,
 		Wallet: WalletInfo{
 			Address: i.config.WalletAddr,
+			Balance: balance,
 		},
-	}
-	var err error
-	inf.Pins, err = i.store.Cids()
-	if err != nil {
-		return inf, fmt.Errorf("getting pins from instance: %s", err)
-	}
-
-	inf.Wallet.Balance, err = i.wm.Balance(ctx, i.config.WalletAddr)
-	if err != nil {
-		return inf, fmt.Errorf("getting balance of %s: %s", i.config.WalletAddr, err)
-	}
-
-	return inf, nil
+		Pins: pins,
+	}, nil
 }
 
 // Watch subscribes to Job status changes. If jids is empty, it subscribes to

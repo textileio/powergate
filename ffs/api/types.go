@@ -40,9 +40,10 @@ type Config struct {
 
 // InstanceInfo has general information about a running Api instance.
 type InstanceInfo struct {
-	ID     ffs.InstanceID
-	Wallet WalletInfo
-	Pins   []cid.Cid
+	ID               ffs.InstanceID
+	DefaultCidConfig ffs.CidConfig
+	Wallet           WalletInfo
+	Pins             []cid.Cid
 }
 
 // WalletInfo contains information about the Wallet associated with
