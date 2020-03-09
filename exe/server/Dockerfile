@@ -1,4 +1,4 @@
-FROM golang:1.13.7 as builder
+FROM golang:1.14 as builder
 RUN apt-get update && apt-get install -y mesa-opencl-icd ocl-icd-opencl-dev
 
 WORKDIR /tmp
