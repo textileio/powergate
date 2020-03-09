@@ -263,10 +263,10 @@ func NewServer(conf Config) (*Server, error) {
 		grpcServer.Serve(listener)
 	}()
 
-	errc := make(chan error)
 	go func() {
-		errc <- grpcWebProxy.ListenAndServe()
-		close(errc)
+		if err := grpcWebProxy.ListenAndServe(); err != nil {
+			log.Errorf("error starting proxy: %v", err)
+		}
 	}()
 
 	g.Start()
