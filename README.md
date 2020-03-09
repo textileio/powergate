@@ -3,8 +3,8 @@
 [![Made by Textile](https://img.shields.io/badge/made%20by-Textile-informational.svg?style=popout-square)](https://textile.io)
 [![Chat on Slack](https://img.shields.io/badge/slack-slack.textile.io-informational.svg?style=popout-square)](https://slack.textile.io)
 [![GitHub license](https://img.shields.io/github/license/textileio/filecoin.svg?style=popout-square)](./LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/textileio/fil-tools?style=flat-square)](https://goreportcard.com/report/github.com/textileio/fil-tools?style=flat-square)
-[![GitHub action](https://github.com/textileio/fil-tools/workflows/Tests/badge.svg?style=popout-square)](https://github.com/textileio/fil-tools/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/textileio/powergate?style=flat-square)](https://goreportcard.com/report/github.com/textileio/powergate?style=flat-square)
+[![GitHub action](https://github.com/textileio/powergate/workflows/Tests/badge.svg?style=popout-square)](https://github.com/textileio/powergate/actions)
 
 > Textile's Filecoin swiss army knife for developers
 
@@ -74,7 +74,7 @@ For running tests: `make test`
 This project is a work in progress. As such, there's a few things you can do right now to help out:
 
 -   **Ask questions**! We'll try to help. Be sure to drop a note (on the above issue) if there is anything you'd like to work on and we'll update the issue to let others know. Also [get in touch](https://slack.textile.io) on Slack.
--   **Open issues**, [file issues](https://github.com/textileio/fil-tools/issues), submit pull requests!
+-   **Open issues**, [file issues](https://github.com/textileio/powergate/issues), submit pull requests!
 -   **Perform code reviews**. More eyes will help a) speed the project along b) ensure quality and c) reduce possible future bugs.
 -   **Take a look at the code**. Contributions here that would be most helpful are **top-level comments** about how it should look based on your understanding. Again, the more eyes the better.
 -   **Add tests**. There can never be enough tests.
@@ -83,7 +83,7 @@ Before you get started, be sure to read our [contributors guide](./CONTRIBUTING.
 
 ## Changelog
 
-[Changelog is published to Releases.](https://github.com/textileio/fil-tools/releases)
+[Changelog is published to Releases.](https://github.com/textileio/powergate/releases)
 
 ## License
 

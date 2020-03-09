@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	pb "github.com/textileio/fil-tools/index/slashing/pb"
+	pb "github.com/textileio/powergate/index/slashing/pb"
 )
 
 func TestGetSlashing(t *testing.T) {

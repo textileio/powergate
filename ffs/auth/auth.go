@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	ds "github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/fil-tools/ffs"
+	"github.com/textileio/powergate/ffs"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 	log    = logging.Logger("ffs-auth")
 )
 
-// Auth contains a mapping between auth-tokens and Powergate instances.
+// Auth contains a mapping between auth-tokens and Api instances.
 type Auth struct {
 	lock sync.Mutex
 	ds   ds.Datastore

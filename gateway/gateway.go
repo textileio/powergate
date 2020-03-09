@@ -16,10 +16,10 @@ import (
 	assets "github.com/jessevdk/go-assets"
 	"github.com/rs/cors"
 	gincors "github.com/rs/cors/wrapper/gin"
-	"github.com/textileio/fil-tools/index/ask"
-	"github.com/textileio/fil-tools/index/miner"
-	"github.com/textileio/fil-tools/index/slashing"
-	"github.com/textileio/fil-tools/reputation"
+	"github.com/textileio/powergate/index/ask"
+	"github.com/textileio/powergate/index/miner"
+	"github.com/textileio/powergate/index/slashing"
+	"github.com/textileio/powergate/reputation"
 )
 
 const numTopMiners = 30

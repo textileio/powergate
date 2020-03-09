@@ -30,7 +30,7 @@ var (
 	EmptyID = InstanceID("")
 )
 
-// InstanceID is an identifier for a Powergate instance.
+// InstanceID is an identifier for a Api instance.
 type InstanceID string
 
 // NewInstanceID returns a new InstanceID.

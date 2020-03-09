@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   
-  fil-tools:
+  powergate:
     build:
       context: ../
       dockerfile: exe/server/Dockerfile

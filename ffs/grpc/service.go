@@ -9,10 +9,10 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/ffs/manager"
-	pb "github.com/textileio/fil-tools/ffs/pb"
-	"github.com/textileio/fil-tools/ffs/pg"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/api"
+	"github.com/textileio/powergate/ffs/manager"
+	pb "github.com/textileio/powergate/ffs/pb"
 )
 
 var (
@@ -226,7 +226,7 @@ func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.Create
 	}, nil
 }
 
-func (s *Service) getInstanceByToken(ctx context.Context) (*pg.Instance, error) {
+func (s *Service) getInstanceByToken(ctx context.Context) (*api.Instance, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-ffs-Token")
 	if token == "" {
 		return nil, ErrEmptyAuthToken

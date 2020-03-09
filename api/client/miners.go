@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/textileio/fil-tools/index/miner"
-	pb "github.com/textileio/fil-tools/index/miner/pb"
+	"github.com/textileio/powergate/index/miner"
+	pb "github.com/textileio/powergate/index/miner/pb"
 )
 
 // Miners provides an API for viewing miner data

@@ -6,8 +6,8 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/ffs/pg"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/api"
 )
 
 // PushCidConfig saves a new desired configuration for storing a Cid
@@ -30,7 +30,7 @@ func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*ffs.CidConfig, error) {
 	buf, err := cs.ds.Get(makeCidConfigKey(cs.iid, c))
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			return nil, pg.ErrConfigNotFound
+			return nil, api.ErrConfigNotFound
 		}
 		return nil, err
 	}

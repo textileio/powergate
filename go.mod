@@ -1,4 +1,4 @@
-module github.com/textileio/fil-tools
+module github.com/textileio/powergate
 
 go 1.14
 
@@ -69,6 +69,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
+	github.com/textileio/fil-tools v0.0.0-20200308200722-3219c456571a
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad // indirect
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect

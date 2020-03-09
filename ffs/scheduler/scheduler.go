@@ -8,7 +8,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/fil-tools/ffs"
+	"github.com/textileio/powergate/ffs"
 )
 
 var (
@@ -96,7 +96,7 @@ func (s *Scheduler) GetJob(jid ffs.JobID) (ffs.Job, error) {
 }
 
 // Watch returns a channel to listen to Job status changes from a specified
-// Powergate instance. It immediately pushes the current Job state to the channel.
+// Api instance. It immediately pushes the current Job state to the channel.
 func (s *Scheduler) Watch(iid ffs.InstanceID) <-chan ffs.Job {
 	return s.store.Watch(iid)
 }

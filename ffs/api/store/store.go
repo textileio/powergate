@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/ffs/pg"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/api"
 )
 
 var (
@@ -15,14 +15,14 @@ var (
 	dsBaseCidInfo   = datastore.NewKey("cidinfo")
 )
 
-// ConfigStore is an implementation of pg.ConfigStore interface
+// ConfigStore is an implementation of api.ConfigStore interface
 type ConfigStore struct {
 	lock sync.Mutex
 	ds   datastore.Datastore
 	iid  ffs.InstanceID
 }
 
-var _ pg.ConfigStore = (*ConfigStore)(nil)
+var _ api.ConfigStore = (*ConfigStore)(nil)
 
 // New returns a new ConfigStore
 func New(iid ffs.InstanceID, ds datastore.Datastore) *ConfigStore {

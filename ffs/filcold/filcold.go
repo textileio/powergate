@@ -10,8 +10,8 @@ import (
 	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/ipld/go-car"
-	"github.com/textileio/fil-tools/deals"
-	"github.com/textileio/fil-tools/ffs"
+	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/ffs"
 )
 
 var (

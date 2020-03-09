@@ -21,19 +21,19 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/fil-tools/deals"
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/ffs/coreipfs"
-	"github.com/textileio/fil-tools/ffs/filcold"
-	"github.com/textileio/fil-tools/ffs/minerselector/fixed"
-	"github.com/textileio/fil-tools/ffs/pg"
-	"github.com/textileio/fil-tools/ffs/pg/store"
-	"github.com/textileio/fil-tools/ffs/scheduler"
-	"github.com/textileio/fil-tools/ffs/scheduler/jsonjobstore"
-	"github.com/textileio/fil-tools/tests"
-	txndstr "github.com/textileio/fil-tools/txndstransform"
-	"github.com/textileio/fil-tools/util"
-	"github.com/textileio/fil-tools/wallet"
+	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/api"
+	"github.com/textileio/powergate/ffs/api/store"
+	"github.com/textileio/powergate/ffs/coreipfs"
+	"github.com/textileio/powergate/ffs/filcold"
+	"github.com/textileio/powergate/ffs/minerselector/fixed"
+	"github.com/textileio/powergate/ffs/scheduler"
+	"github.com/textileio/powergate/ffs/scheduler/jsonjobstore"
+	"github.com/textileio/powergate/tests"
+	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/wallet"
 )
 
 var (
@@ -44,7 +44,7 @@ func TestMain(m *testing.M) {
 	logging.SetAllLoggers(logging.LevelError)
 
 	// logging.SetLogLevel("scheduler", "debug")
-	// logging.SetLogLevel("pg", "debug")
+	// logging.SetLogLevel("api", "debug")
 	// logging.SetLogLevel("jobstore", "debug")
 	// logging.SetLogLevel("coreipfs", "debug")
 
@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestAdd(t *testing.T) {
-	ipfsApi, fapi, cls := newPowergate(t)
+	ipfsApi, fapi, cls := newApi(t)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -70,7 +70,7 @@ func TestAdd(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newPowergate(t)
+	ipfs, fapi, cls := newApi(t)
 	defer cls()
 
 	r := rand.New(rand.NewSource(11))
@@ -90,11 +90,11 @@ func TestGet(t *testing.T) {
 
 func TestInfo(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newPowergate(t)
+	ipfs, fapi, cls := newApi(t)
 	defer cls()
 
 	var err error
-	var first pg.InstanceInfo
+	var first api.InstanceInfo
 	t.Run("Minimal", func(t *testing.T) {
 		first, err = fapi.Info(ctx)
 		require.Nil(t, err)
@@ -125,13 +125,13 @@ func TestInfo(t *testing.T) {
 
 func TestShow(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newPowergate(t)
+	ipfs, fapi, cls := newApi(t)
 	defer cls()
 
 	t.Run("NotStored", func(t *testing.T) {
 		c, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 		_, err := fapi.Show(c)
-		require.Equal(t, pg.ErrNotStored, err)
+		require.Equal(t, api.ErrNotStored, err)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -171,7 +171,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	dnet, addr, _, closeDevnet := tests.CreateLocalDevnet(t, 1)
 	defer closeDevnet()
 
-	ipfsApi, fapi, cls := newPowergateFromDs(t, ds, ffs.EmptyID, dnet.Client, addr)
+	ipfsApi, fapi, cls := newApiFromDs(t, ds, ffs.EmptyID, dnet.Client, addr)
 	ra := rand.New(rand.NewSource(22))
 	cid, data := addRandomFile(t, ra, ipfsApi)
 	jid, err := fapi.AddCid(cid)
@@ -183,7 +183,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.Nil(t, err)
 	cls()
 
-	_, fapi, cls = newPowergateFromDs(t, ds, fapi.ID(), dnet.Client, addr)
+	_, fapi, cls = newApiFromDs(t, ds, fapi.ID(), dnet.Client, addr)
 	defer cls()
 	ninfo, err := fapi.Info(ctx)
 	require.Nil(t, err)
@@ -209,17 +209,17 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.True(t, bytes.Equal(data, fetched))
 }
 
-func newPowergate(t *testing.T) (*httpapi.HttpApi, *pg.Instance, func()) {
+func newApi(t *testing.T) (*httpapi.HttpApi, *api.Instance, func()) {
 	ds := tests.NewTxMapDatastore()
 	dnet, addr, _, close := tests.CreateLocalDevnet(t, 1)
-	ipfsApi, fapi, closeInternal := newPowergateFromDs(t, ds, ffs.EmptyID, dnet.Client, addr)
+	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyID, dnet.Client, addr)
 	return ipfsApi, fapi, func() {
 		closeInternal()
 		close()
 	}
 }
 
-func newPowergateFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address) (*httpapi.HttpApi, *pg.Instance, func()) {
+func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address) (*httpapi.HttpApi, *api.Instance, func()) {
 	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
@@ -237,22 +237,22 @@ func newPowergateFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.Instanc
 	wm, err := wallet.New(client, &waddr, *big.NewInt(5000000000000))
 	require.Nil(t, err)
 
-	var fapi *pg.Instance
+	var fapi *api.Instance
 	if iid == ffs.EmptyID {
 		iid = ffs.NewInstanceID()
-		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/pg/store"))
-		fapi, err = pg.New(ctx, iid, confstore, sched, wm)
+		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/api/store"))
+		fapi, err = api.New(ctx, iid, confstore, sched, wm)
 		require.Nil(t, err)
 	} else {
-		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/pg/store"))
-		fapi, err = pg.Load(iid, confstore, sched, wm)
+		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/api/store"))
+		fapi, err = api.Load(iid, confstore, sched, wm)
 		require.Nil(t, err)
 	}
 	time.Sleep(time.Second)
 
 	return ipfsClient, fapi, func() {
 		if err := fapi.Close(); err != nil {
-			t.Fatalf("closing pg: %s", err)
+			t.Fatalf("closing api: %s", err)
 		}
 		if err := sched.Close(); err != nil {
 			t.Fatalf("closing scheduler: %s", err)
@@ -263,7 +263,7 @@ func newPowergateFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.Instanc
 	}
 }
 
-func requireJobState(t *testing.T, fapi *pg.Instance, jid ffs.JobID, status ffs.JobStatus) {
+func requireJobState(t *testing.T, fapi *api.Instance, jid ffs.JobID, status ffs.JobStatus) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	ch, err := fapi.Watch(jid)

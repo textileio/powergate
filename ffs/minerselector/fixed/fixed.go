@@ -3,7 +3,7 @@ package fixed
 import (
 	"fmt"
 
-	"github.com/textileio/fil-tools/ffs"
+	"github.com/textileio/powergate/ffs"
 )
 
 // FixedMinerSelector is a ffs.MinerSelector implementation which

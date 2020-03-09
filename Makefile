@@ -22,7 +22,7 @@ clean:
 	rm -f .update-modules
 	git submodule deinit --all -f
 
-PARAMCACHE_PATH:=/var/tmp/fil-tools/filecoin-proof-parameters
+PARAMCACHE_PATH:=/var/tmp/powergate/filecoin-proof-parameters
 test: build
 	mkdir -p $(PARAMCACHE_PATH)
 	cat build/proof-params/parameters.json | jq 'keys[]' | xargs touch

@@ -11,9 +11,9 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/tests"
-	"github.com/textileio/fil-tools/wallet"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/wallet"
 )
 
 func TestMain(m *testing.M) {

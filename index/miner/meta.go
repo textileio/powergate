@@ -9,7 +9,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/chain/types"
 	cbor "github.com/ipfs/go-ipld-cbor"
-	"github.com/textileio/fil-tools/iplocation"
+	"github.com/textileio/powergate/iplocation"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )

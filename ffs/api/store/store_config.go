@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/ffs/pg"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/api"
 )
 
-// SaveConfig persist Config information of the Powergate instance
-func (cs *ConfigStore) SaveConfig(c pg.Config) error {
+// SaveConfig persist Config information of the Api instance
+func (cs *ConfigStore) SaveConfig(c api.Config) error {
 	buf, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling config: %s", err)
@@ -21,17 +21,17 @@ func (cs *ConfigStore) SaveConfig(c pg.Config) error {
 	return nil
 }
 
-// GetConfig gets the current configuration of the Powergate instance.
+// GetConfig gets the current configuration of the Api instance.
 // If no configuration exist, it returns ErrConfigNotFound.
-func (cs *ConfigStore) GetConfig() (*pg.Config, error) {
+func (cs *ConfigStore) GetConfig() (*api.Config, error) {
 	buf, err := cs.ds.Get(makeConfigKey(cs.iid))
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			return nil, pg.ErrConfigNotFound
+			return nil, api.ErrConfigNotFound
 		}
 		return nil, fmt.Errorf("getting config from store: %s", err)
 	}
-	var c pg.Config
+	var c api.Config
 	if err := json.Unmarshal(buf, &c); err != nil {
 		return nil, fmt.Errorf("unmarshaling config: %s", err)
 	}

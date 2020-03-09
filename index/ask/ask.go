@@ -13,7 +13,7 @@ import (
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/textileio/fil-tools/signaler"
+	"github.com/textileio/powergate/signaler"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )

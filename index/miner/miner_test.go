@@ -10,9 +10,9 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/textileio/fil-tools/iplocation"
-	"github.com/textileio/fil-tools/tests"
-	"github.com/textileio/fil-tools/util"
+	"github.com/textileio/powergate/iplocation"
+	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/util"
 )
 
 func TestMain(m *testing.M) {

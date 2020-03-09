@@ -3,9 +3,9 @@ package reptop
 import (
 	"fmt"
 
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/index/ask"
-	"github.com/textileio/fil-tools/reputation"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/index/ask"
+	"github.com/textileio/powergate/reputation"
 )
 
 // RepTop is a ffs.MinerSelector implementation that returns the top N

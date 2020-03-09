@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/textileio/fil-tools/api/server"
-	"github.com/textileio/fil-tools/tests"
+	"github.com/textileio/powergate/api/server"
+	"github.com/textileio/powergate/tests"
 	"google.golang.org/grpc"
 )
 

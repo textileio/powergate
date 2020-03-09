@@ -10,7 +10,7 @@ import (
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/fil-tools/deals"
+	"github.com/textileio/powergate/deals"
 )
 
 func init() {

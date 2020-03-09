@@ -1,4 +1,4 @@
-package pg
+package api
 
 import (
 	"context"
@@ -9,13 +9,13 @@ import (
 
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/fil-tools/ffs"
+	"github.com/textileio/powergate/ffs"
 )
 
 var (
 	defaultWalletType = "bls"
 
-	log = logging.Logger("ffs-pg")
+	log = logging.Logger("ffs-api")
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 	ErrNotStored = errors.New("cid isn't stored")
 )
 
-// Instance is an Powergate instance, which owns a Lotus Address and allows to
+// Instance is an Api instance, which owns a Lotus Address and allows to
 // Store and Retrieve Cids from Hot and Cold layers.
 type Instance struct {
 	store ConfigStore
@@ -48,7 +48,7 @@ type watcher struct {
 	ch     chan ffs.Job
 }
 
-// New returns a new Powergate instance.
+// New returns a new Api instance.
 func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs.Scheduler, wm ffs.WalletManager) (*Instance, error) {
 	addr, err := wm.NewWallet(ctx, defaultWalletType)
 	if err != nil {
@@ -66,7 +66,7 @@ func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs
 	return i, nil
 }
 
-// Load loads a saved Powergate instance from its ConfigStore.
+// Load loads a saved Api instance from its ConfigStore.
 func Load(iid ffs.InstanceID, confstore ConfigStore, sched ffs.Scheduler, wm ffs.WalletManager) (*Instance, error) {
 	config, err := confstore.GetConfig()
 	if err != nil {
@@ -285,7 +285,7 @@ func (i *Instance) watchJobs() {
 					case w.ch <- j:
 						log.Info("notifying watcher")
 					default:
-						log.Warnf("skipping slow pg watcher")
+						log.Warnf("skipping slow api watcher")
 					}
 				}
 			}

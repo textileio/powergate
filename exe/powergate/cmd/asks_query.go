@@ -11,7 +11,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/fil-tools/index/ask"
+	"github.com/textileio/powergate/index/ask"
 )
 
 func init() {

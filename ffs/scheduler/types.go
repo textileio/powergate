@@ -3,7 +3,7 @@ package scheduler
 import (
 	"errors"
 
-	"github.com/textileio/fil-tools/ffs"
+	"github.com/textileio/powergate/ffs"
 )
 
 var (

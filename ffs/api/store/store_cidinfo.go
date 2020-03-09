@@ -7,8 +7,8 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/ffs/pg"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/api"
 )
 
 // GetCid info gets the current stored state of a Cid
@@ -16,7 +16,7 @@ func (cs *ConfigStore) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	var ci ffs.CidInfo
 	buf, err := cs.ds.Get(makeCidInfoKey(cs.iid, c))
 	if err == datastore.ErrNotFound {
-		return ci, pg.ErrCidInfoNotFound
+		return ci, api.ErrCidInfoNotFound
 	}
 	if err != nil {
 		return ci, fmt.Errorf("getting cidinfo %s from store: %s", c, err)

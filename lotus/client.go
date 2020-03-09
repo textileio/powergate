@@ -9,10 +9,10 @@ import (
 	"github.com/filecoin-project/lotus/build"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/fil-tools/ldevnet"
-	"github.com/textileio/fil-tools/lotus/jsonrpc"
+	"github.com/textileio/powergate/ldevnet"
+	"github.com/textileio/powergate/lotus/jsonrpc"
 
-	"github.com/textileio/fil-tools/util"
+	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 )

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	cid "github.com/ipfs/go-cid"
-	"github.com/textileio/fil-tools/api/client"
-	"github.com/textileio/fil-tools/deals"
+	"github.com/textileio/powergate/api/client"
+	"github.com/textileio/powergate/deals"
 )
 
 // Deals provides an API for managing deals and storing data

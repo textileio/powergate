@@ -8,8 +8,8 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/fil-tools/ffs"
-	"github.com/textileio/fil-tools/ffs/scheduler"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 var (
@@ -100,7 +100,7 @@ func (js *JobStore) Get(jid ffs.JobID) (ffs.Job, error) {
 	return job, nil
 }
 
-// Watch subscribes to Job changes from a specified Powergate instance.
+// Watch subscribes to Job changes from a specified Api instance.
 func (js *JobStore) Watch(iid ffs.InstanceID) <-chan ffs.Job {
 	js.lock.Lock()
 	defer js.lock.Unlock()

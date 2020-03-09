@@ -1,10 +1,10 @@
-package pg
+package api
 
 import (
 	"errors"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/fil-tools/ffs"
+	"github.com/textileio/powergate/ffs"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 	ErrCidInfoNotFound = errors.New("the cid doesn't have any saved state")
 )
 
-// ConfigStore is a repository for all state of a Powergate.
+// ConfigStore is a repository for all state of a Api.
 type ConfigStore interface {
 	SaveConfig(c Config) error
 	GetConfig() (*Config, error)
@@ -31,13 +31,13 @@ type ConfigStore interface {
 	Cids() ([]cid.Cid, error)
 }
 
-// Config has general information about a Powergate instance.
+// Config has general information about a Api instance.
 type Config struct {
 	ID         ffs.InstanceID
 	WalletAddr string
 }
 
-// InstanceInfo has general information about a running Powergate instance.
+// InstanceInfo has general information about a running Api instance.
 type InstanceInfo struct {
 	ID     ffs.InstanceID
 	Wallet WalletInfo
@@ -45,7 +45,7 @@ type InstanceInfo struct {
 }
 
 // WalletInfo contains information about the Wallet associated with
-// the Powergate instance.
+// the Api instance.
 type WalletInfo struct {
 	Address string
 	Balance uint64

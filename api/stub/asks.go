@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/textileio/fil-tools/index/ask"
+	"github.com/textileio/powergate/index/ask"
 )
 
 // Asks stub

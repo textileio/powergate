@@ -5,7 +5,7 @@ import (
 	"io"
 
 	cid "github.com/ipfs/go-cid"
-	pb "github.com/textileio/fil-tools/ffs/pb"
+	pb "github.com/textileio/powergate/ffs/pb"
 )
 
 type ffs struct {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	cid "github.com/ipfs/go-cid"
-	"github.com/textileio/fil-tools/deals"
-	pb "github.com/textileio/fil-tools/deals/pb"
+	"github.com/textileio/powergate/deals"
+	pb "github.com/textileio/powergate/deals/pb"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

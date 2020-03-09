@@ -12,8 +12,8 @@ import (
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/fil-tools/deals"
-	"github.com/textileio/fil-tools/index/ask"
+	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/index/ask"
 )
 
 func init() {

@@ -11,7 +11,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	client "github.com/textileio/fil-tools/api/client"
+	client "github.com/textileio/powergate/api/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -64,7 +64,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fil-tools.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.powergate.yaml)")
 	rootCmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the filecoin service api")
 }
 
@@ -77,9 +77,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		checkErr(err)
 
-		// Search config in home directory with name ".fil-tools" (without extension).
+		// Search config in home directory with name ".powergate" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".fil-tools")
+		viper.SetConfigName(".powergate")
 	}
 
 	viper.AutomaticEnv()
