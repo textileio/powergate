@@ -294,7 +294,7 @@ func TestRepFactor(t *testing.T) {
 		fcConfig, err = ffs.NewFilecoinConfig(true, 2)
 		require.Nil(t, err)
 		config.Cold.Filecoin = fcConfig
-		jid, err = fapi.AddCid(cid, api.WithCidConfig(config))
+		jid, err = fapi.AddCid(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		job = requireJobState(t, fapi, jid, ffs.Done)
 		require.Equal(t, 2, len(job.CidInfo.Cold.Filecoin.Proposals))

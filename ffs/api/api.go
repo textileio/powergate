@@ -205,18 +205,21 @@ func (i *Instance) Unwatch(ch <-chan ffs.Job) {
 func (i *Instance) AddCid(c cid.Cid, opts ...AddCidOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	_, err := i.store.GetCidConfig(c)
-	if err == nil {
-		return ffs.EmptyJobID, ErrAlreadyPinned
-	}
-	if err != ErrConfigNotFound {
-		return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
-	}
 
 	addConfig := newDefaultAddCidConfig(i.config.DefaultConfig)
 	for _, opt := range opts {
 		if err := opt(&addConfig); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)
+		}
+	}
+
+	if !addConfig.OverrideConfig {
+		_, err := i.store.GetCidConfig(c)
+		if err == nil {
+			return ffs.EmptyJobID, ErrAlreadyPinned
+		}
+		if err != ErrConfigNotFound {
+			return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
 		}
 	}
 
