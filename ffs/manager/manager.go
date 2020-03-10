@@ -20,18 +20,8 @@ var (
 	// ErrAuthTokenNotFound returns when an auth-token doesn't exist.
 	ErrAuthTokenNotFound = errors.New("auth token not found")
 
-	defInstanceConfig = ffs.CidConfig{
-		Hot: ffs.HotConfig{
-			Ipfs: ffs.IpfsConfig{
-				Enabled: true,
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Filecoin: ffs.FilecoinConfig{
-				Enabled: true,
-			},
-		},
-	}
+	createDefConfig   sync.Once
+	defInstanceConfig ffs.CidConfig
 
 	log = logging.Logger("ffs-manager")
 )
@@ -64,6 +54,25 @@ func New(ds ds.Datastore, wm ffs.WalletManager, sched ffs.Scheduler) (*Manager, 
 func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
+
+	createDefConfig.Do(func() {
+		defIpfsConfig, err := ffs.NewIpfsConfig(true)
+		if err != nil {
+			log.Fatalf("creating default ipfs config: %s", err)
+		}
+		defFilecoinConfig, err := ffs.NewFilecoinConfig(true, 1)
+		if err != nil {
+			log.Fatalf("creating default filecoin config: %s", err)
+		}
+		defInstanceConfig = ffs.CidConfig{
+			Hot: ffs.HotConfig{
+				Ipfs: defIpfsConfig,
+			},
+			Cold: ffs.ColdConfig{
+				Filecoin: defFilecoinConfig,
+			},
+		}
+	})
 
 	log.Info("creating instance")
 	iid := ffs.NewInstanceID()

@@ -44,7 +44,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, conf ffs.
 	ci.Filecoin = ffs.FilInfo{
 		Duration: uint64(1000),
 	}
-	config, err := makeStorageConfig(ctx, fc.ms)
+	config, err := makeStorageConfig(ctx, fc.ms, conf.Filecoin)
 	if err != nil {
 		return ci, fmt.Errorf("selecting miners to make the deal: %s", err)
 	}
@@ -106,8 +106,8 @@ func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) 
 	return r
 }
 
-func makeStorageConfig(ctx context.Context, ms ffs.MinerSelector) ([]deals.StorageDealConfig, error) {
-	mps, err := ms.GetMiners(1) // ToDo: hardcoded 1 will change when config will be added to instance/method-call
+func makeStorageConfig(ctx context.Context, ms ffs.MinerSelector, conf ffs.FilecoinConfig) ([]deals.StorageDealConfig, error) {
+	mps, err := ms.GetMiners(conf.RepFactor())
 	if err != nil {
 		return nil, err
 	}

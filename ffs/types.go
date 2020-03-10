@@ -1,6 +1,8 @@
 package ffs
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -124,7 +126,40 @@ type HotConfig struct {
 
 // IpfsConfig is the desired storage of a Cid in IPFS.
 type IpfsConfig struct {
-	Enabled bool
+	enabled bool
+}
+
+func NewIpfsConfig(enabled bool) (IpfsConfig, error) {
+	return IpfsConfig{
+		enabled: enabled,
+	}, nil
+}
+
+func (ic IpfsConfig) Enabled() bool {
+	return ic.enabled
+}
+
+func (ic IpfsConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Enabled bool
+	}{
+		Enabled: ic.enabled,
+	})
+}
+
+func (ic *IpfsConfig) UnmarshalJSON(b []byte) error {
+	var aic struct {
+		Enabled bool
+	}
+	if err := json.Unmarshal(b, &aic); err != nil {
+		return err
+	}
+	_, err := NewIpfsConfig(aic.Enabled)
+	if err != nil {
+		return err
+	}
+	ic.enabled = aic.Enabled
+	return nil
 }
 
 // ColdConfig is the desired state of a Cid in a cold layer.
@@ -135,7 +170,53 @@ type ColdConfig struct {
 // FilecoinConfig is the desired state of a Cid in the
 // Filecoin network.
 type FilecoinConfig struct {
-	Enabled bool
+	enabled   bool
+	repFactor int
+}
+
+func NewFilecoinConfig(enabled bool, repFactor int) (FilecoinConfig, error) {
+	if repFactor < 1 {
+		return FilecoinConfig{}, fmt.Errorf("invalid rep factor")
+	}
+	return FilecoinConfig{
+		enabled:   enabled,
+		repFactor: repFactor,
+	}, nil
+}
+
+func (fc FilecoinConfig) Enabled() bool {
+	return fc.enabled
+}
+
+func (fc FilecoinConfig) RepFactor() int {
+	return fc.repFactor
+}
+
+func (fc FilecoinConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Enabled   bool
+		RepFactor int
+	}{
+		Enabled:   fc.enabled,
+		RepFactor: fc.repFactor,
+	})
+}
+
+func (fc *FilecoinConfig) UnmarshalJSON(b []byte) error {
+	var afc struct {
+		Enabled   bool
+		RepFactor int
+	}
+	if err := json.Unmarshal(b, &afc); err != nil {
+		return err
+	}
+	_, err := NewFilecoinConfig(afc.Enabled, afc.RepFactor)
+	if err != nil {
+		return err
+	}
+	fc.enabled = afc.Enabled
+	fc.repFactor = afc.RepFactor
+	return nil
 }
 
 // CidInfo contains information about the current storage state

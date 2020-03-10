@@ -3,6 +3,7 @@ package integrationtest
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -56,32 +57,32 @@ func TestMain(m *testing.M) {
 }
 
 func TestDefaultConfig(t *testing.T) {
-	_, fapi, cls := newApi(t)
+	_, fapi, cls := newApi(t, 1)
 	defer cls()
 
-	new := ffs.CidConfig{
+	ipfsConfig, err := ffs.NewIpfsConfig(false)
+	require.Nil(t, err)
+	fcConfig, err := ffs.NewFilecoinConfig(false, 1)
+	require.Nil(t, err)
+	newConfig := ffs.CidConfig{
 		Hot: ffs.HotConfig{
-			Ipfs: ffs.IpfsConfig{
-				Enabled: false,
-			},
+			Ipfs: ipfsConfig,
 		},
 		Cold: ffs.ColdConfig{
-			Filecoin: ffs.FilecoinConfig{
-				Enabled: false,
-			},
+			Filecoin: fcConfig,
 		},
 	}
-	err := fapi.SetDefaultCidConfig(new)
+	err = fapi.SetDefaultCidConfig(newConfig)
 	require.Nil(t, err)
 	gNew := fapi.GetDefaultCidConfig()
-	require.Equal(t, new, gNew)
+	require.Equal(t, newConfig, gNew)
 }
 
 func TestAdd(t *testing.T) {
-	ipfsApi, fapi, cls := newApi(t)
+	ipfsApi, fapi, cls := newApi(t, 1)
 	defer cls()
 
-	r := rand.New(rand.NewSource(22))
+	r := rand.New(rand.NewSource(1))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		jid, err := fapi.AddCid(cid)
@@ -91,16 +92,16 @@ func TestAdd(t *testing.T) {
 
 	cid, _ = addRandomFile(t, r, ipfsApi)
 	t.Run("WithCustomConfig", func(t *testing.T) {
+		ipfsConfig, err := ffs.NewIpfsConfig(false)
+		require.Nil(t, err)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
+		require.Nil(t, err)
 		config := ffs.CidConfig{
 			Hot: ffs.HotConfig{
-				Ipfs: ffs.IpfsConfig{
-					Enabled: false,
-				},
+				Ipfs: ipfsConfig,
 			},
 			Cold: ffs.ColdConfig{
-				Filecoin: ffs.FilecoinConfig{
-					Enabled: true,
-				},
+				Filecoin: fcConfig,
 			},
 		}
 		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
@@ -112,10 +113,10 @@ func TestAdd(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newApi(t)
+	ipfs, fapi, cls := newApi(t, 1)
 	defer cls()
 
-	r := rand.New(rand.NewSource(11))
+	r := rand.New(rand.NewSource(2))
 	cid, data := addRandomFile(t, r, ipfs)
 	jid, err := fapi.AddCid(cid)
 	require.Nil(t, err)
@@ -132,7 +133,7 @@ func TestGet(t *testing.T) {
 
 func TestInfo(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newApi(t)
+	ipfs, fapi, cls := newApi(t, 1)
 	defer cls()
 
 	var err error
@@ -146,7 +147,7 @@ func TestInfo(t *testing.T) {
 		require.Equal(t, len(first.Pins), 0)
 	})
 
-	r := rand.New(rand.NewSource(22))
+	r := rand.New(rand.NewSource(3))
 	n := 3
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
@@ -167,7 +168,7 @@ func TestInfo(t *testing.T) {
 
 func TestShow(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newApi(t)
+	ipfs, fapi, cls := newApi(t, 1)
 	defer cls()
 
 	t.Run("NotStored", func(t *testing.T) {
@@ -177,7 +178,7 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		r := rand.New(rand.NewSource(22))
+		r := rand.New(rand.NewSource(4))
 		cid, _ := addRandomFile(t, r, ipfs)
 		jid, err := fapi.AddCid(cid)
 		require.Nil(t, err)
@@ -210,11 +211,11 @@ func TestShow(t *testing.T) {
 func TestColdInstanceLoad(t *testing.T) {
 	ctx := context.Background()
 	ds := tests.NewTxMapDatastore()
-	dnet, addr, _, closeDevnet := tests.CreateLocalDevnet(t, 1)
+	addr, client, ms, closeDevnet := newDevnet(t, 1)
 	defer closeDevnet()
 
-	ipfsApi, fapi, cls := newApiFromDs(t, ds, ffs.EmptyID, dnet.Client, addr)
-	ra := rand.New(rand.NewSource(22))
+	ipfsApi, fapi, cls := newApiFromDs(t, ds, ffs.EmptyID, client, addr, ms)
+	ra := rand.New(rand.NewSource(5))
 	cid, data := addRandomFile(t, ra, ipfsApi)
 	jid, err := fapi.AddCid(cid)
 	require.Nil(t, err)
@@ -225,7 +226,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.Nil(t, err)
 	cls()
 
-	_, fapi, cls = newApiFromDs(t, ds, fapi.ID(), dnet.Client, addr)
+	_, fapi, cls = newApiFromDs(t, ds, fapi.ID(), client, addr, ms)
 	defer cls()
 	ninfo, err := fapi.Info(ctx)
 	require.Nil(t, err)
@@ -242,17 +243,86 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.True(t, bytes.Equal(data, fetched))
 }
 
-func newApi(t *testing.T) (*httpapi.HttpApi, *api.Instance, func()) {
+func TestRepFactor(t *testing.T) {
+	ipfsApi, fapi, cls := newApi(t, 2)
+	defer cls()
+
+	rfs := []int{1, 2}
+	r := rand.New(rand.NewSource(6))
+	for _, rf := range rfs {
+		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
+			cid, _ := addRandomFile(t, r, ipfsApi)
+			ipfsConfig, err := ffs.NewIpfsConfig(true)
+			require.Nil(t, err)
+			fcConfig, err := ffs.NewFilecoinConfig(true, rf)
+			require.Nil(t, err)
+			config := ffs.CidConfig{
+				Hot: ffs.HotConfig{
+					Ipfs: ipfsConfig,
+				},
+				Cold: ffs.ColdConfig{
+					Filecoin: fcConfig,
+				},
+			}
+			jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
+			require.Nil(t, err)
+			job := requireJobState(t, fapi, jid, ffs.Done)
+			require.Equal(t, rf, len(job.CidInfo.Cold.Filecoin.Proposals))
+		})
+	}
+
+	t.Run("IncreaseBy1", func(t *testing.T) {
+		cid, _ := addRandomFile(t, r, ipfsApi)
+		ipfsConfig, err := ffs.NewIpfsConfig(true)
+		require.Nil(t, err)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
+		require.Nil(t, err)
+		config := ffs.CidConfig{
+			Hot: ffs.HotConfig{
+				Ipfs: ipfsConfig,
+			},
+			Cold: ffs.ColdConfig{
+				Filecoin: fcConfig,
+			},
+		}
+		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		job := requireJobState(t, fapi, jid, ffs.Done)
+		require.Equal(t, 1, len(job.CidInfo.Cold.Filecoin.Proposals))
+		firstProposal := job.CidInfo.Cold.Filecoin.Proposals[0]
+
+		fcConfig, err = ffs.NewFilecoinConfig(true, 2)
+		require.Nil(t, err)
+		config.Cold.Filecoin = fcConfig
+		jid, err = fapi.AddCid(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		job = requireJobState(t, fapi, jid, ffs.Done)
+		require.Equal(t, 2, len(job.CidInfo.Cold.Filecoin.Proposals))
+		require.Contains(t, job.CidInfo.Cold.Filecoin.Proposals, firstProposal)
+	})
+}
+
+func newApi(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.Instance, func()) {
 	ds := tests.NewTxMapDatastore()
-	dnet, addr, _, close := tests.CreateLocalDevnet(t, 1)
-	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyID, dnet.Client, addr)
+	addr, client, ms, close := newDevnet(t, numMiners)
+	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyID, client, addr, ms)
 	return ipfsApi, fapi, func() {
 		closeInternal()
 		close()
 	}
 }
 
-func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address) (*httpapi.HttpApi, *api.Instance, func()) {
+func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector, func()) {
+	dnet, addr, _, close := tests.CreateLocalDevnet(t, numMiners)
+	addrs := make([]string, numMiners)
+	for i := 0; i < numMiners; i++ {
+		addrs[i] = fmt.Sprintf("t0%d", 300+i)
+	}
+	ms := fixed.New(addrs, 4000000)
+	return addr, dnet.Client, ms, close
+}
+
+func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector) (*httpapi.HttpApi, *api.Instance, func()) {
 	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
@@ -261,7 +331,6 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 	dm, err := deals.New(client, deals.WithImportPath(filepath.Join(os.TempDir(), "imports")))
 	require.Nil(t, err)
 
-	ms := fixed.New("t0300", 4000000)
 	cl := filcold.New(ms, dm, ipfsClient.Dag())
 	jobstore := jsonjobstore.New(txndstr.Wrap(ds, "ffs/scheduler/jsonjobstore"))
 	hl := coreipfs.New(ipfsClient)
@@ -274,16 +343,16 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 	if iid == ffs.EmptyID {
 		iid = ffs.NewInstanceID()
 		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/api/store"))
+		ipfsConfig, err := ffs.NewIpfsConfig(true)
+		require.Nil(t, err)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
+		require.Nil(t, err)
 		defConfig := ffs.CidConfig{
 			Hot: ffs.HotConfig{
-				Ipfs: ffs.IpfsConfig{
-					Enabled: true,
-				},
+				Ipfs: ipfsConfig,
 			},
 			Cold: ffs.ColdConfig{
-				Filecoin: ffs.FilecoinConfig{
-					Enabled: true,
-				},
+				Filecoin: fcConfig,
 			},
 		}
 		fapi, err = api.New(ctx, iid, confstore, sched, wm, defConfig)
@@ -326,7 +395,7 @@ func requireJobState(t *testing.T, fapi *api.Instance, jid ffs.JobID, status ffs
 			if job.Status == ffs.Queued || job.Status == ffs.InProgress {
 				continue
 			}
-			require.Equal(t, status, job.Status)
+			require.Equal(t, status, job.Status, job.ErrCause)
 			stop = true
 			res = job
 		}
