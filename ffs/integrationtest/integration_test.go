@@ -272,6 +272,7 @@ func TestRepFactor(t *testing.T) {
 	}
 
 	t.Run("IncreaseBy1", func(t *testing.T) {
+		t.SkipNow()
 		cid, _ := addRandomFile(t, r, ipfsApi)
 		ipfsConfig, err := ffs.NewIpfsConfig(true)
 		require.Nil(t, err)
