@@ -60,7 +60,7 @@ func TestDefaultConfig(t *testing.T) {
 	_, fapi, cls := newApi(t, 1)
 	defer cls()
 
-	ipfsConfig, err := ffs.NewIpfsConfig(false)
+	ipfsConfig, err := ffs.NewIpfsConfig(false, 30)
 	require.Nil(t, err)
 	fcConfig, err := ffs.NewFilecoinConfig(false, 1)
 	require.Nil(t, err)
@@ -92,7 +92,7 @@ func TestAdd(t *testing.T) {
 
 	cid, _ = addRandomFile(t, r, ipfsApi)
 	t.Run("WithCustomConfig", func(t *testing.T) {
-		ipfsConfig, err := ffs.NewIpfsConfig(false)
+		ipfsConfig, err := ffs.NewIpfsConfig(false, 30)
 		require.Nil(t, err)
 		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
 		require.Nil(t, err)
@@ -252,7 +252,7 @@ func TestRepFactor(t *testing.T) {
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
 			cid, _ := addRandomFile(t, r, ipfsApi)
-			ipfsConfig, err := ffs.NewIpfsConfig(true)
+			ipfsConfig, err := ffs.NewIpfsConfig(true, 30)
 			require.Nil(t, err)
 			fcConfig, err := ffs.NewFilecoinConfig(true, rf)
 			require.Nil(t, err)
@@ -274,7 +274,7 @@ func TestRepFactor(t *testing.T) {
 	t.Run("IncreaseBy1", func(t *testing.T) {
 		t.SkipNow()
 		cid, _ := addRandomFile(t, r, ipfsApi)
-		ipfsConfig, err := ffs.NewIpfsConfig(true)
+		ipfsConfig, err := ffs.NewIpfsConfig(true, 30)
 		require.Nil(t, err)
 		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
 		require.Nil(t, err)
@@ -300,6 +300,31 @@ func TestRepFactor(t *testing.T) {
 		job = requireJobState(t, fapi, jid, ffs.Done)
 		require.Equal(t, 2, len(job.CidInfo.Cold.Filecoin.Proposals))
 		require.Contains(t, job.CidInfo.Cold.Filecoin.Proposals, firstProposal)
+	})
+}
+
+func TestHotTimeoutConfig(t *testing.T) {
+	_, fapi, cls := newApi(t, 1)
+	defer cls()
+
+	t.Run("ShortTime", func(t *testing.T) {
+		cid, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
+		ipfsConfig, err := ffs.NewIpfsConfig(true, 1)
+		require.Nil(t, err)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
+		require.Nil(t, err)
+
+		config := ffs.CidConfig{
+			Hot: ffs.HotConfig{
+				Ipfs: ipfsConfig,
+			},
+			Cold: ffs.ColdConfig{
+				Filecoin: fcConfig,
+			},
+		}
+		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Failed)
 	})
 }
 
@@ -344,7 +369,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 	if iid == ffs.EmptyID {
 		iid = ffs.NewInstanceID()
 		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/api/store"))
-		ipfsConfig, err := ffs.NewIpfsConfig(true)
+		ipfsConfig, err := ffs.NewIpfsConfig(true, 30)
 		require.Nil(t, err)
 		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
 		require.Nil(t, err)

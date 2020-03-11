@@ -56,7 +56,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 	defer m.lock.Unlock()
 
 	createDefConfig.Do(func() {
-		defIpfsConfig, err := ffs.NewIpfsConfig(true)
+		defIpfsConfig, err := ffs.NewIpfsConfig(true, 30)
 		if err != nil {
 			log.Fatalf("creating default ipfs config: %s", err)
 		}

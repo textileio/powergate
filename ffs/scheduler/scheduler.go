@@ -154,7 +154,7 @@ func (s *Scheduler) execute(ctx context.Context, job *ffs.Job) error {
 		Created:  time.Now(),
 	}
 	var err error
-	job.CidInfo.Hot, err = s.hot.Pin(ctx, job.Action.Cid)
+	job.CidInfo.Hot, err = s.hot.Pin(ctx, job.Action.Cid, job.Action.Config.Hot)
 	if err != nil {
 		job.Status = ffs.Failed
 		job.ErrCause = err.Error()

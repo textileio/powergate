@@ -30,7 +30,7 @@ type Scheduler interface {
 type HotStorage interface {
 	Add(context.Context, io.Reader) (cid.Cid, error)
 	Get(context.Context, cid.Cid) (io.Reader, error)
-	Pin(context.Context, cid.Cid) (HotInfo, error)
+	Pin(context.Context, cid.Cid, HotConfig) (HotInfo, error)
 }
 
 // ColdStorage is a slow datastorage layer for storing Cids.

@@ -126,12 +126,17 @@ type HotConfig struct {
 
 // IpfsConfig is the desired storage of a Cid in IPFS.
 type IpfsConfig struct {
-	enabled bool
+	enabled    bool
+	addTimeout int
 }
 
-func NewIpfsConfig(enabled bool) (IpfsConfig, error) {
+func NewIpfsConfig(enabled bool, addTimeout int) (IpfsConfig, error) {
+	if addTimeout <= 0 {
+		return IpfsConfig{}, fmt.Errorf("time duration in seconds should be positive")
+	}
 	return IpfsConfig{
-		enabled: enabled,
+		enabled:    enabled,
+		addTimeout: addTimeout,
 	}, nil
 }
 
@@ -139,26 +144,34 @@ func (ic IpfsConfig) Enabled() bool {
 	return ic.enabled
 }
 
+func (ic IpfsConfig) AddTimeout() int {
+	return ic.addTimeout
+}
+
 func (ic IpfsConfig) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Enabled bool
+		Enabled    bool
+		AddTimeout int
 	}{
-		Enabled: ic.enabled,
+		Enabled:    ic.enabled,
+		AddTimeout: ic.addTimeout,
 	})
 }
 
 func (ic *IpfsConfig) UnmarshalJSON(b []byte) error {
 	var aic struct {
-		Enabled bool
+		Enabled    bool
+		AddTimeout int
 	}
 	if err := json.Unmarshal(b, &aic); err != nil {
 		return err
 	}
-	_, err := NewIpfsConfig(aic.Enabled)
+	_, err := NewIpfsConfig(aic.Enabled, aic.AddTimeout)
 	if err != nil {
 		return err
 	}
 	ic.enabled = aic.Enabled
+	ic.addTimeout = aic.AddTimeout
 	return nil
 }
 

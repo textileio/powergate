@@ -57,11 +57,11 @@ func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 }
 
 // Pin pins as cid in the IPFS node
-func (ci *CoreIpfs) Pin(ctx context.Context, c cid.Cid) (ffs.HotInfo, error) {
+func (ci *CoreIpfs) Pin(ctx context.Context, c cid.Cid, config ffs.HotConfig) (ffs.HotInfo, error) {
 	log.Infof("pinning %s", c)
 	var i ffs.HotInfo
 	pth := path.IpfsPath(c)
-	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(config.Ipfs.AddTimeout()))
 	defer cancel()
 	if err := ci.ipfs.Pin().Add(ctx, pth, options.Pin.Recursive(true)); err != nil {
 		return i, fmt.Errorf("pinning cid %s: %s", c, err)
