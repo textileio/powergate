@@ -451,7 +451,8 @@ func addRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, 
 	t.Helper()
 	data := randomBytes(r, 500)
 	node, err := ipfs.Unixfs().Add(context.Background(), ipfsfiles.NewReaderFile(bytes.NewReader(data)), options.Unixfs.Pin(false))
-	require.Nil(t, err)
-
+	if err != nil {
+		t.Fatalf("error adding random file: %s", err)
+	}
 	return node.Cid(), data
 }

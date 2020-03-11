@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - jsign/pg4
   pull_request:
     branches:
       - master
