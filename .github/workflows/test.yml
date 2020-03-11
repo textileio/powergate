@@ -26,4 +26,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v1
       - name: Test
+        env:
+          TEXPOWERGATE_CI: 1
         run: make test

@@ -20,7 +20,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	logging.SetAllLoggers(logging.LevelError)
+	logging.SetAllLoggers(logging.LevelInfo)
 	os.Exit(m.Run())
 }
 
@@ -97,7 +97,7 @@ func TestWatchStore(t *testing.T) {
 		storagemarket.DealComplete,
 	}
 	for i := 0; i < len(expectedStatePath); i++ {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		select {
 		case d := <-chDealInfo:
 			if d.StateID != expectedStatePath[i] {

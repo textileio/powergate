@@ -73,7 +73,7 @@ func TestAdd(t *testing.T) {
 
 	cid, _ = addRandomFile(t, r, ipfsApi)
 	t.Run("WithCustomConfig", func(t *testing.T) {
-		config := fapi.GetDefaultCidConfig().WithHotIpfsEnabled(false).WithColdFilDealDuration(int64(321))
+		config := fapi.GetDefaultCidConfig().WithHotIpfsEnabled(false).WithColdFilDealDuration(int64(4321))
 		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		job := requireJobState(t, fapi, jid, ffs.Done)
@@ -400,7 +400,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 		fapi, err = api.Load(iid, confstore, sched, wm)
 		require.Nil(t, err)
 	}
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 2)
 
 	return ipfsClient, fapi, func() {
 		if err := fapi.Close(); err != nil {
@@ -416,7 +416,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 }
 
 func requireJobState(t *testing.T, fapi *api.Instance, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 	ch, err := fapi.Watch(jid)
 	require.Nil(t, err)

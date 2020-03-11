@@ -39,6 +39,12 @@ func init() {
 	build.SectorSizes = []uint64{1024}
 	build.MinimumMinerPower = 1024
 	os.Setenv("TRUST_PARAMS", "1")
+	delay := os.Getenv("TEXPOWERGATE_CI")
+	if delay != "" {
+		DefaultDuration = time.Millisecond * 5000
+		fmt.Println("Using long-delay since TEXPOWERGATE_CI is set")
+	}
+
 }
 
 type LocalDevnet struct {
@@ -114,7 +120,7 @@ func New(numMiners int, blockDur time.Duration) (*LocalDevnet, error) {
 		}
 	}
 
-	time.Sleep(blockDur * 3) // Give time to mine at least 1 block
+	time.Sleep(blockDur * 5) // Give time to mine at least 1 block
 	return &LocalDevnet{
 		Client:    client,
 		closer:    closer,

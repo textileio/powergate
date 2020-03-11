@@ -20,14 +20,14 @@ func TestMain(m *testing.M) {
 	util.AvgBlockTime = time.Millisecond * 10
 	metadataRefreshInterval = time.Millisecond * 10
 	logging.SetAllLoggers(logging.LevelError)
-	logging.SetLogLevel("index-miner", "debug")
+	//logging.SetLogLevel("index-miner", "debug")
 	os.Exit(m.Run())
 }
 
 func TestFullRefresh(t *testing.T) {
 	dnet, _, miners, close := tests.CreateLocalDevnet(t, 1)
 	defer close()
-	time.Sleep(time.Millisecond * 500) // Allow the network to some tipsets
+	time.Sleep(time.Second * 15) // Allow the network to some tipsets
 
 	mi, err := New(tests.NewTxMapDatastore(), dnet.Client, &p2pHostMock{}, &lrMock{})
 	checkErr(t, err)
@@ -36,7 +36,7 @@ func TestFullRefresh(t *testing.T) {
 	// Wait for some rounds of on-chain and meta updates
 	for i := 0; i < 10; i++ {
 		select {
-		case <-time.After(time.Second * 10):
+		case <-time.After(time.Second * 30):
 			t.Fatal("timeout waiting for miner index full refresh")
 		case <-l:
 		}
