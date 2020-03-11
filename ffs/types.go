@@ -1,7 +1,6 @@
 package ffs
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -105,6 +104,53 @@ type CidConfig struct {
 	Cold ColdConfig
 }
 
+func (c CidConfig) WithColdFilEnabled(enabled bool) CidConfig {
+	c.Cold.Filecoin.Enabled = enabled
+	return c
+}
+
+func (c CidConfig) WithColdFilCountryCodes(countryCodes []string) CidConfig {
+	c.Cold.Filecoin.CountryCodes = make([]string, len(countryCodes))
+	copy(c.Cold.Filecoin.CountryCodes, countryCodes)
+	return c
+}
+
+func (c CidConfig) WithColdFilBlacklist(blacklist []string) CidConfig {
+	c.Cold.Filecoin.Blacklist = make([]string, len(blacklist))
+	copy(c.Cold.Filecoin.Blacklist, blacklist)
+	return c
+}
+
+func (c CidConfig) WithColdFilRepFactor(repFactor int) CidConfig {
+	c.Cold.Filecoin.RepFactor = repFactor
+	return c
+}
+
+func (c CidConfig) WithColdFilDealDuration(duration int64) CidConfig {
+	c.Cold.Filecoin.DealDuration = duration
+	return c
+}
+
+func (c CidConfig) WithHotIpfsEnabled(enabled bool) CidConfig {
+	c.Hot.Ipfs.Enabled = enabled
+	return c
+}
+
+func (c CidConfig) WithHotIpfsAddTimeout(seconds int) CidConfig {
+	c.Hot.Ipfs.AddTimeout = seconds
+	return c
+}
+
+func (c CidConfig) Validate() error {
+	if err := c.Hot.Ipfs.Validate(); err != nil {
+		return fmt.Errorf("hot-ipfs config is invalid: %s", err)
+	}
+	if err := c.Cold.Filecoin.Validate(); err != nil {
+		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
+	}
+	return nil
+}
+
 // AddAction is the desired state of storage for a Cid.
 type AddAction struct {
 	ID         CidConfigID
@@ -126,52 +172,14 @@ type HotConfig struct {
 
 // IpfsConfig is the desired storage of a Cid in IPFS.
 type IpfsConfig struct {
-	enabled    bool
-	addTimeout int
+	Enabled    bool
+	AddTimeout int
 }
 
-func NewIpfsConfig(enabled bool, addTimeout int) (IpfsConfig, error) {
-	if addTimeout <= 0 {
-		return IpfsConfig{}, fmt.Errorf("time duration in seconds should be positive")
+func (ic *IpfsConfig) Validate() error {
+	if ic.AddTimeout <= 0 {
+		return fmt.Errorf("add timeout should be greater than 0 seconds, got %d", ic.AddTimeout)
 	}
-	return IpfsConfig{
-		enabled:    enabled,
-		addTimeout: addTimeout,
-	}, nil
-}
-
-func (ic IpfsConfig) Enabled() bool {
-	return ic.enabled
-}
-
-func (ic IpfsConfig) AddTimeout() int {
-	return ic.addTimeout
-}
-
-func (ic IpfsConfig) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Enabled    bool
-		AddTimeout int
-	}{
-		Enabled:    ic.enabled,
-		AddTimeout: ic.addTimeout,
-	})
-}
-
-func (ic *IpfsConfig) UnmarshalJSON(b []byte) error {
-	var aic struct {
-		Enabled    bool
-		AddTimeout int
-	}
-	if err := json.Unmarshal(b, &aic); err != nil {
-		return err
-	}
-	_, err := NewIpfsConfig(aic.Enabled, aic.AddTimeout)
-	if err != nil {
-		return err
-	}
-	ic.enabled = aic.Enabled
-	ic.addTimeout = aic.AddTimeout
 	return nil
 }
 
@@ -183,63 +191,21 @@ type ColdConfig struct {
 // FilecoinConfig is the desired state of a Cid in the
 // Filecoin network.
 type FilecoinConfig struct {
-	enabled      bool
-	repFactor    int
-	dealDuration int64
+	Enabled      bool
+	RepFactor    int
+	DealDuration int64
+	Blacklist    []string
+	CountryCodes []string
 }
 
-func NewFilecoinConfig(enabled bool, repFactor int, dealDuration int64) (FilecoinConfig, error) {
-	if repFactor < 1 {
-		return FilecoinConfig{}, fmt.Errorf("invalid rep factor")
+// Validate returns a non-nil error if the configuration is invalid.
+func (fc *FilecoinConfig) Validate() error {
+	if fc.RepFactor <= 0 {
+		return fmt.Errorf("replication factor should be greater than zero, got %d", fc.RepFactor)
 	}
-	return FilecoinConfig{
-		enabled:      enabled,
-		repFactor:    repFactor,
-		dealDuration: dealDuration,
-	}, nil
-}
-
-func (fc FilecoinConfig) Enabled() bool {
-	return fc.enabled
-}
-
-func (fc FilecoinConfig) RepFactor() int {
-	return fc.repFactor
-}
-
-func (fc FilecoinConfig) DealDuration() int64 {
-	return fc.dealDuration
-}
-
-func (fc FilecoinConfig) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Enabled      bool
-		RepFactor    int
-		DealDuration int64
-	}{
-		Enabled:      fc.enabled,
-		RepFactor:    fc.repFactor,
-		DealDuration: fc.dealDuration,
-	})
-}
-
-func (fc *FilecoinConfig) UnmarshalJSON(b []byte) error {
-	var afc struct {
-		Enabled      bool
-		RepFactor    int
-		DealDuration int64
+	if fc.DealDuration <= 0 {
+		return fmt.Errorf("deal duration should be greater than zero, got %d", fc.DealDuration)
 	}
-	if err := json.Unmarshal(b, &afc); err != nil {
-		return err
-	}
-	_, err := NewFilecoinConfig(afc.Enabled, afc.RepFactor, afc.DealDuration)
-	if err != nil {
-		return err
-	}
-	fc.enabled = afc.Enabled
-	fc.repFactor = afc.RepFactor
-	fc.dealDuration = afc.DealDuration
-
 	return nil
 }
 
@@ -285,4 +251,5 @@ type FilStorage struct {
 	Duration        int64
 	ActivationEpoch uint64
 	Failed          bool
+	Miner           string
 }

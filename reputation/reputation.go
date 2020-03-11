@@ -80,6 +80,52 @@ func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 	return rm.sources.Add(source.Source{ID: id, Maddr: maddr})
 }
 
+// QueryMiners makes a filtered query on the scored-sorted miner list.
+// Empty filter slices represent no-filters applied.
+func (rm *Module) QueryMiners(n int, blacklist []string, countryCodes []string) ([]MinerScore, error) {
+	if n < 1 {
+		return nil, fmt.Errorf("the number of miners should be greater than zero")
+	}
+
+	minersMeta := rm.mi.Get().Meta.Info
+	rm.lockScores.Lock()
+	if n > len(rm.scores) {
+		n = len(rm.scores)
+	}
+	mr := make([]MinerScore, 0, n)
+	for i := 0; i < n; i++ {
+		skip := false
+		for _, mb := range blacklist {
+			if mb == rm.scores[i].Addr {
+				skip = true
+				break
+			}
+		}
+		if skip {
+			continue
+		}
+		minerMeta, ok := minersMeta[rm.scores[i].Addr]
+		if !ok {
+			continue
+		}
+		if len(countryCodes) != 0 {
+			skip := true
+			for _, country := range countryCodes {
+				if country == minerMeta.Location.Country {
+					skip = false
+					break
+				}
+			}
+			if skip {
+				continue
+			}
+		}
+		mr = append(mr, rm.scores[i])
+	}
+	rm.lockScores.Unlock()
+	return mr, nil
+}
+
 // GetTopMiners gets the top n miners with best score
 func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
 	if n < 1 {

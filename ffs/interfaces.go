@@ -41,7 +41,18 @@ type ColdStorage interface {
 // MinerSelector returns miner addresses and ask storage information using a
 // desired strategy.
 type MinerSelector interface {
-	GetMiners(n int) ([]MinerProposal, error)
+	GetMiners(n int, f MinerSelectorFilter) ([]MinerProposal, error)
+}
+
+// MinerSelectorFilter establishes filters that should be considered when
+// returning miners.
+type MinerSelectorFilter struct {
+	// Blacklist contains miner names that should not be considered in
+	// returned results. An empty list means no blacklisting.
+	Blacklist []string
+	// CountryCodes contains long-ISO country names that should be
+	// considered in selected miners. An empty list means no filtering.
+	CountryCodes []string
 }
 
 // MinerProposal contains a miners address and storage ask information

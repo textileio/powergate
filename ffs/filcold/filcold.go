@@ -49,12 +49,12 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, conf ffs.
 
 	log.Infof("storing deals in filecoin...")
 	var sres []deals.StoreResult
-	ci.Filecoin.PayloadCID, sres, err = fc.dm.Store(ctx, waddr, r, config, uint64(conf.Filecoin.DealDuration()))
+	ci.Filecoin.PayloadCID, sres, err = fc.dm.Store(ctx, waddr, r, config, uint64(conf.Filecoin.DealDuration))
 	if err != nil {
 		return ci, fmt.Errorf("storing deals in deal manager: %s", err)
 	}
 
-	if ci.Filecoin.Proposals, err = fc.waitForDeals(ctx, sres, conf.Filecoin.DealDuration()); err != nil {
+	if ci.Filecoin.Proposals, err = fc.waitForDeals(ctx, sres, conf.Filecoin.DealDuration); err != nil {
 		return ci, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
 	return ci, nil
@@ -69,6 +69,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 			ProposalCid: d.ProposalCid,
 			Failed:      !d.Success,
 			Duration:    duration,
+			Miner:       d.Config.Miner,
 		}
 		if d.Success {
 			inProgressDeals = append(inProgressDeals, d.ProposalCid)
@@ -120,7 +121,11 @@ func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) 
 }
 
 func makeStorageConfig(ctx context.Context, ms ffs.MinerSelector, conf ffs.FilecoinConfig) ([]deals.StorageDealConfig, error) {
-	mps, err := ms.GetMiners(conf.RepFactor())
+	filters := ffs.MinerSelectorFilter{
+		Blacklist:    conf.Blacklist,
+		CountryCodes: conf.CountryCodes,
+	}
+	mps, err := ms.GetMiners(conf.RepFactor, filters)
 	if err != nil {
 		return nil, err
 	}

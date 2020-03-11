@@ -50,6 +50,9 @@ type watcher struct {
 
 // New returns a new Api instance.
 func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.CidConfig) (*Instance, error) {
+	if err := dc.Validate(); err != nil {
+		return nil, fmt.Errorf("default cid config is invalid: %s", err)
+	}
 	addr, err := wm.NewWallet(ctx, defaultWalletType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
@@ -113,6 +116,9 @@ func (i *Instance) GetDefaultCidConfig() ffs.CidConfig {
 func (i *Instance) SetDefaultCidConfig(c ffs.CidConfig) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
+	if err := c.Validate(); err != nil {
+		return fmt.Errorf("default cid config is invalid: %s", err)
+	}
 	i.config.DefaultConfig = c
 	return nil
 }

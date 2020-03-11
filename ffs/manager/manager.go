@@ -56,20 +56,20 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 	defer m.lock.Unlock()
 
 	createDefConfig.Do(func() {
-		defIpfsConfig, err := ffs.NewIpfsConfig(true, 30)
-		if err != nil {
-			log.Fatalf("creating default ipfs config: %s", err)
-		}
-		defFilecoinConfig, err := ffs.NewFilecoinConfig(true, 1, 1000)
-		if err != nil {
-			log.Fatalf("creating default filecoin config: %s", err)
-		}
 		defInstanceConfig = ffs.CidConfig{
 			Hot: ffs.HotConfig{
-				Ipfs: defIpfsConfig,
+				Ipfs: ffs.IpfsConfig{
+					Enabled:    true,
+					AddTimeout: 30,
+				},
 			},
 			Cold: ffs.ColdConfig{
-				Filecoin: defFilecoinConfig,
+				Filecoin: ffs.FilecoinConfig{
+					Enabled:      true,
+					RepFactor:    1,
+					DealDuration: 1000,
+					Blacklist:    nil,
+				},
 			},
 		}
 	})
