@@ -264,7 +264,9 @@ func NewServer(conf Config) (*Server, error) {
 	}()
 
 	go func() {
-		grpcWebProxy.ListenAndServe()
+		if err := grpcWebProxy.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Errorf("error starting proxy: %v", err)
+		}
 	}()
 
 	g.Start()
