@@ -183,17 +183,19 @@ type ColdConfig struct {
 // FilecoinConfig is the desired state of a Cid in the
 // Filecoin network.
 type FilecoinConfig struct {
-	enabled   bool
-	repFactor int
+	enabled      bool
+	repFactor    int
+	dealDuration int64
 }
 
-func NewFilecoinConfig(enabled bool, repFactor int) (FilecoinConfig, error) {
+func NewFilecoinConfig(enabled bool, repFactor int, dealDuration int64) (FilecoinConfig, error) {
 	if repFactor < 1 {
 		return FilecoinConfig{}, fmt.Errorf("invalid rep factor")
 	}
 	return FilecoinConfig{
-		enabled:   enabled,
-		repFactor: repFactor,
+		enabled:      enabled,
+		repFactor:    repFactor,
+		dealDuration: dealDuration,
 	}, nil
 }
 
@@ -205,30 +207,39 @@ func (fc FilecoinConfig) RepFactor() int {
 	return fc.repFactor
 }
 
+func (fc FilecoinConfig) DealDuration() int64 {
+	return fc.dealDuration
+}
+
 func (fc FilecoinConfig) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Enabled   bool
-		RepFactor int
+		Enabled      bool
+		RepFactor    int
+		DealDuration int64
 	}{
-		Enabled:   fc.enabled,
-		RepFactor: fc.repFactor,
+		Enabled:      fc.enabled,
+		RepFactor:    fc.repFactor,
+		DealDuration: fc.dealDuration,
 	})
 }
 
 func (fc *FilecoinConfig) UnmarshalJSON(b []byte) error {
 	var afc struct {
-		Enabled   bool
-		RepFactor int
+		Enabled      bool
+		RepFactor    int
+		DealDuration int64
 	}
 	if err := json.Unmarshal(b, &afc); err != nil {
 		return err
 	}
-	_, err := NewFilecoinConfig(afc.Enabled, afc.RepFactor)
+	_, err := NewFilecoinConfig(afc.Enabled, afc.RepFactor, afc.DealDuration)
 	if err != nil {
 		return err
 	}
 	fc.enabled = afc.Enabled
 	fc.repFactor = afc.RepFactor
+	fc.dealDuration = afc.DealDuration
+
 	return nil
 }
 
@@ -265,12 +276,13 @@ type ColdInfo struct {
 // of a Cid in the Filecoin network.
 type FilInfo struct {
 	PayloadCID cid.Cid
-	Duration   uint64
 	Proposals  []FilStorage
 }
 
 // FilStorage contains Deal information of a storage in Filecoin.
 type FilStorage struct {
-	ProposalCid cid.Cid
-	Failed      bool
+	ProposalCid     cid.Cid
+	Duration        int64
+	ActivationEpoch uint64
+	Failed          bool
 }

@@ -60,7 +60,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 		if err != nil {
 			log.Fatalf("creating default ipfs config: %s", err)
 		}
-		defFilecoinConfig, err := ffs.NewFilecoinConfig(true, 1)
+		defFilecoinConfig, err := ffs.NewFilecoinConfig(true, 1, 1000)
 		if err != nil {
 			log.Fatalf("creating default filecoin config: %s", err)
 		}

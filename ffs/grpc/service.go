@@ -88,15 +88,16 @@ func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply,
 		Cold: &pb.ShowReply_ColdInfo{
 			Filecoin: &pb.ShowReply_FilInfo{
 				PayloadCid: info.Cold.Filecoin.PayloadCID.String(),
-				Duration:   info.Cold.Filecoin.Duration,
 				Proposals:  make([]*pb.ShowReply_FilStorage, len(info.Cold.Filecoin.Proposals)),
 			},
 		},
 	}
 	for i, p := range info.Cold.Filecoin.Proposals {
 		reply.Cold.Filecoin.Proposals[i] = &pb.ShowReply_FilStorage{
-			ProposalCid: p.ProposalCid.String(),
-			Failed:      p.Failed,
+			ProposalCid:     p.ProposalCid.String(),
+			Failed:          p.Failed,
+			Duration:        p.Duration,
+			ActivationEpoch: int64(p.ActivationEpoch),
 		}
 	}
 

@@ -41,58 +41,71 @@ func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold
 // (TODO: ColdConfig will enable more configurations in the future)
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, conf ffs.ColdConfig) (ffs.ColdInfo, error) {
 	var ci ffs.ColdInfo
-	ci.Filecoin = ffs.FilInfo{
-		Duration: uint64(1000),
-	}
 	config, err := makeStorageConfig(ctx, fc.ms, conf.Filecoin)
 	if err != nil {
 		return ci, fmt.Errorf("selecting miners to make the deal: %s", err)
 	}
 	r := ipldToFileTransform(ctx, fc.dag, c)
+
 	log.Infof("storing deals in filecoin...")
-	dataCid, res, err := fc.dm.Store(ctx, waddr, r, config, ci.Filecoin.Duration)
+	var sres []deals.StoreResult
+	ci.Filecoin.PayloadCID, sres, err = fc.dm.Store(ctx, waddr, r, config, uint64(conf.Filecoin.DealDuration()))
 	if err != nil {
 		return ci, fmt.Errorf("storing deals in deal manager: %s", err)
 	}
-	ci.Filecoin.PayloadCID = dataCid
 
-	if ci.Filecoin.Proposals, err = fc.waitForDeals(ctx, res); err != nil {
+	if ci.Filecoin.Proposals, err = fc.waitForDeals(ctx, sres, conf.Filecoin.DealDuration()); err != nil {
 		return ci, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
 	return ci, nil
 }
 
-func (fc *FilCold) waitForDeals(ctx context.Context, res []deals.StoreResult) ([]ffs.FilStorage, error) {
+func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {
 	notDone := make(map[cid.Cid]struct{})
-	var propcids []cid.Cid
-	var filstrg []ffs.FilStorage
-	for _, d := range res {
+	var inProgressDeals []cid.Cid
+	proposals := make(map[cid.Cid]*ffs.FilStorage)
+	for _, d := range storeResults {
+		proposals[d.ProposalCid] = &ffs.FilStorage{
+			ProposalCid: d.ProposalCid,
+			Failed:      !d.Success,
+			Duration:    duration,
+		}
 		if d.Success {
-			filstrg = append(filstrg, ffs.FilStorage{
-				ProposalCid: d.ProposalCid,
-				Failed:      !d.Success,
-			})
-			propcids = append(propcids, d.ProposalCid)
+			inProgressDeals = append(inProgressDeals, d.ProposalCid)
 			notDone[d.ProposalCid] = struct{}{}
 		}
 	}
 
-	log.Infof("watching deals unfold...")
-	chDi, err := fc.dm.Watch(ctx, propcids)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	chDi, err := fc.dm.Watch(ctx, inProgressDeals)
 	if err != nil {
 		return nil, err
 	}
 	for di := range chDi {
-		// ToDo: check state coverage, changes return since deals can fail
-		if di.StateID == storagemarket.StorageDealActive {
+		log.Infof("watching pending %d deals unfold...", len(notDone))
+		fs, ok := proposals[di.ProposalCid]
+		if !ok {
+			continue
+		}
+		if di.StateID == storagemarket.DealComplete {
+			fs.ActivationEpoch = di.ActivationEpoch
+			delete(notDone, di.ProposalCid)
+		} else if di.StateID == storagemarket.DealError || di.StateID == storagemarket.DealFailed {
+			fs.Failed = true
 			delete(notDone, di.ProposalCid)
 		}
 		if len(notDone) == 0 {
 			break
 		}
 	}
-	log.Infof("done")
-	return filstrg, nil
+	log.Infof("deals reached final state")
+
+	res := make([]ffs.FilStorage, 0, len(proposals))
+	for _, v := range proposals {
+		res = append(res, *v)
+	}
+	return res, nil
 }
 
 func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) io.Reader {

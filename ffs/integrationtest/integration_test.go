@@ -62,7 +62,7 @@ func TestDefaultConfig(t *testing.T) {
 
 	ipfsConfig, err := ffs.NewIpfsConfig(false, 30)
 	require.Nil(t, err)
-	fcConfig, err := ffs.NewFilecoinConfig(false, 1)
+	fcConfig, err := ffs.NewFilecoinConfig(false, 1, 1000)
 	require.Nil(t, err)
 	newConfig := ffs.CidConfig{
 		Hot: ffs.HotConfig{
@@ -94,7 +94,7 @@ func TestAdd(t *testing.T) {
 	t.Run("WithCustomConfig", func(t *testing.T) {
 		ipfsConfig, err := ffs.NewIpfsConfig(false, 30)
 		require.Nil(t, err)
-		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1, 1000)
 		require.Nil(t, err)
 		config := ffs.CidConfig{
 			Hot: ffs.HotConfig{
@@ -200,10 +200,10 @@ func TestShow(t *testing.T) {
 		require.True(t, time.Now().After(s.Hot.Ipfs.Created))
 		require.NotNil(t, s.Cold.Filecoin)
 		require.True(t, s.Cold.Filecoin.PayloadCID.Defined())
-		require.Greater(t, s.Cold.Filecoin.Duration, uint64(0))
 		require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
 		p := s.Cold.Filecoin.Proposals[0]
 		require.True(t, p.ProposalCid.Defined())
+		require.Greater(t, p.Duration, int64(0))
 		require.False(t, p.Failed)
 	})
 }
@@ -254,7 +254,7 @@ func TestRepFactor(t *testing.T) {
 			cid, _ := addRandomFile(t, r, ipfsApi)
 			ipfsConfig, err := ffs.NewIpfsConfig(true, 30)
 			require.Nil(t, err)
-			fcConfig, err := ffs.NewFilecoinConfig(true, rf)
+			fcConfig, err := ffs.NewFilecoinConfig(true, rf, 1000)
 			require.Nil(t, err)
 			config := ffs.CidConfig{
 				Hot: ffs.HotConfig{
@@ -276,7 +276,7 @@ func TestRepFactor(t *testing.T) {
 		cid, _ := addRandomFile(t, r, ipfsApi)
 		ipfsConfig, err := ffs.NewIpfsConfig(true, 30)
 		require.Nil(t, err)
-		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1, 1000)
 		require.Nil(t, err)
 		config := ffs.CidConfig{
 			Hot: ffs.HotConfig{
@@ -292,7 +292,7 @@ func TestRepFactor(t *testing.T) {
 		require.Equal(t, 1, len(job.CidInfo.Cold.Filecoin.Proposals))
 		firstProposal := job.CidInfo.Cold.Filecoin.Proposals[0]
 
-		fcConfig, err = ffs.NewFilecoinConfig(true, 2)
+		fcConfig, err = ffs.NewFilecoinConfig(true, 2, 1000)
 		require.Nil(t, err)
 		config.Cold.Filecoin = fcConfig
 		jid, err = fapi.AddCid(cid, api.WithCidConfig(config), api.WithOverride(true))
@@ -311,7 +311,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 		cid, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 		ipfsConfig, err := ffs.NewIpfsConfig(true, 1)
 		require.Nil(t, err)
-		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1, 1000)
 		require.Nil(t, err)
 
 		config := ffs.CidConfig{
@@ -325,6 +325,37 @@ func TestHotTimeoutConfig(t *testing.T) {
 		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Failed)
+	})
+}
+
+func TestDurationConfig(t *testing.T) {
+	ipfsApi, fapi, cls := newApi(t, 1)
+	defer cls()
+
+	r := rand.New(rand.NewSource(7))
+	cid, _ := addRandomFile(t, r, ipfsApi)
+	t.Run("WithDefaultConfig", func(t *testing.T) {
+		ipfsConfig, err := ffs.NewIpfsConfig(true, 1)
+		require.Nil(t, err)
+		duration := int64(1234)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1, duration)
+		require.Nil(t, err)
+
+		config := ffs.CidConfig{
+			Hot: ffs.HotConfig{
+				Ipfs: ipfsConfig,
+			},
+			Cold: ffs.ColdConfig{
+				Filecoin: fcConfig,
+			},
+		}
+
+		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		job := requireJobState(t, fapi, jid, ffs.Done)
+		p := job.CidInfo.Cold.Filecoin.Proposals[0]
+		require.Equal(t, duration, p.Duration)
+		require.Greater(t, p.ActivationEpoch, uint64(0))
 	})
 }
 
@@ -371,7 +402,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/api/store"))
 		ipfsConfig, err := ffs.NewIpfsConfig(true, 30)
 		require.Nil(t, err)
-		fcConfig, err := ffs.NewFilecoinConfig(true, 1)
+		fcConfig, err := ffs.NewFilecoinConfig(true, 1, 1000)
 		require.Nil(t, err)
 		defConfig := ffs.CidConfig{
 			Hot: ffs.HotConfig{
