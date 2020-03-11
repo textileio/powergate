@@ -63,7 +63,7 @@ func TestAdd(t *testing.T) {
 	ipfsApi, fapi, cls := newApi(t, 1)
 	defer cls()
 
-	r := rand.New(rand.NewSource(1))
+	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		jid, err := fapi.AddCid(cid)
@@ -86,7 +86,7 @@ func TestGet(t *testing.T) {
 	ipfs, fapi, cls := newApi(t, 1)
 	defer cls()
 
-	r := rand.New(rand.NewSource(2))
+	r := rand.New(rand.NewSource(22))
 	cid, data := addRandomFile(t, r, ipfs)
 	jid, err := fapi.AddCid(cid)
 	require.Nil(t, err)
@@ -117,7 +117,7 @@ func TestInfo(t *testing.T) {
 		require.Equal(t, len(first.Pins), 0)
 	})
 
-	r := rand.New(rand.NewSource(3))
+	r := rand.New(rand.NewSource(22))
 	n := 3
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
@@ -148,7 +148,7 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		r := rand.New(rand.NewSource(4))
+		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfs)
 		jid, err := fapi.AddCid(cid)
 		require.Nil(t, err)
@@ -188,7 +188,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	defer closeDevnet()
 
 	ipfsApi, fapi, cls := newApiFromDs(t, ds, ffs.EmptyID, client, addr, ms, ipfsDocker)
-	ra := rand.New(rand.NewSource(5))
+	ra := rand.New(rand.NewSource(22))
 	cid, data := addRandomFile(t, ra, ipfsApi)
 	jid, err := fapi.AddCid(cid)
 	require.Nil(t, err)
@@ -221,7 +221,7 @@ func TestRepFactor(t *testing.T) {
 	defer cls()
 
 	rfs := []int{1, 2}
-	r := rand.New(rand.NewSource(6))
+	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
 			cid, _ := addRandomFile(t, r, ipfsApi)
@@ -268,7 +268,7 @@ func TestDurationConfig(t *testing.T) {
 	ipfsApi, fapi, cls := newApi(t, 1)
 	defer cls()
 
-	r := rand.New(rand.NewSource(7))
+	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	duration := int64(1234)
 	config := fapi.GetDefaultCidConfig().WithColdFilDealDuration(duration)
@@ -284,7 +284,7 @@ func TestFilecoinBlacklist(t *testing.T) {
 	ipfsApi, fapi, cls := newApi(t, 2)
 	defer cls()
 
-	r := rand.New(rand.NewSource(8))
+	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	excludedMiner := "t0300"
 	config := fapi.GetDefaultCidConfig().WithColdFilBlacklist([]string{excludedMiner})
@@ -317,7 +317,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyID, dnet.Client, addr, ms, ipfsDocker)
 	defer closeInternal()
 
-	r := rand.New(rand.NewSource(9))
+	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	countryFilter := []string{"Uruguay"}
 	config := fapi.GetDefaultCidConfig().WithColdFilCountryCodes(countryFilter)
