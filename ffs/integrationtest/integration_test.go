@@ -37,10 +37,6 @@ import (
 	"github.com/textileio/powergate/wallet"
 )
 
-var (
-	ipfsDocker *dockertest.Resource
-)
-
 func TestMain(m *testing.M) {
 	logging.SetAllLoggers(logging.LevelError)
 
@@ -49,11 +45,7 @@ func TestMain(m *testing.M) {
 	// logging.SetLogLevel("jobstore", "debug")
 	// logging.SetLogLevel("coreipfs", "debug")
 
-	var cls func()
-	ipfsDocker, cls = tests.LaunchDocker()
-	code := m.Run()
-	cls()
-	os.Exit(code)
+	os.Exit(m.Run())
 }
 
 func TestDefaultConfig(t *testing.T) {
@@ -188,11 +180,14 @@ func TestShow(t *testing.T) {
 
 func TestColdInstanceLoad(t *testing.T) {
 	ctx := context.Background()
+	ipfsDocker, cls := tests.LaunchDocker()
+	t.Cleanup(func() { cls() })
+
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms, closeDevnet := newDevnet(t, 1)
 	defer closeDevnet()
 
-	ipfsApi, fapi, cls := newApiFromDs(t, ds, ffs.EmptyID, client, addr, ms)
+	ipfsApi, fapi, cls := newApiFromDs(t, ds, ffs.EmptyID, client, addr, ms, ipfsDocker)
 	ra := rand.New(rand.NewSource(5))
 	cid, data := addRandomFile(t, ra, ipfsApi)
 	jid, err := fapi.AddCid(cid)
@@ -204,7 +199,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.Nil(t, err)
 	cls()
 
-	_, fapi, cls = newApiFromDs(t, ds, fapi.ID(), client, addr, ms)
+	_, fapi, cls = newApiFromDs(t, ds, fapi.ID(), client, addr, ms, ipfsDocker)
 	defer cls()
 	ninfo, err := fapi.Info(ctx)
 	require.Nil(t, err)
@@ -302,7 +297,10 @@ func TestFilecoinBlacklist(t *testing.T) {
 }
 
 func TestFilecoinCountryFilter(t *testing.T) {
-	countries := []string{"China", "Uruguay", "USA"}
+	ipfsDocker, cls := tests.LaunchDocker()
+	t.Cleanup(func() { cls() })
+
+	countries := []string{"China", "Uruguay"}
 	numMiners := len(countries)
 	dnet, addr, _, close := tests.CreateLocalDevnet(t, numMiners)
 	defer close()
@@ -316,7 +314,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
-	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyID, dnet.Client, addr, ms)
+	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyID, dnet.Client, addr, ms, ipfsDocker)
 	defer closeInternal()
 
 	r := rand.New(rand.NewSource(9))
@@ -332,9 +330,11 @@ func TestFilecoinCountryFilter(t *testing.T) {
 }
 
 func newApi(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.Instance, func()) {
+	ipfsDocker, cls := tests.LaunchDocker()
+	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms, close := newDevnet(t, numMiners)
-	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyID, client, addr, ms)
+	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyID, client, addr, ms, ipfsDocker)
 	return ipfsApi, fapi, func() {
 		closeInternal()
 		close()
@@ -356,7 +356,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 	return addr, dnet.Client, ms, close
 }
 
-func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector) (*httpapi.HttpApi, *api.Instance, func()) {
+func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.Instance, func()) {
 	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)

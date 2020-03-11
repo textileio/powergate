@@ -38,7 +38,7 @@ func New(ipfs iface.CoreAPI) *CoreIpfs {
 func (ci *CoreIpfs) Add(ctx context.Context, r io.Reader) (cid.Cid, error) {
 	path, err := ci.ipfs.Unixfs().Add(ctx, ipfsfiles.NewReaderFile(r), options.Unixfs.Pin(false))
 	if err != nil {
-		return cid.Undef, fmt.Errorf("adding data: %s", err)
+		return cid.Undef, fmt.Errorf("adding data to ipfs: %s", err)
 	}
 	return path.Cid(), nil
 }
@@ -47,7 +47,7 @@ func (ci *CoreIpfs) Add(ctx context.Context, r io.Reader) (cid.Cid, error) {
 func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	n, err := ci.ipfs.Unixfs().Get(ctx, path.IpfsPath(c))
 	if err != nil {
-		return nil, fmt.Errorf("getting cid %s: %s", c, err)
+		return nil, fmt.Errorf("getting cid %s from ipfs: %s", c, err)
 	}
 	file := ipfsfiles.ToFile(n)
 	if file == nil {

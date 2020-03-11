@@ -114,7 +114,7 @@ func New(numMiners int, blockDur time.Duration) (*LocalDevnet, error) {
 		}
 	}
 
-	time.Sleep(blockDur * 5) // Give time to mine at least 1 block
+	time.Sleep(blockDur * 3) // Give time to mine at least 1 block
 	return &LocalDevnet{
 		Client:    client,
 		closer:    closer,

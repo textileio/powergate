@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ipfs/go-datastore"
 	ds "github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/namespace"
 	logging "github.com/ipfs/go-log/v2"
@@ -76,7 +75,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 
 	log.Info("creating instance")
 	iid := ffs.NewInstanceID()
-	confstore := store.New(iid, namespace.Wrap(m.ds, datastore.NewKey("ffs/api/store")))
+	confstore := store.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/store")))
 	fapi, err := api.New(ctx, iid, confstore, m.sched, m.wm, defInstanceConfig)
 	if err != nil {
 		return ffs.EmptyID, "", fmt.Errorf("creating new instance: %s", err)
@@ -106,7 +105,7 @@ func (m *Manager) GetByAuthToken(token string) (*api.Instance, error) {
 	i, ok := m.instances[iid]
 	if !ok {
 		log.Infof("loading uncached instance %s", iid)
-		confstore := store.New(iid, namespace.Wrap(m.ds, datastore.NewKey("ffs/api/store")))
+		confstore := store.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/store")))
 		i, err = api.Load(iid, confstore, m.sched, m.wm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)

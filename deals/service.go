@@ -154,10 +154,10 @@ func (s *Service) Retrieve(req *pb.RetrieveRequest, srv pb.API_RetrieveServer) e
 	}
 
 	reader, err := s.Module.Retrieve(srv.Context(), req.GetAddress(), cid)
-	defer reader.Close()
 	if err != nil {
 		return err
 	}
+	defer reader.Close()
 
 	buffer := make([]byte, 1024*32) // 32KB
 	for {
