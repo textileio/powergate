@@ -1,6 +1,7 @@
 package ffs
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -28,7 +29,12 @@ func (jid JobID) String() string {
 
 // InstanceID
 var (
+	// EmptyID representes an empty/invalid Instance ID.
 	EmptyID = InstanceID("")
+	// ErrBothStorageDisabled returned when both storages are disabled.
+	ErrBothStoragesDisabled = errors.New("both Hot and Cold layers can't be disabled")
+	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
+	ErrHotStorageDisabled = errors.New("cid disabled in hot storage")
 )
 
 // InstanceID is an identifier for a Api instance.
@@ -99,13 +105,29 @@ type Job struct {
 	CidInfo  CidInfo
 }
 
-type CidConfig struct {
+type DefaultCidConfig struct {
 	Hot  HotConfig
 	Cold ColdConfig
 }
 
-func (c CidConfig) WithColdFilEnabled(enabled bool) CidConfig {
-	c.Cold.Filecoin.Enabled = enabled
+func (dc DefaultCidConfig) Validate() error {
+	if err := dc.Hot.Validate(); err != nil {
+		return err
+	}
+	if err := dc.Cold.Validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+type CidConfig struct {
+	Cid  cid.Cid
+	Hot  HotConfig
+	Cold ColdConfig
+}
+
+func (c CidConfig) WithColdEnabled(enabled bool) CidConfig {
+	c.Cold.Enabled = enabled
 	return c
 }
 
@@ -131,8 +153,8 @@ func (c CidConfig) WithColdFilDealDuration(duration int64) CidConfig {
 	return c
 }
 
-func (c CidConfig) WithHotIpfsEnabled(enabled bool) CidConfig {
-	c.Hot.Ipfs.Enabled = enabled
+func (c CidConfig) WithHotEnabled(enabled bool) CidConfig {
+	c.Hot.Enabled = enabled
 	return c
 }
 
@@ -142,11 +164,17 @@ func (c CidConfig) WithHotIpfsAddTimeout(seconds int) CidConfig {
 }
 
 func (c CidConfig) Validate() error {
-	if err := c.Hot.Ipfs.Validate(); err != nil {
+	if !c.Cid.Defined() {
+		return fmt.Errorf("cid is undefined")
+	}
+	if err := c.Hot.Validate(); err != nil {
 		return fmt.Errorf("hot-ipfs config is invalid: %s", err)
 	}
-	if err := c.Cold.Filecoin.Validate(); err != nil {
+	if err := c.Cold.Validate(); err != nil {
 		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
+	}
+	if !c.Hot.Enabled && !c.Cold.Enabled {
+		return ErrBothStoragesDisabled
 	}
 	return nil
 }
@@ -155,9 +183,24 @@ func (c CidConfig) Validate() error {
 type AddAction struct {
 	ID         CidConfigID
 	InstanceID InstanceID
-	Cid        cid.Cid
 	Config     CidConfig
 	Meta       AddMeta
+}
+
+func (aa AddAction) Validate() error {
+	if aa.InstanceID == EmptyID {
+		return fmt.Errorf("invalid Action ID")
+	}
+	if aa.ID == "" {
+		return fmt.Errorf("invalid Add Action ID")
+	}
+	if err := aa.Config.Validate(); err != nil {
+		return err
+	}
+	if err := aa.Meta.Validate(); err != nil {
+		return fmt.Errorf("invalid Meta: %s", err)
+	}
+	return nil
 }
 
 // AddMeta contains necessary metadata to execute the Add action.
@@ -165,14 +208,28 @@ type AddMeta struct {
 	WalletAddr string
 }
 
+func (am AddMeta) Validate() error {
+	if am.WalletAddr == "" {
+		return fmt.Errorf("invalid wallet address")
+	}
+	return nil
+}
+
 // Hotconfig is the desired storage of a Cid in a hot layer.
 type HotConfig struct {
-	Ipfs IpfsConfig
+	Enabled bool
+	Ipfs    IpfsConfig
+}
+
+func (hc HotConfig) Validate() error {
+	if err := hc.Ipfs.Validate(); err != nil {
+		return fmt.Errorf("invalid ipfs config: %s", err)
+	}
+	return nil
 }
 
 // IpfsConfig is the desired storage of a Cid in IPFS.
 type IpfsConfig struct {
-	Enabled    bool
 	AddTimeout int
 }
 
@@ -185,13 +242,20 @@ func (ic *IpfsConfig) Validate() error {
 
 // ColdConfig is the desired state of a Cid in a cold layer.
 type ColdConfig struct {
+	Enabled  bool
 	Filecoin FilecoinConfig
+}
+
+func (cc ColdConfig) Validate() error {
+	if err := cc.Filecoin.Validate(); err != nil {
+		return fmt.Errorf("invalid Filecoin config: %s", err)
+	}
+	return nil
 }
 
 // FilecoinConfig is the desired state of a Cid in the
 // Filecoin network.
 type FilecoinConfig struct {
-	Enabled      bool
 	RepFactor    int
 	DealDuration int64
 	Blacklist    []string
@@ -222,8 +286,9 @@ type CidInfo struct {
 // HotInfo contains information about the current storage state
 // of a Cid in the hot layer.
 type HotInfo struct {
-	Size int
-	Ipfs IpfsHotInfo
+	Enabled bool
+	Size    int
+	Ipfs    IpfsHotInfo
 }
 
 // IpfsHotInfo contains information about the current storage state
@@ -235,6 +300,7 @@ type IpfsHotInfo struct {
 // ColdInfo contains information about the current storage state
 // of a Cid in the cold layer.
 type ColdInfo struct {
+	Enabled  bool
 	Filecoin FilInfo
 }
 

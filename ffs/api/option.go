@@ -1,6 +1,11 @@
 package api
 
-import "github.com/textileio/powergate/ffs"
+import (
+	"fmt"
+
+	"github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/ffs"
+)
 
 type AddCidOption func(o *AddCidConfig) error
 
@@ -9,9 +14,17 @@ type AddCidConfig struct {
 	OverrideConfig bool
 }
 
-func newDefaultAddCidConfig(c ffs.CidConfig) AddCidConfig {
+func newDefaultAddCidConfig(c cid.Cid, dc ffs.DefaultCidConfig) AddCidConfig {
 	return AddCidConfig{
-		Config: c,
+		Config: newDefaultCidConfig(c, dc),
+	}
+}
+
+func newDefaultCidConfig(c cid.Cid, dc ffs.DefaultCidConfig) ffs.CidConfig {
+	return ffs.CidConfig{
+		Cid:  c,
+		Hot:  dc.Hot,
+		Cold: dc.Cold,
 	}
 }
 
@@ -27,4 +40,11 @@ func WithOverride(override bool) AddCidOption {
 		o.OverrideConfig = override
 		return nil
 	}
+}
+
+func (acc AddCidConfig) Validate() error {
+	if err := acc.Config.Validate(); err != nil {
+		return fmt.Errorf("invalid config: %s", err)
+	}
+	return nil
 }

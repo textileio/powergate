@@ -10,8 +10,8 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 )
 
-// PushCidConfig saves a new desired configuration for storing a Cid
-func (cs *ConfigStore) PushCidConfig(c ffs.AddAction) error {
+// PutCidConfig saves a new desired configuration for storing a Cid
+func (cs *ConfigStore) PutCidConfig(c ffs.CidConfig) error {
 	if !c.Cid.Defined() {
 		return fmt.Errorf("cid can't be undefined")
 	}
@@ -26,7 +26,7 @@ func (cs *ConfigStore) PushCidConfig(c ffs.AddAction) error {
 }
 
 // GetCidConfig returns the current desired config for the Cid
-func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*ffs.AddAction, error) {
+func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*ffs.CidConfig, error) {
 	buf, err := cs.ds.Get(makeCidConfigKey(cs.iid, c))
 	if err != nil {
 		if err == datastore.ErrNotFound {
@@ -34,7 +34,7 @@ func (cs *ConfigStore) GetCidConfig(c cid.Cid) (*ffs.AddAction, error) {
 		}
 		return nil, err
 	}
-	var conf ffs.AddAction
+	var conf ffs.CidConfig
 	if err := json.Unmarshal(buf, &conf); err != nil {
 		return nil, fmt.Errorf("unmarshaling config: %s", err)
 	}

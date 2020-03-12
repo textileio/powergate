@@ -22,7 +22,7 @@ var (
 	// ErrAlreaadyPinned returned when trying to push an initial config
 	// for storing a Cid.
 	ErrAlreadyPinned = errors.New("cid already pinned")
-	// ErNotStored returned when there isn't CidInfo for a Cid
+	// ErNotStored returned when there isn't CidInfo for a Cid.
 	ErrNotStored = errors.New("cid isn't stored")
 )
 
@@ -49,7 +49,7 @@ type watcher struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.CidConfig) (*Instance, error) {
+func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultCidConfig) (*Instance, error) {
 	if err := dc.Validate(); err != nil {
 		return nil, fmt.Errorf("default cid config is invalid: %s", err)
 	}
@@ -58,13 +58,13 @@ func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
 	}
 	config := Config{
-		ID:            iid,
-		WalletAddr:    addr,
-		DefaultConfig: dc,
+		ID:               iid,
+		WalletAddr:       addr,
+		DefaultCidConfig: dc,
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	i := new(iid, confstore, wm, config, sch, ctx, cancel)
-	if err := i.store.SaveConfig(config); err != nil {
+	if err := i.store.PutInstanceConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.config.ID, err)
 	}
 	return i, nil
@@ -72,7 +72,7 @@ func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs
 
 // Load loads a saved Api instance from its ConfigStore.
 func Load(iid ffs.InstanceID, confstore ConfigStore, sched ffs.Scheduler, wm ffs.WalletManager) (*Instance, error) {
-	config, err := confstore.GetConfig()
+	config, err := confstore.GetInstanceConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
@@ -107,19 +107,20 @@ func (i *Instance) WalletAddr() string {
 	return i.config.WalletAddr
 }
 
-func (i *Instance) GetDefaultCidConfig() ffs.CidConfig {
+// GetDefaultCidConfig returns the default instance Cid config, prepared for a Cid.
+func (i *Instance) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	return i.config.DefaultConfig
+	return newDefaultAddCidConfig(c, i.config.DefaultCidConfig).Config
 }
 
-func (i *Instance) SetDefaultCidConfig(c ffs.CidConfig) error {
+func (i *Instance) SetDefaultCidConfig(c ffs.DefaultCidConfig) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	if err := c.Validate(); err != nil {
 		return fmt.Errorf("default cid config is invalid: %s", err)
 	}
-	i.config.DefaultConfig = c
+	i.config.DefaultCidConfig = c
 	return nil
 }
 
@@ -138,7 +139,7 @@ func (i *Instance) Show(c cid.Cid) (ffs.CidInfo, error) {
 
 // Info returns instance information
 func (i *Instance) Info(ctx context.Context) (InstanceInfo, error) {
-	pins, err := i.store.Cids()
+	pins, err := i.store.GetCids()
 	if err != nil {
 		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
 	}
@@ -148,7 +149,7 @@ func (i *Instance) Info(ctx context.Context) (InstanceInfo, error) {
 	}
 	return InstanceInfo{
 		ID:               i.config.ID,
-		DefaultCidConfig: i.config.DefaultConfig,
+		DefaultCidConfig: i.config.DefaultCidConfig,
 		Wallet: WalletInfo{
 			Address: i.config.WalletAddr,
 			Balance: balance,
@@ -212,7 +213,7 @@ func (i *Instance) AddCid(c cid.Cid, opts ...AddCidOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	addConfig := newDefaultAddCidConfig(i.config.DefaultConfig)
+	addConfig := newDefaultAddCidConfig(c, i.config.DefaultCidConfig)
 	for _, opt := range opts {
 		if err := opt(&addConfig); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)
@@ -229,33 +230,43 @@ func (i *Instance) AddCid(c cid.Cid, opts ...AddCidOption) (ffs.JobID, error) {
 		}
 	}
 
-	cidconf := ffs.AddAction{
+	if err := addConfig.Config.Validate(); err != nil {
+		return ffs.EmptyJobID, err
+	}
+
+	addConf := ffs.AddAction{
 		InstanceID: i.config.ID,
 		ID:         ffs.NewCidConfigID(),
-		Cid:        c,
 		Config:     addConfig.Config,
 		Meta: ffs.AddMeta{
 			WalletAddr: i.config.WalletAddr,
 		},
 	}
 	log.Infof("adding cid %s to scheduler queue", c)
-	jid, err := i.sched.EnqueueCid(cidconf)
+	jid, err := i.sched.EnqueueCid(addConf)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
 	}
-	if err := i.store.PushCidConfig(cidconf); err != nil {
+	if err := i.store.PutCidConfig(addConf.Config); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil
 }
 
-// Get returns an io.Reader for reading a stored Cid.
-// (TODO: this API will change to accept different strategies, like HotOnly,
-// UnfreezeCold, or similar. Most prob it will become async, or there will be different
-// APIs).
+// Get returns an io.Reader for reading a stored Cid from the Hot Storage.
 // (TODO: Scheduler.GetFromHot might have to return an error if we want to rate-limit
 // hot layer retrievals)
 func (i *Instance) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
+	if !c.Defined() {
+		return nil, fmt.Errorf("cid is undefined")
+	}
+	conf, err := i.store.GetCidConfig(c)
+	if err != nil {
+		return nil, fmt.Errorf("getting cid config: %s", err)
+	}
+	if !conf.Hot.Enabled {
+		return nil, ffs.ErrHotStorageDisabled
+	}
 	r, err := i.sched.GetCidFromHot(ctx, c)
 	if err != nil {
 		return nil, fmt.Errorf("getting from hot layer %s: %s", c, err)
@@ -285,7 +296,7 @@ func (i *Instance) watchJobs() {
 				panic("scheduler closed the watching channel")
 			}
 			log.Info("received notification from jobstore")
-			if err := i.store.SaveCidInfo(j.CidInfo); err != nil {
+			if err := i.store.PutCidInfo(j.CidInfo); err != nil {
 				log.Errorf("saving cid info %s: %s", j.CidInfo.Cid, err)
 				continue
 			}

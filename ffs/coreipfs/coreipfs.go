@@ -58,22 +58,24 @@ func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 
 // Pin pins as cid in the IPFS node
 func (ci *CoreIpfs) Pin(ctx context.Context, c cid.Cid, config ffs.HotConfig) (ffs.HotInfo, error) {
-	log.Infof("pinning %s", c)
-	var i ffs.HotInfo
+	if !config.Enabled {
+		return ffs.HotInfo{Enabled: false}, nil
+	}
 	pth := path.IpfsPath(c)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(config.Ipfs.AddTimeout))
 	defer cancel()
 	if err := ci.ipfs.Pin().Add(ctx, pth, options.Pin.Recursive(true)); err != nil {
-		return i, fmt.Errorf("pinning cid %s: %s", c, err)
+		return ffs.HotInfo{}, fmt.Errorf("pinning cid %s: %s", c, err)
 	}
 	stat, err := ci.ipfs.Block().Stat(ctx, pth)
 	if err != nil {
-		return i, fmt.Errorf("getting stats of cid %s: %s", c, err)
+		return ffs.HotInfo{}, fmt.Errorf("getting stats of cid %s: %s", c, err)
 	}
-	i.Size = stat.Size()
-	i.Ipfs = ffs.IpfsHotInfo{
-		Created: time.Now(),
-	}
-	log.Infof("pinned %s successfully", c)
-	return i, nil
+	return ffs.HotInfo{
+		Enabled: true,
+		Size:    stat.Size(),
+		Ipfs: ffs.IpfsHotInfo{
+			Created: time.Now(),
+		},
+	}, nil
 }

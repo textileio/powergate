@@ -11,7 +11,7 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 )
 
-// GetCid info gets the current stored state of a Cid
+// GetCidInfo  gets the current stored state of a Cid
 func (cs *ConfigStore) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	var ci ffs.CidInfo
 	buf, err := cs.ds.Get(makeCidInfoKey(cs.iid, c))
@@ -27,8 +27,8 @@ func (cs *ConfigStore) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	return ci, nil
 }
 
-// SaveCidInfo saves a new storing state for a Cid
-func (cs *ConfigStore) SaveCidInfo(cinfo ffs.CidInfo) error {
+// PutCidInfo saves a new storing state for a Cid
+func (cs *ConfigStore) PutCidInfo(cinfo ffs.CidInfo) error {
 	if !cinfo.Cid.Defined() {
 		return fmt.Errorf("cid can't be undefined")
 	}
@@ -42,8 +42,8 @@ func (cs *ConfigStore) SaveCidInfo(cinfo ffs.CidInfo) error {
 	return nil
 }
 
-// Cids returns a slice of Cids which have sotring state
-func (cs *ConfigStore) Cids() ([]cid.Cid, error) {
+// GetCids returns a slice of Cids which have sotring state
+func (cs *ConfigStore) GetCids() ([]cid.Cid, error) {
 	cs.lock.Lock()
 	defer cs.lock.Unlock()
 	q := query.Query{

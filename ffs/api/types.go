@@ -20,28 +20,28 @@ var (
 
 // ConfigStore is a repository for all state of a Api.
 type ConfigStore interface {
-	SaveConfig(c Config) error
-	GetConfig() (*Config, error)
+	PutInstanceConfig(c Config) error
+	GetInstanceConfig() (*Config, error)
 
-	GetCidConfig(cid.Cid) (*ffs.AddAction, error)
-	PushCidConfig(ffs.AddAction) error
+	GetCidConfig(cid.Cid) (*ffs.CidConfig, error)
+	PutCidConfig(ffs.CidConfig) error
 
-	SaveCidInfo(ffs.CidInfo) error
+	PutCidInfo(ffs.CidInfo) error
 	GetCidInfo(cid.Cid) (ffs.CidInfo, error)
-	Cids() ([]cid.Cid, error)
+	GetCids() ([]cid.Cid, error)
 }
 
 // Config has general information about a Api instance.
 type Config struct {
-	ID            ffs.InstanceID
-	WalletAddr    string
-	DefaultConfig ffs.CidConfig
+	ID               ffs.InstanceID
+	WalletAddr       string
+	DefaultCidConfig ffs.DefaultCidConfig
 }
 
 // InstanceInfo has general information about a running Api instance.
 type InstanceInfo struct {
 	ID               ffs.InstanceID
-	DefaultCidConfig ffs.CidConfig
+	DefaultCidConfig ffs.DefaultCidConfig
 	Wallet           WalletInfo
 	Pins             []cid.Cid
 }

@@ -48,15 +48,30 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestDefaultConfig(t *testing.T) {
+func TestSetDefaultConfig(t *testing.T) {
 	_, fapi, cls := newApi(t, 1)
 	defer cls()
 
-	config := fapi.GetDefaultCidConfig().WithHotIpfsAddTimeout(33).WithColdFilEnabled(false).WithHotIpfsEnabled(false)
+	config := ffs.DefaultCidConfig{
+		Hot: ffs.HotConfig{
+			Enabled: false,
+			Ipfs: ffs.IpfsConfig{
+				AddTimeout: 10,
+			},
+		},
+		Cold: ffs.ColdConfig{
+			Enabled: true,
+			Filecoin: ffs.FilecoinConfig{
+				DealDuration: 22333,
+				RepFactor:    23,
+			},
+		},
+	}
 	err := fapi.SetDefaultCidConfig(config)
 	require.Nil(t, err)
-	newConfig := fapi.GetDefaultCidConfig()
-	require.Equal(t, newConfig, config)
+	newConfig := fapi.GetDefaultCidConfig(cid.Undef)
+	require.Equal(t, newConfig.Hot, config.Hot)
+	require.Equal(t, newConfig.Cold, config.Cold)
 }
 
 func TestAdd(t *testing.T) {
@@ -73,7 +88,7 @@ func TestAdd(t *testing.T) {
 
 	cid, _ = addRandomFile(t, r, ipfsApi)
 	t.Run("WithCustomConfig", func(t *testing.T) {
-		config := fapi.GetDefaultCidConfig().WithHotIpfsEnabled(false).WithColdFilDealDuration(int64(4321))
+		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithColdFilDealDuration(int64(4321))
 		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		job := requireJobState(t, fapi, jid, ffs.Done)
@@ -225,7 +240,7 @@ func TestRepFactor(t *testing.T) {
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
 			cid, _ := addRandomFile(t, r, ipfsApi)
-			config := fapi.GetDefaultCidConfig().WithColdFilRepFactor(rf)
+			config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(rf)
 			jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
 			require.Nil(t, err)
 			job := requireJobState(t, fapi, jid, ffs.Done)
@@ -242,7 +257,7 @@ func TestRepFactor(t *testing.T) {
 		require.Equal(t, 1, len(job.CidInfo.Cold.Filecoin.Proposals))
 		firstProposal := job.CidInfo.Cold.Filecoin.Proposals[0]
 
-		config := fapi.GetDefaultCidConfig().WithColdFilRepFactor(2)
+		config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(2)
 		jid, err = fapi.AddCid(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		job = requireJobState(t, fapi, jid, ffs.Done)
@@ -257,7 +272,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 
 	t.Run("ShortTime", func(t *testing.T) {
 		cid, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
-		config := fapi.GetDefaultCidConfig().WithHotIpfsAddTimeout(1)
+		config := fapi.GetDefaultCidConfig(cid).WithHotIpfsAddTimeout(1)
 		jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Failed)
@@ -271,7 +286,7 @@ func TestDurationConfig(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	duration := int64(1234)
-	config := fapi.GetDefaultCidConfig().WithColdFilDealDuration(duration)
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(duration)
 	jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	job := requireJobState(t, fapi, jid, ffs.Done)
@@ -287,7 +302,7 @@ func TestFilecoinBlacklist(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	excludedMiner := "t0300"
-	config := fapi.GetDefaultCidConfig().WithColdFilBlacklist([]string{excludedMiner})
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilBlacklist([]string{excludedMiner})
 
 	jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
@@ -320,13 +335,70 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsApi)
 	countryFilter := []string{"Uruguay"}
-	config := fapi.GetDefaultCidConfig().WithColdFilCountryCodes(countryFilter)
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilCountryCodes(countryFilter)
 
 	jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	job := requireJobState(t, fapi, jid, ffs.Done)
 	p := job.CidInfo.Cold.Filecoin.Proposals[0]
 	require.Equal(t, p.Miner, "t0301")
+}
+
+func TestFilecoinEnableConfig(t *testing.T) {
+	tableTest := []struct {
+		HotEnabled  bool
+		ColdEnabled bool
+	}{
+		{HotEnabled: true, ColdEnabled: true},
+		{HotEnabled: false, ColdEnabled: true},
+		{HotEnabled: true, ColdEnabled: false},
+		{HotEnabled: false, ColdEnabled: false},
+	}
+
+	for _, tt := range tableTest {
+		name := fmt.Sprintf("Hot(%v)/Cold(%v)", tt.HotEnabled, tt.ColdEnabled)
+		t.Run(name, func(t *testing.T) {
+			ipfsApi, fapi, cls := newApi(t, 1)
+			defer cls()
+
+			r := rand.New(rand.NewSource(22))
+			cid, _ := addRandomFile(t, r, ipfsApi)
+			config := fapi.GetDefaultCidConfig(cid).WithColdEnabled(tt.ColdEnabled).WithHotEnabled(tt.HotEnabled)
+
+			var expectedErr error
+			if !tt.HotEnabled && !tt.ColdEnabled {
+				expectedErr = ffs.ErrBothStoragesDisabled
+			}
+			jid, err := fapi.AddCid(cid, api.WithCidConfig(config))
+			require.Equal(t, expectedErr, err)
+			if expectedErr != nil {
+				return
+			}
+
+			expectedJobState := ffs.Done
+			var errCause string
+			if !tt.ColdEnabled && !tt.HotEnabled {
+				expectedJobState = ffs.Failed
+				errCause = ffs.ErrBothStoragesDisabled.Error()
+			}
+			job := requireJobState(t, fapi, jid, expectedJobState)
+			require.Equal(t, errCause, job.ErrCause)
+
+			if expectedJobState == ffs.Done {
+				require.Equal(t, tt.HotEnabled, job.CidInfo.Hot.Enabled)
+				require.Equal(t, tt.ColdEnabled, job.CidInfo.Cold.Enabled)
+
+				ctx := context.Background()
+				_, err := fapi.Get(ctx, cid)
+				var expectedErr error
+				if !tt.HotEnabled {
+					expectedErr = ffs.ErrHotStorageDisabled
+				}
+				require.Equal(t, expectedErr, err)
+			}
+
+		})
+	}
 }
 
 func newApi(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.Instance, func()) {
@@ -377,16 +449,16 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 	if iid == ffs.EmptyID {
 		iid = ffs.NewInstanceID()
 		confstore := store.New(iid, txndstr.Wrap(ds, "ffs/api/store"))
-		defConfig := ffs.CidConfig{
+		defConfig := ffs.DefaultCidConfig{
 			Hot: ffs.HotConfig{
+				Enabled: true,
 				Ipfs: ffs.IpfsConfig{
-					Enabled:    true,
 					AddTimeout: 30,
 				},
 			},
 			Cold: ffs.ColdConfig{
+				Enabled: true,
 				Filecoin: ffs.FilecoinConfig{
-					Enabled:      true,
 					Blacklist:    nil,
 					DealDuration: 1000,
 					RepFactor:    1,
@@ -416,7 +488,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 }
 
 func requireJobState(t *testing.T, fapi *api.Instance, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	ch, err := fapi.Watch(jid)
 	require.Nil(t, err)

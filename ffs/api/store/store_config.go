@@ -9,8 +9,8 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 )
 
-// SaveConfig persist Config information of the Api instance
-func (cs *ConfigStore) SaveConfig(c api.Config) error {
+// PutInstanceConfig persist Config information of the Api instance
+func (cs *ConfigStore) PutInstanceConfig(c api.Config) error {
 	buf, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling config: %s", err)
@@ -21,9 +21,9 @@ func (cs *ConfigStore) SaveConfig(c api.Config) error {
 	return nil
 }
 
-// GetConfig gets the current configuration of the Api instance.
+// GetInstanceConfig gets the current configuration of the Api instance.
 // If no configuration exist, it returns ErrConfigNotFound.
-func (cs *ConfigStore) GetConfig() (*api.Config, error) {
+func (cs *ConfigStore) GetInstanceConfig() (*api.Config, error) {
 	buf, err := cs.ds.Get(makeConfigKey(cs.iid))
 	if err != nil {
 		if err == datastore.ErrNotFound {

@@ -19,8 +19,8 @@ var (
 	// ErrAuthTokenNotFound returns when an auth-token doesn't exist.
 	ErrAuthTokenNotFound = errors.New("auth token not found")
 
-	createDefConfig   sync.Once
-	defInstanceConfig ffs.CidConfig
+	createDefConfig sync.Once
+	defCidConfig    ffs.DefaultCidConfig
 
 	log = logging.Logger("ffs-manager")
 )
@@ -55,16 +55,16 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 	defer m.lock.Unlock()
 
 	createDefConfig.Do(func() {
-		defInstanceConfig = ffs.CidConfig{
+		defCidConfig = ffs.DefaultCidConfig{
 			Hot: ffs.HotConfig{
+				Enabled: true,
 				Ipfs: ffs.IpfsConfig{
-					Enabled:    true,
 					AddTimeout: 30,
 				},
 			},
 			Cold: ffs.ColdConfig{
+				Enabled: true,
 				Filecoin: ffs.FilecoinConfig{
-					Enabled:      true,
 					RepFactor:    1,
 					DealDuration: 1000,
 					Blacklist:    nil,
@@ -76,7 +76,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 	log.Info("creating instance")
 	iid := ffs.NewInstanceID()
 	confstore := store.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/store")))
-	fapi, err := api.New(ctx, iid, confstore, m.sched, m.wm, defInstanceConfig)
+	fapi, err := api.New(ctx, iid, confstore, m.sched, m.wm, defCidConfig)
 	if err != nil {
 		return ffs.EmptyID, "", fmt.Errorf("creating new instance: %s", err)
 	}
