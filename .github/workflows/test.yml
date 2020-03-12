@@ -11,22 +11,15 @@ jobs:
   test:
     name: Test
     runs-on: self-hosted
-    container: ubuntu:latest
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v2-beta
-        with:
-          go-version: "1.14"
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: nightly
       - name: Install OpenCL
-        run: sudo apt-get install mesa-opencl-icd ocl-icd-opencl-dev
+        run: sudo apt-get update && sudo apt-get install -y mesa-opencl-icd ocl-icd-opencl-dev jq make
       - name: Check out code
         uses: actions/checkout@v1
       - name: Test
-        env:
-          TEXPOWERGATE_CI: 1
         run: make test
