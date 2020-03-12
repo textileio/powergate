@@ -28,5 +28,5 @@ test: build
 	cat build/proof-params/parameters.json | jq 'keys[]' | xargs touch
 	mv -n v20* $(PARAMCACHE_PATH)
 	rm v20* || true
-	PARAMCACHE_PATH=$(PARAMCACHE_PATH) go test -short -p 1  ./... 
+	PARAMCACHE_PATH=$(PARAMCACHE_PATH) go test -short -p 1 -count 1  ./... 
 .PHONY: test
