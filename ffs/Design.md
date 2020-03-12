@@ -14,7 +14,7 @@ The picture has an advanced scenario where different _Api_ instances are wired t
 
 A _Scheduler_ instance receives tasks from _Api_ instances to store a _Cid_ with a particular _CidConfig_ (e.g: only in hot layer, only in cold layer, in hot and cold layer only in 1 miner, etc). 
 
-Each task is transformed into a _Job_ since it's execution should be async. This _Job_ state changes when the _Scheduler_ delegates work to the _Hot Layer_ and _Cold Layer_ configuration. The _Api_ cant _watch_ for changes in existing _Jobs_ to keep track of what's happening with a particular ongoing Cid configuration that was pushed.
+Each task is transformed into a _Job_ since it's execution should be async. This _Job_ state changes when the _Scheduler_ delegates work to the _Hot Storage_ and _Cold Storage_ configuration. The _Api_ cant _watch_ for changes in existing _Jobs_ to keep track of what's happening with a particular ongoing Cid configuration that was pushed.
 
 ## Components
 The following sections give a more detailed description of each component and interface in the diagram.
@@ -34,9 +34,9 @@ Each action of storing a new _Cid_ with a particular desired _CidConfiguration_ 
 
 ### Scheduler
 
-A _Scheduler_ is a component that _Api_ instances pushes new _CidConfigurations_ enforced for a _Cid_. These _CidConfigurations_ contain information about how to store that _Cid_ in the _Hot Layer_ and _Cold Layer_.
+A _Scheduler_ is a component that _Api_ instances pushes new _CidConfigurations_ enforced for a _Cid_. These _CidConfigurations_ contain information about how to store that _Cid_ in the _Hot Storage_ and _Cold Storage_.
 
-The _Scheduler_ doesn't know about the particular implementations of _Hot Layer_ or _Cold Layer_, only relies on interfaces:
+The _Scheduler_ doesn't know about the particular implementations of _Hot Storage_ or _Cold Storage_, only relies on interfaces:
 
 ```go
 // HotLyer is a fast datastorage layer for storing and retrieving raw
@@ -53,7 +53,7 @@ type ColdStorage interface {
 }
 ```
 
-It also relies on a _MinerSelector_ interfaces which implement a particular strategy to fetch the most desirable N miners needed for making deals in the _Cold Layer_:
+It also relies on a _MinerSelector_ interfaces which implement a particular strategy to fetch the most desirable N miners needed for making deals in the _Cold Storage_:
 ```go
 // MinerSelector returns miner addresses and ask storage information using a
 // desired strategy.
@@ -65,7 +65,7 @@ Particular implementations of _MinerSelector_ includes:
 - _FixedMiners_: which always returns a particular fixed list of miner addresses.
 - _ReputationSorted_: which returns the miner addresses using a reputation system built on top of miner information.
 
-In summary, a _Scheduler_ instance act differently depending on which instances on its _Hot Layer_, _Cold Layer_, and _Miner Selector_ implementations. In the diagram above shows two configurations (surrounded by dotted boxes).
+In summary, a _Scheduler_ instance act differently depending on which instances on its _Hot Storage_, _Cold Storage_, and _Miner Selector_ implementations. In the diagram above shows two configurations (surrounded by dotted boxes).
 
 In the first dotted box, a _Scheduler_ uses an _IPFS Node_ as the _HotStorage_ using the _CoreIPFS_ adapter as the interface implementation, which uses the _http api_ client to talk with the _IPFS node_. It also uses the _ColdFil_ adapter as the _ColdStorage_ implementation, which uses the _DealModule_ to make deals with a _Lotus instance_. It uses a _ReputationSorted_ implementation of _MinerSelector_ to fetch the best miners from a miner's reputation system.
 
