@@ -86,7 +86,9 @@ func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 
 type mockSched struct{}
 
-func (ms *mockSched) EnqueueCid(c ffs.AddAction) (ffs.JobID, error) {
+var _ ffs.Scheduler = (*mockSched)(nil)
+
+func (ms *mockSched) PushConfig(pca ffs.PushConfigAction) (ffs.JobID, error) {
 	return ffs.NewJobID(), nil
 }
 func (ms *mockSched) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
@@ -97,5 +99,8 @@ func (ms *mockSched) GetJob(jid ffs.JobID) (ffs.Job, error) {
 }
 func (ms *mockSched) Watch(iid ffs.InstanceID) <-chan ffs.Job {
 	return nil
+}
+func (ms *mockSched) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
+	return ffs.CidInfo{}, nil
 }
 func (ms *mockSched) Unwatch(<-chan ffs.Job) {}

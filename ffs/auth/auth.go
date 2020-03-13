@@ -66,14 +66,14 @@ func (r *Auth) Get(token string) (ffs.InstanceID, error) {
 
 	buf, err := r.ds.Get(makeKey(token))
 	if err != nil && err == ds.ErrNotFound {
-		return ffs.EmptyID, ErrNotFound
+		return ffs.EmptyInstanceID, ErrNotFound
 	}
 	if err != nil {
-		return ffs.EmptyID, fmt.Errorf("getting token %s from datastore: %s", token, err)
+		return ffs.EmptyInstanceID, fmt.Errorf("getting token %s from datastore: %s", token, err)
 	}
 	var e entry
 	if err := json.Unmarshal(buf, &e); err != nil {
-		return ffs.EmptyID, fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
+		return ffs.EmptyInstanceID, fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
 	}
 	return e.InstanceID, nil
 }

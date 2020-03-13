@@ -10,24 +10,16 @@ import (
 var (
 	// ErrConfigNotFound returned when instance configuration doesn't exist
 	// in ConfigStore.
-	ErrConfigNotFound = errors.New("config not found")
-	// ErrCidConfigNotFound returned when cid configuration doesn't exist in
-	// ConfigStore.
-	ErrCidConfigNotFound = errors.New("cid config not found")
-	// ErrCidInfoNotFound returned if no storing state exists for a Cid.
-	ErrCidInfoNotFound = errors.New("the cid doesn't have any saved state")
+	ErrNotFound = errors.New("stored item  not found")
 )
 
 // ConfigStore is a repository for all state of a Api.
-type ConfigStore interface {
-	PutInstanceConfig(c Config) error
-	GetInstanceConfig() (*Config, error)
+type InstanceStore interface {
+	PutConfig(c Config) error
+	GetConfig() (Config, error)
 
-	GetCidConfig(cid.Cid) (*ffs.CidConfig, error)
+	GetCidConfig(cid.Cid) (ffs.CidConfig, error)
 	PutCidConfig(ffs.CidConfig) error
-
-	PutCidInfo(ffs.CidInfo) error
-	GetCidInfo(cid.Cid) (ffs.CidInfo, error)
 	GetCids() ([]cid.Cid, error)
 }
 

@@ -29,7 +29,9 @@ import (
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	ffsPb "github.com/textileio/powergate/ffs/pb"
 	"github.com/textileio/powergate/ffs/scheduler"
-	"github.com/textileio/powergate/ffs/scheduler/jsonjobstore"
+	"github.com/textileio/powergate/ffs/scheduler/cistore"
+	"github.com/textileio/powergate/ffs/scheduler/jstore"
+	"github.com/textileio/powergate/ffs/scheduler/pcstore"
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/index/ask"
 	askPb "github.com/textileio/powergate/index/ask/pb"
@@ -77,7 +79,9 @@ type Server struct {
 	ffsService        *ffsGrpc.Service
 
 	ffsManager *manager.Manager
-	jobStore   *jsonjobstore.JobStore
+	js         *jstore.Store
+	cis        *cistore.Store
+	pcs        *pcstore.Store
 	sched      *scheduler.Scheduler
 
 	grpcServer   *grpc.Server
@@ -174,8 +178,10 @@ func NewServer(conf Config) (*Server, error) {
 
 	cl := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag())
 	hl := coreipfs.New(ipfs)
-	jobStore := jsonjobstore.New(txndstr.Wrap(ds, "ffs/scheduler/jsonjobstore"))
-	sched := scheduler.New(jobStore, hl, cl)
+	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
+	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
+	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
+	sched := scheduler.New(js, pcs, cis, hl, cl)
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
@@ -238,7 +244,9 @@ func NewServer(conf Config) (*Server, error) {
 
 		ffsManager: ffsManager,
 		sched:      sched,
-		jobStore:   jobStore,
+		js:         js,
+		cis:        cis,
+		pcs:        pcs,
 
 		grpcServer:   grpcServer,
 		grpcWebProxy: grpcWebProxy,
@@ -334,7 +342,7 @@ func (s *Server) Close() {
 	if err := s.sched.Close(); err != nil {
 		log.Errorf("closing ffs scheduler: %s", err)
 	}
-	if err := s.jobStore.Close(); err != nil {
+	if err := s.js.Close(); err != nil {
 		log.Errorf("closing scheduler jobstore: %s", err)
 	}
 	if err := s.rm.Close(); err != nil {

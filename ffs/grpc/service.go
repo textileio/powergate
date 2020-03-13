@@ -114,7 +114,7 @@ func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCid
 		return nil, err
 	}
 	log.Infof("adding cid %s", c)
-	jid, err := i.AddCid(c)
+	jid, err := i.PushConfig(c)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCid
 	}
 	defer i.Unwatch(ch)
 	for job := range ch {
-		if job.Status == ffs.Done {
+		if job.Status == ffs.Success {
 			break
 		} else if job.Status == ffs.Cancelled || job.Status == ffs.Failed {
 			return nil, fmt.Errorf("error adding cid: %s", job.ErrCause)
@@ -167,7 +167,7 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 		return fmt.Errorf("adding data to hot layer: %s", err)
 	}
 
-	jid, err := i.AddCid(c)
+	jid, err := i.PushConfig(c)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 		return fmt.Errorf("watching add file created job: %s", err)
 	}
 	for job := range ch {
-		if job.Status == ffs.Done {
+		if job.Status == ffs.Success {
 			break
 		} else if job.Status == ffs.Failed {
 			return fmt.Errorf("error adding cid: %s", job.ErrCause)
@@ -227,7 +227,7 @@ func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.Create
 	}, nil
 }
 
-func (s *Service) getInstanceByToken(ctx context.Context) (*api.Instance, error) {
+func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-ffs-Token")
 	if token == "" {
 		return nil, ErrEmptyAuthToken

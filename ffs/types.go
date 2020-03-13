@@ -29,11 +29,12 @@ func (jid JobID) String() string {
 
 // InstanceID
 var (
-	// EmptyID representes an empty/invalid Instance ID.
-	EmptyID = InstanceID("")
+	// EmptyInstanceID representes an empty/invalid Instance ID.
+	EmptyInstanceID = InstanceID("")
 	// ErrBothStorageDisabled returned when both storages are disabled.
 	ErrBothStoragesDisabled = errors.New("both Hot and Cold layers can't be disabled")
 	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
+	// To retrieve the data, is necessary to call Unfreeze().
 	ErrHotStorageDisabled = errors.New("cid disabled in hot storage")
 )
 
@@ -70,39 +71,18 @@ const (
 	// the error cause.
 	Failed
 	// Cancelled indicates the Job was cancelled from Queued,
-	// and didn't reach executing.
+	// and didn't reach execution.
 	Cancelled
 	// Done indicates the Job was successfully executed.
-	Done
+	Success
 )
 
-// CidConfigID is an identifier for a Cid configuration.
-type CidConfigID string
-
-// NewCidConfigID returns a new CidConfigID.
-func NewCidConfigID() CidConfigID {
-	return CidConfigID(uuid.New().String())
-}
-
-// Valid returns true if is a valid CidConfiID, false
-// otherwise.
-func (i CidConfigID) Valid() bool {
-	_, err := uuid.Parse(string(i))
-	return err == nil
-}
-
-// String returns a string representation of a CidConfigID.
-func (i CidConfigID) String() string {
-	return string(i)
-}
-
-// Job is a task to enforce CidConfig for a Cid.
+// Job is a task executed by the Scheduler.
 type Job struct {
-	ID       JobID
-	Status   JobStatus
-	ErrCause string
-	Action   AddAction
-	CidInfo  CidInfo
+	ID         JobID
+	InstanceID InstanceID
+	Status     JobStatus
+	ErrCause   string
 }
 
 type DefaultCidConfig struct {
@@ -179,37 +159,27 @@ func (c CidConfig) Validate() error {
 	return nil
 }
 
-// AddAction is the desired state of storage for a Cid.
-type AddAction struct {
-	ID         CidConfigID
+type UnfreezeAction struct {
 	InstanceID InstanceID
-	Config     CidConfig
-	Meta       AddMeta
+	Cid        cid.Cid
+	WalletAddr string
 }
 
-func (aa AddAction) Validate() error {
-	if aa.InstanceID == EmptyID {
+// AddAction is the desired state of storage for a Cid.
+type PushConfigAction struct {
+	InstanceID InstanceID
+	Config     CidConfig
+	WalletAddr string
+}
+
+func (aa PushConfigAction) Validate() error {
+	if aa.InstanceID == EmptyInstanceID {
 		return fmt.Errorf("invalid Action ID")
-	}
-	if aa.ID == "" {
-		return fmt.Errorf("invalid Add Action ID")
 	}
 	if err := aa.Config.Validate(); err != nil {
 		return err
 	}
-	if err := aa.Meta.Validate(); err != nil {
-		return fmt.Errorf("invalid Meta: %s", err)
-	}
-	return nil
-}
-
-// AddMeta contains necessary metadata to execute the Add action.
-type AddMeta struct {
-	WalletAddr string
-}
-
-func (am AddMeta) Validate() error {
-	if am.WalletAddr == "" {
+	if aa.WalletAddr == "" {
 		return fmt.Errorf("invalid wallet address")
 	}
 	return nil
@@ -276,11 +246,11 @@ func (fc *FilecoinConfig) Validate() error {
 // CidInfo contains information about the current storage state
 // of a Cid.
 type CidInfo struct {
-	ConfigID CidConfigID
-	Cid      cid.Cid
-	Created  time.Time
-	Hot      HotInfo
-	Cold     ColdInfo
+	JobID   JobID
+	Cid     cid.Cid
+	Created time.Time
+	Hot     HotInfo
+	Cold    ColdInfo
 }
 
 // HotInfo contains information about the current storage state

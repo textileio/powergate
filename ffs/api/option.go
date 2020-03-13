@@ -7,15 +7,15 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
-type AddCidOption func(o *AddCidConfig) error
+type PushConfigOption func(o *PushConfig) error
 
-type AddCidConfig struct {
+type PushConfig struct {
 	Config         ffs.CidConfig
 	OverrideConfig bool
 }
 
-func newDefaultAddCidConfig(c cid.Cid, dc ffs.DefaultCidConfig) AddCidConfig {
-	return AddCidConfig{
+func newDefaultPushConfig(c cid.Cid, dc ffs.DefaultCidConfig) PushConfig {
+	return PushConfig{
 		Config: newDefaultCidConfig(c, dc),
 	}
 }
@@ -28,22 +28,22 @@ func newDefaultCidConfig(c cid.Cid, dc ffs.DefaultCidConfig) ffs.CidConfig {
 	}
 }
 
-func WithCidConfig(c ffs.CidConfig) AddCidOption {
-	return func(o *AddCidConfig) error {
+func WithCidConfig(c ffs.CidConfig) PushConfigOption {
+	return func(o *PushConfig) error {
 		o.Config = c
 		return nil
 	}
 }
 
-func WithOverride(override bool) AddCidOption {
-	return func(o *AddCidConfig) error {
+func WithOverride(override bool) PushConfigOption {
+	return func(o *PushConfig) error {
 		o.OverrideConfig = override
 		return nil
 	}
 }
 
-func (acc AddCidConfig) Validate() error {
-	if err := acc.Config.Validate(); err != nil {
+func (pc PushConfig) Validate() error {
+	if err := pc.Config.Validate(); err != nil {
 		return fmt.Errorf("invalid config: %s", err)
 	}
 	return nil

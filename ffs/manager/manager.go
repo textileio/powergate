@@ -11,7 +11,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/api/store"
+	"github.com/textileio/powergate/ffs/api/istore"
 	"github.com/textileio/powergate/ffs/auth"
 )
 
@@ -33,7 +33,7 @@ type Manager struct {
 	lock      sync.Mutex
 	ds        ds.Datastore
 	auth      *auth.Auth
-	instances map[ffs.InstanceID]*api.Instance
+	instances map[ffs.InstanceID]*api.API
 
 	closed bool
 }
@@ -45,7 +45,7 @@ func New(ds ds.Datastore, wm ffs.WalletManager, sched ffs.Scheduler) (*Manager, 
 		ds:        ds,
 		wm:        wm,
 		sched:     sched,
-		instances: make(map[ffs.InstanceID]*api.Instance),
+		instances: make(map[ffs.InstanceID]*api.API),
 	}, nil
 }
 
@@ -75,15 +75,15 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 
 	log.Info("creating instance")
 	iid := ffs.NewInstanceID()
-	confstore := store.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/store")))
-	fapi, err := api.New(ctx, iid, confstore, m.sched, m.wm, defCidConfig)
+	is := istore.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/istore")))
+	fapi, err := api.New(ctx, iid, is, m.sched, m.wm, defCidConfig)
 	if err != nil {
-		return ffs.EmptyID, "", fmt.Errorf("creating new instance: %s", err)
+		return ffs.EmptyInstanceID, "", fmt.Errorf("creating new instance: %s", err)
 	}
 
 	auth, err := m.auth.Generate(fapi.ID())
 	if err != nil {
-		return ffs.EmptyID, "", fmt.Errorf("generating auth token for %s: %s", fapi.ID(), err)
+		return ffs.EmptyInstanceID, "", fmt.Errorf("generating auth token for %s: %s", fapi.ID(), err)
 	}
 
 	m.instances[iid] = fapi
@@ -93,7 +93,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 
 // GetByAuthToken loads an existing instance using an auth-token. If auth-token doesn't exist,
 // it returns ErrAuthTokenNotFound.
-func (m *Manager) GetByAuthToken(token string) (*api.Instance, error) {
+func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -105,8 +105,8 @@ func (m *Manager) GetByAuthToken(token string) (*api.Instance, error) {
 	i, ok := m.instances[iid]
 	if !ok {
 		log.Infof("loading uncached instance %s", iid)
-		confstore := store.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/store")))
-		i, err = api.Load(iid, confstore, m.sched, m.wm)
+		is := istore.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/store")))
+		i, err = api.Load(iid, is, m.sched, m.wm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)
 		}

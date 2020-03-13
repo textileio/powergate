@@ -13,12 +13,12 @@ type WalletManager interface {
 	Balance(ctx context.Context, addr string) (uint64, error)
 }
 
-// Scheduler creates and manages Job which executes Cid configurations
-// in Hot and Cold layers, enables retrieval from those layers, and
-// allows watching for Job state changes.
+// Scheduler enforces a CidConfig orchestrating Hot and Cold storages.
 type Scheduler interface {
-	EnqueueCid(AddAction) (JobID, error)
-	GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error)
+	PushConfig(PushConfigAction) (JobID, error)
+
+	GetCidInfo(cid.Cid) (CidInfo, error)
+	GetCidFromHot(context.Context, cid.Cid) (io.Reader, error)
 
 	GetJob(JobID) (Job, error)
 	Watch(InstanceID) <-chan Job
