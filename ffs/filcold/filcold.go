@@ -36,6 +36,22 @@ func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold
 	}
 }
 
+func (fc *FilCold) Retrieve(ctx context.Context, payloadCid cid.Cid, cs car.Store, waddr string) (cid.Cid, error) {
+	carR, err := fc.dm.Retrieve(ctx, waddr, payloadCid)
+	if err != nil {
+		return cid.Undef, fmt.Errorf("retrieving from deal module: %s", err)
+	}
+	defer carR.Close()
+	h, err := car.LoadCar(cs, carR)
+	if err != nil {
+		return cid.Undef, fmt.Errorf("loading car to carstore: %s", err)
+	}
+	if len(h.Roots) != 1 {
+		return cid.Undef, fmt.Errorf("car header doesn't have a single root: %d", len(h.Roots))
+	}
+	return h.Roots[0], nil
+}
+
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation. Currently, a default configuration is used.
 // (TODO: ColdConfig will enable more configurations in the future)

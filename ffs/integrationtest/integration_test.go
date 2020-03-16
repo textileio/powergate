@@ -507,7 +507,8 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 		is := istore.New(iid, txndstr.Wrap(ds, "ffs/api/istore"))
 		defConfig := ffs.DefaultCidConfig{
 			Hot: ffs.HotConfig{
-				Enabled: true,
+				Enabled:       true,
+				AllowUnfreeze: false,
 				Ipfs: ffs.IpfsConfig{
 					AddTimeout: 30,
 				},

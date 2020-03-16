@@ -159,13 +159,6 @@ func (c CidConfig) Validate() error {
 	return nil
 }
 
-type UnfreezeAction struct {
-	InstanceID InstanceID
-	Cid        cid.Cid
-	WalletAddr string
-}
-
-// AddAction is the desired state of storage for a Cid.
 type PushConfigAction struct {
 	InstanceID InstanceID
 	Config     CidConfig
@@ -187,8 +180,9 @@ func (aa PushConfigAction) Validate() error {
 
 // Hotconfig is the desired storage of a Cid in a hot layer.
 type HotConfig struct {
-	Enabled bool
-	Ipfs    IpfsConfig
+	Enabled       bool
+	AllowUnfreeze bool
+	Ipfs          IpfsConfig
 }
 
 func (hc HotConfig) Validate() error {

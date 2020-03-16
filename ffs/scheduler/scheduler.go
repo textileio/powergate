@@ -186,15 +186,15 @@ func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, erro
 		if err != ErrNotFound {
 			return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
 		}
-		ci = ffs.CidInfo{} // Default value has both storages disabled
+		ci = ffs.CidInfo{Cid: a.Config.Cid} // Default value has both storages disabled
 	}
 
-	hot, err := s.executeHotStorage(ctx, ci, a.Config)
+	hot, err := s.executeHotStorage(ctx, ci, a.Config.Hot, a.WalletAddr)
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("executing hot-storage config: %s", err)
 	}
 
-	cold, err := s.executeColdStorage(ctx, ci, a.Config, a.WalletAddr)
+	cold, err := s.executeColdStorage(ctx, ci, a.Config.Cold, a.WalletAddr)
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("executing cold-storage config: %s", err)
 	}
@@ -208,15 +208,25 @@ func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, erro
 	}, nil
 }
 
-func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.CidConfig) (ffs.HotInfo, error) {
-	if !cfg.Hot.Enabled {
+func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string) (ffs.HotInfo, error) {
+	if !cfg.Enabled {
 		return ffs.HotInfo{Enabled: false}, nil
 	}
-	pinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Hot.Ipfs.AddTimeout))
+	pinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Ipfs.AddTimeout))
 	defer cancel()
-	size, err := s.hs.Pin(pinCtx, cfg.Cid)
+	size, err := s.hs.Pin(pinCtx, curr.Cid)
 	if err != nil {
-		return ffs.HotInfo{}, err
+		if !cfg.AllowUnfreeze || !curr.Cold.Enabled {
+			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
+		}
+		carHeaderCid, err := s.cs.Retrieve(ctx, curr.Cold.Filecoin.PayloadCID, s.hs, waddr)
+		if err != nil {
+			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
+		}
+		size, err = s.hs.Pin(pinCtx, carHeaderCid)
+		if err != nil {
+			return ffs.HotInfo{}, fmt.Errorf("pinning unfrozen cid: %s", err)
+		}
 	}
 	return ffs.HotInfo{
 		Enabled: true,
@@ -227,11 +237,11 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 	}, nil
 }
 
-func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.CidConfig, waddr string) (ffs.ColdInfo, error) {
-	if !cfg.Cold.Enabled {
+func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, waddr string) (ffs.ColdInfo, error) {
+	if !cfg.Enabled {
 		return ffs.ColdInfo{Enabled: false}, nil
 	}
-	finfo, err := s.cs.Store(ctx, cfg.Cid, waddr, cfg.Cold.Filecoin)
+	finfo, err := s.cs.Store(ctx, curr.Cid, waddr, cfg.Filecoin)
 	if err != nil {
 		return ffs.ColdInfo{}, err
 	}

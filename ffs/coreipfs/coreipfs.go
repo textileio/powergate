@@ -1,10 +1,12 @@
 package coreipfs
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 
+	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
 	logging "github.com/ipfs/go-log/v2"
@@ -31,6 +33,14 @@ func New(ipfs iface.CoreAPI) *CoreIpfs {
 	return &CoreIpfs{
 		ipfs: ipfs,
 	}
+}
+
+func (ci *CoreIpfs) Put(b blocks.Block) error {
+	if _, err := ci.ipfs.Block().Put(context.Background(), bytes.NewReader(b.RawData())); err != nil {
+		return fmt.Errorf("adding block to ipfs node: %s", err)
+	}
+
+	return nil
 }
 
 // Add adds an io.Reader data as file in the IPFS node.

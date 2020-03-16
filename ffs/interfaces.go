@@ -4,7 +4,9 @@ import (
 	"context"
 	"io"
 
+	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
+	"github.com/ipld/go-car"
 )
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
@@ -31,11 +33,13 @@ type HotStorage interface {
 	Add(context.Context, io.Reader) (cid.Cid, error)
 	Get(context.Context, cid.Cid) (io.Reader, error)
 	Pin(context.Context, cid.Cid) (int, error)
+	Put(blocks.Block) error
 }
 
 // ColdStorage is a slow datastorage layer for storing Cids.
 type ColdStorage interface {
 	Store(context.Context, cid.Cid, string, FilecoinConfig) (FilInfo, error)
+	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a
