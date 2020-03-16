@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
@@ -219,7 +220,8 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 		if !cfg.AllowUnfreeze || !curr.Cold.Enabled {
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
-		carHeaderCid, err := s.cs.Retrieve(ctx, curr.Cold.Filecoin.DataCid, s.hs, waddr)
+		bs := &hotStorageBlockstore{ctx: ctx, put: s.hs.Put}
+		carHeaderCid, err := s.cs.Retrieve(ctx, curr.Cold.Filecoin.DataCid, bs, waddr)
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
 		}
@@ -265,6 +267,18 @@ func (s *Scheduler) mutateJobStatus(j ffs.Job, status ffs.JobStatus) error {
 	j.Status = status
 	if err := s.js.Put(j); err != nil {
 		return err
+	}
+	return nil
+}
+
+type hotStorageBlockstore struct {
+	ctx context.Context
+	put func(context.Context, blocks.Block) error
+}
+
+func (hsb *hotStorageBlockstore) Put(b blocks.Block) error {
+	if err := hsb.put(hsb.ctx, b); err != nil {
+		return fmt.Errorf("saving block in hot-storage: %s", err)
 	}
 	return nil
 }
