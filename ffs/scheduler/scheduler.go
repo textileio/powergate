@@ -154,19 +154,19 @@ func (s *Scheduler) run() {
 				}
 				info, err := s.execute(s.ctx, j)
 				if err != nil {
+					log.Errorf("executing job %s: %s", j.ID, err)
 					j.ErrCause = err.Error()
 					if err := s.mutateJobStatus(j, ffs.Failed); err != nil {
-						log.Errorf("chanigng job to failed: %s", err)
+						log.Errorf("changing job to failed: %s", err)
 					}
-					log.Errorf("executing job %s: %s", j.ID, err)
-					continue
-				}
-				if err := s.mutateJobStatus(j, ffs.Success); err != nil {
-					log.Errorf("changing job to success: %s", err)
 					continue
 				}
 				if err := s.cis.Put(info); err != nil {
 					log.Errorf("saving cid info to store: %s", err)
+					continue
+				}
+				if err := s.mutateJobStatus(j, ffs.Success); err != nil {
+					log.Errorf("changing job to success: %s", err)
 					continue
 				}
 				log.Infof("job %s executed with final state %d and errcause %q", j.ID, j.Status, j.ErrCause)
@@ -177,25 +177,67 @@ func (s *Scheduler) run() {
 }
 
 func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, error) {
-	action, err := s.pcs.Get(job.ID)
+	a, err := s.pcs.Get(job.ID)
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting push config action data from store: %s", err)
 	}
-	hot, err := s.hs.Pin(ctx, action.Config.Cid, action.Config.Hot)
+	ci, err := s.cis.Get(a.Config.Cid)
 	if err != nil {
-		return ffs.CidInfo{}, err
+		if err != ErrNotFound {
+			return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
+		}
+		ci = ffs.CidInfo{} // Default value has both storages disabled
 	}
 
-	cold, err := s.cs.Store(ctx, action.Config.Cid, action.WalletAddr, action.Config.Cold)
+	hot, err := s.executeHotStorage(ctx, ci, a.Config)
 	if err != nil {
-		return ffs.CidInfo{}, err
+		return ffs.CidInfo{}, fmt.Errorf("executing hot-storage config: %s", err)
 	}
+
+	cold, err := s.executeColdStorage(ctx, ci, a.Config, a.WalletAddr)
+	if err != nil {
+		return ffs.CidInfo{}, fmt.Errorf("executing cold-storage config: %s", err)
+	}
+
 	return ffs.CidInfo{
 		JobID:   job.ID,
-		Cid:     action.Config.Cid,
+		Cid:     a.Config.Cid,
 		Hot:     hot,
 		Cold:    cold,
 		Created: time.Now(),
+	}, nil
+}
+
+func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.CidConfig) (ffs.HotInfo, error) {
+	if !cfg.Hot.Enabled {
+		return ffs.HotInfo{Enabled: false}, nil
+	}
+	pinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Hot.Ipfs.AddTimeout))
+	defer cancel()
+	size, err := s.hs.Pin(pinCtx, cfg.Cid)
+	if err != nil {
+		return ffs.HotInfo{}, err
+	}
+	return ffs.HotInfo{
+		Enabled: true,
+		Size:    size,
+		Ipfs: ffs.IpfsHotInfo{
+			Created: time.Now(),
+		},
+	}, nil
+}
+
+func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.CidConfig, waddr string) (ffs.ColdInfo, error) {
+	if !cfg.Cold.Enabled {
+		return ffs.ColdInfo{Enabled: false}, nil
+	}
+	finfo, err := s.cs.Store(ctx, cfg.Cid, waddr, cfg.Cold.Filecoin)
+	if err != nil {
+		return ffs.ColdInfo{}, err
+	}
+	return ffs.ColdInfo{
+		Enabled:  true,
+		Filecoin: finfo,
 	}, nil
 }
 

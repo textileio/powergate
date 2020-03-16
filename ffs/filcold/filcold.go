@@ -39,33 +39,28 @@ func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation. Currently, a default configuration is used.
 // (TODO: ColdConfig will enable more configurations in the future)
-func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, conf ffs.ColdConfig) (ffs.ColdInfo, error) {
-	if !conf.Enabled {
-		return ffs.ColdInfo{Enabled: false}, nil
-	}
-	config, err := makeStorageConfig(ctx, fc.ms, conf.Filecoin)
+func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fconf ffs.FilecoinConfig) (ffs.FilInfo, error) {
+	config, err := makeStorageConfig(ctx, fc.ms, fconf)
 	if err != nil {
-		return ffs.ColdInfo{}, fmt.Errorf("selecting miners to make the deal: %s", err)
+		return ffs.FilInfo{}, fmt.Errorf("selecting miners to make the deal: %s", err)
 	}
 	r := ipldToFileTransform(ctx, fc.dag, c)
 
 	log.Infof("storing deals in filecoin...")
 	var sres []deals.StoreResult
-	payloadCID, sres, err := fc.dm.Store(ctx, waddr, r, config, uint64(conf.Filecoin.DealDuration))
+	payloadCID, sres, err := fc.dm.Store(ctx, waddr, r, config, uint64(fconf.DealDuration))
 	if err != nil {
-		return ffs.ColdInfo{}, fmt.Errorf("storing deals in deal manager: %s", err)
+		return ffs.FilInfo{}, fmt.Errorf("storing deals in deal manager: %s", err)
 	}
 
-	proposals, err := fc.waitForDeals(ctx, sres, conf.Filecoin.DealDuration)
+	proposals, err := fc.waitForDeals(ctx, sres, fconf.DealDuration)
 	if err != nil {
-		return ffs.ColdInfo{}, fmt.Errorf("waiting for deals to finish: %s", err)
+		return ffs.FilInfo{}, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
-	return ffs.ColdInfo{
-		Enabled: true,
-		Filecoin: ffs.FilInfo{
-			PayloadCID: payloadCID,
-			Proposals:  proposals,
-		}}, nil
+	return ffs.FilInfo{
+		PayloadCID: payloadCID,
+		Proposals:  proposals,
+	}, nil
 }
 
 func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {

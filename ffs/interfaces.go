@@ -9,8 +9,8 @@ import (
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
 type WalletManager interface {
-	NewWallet(ctx context.Context, typ string) (string, error)
-	Balance(ctx context.Context, addr string) (uint64, error)
+	NewWallet(context.Context, string) (string, error)
+	Balance(context.Context, string) (uint64, error)
 }
 
 // Scheduler enforces a CidConfig orchestrating Hot and Cold storages.
@@ -30,18 +30,18 @@ type Scheduler interface {
 type HotStorage interface {
 	Add(context.Context, io.Reader) (cid.Cid, error)
 	Get(context.Context, cid.Cid) (io.Reader, error)
-	Pin(context.Context, cid.Cid, HotConfig) (HotInfo, error)
+	Pin(context.Context, cid.Cid) (int, error)
 }
 
 // ColdStorage is a slow datastorage layer for storing Cids.
 type ColdStorage interface {
-	Store(ctx context.Context, c cid.Cid, waddr string, conf ColdConfig) (ColdInfo, error)
+	Store(context.Context, cid.Cid, string, FilecoinConfig) (FilInfo, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a
 // desired strategy.
 type MinerSelector interface {
-	GetMiners(n int, f MinerSelectorFilter) ([]MinerProposal, error)
+	GetMiners(int, MinerSelectorFilter) ([]MinerProposal, error)
 }
 
 // MinerSelectorFilter establishes filters that should be considered when

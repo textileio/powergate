@@ -176,12 +176,12 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	cl := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag())
-	hl := coreipfs.New(ipfs)
+	cs := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag())
+	hs := coreipfs.New(ipfs)
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
-	sched := scheduler.New(js, pcs, cis, hl, cl)
+	sched := scheduler.New(js, pcs, cis, hs, cs)
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
@@ -194,7 +194,7 @@ func NewServer(conf Config) (*Server, error) {
 	askService := ask.NewService(ai)
 	minerService := miner.NewService(mi)
 	slashingService := slashing.NewService(si)
-	ffsService := ffsGrpc.NewService(ffsManager, hl)
+	ffsService := ffsGrpc.NewService(ffsManager, hs)
 
 	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
 

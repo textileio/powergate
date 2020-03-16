@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/ipfs/go-cid"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
@@ -57,25 +56,14 @@ func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 }
 
 // Pin pins as cid in the IPFS node
-func (ci *CoreIpfs) Pin(ctx context.Context, c cid.Cid, config ffs.HotConfig) (ffs.HotInfo, error) {
-	if !config.Enabled {
-		return ffs.HotInfo{Enabled: false}, nil
-	}
+func (ci *CoreIpfs) Pin(ctx context.Context, c cid.Cid) (int, error) {
 	pth := path.IpfsPath(c)
-	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(config.Ipfs.AddTimeout))
-	defer cancel()
 	if err := ci.ipfs.Pin().Add(ctx, pth, options.Pin.Recursive(true)); err != nil {
-		return ffs.HotInfo{}, fmt.Errorf("pinning cid %s: %s", c, err)
+		return 0, fmt.Errorf("pinning cid %s: %s", c, err)
 	}
 	stat, err := ci.ipfs.Block().Stat(ctx, pth)
 	if err != nil {
-		return ffs.HotInfo{}, fmt.Errorf("getting stats of cid %s: %s", c, err)
+		return 0, fmt.Errorf("getting stats of cid %s: %s", c, err)
 	}
-	return ffs.HotInfo{
-		Enabled: true,
-		Size:    stat.Size(),
-		Ipfs: ffs.IpfsHotInfo{
-			Created: time.Now(),
-		},
-	}, nil
+	return stat.Size(), nil
 }
