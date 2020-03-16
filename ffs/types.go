@@ -143,6 +143,11 @@ func (c CidConfig) WithHotIpfsAddTimeout(seconds int) CidConfig {
 	return c
 }
 
+func (c CidConfig) WithHotAllowUnfreeze(allow bool) CidConfig {
+	c.Hot.AllowUnfreeze = true
+	return c
+}
+
 func (c CidConfig) Validate() error {
 	if !c.Cid.Defined() {
 		return fmt.Errorf("cid is undefined")
@@ -271,8 +276,8 @@ type ColdInfo struct {
 // FilInfo contains information about the current storage state
 // of a Cid in the Filecoin network.
 type FilInfo struct {
-	PayloadCID cid.Cid
-	Proposals  []FilStorage
+	DataCid   cid.Cid
+	Proposals []FilStorage
 }
 
 // FilStorage contains Deal information of a storage in Filecoin.

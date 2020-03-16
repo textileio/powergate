@@ -24,8 +24,7 @@ const (
 )
 
 var (
-	ErrNoOffersAvailable          = errors.New("no offers available to retrieve the data")
-	ErrRetrivingDataFromAnyMiners = errors.New("couldn't retrieve data from any miners")
+	ErrRetrievalNoAvailableProviders = errors.New("no providers to retrieve the data")
 
 	log = logging.Logger("deals")
 )
@@ -67,7 +66,6 @@ func New(api API, opts ...Option) (*Module, error) {
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
 func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64) (cid.Cid, []StoreResult, error) {
-
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
@@ -127,17 +125,17 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 		return nil, err
 	}
 	if len(offers) == 0 {
-		return nil, ErrNoOffersAvailable
+		return nil, ErrRetrievalNoAvailableProviders
 	}
 	for _, o := range offers {
 		log.Debugf("trying to retrieve data from %s", o.Miner)
-		if err := m.api.ClientRetrieve(ctx, o.Order(addr), f.Name()); err != nil {
-			log.Debug("error retrieving cid %s from %s: %s", cid, o.Miner, err)
+		if err = m.api.ClientRetrieve(ctx, o.Order(addr), f.Name()); err != nil {
+			log.Infof("error retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
 		return f, nil
 	}
-	return nil, ErrRetrivingDataFromAnyMiners
+	return nil, fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
 }
 
 // Watch returns a channel with state changes of indicated proposals

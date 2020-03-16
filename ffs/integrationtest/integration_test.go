@@ -189,7 +189,7 @@ func TestShow(t *testing.T) {
 		require.NotNil(t, s.Hot.Ipfs)
 		require.True(t, time.Now().After(s.Hot.Ipfs.Created))
 		require.NotNil(t, s.Cold.Filecoin)
-		require.True(t, s.Cold.Filecoin.PayloadCID.Defined())
+		require.True(t, s.Cold.Filecoin.DataCid.Defined())
 		require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
 		p := s.Cold.Filecoin.Proposals[0]
 		require.True(t, p.ProposalCid.Defined())
@@ -427,20 +427,21 @@ func TestUnfreeze(t *testing.T) {
 	defer cls()
 
 	ra := rand.New(rand.NewSource(22))
+	ctx := context.Background()
 	cid, data := addRandomFile(t, ra, ipfsApi)
-	config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false)
 
+	config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithHotAllowUnfreeze(true)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 
-	ctx := context.Background()
 	_, err = fapi.Get(ctx, cid)
 	require.Equal(t, ffs.ErrHotStorageDisabled, err)
 
+	err = ipfsApi.Dag().Remove(ctx, cid)
+	require.Nil(t, err)
 	config = config.WithHotEnabled(true)
-	// Todo: With override right?
-	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config))
+	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 
@@ -449,10 +450,6 @@ func TestUnfreeze(t *testing.T) {
 	fetched, err := ioutil.ReadAll(r)
 	require.Nil(t, err)
 	require.True(t, bytes.Equal(data, fetched))
-}
-
-func TestUnfreezeFail(t *testing.T) {
-
 }
 
 func newApi(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
@@ -510,7 +507,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 				Enabled:       true,
 				AllowUnfreeze: false,
 				Ipfs: ffs.IpfsConfig{
-					AddTimeout: 30,
+					AddTimeout: 10,
 				},
 			},
 			Cold: ffs.ColdConfig{
@@ -546,7 +543,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 
 func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	ch, err := fapi.Watch(jid)
 	require.Nil(t, err)

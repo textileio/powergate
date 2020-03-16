@@ -87,7 +87,7 @@ func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply,
 		},
 		Cold: &pb.ShowReply_ColdInfo{
 			Filecoin: &pb.ShowReply_FilInfo{
-				PayloadCid: info.Cold.Filecoin.PayloadCID.String(),
+				PayloadCid: info.Cold.Filecoin.DataCid.String(),
 				Proposals:  make([]*pb.ShowReply_FilStorage, len(info.Cold.Filecoin.Proposals)),
 			},
 		},

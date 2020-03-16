@@ -212,18 +212,18 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 	if !cfg.Enabled {
 		return ffs.HotInfo{Enabled: false}, nil
 	}
-	pinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Ipfs.AddTimeout))
+	hotPinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Ipfs.AddTimeout))
 	defer cancel()
-	size, err := s.hs.Pin(pinCtx, curr.Cid)
+	size, err := s.hs.Pin(hotPinCtx, curr.Cid)
 	if err != nil {
 		if !cfg.AllowUnfreeze || !curr.Cold.Enabled {
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
-		carHeaderCid, err := s.cs.Retrieve(ctx, curr.Cold.Filecoin.PayloadCID, s.hs, waddr)
+		carHeaderCid, err := s.cs.Retrieve(ctx, curr.Cold.Filecoin.DataCid, s.hs, waddr)
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
 		}
-		size, err = s.hs.Pin(pinCtx, carHeaderCid)
+		size, err = s.hs.Pin(ctx, carHeaderCid)
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("pinning unfrozen cid: %s", err)
 		}
@@ -240,6 +240,16 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, waddr string) (ffs.ColdInfo, error) {
 	if !cfg.Enabled {
 		return ffs.ColdInfo{Enabled: false}, nil
+	}
+	if curr.Cold.Enabled {
+		// If this Cid is already stored in the Cold layer,
+		// avoid doing any work. This will change when supporting
+		// changing *existing* configs is implemented. This feature
+		// isn't trivial since ColdStorage state isn't reversable,
+		// since Filecoin deals can't be undone; only a particular set
+		// of ColdStorage changes could be supported.
+		// ToDo: reconsider when impl config changes.
+		return curr.Cold, nil
 	}
 	finfo, err := s.cs.Store(ctx, curr.Cid, waddr, cfg.Filecoin)
 	if err != nil {

@@ -16,7 +16,7 @@ func LaunchDocker() (*dockertest.Resource, func()) {
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run ipfs docker container: %s", err))
 	}
-	ipfsDocker.Expire(60)
+	ipfsDocker.Expire(180)
 
 	time.Sleep(time.Second * 3)
 

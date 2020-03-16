@@ -36,8 +36,8 @@ func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold
 	}
 }
 
-func (fc *FilCold) Retrieve(ctx context.Context, payloadCid cid.Cid, cs car.Store, waddr string) (cid.Cid, error) {
-	carR, err := fc.dm.Retrieve(ctx, waddr, payloadCid)
+func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, waddr string) (cid.Cid, error) {
+	carR, err := fc.dm.Retrieve(ctx, waddr, dataCid)
 	if err != nil {
 		return cid.Undef, fmt.Errorf("retrieving from deal module: %s", err)
 	}
@@ -64,7 +64,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fconf ffs
 
 	log.Infof("storing deals in filecoin...")
 	var sres []deals.StoreResult
-	payloadCID, sres, err := fc.dm.Store(ctx, waddr, r, config, uint64(fconf.DealDuration))
+	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, config, uint64(fconf.DealDuration))
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("storing deals in deal manager: %s", err)
 	}
@@ -74,8 +74,8 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fconf ffs
 		return ffs.FilInfo{}, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
 	return ffs.FilInfo{
-		PayloadCID: payloadCID,
-		Proposals:  proposals,
+		DataCid:   dataCid,
+		Proposals: proposals,
 	}, nil
 }
 

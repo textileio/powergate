@@ -39,7 +39,6 @@ func (ci *CoreIpfs) Put(b blocks.Block) error {
 	if _, err := ci.ipfs.Block().Put(context.Background(), bytes.NewReader(b.RawData())); err != nil {
 		return fmt.Errorf("adding block to ipfs node: %s", err)
 	}
-
 	return nil
 }
 
