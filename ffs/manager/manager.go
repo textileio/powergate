@@ -22,6 +22,8 @@ var (
 	createDefConfig sync.Once
 	defCidConfig    ffs.DefaultCidConfig
 
+	istoreNamespace = ds.NewKey("ffs/api/istore")
+
 	log = logging.Logger("ffs-manager")
 )
 
@@ -75,7 +77,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 
 	log.Info("creating instance")
 	iid := ffs.NewInstanceID()
-	is := istore.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/istore")))
+	is := istore.New(iid, namespace.Wrap(m.ds, istoreNamespace))
 	fapi, err := api.New(ctx, iid, is, m.sched, m.wm, defCidConfig)
 	if err != nil {
 		return ffs.EmptyInstanceID, "", fmt.Errorf("creating new instance: %s", err)
@@ -105,7 +107,7 @@ func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 	i, ok := m.instances[iid]
 	if !ok {
 		log.Infof("loading uncached instance %s", iid)
-		is := istore.New(iid, namespace.Wrap(m.ds, ds.NewKey("ffs/api/store")))
+		is := istore.New(iid, namespace.Wrap(m.ds, istoreNamespace))
 		i, err = api.Load(iid, is, m.sched, m.wm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)

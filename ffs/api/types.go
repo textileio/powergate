@@ -10,7 +10,7 @@ import (
 var (
 	// ErrConfigNotFound returned when instance configuration doesn't exist
 	// in ConfigStore.
-	ErrNotFound = errors.New("stored item  not found")
+	ErrNotFound = errors.New("stored item not found")
 )
 
 // ConfigStore is a repository for all state of a Api.
