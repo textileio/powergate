@@ -55,7 +55,7 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation. Currently, a default configuration is used.
 // (TODO: ColdConfig will enable more configurations in the future)
-func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fconf ffs.FilecoinConfig) (ffs.FilInfo, error) {
+func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fconf ffs.FilConfig) (ffs.FilInfo, error) {
 	config, err := makeStorageConfig(ctx, fc.ms, fconf)
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("selecting miners to make the deal: %s", err)
@@ -139,7 +139,7 @@ func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) 
 	return r
 }
 
-func makeStorageConfig(ctx context.Context, ms ffs.MinerSelector, conf ffs.FilecoinConfig) ([]deals.StorageDealConfig, error) {
+func makeStorageConfig(ctx context.Context, ms ffs.MinerSelector, conf ffs.FilConfig) ([]deals.StorageDealConfig, error) {
 	filters := ffs.MinerSelectorFilter{
 		Blacklist:    conf.Blacklist,
 		CountryCodes: conf.CountryCodes,

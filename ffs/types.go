@@ -212,7 +212,7 @@ func (ic *IpfsConfig) Validate() error {
 // ColdConfig is the desired state of a Cid in a cold layer.
 type ColdConfig struct {
 	Enabled  bool
-	Filecoin FilecoinConfig
+	Filecoin FilConfig
 }
 
 func (cc ColdConfig) Validate() error {
@@ -222,9 +222,9 @@ func (cc ColdConfig) Validate() error {
 	return nil
 }
 
-// FilecoinConfig is the desired state of a Cid in the
+// FilConfig is the desired state of a Cid in the
 // Filecoin network.
-type FilecoinConfig struct {
+type FilConfig struct {
 	RepFactor    int
 	DealDuration int64
 	Blacklist    []string
@@ -232,7 +232,7 @@ type FilecoinConfig struct {
 }
 
 // Validate returns a non-nil error if the configuration is invalid.
-func (fc *FilecoinConfig) Validate() error {
+func (fc *FilConfig) Validate() error {
 	if fc.RepFactor <= 0 {
 		return fmt.Errorf("replication factor should be greater than zero, got %d", fc.RepFactor)
 	}

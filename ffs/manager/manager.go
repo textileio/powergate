@@ -66,7 +66,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 			},
 			Cold: ffs.ColdConfig{
 				Enabled: true,
-				Filecoin: ffs.FilecoinConfig{
+				Filecoin: ffs.FilConfig{
 					RepFactor:    1,
 					DealDuration: 1000,
 					Blacklist:    nil,

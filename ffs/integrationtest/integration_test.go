@@ -63,7 +63,7 @@ func TestSetDefaultConfig(t *testing.T) {
 		},
 		Cold: ffs.ColdConfig{
 			Enabled: true,
-			Filecoin: ffs.FilecoinConfig{
+			Filecoin: ffs.FilConfig{
 				DealDuration: 22333,
 				RepFactor:    23,
 			},
@@ -452,6 +452,21 @@ func TestUnfreeze(t *testing.T) {
 	require.True(t, bytes.Equal(data, fetched))
 }
 
+func TestRenew(t *testing.T) {
+	ipfsApi, fapi, cls := newApi(t, 1)
+	defer cls()
+
+	ra := rand.New(rand.NewSource(22))
+	ctx := context.Background()
+	cid, _ := addRandomFile(t, ra, ipfsApi)
+
+	config := fapi.GetDefaultCidConfig(cid).WithColdRenew(true, 100)
+	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+
+}
+
 func newApi(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })
@@ -512,7 +527,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 			},
 			Cold: ffs.ColdConfig{
 				Enabled: true,
-				Filecoin: ffs.FilecoinConfig{
+				Filecoin: ffs.FilConfig{
 					Blacklist:    nil,
 					DealDuration: 1000,
 					RepFactor:    1,

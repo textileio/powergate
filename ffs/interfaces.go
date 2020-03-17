@@ -38,7 +38,7 @@ type HotStorage interface {
 
 // ColdStorage is a slow datastorage layer for storing Cids.
 type ColdStorage interface {
-	Store(context.Context, cid.Cid, string, FilecoinConfig) (FilInfo, error)
+	Store(context.Context, cid.Cid, string, FilConfig) (FilInfo, error)
 	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
 }
 
