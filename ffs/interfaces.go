@@ -40,6 +40,8 @@ type HotStorage interface {
 type ColdStorage interface {
 	Store(context.Context, cid.Cid, string, FilConfig) (FilInfo, error)
 	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
+
+	EnsureRenewals(context.Context, cid.Cid, FilInfo, string, FilConfig) (FilInfo, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a

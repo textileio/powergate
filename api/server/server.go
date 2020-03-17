@@ -24,6 +24,7 @@ import (
 	"github.com/textileio/powergate/fchost"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
+	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	ffsGrpc "github.com/textileio/powergate/ffs/grpc"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
@@ -176,7 +177,8 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	cs := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag())
+	lchain := lotuschain.New(c)
+	cs := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag(), lchain)
 	hs := coreipfs.New(ipfs)
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))

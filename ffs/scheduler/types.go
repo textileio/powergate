@@ -31,6 +31,8 @@ type PushConfigStore interface {
 	Put(ffs.JobID, ffs.PushConfigAction) error
 	// Get returns the current state of a Job.
 	Get(ffs.JobID) (ffs.PushConfigAction, error)
+
+	GetRenewable() ([]ffs.PushConfigAction, error)
 }
 
 type CidInfoStore interface {

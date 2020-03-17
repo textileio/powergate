@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -27,7 +28,7 @@ type Scheduler struct {
 	pcs PushConfigStore
 	cis CidInfoStore
 
-	work chan struct{}
+	queuedWork chan struct{}
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -47,7 +48,7 @@ func New(js JobStore, pcs PushConfigStore, cis CidInfoStore, hs ffs.HotStorage, 
 		pcs: pcs,
 		cis: cis,
 
-		work: make(chan struct{}, 1),
+		queuedWork: make(chan struct{}, 1),
 
 		ctx:      ctx,
 		cancel:   cancel,
@@ -76,7 +77,7 @@ func (s *Scheduler) PushConfig(action ffs.PushConfigAction) (ffs.JobID, error) {
 		return ffs.EmptyJobID, fmt.Errorf("saving pushed config in store: %s", err)
 	}
 	select {
-	case s.work <- struct{}{}:
+	case s.queuedWork <- struct{}{}:
 	default:
 	}
 	return jid, nil
@@ -140,39 +141,82 @@ func (s *Scheduler) run() {
 		case <-s.ctx.Done():
 			log.Infof("terminating scheduler daemon")
 			return
-		case <-s.work:
-			js, err := s.js.GetByStatus(ffs.Queued)
-			if err != nil {
-				log.Errorf("getting queued jobs: %s", err)
-				continue
-			}
-			log.Infof("detected %d queued jobs", len(js))
-			for _, j := range js {
-				log.Infof("executing job %s", j.ID)
-				if err := s.mutateJobStatus(j, ffs.InProgress); err != nil {
-					log.Errorf("changing job to in-progress: %s", err)
-					continue
-				}
-				info, err := s.execute(s.ctx, j)
-				if err != nil {
-					log.Errorf("executing job %s: %s", j.ID, err)
-					j.ErrCause = err.Error()
-					if err := s.mutateJobStatus(j, ffs.Failed); err != nil {
-						log.Errorf("changing job to failed: %s", err)
-					}
-					continue
-				}
-				if err := s.cis.Put(info); err != nil {
-					log.Errorf("saving cid info to store: %s", err)
-					continue
-				}
-				if err := s.mutateJobStatus(j, ffs.Success); err != nil {
-					log.Errorf("changing job to success: %s", err)
-					continue
-				}
-				log.Infof("job %s executed with final state %d and errcause %q", j.ID, j.Status, j.ErrCause)
+		case <-time.After(util.AvgBlockTime):
+			s.scanRenewable(s.ctx)
+		case <-s.queuedWork:
+			s.executeQueuedJobs(s.ctx)
+		}
+	}
+}
 
+func (s *Scheduler) scanRenewable(ctx context.Context) {
+	renewableActions, err := s.pcs.GetRenewable()
+	if err != nil {
+		log.Errorf("getting renweable cid configs from store: %s", err)
+	}
+	for _, a := range renewableActions {
+		if err := s.evaluateRenewal(ctx, a); err != nil {
+			log.Errorf("renweal of %s: %s", a.Config.Cid, err)
+		}
+	}
+}
+
+func (s *Scheduler) evaluateRenewal(ctx context.Context, a ffs.PushConfigAction) error {
+	inf, err := s.cis.Get(a.Config.Cid)
+	if err == ErrNotFound {
+		log.Infof("skip renewal evaluation for %s since hasn't cid info", a.Config.Cid)
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("getting cid info from store: %s", err)
+	}
+
+	inf.Cold.Filecoin, err = s.cs.EnsureRenewals(ctx, a.Config.Cid, inf.Cold.Filecoin, a.WalletAddr, a.Config.Cold.Filecoin)
+	if err != nil {
+		return fmt.Errorf("evaluating renewal in cold-storage: %s", err)
+	}
+
+	if err := s.cis.Put(inf); err != nil {
+		return fmt.Errorf("saving new cid info in store: %s", err)
+	}
+
+	return nil
+}
+
+func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
+	js, err := s.js.GetByStatus(ffs.Queued)
+	if err != nil {
+		log.Errorf("getting queued jobs: %s", err)
+		return
+	}
+	log.Infof("detected %d queued jobs", len(js))
+	for _, j := range js {
+		log.Infof("executing job %s", j.ID)
+		if err := s.mutateJobStatus(j, ffs.InProgress); err != nil {
+			log.Errorf("changing job to in-progress: %s", err)
+			return
+		}
+		info, err := s.execute(s.ctx, j)
+		if err != nil {
+			log.Errorf("executing job %s: %s", j.ID, err)
+			j.ErrCause = err.Error()
+			if err := s.mutateJobStatus(j, ffs.Failed); err != nil {
+				log.Errorf("changing job to failed: %s", err)
 			}
+			return
+		}
+		if err := s.cis.Put(info); err != nil {
+			log.Errorf("saving cid info to store: %s", err)
+			return
+		}
+		if err := s.mutateJobStatus(j, ffs.Success); err != nil {
+			log.Errorf("changing job to success: %s", err)
+			return
+		}
+		log.Infof("job %s executed with final state %d and errcause %q", j.ID, j.Status, j.ErrCause)
+
+		if ctx.Err() != nil {
+			break
 		}
 	}
 }

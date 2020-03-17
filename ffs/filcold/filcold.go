@@ -20,19 +20,25 @@ var (
 
 // FilCold is a ffs.ColdStorage implementation that stores data in Filecoin.
 type FilCold struct {
-	ms  ffs.MinerSelector
-	dm  *deals.Module
-	dag format.DAGService
+	ms    ffs.MinerSelector
+	dm    *deals.Module
+	dag   format.DAGService
+	chain FilChain
 }
 
 var _ ffs.ColdStorage = (*FilCold)(nil)
 
+type FilChain interface {
+	GetHeight(context.Context) (uint64, error)
+}
+
 // New returns a new FilCold instance
-func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService) *FilCold {
+func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService, chain FilChain) *FilCold {
 	return &FilCold{
-		ms:  ms,
-		dm:  dm,
-		dag: dag,
+		ms:    ms,
+		dm:    dm,
+		dag:   dag,
+		chain: chain,
 	}
 }
 
@@ -55,28 +61,90 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation. Currently, a default configuration is used.
 // (TODO: ColdConfig will enable more configurations in the future)
-func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fconf ffs.FilConfig) (ffs.FilInfo, error) {
-	config, err := makeStorageConfig(ctx, fc.ms, fconf)
-	if err != nil {
-		return ffs.FilInfo{}, fmt.Errorf("selecting miners to make the deal: %s", err)
+func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
+	f := ffs.MinerSelectorFilter{
+		Blacklist:    fcfg.Blacklist,
+		CountryCodes: fcfg.CountryCodes,
 	}
+	cfgs, err := makeDealConfigs(ctx, fc.ms, fcfg.RepFactor, f)
+	if err != nil {
+		return ffs.FilInfo{}, fmt.Errorf("making deal configs: %s", err)
+	}
+
+	cid, props, err := fc.makeDeals(ctx, c, cfgs, waddr, fcfg)
+	if err != nil {
+		return ffs.FilInfo{}, fmt.Errorf("executing deals: %s", err)
+	}
+
+	return ffs.FilInfo{
+		DataCid:   cid,
+		Proposals: props,
+	}, nil
+}
+
+func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
+	var activeMiners []string
+	for _, p := range inf.Proposals {
+		if p.Active {
+			activeMiners = append(activeMiners, p.Miner)
+		}
+	}
+	height, err := fc.chain.GetHeight(ctx)
+	if err != nil {
+		return ffs.FilInfo{}, fmt.Errorf("get current filecoin height: %s", err)
+	}
+	for i, p := range inf.Proposals {
+		if !p.Active || p.Renewed {
+			continue
+		}
+		expiry := p.ActivationEpoch + uint64(p.Duration)
+		renewalHeight := expiry - uint64(fcfg.Renew.Threshold)
+		if renewalHeight <= height {
+			newProposal, err := fc.renewDeal(ctx, c, waddr, p, activeMiners, fcfg)
+			if err != nil {
+				log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
+				continue
+			}
+			inf.Proposals = append(inf.Proposals, newProposal)
+			inf.Proposals[i].Renewed = true
+		}
+	}
+	return inf, nil
+}
+
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, waddr string, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, error) {
+	f := ffs.MinerSelectorFilter{
+		Blacklist: activeMiners,
+	}
+	dealConfig, err := makeDealConfigs(ctx, fc.ms, 1, f)
+	if err != nil {
+		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
+	}
+
+	_, props, err := fc.makeDeals(ctx, c, dealConfig, waddr, fcfg)
+	if err != nil {
+		return ffs.FilStorage{}, fmt.Errorf("executing renewed deal: %s", err)
+	}
+	if len(props) != 1 {
+		return ffs.FilStorage{}, fmt.Errorf("unsuccessful renewal")
+	}
+	return props[0], nil
+}
+
+func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, waddr string, fcfg ffs.FilConfig) (cid.Cid, []ffs.FilStorage, error) {
 	r := ipldToFileTransform(ctx, fc.dag, c)
 
-	log.Infof("storing deals in filecoin...")
 	var sres []deals.StoreResult
-	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, config, uint64(fconf.DealDuration))
+	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, cfgs, uint64(fcfg.DealDuration))
 	if err != nil {
-		return ffs.FilInfo{}, fmt.Errorf("storing deals in deal manager: %s", err)
+		return cid.Undef, nil, fmt.Errorf("storing deals in deal module: %s", err)
 	}
 
-	proposals, err := fc.waitForDeals(ctx, sres, fconf.DealDuration)
+	proposals, err := fc.waitForDeals(ctx, sres, fcfg.DealDuration)
 	if err != nil {
-		return ffs.FilInfo{}, fmt.Errorf("waiting for deals to finish: %s", err)
+		return cid.Undef, nil, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
-	return ffs.FilInfo{
-		DataCid:   dataCid,
-		Proposals: proposals,
-	}, nil
+	return dataCid, proposals, nil
 }
 
 func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {
@@ -84,16 +152,18 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 	var inProgressDeals []cid.Cid
 	proposals := make(map[cid.Cid]*ffs.FilStorage)
 	for _, d := range storeResults {
+		if !d.Success {
+			log.Warnf("failed store result")
+			continue
+		}
 		proposals[d.ProposalCid] = &ffs.FilStorage{
 			ProposalCid: d.ProposalCid,
-			Failed:      !d.Success,
+			Active:      true,
 			Duration:    duration,
 			Miner:       d.Config.Miner,
 		}
-		if d.Success {
-			inProgressDeals = append(inProgressDeals, d.ProposalCid)
-			notDone[d.ProposalCid] = struct{}{}
-		}
+		inProgressDeals = append(inProgressDeals, d.ProposalCid)
+		notDone[d.ProposalCid] = struct{}{}
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -112,7 +182,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 			fs.ActivationEpoch = di.ActivationEpoch
 			delete(notDone, di.ProposalCid)
 		} else if di.StateID == storagemarket.DealError || di.StateID == storagemarket.DealFailed {
-			fs.Failed = true
+			delete(proposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
 		}
 		if len(notDone) == 0 {
@@ -139,14 +209,10 @@ func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) 
 	return r
 }
 
-func makeStorageConfig(ctx context.Context, ms ffs.MinerSelector, conf ffs.FilConfig) ([]deals.StorageDealConfig, error) {
-	filters := ffs.MinerSelectorFilter{
-		Blacklist:    conf.Blacklist,
-		CountryCodes: conf.CountryCodes,
-	}
-	mps, err := ms.GetMiners(conf.RepFactor, filters)
+func makeDealConfigs(ctx context.Context, ms ffs.MinerSelector, cantMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {
+	mps, err := ms.GetMiners(cantMiners, f)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getting miners from minerselector: %s", err)
 	}
 	res := make([]deals.StorageDealConfig, len(mps))
 	for i, m := range mps {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
@@ -56,6 +57,27 @@ func (s *Store) Put(ji ffs.JobID, pca ffs.PushConfigAction) error {
 		return fmt.Errorf("saving push config in datastore: %s", err)
 	}
 	return nil
+}
+
+func (s *Store) GetRenewable() ([]ffs.PushConfigAction, error) {
+	q := query.Query{Prefix: dsBase.String()}
+	res, err := s.ds.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("executing query in datastore: %s", err)
+	}
+	defer res.Close()
+
+	var actions []ffs.PushConfigAction
+	for r := range res.Next() {
+		var pca ffs.PushConfigAction
+		if err := json.Unmarshal(r.Value, &pca); err != nil {
+			return nil, fmt.Errorf("unmarshalling push config action in query: %s", err)
+		}
+		if pca.Config.Cold.Filecoin.Renew.Enabled {
+			actions = append(actions, pca)
+		}
+	}
+	return actions, nil
 }
 
 func makeKey(jid ffs.JobID) datastore.Key {

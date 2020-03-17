@@ -133,6 +133,12 @@ func (c CidConfig) WithColdFilDealDuration(duration int64) CidConfig {
 	return c
 }
 
+func (c CidConfig) WithColdFilRenew(enabled bool, threshold int) CidConfig {
+	c.Cold.Filecoin.Renew.Enabled = enabled
+	c.Cold.Filecoin.Renew.Threshold = threshold
+	return c
+}
+
 func (c CidConfig) WithHotEnabled(enabled bool) CidConfig {
 	c.Hot.Enabled = enabled
 	return c
@@ -229,6 +235,12 @@ type FilConfig struct {
 	DealDuration int64
 	Blacklist    []string
 	CountryCodes []string
+	Renew        FilRenew
+}
+
+type FilRenew struct {
+	Enabled   bool
+	Threshold int
 }
 
 // Validate returns a non-nil error if the configuration is invalid.
@@ -238,6 +250,9 @@ func (fc *FilConfig) Validate() error {
 	}
 	if fc.DealDuration <= 0 {
 		return fmt.Errorf("deal duration should be greater than zero, got %d", fc.DealDuration)
+	}
+	if fc.Renew.Enabled && fc.Renew.Threshold <= 0 {
+		return fmt.Errorf("renew threshold should be positive: %d", fc.Renew.Threshold)
 	}
 	return nil
 }
@@ -283,8 +298,9 @@ type FilInfo struct {
 // FilStorage contains Deal information of a storage in Filecoin.
 type FilStorage struct {
 	ProposalCid     cid.Cid
+	Active          bool
+	Renewed         bool
 	Duration        int64
 	ActivationEpoch uint64
-	Failed          bool
 	Miner           string
 }

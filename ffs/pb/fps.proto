@@ -76,13 +76,13 @@ message ShowReply {
    }
 
    message FilInfo {
-      string payloadCid = 1;
+      string dataCid = 1;
       repeated FilStorage proposals = 2;
    }
 
    message FilStorage {
       string proposalCid = 1;
-      bool failed = 2;
+      bool active = 2;
       int64 duration = 3;
       int64 activationEpoch = 4;
    }

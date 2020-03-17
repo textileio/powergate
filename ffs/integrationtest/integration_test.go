@@ -28,6 +28,7 @@ import (
 	"github.com/textileio/powergate/ffs/api/istore"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
+	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/ffs/scheduler/cistore"
@@ -194,7 +195,7 @@ func TestShow(t *testing.T) {
 		p := s.Cold.Filecoin.Proposals[0]
 		require.True(t, p.ProposalCid.Defined())
 		require.Greater(t, p.Duration, int64(0))
-		require.False(t, p.Failed)
+		require.True(t, p.Active)
 	})
 }
 
@@ -453,18 +454,59 @@ func TestUnfreeze(t *testing.T) {
 }
 
 func TestRenew(t *testing.T) {
-	ipfsApi, fapi, cls := newApi(t, 1)
-	defer cls()
+	util.AvgBlockTime = time.Millisecond * 200
+	ipfsDocker, cls := tests.LaunchDocker()
+	t.Cleanup(func() { cls() })
+	ds := tests.NewTxMapDatastore()
+	addr, client, ms, clsDevnet := newDevnet(t, 2)
+	defer clsDevnet()
+	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+	defer closeInternal()
 
 	ra := rand.New(rand.NewSource(22))
-	ctx := context.Background()
 	cid, _ := addRandomFile(t, ra, ipfsApi)
 
-	config := fapi.GetDefaultCidConfig(cid).WithColdRenew(true, 100)
+	renewThreshold := 50
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(200)).WithColdFilRenew(true, renewThreshold)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 
+	i, err := fapi.Show(cid)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(i.Cold.Filecoin.Proposals))
+
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	lchain := lotuschain.New(client)
+Loop:
+	for {
+		select {
+		case <-ticker.C:
+			i, err := fapi.Show(cid)
+			require.Nil(t, err)
+
+			firstDeal := i.Cold.Filecoin.Proposals[0]
+			h, err := lchain.GetHeight(context.Background())
+			require.Nil(t, err)
+			if firstDeal.ActivationEpoch+uint64(firstDeal.Duration)-uint64(renewThreshold)+uint64(100) > h {
+				require.LessOrEqual(t, len(i.Cold.Filecoin.Proposals), 2)
+				continue
+			}
+
+			require.Equal(t, len(i.Cold.Filecoin.Proposals), 2)
+			require.True(t, firstDeal.Active)
+			require.True(t, firstDeal.Renewed)
+
+			newDeal := i.Cold.Filecoin.Proposals[1]
+			require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
+			require.True(t, newDeal.Active)
+			require.False(t, newDeal.Renewed)
+			require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
+			require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)
+			break Loop
+		}
+	}
 }
 
 func newApi(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
@@ -503,7 +545,8 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 	dm, err := deals.New(client, deals.WithImportPath(filepath.Join(os.TempDir(), "imports")))
 	require.Nil(t, err)
 
-	cl := filcold.New(ms, dm, ipfsClient.Dag())
+	fchain := lotuschain.New(client)
+	cl := filcold.New(ms, dm, ipfsClient.Dag(), fchain)
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
