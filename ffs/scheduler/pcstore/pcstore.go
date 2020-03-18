@@ -18,6 +18,8 @@ var (
 	dsBase = datastore.NewKey("pcstore")
 )
 
+// Store is a Datastore backed implementation of PushConfigStore, which saves latests
+// PushConfig actions for a Cid.
 type Store struct {
 	ds datastore.Datastore
 }
@@ -31,7 +33,7 @@ func New(ds datastore.Datastore) *Store {
 	}
 }
 
-// GetCidInfo  gets the current stored state of a Cid
+// Get  gets the current stored state of a Cid
 func (s *Store) Get(jid ffs.JobID) (ffs.PushConfigAction, error) {
 	var pca ffs.PushConfigAction
 	buf, err := s.ds.Get(makeKey(jid))
@@ -47,7 +49,7 @@ func (s *Store) Get(jid ffs.JobID) (ffs.PushConfigAction, error) {
 	return pca, nil
 }
 
-// PutCidInfo saves a new storing state for a Cid
+// Put saves a new storing state for a Cid
 func (s *Store) Put(ji ffs.JobID, pca ffs.PushConfigAction) error {
 	buf, err := json.Marshal(pca)
 	if err != nil {
@@ -59,6 +61,8 @@ func (s *Store) Put(ji ffs.JobID, pca ffs.PushConfigAction) error {
 	return nil
 }
 
+// GetRenewable returns all PushConfigActions that have the _Renew_ flag enabled,
+// and should be inspected for Deal renewals.
 func (s *Store) GetRenewable() ([]ffs.PushConfigAction, error) {
 	q := query.Query{Prefix: dsBase.String()}
 	res, err := s.ds.Query(q)

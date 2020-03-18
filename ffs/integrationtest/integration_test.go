@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestSetDefaultConfig(t *testing.T) {
-	_, fapi, cls := newApi(t, 1)
+	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	config := ffs.DefaultCidConfig{
@@ -78,18 +78,18 @@ func TestSetDefaultConfig(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	ipfsApi, fapi, cls := newApi(t, 1)
+	ipfsAPI, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfsApi)
+	cid, _ := addRandomFile(t, r, ipfsAPI)
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		jid, err := fapi.PushConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 	})
 
-	cid, _ = addRandomFile(t, r, ipfsApi)
+	cid, _ = addRandomFile(t, r, ipfsAPI)
 	t.Run("WithCustomConfig", func(t *testing.T) {
 		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithColdFilDealDuration(int64(4321))
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
@@ -104,7 +104,7 @@ func TestAdd(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newApi(t, 1)
+	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -124,7 +124,7 @@ func TestGet(t *testing.T) {
 
 func TestInfo(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newApi(t, 1)
+	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	var err error
@@ -159,7 +159,7 @@ func TestInfo(t *testing.T) {
 
 func TestShow(t *testing.T) {
 	ctx := context.Background()
-	ipfs, fapi, cls := newApi(t, 1)
+	ipfs, fapi, cls := newAPI(t, 1)
 
 	defer cls()
 
@@ -208,9 +208,9 @@ func TestColdInstanceLoad(t *testing.T) {
 	addr, client, ms, closeDevnet := newDevnet(t, 1)
 	defer closeDevnet()
 
-	ipfsApi, fapi, cls := newApiFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+	ipfsAPI, fapi, cls := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	ra := rand.New(rand.NewSource(22))
-	cid, data := addRandomFile(t, ra, ipfsApi)
+	cid, data := addRandomFile(t, ra, ipfsAPI)
 	jid, err := fapi.PushConfig(cid)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
@@ -220,7 +220,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.Nil(t, err)
 	cls()
 
-	_, fapi, cls = newApiFromDs(t, ds, fapi.ID(), client, addr, ms, ipfsDocker)
+	_, fapi, cls = newAPIFromDs(t, ds, fapi.ID(), client, addr, ms, ipfsDocker)
 	defer cls()
 	ninfo, err := fapi.Info(ctx)
 	require.Nil(t, err)
@@ -238,14 +238,14 @@ func TestColdInstanceLoad(t *testing.T) {
 }
 
 func TestRepFactor(t *testing.T) {
-	ipfsApi, fapi, cls := newApi(t, 2)
+	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
 
 	rfs := []int{1, 2}
 	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
-			cid, _ := addRandomFile(t, r, ipfsApi)
+			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(rf)
 			jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 			require.Nil(t, err)
@@ -259,7 +259,7 @@ func TestRepFactor(t *testing.T) {
 
 	t.Run("IncreaseBy1", func(t *testing.T) {
 		t.SkipNow()
-		cid, _ := addRandomFile(t, r, ipfsApi)
+		cid, _ := addRandomFile(t, r, ipfsAPI)
 		jid, err := fapi.PushConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
@@ -281,7 +281,7 @@ func TestRepFactor(t *testing.T) {
 }
 
 func TestHotTimeoutConfig(t *testing.T) {
-	_, fapi, cls := newApi(t, 1)
+	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	t.Run("ShortTime", func(t *testing.T) {
@@ -294,11 +294,11 @@ func TestHotTimeoutConfig(t *testing.T) {
 }
 
 func TestDurationConfig(t *testing.T) {
-	ipfsApi, fapi, cls := newApi(t, 1)
+	ipfsAPI, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfsApi)
+	cid, _ := addRandomFile(t, r, ipfsAPI)
 	duration := int64(1234)
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(duration)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
@@ -312,11 +312,11 @@ func TestDurationConfig(t *testing.T) {
 }
 
 func TestFilecoinBlacklist(t *testing.T) {
-	ipfsApi, fapi, cls := newApi(t, 2)
+	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfsApi)
+	cid, _ := addRandomFile(t, r, ipfsAPI)
 	excludedMiner := "t0300"
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilBlacklist([]string{excludedMiner})
 
@@ -347,11 +347,11 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
-	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyInstanceID, dnet.Client, addr, ms, ipfsDocker)
+	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, dnet.Client, addr, ms, ipfsDocker)
 	defer closeInternal()
 
 	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfsApi)
+	cid, _ := addRandomFile(t, r, ipfsAPI)
 	countryFilter := []string{"Uruguay"}
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilCountryCodes(countryFilter)
 
@@ -378,11 +378,11 @@ func TestFilecoinEnableConfig(t *testing.T) {
 	for _, tt := range tableTest {
 		name := fmt.Sprintf("Hot(%v)/Cold(%v)", tt.HotEnabled, tt.ColdEnabled)
 		t.Run(name, func(t *testing.T) {
-			ipfsApi, fapi, cls := newApi(t, 1)
+			ipfsAPI, fapi, cls := newAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
-			cid, _ := addRandomFile(t, r, ipfsApi)
+			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.GetDefaultCidConfig(cid).WithColdEnabled(tt.ColdEnabled).WithHotEnabled(tt.HotEnabled)
 
 			var expectedErr error
@@ -424,12 +424,12 @@ func TestFilecoinEnableConfig(t *testing.T) {
 }
 
 func TestUnfreeze(t *testing.T) {
-	ipfsApi, fapi, cls := newApi(t, 1)
+	ipfsAPI, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	ra := rand.New(rand.NewSource(22))
 	ctx := context.Background()
-	cid, data := addRandomFile(t, ra, ipfsApi)
+	cid, data := addRandomFile(t, ra, ipfsAPI)
 
 	config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithHotAllowUnfreeze(true)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
@@ -439,7 +439,7 @@ func TestUnfreeze(t *testing.T) {
 	_, err = fapi.Get(ctx, cid)
 	require.Equal(t, ffs.ErrHotStorageDisabled, err)
 
-	err = ipfsApi.Dag().Remove(ctx, cid)
+	err = ipfsAPI.Dag().Remove(ctx, cid)
 	require.Nil(t, err)
 	config = config.WithHotEnabled(true)
 	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
@@ -460,11 +460,11 @@ func TestRenew(t *testing.T) {
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms, clsDevnet := newDevnet(t, 2)
 	defer clsDevnet()
-	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	defer closeInternal()
 
 	ra := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, ra, ipfsApi)
+	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
 	renewThreshold := 50
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(200)).WithColdFilRenew(true, renewThreshold)
@@ -506,13 +506,13 @@ Loop:
 	}
 }
 
-func newApi(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
+func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms, close := newDevnet(t, numMiners)
-	ipfsApi, fapi, closeInternal := newApiFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-	return ipfsApi, fapi, func() {
+	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+	return ipfsAPI, fapi, func() {
 		closeInternal()
 		close()
 	}
@@ -533,7 +533,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 	return addr, dnet.Client, ms, close
 }
 
-func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
+func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
 	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)

@@ -6,32 +6,33 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
-// FixedMinerSelector is a ffs.MinerSelector implementation which
+// MinerSelector is a MinerSelector implementation which
 // always return a single miner address with an fixed epochPrice.
-type FixedMinerSelector struct {
+type MinerSelector struct {
 	miners []Miner
 }
 
+// Miner contains miner information.
 type Miner struct {
 	Addr       string
 	Country    string
 	EpochPrice uint64
 }
 
-var _ ffs.MinerSelector = (*FixedMinerSelector)(nil)
+var _ ffs.MinerSelector = (*MinerSelector)(nil)
 
 // New returns a new FixedMinerSelector that always return addr as the miner address
 // and epochPrice.
-func New(miners []Miner) *FixedMinerSelector {
+func New(miners []Miner) *MinerSelector {
 	fixedMiners := make([]Miner, len(miners))
 	copy(fixedMiners, miners)
-	return &FixedMinerSelector{
+	return &MinerSelector{
 		miners: fixedMiners,
 	}
 }
 
-// GetTopMiners returns the single allowed miner in the selector.
-func (fms *FixedMinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
+// GetMiners returns the single allowed miner in the selector.
+func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
 	res := make([]ffs.MinerProposal, 0, n)
 	for _, m := range fms.miners {
 		skip := false

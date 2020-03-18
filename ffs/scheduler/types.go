@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("job not found")
+	// ErrNotFound is returned when an item isn't found on a Store.
+	ErrNotFound = errors.New("item not found")
 )
 
-// Store persist Job information and allows to watch for Job state updates.
+// JobStore persist Job information and allows to watch for Job state updates.
 type JobStore interface {
 	// PutJob saves job data in the store.
 	Put(ffs.Job) error
@@ -26,6 +27,7 @@ type JobStore interface {
 	Unwatch(<-chan ffs.Job)
 }
 
+// PushConfigStore persist PushConfigActions for Cids.
 type PushConfigStore interface {
 	// PutPushConfigJob saves a new state for a Job.
 	Put(ffs.JobID, ffs.PushConfigAction) error
@@ -35,6 +37,8 @@ type PushConfigStore interface {
 	GetRenewable() ([]ffs.PushConfigAction, error)
 }
 
+// CidInfoStore persists CidInfo which represent the current storage
+// state of a Cidl
 type CidInfoStore interface {
 	Put(ffs.CidInfo) error
 	Get(cid.Cid) (ffs.CidInfo, error)

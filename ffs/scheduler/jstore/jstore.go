@@ -16,8 +16,8 @@ var (
 	log = logging.Logger("ffs-sched-jstore")
 )
 
-// JobStore is an scheduler.JobStore implementation that saves
-// state of scheduler Jobs in a Datastore.
+// Store is a Datastore implementation of JobStore, which saves
+// state of scheduler Jobs.
 type Store struct {
 	lock     sync.Mutex
 	ds       datastore.Datastore

@@ -83,6 +83,8 @@ func (s *Scheduler) PushConfig(action ffs.PushConfigAction) (ffs.JobID, error) {
 	return jid, nil
 }
 
+// GetCidInfo returns the current storage state of a Cid. Returns ErrNotFound
+// if there isn't information for a Cid.
 func (s *Scheduler) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	info, err := s.cis.Get(c)
 	if err == ErrNotFound {
@@ -94,8 +96,7 @@ func (s *Scheduler) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	return info, nil
 }
 
-// GetFromHot returns an io.Reader of the data from the hot layer.
-// (TODO: in the future rate-limiting can be applied.)
+// GetCidFromHot returns an io.Reader of the data from the hot layer.
 func (s *Scheduler) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	r, err := s.hs.Get(ctx, c)
 	if err != nil {

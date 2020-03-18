@@ -35,6 +35,7 @@ func New(ipfs iface.CoreAPI) *CoreIpfs {
 	}
 }
 
+// Put saves a Block.
 func (ci *CoreIpfs) Put(ctx context.Context, b blocks.Block) error {
 	if _, err := ci.ipfs.Block().Put(ctx, bytes.NewReader(b.RawData())); err != nil {
 		return fmt.Errorf("adding block to ipfs node: %s", err)

@@ -16,11 +16,13 @@ import (
 )
 
 var (
+	// ErrEmptyAuthToken is returned when the provided auth-token is unkown.
 	ErrEmptyAuthToken = errors.New("auth token can't be empty")
 
 	log = logger.Logger("ffs-grpc-service")
 )
 
+// Service implements the proto service definition of FFS.
 type Service struct {
 	pb.UnimplementedAPIServer
 
@@ -28,6 +30,7 @@ type Service struct {
 	hot ffs.HotStorage
 }
 
+// NewService returns a new Service.
 func NewService(m *manager.Manager, hot ffs.HotStorage) *Service {
 	return &Service{
 		m:   m,
@@ -35,6 +38,7 @@ func NewService(m *manager.Manager, hot ffs.HotStorage) *Service {
 	}
 }
 
+// Info returns an Api information.
 func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -61,6 +65,7 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 	return reply, nil
 }
 
+// Show returns information about a particular Cid.
 func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -104,6 +109,7 @@ func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply,
 	return reply, nil
 }
 
+// AddCid adds a cid to an Api.
 func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCidReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -151,6 +157,7 @@ func receiveFile(srv pb.API_AddFileServer, writer *io.PipeWriter) {
 	}
 }
 
+// AddFile stores data in the Hot Storage and saves it in an Api.
 func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
@@ -186,6 +193,7 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 	return srv.SendAndClose(&pb.AddFileReply{Cid: c.String()})
 }
 
+// Get gets the data for a stored Cid.
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
