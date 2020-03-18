@@ -20,7 +20,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	logging.SetAllLoggers(logging.LevelInfo)
+	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())
 }
 
