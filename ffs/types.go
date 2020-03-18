@@ -1,7 +1,6 @@
 package ffs
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -27,15 +26,9 @@ func (jid JobID) String() string {
 	return string(jid)
 }
 
-// InstanceID
 var (
 	// EmptyInstanceID representes an empty/invalid Instance ID.
 	EmptyInstanceID = InstanceID("")
-	// ErrBothStorageDisabled returned when both storages are disabled.
-	ErrBothStoragesDisabled = errors.New("both Hot and Cold layers can't be disabled")
-	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
-	// To retrieve the data, is necessary to call Unfreeze().
-	ErrHotStorageDisabled = errors.New("cid disabled in hot storage")
 )
 
 // InstanceID is an identifier for a Api instance.

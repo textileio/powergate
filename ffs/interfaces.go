@@ -2,6 +2,7 @@ package ffs
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	blocks "github.com/ipfs/go-block-format"
@@ -11,19 +12,41 @@ import (
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
 type WalletManager interface {
+	// NewAddress creates a new address.
 	NewAddress(context.Context, string) (string, error)
+	// Balance returns the current balance for an address.
 	Balance(context.Context, string) (uint64, error)
 }
 
+var (
+	// ErrBothStorageDisabled returned when both storages are disabled.
+	ErrBothStoragesDisabled = errors.New("both Hot and Cold layers can't be disabled")
+	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
+	// To retrieve the data, is necessary to call unfreeze by enabling the Enabled flag in
+	// the Hot Storage for that Cid.
+	ErrHotStorageDisabled = errors.New("cid disabled in hot storage")
+)
+
 // Scheduler enforces a CidConfig orchestrating Hot and Cold storages.
 type Scheduler interface {
+	// PushConfig push a new or modified configuration for a Cid. It returns
+	// the JobID which tracks the current state of executiong of that task.
 	PushConfig(PushConfigAction) (JobID, error)
 
+	// GetCidInfo returns the current Cid storing state. This state may be different
+	// from CidConfig which is the *desired* state.
 	GetCidInfo(cid.Cid) (CidInfo, error)
+	// GetCidFromHot returns an Reader with the Cid data. If the data isn't in the Hot
+	// Storage, it errors with ErrHotStorageDisabled.
 	GetCidFromHot(context.Context, cid.Cid) (io.Reader, error)
 
+	// GetJob gets the a Job.
 	GetJob(JobID) (Job, error)
+
+	// Watch returns a channel which will receive updates for all Jobs created by
+	// an Instance.
 	Watch(InstanceID) <-chan Job
+	// Unwatch unregisters a subscribed channel.
 	Unwatch(<-chan Job)
 }
 
