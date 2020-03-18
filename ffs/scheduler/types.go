@@ -38,7 +38,7 @@ type PushConfigStore interface {
 }
 
 // CidInfoStore persists CidInfo which represent the current storage
-// state of a Cidl
+// state of a Cid.
 type CidInfoStore interface {
 	Put(ffs.CidInfo) error
 	Get(cid.Cid) (ffs.CidInfo, error)
