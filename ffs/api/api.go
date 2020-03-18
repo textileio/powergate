@@ -256,8 +256,6 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.
-// (TODO: Scheduler.GetFromHot might have to return an error if we want to rate-limit
-// hot layer retrievals)
 func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	if !c.Defined() {
 		return nil, fmt.Errorf("cid is undefined")
