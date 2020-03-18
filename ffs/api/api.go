@@ -20,10 +20,10 @@ var (
 )
 
 var (
-	// ErrAlreaadyPinned returned when trying to push an initial config
-	// for storing a Cid.
-	ErrAlreadyPinned = errors.New("cid already pinned")
-	// ErNotStored returned when there isn't CidInfo for a Cid.
+	// ErrMustOverrideConfig returned when trying to push config for storing a Cid
+	// without the override flag.
+	ErrMustOverrideConfig = errors.New("cid already pinned")
+	// ErrNotStored returned Store's items doesn't exist.
 	ErrNotStored = errors.New("cid isn't stored")
 )
 
@@ -50,7 +50,7 @@ type watcher struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, iid ffs.InstanceID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultCidConfig) (*API, error) {
+func New(ctx context.Context, iid ffs.ApiID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultCidConfig) (*API, error) {
 	if err := dc.Validate(); err != nil {
 		return nil, fmt.Errorf("default cid config is invalid: %s", err)
 	}
@@ -64,7 +64,7 @@ func New(ctx context.Context, iid ffs.InstanceID, is InstanceStore, sch ffs.Sche
 		DefaultCidConfig: dc,
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	i := new(iid, is, wm, config, sch, ctx, cancel)
+	i := new(ctx, iid, is, wm, config, sch, cancel)
 	if err := i.is.PutConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.config.ID, err)
 	}
@@ -72,17 +72,16 @@ func New(ctx context.Context, iid ffs.InstanceID, is InstanceStore, sch ffs.Sche
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(iid ffs.InstanceID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletManager) (*API, error) {
+func Load(iid ffs.ApiID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletManager) (*API, error) {
 	c, err := is.GetConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return new(iid, is, wm, c, sched, ctx, cancel), nil
+	return new(ctx, iid, is, wm, c, sched, cancel), nil
 }
 
-func new(iid ffs.InstanceID, is InstanceStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler,
-	ctx context.Context, cancel context.CancelFunc) *API {
+func new(ctx context.Context, iid ffs.ApiID, is InstanceStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:      is,
 		wm:      wm,
@@ -98,23 +97,24 @@ func new(iid ffs.InstanceID, is InstanceStore, wm ffs.WalletManager, config Conf
 	return i
 }
 
-// ID returns the InstanceID of the instance.
-func (i *API) ID() ffs.InstanceID {
+// ID returns the ID.
+func (i *API) ID() ffs.ApiID {
 	return i.config.ID
 }
 
-// WalletAddr returns the Lotus wallet address of the instance.
+// WalletAddr returns the Lotus wallet address.
 func (i *API) WalletAddr() string {
 	return i.config.WalletAddr
 }
 
-// GetDefaultCidConfig returns the default instance Cid config, prepared for a Cid.
+// GetDefaultCidConfig returns the default instance Cid config, prepared for a particular Cid.
 func (i *API) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	return newDefaultPushConfig(c, i.config.DefaultCidConfig).Config
 }
 
+// GetCidConfig returns the current CidConfig for a Cid.
 func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
 	conf, err := i.is.GetCidConfig(c)
 	if err != nil {
@@ -123,6 +123,7 @@ func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
 	return conf, nil
 }
 
+// SetDefaultCidConfig sets a new default CidConfig.
 func (i *API) SetDefaultCidConfig(c ffs.DefaultCidConfig) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -146,7 +147,7 @@ func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
 	return inf, nil
 }
 
-// Info returns instance information
+// Info returns instance information.
 func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	pins, err := i.is.GetCids()
 	if err != nil {
@@ -215,12 +216,7 @@ func (i *API) Unwatch(ch <-chan ffs.Job) {
 }
 
 // PushConfig push a new configuration for the Cid in the Hot and
-// Cold layer. (TODO: Soon the configuration will be received as a param,
-// to allow different strategies in the Hot and Cold layer. Now a second AddCid
-// will error with ErrAlreadyPinned. This might change depending if changing config
-// for an existing Cid will use this same API, or another. In any case sounds safer to
-// consider some option to specify we want to add a config without overriding some
-// existing one.)
+// Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig
 func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -234,7 +230,7 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 	if !addConfig.OverrideConfig {
 		_, err := i.is.GetCidConfig(c)
 		if err == nil {
-			return ffs.EmptyJobID, ErrAlreadyPinned
+			return ffs.EmptyJobID, ErrMustOverrideConfig
 		}
 		if err != ErrNotFound {
 			return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
@@ -280,6 +276,7 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return r, nil
 }
 
+// GetCidInfo returns the current Cid stored state.
 func (i *API) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	info, err := i.sched.GetCidInfo(c)
 	if err != nil {
@@ -288,7 +285,7 @@ func (i *API) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	return info, nil
 }
 
-// Close terminates the running Instance.
+// Close terminates the running Api.
 func (i *API) Close() error {
 	i.lock.Lock()
 	defer i.lock.Unlock()

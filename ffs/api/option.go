@@ -7,8 +7,10 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
+// PushConfigOption mutates a push configuration.
 type PushConfigOption func(o *PushConfig) error
 
+// PushConfig contains options for pushing a Cid configuration.
 type PushConfig struct {
 	Config         ffs.CidConfig
 	OverrideConfig bool
@@ -28,6 +30,7 @@ func newDefaultCidConfig(c cid.Cid, dc ffs.DefaultCidConfig) ffs.CidConfig {
 	}
 }
 
+// WithCidConfig overrides the Api default Cid configuration.
 func WithCidConfig(c ffs.CidConfig) PushConfigOption {
 	return func(o *PushConfig) error {
 		o.Config = c
@@ -35,6 +38,8 @@ func WithCidConfig(c ffs.CidConfig) PushConfigOption {
 	}
 }
 
+// WithOverride allows a new push configuration to override an existing one.
+// It's used as an extra security measure to avoid unwanted configuration changes.
 func WithOverride(override bool) PushConfigOption {
 	return func(o *PushConfig) error {
 		o.OverrideConfig = override
@@ -42,6 +47,7 @@ func WithOverride(override bool) PushConfigOption {
 	}
 }
 
+// Validate validates a PushConfig.
 func (pc PushConfig) Validate() error {
 	if err := pc.Config.Validate(); err != nil {
 		return fmt.Errorf("invalid config: %s", err)

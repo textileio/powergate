@@ -35,7 +35,7 @@ type Manager struct {
 	lock      sync.Mutex
 	ds        ds.Datastore
 	auth      *auth.Auth
-	instances map[ffs.InstanceID]*api.API
+	instances map[ffs.ApiID]*api.API
 
 	closed bool
 }
@@ -47,12 +47,12 @@ func New(ds ds.Datastore, wm ffs.WalletManager, sched ffs.Scheduler) (*Manager, 
 		ds:        ds,
 		wm:        wm,
 		sched:     sched,
-		instances: make(map[ffs.InstanceID]*api.API),
+		instances: make(map[ffs.ApiID]*api.API),
 	}, nil
 }
 
 // Create creates a new Api instance and an auth-token mapped to it.
-func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
+func (m *Manager) Create(ctx context.Context) (ffs.ApiID, string, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -76,7 +76,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.InstanceID, string, error) {
 	})
 
 	log.Info("creating instance")
-	iid := ffs.NewInstanceID()
+	iid := ffs.NewApiID()
 	is := istore.New(iid, namespace.Wrap(m.ds, istoreNamespace))
 	fapi, err := api.New(ctx, iid, is, m.sched, m.wm, defCidConfig)
 	if err != nil {

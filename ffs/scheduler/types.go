@@ -21,7 +21,7 @@ type JobStore interface {
 	GetByStatus(ffs.JobStatus) ([]ffs.Job, error)
 
 	// Watch subscribes to all job state changes within an instance.
-	Watch(ffs.InstanceID) <-chan ffs.Job
+	Watch(ffs.ApiID) <-chan ffs.Job
 	// Unwatch unregisters a Watch subscriber.
 	Unwatch(<-chan ffs.Job)
 }

@@ -28,26 +28,26 @@ func (jid JobID) String() string {
 
 var (
 	// EmptyInstanceID representes an empty/invalid Instance ID.
-	EmptyInstanceID = InstanceID("")
+	EmptyInstanceID = ApiID("")
 )
 
-// InstanceID is an identifier for a Api instance.
-type InstanceID string
+// ApiID is an identifier for a Api instance.
+type ApiID string
 
-// NewInstanceID returns a new InstanceID.
-func NewInstanceID() InstanceID {
-	return InstanceID(uuid.New().String())
+// NewApiID returns a new InstanceID.
+func NewApiID() ApiID {
+	return ApiID(uuid.New().String())
 }
 
 // Valid returns true if the InstanceID is valid, false
 // otherwise.
-func (i InstanceID) Valid() bool {
+func (i ApiID) Valid() bool {
 	_, err := uuid.Parse(string(i))
 	return err == nil
 }
 
 // String returns a string representation of InstanceID.
-func (i InstanceID) String() string {
+func (i ApiID) String() string {
 	return string(i)
 }
 
@@ -73,7 +73,7 @@ const (
 // Job is a task executed by the Scheduler.
 type Job struct {
 	ID         JobID
-	InstanceID InstanceID
+	InstanceID ApiID
 	Status     JobStatus
 	ErrCause   string
 }
@@ -164,7 +164,7 @@ func (c CidConfig) Validate() error {
 }
 
 type PushConfigAction struct {
-	InstanceID InstanceID
+	InstanceID ApiID
 	Config     CidConfig
 	WalletAddr string
 }

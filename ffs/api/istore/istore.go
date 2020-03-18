@@ -22,20 +22,20 @@ var (
 type Store struct {
 	lock sync.Mutex
 	ds   datastore.Datastore
-	iid  ffs.InstanceID
+	iid  ffs.ApiID
 }
 
 var _ api.InstanceStore = (*Store)(nil)
 
 // New returns a new ConfigStore
-func New(iid ffs.InstanceID, ds datastore.Datastore) *Store {
+func New(iid ffs.ApiID, ds datastore.Datastore) *Store {
 	return &Store{
 		iid: iid,
 		ds:  ds,
 	}
 }
 
-// PutInstanceConfig persist Config information of the Api instance
+// PutConfig persist Config information of the Api instance.
 func (s *Store) PutConfig(c api.Config) error {
 	buf, err := json.Marshal(c)
 	if err != nil {
@@ -47,8 +47,8 @@ func (s *Store) PutConfig(c api.Config) error {
 	return nil
 }
 
-// GetInstanceConfig gets the current configuration of the Api instance.
-// If no configuration exist, it returns ErrConfigNotFound.
+// GetConfig gets the current configuration of the Api instance.
+// If no configuration exist, it returns ErrNotFound.
 func (s *Store) GetConfig() (api.Config, error) {
 	buf, err := s.ds.Get(makeConfigKey(s.iid))
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *Store) GetConfig() (api.Config, error) {
 	return c, nil
 }
 
-// PutCidConfig saves a new desired configuration for storing a Cid
+// PutCidConfig saves a new desired configuration for storing a Cid.
 func (s *Store) PutCidConfig(c ffs.CidConfig) error {
 	if !c.Cid.Defined() {
 		return fmt.Errorf("cid can't be undefined")
@@ -121,14 +121,14 @@ func (s *Store) GetCids() ([]cid.Cid, error) {
 	return cids, nil
 }
 
-func makeCidConfigKey(iid ffs.InstanceID, c cid.Cid) datastore.Key {
+func makeCidConfigKey(iid ffs.ApiID, c cid.Cid) datastore.Key {
 	return makeInstanceKey(iid).Child(dsCidConfig).ChildString(c.String())
 }
 
-func makeConfigKey(iid ffs.InstanceID) datastore.Key {
+func makeConfigKey(iid ffs.ApiID) datastore.Key {
 	return makeInstanceKey(iid).Child(dsInstanceConfig)
 }
 
-func makeInstanceKey(iid ffs.InstanceID) datastore.Key {
+func makeInstanceKey(iid ffs.ApiID) datastore.Key {
 	return dsBase.ChildString(iid.String())
 }

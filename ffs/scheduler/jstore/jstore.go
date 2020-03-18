@@ -27,7 +27,7 @@ type Store struct {
 var _ scheduler.JobStore = (*Store)(nil)
 
 type watcher struct {
-	iid ffs.InstanceID
+	iid ffs.ApiID
 	ch  chan ffs.Job
 }
 
@@ -99,7 +99,7 @@ func (s *Store) Get(jid ffs.JobID) (ffs.Job, error) {
 }
 
 // Watch subscribes to Job changes from a specified Api instance.
-func (s *Store) Watch(iid ffs.InstanceID) <-chan ffs.Job {
+func (s *Store) Watch(iid ffs.ApiID) <-chan ffs.Job {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 

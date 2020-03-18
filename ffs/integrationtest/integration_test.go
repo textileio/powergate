@@ -480,32 +480,29 @@ func TestRenew(t *testing.T) {
 	defer ticker.Stop()
 	lchain := lotuschain.New(client)
 Loop:
-	for {
-		select {
-		case <-ticker.C:
-			i, err := fapi.Show(cid)
-			require.Nil(t, err)
+	for range ticker.C {
+		i, err := fapi.Show(cid)
+		require.Nil(t, err)
 
-			firstDeal := i.Cold.Filecoin.Proposals[0]
-			h, err := lchain.GetHeight(context.Background())
-			require.Nil(t, err)
-			if firstDeal.ActivationEpoch+uint64(firstDeal.Duration)-uint64(renewThreshold)+uint64(100) > h {
-				require.LessOrEqual(t, len(i.Cold.Filecoin.Proposals), 2)
-				continue
-			}
-
-			require.Equal(t, len(i.Cold.Filecoin.Proposals), 2)
-			require.True(t, firstDeal.Active)
-			require.True(t, firstDeal.Renewed)
-
-			newDeal := i.Cold.Filecoin.Proposals[1]
-			require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
-			require.True(t, newDeal.Active)
-			require.False(t, newDeal.Renewed)
-			require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
-			require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)
-			break Loop
+		firstDeal := i.Cold.Filecoin.Proposals[0]
+		h, err := lchain.GetHeight(context.Background())
+		require.Nil(t, err)
+		if firstDeal.ActivationEpoch+uint64(firstDeal.Duration)-uint64(renewThreshold)+uint64(100) > h {
+			require.LessOrEqual(t, len(i.Cold.Filecoin.Proposals), 2)
+			continue
 		}
+
+		require.Equal(t, len(i.Cold.Filecoin.Proposals), 2)
+		require.True(t, firstDeal.Active)
+		require.True(t, firstDeal.Renewed)
+
+		newDeal := i.Cold.Filecoin.Proposals[1]
+		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
+		require.True(t, newDeal.Active)
+		require.False(t, newDeal.Renewed)
+		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
+		require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)
+		break Loop
 	}
 }
 
@@ -536,7 +533,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 	return addr, dnet.Client, ms, close
 }
 
-func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
+func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
 	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
@@ -558,7 +555,7 @@ func newApiFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.InstanceID, c
 
 	var fapi *api.API
 	if iid == ffs.EmptyInstanceID {
-		iid = ffs.NewInstanceID()
+		iid = ffs.NewApiID()
 		is := istore.New(iid, txndstr.Wrap(ds, "ffs/api/istore"))
 		defConfig := ffs.DefaultCidConfig{
 			Hot: ffs.HotConfig{

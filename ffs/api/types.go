@@ -8,12 +8,11 @@ import (
 )
 
 var (
-	// ErrConfigNotFound returned when instance configuration doesn't exist
-	// in ConfigStore.
+	// ErrNotFound returned when instance configuration doesn't exist.
 	ErrNotFound = errors.New("stored item not found")
 )
 
-// ConfigStore is a repository for all state of a Api.
+// InstanceStore is a repository for all state of a Api.
 type InstanceStore interface {
 	PutConfig(c Config) error
 	GetConfig() (Config, error)
@@ -25,14 +24,14 @@ type InstanceStore interface {
 
 // Config has general information about a Api instance.
 type Config struct {
-	ID               ffs.InstanceID
+	ID               ffs.ApiID
 	WalletAddr       string
 	DefaultCidConfig ffs.DefaultCidConfig
 }
 
 // InstanceInfo has general information about a running Api instance.
 type InstanceInfo struct {
-	ID               ffs.InstanceID
+	ID               ffs.ApiID
 	DefaultCidConfig ffs.DefaultCidConfig
 	Wallet           WalletInfo
 	Pins             []cid.Cid

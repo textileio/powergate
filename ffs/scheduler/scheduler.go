@@ -118,7 +118,7 @@ func (s *Scheduler) GetJob(jid ffs.JobID) (ffs.Job, error) {
 
 // Watch returns a channel to listen to Job status changes from a specified
 // Api instance. It immediately pushes the current Job state to the channel.
-func (s *Scheduler) Watch(iid ffs.InstanceID) <-chan ffs.Job {
+func (s *Scheduler) Watch(iid ffs.ApiID) <-chan ffs.Job {
 	return s.js.Watch(iid)
 }
 

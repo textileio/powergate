@@ -45,7 +45,7 @@ type Scheduler interface {
 
 	// Watch returns a channel which will receive updates for all Jobs created by
 	// an Instance.
-	Watch(InstanceID) <-chan Job
+	Watch(ApiID) <-chan Job
 	// Unwatch unregisters a subscribed channel.
 	Unwatch(<-chan Job)
 }
