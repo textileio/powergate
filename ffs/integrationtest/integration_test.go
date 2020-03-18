@@ -370,9 +370,9 @@ func TestFilecoinEnableConfig(t *testing.T) {
 		ColdEnabled bool
 	}{
 		{HotEnabled: true, ColdEnabled: true},
-		// {HotEnabled: false, ColdEnabled: true},
-		// {HotEnabled: true, ColdEnabled: false},
-		// {HotEnabled: false, ColdEnabled: false},
+		{HotEnabled: false, ColdEnabled: true},
+		{HotEnabled: true, ColdEnabled: false},
+		{HotEnabled: false, ColdEnabled: false},
 	}
 
 	for _, tt := range tableTest {
