@@ -19,7 +19,7 @@ type WalletManager interface {
 }
 
 var (
-	// ErrBothStorageDisabled returned when both storages are disabled.
+	// ErrBothStoragesDisabled returned when both storages are disabled.
 	ErrBothStoragesDisabled = errors.New("both Hot and Cold layers can't be disabled")
 	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
 	// To retrieve the data, is necessary to call unfreeze by enabling the Enabled flag in

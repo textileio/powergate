@@ -7,7 +7,7 @@ This document presents the general design of the `fps` package of `powergate`.
 **Disclaimer**: This's ongoing work, so some design, interface definition, etc. might change soon as implementation continues. 
 
 The following picture presents principal packages and interfaces that are part of the design:
-![FFS Design](https://user-images.githubusercontent.com/6136245/76028631-c7d61400-5f11-11ea-8234-c0cd143a142b.png)
+![FFS Design](https://user-images.githubusercontent.com/6136245/76992075-6ce8e780-6929-11ea-9f23-f90f1c6bffe7.png)
 
 
 The picture has an advanced scenario where different _Api_ instances are wired to different _Scheduler_ instances. Component names prefixed with * don't exist but are mentioned as possible implementations of existing interfaces.
@@ -39,17 +39,21 @@ A _Scheduler_ is a component that _Api_ instances pushes new _CidConfigurations_
 The _Scheduler_ doesn't know about the particular implementations of _Hot Storage_ or _Cold Storage_, only relies on interfaces:
 
 ```go
-// HotLyer is a fast datastorage layer for storing and retrieving raw
+// HotStorage is a fast datastorage layer for storing and retrieving raw
 // data or Cids.
 type HotStorage interface {
-    Add(context.Context, io.Reader) (cid.Cid, error)
-    Get(context.Context, cid.Cid) (io.Reader, error)
-    Pin(context.Context, cid.Cid) (HotInfo, error)
+	Add(context.Context, io.Reader) (cid.Cid, error)
+	Get(context.Context, cid.Cid) (io.Reader, error)
+	Pin(context.Context, cid.Cid) (int, error)
+	Put(context.Context, blocks.Block) error
 }
 
 // ColdStorage is a slow datastorage layer for storing Cids.
 type ColdStorage interface {
-    Store(ctx context.Context, c cid.Cid, conf ColdConfig) (ColdInfo, error)
+	Store(context.Context, cid.Cid, string, FilConfig) (FilInfo, error)
+	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
+
+	EnsureRenewals(context.Context, cid.Cid, FilInfo, string, FilConfig) (FilInfo, error)
 }
 ```
 
@@ -58,7 +62,7 @@ It also relies on a _MinerSelector_ interfaces which implement a particular stra
 // MinerSelector returns miner addresses and ask storage information using a
 // desired strategy.
 type MinerSelector interface {
-    GetTopMiners(n int) ([]MinerProposal, error)
+	GetMiners(int, MinerSelectorFilter) ([]MinerProposal, error)
 }
 ```
 Particular implementations of _MinerSelector_ includes:
@@ -76,17 +80,27 @@ Finally, _Api_ instances are wired to different _Scheduler_ instances depending 
 ### Api <-> Scheduler
 Considering the _Scheduler_ interface:
 ```go
-// Scheduler creates and manages Job which executes Cid configurations
-// in Hot and Cold layers, enables retrieval from those layers, and
-// allows watching for Job state changes.
-// (TODO: Still incomplete for retrieval apis and rough edges)
+/ Scheduler enforces a CidConfig orchestrating Hot and Cold storages.
 type Scheduler interface {
-    EnqueueCid
-    GetFromHot(ctx context.Context, c cid.Cid) (io.Reader, error)
-    GetJob(JobID) (Job, error)
+	// PushConfig push a new or modified configuration for a Cid. It returns
+	// the JobID which tracks the current state of executiong of that task.
+	PushConfig(PushConfigAction) (JobID, error)
 
-    Watch(InstanceID) <-chan Job
-    Unwatch(<-chan Job)
+	// GetCidInfo returns the current Cid storing state. This state may be different
+	// from CidConfig which is the *desired* state.
+	GetCidInfo(cid.Cid) (CidInfo, error)
+	// GetCidFromHot returns an Reader with the Cid data. If the data isn't in the Hot
+	// Storage, it errors with ErrHotStorageDisabled.
+	GetCidFromHot(context.Context, cid.Cid) (io.Reader, error)
+
+	// GetJob gets the a Job.
+	GetJob(JobID) (Job, error)
+
+	// Watch returns a channel which will receive updates for all Jobs created by
+	// an Instance.
+	Watch(ApiID) <-chan Job
+	// Unwatch unregisters a subscribed channel.
+	Unwatch(<-chan Job)
 }
 ```
 

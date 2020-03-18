@@ -223,6 +223,7 @@ func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
 	}
 }
 
+// Create creates a new Api.
 func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateReply, error) {
 	id, addr, err := s.m.Create(ctx)
 	if err != nil {

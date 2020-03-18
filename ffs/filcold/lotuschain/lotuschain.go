@@ -8,6 +8,7 @@ import (
 	"github.com/textileio/powergate/ffs/filcold"
 )
 
+// LotusChain is an implementation of FilChain which targets a Lotus node.
 type LotusChain struct {
 	api API
 }
@@ -26,6 +27,7 @@ func New(api API) *LotusChain {
 	}
 }
 
+// GetHeight returns the current height of the chain for the targeted Lotus node.
 func (lc *LotusChain) GetHeight(ctx context.Context) (uint64, error) {
 	h, err := lc.api.ChainHead(ctx)
 	if err != nil {

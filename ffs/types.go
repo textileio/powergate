@@ -51,7 +51,7 @@ func (i ApiID) String() string {
 	return string(i)
 }
 
-// JobStatus
+// JobStatus is a type for Job statuses.
 type JobStatus int
 
 const (
@@ -66,7 +66,7 @@ const (
 	// Cancelled indicates the Job was cancelled from Queued,
 	// and didn't reach execution.
 	Cancelled
-	// Done indicates the Job was successfully executed.
+	// Success indicates the Job was successfully executed.
 	Success
 )
 
@@ -78,11 +78,13 @@ type Job struct {
 	ErrCause   string
 }
 
+// DefaultCidConfig contains a default Cid configuration for an Api.
 type DefaultCidConfig struct {
 	Hot  HotConfig
 	Cold ColdConfig
 }
 
+// Validate validates a default Cid configuration.
 func (dc DefaultCidConfig) Validate() error {
 	if err := dc.Hot.Validate(); err != nil {
 		return err
@@ -93,60 +95,75 @@ func (dc DefaultCidConfig) Validate() error {
 	return nil
 }
 
+// CidConfig has a Cid desired storing configuration.
 type CidConfig struct {
 	Cid  cid.Cid
 	Hot  HotConfig
 	Cold ColdConfig
 }
 
+// WithColdEnabled allows to enable/disable Cold storage usage.
 func (c CidConfig) WithColdEnabled(enabled bool) CidConfig {
 	c.Cold.Enabled = enabled
 	return c
 }
 
+// WithColdFilCountryCodes defines a list of allowed country codes to select miners
+// for deals.
 func (c CidConfig) WithColdFilCountryCodes(countryCodes []string) CidConfig {
 	c.Cold.Filecoin.CountryCodes = make([]string, len(countryCodes))
 	copy(c.Cold.Filecoin.CountryCodes, countryCodes)
 	return c
 }
 
+// WithColdFilBlacklist defines a list of miner addresses which won't be selected for
+// making deals, no matter if they comply to other filters in the configuration.
 func (c CidConfig) WithColdFilBlacklist(blacklist []string) CidConfig {
 	c.Cold.Filecoin.Blacklist = make([]string, len(blacklist))
 	copy(c.Cold.Filecoin.Blacklist, blacklist)
 	return c
 }
 
+// WithColdFilRepFactor defines the replication factor for Filecoin storage.
 func (c CidConfig) WithColdFilRepFactor(repFactor int) CidConfig {
 	c.Cold.Filecoin.RepFactor = repFactor
 	return c
 }
 
+// WithColdFilDealDuration defines the duration used for deals for Filecoin storage.
 func (c CidConfig) WithColdFilDealDuration(duration int64) CidConfig {
 	c.Cold.Filecoin.DealDuration = duration
 	return c
 }
 
+// WithColdFilRenew specifies if deals should be renewed before they expire with a particular
+// threshold chain epochs.
 func (c CidConfig) WithColdFilRenew(enabled bool, threshold int) CidConfig {
 	c.Cold.Filecoin.Renew.Enabled = enabled
 	c.Cold.Filecoin.Renew.Threshold = threshold
 	return c
 }
 
+// WithHotEnabled allows to enable/disable Hot storage usage.
 func (c CidConfig) WithHotEnabled(enabled bool) CidConfig {
 	c.Hot.Enabled = enabled
 	return c
 }
 
+// WithHotIpfsAddTimeout specifies a timeout for fetching data in Ipfs.
 func (c CidConfig) WithHotIpfsAddTimeout(seconds int) CidConfig {
 	c.Hot.Ipfs.AddTimeout = seconds
 	return c
 }
 
+// WithHotAllowUnfreeze allows the Scheduler to fetch data from the Cold Storage,
+// if the Enabled flag of the Hot Storage switches from false->true.
 func (c CidConfig) WithHotAllowUnfreeze(allow bool) CidConfig {
 	c.Hot.AllowUnfreeze = true
 	return c
 }
 
+// Validate validates a Cid configuration.
 func (c CidConfig) Validate() error {
 	if !c.Cid.Defined() {
 		return fmt.Errorf("cid is undefined")
@@ -163,12 +180,14 @@ func (c CidConfig) Validate() error {
 	return nil
 }
 
+// PushConfigAction contains information for pushing a new Cid configuration to the Scheduler.
 type PushConfigAction struct {
 	InstanceID ApiID
 	Config     CidConfig
 	WalletAddr string
 }
 
+// Validate validates a a PushConfigAction.
 func (aa PushConfigAction) Validate() error {
 	if aa.InstanceID == EmptyInstanceID {
 		return fmt.Errorf("invalid Action ID")
@@ -182,13 +201,14 @@ func (aa PushConfigAction) Validate() error {
 	return nil
 }
 
-// Hotconfig is the desired storage of a Cid in a hot layer.
+// HotConfig is the desired storage of a Cid in a Hot Storage.
 type HotConfig struct {
 	Enabled       bool
 	AllowUnfreeze bool
 	Ipfs          IpfsConfig
 }
 
+// Validate validates a HotConfig.
 func (hc HotConfig) Validate() error {
 	if err := hc.Ipfs.Validate(); err != nil {
 		return fmt.Errorf("invalid ipfs config: %s", err)
@@ -201,6 +221,7 @@ type IpfsConfig struct {
 	AddTimeout int
 }
 
+// Validate validates an IpfsConfig.
 func (ic *IpfsConfig) Validate() error {
 	if ic.AddTimeout <= 0 {
 		return fmt.Errorf("add timeout should be greater than 0 seconds, got %d", ic.AddTimeout)
@@ -214,6 +235,7 @@ type ColdConfig struct {
 	Filecoin FilConfig
 }
 
+// Validate validates a ColdConfig.
 func (cc ColdConfig) Validate() error {
 	if err := cc.Filecoin.Validate(); err != nil {
 		return fmt.Errorf("invalid Filecoin config: %s", err)
@@ -231,6 +253,7 @@ type FilConfig struct {
 	Renew        FilRenew
 }
 
+// FilRenew contains renew configuration for a Cid Cold Storage deals.
 type FilRenew struct {
 	Enabled   bool
 	Threshold int

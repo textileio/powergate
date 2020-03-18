@@ -28,6 +28,7 @@ type FilCold struct {
 
 var _ ffs.ColdStorage = (*FilCold)(nil)
 
+// FilChain is an abstraction of a Filecoin node to get information of the network.
 type FilChain interface {
 	GetHeight(context.Context) (uint64, error)
 }
@@ -42,6 +43,8 @@ func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService, chain Fi
 	}
 }
 
+// Retrieve returns the original data Cid, from the CAR encoded data Cid. The returned Cid is available in the
+// car.Store received as a parameter.
 func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, waddr string) (cid.Cid, error) {
 	carR, err := fc.dm.Retrieve(ctx, waddr, dataCid)
 	if err != nil {
@@ -59,8 +62,7 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 }
 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
-// the DAGService registered on instance creation. Currently, a default configuration is used.
-// (TODO: ColdConfig will enable more configurations in the future)
+// the DAGService registered on instance creation.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
 	f := ffs.MinerSelectorFilter{
 		Blacklist:    fcfg.Blacklist,
@@ -82,6 +84,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fcfg ffs.
 	}, nil
 }
 
+// EnsureRenewals analyzes a FilInfo state for a Cid and executes renweals considering the FilConfig desired configuration.
 func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
 	var activeMiners []string
 	for _, p := range inf.Proposals {
