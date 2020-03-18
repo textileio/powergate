@@ -11,7 +11,7 @@ import (
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
 type WalletManager interface {
-	NewWallet(context.Context, string) (string, error)
+	NewAddress(context.Context, string) (string, error)
 	Balance(context.Context, string) (uint64, error)
 }
 

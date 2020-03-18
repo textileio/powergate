@@ -54,7 +54,7 @@ func New(ctx context.Context, iid ffs.InstanceID, is InstanceStore, sch ffs.Sche
 	if err := dc.Validate(); err != nil {
 		return nil, fmt.Errorf("default cid config is invalid: %s", err)
 	}
-	addr, err := wm.NewWallet(ctx, defaultWalletType)
+	addr, err := wm.NewAddress(ctx, defaultWalletType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
 	}
