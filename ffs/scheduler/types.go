@@ -14,9 +14,9 @@ var (
 
 // JobStore persist Job information and allows to watch for Job state updates.
 type JobStore interface {
-	// PutJob saves job data in the store.
+	// Put saves job data in the store.
 	Put(ffs.Job) error
-	// GetJob retrieves job data from the store.
+	// Get retrieves job data from the store.
 	Get(ffs.JobID) (ffs.Job, error)
 	// GetByStatus returns jobs with a particular status.
 	GetByStatus(ffs.JobStatus) ([]ffs.Job, error)
@@ -29,11 +29,12 @@ type JobStore interface {
 
 // PushConfigStore persist PushConfigActions for Cids.
 type PushConfigStore interface {
-	// PutPushConfigJob saves a new state for a Job.
+	// Put saves a new state for a Job.
 	Put(ffs.JobID, ffs.PushConfigAction) error
 	// Get returns the current state of a Job.
 	Get(ffs.JobID) (ffs.PushConfigAction, error)
-
+	// GetRenewable returns the known pushed configs that have enabled
+	// renew Filecoin flag for their deals.
 	GetRenewable() ([]ffs.PushConfigAction, error)
 }
 
