@@ -95,7 +95,7 @@ func (s *Store) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
 	return conf, nil
 }
 
-// GetCids returns a slice of Cids which have sotring state
+// GetCids returns a slice of Cids which have storing state
 func (s *Store) GetCids() ([]cid.Cid, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()

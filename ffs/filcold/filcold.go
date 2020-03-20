@@ -84,7 +84,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fcfg ffs.
 	}, nil
 }
 
-// EnsureRenewals analyzes a FilInfo state for a Cid and executes renweals considering the FilConfig desired configuration.
+// EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
 func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
 	var activeMiners []string
 	for _, p := range inf.Proposals {

@@ -30,7 +30,7 @@ var (
 // Scheduler enforces a CidConfig orchestrating Hot and Cold storages.
 type Scheduler interface {
 	// PushConfig push a new or modified configuration for a Cid. It returns
-	// the JobID which tracks the current state of executiong of that task.
+	// the JobID which tracks the current state of execution of that task.
 	PushConfig(PushConfigAction) (JobID, error)
 
 	// GetCidInfo returns the current Cid storing state. This state may be different

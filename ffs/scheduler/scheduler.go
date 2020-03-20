@@ -165,7 +165,7 @@ func (s *Scheduler) scanRenewable(ctx context.Context) {
 func (s *Scheduler) evaluateRenewal(ctx context.Context, a ffs.PushConfigAction) error {
 	inf, err := s.cis.Get(a.Config.Cid)
 	if err == ErrNotFound {
-		log.Infof("skip renewal evaluation for %s since hasn't cid info", a.Config.Cid)
+		log.Infof("skip renewal evaluation for %s since Cid isn't stored yet", a.Config.Cid)
 		return nil
 	}
 	if err != nil {
