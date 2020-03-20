@@ -63,9 +63,11 @@ type MinerIndex struct {
 	lr       iplocation.LocationResolver
 	signaler *signaler.Signaler
 
-	chMeta chan struct{}
-	lock   sync.Mutex
-	index  Index
+	chMeta      chan struct{}
+	metaTicker  *time.Ticker
+	minerTicker *time.Ticker
+	lock        sync.Mutex
+	index       Index
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -85,13 +87,16 @@ func New(ds datastore.TxnDatastore, api API, h P2PHost, lr iplocation.LocationRe
 	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
 	mi := &MinerIndex{
-		api:      api,
-		ds:       ds,
-		store:    store,
-		signaler: signaler.New(),
-		h:        h,
-		lr:       lr,
-		chMeta:   make(chan struct{}, 1),
+		api:         api,
+		ds:          ds,
+		store:       store,
+		signaler:    signaler.New(),
+		h:           h,
+		lr:          lr,
+		chMeta:      make(chan struct{}, 1),
+		metaTicker:  time.NewTicker(metadataRefreshInterval),
+		minerTicker: time.NewTicker(util.AvgBlockTime),
+
 		ctx:      ctx,
 		cancel:   cancel,
 		finished: make(chan struct{}, 2),
@@ -153,6 +158,8 @@ func (mi *MinerIndex) Close() error {
 	}
 	close(mi.finished)
 	mi.signaler.Close()
+	mi.minerTicker.Stop()
+	mi.metaTicker.Stop()
 
 	mi.closed = true
 	return nil
@@ -175,13 +182,13 @@ func (mi *MinerIndex) start() {
 		case <-mi.ctx.Done():
 			log.Info("graceful shutdown of background miner index")
 			return
-		case <-time.After(metadataRefreshInterval):
+		case <-mi.metaTicker.C:
 			select {
 			case mi.chMeta <- struct{}{}:
 			default:
 				log.Info("skipping meta index update since it's busy")
 			}
-		case <-time.After(util.AvgBlockTime):
+		case <-mi.minerTicker.C:
 			if err := mi.updateOnChainIndex(); err != nil {
 				log.Errorf("error when updating miner index: %s", err)
 				continue

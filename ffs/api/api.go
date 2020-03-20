@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 var (
@@ -19,18 +20,18 @@ var (
 )
 
 var (
-	// ErrAlreaadyPinned returned when trying to push an initial config
-	// for storing a Cid.
-	ErrAlreadyPinned = errors.New("cid already pinned")
-	// ErNotStored returned when there isn't CidInfo for a Cid
+	// ErrMustOverrideConfig returned when trying to push config for storing a Cid
+	// without the override flag.
+	ErrMustOverrideConfig = errors.New("cid already pinned")
+	// ErrNotStored returned Store's items doesn't exist.
 	ErrNotStored = errors.New("cid isn't stored")
 )
 
-// Instance is an Api instance, which owns a Lotus Address and allows to
+// API is an Api instance, which owns a Lotus Address and allows to
 // Store and Retrieve Cids from Hot and Cold layers.
-type Instance struct {
-	store ConfigStore
-	wm    ffs.WalletManager
+type API struct {
+	is InstanceStore
+	wm ffs.WalletManager
 
 	sched   ffs.Scheduler
 	chSched <-chan ffs.Job
@@ -49,37 +50,40 @@ type watcher struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, iid ffs.InstanceID, confstore ConfigStore, sch ffs.Scheduler, wm ffs.WalletManager) (*Instance, error) {
-	addr, err := wm.NewWallet(ctx, defaultWalletType)
+func New(ctx context.Context, iid ffs.ApiID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultCidConfig) (*API, error) {
+	if err := dc.Validate(); err != nil {
+		return nil, fmt.Errorf("default cid config is invalid: %s", err)
+	}
+	addr, err := wm.NewAddress(ctx, defaultWalletType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
 	}
 	config := Config{
-		ID:         iid,
-		WalletAddr: addr,
+		ID:               iid,
+		WalletAddr:       addr,
+		DefaultCidConfig: dc,
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	i := new(iid, confstore, wm, config, sch, ctx, cancel)
-	if err := i.store.SaveConfig(config); err != nil {
+	i := new(ctx, iid, is, wm, config, sch, cancel)
+	if err := i.is.PutConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.config.ID, err)
 	}
 	return i, nil
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(iid ffs.InstanceID, confstore ConfigStore, sched ffs.Scheduler, wm ffs.WalletManager) (*Instance, error) {
-	config, err := confstore.GetConfig()
+func Load(iid ffs.ApiID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletManager) (*API, error) {
+	c, err := is.GetConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return new(iid, confstore, wm, *config, sched, ctx, cancel), nil
+	return new(ctx, iid, is, wm, c, sched, cancel), nil
 }
 
-func new(iid ffs.InstanceID, confstore ConfigStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler,
-	ctx context.Context, cancel context.CancelFunc) *Instance {
-	i := &Instance{
-		store:   confstore,
+func new(ctx context.Context, iid ffs.ApiID, is InstanceStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler, cancel context.CancelFunc) *API {
+	i := &API{
+		is:      is,
 		wm:      wm,
 		config:  config,
 		sched:   sch,
@@ -93,21 +97,48 @@ func new(iid ffs.InstanceID, confstore ConfigStore, wm ffs.WalletManager, config
 	return i
 }
 
-// ID returns the InstanceID of the instance.
-func (i *Instance) ID() ffs.InstanceID {
+// ID returns the ID.
+func (i *API) ID() ffs.ApiID {
 	return i.config.ID
 }
 
-// WalletAddr returns the Lotus wallet address of the instance.
-func (i *Instance) WalletAddr() string {
+// WalletAddr returns the Lotus wallet address.
+func (i *API) WalletAddr() string {
 	return i.config.WalletAddr
+}
+
+// GetDefaultCidConfig returns the default instance Cid config, prepared for a particular Cid.
+func (i *API) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	return newDefaultPushConfig(c, i.config.DefaultCidConfig).Config
+}
+
+// GetCidConfig returns the current CidConfig for a Cid.
+func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
+	conf, err := i.is.GetCidConfig(c)
+	if err != nil {
+		return ffs.CidConfig{}, fmt.Errorf("getting cid config from store: %s", err)
+	}
+	return conf, nil
+}
+
+// SetDefaultCidConfig sets a new default CidConfig.
+func (i *API) SetDefaultCidConfig(c ffs.DefaultCidConfig) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	if err := c.Validate(); err != nil {
+		return fmt.Errorf("default cid config is invalid: %s", err)
+	}
+	i.config.DefaultCidConfig = c
+	return nil
 }
 
 // Show returns the information about a stored Cid. If no information is available,
 // since the Cid was never stored, it returns ErrNotStore.
-func (i *Instance) Show(c cid.Cid) (ffs.CidInfo, error) {
-	inf, err := i.store.GetCidInfo(c)
-	if err == ErrCidInfoNotFound {
+func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
+	inf, err := i.sched.GetCidInfo(c)
+	if err == scheduler.ErrNotFound {
 		return inf, ErrNotStored
 	}
 	if err != nil {
@@ -116,32 +147,31 @@ func (i *Instance) Show(c cid.Cid) (ffs.CidInfo, error) {
 	return inf, nil
 }
 
-// Info returns instance information
-func (i *Instance) Info(ctx context.Context) (InstanceInfo, error) {
-	inf := InstanceInfo{
-		ID: i.config.ID,
+// Info returns instance information.
+func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
+	pins, err := i.is.GetCids()
+	if err != nil {
+		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
+	}
+	balance, err := i.wm.Balance(ctx, i.config.WalletAddr)
+	if err != nil {
+		return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", i.config.WalletAddr, err)
+	}
+	return InstanceInfo{
+		ID:               i.config.ID,
+		DefaultCidConfig: i.config.DefaultCidConfig,
 		Wallet: WalletInfo{
 			Address: i.config.WalletAddr,
+			Balance: balance,
 		},
-	}
-	var err error
-	inf.Pins, err = i.store.Cids()
-	if err != nil {
-		return inf, fmt.Errorf("getting pins from instance: %s", err)
-	}
-
-	inf.Wallet.Balance, err = i.wm.Balance(ctx, i.config.WalletAddr)
-	if err != nil {
-		return inf, fmt.Errorf("getting balance of %s: %s", i.config.WalletAddr, err)
-	}
-
-	return inf, nil
+		Pins: pins,
+	}, nil
 }
 
 // Watch subscribes to Job status changes. If jids is empty, it subscribes to
 // all Job status changes corresonding to the instance. If jids is not empty,
 // it immediately sends current state of those Jobs. If empty, it doesn't.
-func (i *Instance) Watch(jids ...ffs.JobID) (<-chan ffs.Job, error) {
+func (i *API) Watch(jids ...ffs.JobID) (<-chan ffs.Job, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	log.Info("registering watcher")
@@ -149,6 +179,9 @@ func (i *Instance) Watch(jids ...ffs.JobID) (<-chan ffs.Job, error) {
 	var jobs []ffs.Job
 	for _, jid := range jids {
 		j, err := i.sched.GetJob(jid)
+		if err == scheduler.ErrNotFound {
+			continue
+		}
 		if err != nil {
 			return nil, fmt.Errorf("getting current job state: %s", err)
 		}
@@ -169,7 +202,7 @@ func (i *Instance) Watch(jids ...ffs.JobID) (<-chan ffs.Job, error) {
 }
 
 // Unwatch unregisters a ch returned by Watch to stop receiving updates.
-func (i *Instance) Unwatch(ch <-chan ffs.Job) {
+func (i *API) Unwatch(ch <-chan ffs.Job) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	for j, w := range i.watchers {
@@ -182,60 +215,58 @@ func (i *Instance) Unwatch(ch <-chan ffs.Job) {
 	}
 }
 
-// AddCid push a new default configuration for the Cid in the Hot and
-// Cold layer. (TODO: Soon the configuration will be received as a param,
-// to allow different strategies in the Hot and Cold layer. Now a second AddCid
-// will error with ErrAlreadyPinned. This might change depending if changing config
-// for an existing Cid will use this same API, or another. In any case sounds safer to
-// consider some option to specify we want to add a config without overriding some
-// existing one.)
-func (i *Instance) AddCid(c cid.Cid) (ffs.JobID, error) {
+// PushConfig push a new configuration for the Cid in the Hot and
+// Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig
+func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	_, err := i.store.GetCidConfig(c)
-	if err == nil {
-		return ffs.EmptyJobID, ErrAlreadyPinned
+
+	addConfig := newDefaultPushConfig(c, i.config.DefaultCidConfig)
+	for _, opt := range opts {
+		if err := opt(&addConfig); err != nil {
+			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)
+		}
 	}
-	if err != ErrConfigNotFound {
-		return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
+	if !addConfig.OverrideConfig {
+		_, err := i.is.GetCidConfig(c)
+		if err == nil {
+			return ffs.EmptyJobID, ErrMustOverrideConfig
+		}
+		if err != ErrNotFound {
+			return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
+		}
+	}
+	if err := addConfig.Config.Validate(); err != nil {
+		return ffs.EmptyJobID, err
 	}
 
-	// TODO: this is a temporal default config for all Cids, this will go
-	// away since it will be received as a param.
-	cidconf := ffs.CidConfig{
+	conf := ffs.PushConfigAction{
 		InstanceID: i.config.ID,
-		ID:         ffs.NewCidConfigID(),
-		Cid:        c,
-		Hot: ffs.HotConfig{
-			Ipfs: ffs.IpfsConfig{
-				Enabled: true,
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Filecoin: ffs.FilecoinConfig{
-				Enabled:    true,
-				WalletAddr: i.config.WalletAddr,
-			},
-		},
+		Config:     addConfig.Config,
+		WalletAddr: i.config.WalletAddr,
 	}
-	log.Infof("adding cid %s to scheduler queue", c)
-	jid, err := i.sched.EnqueueCid(cidconf)
+	jid, err := i.sched.PushConfig(conf)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
 	}
-	if err := i.store.PushCidConfig(cidconf); err != nil {
+	if err := i.is.PutCidConfig(conf.Config); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil
 }
 
-// Get returns an io.Reader for reading a stored Cid.
-// (TODO: this API will change to accept different strategies, like HotOnly,
-// UnfreezeCold, or similar. Most prob it will become async, or there will be different
-// APIs).
-// (TODO: Scheduler.GetFromHot might have to return an error if we want to rate-limit
-// hot layer retrievals)
-func (i *Instance) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
+// Get returns an io.Reader for reading a stored Cid from the Hot Storage.
+func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
+	if !c.Defined() {
+		return nil, fmt.Errorf("cid is undefined")
+	}
+	conf, err := i.is.GetCidConfig(c)
+	if err != nil {
+		return nil, fmt.Errorf("getting cid config: %s", err)
+	}
+	if !conf.Hot.Enabled {
+		return nil, ffs.ErrHotStorageDisabled
+	}
 	r, err := i.sched.GetCidFromHot(ctx, c)
 	if err != nil {
 		return nil, fmt.Errorf("getting from hot layer %s: %s", c, err)
@@ -243,8 +274,17 @@ func (i *Instance) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return r, nil
 }
 
-// Close terminates the running Instance.
-func (i *Instance) Close() error {
+// GetCidInfo returns the current Cid stored state.
+func (i *API) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
+	info, err := i.sched.GetCidInfo(c)
+	if err != nil {
+		return ffs.CidInfo{}, fmt.Errorf("getting cid info from scheduler: %s", err)
+	}
+	return info, nil
+}
+
+// Close terminates the running Api.
+func (i *API) Close() error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	i.cancel()
@@ -253,7 +293,7 @@ func (i *Instance) Close() error {
 	return nil
 }
 
-func (i *Instance) watchJobs() {
+func (i *API) watchJobs() {
 	defer close(i.finished)
 	for {
 		select {
@@ -265,10 +305,6 @@ func (i *Instance) watchJobs() {
 				panic("scheduler closed the watching channel")
 			}
 			log.Info("received notification from jobstore")
-			if err := i.store.SaveCidInfo(j.CidInfo); err != nil {
-				log.Errorf("saving cid info %s: %s", j.CidInfo.Cid, err)
-				continue
-			}
 			i.lock.Lock()
 			log.Infof("notifying %d subscribed watchers", len(i.watchers))
 			for k, w := range i.watchers {
@@ -279,7 +315,7 @@ func (i *Instance) watchJobs() {
 						break
 					}
 				}
-				log.Infof("evaluating watcher %d, shouldNotify %s", k, shouldNotify)
+				log.Infof("evaluating watcher %d, shouldNotify %v", k, shouldNotify)
 				if shouldNotify {
 					select {
 					case w.ch <- j:

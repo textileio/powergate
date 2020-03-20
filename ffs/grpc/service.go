@@ -16,11 +16,13 @@ import (
 )
 
 var (
+	// ErrEmptyAuthToken is returned when the provided auth-token is unkown.
 	ErrEmptyAuthToken = errors.New("auth token can't be empty")
 
 	log = logger.Logger("ffs-grpc-service")
 )
 
+// Service implements the proto service definition of FFS.
 type Service struct {
 	pb.UnimplementedAPIServer
 
@@ -28,6 +30,7 @@ type Service struct {
 	hot ffs.HotStorage
 }
 
+// NewService returns a new Service.
 func NewService(m *manager.Manager, hot ffs.HotStorage) *Service {
 	return &Service{
 		m:   m,
@@ -35,6 +38,7 @@ func NewService(m *manager.Manager, hot ffs.HotStorage) *Service {
 	}
 }
 
+// Info returns an Api information.
 func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -61,6 +65,7 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 	return reply, nil
 }
 
+// Show returns information about a particular Cid.
 func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -87,22 +92,24 @@ func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply,
 		},
 		Cold: &pb.ShowReply_ColdInfo{
 			Filecoin: &pb.ShowReply_FilInfo{
-				PayloadCid: info.Cold.Filecoin.PayloadCID.String(),
-				Duration:   info.Cold.Filecoin.Duration,
-				Proposals:  make([]*pb.ShowReply_FilStorage, len(info.Cold.Filecoin.Proposals)),
+				DataCid:   info.Cold.Filecoin.DataCid.String(),
+				Proposals: make([]*pb.ShowReply_FilStorage, len(info.Cold.Filecoin.Proposals)),
 			},
 		},
 	}
 	for i, p := range info.Cold.Filecoin.Proposals {
 		reply.Cold.Filecoin.Proposals[i] = &pb.ShowReply_FilStorage{
-			ProposalCid: p.ProposalCid.String(),
-			Failed:      p.Failed,
+			ProposalCid:     p.ProposalCid.String(),
+			Active:          p.Active,
+			Duration:        p.Duration,
+			ActivationEpoch: int64(p.ActivationEpoch),
 		}
 	}
 
 	return reply, nil
 }
 
+// AddCid adds a cid to an Api.
 func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCidReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -113,7 +120,7 @@ func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCid
 		return nil, err
 	}
 	log.Infof("adding cid %s", c)
-	jid, err := i.AddCid(c)
+	jid, err := i.PushConfig(c)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +131,7 @@ func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCid
 	}
 	defer i.Unwatch(ch)
 	for job := range ch {
-		if job.Status == ffs.Done {
+		if job.Status == ffs.Success {
 			break
 		} else if job.Status == ffs.Cancelled || job.Status == ffs.Failed {
 			return nil, fmt.Errorf("error adding cid: %s", job.ErrCause)
@@ -150,6 +157,7 @@ func receiveFile(srv pb.API_AddFileServer, writer *io.PipeWriter) {
 	}
 }
 
+// AddFile stores data in the Hot Storage and saves it in an Api.
 func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
@@ -163,10 +171,10 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 
 	c, err := s.hot.Add(srv.Context(), reader)
 	if err != nil {
-		return fmt.Errorf("adding data to hot layer: %s", err)
+		return fmt.Errorf("adding data to hot storage: %s", err)
 	}
 
-	jid, err := i.AddCid(c)
+	jid, err := i.PushConfig(c)
 	if err != nil {
 		return err
 	}
@@ -174,8 +182,9 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 	if err != nil {
 		return fmt.Errorf("watching add file created job: %s", err)
 	}
+	defer i.Unwatch(ch)
 	for job := range ch {
-		if job.Status == ffs.Done {
+		if job.Status == ffs.Success {
 			break
 		} else if job.Status == ffs.Failed {
 			return fmt.Errorf("error adding cid: %s", job.ErrCause)
@@ -185,6 +194,7 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 	return srv.SendAndClose(&pb.AddFileReply{Cid: c.String()})
 }
 
+// Get gets the data for a stored Cid.
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
@@ -214,6 +224,7 @@ func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
 	}
 }
 
+// Create creates a new Api.
 func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateReply, error) {
 	id, addr, err := s.m.Create(ctx)
 	if err != nil {
@@ -226,7 +237,7 @@ func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.Create
 	}, nil
 }
 
-func (s *Service) getInstanceByToken(ctx context.Context) (*api.Instance, error) {
+func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-ffs-Token")
 	if token == "" {
 		return nil, ErrEmptyAuthToken

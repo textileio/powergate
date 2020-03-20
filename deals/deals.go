@@ -11,6 +11,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/chain/actors"
 	str "github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
@@ -23,8 +24,7 @@ const (
 )
 
 var (
-	ErrNoOffersAvailable          = errors.New("no offers available to retrieve the data")
-	ErrRetrivingDataFromAnyMiners = errors.New("couldn't retrieve data from any miners")
+	ErrRetrievalNoAvailableProviders = errors.New("no providers to retrieve the data")
 
 	log = logging.Logger("deals")
 )
@@ -43,6 +43,7 @@ type API interface {
 	ChainNotify(ctx context.Context) (<-chan []*str.HeadChange, error)
 	ClientRetrieve(ctx context.Context, order api.RetrievalOrder, path string) error
 	ClientFindData(ctx context.Context, root cid.Cid) ([]api.QueryOffer, error)
+	StateMarketStorageDeal(context.Context, uint64, types.TipSetKey) (*actors.OnChainDeal, error)
 }
 
 // New creates a new deal module
@@ -65,7 +66,6 @@ func New(api API, opts ...Option) (*Module, error) {
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
 func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64) (cid.Cid, []StoreResult, error) {
-
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
@@ -125,21 +125,24 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 		return nil, err
 	}
 	if len(offers) == 0 {
-		return nil, ErrNoOffersAvailable
+		return nil, ErrRetrievalNoAvailableProviders
 	}
 	for _, o := range offers {
 		log.Debugf("trying to retrieve data from %s", o.Miner)
-		if err := m.api.ClientRetrieve(ctx, o.Order(addr), f.Name()); err != nil {
-			log.Debug("error retrieving cid %s from %s: %s", cid, o.Miner, err)
+		if err = m.api.ClientRetrieve(ctx, o.Order(addr), f.Name()); err != nil {
+			log.Infof("error retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
 		return f, nil
 	}
-	return nil, ErrRetrivingDataFromAnyMiners
+	return nil, fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
 }
 
 // Watch returns a channel with state changes of indicated proposals
 func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
+	if len(proposals) == 0 {
+		return nil, fmt.Errorf("proposals list can't be empty")
+	}
 	ch := make(chan DealInfo)
 	w, err := m.api.ChainNotify(ctx)
 	if err != nil {
@@ -153,7 +156,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 			case <-ctx.Done():
 				return
 			case <-w:
-				if err := m.pushNewChanges(ctx, currentState, proposals, ch); err != nil {
+				if err := pushNewChanges(ctx, m.api, currentState, proposals, ch); err != nil {
 					log.Errorf("error when pushing new proposal states: %s", err)
 				}
 			}
@@ -162,9 +165,9 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func pushNewChanges(ctx context.Context, api API, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
-		dinfo, err := m.api.ClientGetDealInfo(ctx, pcid)
+		dinfo, err := api.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
 			log.Errorf("error when getting deal proposal info %s: %s", pcid, err)
 			continue
@@ -180,6 +183,15 @@ func (m *Module) pushNewChanges(ctx context.Context, currState map[cid.Cid]*api.
 				Size:          dinfo.Size,
 				PricePerEpoch: dinfo.PricePerEpoch.Uint64(),
 				Duration:      dinfo.Duration,
+				DealID:        dinfo.DealID,
+			}
+			if dinfo.State == storagemarket.DealComplete {
+				ocd, err := api.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)
+				if err != nil {
+					log.Errorf("getting on-chain deal info: %s", err)
+					continue
+				}
+				newState.ActivationEpoch = ocd.ActivationEpoch
 			}
 			select {
 			case <-ctx.Done():

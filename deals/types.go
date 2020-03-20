@@ -30,6 +30,9 @@ type DealInfo struct {
 
 	PricePerEpoch uint64
 	Duration      uint64
+
+	DealID          uint64
+	ActivationEpoch uint64
 }
 
 type Config struct {

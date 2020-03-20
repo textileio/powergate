@@ -22,14 +22,19 @@ import (
 	"github.com/textileio/powergate/deals"
 	dealsPb "github.com/textileio/powergate/deals/pb"
 	"github.com/textileio/powergate/fchost"
+	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
+	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	ffsGrpc "github.com/textileio/powergate/ffs/grpc"
 	"github.com/textileio/powergate/ffs/manager"
+	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	ffsPb "github.com/textileio/powergate/ffs/pb"
 	"github.com/textileio/powergate/ffs/scheduler"
-	"github.com/textileio/powergate/ffs/scheduler/jsonjobstore"
+	"github.com/textileio/powergate/ffs/scheduler/cistore"
+	"github.com/textileio/powergate/ffs/scheduler/jstore"
+	"github.com/textileio/powergate/ffs/scheduler/pcstore"
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/index/ask"
 	askPb "github.com/textileio/powergate/index/ask/pb"
@@ -60,25 +65,19 @@ type Server struct {
 	ds datastore.TxnDatastore
 
 	ip2l *ip2location.IP2Location
-
-	ai *ask.AskIndex
-	mi *miner.MinerIndex
-	si *slashing.SlashingIndex
-	dm *deals.Module
-	wm *wallet.Module
-	rm *reputation.Module
-
-	dealsService      *deals.Service
-	walletService     *wallet.Service
-	reputationService *reputation.Service
-	askService        *ask.Service
-	minerService      *miner.Service
-	slashingService   *slashing.Service
-	ffsService        *ffsGrpc.Service
+	ai   *ask.AskIndex
+	mi   *miner.MinerIndex
+	si   *slashing.SlashingIndex
+	dm   *deals.Module
+	wm   *wallet.Module
+	rm   *reputation.Module
 
 	ffsManager *manager.Manager
-	jobStore   *jsonjobstore.JobStore
+	js         *jstore.Store
+	cis        *cistore.Store
+	pcs        *pcstore.Store
 	sched      *scheduler.Scheduler
+	hs         ffs.HotStorage
 
 	grpcServer   *grpc.Server
 	grpcWebProxy *http.Server
@@ -143,8 +142,8 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening datastore on repo: %s", err)
 	}
-	ip2l := ip2location.New([]string{"./ip2location-ip4.bin"})
 
+	ip2l := ip2location.New([]string{"./ip2location-ip4.bin"})
 	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), c)
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
@@ -172,25 +171,66 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	cl := filcold.New(reptop.New(rm, ai), dm, ipfs.Dag())
-	hl := coreipfs.New(ipfs)
-	jobStore := jsonjobstore.New(txndstr.Wrap(ds, "ffs/scheduler/jsonjobstore"))
-	sched := scheduler.New(jobStore, hl, cl)
+	lchain := lotuschain.New(c)
+	var ms ffs.MinerSelector
+	if conf.Embedded {
+		ms = fixed.New([]fixed.Miner{{Addr: "t0300", EpochPrice: 4000000}})
+	} else {
+		ms = reptop.New(rm, ai)
+	}
+	cs := filcold.New(ms, dm, ipfs.Dag(), lchain)
+	hs := coreipfs.New(ipfs)
+	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
+	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
+	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
+	sched := scheduler.New(js, pcs, cis, hs, cs)
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
 		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}
 
-	dealsService := deals.NewService(dm)
-	walletService := wallet.NewService(wm)
-	reputationService := reputation.NewService(rm)
-	askService := ask.NewService(ai)
-	minerService := miner.NewService(mi)
-	slashingService := slashing.NewService(si)
-	ffsService := ffsGrpc.NewService(ffsManager, hl)
+	grpcServer, grpcWebProxy := createGRPCServer(conf.GrpcServerOpts, conf.GrpcWebProxyAddress)
 
-	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
+	gateway := gateway.NewGateway(conf.GatewayHostAddr, ai, mi, si, rm)
+	gateway.Start()
+
+	s := &Server{
+		ds: ds,
+
+		ip2l: ip2l,
+
+		ai: ai,
+		mi: mi,
+		si: si,
+		dm: dm,
+		wm: wm,
+		rm: rm,
+
+		ffsManager: ffsManager,
+		sched:      sched,
+		js:         js,
+		cis:        cis,
+		pcs:        pcs,
+		hs:         hs,
+
+		grpcServer:   grpcServer,
+		grpcWebProxy: grpcWebProxy,
+		gateway:      gateway,
+		closeLotus:   cls,
+	}
+
+	if err := startGRPCServices(grpcServer, grpcWebProxy, s, conf.GrpcHostNetwork, conf.GrpcHostAddress); err != nil {
+		return nil, fmt.Errorf("starting GRPC services: %s", err)
+	}
+
+	startIndexHTTPServer(s)
+
+	return s, nil
+}
+
+func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Server, *http.Server) {
+	grpcServer := grpc.NewServer(opts...)
 
 	wrappedServer := grpcweb.WrapServer(
 		grpcServer,
@@ -210,71 +250,49 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	})
 	grpcWebProxy := &http.Server{
-		Addr:    conf.GrpcWebProxyAddress,
+		Addr:    webProxyAddr,
 		Handler: handler,
 	}
+	return grpcServer, grpcWebProxy
+}
 
-	g := gateway.NewGateway(conf.GatewayHostAddr, ai, mi, si, rm)
+func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork, hostAddress string) error {
+	dealsService := deals.NewService(s.dm)
+	walletService := wallet.NewService(s.wm)
+	reputationService := reputation.NewService(s.rm)
+	askService := ask.NewService(s.ai)
+	minerService := miner.NewService(s.mi)
+	slashingService := slashing.NewService(s.si)
+	ffsService := ffsGrpc.NewService(s.ffsManager, s.hs)
 
-	s := &Server{
-		ds: ds,
-
-		ip2l: ip2l,
-
-		ai: ai,
-		mi: mi,
-		si: si,
-		dm: dm,
-		wm: wm,
-		rm: rm,
-
-		dealsService:      dealsService,
-		walletService:     walletService,
-		reputationService: reputationService,
-		askService:        askService,
-		minerService:      minerService,
-		slashingService:   slashingService,
-		ffsService:        ffsService,
-
-		ffsManager: ffsManager,
-		sched:      sched,
-		jobStore:   jobStore,
-
-		grpcServer:   grpcServer,
-		grpcWebProxy: grpcWebProxy,
-
-		closeLotus: cls,
-
-		gateway: g,
-	}
-
-	listener, err := net.Listen(conf.GrpcHostNetwork, conf.GrpcHostAddress)
+	listener, err := net.Listen(hostNetwork, hostAddress)
 	if err != nil {
-		return nil, fmt.Errorf("listening to grpc: %s", err)
+		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		dealsPb.RegisterAPIServer(grpcServer, s.dealsService)
-		walletPb.RegisterAPIServer(grpcServer, s.walletService)
-		reputationPb.RegisterAPIServer(grpcServer, s.reputationService)
-		askPb.RegisterAPIServer(grpcServer, s.askService)
-		minerPb.RegisterAPIServer(grpcServer, s.minerService)
-		slashingPb.RegisterAPIServer(grpcServer, s.slashingService)
-		ffsPb.RegisterAPIServer(grpcServer, s.ffsService)
-		grpcServer.Serve(listener)
+		dealsPb.RegisterAPIServer(server, dealsService)
+		walletPb.RegisterAPIServer(server, walletService)
+		reputationPb.RegisterAPIServer(server, reputationService)
+		askPb.RegisterAPIServer(server, askService)
+		minerPb.RegisterAPIServer(server, minerService)
+		slashingPb.RegisterAPIServer(server, slashingService)
+		ffsPb.RegisterAPIServer(server, ffsService)
+		server.Serve(listener)
 	}()
 
 	go func() {
-		if err := grpcWebProxy.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := webProxy.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Errorf("error starting proxy: %v", err)
 		}
 	}()
+	return nil
+}
 
-	g.Start()
-
+func startIndexHTTPServer(s *Server) {
 	go func() {
 		mux := http.NewServeMux()
 		mux.HandleFunc("/index/ask", func(w http.ResponseWriter, r *http.Request) {
-			index := ai.Get()
+			index := s.ai.Get()
 			buf, err := json.MarshalIndent(index, "", "  ")
 			if err != nil {
 				http.Error(w, "Error", http.StatusInternalServerError)
@@ -283,7 +301,7 @@ func NewServer(conf Config) (*Server, error) {
 			w.Write(buf)
 		})
 		mux.HandleFunc("/index/miners", func(w http.ResponseWriter, r *http.Request) {
-			index := mi.Get()
+			index := s.mi.Get()
 			buf, err := json.MarshalIndent(index, "", "  ")
 			if err != nil {
 				http.Error(w, "Error", http.StatusInternalServerError)
@@ -292,7 +310,7 @@ func NewServer(conf Config) (*Server, error) {
 			w.Write(buf)
 		})
 		mux.HandleFunc("/index/slashing", func(w http.ResponseWriter, r *http.Request) {
-			index := si.Get()
+			index := s.si.Get()
 			buf, err := json.MarshalIndent(index, "", "  ")
 			if err != nil {
 				http.Error(w, "Error", http.StatusInternalServerError)
@@ -304,8 +322,6 @@ func NewServer(conf Config) (*Server, error) {
 			log.Fatalf("Failed to run Prometheus scrape endpoint: %v", err)
 		}
 	}()
-
-	return s, nil
 }
 
 // Close shuts down the server
@@ -334,7 +350,7 @@ func (s *Server) Close() {
 	if err := s.sched.Close(); err != nil {
 		log.Errorf("closing ffs scheduler: %s", err)
 	}
-	if err := s.jobStore.Close(); err != nil {
+	if err := s.js.Close(); err != nil {
 		log.Errorf("closing scheduler jobstore: %s", err)
 	}
 	if err := s.rm.Close(); err != nil {

@@ -6,11 +6,11 @@ option java_package = "io.textile.wallet.pb";
 option java_outer_classname = "FilecoinWallet";
 option objc_class_prefix = "TTE";
 
-message NewWalletRequest {
-    string typ = 1;
+message NewAddressRequest {
+    string type = 1;
 }
 
-message NewWalletReply {
+message NewAddressReply {
     string address = 1;
 }
 
@@ -23,6 +23,6 @@ message WalletBalanceReply {
 }
 
 service API {
-    rpc NewWallet(NewWalletRequest) returns (NewWalletReply) {}
+    rpc NewAddress(NewAddressRequest) returns (NewAddressReply) {}
     rpc WalletBalance(WalletBalanceRequest) returns (WalletBalanceReply) {}
 }

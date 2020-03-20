@@ -33,8 +33,8 @@ func New(api API, maddr *address.Address, iam big.Int) (*Module, error) {
 	return m, nil
 }
 
-// NewWallet creates a new wallet
-func (m *Module) NewWallet(ctx context.Context, typ string) (string, error) {
+// NewAddress creates a new wallet
+func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	addr, err := m.api.WalletNew(ctx, typ)
 	if err != nil {
 		return "", err

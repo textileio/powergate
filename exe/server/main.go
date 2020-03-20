@@ -139,8 +139,9 @@ func setupLogging() {
 	logging.SetLogLevel("*", "error")
 	loggers := []string{"index-miner", "index-ask", "index-slashing",
 		"server", "deals", "powergated", "fchost", "ip2location", "reputation",
-		"ffs-scheduler", "ffs-manager", "ffs-auth", "ffs-api",
-		"ffs-coreipfs", "ffs-grpc-service", "ffs-filcold", "ffs-sched-jobstore"}
+		"ffs-scheduler", "ffs-manager", "ffs-auth", "ffs-api", "ffs-coreipfs",
+		"ffs-grpc-service", "ffs-filcold", "ffs-sched-cistore", "ffs-sched-jstore",
+		"ffs-sched-pcstore"}
 	for _, l := range loggers {
 		logging.SetLogLevel(l, "info")
 	}

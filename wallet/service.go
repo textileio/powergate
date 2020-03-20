@@ -18,13 +18,13 @@ func NewService(m *Module) *Service {
 	return &Service{Module: m}
 }
 
-// NewWallet creates a new wallet
-func (s *Service) NewWallet(ctx context.Context, req *pb.NewWalletRequest) (*pb.NewWalletReply, error) {
-	res, err := s.Module.NewWallet(ctx, req.GetTyp())
+// NewAddress creates a new wallet
+func (s *Service) NewAddress(ctx context.Context, req *pb.NewAddressRequest) (*pb.NewAddressReply, error) {
+	res, err := s.Module.NewAddress(ctx, req.GetType())
 	if err != nil {
 		return nil, err
 	}
-	return &pb.NewWalletReply{Address: res}, nil
+	return &pb.NewAddressReply{Address: res}, nil
 }
 
 // WalletBalance checks a wallet balance

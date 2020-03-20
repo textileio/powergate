@@ -32,7 +32,7 @@ func TestStore(t *testing.T) {
 			defer close()
 			m, err := New(dnet.Client, WithImportPath(filepath.Join(os.TempDir(), "imports")))
 			checkErr(t, err)
-			_, err = storeMultiMiner(m, dnet, nm, randomBytes(500))
+			_, err = storeMultiMiner(m, dnet, nm, randomBytes(1000))
 			checkErr(t, err)
 		})
 	}
@@ -40,7 +40,7 @@ func TestStore(t *testing.T) {
 
 func TestRetrieve(t *testing.T) {
 	numMiners := []int{1} // go-fil-markets: doesn't support remembering more than 1 miner
-	data := randomBytes(500)
+	data := randomBytes(1000)
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			dnet, addr, _, close := tests.CreateLocalDevnet(t, nm)
@@ -73,7 +73,7 @@ func TestWatchStore(t *testing.T) {
 	checkErr(t, err)
 
 	cfgs := []StorageDealConfig{StorageDealConfig{Miner: miners[0].String(), EpochPrice: 40000000}}
-	_, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(randomBytes(500)), cfgs, 100)
+	_, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(randomBytes(1000)), cfgs, 100)
 	checkErr(t, err)
 	var pcids []cid.Cid
 	for _, r := range srs {
@@ -90,14 +90,14 @@ func TestWatchStore(t *testing.T) {
 	defer cancel()
 	chDealInfo, err := m.Watch(ctx, pcids)
 	checkErr(t, err)
-	expectedStatePath := []storagemarket.StorageDealStatus{
-		storagemarket.StorageDealUnknown,
+	expectedStatePath := []storagemarket.DealState{
+		storagemarket.DealUnknown,
 		// api.DealAccepted, api.DealStaged, // Off-chain negotation isn't delayable at the moment, so too fast to detect
-		storagemarket.StorageDealSealing,
-		storagemarket.StorageDealActive,
+		storagemarket.DealSealing,
+		storagemarket.DealComplete,
 	}
 	for i := 0; i < len(expectedStatePath); i++ {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		select {
 		case d := <-chDealInfo:
 			if d.StateID != expectedStatePath[i] {
@@ -168,14 +168,14 @@ func waitForDealComplete(dnet *ldevnet.LocalDevnet, deals []cid.Cid) error {
 			if err != nil {
 				return err
 			}
-			if di.State == storagemarket.StorageDealActive {
+			if di.State == storagemarket.DealComplete {
 				finished[d] = struct{}{}
 				continue
 			}
-			if di.State != storagemarket.StorageDealUnknown &&
-				di.State != storagemarket.StorageDealProposalAccepted &&
-				di.State != storagemarket.StorageDealStaged &&
-				di.State != storagemarket.StorageDealSealing {
+			if di.State != storagemarket.DealUnknown &&
+				di.State != storagemarket.DealAccepted &&
+				di.State != storagemarket.DealStaged &&
+				di.State != storagemarket.DealSealing {
 				return fmt.Errorf("unexpected deal state: %s", storagemarket.DealStates[di.State])
 			}
 		}

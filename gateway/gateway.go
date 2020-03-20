@@ -112,21 +112,15 @@ func (g *Gateway) Start() {
 		close(errc)
 	}()
 	go func() {
-		for {
-			select {
-			case err, ok := <-errc:
-				if err != nil {
-					if err != http.ErrServerClosed {
-						log.Errorf("gateway error: %s", err)
-					}
-					return
+		for err := range errc {
+			if err != nil {
+				if err != http.ErrServerClosed {
+					log.Errorf("gateway error: %s", err)
 				}
-				if !ok {
-					log.Info("gateway was shutdown")
-					return
-				}
+				return
 			}
 		}
+		log.Info("gateway was shutdown")
 	}()
 	log.Infof("gateway listening at %s", g.server.Addr)
 }

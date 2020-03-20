@@ -26,12 +26,15 @@ func New(rm *reputation.Module, ai *ask.AskIndex) *RepTop {
 	}
 }
 
-// GetTopMiners returns n miners using the configured Reputation Module and
+// GetMiners returns n miners using the configured Reputation Module and
 // Ask Index.
-func (rt *RepTop) GetMiners(n int) ([]ffs.MinerProposal, error) {
-	ms, err := rt.rm.GetTopMiners(n)
+func (rt *RepTop) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
+	ms, err := rt.rm.QueryMiners(n, f.Blacklist, f.CountryCodes)
 	if err != nil {
 		return nil, fmt.Errorf("getting top %d miners from reputation module: %s", n, err)
+	}
+	if len(ms) < n {
+		return nil, fmt.Errorf("not enough miners that satisfy the constraints")
 	}
 	aidx := rt.ai.Get()
 	res := make([]ffs.MinerProposal, 0, len(ms))

@@ -11,9 +11,9 @@ type Wallet struct {
 	client pb.APIClient
 }
 
-// NewWallet creates a new filecoin wallet [bls|secp256k1]
+// NewWallet creates a new filecoin address [bls|secp256k1]
 func (w *Wallet) NewWallet(ctx context.Context, typ string) (string, error) {
-	resp, err := w.client.NewWallet(ctx, &pb.NewWalletRequest{Typ: typ})
+	resp, err := w.client.NewAddress(ctx, &pb.NewAddressRequest{Type: typ})
 	if err != nil {
 		return "", err
 	}

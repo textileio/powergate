@@ -1,6 +1,7 @@
 package ffs
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,32 +26,32 @@ func (jid JobID) String() string {
 	return string(jid)
 }
 
-// InstanceID
 var (
-	EmptyID = InstanceID("")
+	// EmptyInstanceID representes an empty/invalid Instance ID.
+	EmptyInstanceID = ApiID("")
 )
 
-// InstanceID is an identifier for a Api instance.
-type InstanceID string
+// ApiID is an identifier for a Api instance.
+type ApiID string
 
-// NewInstanceID returns a new InstanceID.
-func NewInstanceID() InstanceID {
-	return InstanceID(uuid.New().String())
+// NewApiID returns a new InstanceID.
+func NewApiID() ApiID {
+	return ApiID(uuid.New().String())
 }
 
 // Valid returns true if the InstanceID is valid, false
 // otherwise.
-func (i InstanceID) Valid() bool {
+func (i ApiID) Valid() bool {
 	_, err := uuid.Parse(string(i))
 	return err == nil
 }
 
 // String returns a string representation of InstanceID.
-func (i InstanceID) String() string {
+func (i ApiID) String() string {
 	return string(i)
 }
 
-// JobStatus
+// JobStatus is a type for Job statuses.
 type JobStatus int
 
 const (
@@ -63,87 +64,231 @@ const (
 	// the error cause.
 	Failed
 	// Cancelled indicates the Job was cancelled from Queued,
-	// and didn't reach executing.
+	// and didn't reach execution.
 	Cancelled
-	// Done indicates the Job was successfully executed.
-	Done
+	// Success indicates the Job was successfully executed.
+	Success
 )
 
-// CidConfigID is an identifier for a Cid configuration.
-type CidConfigID string
-
-// NewCidConfigID returns a new CidConfigID.
-func NewCidConfigID() CidConfigID {
-	return CidConfigID(uuid.New().String())
-}
-
-// Valid returns true if is a valid CidConfiID, false
-// otherwise.
-func (i CidConfigID) Valid() bool {
-	_, err := uuid.Parse(string(i))
-	return err == nil
-}
-
-// String returns a string representation of a CidConfigID.
-func (i CidConfigID) String() string {
-	return string(i)
-}
-
-// Job is a task to enforce CidConfig for a Cid.
+// Job is a task executed by the Scheduler.
 type Job struct {
-	ID       JobID
-	Status   JobStatus
-	ErrCause string
-	Config   CidConfig
-	CidInfo  CidInfo
+	ID         JobID
+	InstanceID ApiID
+	Status     JobStatus
+	ErrCause   string
 }
 
-// CidConfig is the desired state of storage for a Cid.
+// DefaultCidConfig contains a default Cid configuration for an Api.
+type DefaultCidConfig struct {
+	Hot  HotConfig
+	Cold ColdConfig
+}
+
+// Validate validates a default Cid configuration.
+func (dc DefaultCidConfig) Validate() error {
+	if err := dc.Hot.Validate(); err != nil {
+		return err
+	}
+	if err := dc.Cold.Validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// CidConfig has a Cid desired storing configuration.
 type CidConfig struct {
-	ID         CidConfigID
-	InstanceID InstanceID
-	Cid        cid.Cid
-	Hot        HotConfig
-	Cold       ColdConfig
+	Cid  cid.Cid
+	Hot  HotConfig
+	Cold ColdConfig
 }
 
-// Hotconfig is the desired storage of a Cid in a hot layer.
+// WithColdEnabled allows to enable/disable Cold storage usage.
+func (c CidConfig) WithColdEnabled(enabled bool) CidConfig {
+	c.Cold.Enabled = enabled
+	return c
+}
+
+// WithColdFilCountryCodes defines a list of allowed country codes to select miners
+// for deals.
+func (c CidConfig) WithColdFilCountryCodes(countryCodes []string) CidConfig {
+	c.Cold.Filecoin.CountryCodes = make([]string, len(countryCodes))
+	copy(c.Cold.Filecoin.CountryCodes, countryCodes)
+	return c
+}
+
+// WithColdFilBlacklist defines a list of miner addresses which won't be selected for
+// making deals, no matter if they comply to other filters in the configuration.
+func (c CidConfig) WithColdFilBlacklist(blacklist []string) CidConfig {
+	c.Cold.Filecoin.Blacklist = make([]string, len(blacklist))
+	copy(c.Cold.Filecoin.Blacklist, blacklist)
+	return c
+}
+
+// WithColdFilRepFactor defines the replication factor for Filecoin storage.
+func (c CidConfig) WithColdFilRepFactor(repFactor int) CidConfig {
+	c.Cold.Filecoin.RepFactor = repFactor
+	return c
+}
+
+// WithColdFilDealDuration defines the duration used for deals for Filecoin storage.
+func (c CidConfig) WithColdFilDealDuration(duration int64) CidConfig {
+	c.Cold.Filecoin.DealDuration = duration
+	return c
+}
+
+// WithColdFilRenew specifies if deals should be renewed before they expire with a particular
+// threshold chain epochs.
+func (c CidConfig) WithColdFilRenew(enabled bool, threshold int) CidConfig {
+	c.Cold.Filecoin.Renew.Enabled = enabled
+	c.Cold.Filecoin.Renew.Threshold = threshold
+	return c
+}
+
+// WithHotEnabled allows to enable/disable Hot storage usage.
+func (c CidConfig) WithHotEnabled(enabled bool) CidConfig {
+	c.Hot.Enabled = enabled
+	return c
+}
+
+// WithHotIpfsAddTimeout specifies a timeout for fetching data in Ipfs.
+func (c CidConfig) WithHotIpfsAddTimeout(seconds int) CidConfig {
+	c.Hot.Ipfs.AddTimeout = seconds
+	return c
+}
+
+// WithHotAllowUnfreeze allows the Scheduler to fetch data from the Cold Storage,
+// if the Enabled flag of the Hot Storage switches from false->true.
+func (c CidConfig) WithHotAllowUnfreeze(allow bool) CidConfig {
+	c.Hot.AllowUnfreeze = true
+	return c
+}
+
+// Validate validates a Cid configuration.
+func (c CidConfig) Validate() error {
+	if !c.Cid.Defined() {
+		return fmt.Errorf("cid is undefined")
+	}
+	if err := c.Hot.Validate(); err != nil {
+		return fmt.Errorf("hot-ipfs config is invalid: %s", err)
+	}
+	if err := c.Cold.Validate(); err != nil {
+		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
+	}
+	if !c.Hot.Enabled && !c.Cold.Enabled {
+		return ErrBothStoragesDisabled
+	}
+	return nil
+}
+
+// PushConfigAction contains information for pushing a new Cid configuration to the Scheduler.
+type PushConfigAction struct {
+	InstanceID ApiID
+	Config     CidConfig
+	WalletAddr string
+}
+
+// Validate validates a a PushConfigAction.
+func (aa PushConfigAction) Validate() error {
+	if aa.InstanceID == EmptyInstanceID {
+		return fmt.Errorf("invalid Action ID")
+	}
+	if err := aa.Config.Validate(); err != nil {
+		return err
+	}
+	if aa.WalletAddr == "" {
+		return fmt.Errorf("invalid wallet address")
+	}
+	return nil
+}
+
+// HotConfig is the desired storage of a Cid in a Hot Storage.
 type HotConfig struct {
-	Ipfs IpfsConfig
+	Enabled       bool
+	AllowUnfreeze bool
+	Ipfs          IpfsConfig
+}
+
+// Validate validates a HotConfig.
+func (hc HotConfig) Validate() error {
+	if err := hc.Ipfs.Validate(); err != nil {
+		return fmt.Errorf("invalid ipfs config: %s", err)
+	}
+	return nil
 }
 
 // IpfsConfig is the desired storage of a Cid in IPFS.
 type IpfsConfig struct {
-	Enabled bool
+	AddTimeout int
+}
+
+// Validate validates an IpfsConfig.
+func (ic *IpfsConfig) Validate() error {
+	if ic.AddTimeout <= 0 {
+		return fmt.Errorf("add timeout should be greater than 0 seconds, got %d", ic.AddTimeout)
+	}
+	return nil
 }
 
 // ColdConfig is the desired state of a Cid in a cold layer.
 type ColdConfig struct {
-	Filecoin FilecoinConfig
+	Enabled  bool
+	Filecoin FilConfig
 }
 
-// FilecoinConfig is the desired state of a Cid in the
+// Validate validates a ColdConfig.
+func (cc ColdConfig) Validate() error {
+	if err := cc.Filecoin.Validate(); err != nil {
+		return fmt.Errorf("invalid Filecoin config: %s", err)
+	}
+	return nil
+}
+
+// FilConfig is the desired state of a Cid in the
 // Filecoin network.
-type FilecoinConfig struct {
-	Enabled    bool
-	WalletAddr string
+type FilConfig struct {
+	RepFactor    int
+	DealDuration int64
+	Blacklist    []string
+	CountryCodes []string
+	Renew        FilRenew
+}
+
+// FilRenew contains renew configuration for a Cid Cold Storage deals.
+type FilRenew struct {
+	Enabled   bool
+	Threshold int
+}
+
+// Validate returns a non-nil error if the configuration is invalid.
+func (fc *FilConfig) Validate() error {
+	if fc.RepFactor <= 0 {
+		return fmt.Errorf("replication factor should be greater than zero, got %d", fc.RepFactor)
+	}
+	if fc.DealDuration <= 0 {
+		return fmt.Errorf("deal duration should be greater than zero, got %d", fc.DealDuration)
+	}
+	if fc.Renew.Enabled && fc.Renew.Threshold <= 0 {
+		return fmt.Errorf("renew threshold should be positive: %d", fc.Renew.Threshold)
+	}
+	return nil
 }
 
 // CidInfo contains information about the current storage state
 // of a Cid.
 type CidInfo struct {
-	ConfigID CidConfigID
-	Cid      cid.Cid
-	Created  time.Time
-	Hot      HotInfo
-	Cold     ColdInfo
+	JobID   JobID
+	Cid     cid.Cid
+	Created time.Time
+	Hot     HotInfo
+	Cold    ColdInfo
 }
 
 // HotInfo contains information about the current storage state
 // of a Cid in the hot layer.
 type HotInfo struct {
-	Size int
-	Ipfs IpfsHotInfo
+	Enabled bool
+	Size    int
+	Ipfs    IpfsHotInfo
 }
 
 // IpfsHotInfo contains information about the current storage state
@@ -155,19 +300,23 @@ type IpfsHotInfo struct {
 // ColdInfo contains information about the current storage state
 // of a Cid in the cold layer.
 type ColdInfo struct {
+	Enabled  bool
 	Filecoin FilInfo
 }
 
 // FilInfo contains information about the current storage state
 // of a Cid in the Filecoin network.
 type FilInfo struct {
-	PayloadCID cid.Cid
-	Duration   uint64
-	Proposals  []FilStorage
+	DataCid   cid.Cid
+	Proposals []FilStorage
 }
 
 // FilStorage contains Deal information of a storage in Filecoin.
 type FilStorage struct {
-	ProposalCid cid.Cid
-	Failed      bool
+	ProposalCid     cid.Cid
+	Active          bool
+	Renewed         bool
+	Duration        int64
+	ActivationEpoch uint64
+	Miner           string
 }

@@ -8,40 +8,33 @@ import (
 )
 
 var (
-	// ErrConfigNotFound returned when instance configuration doesn't exist
-	// in ConfigStore.
-	ErrConfigNotFound = errors.New("config not found")
-	// ErrCidConfigNotFound returned when cid configuration doesn't exist in
-	// ConfigStore.
-	ErrCidConfigNotFound = errors.New("cid config not found")
-	// ErrCidInfoNotFound returned if no storing state exists for a Cid.
-	ErrCidInfoNotFound = errors.New("the cid doesn't have any saved state")
+	// ErrNotFound returned when instance configuration doesn't exist.
+	ErrNotFound = errors.New("stored item not found")
 )
 
-// ConfigStore is a repository for all state of a Api.
-type ConfigStore interface {
-	SaveConfig(c Config) error
-	GetConfig() (*Config, error)
+// InstanceStore is a repository for all state of a Api.
+type InstanceStore interface {
+	PutConfig(c Config) error
+	GetConfig() (Config, error)
 
-	GetCidConfig(cid.Cid) (*ffs.CidConfig, error)
-	PushCidConfig(ffs.CidConfig) error
-
-	SaveCidInfo(ffs.CidInfo) error
-	GetCidInfo(cid.Cid) (ffs.CidInfo, error)
-	Cids() ([]cid.Cid, error)
+	GetCidConfig(cid.Cid) (ffs.CidConfig, error)
+	PutCidConfig(ffs.CidConfig) error
+	GetCids() ([]cid.Cid, error)
 }
 
 // Config has general information about a Api instance.
 type Config struct {
-	ID         ffs.InstanceID
-	WalletAddr string
+	ID               ffs.ApiID
+	WalletAddr       string
+	DefaultCidConfig ffs.DefaultCidConfig
 }
 
 // InstanceInfo has general information about a running Api instance.
 type InstanceInfo struct {
-	ID     ffs.InstanceID
-	Wallet WalletInfo
-	Pins   []cid.Cid
+	ID               ffs.ApiID
+	DefaultCidConfig ffs.DefaultCidConfig
+	Wallet           WalletInfo
+	Pins             []cid.Cid
 }
 
 // WalletInfo contains information about the Wallet associated with
