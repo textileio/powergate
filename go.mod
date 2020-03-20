@@ -22,7 +22,7 @@ require (
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
-	github.com/golang/protobuf v1.3.4
+	github.com/golang/protobuf v1.3.5
 	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.1
@@ -75,7 +75,7 @@ require (
 	golang.org/x/sys v0.0.0-20200121082415-34d275377bf9 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
-	google.golang.org/grpc v1.27.1
+	google.golang.org/grpc v1.28.0
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
