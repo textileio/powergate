@@ -33,6 +33,9 @@ func (rt *RepTop) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerPropos
 	if err != nil {
 		return nil, fmt.Errorf("getting top %d miners from reputation module: %s", n, err)
 	}
+	if len(ms) < n {
+		return nil, fmt.Errorf("not enough miners that satisfy the constraints")
+	}
 	aidx := rt.ai.Get()
 	res := make([]ffs.MinerProposal, 0, len(ms))
 	for _, m := range ms {

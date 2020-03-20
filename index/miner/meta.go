@@ -10,13 +10,14 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/textileio/powergate/iplocation"
+	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
 var (
-	metadataRefreshInterval = time.Second * 45
-	pingTimeout             = time.Second * 3
+	metadataRefreshInterval = util.AvgBlockTime * 3
+	pingTimeout             = time.Second * 5
 	pingRateLim             = 100
 )
 
@@ -59,6 +60,7 @@ func (mi *MinerIndex) metaWorker() {
 			mi.index.Meta = newIndex
 			mi.lock.Unlock()
 			mi.signaler.Signal() // ToDo: consider a finer-grained signaling
+			log.Info("meta index updated")
 		}
 	}
 }

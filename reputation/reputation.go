@@ -93,10 +93,10 @@ func (rm *Module) QueryMiners(n int, blacklist []string, countryCodes []string) 
 		n = len(rm.scores)
 	}
 	mr := make([]MinerScore, 0, n)
-	for i := 0; i < n; i++ {
+	for _, m := range rm.scores {
 		skip := false
 		for _, mb := range blacklist {
-			if mb == rm.scores[i].Addr {
+			if mb == m.Addr {
 				skip = true
 				break
 			}
@@ -104,7 +104,7 @@ func (rm *Module) QueryMiners(n int, blacklist []string, countryCodes []string) 
 		if skip {
 			continue
 		}
-		minerMeta, ok := minersMeta[rm.scores[i].Addr]
+		minerMeta, ok := minersMeta[m.Addr]
 		if !ok {
 			continue
 		}
@@ -120,7 +120,10 @@ func (rm *Module) QueryMiners(n int, blacklist []string, countryCodes []string) 
 				continue
 			}
 		}
-		mr = append(mr, rm.scores[i])
+		mr = append(mr, m)
+		if len(mr) == n {
+			break
+		}
 	}
 	rm.lockScores.Unlock()
 	return mr, nil

@@ -140,6 +140,9 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 
 // Watch returns a channel with state changes of indicated proposals
 func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
+	if len(proposals) == 0 {
+		return nil, fmt.Errorf("proposals list can't be empty")
+	}
 	ch := make(chan DealInfo)
 	w, err := m.api.ChainNotify(ctx)
 	if err != nil {

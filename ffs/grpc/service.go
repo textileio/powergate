@@ -171,7 +171,7 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 
 	c, err := s.hot.Add(srv.Context(), reader)
 	if err != nil {
-		return fmt.Errorf("adding data to hot layer: %s", err)
+		return fmt.Errorf("adding data to hot storage: %s", err)
 	}
 
 	jid, err := i.PushConfig(c)
@@ -182,6 +182,7 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 	if err != nil {
 		return fmt.Errorf("watching add file created job: %s", err)
 	}
+	defer i.Unwatch(ch)
 	for job := range ch {
 		if job.Status == ffs.Success {
 			break

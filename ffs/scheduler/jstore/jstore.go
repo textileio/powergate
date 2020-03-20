@@ -115,7 +115,9 @@ func (s *Store) Unwatch(ch <-chan ffs.Job) {
 	for i := range s.watchers {
 		if s.watchers[i].ch == ch {
 			close(s.watchers[i].ch)
-			s.watchers[i] = s.watchers[len(s.watchers)-1]
+			if len(s.watchers) > 1 {
+				s.watchers[i] = s.watchers[len(s.watchers)-1]
+			}
 			s.watchers = s.watchers[:len(s.watchers)-1]
 		}
 	}

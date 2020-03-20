@@ -315,7 +315,7 @@ func (i *API) watchJobs() {
 						break
 					}
 				}
-				log.Infof("evaluating watcher %d, shouldNotify %s", k, shouldNotify)
+				log.Infof("evaluating watcher %d, shouldNotify %v", k, shouldNotify)
 				if shouldNotify {
 					select {
 					case w.ch <- j:
