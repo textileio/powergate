@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/lotus-client/chain/types"
 	"github.com/textileio/powergate/tests"
 )
 
@@ -16,14 +16,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestPrecede(t *testing.T) {
-	dnet, _, _, close := tests.CreateLocalDevnet(t, 1)
-	defer close()
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
 	ctx := context.Background()
 
-	h, err := dnet.Client.ChainHead(ctx)
+	h, err := client.ChainHead(ctx)
 	checkErr(t, err)
 
-	csync := New(dnet.Client)
+	csync := New(client)
 	head := h.Key()
 	prevhead := types.NewTipSetKey(h.Blocks()[0].Parents...)
 	yes, err := csync.Precedes(ctx, prevhead, head)

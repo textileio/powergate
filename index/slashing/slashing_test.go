@@ -18,11 +18,10 @@ func TestMain(m *testing.M) {
 }
 
 func TestFreshIndex(t *testing.T) {
-	dnet, _, _, close := tests.CreateLocalDevnet(t, 1)
-	defer close()
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
 	time.Sleep(time.Millisecond * 500) // Allow the network to some tipsets
 
-	sh, err := New(tests.NewTxMapDatastore(), dnet.Client)
+	sh, err := New(tests.NewTxMapDatastore(), client)
 	checkErr(t, err)
 
 	// Wait for some rounds of slashing updating

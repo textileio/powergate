@@ -6,11 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/ipfs/go-cid"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/multiformats/go-multihash"
+	"github.com/textileio/lotus-client/chain/types"
 	"github.com/textileio/powergate/tests"
 )
 

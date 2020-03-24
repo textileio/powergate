@@ -9,13 +9,12 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/chain/actors"
-	str "github.com/filecoin-project/lotus/chain/store"
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/lotus-client/api"
+	"github.com/textileio/lotus-client/chain/actors"
+	str "github.com/textileio/lotus-client/chain/store"
+	"github.com/textileio/lotus-client/chain/types"
 )
 
 const (
@@ -165,9 +164,9 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func pushNewChanges(ctx context.Context, api API, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func pushNewChanges(ctx context.Context, client API, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
-		dinfo, err := api.ClientGetDealInfo(ctx, pcid)
+		dinfo, err := client.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
 			log.Errorf("error when getting deal proposal info %s: %s", pcid, err)
 			continue
@@ -177,7 +176,7 @@ func pushNewChanges(ctx context.Context, api API, currState map[cid.Cid]*api.Dea
 			newState := DealInfo{
 				ProposalCid:   dinfo.ProposalCid,
 				StateID:       dinfo.State,
-				StateName:     storagemarket.DealStates[dinfo.State],
+				StateName:     api.DealStates[dinfo.State],
 				Miner:         dinfo.Provider.String(),
 				PieceRef:      dinfo.PieceRef,
 				Size:          dinfo.Size,
@@ -185,8 +184,8 @@ func pushNewChanges(ctx context.Context, api API, currState map[cid.Cid]*api.Dea
 				Duration:      dinfo.Duration,
 				DealID:        dinfo.DealID,
 			}
-			if dinfo.State == storagemarket.DealComplete {
-				ocd, err := api.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)
+			if dinfo.State == api.DealComplete {
+				ocd, err := client.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)
 				if err != nil {
 					log.Errorf("getting on-chain deal info: %s", err)
 					continue

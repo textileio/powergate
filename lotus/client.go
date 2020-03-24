@@ -5,12 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/filecoin-project/lotus/api/apistruct"
-	"github.com/filecoin-project/lotus/build"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/powergate/ldevnet"
-	"github.com/textileio/powergate/lotus/jsonrpc"
+	"github.com/textileio/lotus-client/api/apistruct"
+	"github.com/textileio/lotus-client/lib/jsonrpc"
 
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
@@ -35,7 +33,8 @@ func New(maddr ma.Multiaddr, authToken string) (*apistruct.FullNodeStruct, func(
 	closer, err := jsonrpc.NewMergeClient("ws://"+addr+"/rpc/v0", "Filecoin",
 		[]interface{}{
 			&api.Internal,
-		}, headers, jsonrpc.WithReconnect(true, time.Second*3, 0))
+			&api.CommonStruct.Internal,
+		}, headers)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -52,16 +51,6 @@ func New(maddr ma.Multiaddr, authToken string) (*apistruct.FullNodeStruct, func(
 		closer()
 	}, nil
 
-}
-
-func NewEmbedded() (*apistruct.FullNodeStruct, func(), error) {
-	util.AvgBlockTime = time.Second * 1
-	dnet, err := ldevnet.New(1, util.AvgBlockTime)
-	if err != nil {
-		return nil, nil, err
-	}
-	build.InsecurePoStValidation = true
-	return dnet.Client, dnet.Close, nil
 }
 
 func monitorLotusSync(ctx context.Context, c *apistruct.FullNodeStruct) {

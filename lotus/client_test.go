@@ -1,4 +1,4 @@
-package lotus
+package lotus_test
 
 import (
 	"bytes"
@@ -10,34 +10,35 @@ import (
 	"testing"
 	"time"
 
-	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/ldevnet"
+	"github.com/textileio/lotus-client/chain/types"
+	"github.com/textileio/powergate/tests"
+)
+
+const (
+	tmpDir = "/tmp/powergate"
 )
 
 func TestMain(m *testing.M) {
+	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
+		os.Mkdir(tmpDir, os.ModeDir)
+	}
 	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())
 }
 
 func TestClientVersion(t *testing.T) {
-	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
-	checkErr(t, err)
-	defer dnet.Close()
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
 
-	if _, err := dnet.Client.Version(context.Background()); err != nil {
+	if _, err := client.Version(context.Background()); err != nil {
 		t.Fatalf("error when getting client version: %s", err)
 	}
 }
 
 func TestClientImport(t *testing.T) {
-	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
-	checkErr(t, err)
-	defer dnet.Close()
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
 
-	// can't avoid home base path, ipfs checks: cannot add filestore references outside ipfs root (home folder)
-	home := os.TempDir()
-	f, err := ioutil.TempFile(home, "")
+	f, err := ioutil.TempFile(tmpDir, "")
 	checkErr(t, err)
 	defer os.Remove(f.Name())
 	defer f.Close()
@@ -45,7 +46,7 @@ func TestClientImport(t *testing.T) {
 	rand.Read(bts)
 	io.Copy(f, bytes.NewReader(bts))
 
-	cid, err := dnet.Client.ClientImport(context.Background(), f.Name())
+	cid, err := client.ClientImport(context.Background(), f.Name())
 	checkErr(t, err)
 	if !cid.Defined() {
 		t.Errorf("undefined cid from import")
@@ -53,10 +54,9 @@ func TestClientImport(t *testing.T) {
 }
 
 func TestClientChainNotify(t *testing.T) {
-	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
-	checkErr(t, err)
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
 
-	ch, err := dnet.Client.ChainNotify(context.Background())
+	ch, err := client.ChainNotify(context.Background())
 	checkErr(t, err)
 
 	// ch is guaranteed to push always current tipset
@@ -77,10 +77,9 @@ func TestClientChainNotify(t *testing.T) {
 }
 
 func TestChainHead(t *testing.T) {
-	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
-	checkErr(t, err)
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
 
-	ts, err := dnet.Client.ChainHead(context.Background())
+	ts, err := client.ChainHead(context.Background())
 	checkErr(t, err)
 	if len(ts.Cids()) == 0 || len(ts.Blocks()) == 0 || ts.Height() == 0 {
 		t.Fatalf("invalid tipset")
@@ -88,12 +87,11 @@ func TestChainHead(t *testing.T) {
 }
 
 func TestChainGetTipset(t *testing.T) {
-	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
-	checkErr(t, err)
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
 
-	ts, err := dnet.Client.ChainHead(context.Background())
+	ts, err := client.ChainHead(context.Background())
 	checkErr(t, err)
-	pts, err := dnet.Client.ChainGetTipSet(context.Background(), types.NewTipSetKey(ts.Blocks()[0].Parents...))
+	pts, err := client.ChainGetTipSet(context.Background(), types.NewTipSetKey(ts.Blocks()[0].Parents...))
 	checkErr(t, err)
 	if len(pts.Cids()) == 0 || len(pts.Blocks()) == 0 || pts.Height() != ts.Height()-1 {
 		t.Fatalf("invalid tipset")
@@ -101,16 +99,14 @@ func TestChainGetTipset(t *testing.T) {
 }
 
 func TestStateReadState(t *testing.T) {
-	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
-	checkErr(t, err)
-
-	addrs, err := dnet.Client.StateListMiners(context.Background(), types.EmptyTSK)
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	addrs, err := client.StateListMiners(context.Background(), types.EmptyTSK)
 	checkErr(t, err)
 
 	for _, a := range addrs {
-		actor, err := dnet.Client.StateGetActor(context.Background(), a, types.EmptyTSK)
+		actor, err := client.StateGetActor(context.Background(), a, types.EmptyTSK)
 		checkErr(t, err)
-		s, err := dnet.Client.StateReadState(context.Background(), actor, types.EmptyTSK)
+		s, err := client.StateReadState(context.Background(), actor, types.EmptyTSK)
 		checkErr(t, err)
 		if s.State == nil {
 			t.Fatalf("state of actor %s can't be nil", a)
@@ -119,13 +115,12 @@ func TestStateReadState(t *testing.T) {
 }
 
 func TestGetPeerID(t *testing.T) {
-	dnet, err := ldevnet.New(1, ldevnet.DefaultDuration)
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
+
+	miners, err := client.StateListMiners(context.Background(), types.EmptyTSK)
 	checkErr(t, err)
 
-	miners, err := dnet.Client.StateListMiners(context.Background(), types.EmptyTSK)
-	checkErr(t, err)
-
-	pid, err := dnet.Client.StateMinerPeerID(context.Background(), miners[0], types.EmptyTSK)
+	pid, err := client.StateMinerPeerID(context.Background(), miners[0], types.EmptyTSK)
 	checkErr(t, err)
 	checkErr(t, pid.Validate())
 }

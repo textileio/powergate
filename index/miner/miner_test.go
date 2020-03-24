@@ -25,11 +25,10 @@ func TestMain(m *testing.M) {
 }
 
 func TestFullRefresh(t *testing.T) {
-	dnet, _, miners, close := tests.CreateLocalDevnet(t, 1)
-	defer close()
+	client, _, miners := tests.CreateLocalDevnet(t, 1)
 	time.Sleep(time.Second * 15) // Allow the network to some tipsets
 
-	mi, err := New(tests.NewTxMapDatastore(), dnet.Client, &p2pHostMock{}, &lrMock{})
+	mi, err := New(tests.NewTxMapDatastore(), client, &p2pHostMock{}, &lrMock{})
 	checkErr(t, err)
 
 	l := mi.Listen()

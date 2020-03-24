@@ -17,10 +17,9 @@ func TestMain(m *testing.M) {
 
 func TestFreshBuild(t *testing.T) {
 	ctx := context.Background()
-	dnet, _, miners, close := tests.CreateLocalDevnet(t, 1)
-	defer close()
+	dnet, _, miners := tests.CreateLocalDevnet(t, 1)
 
-	index, err := generateIndex(ctx, dnet.Client)
+	index, err := generateIndex(ctx, dnet)
 	checkErr(t, err)
 
 	// We should have storage info about every miner in devnet

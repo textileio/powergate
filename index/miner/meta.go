@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/chain/types"
 	cbor "github.com/ipfs/go-ipld-cbor"
+	"github.com/textileio/lotus-client/chain/types"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"

@@ -14,10 +14,11 @@ services:
       - 6002:6002
     depends_on:
       - ipfs
+      - lotus
     environment:
       - TEXPOWERGATE_EMBEDDED=true
+      - TEXPOWERGATE_LOTUSHOST=/dns4/lotus/tcp/7777
       - TEXPOWERGATE_IPFSAPIADDR=/dns4/ipfs/tcp/5001
-      - TEXPOWERGATE_LOTUSHOST=/dns4/lotus/tcp/1234
     restart: unless-stopped
 
   ipfs:
@@ -25,3 +26,11 @@ services:
     ports:
       - 5001:5001
     restart: unless-stopped    
+
+  lotus:
+    image: textile/lotus-devnet:lotus-master-628a598ca
+    ports:
+      - 7777:7777
+    environment:
+      - TEXLOTUSDEVNET_SPEED=1500
+    restart: unless-stopped

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/ipld/go-car"
+	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 )
@@ -181,10 +181,10 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 		if !ok {
 			continue
 		}
-		if di.StateID == storagemarket.DealComplete {
+		if di.StateID == api.DealComplete {
 			fs.ActivationEpoch = di.ActivationEpoch
 			delete(notDone, di.ProposalCid)
-		} else if di.StateID == storagemarket.DealError || di.StateID == storagemarket.DealFailed {
+		} else if di.StateID == api.DealError || di.StateID == api.DealFailed {
 			delete(proposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
 		}

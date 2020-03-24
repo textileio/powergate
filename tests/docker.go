@@ -22,7 +22,7 @@ func LaunchDocker() (*dockertest.Resource, func()) {
 
 	return ipfsDocker, func() {
 		if err := pool.Purge(ipfsDocker); err != nil {
-			panic(fmt.Sprintf("couldn't purge docker pool: %s", err))
+			panic(fmt.Sprintf("couldn't purge ipfs from docker pool: %s", err))
 		}
 	}
 }

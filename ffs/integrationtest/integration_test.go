@@ -8,12 +8,10 @@ import (
 	"math/big"
 	"math/rand"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
@@ -22,6 +20,7 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
+	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
@@ -40,9 +39,16 @@ import (
 	"github.com/textileio/powergate/wallet"
 )
 
-func TestMain(m *testing.M) {
-	logging.SetAllLoggers(logging.LevelError)
+const (
+	tmpDir = "/tmp/powergate"
+)
 
+func TestMain(m *testing.M) {
+	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
+		os.Mkdir(tmpDir, os.ModeDir)
+	}
+
+	logging.SetAllLoggers(logging.LevelError)
 	// logging.SetLogLevel("scheduler", "debug")
 	// logging.SetLogLevel("api", "debug")
 	// logging.SetLogLevel("jobstore", "debug")
@@ -205,8 +211,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	t.Cleanup(func() { cls() })
 
 	ds := tests.NewTxMapDatastore()
-	addr, client, ms, closeDevnet := newDevnet(t, 1)
-	defer closeDevnet()
+	addr, client, ms := newDevnet(t, 1)
 
 	ipfsAPI, fapi, cls := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	ra := rand.New(rand.NewSource(22))
@@ -335,8 +340,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 
 	countries := []string{"China", "Uruguay"}
 	numMiners := len(countries)
-	dnet, addr, _, close := tests.CreateLocalDevnet(t, numMiners)
-	defer close()
+	client, addr, _ := tests.CreateLocalDevnet(t, numMiners)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
 		addrs[i] = fmt.Sprintf("t0%d", 300+i)
@@ -347,7 +351,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
-	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, dnet.Client, addr, ms, ipfsDocker)
+	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	defer closeInternal()
 
 	r := rand.New(rand.NewSource(22))
@@ -458,8 +462,7 @@ func TestRenew(t *testing.T) {
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
-	addr, client, ms, clsDevnet := newDevnet(t, 2)
-	defer clsDevnet()
+	addr, client, ms := newDevnet(t, 2)
 	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	defer closeInternal()
 
@@ -510,16 +513,15 @@ func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
-	addr, client, ms, close := newDevnet(t, numMiners)
+	addr, client, ms := newDevnet(t, numMiners)
 	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	return ipfsAPI, fapi, func() {
 		closeInternal()
-		close()
 	}
 }
 
-func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector, func()) {
-	dnet, addr, _, close := tests.CreateLocalDevnet(t, numMiners)
+func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
+	client, addr, _ := tests.CreateLocalDevnet(t, numMiners)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
 		addrs[i] = fmt.Sprintf("t0%d", 300+i)
@@ -530,7 +532,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 4000000}
 	}
 	ms := fixed.New(fixedMiners)
-	return addr, dnet.Client, ms, close
+	return addr, client, ms
 }
 
 func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
@@ -539,7 +541,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
 	require.Nil(t, err)
 
-	dm, err := deals.New(client, deals.WithImportPath(filepath.Join(os.TempDir(), "imports")))
+	dm, err := deals.New(client, deals.WithImportPath(tmpDir))
 	require.Nil(t, err)
 
 	fchain := lotuschain.New(client)

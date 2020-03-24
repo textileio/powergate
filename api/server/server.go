@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/ipfs/go-datastore"
 	badger "github.com/ipfs/go-ds-badger2"
@@ -104,23 +103,14 @@ type Config struct {
 
 // NewServer starts and returns a new server with the given configuration.
 func NewServer(conf Config) (*Server, error) {
-	var c *apistruct.FullNodeStruct
-	var cls func()
 	var err error
 	var masterAddr address.Address
+	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
 	if conf.Embedded {
-		c, cls, err = lotus.NewEmbedded()
-		if err != nil {
-			return nil, fmt.Errorf("creating the embedded network: %s", err)
-		}
-		masterAddr, err = c.WalletDefaultAddress(context.Background())
-		if err != nil {
-			return nil, fmt.Errorf("getting default address: %s", err)
-		}
-
-	} else {
-		c, cls, err = lotus.New(conf.LotusAddress, conf.LotusAuthToken)
+		// ToDO
+		//masterAddr, err = c.WalletDefaultAddress(context.Background())
 	}
+
 	if err != nil {
 		return nil, err
 	}
