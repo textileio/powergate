@@ -20,7 +20,7 @@ require (
 	github.com/filecoin-project/lotus v0.2.11-0.20200311014507-d4c0dfa851fc
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
-	github.com/gin-gonic/gin v1.5.0
+	github.com/gin-gonic/gin v1.6.1
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/protobuf v1.3.5
 	github.com/google/go-cmp v0.4.0
