@@ -46,7 +46,7 @@ require (
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
-	github.com/libp2p/go-libp2p v0.5.0
+	github.com/libp2p/go-libp2p v0.6.1
 	github.com/libp2p/go-libp2p-core v0.4.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
 	github.com/libp2p/go-libp2p-tls v0.1.2 // indirect
