@@ -92,6 +92,7 @@ type Config struct {
 	IpfsApiAddr         ma.Multiaddr
 	LotusAddress        ma.Multiaddr
 	LotusAuthToken      string
+	LotusMasterAddr     string
 	Embedded            bool
 	GrpcHostNetwork     string
 	GrpcHostAddress     string
@@ -106,13 +107,18 @@ func NewServer(conf Config) (*Server, error) {
 	var err error
 	var masterAddr address.Address
 	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
-	if conf.Embedded {
-		// ToDO
-		//masterAddr, err = c.WalletDefaultAddress(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
 
-	if err != nil {
-		return nil, err
+	if conf.Embedded {
+		if masterAddr, err = c.WalletDefaultAddress(context.Background()); err != nil {
+			return nil, fmt.Errorf("getting default wallet addr as masteraddr: %s", err)
+		}
+	} else {
+		if masterAddr, err = address.NewFromString(conf.LotusMasterAddr); err != nil {
+			return nil, fmt.Errorf("parsing masteraddr: %s", err)
+		}
 	}
 
 	fchost, err := fchost.New()
