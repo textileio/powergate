@@ -21,47 +21,81 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 *Warning* This project is still **pre-release** and is only meant for testing.
 
+_Note: Powergate will avoid CGO and external gitsubmodules very soon, track #186. This will simplify building and running 
+to a simple `go build` command._
+
 ### Lotus (`lotus`)
 
-See [https://lotu.sh/](https://lotu.sh/). Required for client. Lotus is an implementation of the Filecoin Distributed Storage Network—we run the Lotus client to join the Filecoin Testnet. 
+_Powergate_ communicates with a _Lotus_ node to interact with the filecoin network.
+If you want to run _Powergate_ targeting the current testnet, you should be running a fully-synced Lotus node in the same host as _Powergate_.
+For steps to install _Lotus_, refer to  [https://lotu.sh/](https://lotu.sh/) taking special attention to [its dependencies](https://docs.lotu.sh/en+install-lotus-ubuntu). 
+
+Since bootstrapping a _Lotus_ node from scratch and getting it synced may take too long, _Powergate_ allows an `--embedded` flag, which 
+auto-creates a fake local testnet with a single miner, and auto-connects to it. This means, only running the _Powergate_ server with the flag enabled, allows to use it in some reasonable context with almost no extra setup.
+
+For both building the _CLI_ and the _Server_, you should run:
+```bash
+make clean # if you have a previous build
+make build
+```
+This installs some external dependencies related to _Lotus_ libraries. _Powergate_ will be CGO free very soon, which will make this step 
+uncessary (#186).
 
 ### Client (`pow`)
 
+To build the CLI, run:
 ```bash
-go build -i -o pow exe/cli/main.go 
+go build -o pow exe/cli/main.go
 chmod +x pow 
 ```
 
 Try `pow --help`.
 
 ### Server 
-The server connects to Lotus and enables multiple modules, such as:
+The server connects to _Lotus_ and enables multiple modules, such as:
 - Reputations module:
    - Miners index: with on-chain and metadata information.
    - Ask index: with an up-to-date information about available _Storage Ask_ in the network.
    - Slashing index: contains a history of all miner-slashes.
 - Deals Module:
     - Contain helper features for making and watching deals.
-### Prerequisites
-Currently, the server needs the same dependencies as Lotus, so most probably they will be already installed if you run the server in _dev mode_ (`go run` syntax). If that's not the case, [see here](https://docs.lotu.sh/en+install-lotus-ubuntu).
+- FFS: 
+    - A powerful level of abstraction to pin Cids in Hot and Cold storages, more details soon!
 
-### Run in _dev mode_
-The server can be run in _dev mode_ with `go run exe/server/main.go`. 
 
-### Run in _docker mode_
-You can run the server in a _Docker Compose_ enviroment with _Prometheus_ and _Grafana_ to have a health-monitoring for the server.
-To do so:
+### Run in _Embedded mode_
+
+The server can run in _Embedded_ mode which auto-creates a fake devnet with a single miner and connects to it.
+The simplest way to run it is:
+```bash
+cd docker
+make embed
 ```
+
+This creates an ephemeral server with all working for CLI interaction.
+
+### Run in full mode
+
+Running the _full mode_ can be done by:
+```bash
 cd docker
 make fresh
 ```
-This will do whatever it takes to get all systems running:
-- `localhost:3000`: Grafana dashboard with anonymous setup. _admin_:_foobar_ are  admin credentials.
-- `localhost:9090`: Prometheus enpoint.
-- `localhost:8888`: Server Prometheus endpoint for metric scraping.
-- `localhost:8889`: HTTP endpoint for current index values (`index/miners`, `index/slashing`, `index/ask`).
 
-It's important to mention that the _Docker Compose_ is run in _host_ _network mode_, which is only supported in Linux. Eventually we'll include Lotus inside the compose file allowing for default network modes.
+This will spinup and auto-wire:
+- _Prometheus_ ,endpoint for metrics
+- _Grafana_, for metrics dashboard
+- _cAdvisor_, for container metrics
+- _Lotus_ node configured for testnet.
+- _Powergate_, wired with all of above components.
+
+Recall that you should wait for _Lotus_ to be fully-synced which might take a long time now.
+If you're running the _Lotus_ node in the host and want to leverage its fully synced, you could:
+- Bind the `.lotus` folder to the _Lotus_ node in the docker-compose file.
+- Or, just `docker cp` it.
+In any option, you should stop the original _Lotus_ node.
+
+If you don't have a fully-synced _Lotus_ node and don't want to wait, consider using our [archives](https://lotus-archives.textile.io/).
 
 ## Test
 For running tests: `make test`

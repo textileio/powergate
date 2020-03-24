@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/textileio/powergate/exe/powergate/cmd"
+	"github.com/textileio/powergate/exe/cli/cmd"
 )
 
 func main() {
