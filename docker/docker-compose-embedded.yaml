@@ -33,7 +33,7 @@ services:
     restart: unless-stopped    
 
   lotus:
-    image: textile/lotus-devnet:sha-6d0bae0
+    image: textile/lotus-devnet:testnet3-ca3d2bf46f69
     ports:
       - 7777:7777
     environment:

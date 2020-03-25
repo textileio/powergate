@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/specs-actors/actors/abi"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/lotus-client/api"
-	"github.com/textileio/lotus-client/chain/actors"
 	str "github.com/textileio/lotus-client/chain/store"
 )
 
@@ -42,7 +43,7 @@ type API interface {
 	ChainNotify(ctx context.Context) (<-chan []*str.HeadChange, error)
 	ClientRetrieve(ctx context.Context, order api.RetrievalOrder, path string) error
 	ClientFindData(ctx context.Context, root cid.Cid) ([]api.QueryOffer, error)
-	StateMarketStorageDeal(context.Context, uint64, types.TipSetKey) (*actors.OnChainDeal, error)
+	StateMarketStorageDeal(context.Context, abi.DealID, types.TipSetKey) (*api.MarketDeal, error)
 }
 
 // New creates a new deal module
@@ -176,7 +177,7 @@ func pushNewChanges(ctx context.Context, client API, currState map[cid.Cid]*api.
 			newState := DealInfo{
 				ProposalCid:   dinfo.ProposalCid,
 				StateID:       dinfo.State,
-				StateName:     api.DealStates[dinfo.State],
+				StateName:     storagemarket.DealStates[dinfo.State],
 				Miner:         dinfo.Provider.String(),
 				PieceRef:      dinfo.PieceRef,
 				Size:          dinfo.Size,
@@ -184,7 +185,7 @@ func pushNewChanges(ctx context.Context, client API, currState map[cid.Cid]*api.
 				Duration:      dinfo.Duration,
 				DealID:        dinfo.DealID,
 			}
-			if dinfo.State == api.DealComplete {
+			if dinfo.State == storagemarket.StorageDealActive {
 				ocd, err := client.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)
 				if err != nil {
 					log.Errorf("getting on-chain deal info: %s", err)

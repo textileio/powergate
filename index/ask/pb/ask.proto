@@ -17,8 +17,8 @@ message StorageAsk {
 	uint64 price = 1;
 	uint64 minPieceSize = 2;
 	string miner = 3;
-	uint64 timestamp = 4;
-	uint64 expiry = 5;
+	int64 chainEpoch = 4;
+	int64 expiry = 5;
 }
 
 message Index {

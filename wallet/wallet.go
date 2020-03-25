@@ -45,7 +45,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 			From:     *m.masterAddr,
 			To:       addr,
 			Value:    types.BigInt{Int: m.iAmount},
-			GasLimit: types.NewInt(1000),
+			GasLimit: 1000,
 			GasPrice: types.NewInt(0),
 		}
 

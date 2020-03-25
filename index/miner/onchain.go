@@ -8,6 +8,7 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/textileio/lotus-client/api/apistruct"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -20,7 +21,7 @@ const (
 	// hOffset is the # of tipsets from the heaviest chain to
 	// consider for index updating; this to reduce sensibility to
 	// chain reorgs
-	hOffset = uint64(5)
+	hOffset = 5
 )
 
 // updateOnChainIndex updates on-chain index information in the direction of heaviest tipset
@@ -48,7 +49,7 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 	if chainIndex.Power == nil {
 		chainIndex.Power = make(map[string]Power)
 	}
-	hdiff := new.Height() - chainIndex.LastUpdated
+	hdiff := int64(new.Height()) - chainIndex.LastUpdated
 	if hdiff == 0 {
 		return nil
 	}
@@ -68,7 +69,7 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 			return fmt.Errorf("error doing delta refresh: %s", err)
 		}
 	}
-	chainIndex.LastUpdated = new.Height()
+	chainIndex.LastUpdated = int64(new.Height())
 	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
 
 	mi.lock.Lock()
@@ -86,7 +87,7 @@ func (mi *MinerIndex) updateOnChainIndex() error {
 
 // deltaRefresh updates chainIndex information between two TipSet that are on
 // the same chain.
-func deltaRefresh(ctx context.Context, api API, chainIndex *ChainIndex, fromKey types.TipSetKey, to *types.TipSet) error {
+func deltaRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *ChainIndex, fromKey types.TipSetKey, to *types.TipSet) error {
 	from, err := api.ChainGetTipSet(ctx, fromKey)
 	if err != nil {
 		return err
@@ -109,7 +110,7 @@ func deltaRefresh(ctx context.Context, api API, chainIndex *ChainIndex, fromKey 
 
 // fullRefresh updates chainIndex for all miners information at the currenty
 // heaviest tipset.
-func fullRefresh(ctx context.Context, api API, chainIndex *ChainIndex) error {
+func fullRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *ChainIndex) error {
 	ts, err := api.ChainHead(ctx)
 	if err != nil {
 		return err
@@ -123,7 +124,7 @@ func fullRefresh(ctx context.Context, api API, chainIndex *ChainIndex) error {
 }
 
 // updateForAddrs updates chainIndex information for a particular set of addrs.
-func updateForAddrs(ctx context.Context, api API, chainIndex *ChainIndex, addrs []address.Address) error {
+func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *ChainIndex, addrs []address.Address) error {
 	var l sync.Mutex
 	rl := make(chan struct{}, maxParallelism)
 	for i, a := range addrs {
@@ -155,7 +156,7 @@ func updateForAddrs(ctx context.Context, api API, chainIndex *ChainIndex, addrs 
 }
 
 // getPower returns current on-chain power information for a miner
-func getPower(ctx context.Context, c API, addr address.Address) (Power, error) {
+func getPower(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (Power, error) {
 	mp, err := c.StateMinerPower(ctx, addr, types.EmptyTSK)
 	if err != nil {
 		return Power{}, err

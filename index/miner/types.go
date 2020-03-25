@@ -1,8 +1,9 @@
 package miner
 
 import (
-	cbor "github.com/ipfs/go-ipld-cbor"
 	"time"
+
+	cbor "github.com/ipfs/go-ipld-cbor"
 )
 
 func init() {
@@ -22,7 +23,7 @@ type Index struct {
 
 // ChainIndex contains on-chain information about miners
 type ChainIndex struct {
-	LastUpdated uint64
+	LastUpdated int64
 	Power       map[string]Power
 }
 

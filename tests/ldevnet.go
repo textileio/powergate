@@ -20,7 +20,7 @@ func CreateLocalDevnet(t *testing.T, numMiners int) (*apistruct.FullNodeStruct, 
 		panic(fmt.Sprintf("couldn't create ipfs-pool: %s", err))
 	}
 	envNumMiners := fmt.Sprintf("TEXLOTUSDEVNET_NUMMINERS=%d", numMiners)
-	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: "textile/lotus-devnet", Tag: "sha-6d0bae0", Env: []string{envNumMiners}, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
+	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: "textile/lotus-devnet", Tag: "testnet3-ca3d2bf46f69", Env: []string{envNumMiners}, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))
 	}

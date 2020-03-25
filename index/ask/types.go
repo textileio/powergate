@@ -32,6 +32,6 @@ type StorageAsk struct {
 	Miner        string
 	Price        uint64
 	MinPieceSize uint64
-	Timestamp    uint64
-	Expiry       uint64
+	ChainEpoch   int64
+	Expiry       int64
 }

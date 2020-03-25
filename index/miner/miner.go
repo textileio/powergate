@@ -5,16 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/textileio/lotus-client/api"
-	"github.com/textileio/lotus-client/chain/store"
+	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/chainstore"
 	"github.com/textileio/powergate/chainsync"
 	"github.com/textileio/powergate/iplocation"
@@ -34,20 +30,6 @@ var (
 	log = logging.Logger("index-miner")
 )
 
-// API provides an abstraction to a Filecoin full-node
-type API interface {
-	StateListMiners(context.Context, types.TipSetKey) ([]address.Address, error)
-	StateMinerPower(context.Context, address.Address, types.TipSetKey) (api.MinerPower, error)
-	ChainHead(context.Context) (*types.TipSet, error)
-	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
-	ChainGetTipSetByHeight(context.Context, uint64, types.TipSetKey) (*types.TipSet, error)
-	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
-	StateReadState(context.Context, *types.Actor, types.TipSetKey) (*api.ActorState, error)
-	StateMinerPeerID(ctx context.Context, m address.Address, ts types.TipSetKey) (peer.ID, error)
-	ChainGetGenesis(context.Context) (*types.TipSet, error)
-	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*store.HeadChange, error)
-}
-
 type P2PHost interface {
 	Addrs(pid peer.ID) []multiaddr.Multiaddr
 	Ping(ctx context.Context, pid peer.ID) bool
@@ -56,7 +38,7 @@ type P2PHost interface {
 
 // MinerIndex builds and provides information about FC miners
 type MinerIndex struct {
-	api      API
+	api      *apistruct.FullNodeStruct
 	ds       datastore.TxnDatastore
 	store    *chainstore.Store
 	h        P2PHost
@@ -78,7 +60,7 @@ type MinerIndex struct {
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
-func New(ds datastore.TxnDatastore, api API, h P2PHost, lr iplocation.LocationResolver) (*MinerIndex, error) {
+func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver) (*MinerIndex, error) {
 	cs := chainsync.New(api)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {

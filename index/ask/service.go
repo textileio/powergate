@@ -29,7 +29,7 @@ func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, er
 			Price:        ask.Price,
 			MinPieceSize: ask.MinPieceSize,
 			Miner:        ask.Miner,
-			Timestamp:    ask.Timestamp,
+			ChainEpoch:   ask.ChainEpoch,
 			Expiry:       ask.Expiry,
 		}
 	}
@@ -59,7 +59,7 @@ func (s *Service) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryRep
 			Price:        ask.Price,
 			MinPieceSize: ask.MinPieceSize,
 			Miner:        ask.Miner,
-			Timestamp:    ask.Timestamp,
+			ChainEpoch:   ask.ChainEpoch,
 			Expiry:       ask.Expiry,
 		}
 	}

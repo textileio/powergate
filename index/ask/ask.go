@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
@@ -47,7 +48,7 @@ type AskIndex struct {
 // API provides an abstraction to a Filecoin full-node
 type API interface {
 	StateListMiners(context.Context, types.TipSetKey) ([]address.Address, error)
-	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*types.SignedStorageAsk, error)
+	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.SignedStorageAsk, error)
 	StateMinerPeerID(ctx context.Context, m address.Address, ts types.TipSetKey) (peer.ID, error)
 }
 
@@ -222,9 +223,9 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 			newAsks[addr.String()] = StorageAsk{
 				Miner:        ask.Ask.Miner.String(),
 				Price:        ask.Ask.Price.Uint64(),
-				MinPieceSize: ask.Ask.MinPieceSize,
-				Timestamp:    ask.Ask.Timestamp,
-				Expiry:       ask.Ask.Expiry,
+				MinPieceSize: uint64(ask.Ask.MinPieceSize),
+				ChainEpoch:   int64(ask.Ask.Timestamp),
+				Expiry:       int64(ask.Ask.Expiry),
 			}
 			lock.Unlock()
 		}(addr)
