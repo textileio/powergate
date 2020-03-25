@@ -73,7 +73,7 @@ func TestGetByAuthToken(t *testing.T) {
 
 func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	client, addr, _ := tests.CreateLocalDevnet(t, 1)
-	wm, err := wallet.New(client, &addr, *big.NewInt(5000000000000))
+	wm, err := wallet.New(client, &addr, *big.NewInt(4000000000))
 	require.Nil(t, err)
 	m, err := New(ds, wm, &mockSched{})
 	require.Nil(t, err)

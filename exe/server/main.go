@@ -39,7 +39,7 @@ func main() {
 	pflag.String("repopath", "~/.powergate", "repo-path")
 	pflag.Bool("embedded", false, "run in embedded ephemeral FIL network")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "ipfs api multiaddr")
-	pflag.Int64("walletinitialfund", 5000000000000, "created wallets initial fund in attoFIL")
+	pflag.Int64("walletinitialfund", 4000000000, "created wallets initial fund in attoFIL")
 	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "gateway host listening address")
 	pflag.Parse()
 

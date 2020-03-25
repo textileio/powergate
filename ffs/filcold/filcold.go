@@ -168,6 +168,9 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 		inProgressDeals = append(inProgressDeals, d.ProposalCid)
 		notDone[d.ProposalCid] = struct{}{}
 	}
+	if len(inProgressDeals) == 0 {
+		return nil, fmt.Errorf("all proposed deals where rejected")
+	}
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -192,8 +195,10 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 			break
 		}
 	}
-	log.Infof("deals reached final state")
 
+	if len(proposals) == 0 {
+		return nil, fmt.Errorf("all accepted proposals failed before becoming active")
+	}
 	res := make([]ffs.FilStorage, 0, len(proposals))
 	for _, v := range proposals {
 		res = append(res, *v)

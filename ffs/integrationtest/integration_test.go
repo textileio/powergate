@@ -97,7 +97,7 @@ func TestAdd(t *testing.T) {
 
 	cid, _ = addRandomFile(t, r, ipfsAPI)
 	t.Run("WithCustomConfig", func(t *testing.T) {
-		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithColdFilDealDuration(int64(4321))
+		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithColdFilDealDuration(int64(3210))
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
@@ -322,7 +322,7 @@ func TestFilecoinBlacklist(t *testing.T) {
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsAPI)
-	excludedMiner := "t0300"
+	excludedMiner := "t01000"
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilBlacklist([]string{excludedMiner})
 
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
@@ -343,11 +343,11 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	client, addr, _ := tests.CreateLocalDevnet(t, numMiners)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
-		addrs[i] = fmt.Sprintf("t0%d", 300+i)
+		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
 	}
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 4000000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 1000000}
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
@@ -365,7 +365,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	cinfo, err := fapi.GetCidInfo(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
-	require.Equal(t, p.Miner, "t0301")
+	require.Equal(t, p.Miner, "t01001")
 }
 
 func TestFilecoinEnableConfig(t *testing.T) {
@@ -524,12 +524,12 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 	client, addr, _ := tests.CreateLocalDevnet(t, numMiners)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
-		addrs[i] = fmt.Sprintf("t0%d", 300+i)
+		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
 	}
 
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 4000000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 1000000}
 	}
 	ms := fixed.New(fixedMiners)
 	return addr, client, ms
@@ -552,7 +552,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 	hl := coreipfs.New(ipfsClient)
 	sched := scheduler.New(js, pcs, cis, hl, cl)
 
-	wm, err := wallet.New(client, &waddr, *big.NewInt(5000000000000))
+	wm, err := wallet.New(client, &waddr, *big.NewInt(4000000000))
 	require.Nil(t, err)
 
 	var fapi *api.API
