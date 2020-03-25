@@ -11,11 +11,10 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/filecoin-project/specs-actors/actors/abi"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/lotus-client/api"
-	str "github.com/textileio/lotus-client/chain/store"
+	"github.com/textileio/lotus-client/api/apistruct"
 )
 
 const (
@@ -31,23 +30,12 @@ var (
 
 // Module exposes storage and monitoring from the market.
 type Module struct {
-	api API
+	api *apistruct.FullNodeStruct
 	cfg *Config
 }
 
-// API interacts with a Filecoin full-node
-type API interface {
-	ClientStartDeal(ctx context.Context, data cid.Cid, addr address.Address, miner address.Address, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
-	ClientImport(ctx context.Context, path string) (cid.Cid, error)
-	ClientGetDealInfo(context.Context, cid.Cid) (*api.DealInfo, error)
-	ChainNotify(ctx context.Context) (<-chan []*str.HeadChange, error)
-	ClientRetrieve(ctx context.Context, order api.RetrievalOrder, path string) error
-	ClientFindData(ctx context.Context, root cid.Cid) ([]api.QueryOffer, error)
-	StateMarketStorageDeal(context.Context, abi.DealID, types.TipSetKey) (*api.MarketDeal, error)
-}
-
 // New creates a new deal module
-func New(api API, opts ...Option) (*Module, error) {
+func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 	var cfg Config
 	for _, o := range opts {
 		if err := o(&cfg); err != nil {
@@ -74,7 +62,10 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 	if _, err := io.Copy(f, data); err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
-	dataCid, err := m.api.ClientImport(ctx, f.Name())
+	ref := api.FileRef{
+		Path: f.Name(),
+	}
+	dataCid, err := m.api.ClientImport(ctx, ref)
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when importing data: %s", err)
 	}
@@ -93,7 +84,16 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 			}
 			continue
 		}
-		p, err := m.api.ClientStartDeal(ctx, dataCid, addr, maddr, types.NewInt(c.EpochPrice), dur)
+		params := &api.StartDealParams{
+			Data: &storagemarket.DataRef{
+				Root: dataCid,
+			},
+			BlocksDuration: dur,
+			EpochPrice:     types.NewInt(c.EpochPrice),
+			Miner:          maddr,
+			Wallet:         addr,
+		}
+		p, err := m.api.ClientStartDeal(ctx, params)
 		if err != nil {
 			log.Errorf("starting deal with %v: %s", c, err)
 			res[i] = StoreResult{
@@ -129,7 +129,10 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 	}
 	for _, o := range offers {
 		log.Debugf("trying to retrieve data from %s", o.Miner)
-		if err = m.api.ClientRetrieve(ctx, o.Order(addr), f.Name()); err != nil {
+		ref := api.FileRef{
+			Path: f.Name(),
+		}
+		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
 			log.Infof("error retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
@@ -165,7 +168,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func pushNewChanges(ctx context.Context, client API, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func pushNewChanges(ctx context.Context, client *apistruct.FullNodeStruct, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
 		dinfo, err := client.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
@@ -183,7 +186,7 @@ func pushNewChanges(ctx context.Context, client API, currState map[cid.Cid]*api.
 				Size:          dinfo.Size,
 				PricePerEpoch: dinfo.PricePerEpoch.Uint64(),
 				Duration:      dinfo.Duration,
-				DealID:        dinfo.DealID,
+				DealID:        uint64(dinfo.DealID),
 			}
 			if dinfo.State == storagemarket.StorageDealActive {
 				ocd, err := client.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)
@@ -191,7 +194,7 @@ func pushNewChanges(ctx context.Context, client API, currState map[cid.Cid]*api.
 					log.Errorf("getting on-chain deal info: %s", err)
 					continue
 				}
-				newState.ActivationEpoch = ocd.ActivationEpoch
+				newState.ActivationEpoch = int64(ocd.State.SectorStartEpoch)
 			}
 			select {
 			case <-ctx.Done():

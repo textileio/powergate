@@ -55,7 +55,7 @@ func askFromPbAsk(a *pb.StorageAsk) ask.StorageAsk {
 		Price:        a.GetPrice(),
 		MinPieceSize: a.GetMinPieceSize(),
 		Miner:        a.GetMiner(),
-		Timestamp:    a.GetTimestamp(),
+		ChainEpoch:   a.GetChainEpoch(),
 		Expiry:       a.GetExpiry(),
 	}
 }

@@ -317,6 +317,6 @@ type FilStorage struct {
 	Active          bool
 	Renewed         bool
 	Duration        int64
-	ActivationEpoch uint64
+	ActivationEpoch int64
 	Miner           string
 }

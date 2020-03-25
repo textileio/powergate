@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/ipld/go-car"
-	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 )
@@ -100,9 +100,9 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		if !p.Active || p.Renewed {
 			continue
 		}
-		expiry := p.ActivationEpoch + uint64(p.Duration)
-		renewalHeight := expiry - uint64(fcfg.Renew.Threshold)
-		if renewalHeight <= height {
+		expiry := p.ActivationEpoch + p.Duration
+		renewalHeight := expiry - int64(fcfg.Renew.Threshold)
+		if uint64(renewalHeight) <= height {
 			newProposal, err := fc.renewDeal(ctx, c, waddr, p, activeMiners, fcfg)
 			if err != nil {
 				log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
@@ -181,10 +181,10 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 		if !ok {
 			continue
 		}
-		if di.StateID == api.DealComplete {
+		if di.StateID == storagemarket.StorageDealActive {
 			fs.ActivationEpoch = di.ActivationEpoch
 			delete(notDone, di.ProposalCid)
-		} else if di.StateID == api.DealError || di.StateID == api.DealFailed {
+		} else if di.StateID == storagemarket.StorageDealError || di.StateID == storagemarket.StorageDealFailing {
 			delete(proposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
 		}

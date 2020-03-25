@@ -182,6 +182,8 @@ github.com/filecoin-project/go-statestore v0.1.0 h1:t56reH59843TwXHkMcwyuayStBIi
 github.com/filecoin-project/go-statestore v0.1.0/go.mod h1:LFc9hD+fRxPqiHiaqUEZOinUJB4WARkRfNl10O7kTnI=
 github.com/filecoin-project/lotus v0.2.11-0.20200325000223-ca3d2bf46f69 h1:mM8vEYCipWxB2BNu1VjxQYguGchjypa9XEC79sRYap8=
 github.com/filecoin-project/lotus v0.2.11-0.20200325000223-ca3d2bf46f69/go.mod h1:Z4bBdiQ/ueEqAopQjByLtcUP4M7Lf3ukGoS+5HLxth0=
+github.com/filecoin-project/lotus v0.2.11-0.20200325195024-d41aeb9b4507 h1:0JPA18AOEIwV+b6vzQUu0nDdzk5aO/0eUPbAjEHPXUE=
+github.com/filecoin-project/lotus v0.2.11-0.20200325195024-d41aeb9b4507/go.mod h1:Z4bBdiQ/ueEqAopQjByLtcUP4M7Lf3ukGoS+5HLxth0=
 github.com/filecoin-project/specs-actors v0.0.0-20200210130641-2d1fbd8672cf/go.mod h1:xtDZUB6pe4Pksa/bAJbJ693OilaC5Wbot9jMhLm3cZA=
 github.com/filecoin-project/specs-actors v0.0.0-20200226200336-94c9b92b2775/go.mod h1:0HAWYrvajFHDgRaKbF0rl+IybVLZL5z4gQ8koCMPhoU=
 github.com/filecoin-project/specs-actors v0.0.0-20200302223606-0eaf97b10aaf/go.mod h1:0HAWYrvajFHDgRaKbF0rl+IybVLZL5z4gQ8koCMPhoU=
@@ -1025,6 +1027,10 @@ github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
 github.com/textileio/lotus-client v0.0.0-20200325152108-ded52c87fcb6 h1:VHrT7R6t41FhQx9eYKrAH+kBpm+9MP4ucwT/8vUxxYc=
 github.com/textileio/lotus-client v0.0.0-20200325152108-ded52c87fcb6/go.mod h1:i/NtS+k6yP7+/fYVoxmLFXNh6pkdpSeXhOtYHNz3b8U=
+github.com/textileio/lotus-client v0.0.0-20200325195407-93be23d89aa7 h1:jyLgh47nRxVfhwxL/eXt6NStlraQ2yf/j8IY5+TVn6Q=
+github.com/textileio/lotus-client v0.0.0-20200325195407-93be23d89aa7/go.mod h1:DXmY48UB51yNmDjDpcew8bvj9u7PhJqX2TQjt/zzcW8=
+github.com/textileio/lotus-client v0.0.0-20200325200032-ce551e33eec6 h1:iZrx6qha0XgoNSlhtB06C48k8CQgGrxYx7CSj8EBKeM=
+github.com/textileio/lotus-client v0.0.0-20200325200032-ce551e33eec6/go.mod h1:DXmY48UB51yNmDjDpcew8bvj9u7PhJqX2TQjt/zzcW8=
 github.com/texttheater/golang-levenshtein v0.0.0-20180516184445-d188e65d659e/go.mod h1:XDKHRm5ThF8YJjx001LtgelzsoaEcvnA7lVWz9EeX3g=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
