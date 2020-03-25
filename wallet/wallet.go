@@ -35,6 +35,8 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 		ty = crypto.SigTypeBLS
 	} else if "secp256k1" == typ {
 		ty = crypto.SigTypeSecp256k1
+	} else {
+		return "", fmt.Errorf("unkown wallet type %s", typ)
 	}
 
 	addr, err := m.api.WalletNew(ctx, ty)
