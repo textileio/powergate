@@ -67,11 +67,11 @@ var queryCmd = &cobra.Command{
 					a.Miner,
 					strconv.Itoa(int(a.Price)),
 					strconv.Itoa(int(a.MinPieceSize)),
-					strconv.FormatInt(a.ChainEpoch, 10),
+					strconv.FormatInt(a.Timestamp, 10),
 					strconv.FormatInt(a.Expiry, 10),
 				}
 			}
-			RenderTable(os.Stdout, []string{"miner", "price", "min piece size", "chain epoch", "expiry"}, data)
+			RenderTable(os.Stdout, []string{"miner", "price", "min piece size", "timestamp", "expiry"}, data)
 		}
 
 		Message("Found %d asks", aurora.White(len(asks)).Bold())

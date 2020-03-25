@@ -224,7 +224,7 @@ func generateIndex(ctx context.Context, api API) (*Index, error) {
 				Miner:        ask.Ask.Miner.String(),
 				Price:        ask.Ask.Price.Uint64(),
 				MinPieceSize: uint64(ask.Ask.MinPieceSize),
-				ChainEpoch:   int64(ask.Ask.Timestamp),
+				Timestamp:    int64(ask.Ask.Timestamp),
 				Expiry:       int64(ask.Ask.Expiry),
 			}
 			lock.Unlock()
