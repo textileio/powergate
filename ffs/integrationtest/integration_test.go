@@ -490,7 +490,7 @@ Loop:
 		firstDeal := i.Cold.Filecoin.Proposals[0]
 		h, err := lchain.GetHeight(context.Background())
 		require.Nil(t, err)
-		if firstDeal.ActivationEpoch+uint64(firstDeal.Duration)-uint64(renewThreshold)+uint64(100) > h {
+		if firstDeal.ActivationEpoch+firstDeal.Duration-int64(renewThreshold)+int64(100) > int64(h) {
 			require.LessOrEqual(t, len(i.Cold.Filecoin.Proposals), 2)
 			continue
 		}
@@ -634,7 +634,7 @@ func randomBytes(r *rand.Rand, size int) []byte {
 
 func addRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
 	t.Helper()
-	data := randomBytes(r, 500)
+	data := randomBytes(r, 1600)
 	node, err := ipfs.Unixfs().Add(context.Background(), ipfsfiles.NewReaderFile(bytes.NewReader(data)), options.Unixfs.Pin(false))
 	if err != nil {
 		t.Fatalf("error adding random file: %s", err)

@@ -12,6 +12,7 @@ import (
 
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/powergate/tests"
 )
 
@@ -46,7 +47,10 @@ func TestClientImport(t *testing.T) {
 	rand.Read(bts)
 	io.Copy(f, bytes.NewReader(bts))
 
-	cid, err := client.ClientImport(context.Background(), f.Name())
+	ref := api.FileRef{
+		Path: f.Name(),
+	}
+	cid, err := client.ClientImport(context.Background(), ref)
 	checkErr(t, err)
 	if !cid.Defined() {
 		t.Errorf("undefined cid from import")
