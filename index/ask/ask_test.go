@@ -29,8 +29,7 @@ func TestFreshBuild(t *testing.T) {
 			t.Fatalf("missing storage ask info for miner %s", m.String())
 		}
 		if info.Miner != m.String() || info.Price == 0 ||
-			info.MinPieceSize == 0 || info.Timestamp == 0 ||
-			info.Expiry == 0 {
+			info.MinPieceSize == 0 || info.Expiry == 0 {
 			t.Fatalf("invalid storage state for miner %s: %v", m.String(), info)
 		}
 	}
