@@ -13,8 +13,8 @@ require (
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/docker/go-units v0.4.0 // indirect
 	github.com/filecoin-project/go-address v0.0.2-0.20200218010043-eb9bb40ed5be
+	github.com/filecoin-project/lotus v0.2.11-0.20200320211838-628a598ca064
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.5.0
@@ -36,20 +36,17 @@ require (
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
 	github.com/ipfs/go-ipld-format v0.0.2
 	github.com/ipfs/go-log/v2 v2.0.2
-	github.com/ipfs/go-unixfs v0.2.2-0.20190827150610-868af2e9e5cb // indirect
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/ipld/go-car v0.0.4
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
-	github.com/lib/pq v1.2.0 // indirect
 	github.com/libp2p/go-libp2p v0.5.0
 	github.com/libp2p/go-libp2p-core v0.4.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0
-	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.11 // indirect
 	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
@@ -67,7 +64,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
-	github.com/textileio/lotus-client v0.0.0-20200323231235-5c42584d6d6d
+	github.com/textileio/lotus-client v0.0.0-20200325135647-dde4c5dd7bd3
 	github.com/whyrusleeping/cbor-gen v0.0.0-20200206220010-03c9665e2a66 // indirect
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad // indirect
@@ -77,5 +74,4 @@ require (
 	google.golang.org/grpc v1.28.0
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
-	gotest.tools v2.2.0+incompatible // indirect
 )

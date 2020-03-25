@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	cbor "github.com/ipfs/go-ipld-cbor"
-	"github.com/textileio/lotus-client/chain/types"
 )
 
 const (

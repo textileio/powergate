@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/textileio/lotus-client/chain/types"
 	"github.com/textileio/powergate/signaler"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"

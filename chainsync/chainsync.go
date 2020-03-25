@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/textileio/lotus-client/chain/store"
-	"github.com/textileio/lotus-client/chain/types"
 )
 
 // API provides an abstraction to a Filecoin full-node

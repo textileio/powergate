@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/textileio/lotus-client/chain/types"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/textileio/powergate/ffs/filcold"
 )
 

@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/textileio/lotus-client/chain/types"
+	"github.com/filecoin-project/lotus/chain/types"
 )
 
 // API interacts with a Filecoin full-node

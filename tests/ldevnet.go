@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ory/dockertest"
 	"github.com/textileio/lotus-client/api/apistruct"
-	"github.com/textileio/lotus-client/chain/types"
 	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/util"
 )

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
@@ -14,7 +15,6 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/lotus-client/chain/store"
-	"github.com/textileio/lotus-client/chain/types"
 	"github.com/textileio/powergate/chainstore"
 	"github.com/textileio/powergate/chainsync"
 	"github.com/textileio/powergate/iplocation"

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/textileio/lotus-client/chain/types"
+	"github.com/filecoin-project/lotus/chain/types"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )

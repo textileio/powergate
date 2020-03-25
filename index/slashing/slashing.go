@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/lotus-client/chain/store"
-	"github.com/textileio/lotus-client/chain/types"
 	"github.com/textileio/powergate/chainstore"
 	"github.com/textileio/powergate/chainsync"
 	"github.com/textileio/powergate/signaler"

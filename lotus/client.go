@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/filecoin-project/lotus/lib/jsonrpc"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/lotus-client/api/apistruct"
-	"github.com/textileio/lotus-client/lib/jsonrpc"
 
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"

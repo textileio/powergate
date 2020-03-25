@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/lotus-client/chain/actors"
 	str "github.com/textileio/lotus-client/chain/store"
-	"github.com/textileio/lotus-client/chain/types"
 )
 
 const (
