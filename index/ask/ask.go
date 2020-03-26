@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/signaler"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -30,7 +29,7 @@ var (
 
 // AskIndex contains cached information about markets
 type AskIndex struct {
-	api      API
+	api      *apistruct.FullNodeStruct
 	ds       datastore.TxnDatastore
 	signaler *signaler.Signaler
 
@@ -45,16 +44,9 @@ type AskIndex struct {
 	closed   bool
 }
 
-// API provides an abstraction to a Filecoin full-node
-type API interface {
-	StateListMiners(context.Context, types.TipSetKey) ([]address.Address, error)
-	ClientQueryAsk(ctx context.Context, p peer.ID, miner address.Address) (*storagemarket.SignedStorageAsk, error)
-	StateMinerPeerID(ctx context.Context, m address.Address, ts types.TipSetKey) (peer.ID, error)
-}
-
 // New returnas a new AskIndex. It loads saved information from ds, and immeediatelly
 // starts keeping the cache up to date.
-func New(ds datastore.TxnDatastore, api API) (*AskIndex, error) {
+func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*AskIndex, error) {
 	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
 	ai := &AskIndex{
@@ -194,7 +186,7 @@ func (ai *AskIndex) update() error {
 }
 
 // generateIndex returns a fresh index
-func generateIndex(ctx context.Context, api API) (*Index, error) {
+func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*Index, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		return nil, err

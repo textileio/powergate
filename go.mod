@@ -20,7 +20,6 @@ require (
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.1
-	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/protobuf v1.3.5
 	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
@@ -38,12 +37,11 @@ require (
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
 	github.com/ipfs/go-ipld-format v0.0.2
 	github.com/ipfs/go-log/v2 v2.0.2
+	github.com/ipfs/go-merkledag v0.3.1 // indirect
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/ipld/go-car v0.0.5-0.20200316204026-3e2cf7af0fab
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
-	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/libp2p/go-libp2p v0.6.0
 	github.com/libp2p/go-libp2p-core v0.5.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
@@ -68,5 +66,4 @@ require (
 	go.opencensus.io v0.22.3
 	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
 	google.golang.org/grpc v1.28.0
-	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 )
