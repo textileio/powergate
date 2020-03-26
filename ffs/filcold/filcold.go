@@ -153,17 +153,10 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.Storag
 func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {
 	notDone := make(map[cid.Cid]struct{})
 	var inProgressDeals []cid.Cid
-	proposals := make(map[cid.Cid]*ffs.FilStorage)
 	for _, d := range storeResults {
 		if !d.Success {
 			log.Warnf("failed store result")
 			continue
-		}
-		proposals[d.ProposalCid] = &ffs.FilStorage{
-			ProposalCid: d.ProposalCid,
-			Active:      true,
-			Duration:    duration,
-			Miner:       d.Config.Miner,
 		}
 		inProgressDeals = append(inProgressDeals, d.ProposalCid)
 		notDone[d.ProposalCid] = struct{}{}
@@ -178,17 +171,34 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 	if err != nil {
 		return nil, err
 	}
+
+	activeProposals := make(map[cid.Cid]*ffs.FilStorage)
 	for di := range chDi {
 		log.Infof("watching pending %d deals unfold...", len(notDone))
-		fs, ok := proposals[di.ProposalCid]
-		if !ok {
+		if _, ok := notDone[di.ProposalCid]; !ok {
 			continue
 		}
 		if di.StateID == storagemarket.StorageDealActive {
-			fs.ActivationEpoch = di.ActivationEpoch
+			var d *deals.StoreResult
+			for _, dr := range storeResults {
+				if dr.ProposalCid == di.ProposalCid {
+					d = &dr
+					break
+				}
+			}
+			if d == nil {
+				return nil, fmt.Errorf("deal watcher return unasked proposal, this must never happen")
+			}
+			activeProposals[di.ProposalCid] = &ffs.FilStorage{
+				ProposalCid:     di.ProposalCid,
+				Active:          true,
+				Duration:        duration,
+				Miner:           d.Config.Miner,
+				ActivationEpoch: di.ActivationEpoch,
+			}
 			delete(notDone, di.ProposalCid)
 		} else if di.StateID == storagemarket.StorageDealError || di.StateID == storagemarket.StorageDealFailing {
-			delete(proposals, di.ProposalCid)
+			delete(activeProposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
 		}
 		if len(notDone) == 0 {
@@ -196,11 +206,11 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 		}
 	}
 
-	if len(proposals) == 0 {
+	if len(activeProposals) == 0 {
 		return nil, fmt.Errorf("all accepted proposals failed before becoming active")
 	}
-	res := make([]ffs.FilStorage, 0, len(proposals))
-	for _, v := range proposals {
+	res := make([]ffs.FilStorage, 0, len(activeProposals))
+	for _, v := range activeProposals {
 		res = append(res, *v)
 	}
 	return res, nil

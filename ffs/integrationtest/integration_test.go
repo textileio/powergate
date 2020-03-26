@@ -461,7 +461,9 @@ func TestUnfreeze(t *testing.T) {
 }
 
 func TestRenew(t *testing.T) {
-	t.SkipNow() // ToDo: unskip when testnet/3 sectormock allows more than one deal
+	// ToDo: unskip when testnet/3 sectormock allows more than one deal
+	// See https://github.com/filecoin-project/lotus/issues/1455
+	t.SkipNow()
 	util.AvgBlockTime = time.Millisecond * 200
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })

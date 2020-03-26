@@ -114,7 +114,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.ReadCloser, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
-		return nil, fmt.Errorf("error when creating tmpfile: %s", err)
+		return nil, fmt.Errorf("creating tmpfile: %s", err)
 	}
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
@@ -133,7 +133,7 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 			Path: f.Name(),
 		}
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
-			log.Infof("error retrieving cid %s from %s: %s", cid, o.Miner, err)
+			log.Infof("retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
 		return f, nil
@@ -149,7 +149,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	ch := make(chan DealInfo)
 	w, err := m.api.ChainNotify(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error when listening to chain changes: %s", err)
+		return nil, fmt.Errorf("listening to chain changes: %s", err)
 	}
 	go func() {
 		defer close(ch)
@@ -158,9 +158,13 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 			select {
 			case <-ctx.Done():
 				return
-			case <-w:
+			case _, ok := <-w:
+				if !ok {
+					log.Errorf("chain notify channel was closed by lotus node")
+					return
+				}
 				if err := pushNewChanges(ctx, m.api, currentState, proposals, ch); err != nil {
-					log.Errorf("error when pushing new proposal states: %s", err)
+					log.Errorf("pushing new proposal states: %s", err)
 				}
 			}
 		}
@@ -172,7 +176,7 @@ func pushNewChanges(ctx context.Context, client *apistruct.FullNodeStruct, currS
 	for _, pcid := range proposals {
 		dinfo, err := client.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
-			log.Errorf("error when getting deal proposal info %s: %s", pcid, err)
+			log.Errorf("getting deal proposal info %s: %s", pcid, err)
 			continue
 		}
 		if currState[pcid] == nil || (*currState[pcid]).State != dinfo.State {
