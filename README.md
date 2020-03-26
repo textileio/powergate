@@ -21,9 +21,6 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 *Warning* This project is still **pre-release** and is only meant for testing.
 
-_Note: Powergate will avoid CGO and external gitsubmodules very soon, track #186. This will simplify building and running 
-to a simple `go build` command._
-
 ### Lotus (`lotus`)
 
 _Powergate_ communicates with a _Lotus_ node to interact with the filecoin network.
@@ -33,25 +30,28 @@ For steps to install _Lotus_, refer to  [https://lotu.sh/](https://lotu.sh/) tak
 Since bootstrapping a _Lotus_ node from scratch and getting it synced may take too long, _Powergate_ allows an `--embedded` flag, which 
 auto-creates a fake local testnet with a single miner, and auto-connects to it. This means, only running the _Powergate_ server with the flag enabled, allows to use it in some reasonable context with almost no extra setup.
 
-For both building the _CLI_ and the _Server_, you should run:
+For both building the _CLI_ and the _Server_, run:
 ```bash
-make clean # if you have a previous build
 make build
 ```
-This installs some external dependencies related to _Lotus_ libraries. _Powergate_ will be CGO free very soon, which will make this step 
-uncessary (#186).
+This will create `powd` (server) and `pow` (CLI) of _Powergate_.
 
 ### Client (`pow`)
 
 To build the CLI, run:
 ```bash
-go build -o pow exe/cli/main.go
-chmod +x pow 
+make build-cli
 ```
 
 Try `pow --help`.
 
 ### Server 
+
+To build the Server, run:
+```bash
+make build-server
+```
+
 The server connects to _Lotus_ and enables multiple modules, such as:
 - Reputations module:
    - Miners index: with on-chain and metadata information.
