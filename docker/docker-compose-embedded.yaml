@@ -30,7 +30,6 @@ services:
     image: ipfs/go-ipfs:latest
     ports:
       - 5001:5001
-    restart: unless-stopped    
 
   lotus:
     image: textile/lotus-devnet:lotus-testnet3-d41aeb
@@ -40,4 +39,3 @@ services:
       - TEXLOTUSDEVNET_SPEED=1500
     volumes:
      - pow-embed-shared:/tmp/powergate
-    restart: unless-stopped
