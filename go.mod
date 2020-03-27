@@ -19,7 +19,7 @@ require (
 	github.com/filecoin-project/specs-actors v0.0.0-20200321055844-54fa2e8da1c2
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
-	github.com/gin-gonic/gin v1.6.1
+	github.com/gin-gonic/gin v1.6.2
 	github.com/golang/protobuf v1.3.5
 	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
