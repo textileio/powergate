@@ -33,5 +33,5 @@ func (lc *LotusChain) GetHeight(ctx context.Context) (uint64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("get head from lotus node: %s", err)
 	}
-	return h.Height(), nil
+	return uint64(h.Height()), nil
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/caarlos0/spin"
 	"github.com/logrusorgru/aurora"
@@ -64,14 +63,12 @@ var queryCmd = &cobra.Command{
 		if len(asks) > 0 {
 			data := make([][]string, len(asks))
 			for i, a := range asks {
-				timestamp := time.Unix(int64(a.Timestamp), 0).Format("01/02/06 15:04 MST")
-				expiry := time.Unix(int64(a.Expiry), 0).Format("01/02/06 15:04 MST")
 				data[i] = []string{
 					a.Miner,
 					strconv.Itoa(int(a.Price)),
 					strconv.Itoa(int(a.MinPieceSize)),
-					timestamp,
-					expiry,
+					strconv.FormatInt(a.Timestamp, 10),
+					strconv.FormatInt(a.Expiry, 10),
 				}
 			}
 			RenderTable(os.Stdout, []string{"miner", "price", "min piece size", "timestamp", "expiry"}, data)

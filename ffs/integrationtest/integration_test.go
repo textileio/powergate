@@ -8,12 +8,10 @@ import (
 	"math/big"
 	"math/rand"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
@@ -22,6 +20,7 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
+	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
@@ -40,9 +39,16 @@ import (
 	"github.com/textileio/powergate/wallet"
 )
 
-func TestMain(m *testing.M) {
-	logging.SetAllLoggers(logging.LevelError)
+const (
+	tmpDir = "/tmp/powergate"
+)
 
+func TestMain(m *testing.M) {
+	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
+		os.Mkdir(tmpDir, os.ModeDir)
+	}
+
+	logging.SetAllLoggers(logging.LevelError)
 	// logging.SetLogLevel("scheduler", "debug")
 	// logging.SetLogLevel("api", "debug")
 	// logging.SetLogLevel("jobstore", "debug")
@@ -89,9 +95,11 @@ func TestAdd(t *testing.T) {
 		requireJobState(t, fapi, jid, ffs.Success)
 	})
 
+	ipfsAPI, fapi, cls = newAPI(t, 1)
+	defer cls()
 	cid, _ = addRandomFile(t, r, ipfsAPI)
 	t.Run("WithCustomConfig", func(t *testing.T) {
-		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithColdFilDealDuration(int64(4321))
+		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithColdFilDealDuration(int64(1234))
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
@@ -139,7 +147,7 @@ func TestInfo(t *testing.T) {
 	})
 
 	r := rand.New(rand.NewSource(22))
-	n := 3
+	n := 1
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
 		jid, err := fapi.PushConfig(cid)
@@ -147,7 +155,7 @@ func TestInfo(t *testing.T) {
 		requireJobState(t, fapi, jid, ffs.Success)
 	}
 
-	t.Run("WithThreeAdds", func(t *testing.T) {
+	t.Run("WithOneAdd", func(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.Nil(t, err)
 		require.Equal(t, second.ID, first.ID)
@@ -205,8 +213,7 @@ func TestColdInstanceLoad(t *testing.T) {
 	t.Cleanup(func() { cls() })
 
 	ds := tests.NewTxMapDatastore()
-	addr, client, ms, closeDevnet := newDevnet(t, 1)
-	defer closeDevnet()
+	addr, client, ms := newDevnet(t, 1)
 
 	ipfsAPI, fapi, cls := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	ra := rand.New(rand.NewSource(22))
@@ -238,20 +245,19 @@ func TestColdInstanceLoad(t *testing.T) {
 }
 
 func TestRepFactor(t *testing.T) {
-	ipfsAPI, fapi, cls := newAPI(t, 2)
-	defer cls()
-
 	rfs := []int{1, 2}
 	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
+			ipfsAPI, fapi, cls := newAPI(t, 2)
+			defer cls()
 			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(rf)
 			jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 			require.Nil(t, err)
 			requireJobState(t, fapi, jid, ffs.Success)
 
-			cinfo, err := fapi.GetCidInfo(cid)
+			cinfo, err := fapi.Show(cid)
 			require.Nil(t, err)
 			require.Equal(t, rf, len(cinfo.Cold.Filecoin.Proposals))
 		})
@@ -259,12 +265,14 @@ func TestRepFactor(t *testing.T) {
 
 	t.Run("IncreaseBy1", func(t *testing.T) {
 		t.SkipNow()
+		ipfsAPI, fapi, cls := newAPI(t, 2)
+		defer cls()
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 		jid, err := fapi.PushConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 
-		cinfo, err := fapi.GetCidInfo(cid)
+		cinfo, err := fapi.Show(cid)
 		require.Nil(t, err)
 		require.Equal(t, 1, len(cinfo.Cold.Filecoin.Proposals))
 		firstProposal := cinfo.Cold.Filecoin.Proposals[0]
@@ -273,7 +281,7 @@ func TestRepFactor(t *testing.T) {
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
-		cinfo, err = fapi.GetCidInfo(cid)
+		cinfo, err = fapi.Show(cid)
 		require.Nil(t, err)
 		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 		require.Contains(t, cinfo.Cold.Filecoin.Proposals, firstProposal)
@@ -304,11 +312,11 @@ func TestDurationConfig(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
-	cinfo, err := fapi.GetCidInfo(cid)
+	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
 	require.Equal(t, duration, p.Duration)
-	require.Greater(t, p.ActivationEpoch, uint64(0))
+	require.Greater(t, p.ActivationEpoch, int64(0))
 }
 
 func TestFilecoinBlacklist(t *testing.T) {
@@ -317,13 +325,13 @@ func TestFilecoinBlacklist(t *testing.T) {
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsAPI)
-	excludedMiner := "t0300"
+	excludedMiner := "t01000"
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilBlacklist([]string{excludedMiner})
 
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
-	cinfo, err := fapi.GetCidInfo(cid)
+	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
 	require.NotEqual(t, p.Miner, excludedMiner)
@@ -335,19 +343,18 @@ func TestFilecoinCountryFilter(t *testing.T) {
 
 	countries := []string{"China", "Uruguay"}
 	numMiners := len(countries)
-	dnet, addr, _, close := tests.CreateLocalDevnet(t, numMiners)
-	defer close()
+	client, addr, _ := tests.CreateLocalDevnet(t, numMiners)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
-		addrs[i] = fmt.Sprintf("t0%d", 300+i)
+		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
 	}
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 4000000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 1000000}
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
-	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, dnet.Client, addr, ms, ipfsDocker)
+	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	defer closeInternal()
 
 	r := rand.New(rand.NewSource(22))
@@ -358,10 +365,10 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
-	cinfo, err := fapi.GetCidInfo(cid)
+	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
-	require.Equal(t, p.Miner, "t0301")
+	require.Equal(t, p.Miner, "t01001")
 }
 
 func TestFilecoinEnableConfig(t *testing.T) {
@@ -405,7 +412,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 			require.Equal(t, errCause, job.ErrCause)
 
 			if expectedJobState == ffs.Success {
-				cinfo, err := fapi.GetCidInfo(cid)
+				cinfo, err := fapi.Show(cid)
 				require.Nil(t, err)
 				require.Equal(t, tt.HotEnabled, cinfo.Hot.Enabled)
 				require.Equal(t, tt.ColdEnabled, cinfo.Cold.Enabled)
@@ -454,12 +461,14 @@ func TestUnfreeze(t *testing.T) {
 }
 
 func TestRenew(t *testing.T) {
+	// ToDo: unskip when testnet/3 sectormock allows more than one deal
+	// See https://github.com/filecoin-project/lotus/issues/1455
+	t.SkipNow()
 	util.AvgBlockTime = time.Millisecond * 200
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
-	addr, client, ms, clsDevnet := newDevnet(t, 2)
-	defer clsDevnet()
+	addr, client, ms := newDevnet(t, 2)
 	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	defer closeInternal()
 
@@ -487,7 +496,7 @@ Loop:
 		firstDeal := i.Cold.Filecoin.Proposals[0]
 		h, err := lchain.GetHeight(context.Background())
 		require.Nil(t, err)
-		if firstDeal.ActivationEpoch+uint64(firstDeal.Duration)-uint64(renewThreshold)+uint64(100) > h {
+		if firstDeal.ActivationEpoch+firstDeal.Duration-int64(renewThreshold)+int64(100) > int64(h) {
 			require.LessOrEqual(t, len(i.Cold.Filecoin.Proposals), 2)
 			continue
 		}
@@ -510,27 +519,26 @@ func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
-	addr, client, ms, close := newDevnet(t, numMiners)
+	addr, client, ms := newDevnet(t, numMiners)
 	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	return ipfsAPI, fapi, func() {
 		closeInternal()
-		close()
 	}
 }
 
-func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector, func()) {
-	dnet, addr, _, close := tests.CreateLocalDevnet(t, numMiners)
+func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
+	client, addr, _ := tests.CreateLocalDevnet(t, numMiners)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
-		addrs[i] = fmt.Sprintf("t0%d", 300+i)
+		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
 	}
 
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 4000000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 1000000}
 	}
 	ms := fixed.New(fixedMiners)
-	return addr, dnet.Client, ms, close
+	return addr, client, ms
 }
 
 func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
@@ -539,7 +547,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
 	require.Nil(t, err)
 
-	dm, err := deals.New(client, deals.WithImportPath(filepath.Join(os.TempDir(), "imports")))
+	dm, err := deals.New(client, deals.WithImportPath(tmpDir))
 	require.Nil(t, err)
 
 	fchain := lotuschain.New(client)
@@ -550,7 +558,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 	hl := coreipfs.New(ipfsClient)
 	sched := scheduler.New(js, pcs, cis, hl, cl)
 
-	wm, err := wallet.New(client, &waddr, *big.NewInt(5000000000000))
+	wm, err := wallet.New(client, &waddr, *big.NewInt(4000000000))
 	require.Nil(t, err)
 
 	var fapi *api.API
@@ -632,7 +640,7 @@ func randomBytes(r *rand.Rand, size int) []byte {
 
 func addRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
 	t.Helper()
-	data := randomBytes(r, 500)
+	data := randomBytes(r, 1600)
 	node, err := ipfs.Unixfs().Add(context.Background(), ipfsfiles.NewReaderFile(bytes.NewReader(data)), options.Unixfs.Pin(false))
 	if err != nil {
 		t.Fatalf("error adding random file: %s", err)

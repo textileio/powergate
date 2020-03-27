@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/caarlos0/spin"
 	"github.com/logrusorgru/aurora"
@@ -35,14 +34,12 @@ var getCmd = &cobra.Command{
 			data := make([][]string, len(index.Storage))
 			i := 0
 			for _, a := range index.Storage {
-				timestamp := time.Unix(int64(a.Timestamp), 0).Format("01/02/06 15:04 MST")
-				expiry := time.Unix(int64(a.Expiry), 0).Format("01/02/06 15:04 MST")
 				data[i] = []string{
 					a.Miner,
 					strconv.Itoa(int(a.Price)),
 					strconv.Itoa(int(a.MinPieceSize)),
-					timestamp,
-					expiry,
+					strconv.FormatInt(a.Timestamp, 10),
+					strconv.FormatInt(a.Expiry, 10),
 				}
 				i++
 			}

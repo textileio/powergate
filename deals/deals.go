@@ -10,12 +10,11 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/chain/actors"
-	str "github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/lotus-client/api"
+	"github.com/textileio/lotus-client/api/apistruct"
 )
 
 const (
@@ -31,23 +30,12 @@ var (
 
 // Module exposes storage and monitoring from the market.
 type Module struct {
-	api API
+	api *apistruct.FullNodeStruct
 	cfg *Config
 }
 
-// API interacts with a Filecoin full-node
-type API interface {
-	ClientStartDeal(ctx context.Context, data cid.Cid, addr address.Address, miner address.Address, price types.BigInt, blocksDuration uint64) (*cid.Cid, error)
-	ClientImport(ctx context.Context, path string) (cid.Cid, error)
-	ClientGetDealInfo(context.Context, cid.Cid) (*api.DealInfo, error)
-	ChainNotify(ctx context.Context) (<-chan []*str.HeadChange, error)
-	ClientRetrieve(ctx context.Context, order api.RetrievalOrder, path string) error
-	ClientFindData(ctx context.Context, root cid.Cid) ([]api.QueryOffer, error)
-	StateMarketStorageDeal(context.Context, uint64, types.TipSetKey) (*actors.OnChainDeal, error)
-}
-
 // New creates a new deal module
-func New(api API, opts ...Option) (*Module, error) {
+func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 	var cfg Config
 	for _, o := range opts {
 		if err := o(&cfg); err != nil {
@@ -74,7 +62,10 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 	if _, err := io.Copy(f, data); err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
-	dataCid, err := m.api.ClientImport(ctx, f.Name())
+	ref := api.FileRef{
+		Path: f.Name(),
+	}
+	dataCid, err := m.api.ClientImport(ctx, ref)
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when importing data: %s", err)
 	}
@@ -93,7 +84,16 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 			}
 			continue
 		}
-		p, err := m.api.ClientStartDeal(ctx, dataCid, addr, maddr, types.NewInt(c.EpochPrice), dur)
+		params := &api.StartDealParams{
+			Data: &storagemarket.DataRef{
+				Root: dataCid,
+			},
+			BlocksDuration: dur,
+			EpochPrice:     types.NewInt(c.EpochPrice),
+			Miner:          maddr,
+			Wallet:         addr,
+		}
+		p, err := m.api.ClientStartDeal(ctx, params)
 		if err != nil {
 			log.Errorf("starting deal with %v: %s", c, err)
 			res[i] = StoreResult{
@@ -114,7 +114,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.ReadCloser, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
-		return nil, fmt.Errorf("error when creating tmpfile: %s", err)
+		return nil, fmt.Errorf("creating tmpfile: %s", err)
 	}
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
@@ -129,8 +129,11 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 	}
 	for _, o := range offers {
 		log.Debugf("trying to retrieve data from %s", o.Miner)
-		if err = m.api.ClientRetrieve(ctx, o.Order(addr), f.Name()); err != nil {
-			log.Infof("error retrieving cid %s from %s: %s", cid, o.Miner, err)
+		ref := api.FileRef{
+			Path: f.Name(),
+		}
+		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
+			log.Infof("retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
 		return f, nil
@@ -146,7 +149,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	ch := make(chan DealInfo)
 	w, err := m.api.ChainNotify(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error when listening to chain changes: %s", err)
+		return nil, fmt.Errorf("listening to chain changes: %s", err)
 	}
 	go func() {
 		defer close(ch)
@@ -155,9 +158,13 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 			select {
 			case <-ctx.Done():
 				return
-			case <-w:
+			case _, ok := <-w:
+				if !ok {
+					log.Errorf("chain notify channel was closed by lotus node")
+					return
+				}
 				if err := pushNewChanges(ctx, m.api, currentState, proposals, ch); err != nil {
-					log.Errorf("error when pushing new proposal states: %s", err)
+					log.Errorf("pushing new proposal states: %s", err)
 				}
 			}
 		}
@@ -165,11 +172,11 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func pushNewChanges(ctx context.Context, api API, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func pushNewChanges(ctx context.Context, client *apistruct.FullNodeStruct, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
-		dinfo, err := api.ClientGetDealInfo(ctx, pcid)
+		dinfo, err := client.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
-			log.Errorf("error when getting deal proposal info %s: %s", pcid, err)
+			log.Errorf("getting deal proposal info %s: %s", pcid, err)
 			continue
 		}
 		if currState[pcid] == nil || (*currState[pcid]).State != dinfo.State {
@@ -183,15 +190,15 @@ func pushNewChanges(ctx context.Context, api API, currState map[cid.Cid]*api.Dea
 				Size:          dinfo.Size,
 				PricePerEpoch: dinfo.PricePerEpoch.Uint64(),
 				Duration:      dinfo.Duration,
-				DealID:        dinfo.DealID,
+				DealID:        uint64(dinfo.DealID),
 			}
-			if dinfo.State == storagemarket.DealComplete {
-				ocd, err := api.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)
+			if dinfo.State == storagemarket.StorageDealActive {
+				ocd, err := client.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)
 				if err != nil {
 					log.Errorf("getting on-chain deal info: %s", err)
 					continue
 				}
-				newState.ActivationEpoch = ocd.ActivationEpoch
+				newState.ActivationEpoch = int64(ocd.State.SectorStartEpoch)
 			}
 			select {
 			case <-ctx.Done():

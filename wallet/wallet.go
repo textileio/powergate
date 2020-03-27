@@ -7,24 +7,19 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/specs-actors/actors/crypto"
+	"github.com/textileio/lotus-client/api/apistruct"
 )
-
-// API interacts with a Filecoin full-node
-type API interface {
-	WalletNew(context.Context, string) (address.Address, error)
-	WalletBalance(context.Context, address.Address) (types.BigInt, error)
-	MpoolPushMessage(context.Context, *types.Message) (*types.SignedMessage, error)
-}
 
 // Module exposes the filecoin wallet api.
 type Module struct {
-	api        API
+	api        *apistruct.FullNodeStruct
 	iAmount    *big.Int
 	masterAddr *address.Address
 }
 
 // New creates a new wallet module
-func New(api API, maddr *address.Address, iam big.Int) (*Module, error) {
+func New(api *apistruct.FullNodeStruct, maddr *address.Address, iam big.Int) (*Module, error) {
 	m := &Module{
 		api:        api,
 		iAmount:    &iam,
@@ -35,7 +30,16 @@ func New(api API, maddr *address.Address, iam big.Int) (*Module, error) {
 
 // NewAddress creates a new wallet
 func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
-	addr, err := m.api.WalletNew(ctx, typ)
+	ty := crypto.SigTypeUnknown
+	if "bls" == typ {
+		ty = crypto.SigTypeBLS
+	} else if "secp256k1" == typ {
+		ty = crypto.SigTypeSecp256k1
+	} else {
+		return "", fmt.Errorf("unkown wallet type %s", typ)
+	}
+
+	addr, err := m.api.WalletNew(ctx, ty)
 	if err != nil {
 		return "", err
 	}
@@ -45,7 +49,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 			From:     *m.masterAddr,
 			To:       addr,
 			Value:    types.BigInt{Int: m.iAmount},
-			GasLimit: types.NewInt(1000),
+			GasLimit: 1000,
 			GasPrice: types.NewInt(0),
 		}
 

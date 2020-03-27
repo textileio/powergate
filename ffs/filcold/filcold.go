@@ -100,9 +100,9 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		if !p.Active || p.Renewed {
 			continue
 		}
-		expiry := p.ActivationEpoch + uint64(p.Duration)
-		renewalHeight := expiry - uint64(fcfg.Renew.Threshold)
-		if renewalHeight <= height {
+		expiry := p.ActivationEpoch + p.Duration
+		renewalHeight := expiry - int64(fcfg.Renew.Threshold)
+		if uint64(renewalHeight) <= height {
 			newProposal, err := fc.renewDeal(ctx, c, waddr, p, activeMiners, fcfg)
 			if err != nil {
 				log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
@@ -153,20 +153,16 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.Storag
 func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {
 	notDone := make(map[cid.Cid]struct{})
 	var inProgressDeals []cid.Cid
-	proposals := make(map[cid.Cid]*ffs.FilStorage)
 	for _, d := range storeResults {
 		if !d.Success {
 			log.Warnf("failed store result")
 			continue
 		}
-		proposals[d.ProposalCid] = &ffs.FilStorage{
-			ProposalCid: d.ProposalCid,
-			Active:      true,
-			Duration:    duration,
-			Miner:       d.Config.Miner,
-		}
 		inProgressDeals = append(inProgressDeals, d.ProposalCid)
 		notDone[d.ProposalCid] = struct{}{}
+	}
+	if len(inProgressDeals) == 0 {
+		return nil, fmt.Errorf("all proposed deals where rejected")
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -175,27 +171,46 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 	if err != nil {
 		return nil, err
 	}
+
+	activeProposals := make(map[cid.Cid]*ffs.FilStorage)
 	for di := range chDi {
 		log.Infof("watching pending %d deals unfold...", len(notDone))
-		fs, ok := proposals[di.ProposalCid]
-		if !ok {
+		if _, ok := notDone[di.ProposalCid]; !ok {
 			continue
 		}
-		if di.StateID == storagemarket.DealComplete {
-			fs.ActivationEpoch = di.ActivationEpoch
+		if di.StateID == storagemarket.StorageDealActive {
+			var d *deals.StoreResult
+			for _, dr := range storeResults {
+				if dr.ProposalCid == di.ProposalCid {
+					d = &dr
+					break
+				}
+			}
+			if d == nil {
+				return nil, fmt.Errorf("deal watcher return unasked proposal, this must never happen")
+			}
+			activeProposals[di.ProposalCid] = &ffs.FilStorage{
+				ProposalCid:     di.ProposalCid,
+				Active:          true,
+				Duration:        duration,
+				Miner:           d.Config.Miner,
+				ActivationEpoch: di.ActivationEpoch,
+			}
 			delete(notDone, di.ProposalCid)
-		} else if di.StateID == storagemarket.DealError || di.StateID == storagemarket.DealFailed {
-			delete(proposals, di.ProposalCid)
+		} else if di.StateID == storagemarket.StorageDealError || di.StateID == storagemarket.StorageDealFailing {
+			delete(activeProposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
 		}
 		if len(notDone) == 0 {
 			break
 		}
 	}
-	log.Infof("deals reached final state")
 
-	res := make([]ffs.FilStorage, 0, len(proposals))
-	for _, v := range proposals {
+	if len(activeProposals) == 0 {
+		return nil, fmt.Errorf("all accepted proposals failed before becoming active")
+	}
+	res := make([]ffs.FilStorage, 0, len(activeProposals))
+	for _, v := range activeProposals {
 		res = append(res, *v)
 	}
 	return res, nil

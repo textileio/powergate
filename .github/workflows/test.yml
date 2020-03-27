@@ -11,13 +11,6 @@ jobs:
     name: Test
     runs-on: self-hosted
     steps:
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-      - name: Install OpenCL
-        run: sudo apt-get update && sudo apt-get install -y mesa-opencl-icd ocl-icd-opencl-dev jq make
       - name: Check out code
         uses: actions/checkout@v1
       - name: Test

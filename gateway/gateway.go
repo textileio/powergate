@@ -157,8 +157,8 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 			ask.Miner,
 			ask.Price,
 			ask.MinPieceSize,
-			timeToString(uint64ToTime(ask.Timestamp)),
-			timeToString(uint64ToTime(ask.Expiry)),
+			ask.Timestamp,
+			ask.Expiry,
 		}
 		i++
 	}
@@ -281,7 +281,7 @@ func (g *Gateway) reputationHandler(c *gin.Context) {
 	})
 }
 
-func uint64ToTime(value uint64) time.Time {
+func uint64ToTime(value int64) time.Time {
 	return time.Unix(int64(value), 0)
 }
 

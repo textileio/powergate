@@ -9,6 +9,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/chain/types"
 	cbor "github.com/ipfs/go-ipld-cbor"
+	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
@@ -67,7 +68,7 @@ func (mi *MinerIndex) metaWorker() {
 
 // updateMetaIndex generates a new index that contains fresh metadata information
 // of addrs miners.
-func updateMetaIndex(ctx context.Context, api API, h P2PHost, lr iplocation.LocationResolver, addrs []string) (MetaIndex, error) {
+func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, addrs []string) (MetaIndex, error) {
 	index := MetaIndex{
 		Info: make(map[string]Meta),
 	}
@@ -126,7 +127,7 @@ func merge(old Meta, upt Meta) Meta {
 }
 
 // getMeta returns fresh metadata information about a miner
-func getMeta(ctx context.Context, c API, h P2PHost, lr iplocation.LocationResolver, straddr string) (Meta, error) {
+func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, straddr string) (Meta, error) {
 	si := Meta{
 		LastUpdated: time.Now(),
 	}

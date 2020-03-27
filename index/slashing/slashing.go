@@ -6,12 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/ipfs/go-cid"
+	"github.com/filecoin-project/specs-actors/actors/abi"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/chainstore"
 	"github.com/textileio/powergate/chainsync"
 	"github.com/textileio/powergate/signaler"
@@ -28,25 +27,14 @@ var (
 	// hOffset is the # of tipsets from the heaviest chain to
 	// consider for index updating; this to reduce sensibility to
 	// chain reorgs
-	hOffset = uint64(5)
+	hOffset = abi.ChainEpoch(5)
 
 	log = logging.Logger("index-slashing")
 )
 
-// API provides an abstraction to a Filecoin full-node
-type API interface {
-	ChainHead(context.Context) (*types.TipSet, error)
-	ChainGetTipSet(context.Context, types.TipSetKey) (*types.TipSet, error)
-	StateChangedActors(context.Context, cid.Cid, cid.Cid) (map[string]types.Actor, error)
-	StateReadState(context.Context, *types.Actor, types.TipSetKey) (*api.ActorState, error)
-	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*store.HeadChange, error)
-	ChainGetGenesis(context.Context) (*types.TipSet, error)
-	ChainGetTipSetByHeight(context.Context, uint64, types.TipSetKey) (*types.TipSet, error)
-}
-
 // SlashingIndex builds and provides slashing history of miners
 type SlashingIndex struct {
-	api      API
+	api      *apistruct.FullNodeStruct
 	store    *chainstore.Store
 	signaler *signaler.Signaler
 
@@ -62,7 +50,7 @@ type SlashingIndex struct {
 
 // New returns a new SlashingIndex. It will load previous state from ds, and
 // immediatelly start getting in sync with new on-chain.
-func New(ds datastore.TxnDatastore, api API) (*SlashingIndex, error) {
+func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*SlashingIndex, error) {
 	cs := chainsync.New(api)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {
@@ -211,7 +199,7 @@ func (s *SlashingIndex) updateIndex() error {
 
 // updateFromPath updates a saved index state walking a chain path. The path
 // usually should be the next epoch from index up to the current head TipSet.
-func updateFromPath(ctx context.Context, api API, index *Index, path []*types.TipSet) error {
+func updateFromPath(ctx context.Context, api *apistruct.FullNodeStruct, index *Index, path []*types.TipSet) error {
 	for i := 1; i < len(path); i++ {
 		patch, err := epochPatch(ctx, api, path[i-1], path[i])
 		if err != nil {
@@ -233,7 +221,7 @@ func updateFromPath(ctx context.Context, api API, index *Index, path []*types.Ti
 
 // epochPatch returns a map of slashedAt values for miners that changed between
 // two consecutive epochs.
-func epochPatch(ctx context.Context, c API, pts *types.TipSet, ts *types.TipSet) (map[string]uint64, error) {
+func epochPatch(ctx context.Context, c *apistruct.FullNodeStruct, pts *types.TipSet, ts *types.TipSet) (map[string]uint64, error) {
 	if !areConsecutiveEpochs(pts, ts) {
 		return nil, fmt.Errorf("epoch patch can only be called between parent-child tipsets")
 	}

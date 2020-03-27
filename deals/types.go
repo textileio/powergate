@@ -32,7 +32,7 @@ type DealInfo struct {
 	Duration      uint64
 
 	DealID          uint64
-	ActivationEpoch uint64
+	ActivationEpoch int64
 }
 
 type Config struct {

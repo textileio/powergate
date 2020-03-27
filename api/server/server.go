@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/ipfs/go-datastore"
 	badger "github.com/ipfs/go-ds-badger2"
@@ -93,6 +92,7 @@ type Config struct {
 	IpfsApiAddr         ma.Multiaddr
 	LotusAddress        ma.Multiaddr
 	LotusAuthToken      string
+	LotusMasterAddr     string
 	Embedded            bool
 	GrpcHostNetwork     string
 	GrpcHostAddress     string
@@ -104,25 +104,21 @@ type Config struct {
 
 // NewServer starts and returns a new server with the given configuration.
 func NewServer(conf Config) (*Server, error) {
-	var c *apistruct.FullNodeStruct
-	var cls func()
 	var err error
 	var masterAddr address.Address
-	if conf.Embedded {
-		c, cls, err = lotus.NewEmbedded()
-		if err != nil {
-			return nil, fmt.Errorf("creating the embedded network: %s", err)
-		}
-		masterAddr, err = c.WalletDefaultAddress(context.Background())
-		if err != nil {
-			return nil, fmt.Errorf("getting default address: %s", err)
-		}
-
-	} else {
-		c, cls, err = lotus.New(conf.LotusAddress, conf.LotusAuthToken)
-	}
+	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("connecting to lotus node: %s", err)
+	}
+
+	if conf.Embedded {
+		if masterAddr, err = c.WalletDefaultAddress(context.Background()); err != nil {
+			return nil, fmt.Errorf("getting default wallet addr as masteraddr: %s", err)
+		}
+	} else {
+		if masterAddr, err = address.NewFromString(conf.LotusMasterAddr); err != nil {
+			return nil, fmt.Errorf("parsing masteraddr: %s", err)
+		}
 	}
 
 	fchost, err := fchost.New()
@@ -174,7 +170,7 @@ func NewServer(conf Config) (*Server, error) {
 	lchain := lotuschain.New(c)
 	var ms ffs.MinerSelector
 	if conf.Embedded {
-		ms = fixed.New([]fixed.Miner{{Addr: "t0300", EpochPrice: 4000000}})
+		ms = fixed.New([]fixed.Miner{{Addr: "t01000", EpochPrice: 1000000}})
 	} else {
 		ms = reptop.New(rm, ai)
 	}

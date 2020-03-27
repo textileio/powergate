@@ -4,23 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/filecoin-project/lotus/chain/store"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/textileio/lotus-client/api/apistruct"
+	"github.com/textileio/lotus-client/chain/store"
 )
-
-// API provides an abstraction to a Filecoin full-node
-type API interface {
-	ChainGetPath(context.Context, types.TipSetKey, types.TipSetKey) ([]*store.HeadChange, error)
-	ChainGetGenesis(context.Context) (*types.TipSet, error)
-}
 
 // ChainSync provides methods to resolve chain syncing situations
 type ChainSync struct {
-	api API
+	api *apistruct.FullNodeStruct
 }
 
 // New returns a new ChainSync
-func New(api API) *ChainSync {
+func New(api *apistruct.FullNodeStruct) *ChainSync {
 	return &ChainSync{
 		api: api,
 	}
@@ -42,7 +37,7 @@ func (cs *ChainSync) Precedes(ctx context.Context, from, to types.TipSetKey) (bo
 
 // ResolveBase returns the base TipSetKey that both left and right TipSetKey share,
 // plus a Revert/Apply set of operations to get from last to new.
-func ResolveBase(ctx context.Context, api API, left *types.TipSetKey, right types.TipSetKey) (*types.TipSetKey, []*types.TipSet, error) {
+func ResolveBase(ctx context.Context, api *apistruct.FullNodeStruct, left *types.TipSetKey, right types.TipSetKey) (*types.TipSetKey, []*types.TipSet, error) {
 	var path []*types.TipSet
 	if left == nil {
 		genesis, err := api.ChainGetGenesis(ctx)
