@@ -257,7 +257,7 @@ func TestRepFactor(t *testing.T) {
 			require.Nil(t, err)
 			requireJobState(t, fapi, jid, ffs.Success)
 
-			cinfo, err := fapi.GetCidInfo(cid)
+			cinfo, err := fapi.Show(cid)
 			require.Nil(t, err)
 			require.Equal(t, rf, len(cinfo.Cold.Filecoin.Proposals))
 		})
@@ -272,7 +272,7 @@ func TestRepFactor(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 
-		cinfo, err := fapi.GetCidInfo(cid)
+		cinfo, err := fapi.Show(cid)
 		require.Nil(t, err)
 		require.Equal(t, 1, len(cinfo.Cold.Filecoin.Proposals))
 		firstProposal := cinfo.Cold.Filecoin.Proposals[0]
@@ -281,7 +281,7 @@ func TestRepFactor(t *testing.T) {
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
-		cinfo, err = fapi.GetCidInfo(cid)
+		cinfo, err = fapi.Show(cid)
 		require.Nil(t, err)
 		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 		require.Contains(t, cinfo.Cold.Filecoin.Proposals, firstProposal)
@@ -312,7 +312,7 @@ func TestDurationConfig(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
-	cinfo, err := fapi.GetCidInfo(cid)
+	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
 	require.Equal(t, duration, p.Duration)
@@ -331,7 +331,7 @@ func TestFilecoinBlacklist(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
-	cinfo, err := fapi.GetCidInfo(cid)
+	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
 	require.NotEqual(t, p.Miner, excludedMiner)
@@ -365,7 +365,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
-	cinfo, err := fapi.GetCidInfo(cid)
+	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
 	require.Equal(t, p.Miner, "t01001")
@@ -412,7 +412,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 			require.Equal(t, errCause, job.ErrCause)
 
 			if expectedJobState == ffs.Success {
-				cinfo, err := fapi.GetCidInfo(cid)
+				cinfo, err := fapi.Show(cid)
 				require.Nil(t, err)
 				require.Equal(t, tt.HotEnabled, cinfo.Hot.Enabled)
 				require.Equal(t, tt.ColdEnabled, cinfo.Cold.Enabled)

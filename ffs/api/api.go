@@ -274,15 +274,6 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return r, nil
 }
 
-// GetCidInfo returns the current Cid stored state.
-func (i *API) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
-	info, err := i.sched.GetCidInfo(c)
-	if err != nil {
-		return ffs.CidInfo{}, fmt.Errorf("getting cid info from scheduler: %s", err)
-	}
-	return info, nil
-}
-
 // Close terminates the running Api.
 func (i *API) Close() error {
 	i.lock.Lock()
