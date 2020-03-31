@@ -227,12 +227,10 @@ func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, erro
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting push config action data from store: %s", err)
 	}
-	ci, err := s.cis.Get(a.Config.Cid)
+
+	ci, err := s.getRefreshedInfo(ctx, a.Config.Cid)
 	if err != nil {
-		if err != ErrNotFound {
-			return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
-		}
-		ci = ffs.CidInfo{Cid: a.Config.Cid} // Default value has both storages disabled
+		return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
 	}
 
 	hot, err := s.executeHotStorage(ctx, ci, a.Config.Hot, a.WalletAddr)
@@ -282,6 +280,49 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 			Created: time.Now(),
 		},
 	}, nil
+}
+
+func (s *Scheduler) getRefreshedInfo(ctx context.Context, c cid.Cid) (ffs.CidInfo, error) {
+	var err error
+	ci, err := s.cis.Get(c)
+	if err != nil {
+		if err != ErrNotFound {
+			return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
+		}
+		return ffs.CidInfo{Cid: c}, nil // Default value has both storages disabled
+	}
+
+	ci.Hot, err = s.getRefreshedHotInfo(ctx, c, ci.Hot)
+	if err != nil {
+		return ffs.CidInfo{}, fmt.Errorf("getting refreshed hot info: %s", err)
+	}
+
+	ci.Cold, err = s.getRefreshedColdInfo(ctx, c, ci.Cold)
+	if err != nil {
+		return ffs.CidInfo{}, fmt.Errorf("getting refreshed cold info: %s", err)
+	}
+
+	return ci, nil
+}
+
+func (s *Scheduler) getRefreshedHotInfo(ctx context.Context, c cid.Cid, curr ffs.HotInfo) (ffs.HotInfo, error) {
+	var err error
+	curr.Enabled, err = s.hs.IsStored(ctx, c)
+	if err != nil {
+		return ffs.HotInfo{}, err
+	}
+	return curr, nil
+}
+
+func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, c cid.Cid, curr ffs.ColdInfo) (ffs.ColdInfo, error) {
+	var err error
+	for i, fp := range curr.Filecoin.Proposals {
+		curr.Filecoin.Proposals[i].Active, err = s.cs.IsFilDealActive(ctx, fp.ProposalCid)
+		if err != nil {
+			return ffs.ColdInfo{}, fmt.Errorf("getting deal state of proposal %s: %s", fp.ProposalCid, err)
+		}
+	}
+	return curr, nil
 }
 
 func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, waddr string) (ffs.ColdInfo, error) {

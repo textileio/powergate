@@ -141,6 +141,18 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 	return nil, fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
 }
 
+func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error) {
+	di, err := m.api.ClientGetDealInfo(ctx, pcid)
+	if err != nil {
+		return storagemarket.StorageDealUnknown, false, fmt.Errorf("getting deal info: %s", err)
+	}
+	md, err := m.api.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
+	if err != nil {
+		return storagemarket.StorageDealUnknown, false, fmt.Errorf("get storage state: %s", err)
+	}
+	return di.State, md.State.SlashEpoch != -1, nil
+}
+
 // Watch returns a channel with state changes of indicated proposals
 func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
 	if len(proposals) == 0 {

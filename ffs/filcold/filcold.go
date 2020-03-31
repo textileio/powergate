@@ -84,6 +84,15 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fcfg ffs.
 	}, nil
 }
 
+func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bool, error) {
+	status, slashed, err := fc.dm.GetDealStatus(ctx, proposalCid)
+	if err != nil {
+		return false, fmt.Errorf("getting deal state for %s: %s", proposalCid, err)
+	}
+	return !slashed && status == storagemarket.StorageDealActive, nil
+
+}
+
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
 func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
 	var activeMiners []string

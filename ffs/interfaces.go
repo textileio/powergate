@@ -57,6 +57,7 @@ type HotStorage interface {
 	Get(context.Context, cid.Cid) (io.Reader, error)
 	Pin(context.Context, cid.Cid) (int, error)
 	Put(context.Context, blocks.Block) error
+	IsStored(context.Context, cid.Cid) (bool, error)
 }
 
 // ColdStorage is a slow datastorage layer for storing Cids.
@@ -65,6 +66,7 @@ type ColdStorage interface {
 	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
 
 	EnsureRenewals(context.Context, cid.Cid, FilInfo, string, FilConfig) (FilInfo, error)
+	IsFilDealActive(context.Context, cid.Cid) (bool, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a
