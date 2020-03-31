@@ -43,6 +43,14 @@ func (ci *CoreIpfs) Put(ctx context.Context, b blocks.Block) error {
 	return nil
 }
 
+// Remove removes a Cid from the Hot Storage.
+func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
+	if err := ci.ipfs.Pin().Rm(ctx, path.IpfsPath(c), options.Pin.RmRecursive(true)); err != nil {
+		return fmt.Errorf("unpinning cid from ipfs node: %s", err)
+	}
+	return nil
+}
+
 // Stats return status information for a Cid.
 func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
 	ci.ipfs.Block()

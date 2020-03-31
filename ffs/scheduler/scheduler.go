@@ -253,9 +253,17 @@ func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, erro
 }
 
 func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string) (ffs.HotInfo, error) {
+	if cfg.Enabled == curr.Hot.Enabled {
+		return curr.Hot, nil
+	}
+
 	if !cfg.Enabled {
+		if err := s.hs.Remove(ctx, curr.Cid); err != nil {
+			return ffs.HotInfo{}, fmt.Errorf("removing from hot storage: %s", err)
+		}
 		return ffs.HotInfo{Enabled: false}, nil
 	}
+
 	hotPinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Ipfs.AddTimeout))
 	defer cancel()
 	size, err := s.hs.Pin(hotPinCtx, curr.Cid)

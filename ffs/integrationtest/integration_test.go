@@ -412,11 +412,13 @@ func TestFilecoinEnableConfig(t *testing.T) {
 			require.Equal(t, errCause, job.ErrCause)
 
 			if expectedJobState == ffs.Success {
+				// Show() assertions
 				cinfo, err := fapi.Show(cid)
 				require.Nil(t, err)
 				require.Equal(t, tt.HotEnabled, cinfo.Hot.Enabled)
 				require.Equal(t, tt.ColdEnabled, cinfo.Cold.Enabled)
 
+				// Get() assertions
 				ctx := context.Background()
 				_, err = fapi.Get(ctx, cid)
 				var expectedErr error
@@ -424,10 +426,83 @@ func TestFilecoinEnableConfig(t *testing.T) {
 					expectedErr = ffs.ErrHotStorageDisabled
 				}
 				require.Equal(t, expectedErr, err)
+
+				// External assertions
+				if !tt.HotEnabled {
+					requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+				} else {
+					requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+				}
 			}
 
 		})
 	}
+}
+
+func requireIpfsUnpinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
+	pins, err := ipfsAPI.Pin().Ls(ctx)
+	require.NoError(t, err)
+	for _, p := range pins {
+		require.NotEqual(t, cid, p.Path().Cid(), "Cid isn't unpined from IPFS node")
+	}
+	return
+}
+
+func requireIpfsPinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
+	pins, err := ipfsAPI.Pin().Ls(ctx)
+	require.NoError(t, err)
+
+	pinned := false
+	for _, p := range pins {
+		if p.Path().Cid() == cid {
+			pinned = true
+			break
+		}
+	}
+	require.True(t, pinned, "Cid should be pinned in IPFS node")
+}
+
+func TestEnabledConfigChange(t *testing.T) {
+	t.Run("HotEnabledDisabled", func(t *testing.T) {
+		ctx := context.Background()
+		ipfsAPI, fapi, cls := newAPI(t, 2)
+		defer cls()
+
+		r := rand.New(rand.NewSource(22))
+		cid, _ := addRandomFile(t, r, ipfsAPI)
+		config := fapi.GetDefaultCidConfig(cid)
+
+		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+
+		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(false)
+		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+	})
+	t.Run("HotDisabledEnabled", func(t *testing.T) {
+		ctx := context.Background()
+		ipfsAPI, fapi, cls := newAPI(t, 2)
+		defer cls()
+
+		r := rand.New(rand.NewSource(22))
+		cid, _ := addRandomFile(t, r, ipfsAPI)
+		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false)
+
+		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+
+		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
+		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+	})
 }
 
 func TestUnfreeze(t *testing.T) {
