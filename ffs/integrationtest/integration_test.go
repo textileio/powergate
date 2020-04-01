@@ -98,6 +98,7 @@ func TestAdd(t *testing.T) {
 		jid, err := fapi.PushConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, nil)
 		requireFilStored(t, ctx, client, cid)
 		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
 	})
@@ -111,10 +112,7 @@ func TestAdd(t *testing.T) {
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
-
-		cconfig, err := fapi.GetCidConfig(cid)
-		require.Nil(t, err)
-		require.Equal(t, config, cconfig)
+		requireCidConfig(t, fapi, cid, &config)
 	})
 }
 
@@ -128,6 +126,7 @@ func TestGet(t *testing.T) {
 	jid, err := fapi.PushConfig(cid)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, nil)
 
 	t.Run("FromAPI", func(t *testing.T) {
 		r, err := fapi.Get(ctx, cid)
@@ -161,6 +160,7 @@ func TestInfo(t *testing.T) {
 		jid, err := fapi.PushConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, nil)
 	}
 
 	t.Run("WithOneAdd", func(t *testing.T) {
@@ -191,6 +191,7 @@ func TestShow(t *testing.T) {
 		jid, err := fapi.PushConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, nil)
 
 		inf, err := fapi.Info(ctx)
 		require.Nil(t, err)
@@ -229,6 +230,8 @@ func TestColdInstanceLoad(t *testing.T) {
 	jid, err := fapi.PushConfig(cid)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, nil)
+
 	info, err := fapi.Info(ctx)
 	require.Nil(t, err)
 	shw, err := fapi.Show(cid)
@@ -264,6 +267,7 @@ func TestRepFactor(t *testing.T) {
 			jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 			require.Nil(t, err)
 			requireJobState(t, fapi, jid, ffs.Success)
+			requireCidConfig(t, fapi, cid, &config)
 
 			cinfo, err := fapi.Show(cid)
 			require.Nil(t, err)
@@ -279,6 +283,7 @@ func TestRepFactor(t *testing.T) {
 		jid, err := fapi.PushConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, nil)
 
 		cinfo, err := fapi.Show(cid)
 		require.Nil(t, err)
@@ -289,6 +294,7 @@ func TestRepFactor(t *testing.T) {
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 		cinfo, err = fapi.Show(cid)
 		require.Nil(t, err)
 		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
@@ -320,6 +326,7 @@ func TestDurationConfig(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
 	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
@@ -339,6 +346,7 @@ func TestFilecoinBlacklist(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
 	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
@@ -373,6 +381,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
 	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
@@ -420,6 +429,8 @@ func TestFilecoinEnableConfig(t *testing.T) {
 			require.Equal(t, errCause, job.ErrCause)
 
 			if expectedJobState == ffs.Success {
+				requireCidConfig(t, fapi, cid, &config)
+
 				// Show() assertions
 				cinfo, err := fapi.Show(cid)
 				require.Nil(t, err)
@@ -483,12 +494,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(false)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 		requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
@@ -503,12 +516,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 		requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
 	})
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
@@ -527,12 +542,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 		requireFilUnstored(t, ctx, client, cid)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 		requireFilStored(t, ctx, client, cid)
 
 	})
@@ -552,12 +569,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 		requireFilUnstored(t, ctx, client, cid)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, &config)
 
 		// Yes, still stored in filecoin since deals can't be
 		// undone.
@@ -594,6 +613,7 @@ func TestUnfreeze(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
 
 	_, err = fapi.Get(ctx, cid)
 	require.Equal(t, ffs.ErrHotStorageDisabled, err)
@@ -604,6 +624,7 @@ func TestUnfreeze(t *testing.T) {
 	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
 
 	r, err := fapi.Get(ctx, cid)
 	require.Nil(t, err)
@@ -632,6 +653,7 @@ func TestRenew(t *testing.T) {
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
 
 	i, err := fapi.Show(cid)
 	require.Nil(t, err)
@@ -782,6 +804,16 @@ func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 	}
 	fapi.Unwatch(ch)
 	return res
+}
+
+func requireCidConfig(t *testing.T, fapi *api.API, c cid.Cid, config *ffs.CidConfig) {
+	if config == nil {
+		defConfig := fapi.GetDefaultCidConfig(c)
+		config = &defConfig
+	}
+	currentConfig, err := fapi.GetCidConfig(c)
+	require.NoError(t, err)
+	require.Equal(t, *config, currentConfig)
 }
 
 func randomBytes(r *rand.Rand, size int) []byte {
