@@ -274,32 +274,63 @@ func TestRepFactor(t *testing.T) {
 			require.Equal(t, rf, len(cinfo.Cold.Filecoin.Proposals))
 		})
 	}
+}
 
-	t.Run("IncreaseBy1", func(t *testing.T) {
-		t.SkipNow()
-		ipfsAPI, fapi, cls := newAPI(t, 2)
-		defer cls()
-		cid, _ := addRandomFile(t, r, ipfsAPI)
-		jid, err := fapi.PushConfig(cid)
-		require.Nil(t, err)
-		requireJobState(t, fapi, jid, ffs.Success)
-		requireCidConfig(t, fapi, cid, nil)
+func TestRepFactorIncrease(t *testing.T) {
+	// ToDo: unskip when testnet/3  allows more than one deal
+	// See https://bit.ly/2JxQSQk
+	t.SkipNow()
 
-		cinfo, err := fapi.Show(cid)
-		require.Nil(t, err)
-		require.Equal(t, 1, len(cinfo.Cold.Filecoin.Proposals))
-		firstProposal := cinfo.Cold.Filecoin.Proposals[0]
+	r := rand.New(rand.NewSource(22))
+	ipfsAPI, fapi, cls := newAPI(t, 2)
+	defer cls()
+	cid, _ := addRandomFile(t, r, ipfsAPI)
+	jid, err := fapi.PushConfig(cid)
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, nil)
 
-		config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(2)
-		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
-		require.Nil(t, err)
-		requireJobState(t, fapi, jid, ffs.Success)
-		requireCidConfig(t, fapi, cid, &config)
-		cinfo, err = fapi.Show(cid)
-		require.Nil(t, err)
-		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
-		require.Contains(t, cinfo.Cold.Filecoin.Proposals, firstProposal)
-	})
+	cinfo, err := fapi.Show(cid)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(cinfo.Cold.Filecoin.Proposals))
+	firstProposal := cinfo.Cold.Filecoin.Proposals[0]
+
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(2)
+	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+	cinfo, err = fapi.Show(cid)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
+	require.Contains(t, cinfo.Cold.Filecoin.Proposals, firstProposal)
+}
+
+func TestRepFactorDecrease(t *testing.T) {
+	r := rand.New(rand.NewSource(22))
+	ipfsAPI, fapi, cls := newAPI(t, 2)
+	defer cls()
+
+	cid, _ := addRandomFile(t, r, ipfsAPI)
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(2)
+	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+
+	cinfo, err := fapi.Show(cid)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
+
+	config = fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(1)
+	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+
+	cinfo, err = fapi.Show(cid)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 }
 
 func TestHotTimeoutConfig(t *testing.T) {
@@ -638,8 +669,8 @@ func TestUnfreeze(t *testing.T) {
 }
 
 func TestRenew(t *testing.T) {
-	// ToDo: unskip when testnet/3 sectormock allows more than one deal
-	// See https://github.com/filecoin-project/lotus/issues/1455
+	// ToDo: unskip when testnet/3  allows more than one deal
+	// See https://bit.ly/2JxQSQk
 	t.SkipNow()
 	util.AvgBlockTime = time.Millisecond * 200
 	ipfsDocker, cls := tests.LaunchDocker()
@@ -828,7 +859,7 @@ func randomBytes(r *rand.Rand, size int) []byte {
 
 func addRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
 	t.Helper()
-	data := randomBytes(r, 1600)
+	data := randomBytes(r, 600)
 	node, err := ipfs.Unixfs().Add(context.Background(), ipfsfiles.NewReaderFile(bytes.NewReader(data)), options.Unixfs.Pin(false))
 	if err != nil {
 		t.Fatalf("error adding random file: %s", err)

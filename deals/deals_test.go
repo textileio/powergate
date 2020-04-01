@@ -108,7 +108,6 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 		return cid.Undef, fmt.Errorf("some deal cids are missing, got %d, expected %d", len(srs), len(cfgs))
 	}
 	if err := waitForDealComplete(client, pcids); err != nil {
-		//time.Sleep(time.Hour)
 		return cid.Undef, fmt.Errorf("error waiting for deal to complete: %s", err)
 	}
 	return dcid, nil

@@ -338,20 +338,34 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		return curr.Cold, nil
 	}
 
-	currentRepFactor := len(curr.Cold.Filecoin.Proposals)
-	deltaRepFactor := cfg.Filecoin.RepFactor - currentRepFactor
-	if deltaRepFactor <= 0 {
-		log.Infof("replication well enought, avoid making new deals")
+	if isCurrentRepFactorEnough(cfg.Filecoin.RepFactor, curr) {
+		log.Infof("replication well enough, avoid making new deals")
 		return curr.Cold, nil
+
 	}
-	cfg.Filecoin.RepFactor = deltaRepFactor
-	finfo, err := s.cs.Store(ctx, curr.Cid, waddr, cfg.Filecoin)
+
+	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
+	fi, err := s.cs.Store(ctx, curr.Cid, waddr, deltaFilConfig)
 	if err != nil {
 		return ffs.ColdInfo{}, err
 	}
 	return ffs.ColdInfo{
-		Filecoin: finfo,
+		Filecoin: fi,
 	}, nil
+}
+
+func isCurrentRepFactorEnough(desiredRepFactor int, curr ffs.CidInfo) bool {
+	return desiredRepFactor-len(curr.Cold.Filecoin.Proposals) <= 0
+
+}
+
+func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {
+	res := cfg.Filecoin
+	res.RepFactor = cfg.Filecoin.RepFactor - len(curr.Proposals)
+	for _, p := range curr.Proposals {
+		res.Blacklist = append(res.Blacklist, p.Miner)
+	}
+	return res
 }
 
 func (s *Scheduler) mutateJobStatus(j ffs.Job, status ffs.JobStatus) error {

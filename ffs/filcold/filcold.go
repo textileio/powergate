@@ -63,17 +63,16 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation.
-func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
+func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, cfg ffs.FilConfig) (ffs.FilInfo, error) {
 	f := ffs.MinerSelectorFilter{
-		Blacklist:    fcfg.Blacklist,
-		CountryCodes: fcfg.CountryCodes,
+		Blacklist:    cfg.Blacklist,
+		CountryCodes: cfg.CountryCodes,
 	}
-	cfgs, err := makeDealConfigs(ctx, fc.ms, fcfg.RepFactor, f)
+	cfgs, err := makeDealConfigs(ctx, fc.ms, cfg.RepFactor, f)
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("making deal configs: %s", err)
 	}
-
-	cid, props, err := fc.makeDeals(ctx, c, cfgs, waddr, fcfg)
+	cid, props, err := fc.makeDeals(ctx, c, cfgs, waddr, cfg)
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("executing deals: %s", err)
 	}
@@ -210,6 +209,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 			}
 			delete(notDone, di.ProposalCid)
 		} else if di.StateID == storagemarket.StorageDealError || di.StateID == storagemarket.StorageDealFailing {
+			log.Errorf("deal %s failed with state %s", di.ProposalCid, storagemarket.DealStates[di.StateID])
 			delete(activeProposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
 		}
