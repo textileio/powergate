@@ -55,7 +55,7 @@ func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64) (cid.Cid, []StoreResult, error) {
+func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64, isCAR bool) (cid.Cid, []StoreResult, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
@@ -66,7 +66,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 	}
 	ref := api.FileRef{
 		Path:  f.Name(),
-		IsCAR: true,
+		IsCAR: isCAR,
 	}
 	dataCid, err := m.api.ClientImport(ctx, ref)
 	if err != nil {
@@ -114,7 +114,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 }
 
 // Retrieve fetches the data stored in filecoin at a particular cid
-func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.ReadCloser, error) {
+func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, exportCAR bool) (io.ReadCloser, error) {
 	rf, err := ioutil.TempDir(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
 		return nil, fmt.Errorf("creating temp dir for retrieval: %s", err)
@@ -135,7 +135,7 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 		log.Debugf("trying to retrieve data from %s", o.Miner)
 		ref := api.FileRef{
 			Path:  fpath,
-			IsCAR: true,
+			IsCAR: exportCAR,
 		}
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
 			log.Infof("retrieving cid %s from %s: %s", cid, o.Miner, err)

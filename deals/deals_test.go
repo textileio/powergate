@@ -13,11 +13,8 @@ import (
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
-	dag "github.com/ipfs/go-merkledag"
-	dstest "github.com/ipfs/go-merkledag/test"
 	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/tests"
 )
@@ -60,7 +57,7 @@ func TestRetrieve(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 			defer cancel()
 
-			r, err := m.Retrieve(ctx, addr.String(), dcid)
+			r, err := m.Retrieve(ctx, addr.String(), dcid, false)
 			checkErr(t, err)
 			defer r.Close()
 			rdata, err := ioutil.ReadAll(r)
@@ -93,17 +90,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 			EpochPrice: 1000000,
 		}
 	}
-	dserv := dstest.Mock()
-	r := dag.NewRawNode(data)
-	if err := dserv.Add(ctx, r); err != nil {
-		return cid.Undef, fmt.Errorf("adding rawnode to dagservice: %s", err)
-	}
-	buf := new(bytes.Buffer)
-	if err := car.WriteCar(context.Background(), dserv, []cid.Cid{r.Cid()}, buf); err != nil {
-		return cid.Undef, fmt.Errorf("generating car: %s", err)
-	}
-
-	dcid, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(buf.Bytes()), cfgs, 1000)
+	dcid, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(data), cfgs, 1000, false)
 	if err != nil {
 		return cid.Undef, fmt.Errorf("error when calling Store(): %s", err)
 	}

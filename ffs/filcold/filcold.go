@@ -46,7 +46,7 @@ func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService, chain Fi
 // Retrieve returns the original data Cid, from the CAR encoded data Cid. The returned Cid is available in the
 // car.Store received as a parameter.
 func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, waddr string) (cid.Cid, error) {
-	carR, err := fc.dm.Retrieve(ctx, waddr, dataCid)
+	carR, err := fc.dm.Retrieve(ctx, waddr, dataCid, true)
 	if err != nil {
 		return cid.Undef, fmt.Errorf("retrieving from deal module: %s", err)
 	}
@@ -147,7 +147,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.Storag
 	r := ipldToFileTransform(ctx, fc.dag, c)
 
 	var sres []deals.StoreResult
-	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, cfgs, uint64(fcfg.DealDuration))
+	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, cfgs, uint64(fcfg.DealDuration), true)
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("storing deals in deal module: %s", err)
 	}
