@@ -363,7 +363,7 @@ func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {
 	res := cfg.Filecoin
 	res.RepFactor = cfg.Filecoin.RepFactor - len(curr.Proposals)
 	for _, p := range curr.Proposals {
-		res.Blacklist = append(res.Blacklist, p.Miner)
+		res.ExcludedMiners = append(res.ExcludedMiners, p.Miner)
 	}
 	return res
 }

@@ -611,7 +611,6 @@ func TestEnabledConfigChange(t *testing.T) {
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
-		requireCidConfig(t, fapi, cid, &config)
 
 		// Yes, still stored in filecoin since deals can't be
 		// undone.
@@ -620,7 +619,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		// that this *shouldn't* be in the Cold Storage. To indicate
 		// this can't be renewed, or any other future action that tries to
 		// store it again in the Cold Layer.
-
+		requireCidConfig(t, fapi, cid, &config)
 	})
 }
 
@@ -785,9 +784,9 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 			Cold: ffs.ColdConfig{
 				Enabled: true,
 				Filecoin: ffs.FilConfig{
-					Blacklist:    nil,
-					DealDuration: 1000,
-					RepFactor:    1,
+					ExcludedMiners: nil,
+					DealDuration:   1000,
+					RepFactor:      1,
 				},
 			},
 		}

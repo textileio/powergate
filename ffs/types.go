@@ -119,8 +119,8 @@ func (c CidConfig) WithColdFilCountryCodes(countryCodes []string) CidConfig {
 // WithColdFilBlacklist defines a list of miner addresses which won't be selected for
 // making deals, no matter if they comply to other filters in the configuration.
 func (c CidConfig) WithColdFilBlacklist(blacklist []string) CidConfig {
-	c.Cold.Filecoin.Blacklist = make([]string, len(blacklist))
-	copy(c.Cold.Filecoin.Blacklist, blacklist)
+	c.Cold.Filecoin.ExcludedMiners = make([]string, len(blacklist))
+	copy(c.Cold.Filecoin.ExcludedMiners, blacklist)
 	return c
 }
 
@@ -246,11 +246,11 @@ func (cc ColdConfig) Validate() error {
 // FilConfig is the desired state of a Cid in the
 // Filecoin network.
 type FilConfig struct {
-	RepFactor    int
-	DealDuration int64
-	Blacklist    []string
-	CountryCodes []string
-	Renew        FilRenew
+	RepFactor      int
+	DealDuration   int64
+	ExcludedMiners []string
+	CountryCodes   []string
+	Renew          FilRenew
 }
 
 // FilRenew contains renew configuration for a Cid Cold Storage deals.
