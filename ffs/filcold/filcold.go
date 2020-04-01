@@ -65,20 +65,20 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 // the DAGService registered on instance creation.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, cfg ffs.FilConfig) (ffs.FilInfo, error) {
 	f := ffs.MinerSelectorFilter{
-		Blacklist:    cfg.Blacklist,
+		Blacklist:    cfg.ExcludedMiners,
 		CountryCodes: cfg.CountryCodes,
 	}
 	cfgs, err := makeDealConfigs(ctx, fc.ms, cfg.RepFactor, f)
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("making deal configs: %s", err)
 	}
-	cid, props, err := fc.makeDeals(ctx, c, cfgs, waddr, cfg)
+	props, err := fc.makeDeals(ctx, c, cfgs, waddr, cfg)
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("executing deals: %s", err)
 	}
 
 	return ffs.FilInfo{
-		DataCid:   cid,
+		DataCid:   c,
 		Proposals: props,
 	}, nil
 }
@@ -132,7 +132,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, waddr string, p ffs
 		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
 	}
 
-	_, props, err := fc.makeDeals(ctx, c, dealConfig, waddr, fcfg)
+	props, err := fc.makeDeals(ctx, c, dealConfig, waddr, fcfg)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("executing renewed deal: %s", err)
 	}
@@ -142,23 +142,23 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, waddr string, p ffs
 	return props[0], nil
 }
 
-func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, waddr string, fcfg ffs.FilConfig) (cid.Cid, []ffs.FilStorage, error) {
+func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, waddr string, fcfg ffs.FilConfig) ([]ffs.FilStorage, error) {
 	r := ipldToFileTransform(ctx, fc.dag, c)
 
 	var sres []deals.StoreResult
 	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, cfgs, uint64(fcfg.DealDuration), true)
 	if err != nil {
-		return cid.Undef, nil, fmt.Errorf("storing deals in deal module: %s", err)
+		return nil, fmt.Errorf("storing deals in deal module: %s", err)
 	}
 	if dataCid != c {
-		panic("data cid from lotus should be root of car file")
+		return nil, fmt.Errorf("stored data cid doesn't match with sent data")
 	}
 
 	proposals, err := fc.waitForDeals(ctx, sres, fcfg.DealDuration)
 	if err != nil {
-		return cid.Undef, nil, fmt.Errorf("waiting for deals to finish: %s", err)
+		return nil, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
-	return dataCid, proposals, nil
+	return proposals, nil
 }
 
 func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {
