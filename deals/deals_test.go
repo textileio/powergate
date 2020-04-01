@@ -13,8 +13,11 @@ import (
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
+	dag "github.com/ipfs/go-merkledag"
+	dstest "github.com/ipfs/go-merkledag/test"
 	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/tests"
 )
@@ -38,14 +41,14 @@ func TestStore(t *testing.T) {
 			client, _, _ := tests.CreateLocalDevnet(t, nm)
 			m, err := New(client, WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
-			_, err = storeMultiMiner(m, client, nm, randomBytes(1600))
+			_, err = storeMultiMiner(m, client, nm, randomBytes(600))
 			checkErr(t, err)
 		})
 	}
 }
 func TestRetrieve(t *testing.T) {
 	numMiners := []int{1} // go-fil-markets: doesn't support remembering more than 1 miner
-	data := randomBytes(1600)
+	data := randomBytes(600)
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			client, addr, _ := tests.CreateLocalDevnet(t, nm)
@@ -90,9 +93,19 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 			EpochPrice: 1000000,
 		}
 	}
-	dcid, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(data), cfgs, 1000)
+	dserv := dstest.Mock()
+	r := dag.NewRawNode(data)
+	if err := dserv.Add(ctx, r); err != nil {
+		return cid.Undef, fmt.Errorf("adding rawnode to dagservice: %s", err)
+	}
+	buf := new(bytes.Buffer)
+	if err := car.WriteCar(context.Background(), dserv, []cid.Cid{r.Cid()}, buf); err != nil {
+		return cid.Undef, fmt.Errorf("generating car: %s", err)
+	}
+
+	dcid, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(buf.Bytes()), cfgs, 1000)
 	if err != nil {
-		return cid.Undef, fmt.Errorf("error when calling Store()")
+		return cid.Undef, fmt.Errorf("error when calling Store(): %s", err)
 	}
 	if !dcid.Defined() {
 		return cid.Undef, fmt.Errorf("data cid is undefined")

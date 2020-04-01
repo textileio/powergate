@@ -17,7 +17,7 @@ message DealInfo {
 	string stateName = 3;
 	string miner = 4;
 
-	bytes pieceRef = 5;
+	bytes pieceCID = 5;
 	uint64 size = 6;
 
 	uint64 pricePerEpoch = 7;

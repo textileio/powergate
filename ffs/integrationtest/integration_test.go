@@ -84,21 +84,29 @@ func TestSetDefaultConfig(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	ipfsAPI, fapi, cls := newAPI(t, 1)
-	defer cls()
-
 	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfsAPI)
 	t.Run("WithDefaultConfig", func(t *testing.T) {
+		ctx := context.Background()
+		ipfsDocker, cls := tests.LaunchDocker()
+		defer cls()
+		ds := tests.NewTxMapDatastore()
+		addr, client, ms := newDevnet(t, 1)
+		ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+		defer closeInternal()
+
+		cid, _ := addRandomFile(t, r, ipfsAPI)
 		jid, err := fapi.PushConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
+		requireFilStored(t, ctx, client, cid)
+		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
 	})
 
-	ipfsAPI, fapi, cls = newAPI(t, 1)
-	defer cls()
-	cid, _ = addRandomFile(t, r, ipfsAPI)
 	t.Run("WithCustomConfig", func(t *testing.T) {
+		ipfsAPI, fapi, cls := newAPI(t, 1)
+		defer cls()
+		cid, _ := addRandomFile(t, r, ipfsAPI)
+
 		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithColdFilDealDuration(int64(1234))
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
@@ -465,7 +473,7 @@ func requireIpfsPinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfsAP
 func TestEnabledConfigChange(t *testing.T) {
 	t.Run("HotEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, fapi, cls := newAPI(t, 2)
+		ipfsAPI, fapi, cls := newAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -485,7 +493,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, fapi, cls := newAPI(t, 2)
+		ipfsAPI, fapi, cls := newAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -503,6 +511,75 @@ func TestEnabledConfigChange(t *testing.T) {
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
 	})
+	t.Run("ColdDisabledEnabled", func(t *testing.T) {
+		ctx := context.Background()
+		ipfsDocker, cls := tests.LaunchDocker()
+		t.Cleanup(func() { cls() })
+		ds := tests.NewTxMapDatastore()
+		addr, client, ms := newDevnet(t, 1)
+		ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+		t.Cleanup(func() { closeInternal() })
+
+		r := rand.New(rand.NewSource(22))
+		cid, _ := addRandomFile(t, r, ipfsAPI)
+		config := fapi.GetDefaultCidConfig(cid).WithColdEnabled(false)
+
+		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireFilUnstored(t, ctx, client, cid)
+
+		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
+		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireFilStored(t, ctx, client, cid)
+
+	})
+	t.Run("ColdEnabledDisabled", func(t *testing.T) {
+		ctx := context.Background()
+		ipfsDocker, cls := tests.LaunchDocker()
+		t.Cleanup(func() { cls() })
+		ds := tests.NewTxMapDatastore()
+		addr, client, ms := newDevnet(t, 1)
+		ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+		t.Cleanup(func() { closeInternal() })
+
+		r := rand.New(rand.NewSource(22))
+		cid, _ := addRandomFile(t, r, ipfsAPI)
+		config := fapi.GetDefaultCidConfig(cid).WithColdEnabled(false)
+
+		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireFilUnstored(t, ctx, client, cid)
+
+		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
+		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+
+		// Yes, still stored in filecoin since deals can't be
+		// undone.
+		requireFilStored(t, ctx, client, cid)
+		// Despite of the above, check that the Cid Config still reflects
+		// that this *shouldn't* be in the Cold Storage. To indicate
+		// this can't be renewed, or any other future action that tries to
+		// store it again in the Cold Layer.
+
+	})
+}
+
+func requireFilUnstored(t *testing.T, ctx context.Context, client *apistruct.FullNodeStruct, c cid.Cid) {
+	offers, err := client.ClientFindData(ctx, c)
+	require.NoError(t, err)
+	require.Empty(t, offers)
+}
+
+func requireFilStored(t *testing.T, ctx context.Context, client *apistruct.FullNodeStruct, c cid.Cid) {
+	offers, err := client.ClientFindData(ctx, c)
+	require.NoError(t, err)
+	require.NotEmpty(t, offers)
 }
 
 func TestUnfreeze(t *testing.T) {

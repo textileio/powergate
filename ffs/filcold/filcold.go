@@ -6,10 +6,10 @@ import (
 	"io"
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
+	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
-	"github.com/ipld/go-car"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 )
@@ -150,6 +150,9 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.Storag
 	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, cfgs, uint64(fcfg.DealDuration))
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("storing deals in deal module: %s", err)
+	}
+	if dataCid != c {
+		panic("data cid from lotus should be root of car file")
 	}
 
 	proposals, err := fc.waitForDeals(ctx, sres, fcfg.DealDuration)

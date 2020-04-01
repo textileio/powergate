@@ -6,8 +6,8 @@ import (
 	"io"
 
 	blocks "github.com/ipfs/go-block-format"
+	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
-	"github.com/ipld/go-car"
 )
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.

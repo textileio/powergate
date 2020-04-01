@@ -136,7 +136,7 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 			StateID:       update.StateID,
 			StateName:     update.StateName,
 			Miner:         update.Miner,
-			PieceRef:      update.PieceRef,
+			PieceCID:      update.PieceCID.Bytes(),
 			Size:          update.Size,
 			PricePerEpoch: update.PricePerEpoch,
 			Duration:      update.Duration,

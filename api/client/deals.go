@@ -120,12 +120,17 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				channel <- WatchEvent{Err: err}
 				break
 			}
+			cid, err := cid.Cast(event.GetDealInfo().GetPieceCID())
+			if err != nil {
+				channel <- WatchEvent{Err: err}
+				break
+			}
 			deal := deals.DealInfo{
 				ProposalCid:   proposalCid,
 				StateID:       event.GetDealInfo().GetStateID(),
 				StateName:     event.GetDealInfo().GetStateName(),
 				Miner:         event.GetDealInfo().GetMiner(),
-				PieceRef:      event.GetDealInfo().GetPieceRef(),
+				PieceCID:      cid,
 				Size:          event.GetDealInfo().GetSize(),
 				PricePerEpoch: event.GetDealInfo().GetPricePerEpoch(),
 				Duration:      event.GetDealInfo().GetDuration(),
