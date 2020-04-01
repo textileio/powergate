@@ -212,7 +212,6 @@ func TestShow(t *testing.T) {
 		p := s.Cold.Filecoin.Proposals[0]
 		require.True(t, p.ProposalCid.Defined())
 		require.Greater(t, p.Duration, int64(0))
-		require.True(t, p.Active)
 	})
 }
 
@@ -710,12 +709,10 @@ Loop:
 		}
 
 		require.Equal(t, len(i.Cold.Filecoin.Proposals), 2)
-		require.True(t, firstDeal.Active)
 		require.True(t, firstDeal.Renewed)
 
 		newDeal := i.Cold.Filecoin.Proposals[1]
 		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
-		require.True(t, newDeal.Active)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
 		require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)

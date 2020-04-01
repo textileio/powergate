@@ -96,16 +96,14 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
 	var activeMiners []string
 	for _, p := range inf.Proposals {
-		if p.Active {
-			activeMiners = append(activeMiners, p.Miner)
-		}
+		activeMiners = append(activeMiners, p.Miner)
 	}
 	height, err := fc.chain.GetHeight(ctx)
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("get current filecoin height: %s", err)
 	}
 	for i, p := range inf.Proposals {
-		if !p.Active || p.Renewed {
+		if p.Renewed {
 			continue
 		}
 		expiry := p.ActivationEpoch + p.Duration
@@ -202,7 +200,6 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 			}
 			activeProposals[di.ProposalCid] = &ffs.FilStorage{
 				ProposalCid:     di.ProposalCid,
-				Active:          true,
 				Duration:        duration,
 				Miner:           d.Config.Miner,
 				ActivationEpoch: di.ActivationEpoch,

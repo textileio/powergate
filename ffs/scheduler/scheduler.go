@@ -323,13 +323,17 @@ func (s *Scheduler) getRefreshedHotInfo(ctx context.Context, c cid.Cid, curr ffs
 }
 
 func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, c cid.Cid, curr ffs.ColdInfo) (ffs.ColdInfo, error) {
-	var err error
-	for i, fp := range curr.Filecoin.Proposals {
-		curr.Filecoin.Proposals[i].Active, err = s.cs.IsFilDealActive(ctx, fp.ProposalCid)
+	activeDeals := make([]ffs.FilStorage, 0, len(curr.Filecoin.Proposals))
+	for _, fp := range curr.Filecoin.Proposals {
+		active, err := s.cs.IsFilDealActive(ctx, fp.ProposalCid)
 		if err != nil {
 			return ffs.ColdInfo{}, fmt.Errorf("getting deal state of proposal %s: %s", fp.ProposalCid, err)
 		}
+		if active {
+			activeDeals = append(activeDeals, fp)
+		}
 	}
+	curr.Filecoin.Proposals = activeDeals
 	return curr, nil
 }
 
