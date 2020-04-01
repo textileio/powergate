@@ -20,7 +20,7 @@ require (
 	github.com/filecoin-project/specs-actors v0.0.0-20200324235424-aef9b20a9fb1
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
-	github.com/gin-gonic/gin v1.6.1
+	github.com/gin-gonic/gin v1.6.2
 	github.com/golang/protobuf v1.3.5
 	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
@@ -34,12 +34,11 @@ require (
 	github.com/ipfs/go-cid v0.0.5
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ds-badger2 v0.0.0-20200211201106-609c9d2a39c7
-	github.com/ipfs/go-ipfs-files v0.0.7
+	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.0.5
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
 	github.com/ipfs/go-ipld-format v0.0.2
 	github.com/ipfs/go-log/v2 v2.0.3
-	github.com/ipfs/go-merkledag v0.3.1
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
@@ -59,7 +58,7 @@ require (
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/rs/cors v1.7.0
-	github.com/spf13/cobra v0.0.6
+	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
