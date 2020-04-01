@@ -435,7 +435,11 @@ func TestFilecoinEnableConfig(t *testing.T) {
 				cinfo, err := fapi.Show(cid)
 				require.Nil(t, err)
 				require.Equal(t, tt.HotEnabled, cinfo.Hot.Enabled)
-				require.Equal(t, tt.ColdEnabled, cinfo.Cold.Enabled)
+				if tt.ColdEnabled {
+					require.NotEmpty(t, cinfo.Cold.Filecoin.Proposals)
+				} else {
+					require.Empty(t, cinfo.Cold.Filecoin.Proposals)
+				}
 
 				// Get() assertions
 				ctx := context.Background()

@@ -300,7 +300,6 @@ type IpfsHotInfo struct {
 // ColdInfo contains information about the current storage state
 // of a Cid in the cold layer.
 type ColdInfo struct {
-	Enabled  bool
 	Filecoin FilInfo
 }
 

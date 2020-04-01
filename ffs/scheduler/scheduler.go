@@ -268,7 +268,7 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 	defer cancel()
 	size, err := s.hs.Pin(hotPinCtx, curr.Cid)
 	if err != nil {
-		if !cfg.AllowUnfreeze || !curr.Cold.Enabled {
+		if !cfg.AllowUnfreeze || len(curr.Cold.Filecoin.Proposals) == 0 {
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
 		bs := &hotStorageBlockstore{ctx: ctx, put: s.hs.Put}
@@ -335,24 +335,21 @@ func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, c cid.Cid, curr ff
 
 func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, waddr string) (ffs.ColdInfo, error) {
 	if !cfg.Enabled {
-		return ffs.ColdInfo{Enabled: false}, nil
-	}
-	if curr.Cold.Enabled {
-		// If this Cid is already stored in the Cold layer,
-		// avoid doing any work. This will change when supporting
-		// changing *existing* configs is implemented. This feature
-		// isn't trivial since ColdStorage state isn't reversable,
-		// since Filecoin deals can't be undone; only a particular set
-		// of ColdStorage changes could be supported.
-		// ToDo: reconsider when impl config changes.
 		return curr.Cold, nil
 	}
+
+	currentRepFactor := len(curr.Cold.Filecoin.Proposals)
+	deltaRepFactor := cfg.Filecoin.RepFactor - currentRepFactor
+	if deltaRepFactor <= 0 {
+		log.Infof("replication well enought, avoid making new deals")
+		return curr.Cold, nil
+	}
+	cfg.Filecoin.RepFactor = deltaRepFactor
 	finfo, err := s.cs.Store(ctx, curr.Cid, waddr, cfg.Filecoin)
 	if err != nil {
 		return ffs.ColdInfo{}, err
 	}
 	return ffs.ColdInfo{
-		Enabled:  true,
 		Filecoin: finfo,
 	}, nil
 }
