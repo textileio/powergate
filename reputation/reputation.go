@@ -82,7 +82,7 @@ func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 
 // QueryMiners makes a filtered query on the scored-sorted miner list.
 // Empty filter slices represent no-filters applied.
-func (rm *Module) QueryMiners(n int, blacklist []string, countryCodes []string) ([]MinerScore, error) {
+func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []string) ([]MinerScore, error) {
 	if n < 1 {
 		return nil, fmt.Errorf("the number of miners should be greater than zero")
 	}
@@ -95,7 +95,7 @@ func (rm *Module) QueryMiners(n int, blacklist []string, countryCodes []string) 
 	mr := make([]MinerScore, 0, n)
 	for _, m := range rm.scores {
 		skip := false
-		for _, mb := range blacklist {
+		for _, mb := range excludedMiners {
 			if mb == m.Addr {
 				skip = true
 				break

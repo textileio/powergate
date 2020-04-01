@@ -36,7 +36,7 @@ func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Min
 	res := make([]ffs.MinerProposal, 0, n)
 	for _, m := range fms.miners {
 		skip := false
-		for _, bAddr := range f.Blacklist {
+		for _, bAddr := range f.ExcludedMiners {
 			if bAddr == m.Addr {
 				skip = true
 				break

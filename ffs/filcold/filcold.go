@@ -65,8 +65,8 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 // the DAGService registered on instance creation.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, cfg ffs.FilConfig) (ffs.FilInfo, error) {
 	f := ffs.MinerSelectorFilter{
-		Blacklist:    cfg.ExcludedMiners,
-		CountryCodes: cfg.CountryCodes,
+		ExcludedMiners: cfg.ExcludedMiners,
+		CountryCodes:   cfg.CountryCodes,
 	}
 	cfgs, err := makeDealConfigs(ctx, fc.ms, cfg.RepFactor, f)
 	if err != nil {
@@ -125,7 +125,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 
 func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, waddr string, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, error) {
 	f := ffs.MinerSelectorFilter{
-		Blacklist: activeMiners,
+		ExcludedMiners: activeMiners,
 	}
 	dealConfig, err := makeDealConfigs(ctx, fc.ms, 1, f)
 	if err != nil {

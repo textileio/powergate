@@ -365,14 +365,14 @@ func TestDurationConfig(t *testing.T) {
 	require.Greater(t, p.ActivationEpoch, int64(0))
 }
 
-func TestFilecoinBlacklist(t *testing.T) {
+func TestFilecoinExcludedMiners(t *testing.T) {
 	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsAPI)
 	excludedMiner := "t01000"
-	config := fapi.GetDefaultCidConfig(cid).WithColdFilBlacklist([]string{excludedMiner})
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilExcludedMiners([]string{excludedMiner})
 
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)

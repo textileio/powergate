@@ -116,11 +116,11 @@ func (c CidConfig) WithColdFilCountryCodes(countryCodes []string) CidConfig {
 	return c
 }
 
-// WithColdFilBlacklist defines a list of miner addresses which won't be selected for
+// WithColdFilExcludedMiners defines a list of miner addresses which won't be selected for
 // making deals, no matter if they comply to other filters in the configuration.
-func (c CidConfig) WithColdFilBlacklist(blacklist []string) CidConfig {
-	c.Cold.Filecoin.ExcludedMiners = make([]string, len(blacklist))
-	copy(c.Cold.Filecoin.ExcludedMiners, blacklist)
+func (c CidConfig) WithColdFilExcludedMiners(miners []string) CidConfig {
+	c.Cold.Filecoin.ExcludedMiners = make([]string, len(miners))
+	copy(c.Cold.Filecoin.ExcludedMiners, miners)
 	return c
 }
 

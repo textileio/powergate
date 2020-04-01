@@ -79,9 +79,9 @@ type MinerSelector interface {
 // MinerSelectorFilter establishes filters that should be considered when
 // returning miners.
 type MinerSelectorFilter struct {
-	// Blacklist contains miner names that should not be considered in
-	// returned results. An empty list means no blacklisting.
-	Blacklist []string
+	// ExcludedMiners contains miner names that should not be considered in
+	// returned results. An empty list means no exclusions.
+	ExcludedMiners []string
 	// CountryCodes contains long-ISO country names that should be
 	// considered in selected miners. An empty list means no filtering.
 	CountryCodes []string
