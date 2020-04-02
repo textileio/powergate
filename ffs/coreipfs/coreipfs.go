@@ -51,7 +51,7 @@ func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 	return nil
 }
 
-// Stats return status information for a Cid.
+// IsStored return if a particular Cid is stored.
 func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
 	ci.ipfs.Block()
 	pins, err := ci.ipfs.Pin().Ls(ctx)

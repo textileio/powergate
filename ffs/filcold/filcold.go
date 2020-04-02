@@ -83,6 +83,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, cfg ffs.F
 	}, nil
 }
 
+// IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
 func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bool, error) {
 	status, slashed, err := fc.dm.GetDealStatus(ctx, proposalCid)
 	if err == deals.ErrDealNotFound {

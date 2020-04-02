@@ -498,7 +498,6 @@ func requireIpfsUnpinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfs
 	for _, p := range pins {
 		require.NotEqual(t, cid, p.Path().Cid(), "Cid isn't unpined from IPFS node")
 	}
-	return
 }
 
 func requireIpfsPinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
