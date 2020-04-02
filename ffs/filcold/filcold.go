@@ -85,6 +85,9 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, cfg ffs.F
 
 func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bool, error) {
 	status, slashed, err := fc.dm.GetDealStatus(ctx, proposalCid)
+	if err == deals.ErrDealNotFound {
+		return false, nil
+	}
 	if err != nil {
 		return false, fmt.Errorf("getting deal state for %s: %s", proposalCid, err)
 	}

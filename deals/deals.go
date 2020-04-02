@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -25,7 +26,13 @@ const (
 )
 
 var (
+	// ErrRetrievalNotAvailableProviders indicates that the data isn't available on any provided
+	// to be retrieved.
 	ErrRetrievalNoAvailableProviders = errors.New("no providers to retrieve the data")
+	// ErrDealNotFound indicates a particular ProposalCid from a deal isn't found on-chain. Currenty,
+	// in Lotus this indicates that it may never existed on-chain, or it existed but it already expired
+	// (currEpoch > StartEpoch+Duration).
+	ErrDealNotFound = errors.New("deal not found on-chain")
 
 	log = logging.Logger("deals")
 )
@@ -150,9 +157,15 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, export
 	return nil, fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
 }
 
+// GetDealStatus returns the current status of the deal, and a flag indicating if the miner of the deal was slashed.
+// If the deal doesn't exist, *or has expired* it will return ErrDealNotFound. There's not actual way of distinguishing
+// both scenarios in Lotus.
 func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error) {
 	di, err := m.api.ClientGetDealInfo(ctx, pcid)
 	if err != nil {
+		if strings.Contains(err.Error(), "datastore: key not found") {
+			return storagemarket.StorageDealUnknown, false, ErrDealNotFound
+		}
 		return storagemarket.StorageDealUnknown, false, fmt.Errorf("getting deal info: %s", err)
 	}
 	md, err := m.api.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
