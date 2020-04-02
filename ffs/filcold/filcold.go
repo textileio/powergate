@@ -97,7 +97,7 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
-func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, waddr string, fcfg ffs.FilConfig) (ffs.FilInfo, error) {
+func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, waddr string, cfg ffs.FilConfig) (ffs.FilInfo, error) {
 	var activeMiners []string
 	for _, p := range inf.Proposals {
 		activeMiners = append(activeMiners, p.Miner)
@@ -106,22 +106,46 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("get current filecoin height: %s", err)
 	}
-	for i, p := range inf.Proposals {
+	var renewable []ffs.FilStorage
+	for _, p := range inf.Proposals {
 		if p.Renewed {
 			continue
 		}
 		expiry := p.ActivationEpoch + p.Duration
-		renewalHeight := expiry - int64(fcfg.Renew.Threshold)
+		renewalHeight := expiry - int64(cfg.Renew.Threshold)
 		if uint64(renewalHeight) <= height {
-			newProposal, err := fc.renewDeal(ctx, c, waddr, p, activeMiners, fcfg)
-			if err != nil {
-				log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
-				continue
-			}
-			inf.Proposals = append(inf.Proposals, newProposal)
-			inf.Proposals[i].Renewed = true
+			renewable = append(renewable, p)
 		}
 	}
+
+	// Calculate how many active deals aren't expiring soon.
+	youngActiveDeals := len(inf.Proposals) - len(renewable)
+	// Calculate how many of the renewable (soon to be expired) deals should be renewed
+	// so we have the desired RepFactor.
+	numToBeRenewed := cfg.RepFactor - youngActiveDeals
+	if numToBeRenewed <= 0 {
+		// Nothing to be renewed to ensure RepFactor,
+		// most prob the RepFactor was decreased.
+		return inf, nil
+	}
+	if numToBeRenewed > len(renewable) {
+		// We need even more deals than renewable to ensure RepFactor,
+		// that's job of the repair module. We renew as many as can be
+		// renewed.
+		numToBeRenewed = len(renewable)
+	}
+	toRenew := renewable[:numToBeRenewed]
+	for i, p := range toRenew {
+		newProposal, err := fc.renewDeal(ctx, c, waddr, p, activeMiners, cfg)
+		if err != nil {
+			log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
+			continue
+		}
+		inf.Proposals = append(inf.Proposals, newProposal)
+		inf.Proposals[i].Renewed = true
+
+	}
+
 	return inf, nil
 }
 
