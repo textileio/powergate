@@ -143,7 +143,6 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		}
 		inf.Proposals = append(inf.Proposals, newProposal)
 		inf.Proposals[i].Renewed = true
-
 	}
 
 	return inf, nil
