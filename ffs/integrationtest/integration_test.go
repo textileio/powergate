@@ -719,6 +719,65 @@ Loop:
 	}
 }
 
+func TestRenewWithDecreasedRepFactor(t *testing.T) {
+	// ToDo: unskip when testnet/3  allows more than one deal
+	// See https://bit.ly/2JxQSQk
+	t.SkipNow()
+	ipfsDocker, cls := tests.LaunchDocker()
+	t.Cleanup(func() { cls() })
+	ds := tests.NewTxMapDatastore()
+	addr, client, ms := newDevnet(t, 2)
+	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+	defer closeInternal()
+
+	ra := rand.New(rand.NewSource(22))
+	cid, _ := addRandomFile(t, ra, ipfsAPI)
+
+	renewThreshold := 50
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(200)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
+	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+
+	// Now decrease RepFactor to 1, so the renewal should consider this.
+	// Both now active deals shouldn't be renewed, only one of them.
+	config = config.WithColdFilRepFactor(1)
+	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	lchain := lotuschain.New(client)
+Loop:
+	for range ticker.C {
+		i, err := fapi.Show(cid)
+		require.Nil(t, err)
+
+		firstDeal := i.Cold.Filecoin.Proposals[0]
+		secondDeal := i.Cold.Filecoin.Proposals[1]
+		h, err := lchain.GetHeight(context.Background())
+		require.Nil(t, err)
+		if firstDeal.ActivationEpoch+firstDeal.Duration-int64(renewThreshold)+int64(100) > int64(h) {
+			require.LessOrEqual(t, len(i.Cold.Filecoin.Proposals), 3)
+			continue
+		}
+
+		require.Equal(t, len(i.Cold.Filecoin.Proposals), 3)
+		// Only one of the two deas should be renewed
+		require.True(t, (firstDeal.Renewed && !secondDeal.Renewed) || (secondDeal.Renewed && !firstDeal.Renewed))
+
+		newDeal := i.Cold.Filecoin.Proposals[3]
+		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
+		require.False(t, newDeal.Renewed)
+		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
+		require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)
+		break Loop
+	}
+}
+
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })
