@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -23,7 +26,13 @@ const (
 )
 
 var (
+	// ErrRetrievalNotAvailableProviders indicates that the data isn't available on any provided
+	// to be retrieved.
 	ErrRetrievalNoAvailableProviders = errors.New("no providers to retrieve the data")
+	// ErrDealNotFound indicates a particular ProposalCid from a deal isn't found on-chain. Currenty,
+	// in Lotus this indicates that it may never existed on-chain, or it existed but it already expired
+	// (currEpoch > StartEpoch+Duration).
+	ErrDealNotFound = errors.New("deal not found on-chain")
 
 	log = logging.Logger("deals")
 )
@@ -53,7 +62,7 @@ func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64) (cid.Cid, []StoreResult, error) {
+func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64, isCAR bool) (cid.Cid, []StoreResult, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
@@ -63,7 +72,8 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 		return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
 	ref := api.FileRef{
-		Path: f.Name(),
+		Path:  f.Name(),
+		IsCAR: isCAR,
 	}
 	dataCid, err := m.api.ClientImport(ctx, ref)
 	if err != nil {
@@ -111,10 +121,10 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 }
 
 // Retrieve fetches the data stored in filecoin at a particular cid
-func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.ReadCloser, error) {
-	f, err := ioutil.TempFile(m.cfg.ImportPath, "retrieve-*")
+func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, exportCAR bool) (io.ReadCloser, error) {
+	rf, err := ioutil.TempDir(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
-		return nil, fmt.Errorf("creating tmpfile: %s", err)
+		return nil, fmt.Errorf("creating temp dir for retrieval: %s", err)
 	}
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
@@ -127,18 +137,42 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Re
 	if len(offers) == 0 {
 		return nil, ErrRetrievalNoAvailableProviders
 	}
+	fpath := filepath.Join(rf, "ret")
 	for _, o := range offers {
 		log.Debugf("trying to retrieve data from %s", o.Miner)
 		ref := api.FileRef{
-			Path: f.Name(),
+			Path:  fpath,
+			IsCAR: exportCAR,
 		}
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
 			log.Infof("retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
+		f, err := os.Open(fpath)
+		if err != nil {
+			return nil, fmt.Errorf("opening retrieved file: %s", err)
+		}
 		return f, nil
 	}
 	return nil, fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
+}
+
+// GetDealStatus returns the current status of the deal, and a flag indicating if the miner of the deal was slashed.
+// If the deal doesn't exist, *or has expired* it will return ErrDealNotFound. There's not actual way of distinguishing
+// both scenarios in Lotus.
+func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error) {
+	di, err := m.api.ClientGetDealInfo(ctx, pcid)
+	if err != nil {
+		if strings.Contains(err.Error(), "datastore: key not found") {
+			return storagemarket.StorageDealUnknown, false, ErrDealNotFound
+		}
+		return storagemarket.StorageDealUnknown, false, fmt.Errorf("getting deal info: %s", err)
+	}
+	md, err := m.api.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
+	if err != nil {
+		return storagemarket.StorageDealUnknown, false, fmt.Errorf("get storage state: %s", err)
+	}
+	return di.State, md.State.SlashEpoch != -1, nil
 }
 
 // Watch returns a channel with state changes of indicated proposals
@@ -186,7 +220,7 @@ func pushNewChanges(ctx context.Context, client *apistruct.FullNodeStruct, currS
 				StateID:       dinfo.State,
 				StateName:     storagemarket.DealStates[dinfo.State],
 				Miner:         dinfo.Provider.String(),
-				PieceRef:      dinfo.PieceRef,
+				PieceCID:      dinfo.PieceCID,
 				Size:          dinfo.Size,
 				PricePerEpoch: dinfo.PricePerEpoch.Uint64(),
 				Duration:      dinfo.Duration,

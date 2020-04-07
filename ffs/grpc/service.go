@@ -100,7 +100,6 @@ func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply,
 	for i, p := range info.Cold.Filecoin.Proposals {
 		reply.Cold.Filecoin.Proposals[i] = &pb.ShowReply_FilStorage{
 			ProposalCid:     p.ProposalCid.String(),
-			Active:          p.Active,
 			Duration:        p.Duration,
 			ActivationEpoch: int64(p.ActivationEpoch),
 		}

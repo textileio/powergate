@@ -25,7 +25,7 @@ type DealInfo struct {
 	StateName   string
 	Miner       string
 
-	PieceRef []byte
+	PieceCID cid.Cid
 	Size     uint64
 
 	PricePerEpoch uint64

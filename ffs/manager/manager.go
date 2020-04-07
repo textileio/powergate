@@ -67,9 +67,9 @@ func (m *Manager) Create(ctx context.Context) (ffs.ApiID, string, error) {
 			Cold: ffs.ColdConfig{
 				Enabled: true,
 				Filecoin: ffs.FilConfig{
-					RepFactor:    1,
-					DealDuration: 1000,
-					Blacklist:    nil,
+					RepFactor:      1,
+					DealDuration:   1000,
+					ExcludedMiners: nil,
 				},
 			},
 		}

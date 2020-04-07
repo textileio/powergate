@@ -43,6 +43,29 @@ func (ci *CoreIpfs) Put(ctx context.Context, b blocks.Block) error {
 	return nil
 }
 
+// Remove removes a Cid from the Hot Storage.
+func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
+	if err := ci.ipfs.Pin().Rm(ctx, path.IpfsPath(c), options.Pin.RmRecursive(true)); err != nil {
+		return fmt.Errorf("unpinning cid from ipfs node: %s", err)
+	}
+	return nil
+}
+
+// IsStored return if a particular Cid is stored.
+func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
+	ci.ipfs.Block()
+	pins, err := ci.ipfs.Pin().Ls(ctx)
+	if err != nil {
+		return false, fmt.Errorf("getting pins from IPFS: %s", err)
+	}
+	for _, p := range pins {
+		if p.Path().Cid() == c {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // Add adds an io.Reader data as file in the IPFS node.
 func (ci *CoreIpfs) Add(ctx context.Context, r io.Reader) (cid.Cid, error) {
 	path, err := ci.ipfs.Unixfs().Add(ctx, ipfsfiles.NewReaderFile(r), options.Unixfs.Pin(false))

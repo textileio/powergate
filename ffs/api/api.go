@@ -22,7 +22,7 @@ var (
 var (
 	// ErrMustOverrideConfig returned when trying to push config for storing a Cid
 	// without the override flag.
-	ErrMustOverrideConfig = errors.New("cid already pinned")
+	ErrMustOverrideConfig = errors.New("cid already pinned, consider using override flag")
 	// ErrNotStored returned Store's items doesn't exist.
 	ErrNotStored = errors.New("cid isn't stored")
 )

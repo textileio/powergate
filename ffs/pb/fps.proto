@@ -82,9 +82,8 @@ message ShowReply {
 
    message FilStorage {
       string proposalCid = 1;
-      bool active = 2;
-      int64 duration = 3;
-      int64 activationEpoch = 4;
+      int64 duration = 2;
+      int64 activationEpoch = 3;
    }
 }
 

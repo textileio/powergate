@@ -41,7 +41,7 @@ func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams
 			EpochPrice: dealConfig.GetEpochPrice(),
 		}
 	}
-	dcid, sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), r, dealConfigs, storeParams.GetDuration())
+	dcid, sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), r, dealConfigs, storeParams.GetDuration(), false)
 	if err != nil {
 		ch <- storeResult{Err: err}
 		return
@@ -136,7 +136,7 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 			StateID:       update.StateID,
 			StateName:     update.StateName,
 			Miner:         update.Miner,
-			PieceRef:      update.PieceRef,
+			PieceCID:      update.PieceCID.Bytes(),
 			Size:          update.Size,
 			PricePerEpoch: update.PricePerEpoch,
 			Duration:      update.Duration,
@@ -153,7 +153,7 @@ func (s *Service) Retrieve(req *pb.RetrieveRequest, srv pb.API_RetrieveServer) e
 		return err
 	}
 
-	reader, err := s.Module.Retrieve(srv.Context(), req.GetAddress(), cid)
+	reader, err := s.Module.Retrieve(srv.Context(), req.GetAddress(), cid, false)
 	if err != nil {
 		return err
 	}

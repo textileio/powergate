@@ -38,14 +38,14 @@ func TestStore(t *testing.T) {
 			client, _, _ := tests.CreateLocalDevnet(t, nm)
 			m, err := New(client, WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
-			_, err = storeMultiMiner(m, client, nm, randomBytes(1600))
+			_, err = storeMultiMiner(m, client, nm, randomBytes(600))
 			checkErr(t, err)
 		})
 	}
 }
 func TestRetrieve(t *testing.T) {
 	numMiners := []int{1} // go-fil-markets: doesn't support remembering more than 1 miner
-	data := randomBytes(1600)
+	data := randomBytes(600)
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			client, addr, _ := tests.CreateLocalDevnet(t, nm)
@@ -57,7 +57,7 @@ func TestRetrieve(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 			defer cancel()
 
-			r, err := m.Retrieve(ctx, addr.String(), dcid)
+			r, err := m.Retrieve(ctx, addr.String(), dcid, false)
 			checkErr(t, err)
 			defer r.Close()
 			rdata, err := ioutil.ReadAll(r)
@@ -90,9 +90,9 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 			EpochPrice: 1000000,
 		}
 	}
-	dcid, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(data), cfgs, 1000)
+	dcid, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(data), cfgs, 1000, false)
 	if err != nil {
-		return cid.Undef, fmt.Errorf("error when calling Store()")
+		return cid.Undef, fmt.Errorf("error when calling Store(): %s", err)
 	}
 	if !dcid.Defined() {
 		return cid.Undef, fmt.Errorf("data cid is undefined")
@@ -108,7 +108,6 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 		return cid.Undef, fmt.Errorf("some deal cids are missing, got %d, expected %d", len(srs), len(cfgs))
 	}
 	if err := waitForDealComplete(client, pcids); err != nil {
-		//time.Sleep(time.Hour)
 		return cid.Undef, fmt.Errorf("error waiting for deal to complete: %s", err)
 	}
 	return dcid, nil

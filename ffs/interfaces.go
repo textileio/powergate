@@ -6,8 +6,8 @@ import (
 	"io"
 
 	blocks "github.com/ipfs/go-block-format"
+	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
-	"github.com/ipld/go-car"
 )
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
@@ -54,9 +54,11 @@ type Scheduler interface {
 // data or Cids.
 type HotStorage interface {
 	Add(context.Context, io.Reader) (cid.Cid, error)
+	Remove(context.Context, cid.Cid) error
 	Get(context.Context, cid.Cid) (io.Reader, error)
 	Pin(context.Context, cid.Cid) (int, error)
 	Put(context.Context, blocks.Block) error
+	IsStored(context.Context, cid.Cid) (bool, error)
 }
 
 // ColdStorage is a slow datastorage layer for storing Cids.
@@ -65,6 +67,7 @@ type ColdStorage interface {
 	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
 
 	EnsureRenewals(context.Context, cid.Cid, FilInfo, string, FilConfig) (FilInfo, error)
+	IsFilDealActive(context.Context, cid.Cid) (bool, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a
@@ -76,9 +79,9 @@ type MinerSelector interface {
 // MinerSelectorFilter establishes filters that should be considered when
 // returning miners.
 type MinerSelectorFilter struct {
-	// Blacklist contains miner names that should not be considered in
-	// returned results. An empty list means no blacklisting.
-	Blacklist []string
+	// ExcludedMiners contains miner names that should not be considered in
+	// returned results. An empty list means no exclusions.
+	ExcludedMiners []string
 	// CountryCodes contains long-ISO country names that should be
 	// considered in selected miners. An empty list means no filtering.
 	CountryCodes []string

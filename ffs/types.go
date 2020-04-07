@@ -116,11 +116,11 @@ func (c CidConfig) WithColdFilCountryCodes(countryCodes []string) CidConfig {
 	return c
 }
 
-// WithColdFilBlacklist defines a list of miner addresses which won't be selected for
+// WithColdFilExcludedMiners defines a list of miner addresses which won't be selected for
 // making deals, no matter if they comply to other filters in the configuration.
-func (c CidConfig) WithColdFilBlacklist(blacklist []string) CidConfig {
-	c.Cold.Filecoin.Blacklist = make([]string, len(blacklist))
-	copy(c.Cold.Filecoin.Blacklist, blacklist)
+func (c CidConfig) WithColdFilExcludedMiners(miners []string) CidConfig {
+	c.Cold.Filecoin.ExcludedMiners = make([]string, len(miners))
+	copy(c.Cold.Filecoin.ExcludedMiners, miners)
 	return c
 }
 
@@ -246,11 +246,11 @@ func (cc ColdConfig) Validate() error {
 // FilConfig is the desired state of a Cid in the
 // Filecoin network.
 type FilConfig struct {
-	RepFactor    int
-	DealDuration int64
-	Blacklist    []string
-	CountryCodes []string
-	Renew        FilRenew
+	RepFactor      int
+	DealDuration   int64
+	ExcludedMiners []string
+	CountryCodes   []string
+	Renew          FilRenew
 }
 
 // FilRenew contains renew configuration for a Cid Cold Storage deals.
@@ -300,7 +300,6 @@ type IpfsHotInfo struct {
 // ColdInfo contains information about the current storage state
 // of a Cid in the cold layer.
 type ColdInfo struct {
-	Enabled  bool
 	Filecoin FilInfo
 }
 
@@ -314,7 +313,6 @@ type FilInfo struct {
 // FilStorage contains Deal information of a storage in Filecoin.
 type FilStorage struct {
 	ProposalCid     cid.Cid
-	Active          bool
 	Renewed         bool
 	Duration        int64
 	ActivationEpoch int64

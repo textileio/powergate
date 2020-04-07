@@ -227,12 +227,10 @@ func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, erro
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting push config action data from store: %s", err)
 	}
-	ci, err := s.cis.Get(a.Config.Cid)
+
+	ci, err := s.getRefreshedInfo(ctx, a.Config.Cid)
 	if err != nil {
-		if err != ErrNotFound {
-			return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
-		}
-		ci = ffs.CidInfo{Cid: a.Config.Cid} // Default value has both storages disabled
+		return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
 	}
 
 	hot, err := s.executeHotStorage(ctx, ci, a.Config.Hot, a.WalletAddr)
@@ -255,14 +253,22 @@ func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, erro
 }
 
 func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string) (ffs.HotInfo, error) {
+	if cfg.Enabled == curr.Hot.Enabled {
+		return curr.Hot, nil
+	}
+
 	if !cfg.Enabled {
+		if err := s.hs.Remove(ctx, curr.Cid); err != nil {
+			return ffs.HotInfo{}, fmt.Errorf("removing from hot storage: %s", err)
+		}
 		return ffs.HotInfo{Enabled: false}, nil
 	}
+
 	hotPinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Ipfs.AddTimeout))
 	defer cancel()
 	size, err := s.hs.Pin(hotPinCtx, curr.Cid)
 	if err != nil {
-		if !cfg.AllowUnfreeze || !curr.Cold.Enabled {
+		if !cfg.AllowUnfreeze || len(curr.Cold.Filecoin.Proposals) == 0 {
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
 		bs := &hotStorageBlockstore{ctx: ctx, put: s.hs.Put}
@@ -284,28 +290,86 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 	}, nil
 }
 
+func (s *Scheduler) getRefreshedInfo(ctx context.Context, c cid.Cid) (ffs.CidInfo, error) {
+	var err error
+	ci, err := s.cis.Get(c)
+	if err != nil {
+		if err != ErrNotFound {
+			return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
+		}
+		return ffs.CidInfo{Cid: c}, nil // Default value has both storages disabled
+	}
+
+	ci.Hot, err = s.getRefreshedHotInfo(ctx, c, ci.Hot)
+	if err != nil {
+		return ffs.CidInfo{}, fmt.Errorf("getting refreshed hot info: %s", err)
+	}
+
+	ci.Cold, err = s.getRefreshedColdInfo(ctx, c, ci.Cold)
+	if err != nil {
+		return ffs.CidInfo{}, fmt.Errorf("getting refreshed cold info: %s", err)
+	}
+
+	return ci, nil
+}
+
+func (s *Scheduler) getRefreshedHotInfo(ctx context.Context, c cid.Cid, curr ffs.HotInfo) (ffs.HotInfo, error) {
+	var err error
+	curr.Enabled, err = s.hs.IsStored(ctx, c)
+	if err != nil {
+		return ffs.HotInfo{}, err
+	}
+	return curr, nil
+}
+
+func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, c cid.Cid, curr ffs.ColdInfo) (ffs.ColdInfo, error) {
+	activeDeals := make([]ffs.FilStorage, 0, len(curr.Filecoin.Proposals))
+	for _, fp := range curr.Filecoin.Proposals {
+		active, err := s.cs.IsFilDealActive(ctx, fp.ProposalCid)
+		if err != nil {
+			return ffs.ColdInfo{}, fmt.Errorf("getting deal state of proposal %s: %s", fp.ProposalCid, err)
+		}
+		if active {
+			activeDeals = append(activeDeals, fp)
+		}
+	}
+	curr.Filecoin.Proposals = activeDeals
+	return curr, nil
+}
+
 func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, waddr string) (ffs.ColdInfo, error) {
 	if !cfg.Enabled {
-		return ffs.ColdInfo{Enabled: false}, nil
-	}
-	if curr.Cold.Enabled {
-		// If this Cid is already stored in the Cold layer,
-		// avoid doing any work. This will change when supporting
-		// changing *existing* configs is implemented. This feature
-		// isn't trivial since ColdStorage state isn't reversable,
-		// since Filecoin deals can't be undone; only a particular set
-		// of ColdStorage changes could be supported.
-		// ToDo: reconsider when impl config changes.
 		return curr.Cold, nil
 	}
-	finfo, err := s.cs.Store(ctx, curr.Cid, waddr, cfg.Filecoin)
+
+	if isCurrentRepFactorEnough(cfg.Filecoin.RepFactor, curr) {
+		log.Infof("replication well enough, avoid making new deals")
+		return curr.Cold, nil
+
+	}
+
+	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
+	fi, err := s.cs.Store(ctx, curr.Cid, waddr, deltaFilConfig)
 	if err != nil {
 		return ffs.ColdInfo{}, err
 	}
 	return ffs.ColdInfo{
-		Enabled:  true,
-		Filecoin: finfo,
+		Filecoin: fi,
 	}, nil
+}
+
+func isCurrentRepFactorEnough(desiredRepFactor int, curr ffs.CidInfo) bool {
+	return desiredRepFactor-len(curr.Cold.Filecoin.Proposals) <= 0
+
+}
+
+func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {
+	res := cfg.Filecoin
+	res.RepFactor = cfg.Filecoin.RepFactor - len(curr.Proposals)
+	for _, p := range curr.Proposals {
+		res.ExcludedMiners = append(res.ExcludedMiners, p.Miner)
+	}
+	return res
 }
 
 func (s *Scheduler) mutateJobStatus(j ffs.Job, status ffs.JobStatus) error {

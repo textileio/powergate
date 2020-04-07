@@ -134,7 +134,9 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating repo folder: %s", err)
 	}
 
-	ds, err := badger.NewDatastore(path, &badger.DefaultOptions)
+	opts := &badger.DefaultOptions
+	opts.NumVersionsToKeep = 0
+	ds, err := badger.NewDatastore(path, opts)
 	if err != nil {
 		return nil, fmt.Errorf("opening datastore on repo: %s", err)
 	}
