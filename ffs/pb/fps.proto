@@ -6,19 +6,156 @@ option java_package = "io.textile.filecoin.ffs.pb";
 option java_outer_classname = "Filecoinffs";
 option objc_class_prefix = "TTE";
 
-message AddCidRequest {
-    string cid = 1;
+// model messages
+// ------------------------------------
+
+message IpfsConfig {
+   int64 addTimeout = 1;
 }
 
-message AddCidReply {
+message HotConfig {
+	bool enabled = 1;
+	bool allowUnfreeze = 2;
+	IpfsConfig ipfs = 3;
 }
 
-message AddFileRequest {
-   bytes chunk = 1;
+message FilRenew {
+	bool enabled = 1;
+   int64 threshold = 2;
 }
 
-message AddFileReply {
+message FilConfig {
+	int64 repFactor = 1;
+	int64 dealDuration = 2;
+	repeated string excludedMiners = 3;
+	repeated string countryCodes = 4;
+	FilRenew renew = 5;
+}
+
+message ColdConfig {
+	bool enabled = 1;
+	FilConfig filecoin = 2;
+}
+
+message CidConfig {
    string cid = 1;
+   HotConfig hot = 2;
+	ColdConfig cold = 3;
+}
+
+message DefaultCidConfig {
+	HotConfig hot = 1;
+	ColdConfig cold = 2;
+}
+
+message IpfsHotInfo {
+   int64 created = 1;
+}
+
+message HotInfo {
+   bool enabled = 1;
+   int64 size = 2;
+   IpfsHotInfo ipfs = 3;
+}
+
+message FilStorage {
+   string proposalCid = 1;
+   bool renewed = 2;
+   int64 duration = 3;
+   int64 activationEpoch = 4;
+   string miner = 5;
+}
+
+message FilInfo {
+   string dataCid = 1;
+   repeated FilStorage proposals = 2;
+}
+
+message ColdInfo {
+   FilInfo filecoin = 1;
+}
+
+message CidInfo {
+	string jobID = 1;
+	string cid = 2;
+	int64 created = 3;
+	HotInfo hot = 4; 
+	ColdInfo cold = 5;
+}
+
+message WalletInfo {
+   string address = 1;
+   uint64 balance = 2;
+}
+
+message InstanceInfo {
+	string ID = 1;
+	DefaultCidConfig defaultCidConfig = 2;
+	WalletInfo wallet = 3;
+	repeated string pins = 4;
+}
+
+// request/reply messages
+// -------------------------------------
+
+message CreateRequest {
+}
+
+message CreateReply {
+    string id = 1;
+    string address = 2;
+}
+
+message IDRequest {
+}
+
+message IDReply {
+   string ID = 1;
+}
+
+message WalletAddrRequest {
+}
+
+message WalletAddrReply {
+   string addr = 1;
+}
+
+message GetDefaultCidConfigRequest {
+   string cid = 1;
+}
+
+message GetDefaultCidConfigReply {
+   CidConfig config = 1;
+}
+
+message GetCidConfigRequest {
+   string cid = 1;
+}
+
+message GetCidConfigReply {
+   CidConfig config = 1;
+}
+
+message SetDefaultCidConfigRequest {
+   DefaultCidConfig config = 1;
+}
+
+message SetDefaultCidConfigReply {
+}
+
+message ShowRequest {
+   string cid = 1;
+}
+
+message ShowReply {
+   CidInfo cidInfo = 1;
+}
+
+message InfoRequest {
+}
+
+message InfoReply {
+   InstanceInfo info = 1;
 }
 
 message GetRequest {
@@ -29,69 +166,37 @@ message GetReply {
     bytes chunk = 1;
 }
 
-message CreateRequest {
-
-}
-
-message CreateReply {
-    string id = 1;
-    string address = 2;
-}
-
-message ShowRequest {
+message AddCidRequest {
    string cid = 1;
 }
 
-message InfoRequest {
+message AddCidReply {
 }
 
-message InfoReply {
-   string id = 1;
-   WalletInfo wallet = 2;
-   repeated string pins = 3;
+message AddFileRequest {
+  bytes chunk = 1;
 }
 
-message WalletInfo {
-   string address = 1;
-   uint64 balance = 2;
+message AddFileReply {
+  string cid = 1;
 }
 
-message ShowReply {
-   string cid = 1;
-   int64 created = 2;
-   HotInfo hot = 3;
-   ColdInfo cold = 4;
-   
-   message HotInfo {
-      int64 size = 1;
-      IpfsHotInfo ipfs = 2;
-   }
 
-   message IpfsHotInfo {
-      int64 created = 1;
-   }
-
-   message ColdInfo {
-      FilInfo filecoin = 1;
-   }
-
-   message FilInfo {
-      string dataCid = 1;
-      repeated FilStorage proposals = 2;
-   }
-
-   message FilStorage {
-      string proposalCid = 1;
-      int64 duration = 2;
-      int64 activationEpoch = 3;
-   }
-}
 
 service API {
-    rpc AddCid(AddCidRequest) returns (AddCidReply) {}
-    rpc AddFile(stream AddFileRequest) returns (AddFileReply) {}
-    rpc Get(GetRequest) returns (stream GetReply) {}
-    rpc Create(CreateRequest) returns (CreateReply) {}
-    rpc Info(InfoRequest) returns (InfoReply) {}
-    rpc Show(ShowRequest) returns (ShowReply) {}
+   rpc Create(CreateRequest) returns (CreateReply) {}
+   rpc ID(IDRequest) returns (IDReply) {}
+   rpc WalletAddr(WalletAddrRequest) returns (WalletAddrReply) {}
+   rpc GetDefaultCidConfig(GetDefaultCidConfigRequest) returns (GetDefaultCidConfigReply) {}
+   rpc GetCidConfig(GetCidConfigRequest) returns (GetCidConfigReply) {}
+   rpc SetDefaultCidConfig(SetDefaultCidConfigRequest) returns (SetDefaultCidConfigReply) {}
+   rpc Show(ShowRequest) returns (ShowReply) {}
+   rpc Info(InfoRequest) returns (InfoReply) {}
+   // Watch
+   // Unwatch
+   // PushConfig
+   rpc Get(GetRequest) returns (stream GetReply) {}
+   // Close
+   rpc AddCid(AddCidRequest) returns (AddCidReply) {}
+   rpc AddFile(stream AddFileRequest) returns (AddFileReply) {}
 }
