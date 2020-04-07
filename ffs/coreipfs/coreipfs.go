@@ -88,8 +88,8 @@ func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return file, nil
 }
 
-// Pin pins as cid in the IPFS node
-func (ci *CoreIpfs) Pin(ctx context.Context, c cid.Cid) (int, error) {
+// Store stores a Cid in the HotStorage. At the IPFS level, it also mark the Cid as pinned.
+func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
 	pth := path.IpfsPath(c)
 	if err := ci.ipfs.Pin().Add(ctx, pth, options.Pin.Recursive(true)); err != nil {
 		return 0, fmt.Errorf("pinning cid %s: %s", c, err)
