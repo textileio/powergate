@@ -65,5 +65,5 @@ require (
 	github.com/textileio/lotus-client v0.0.0-20200325200032-ce551e33eec6
 	go.opencensus.io v0.22.3
 	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
-	google.golang.org/grpc v1.28.0
+	google.golang.org/grpc v1.28.1
 )
