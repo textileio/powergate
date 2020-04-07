@@ -43,7 +43,7 @@ require (
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/libp2p/go-libp2p v0.6.0
-	github.com/libp2p/go-libp2p-core v0.5.0
+	github.com/libp2p/go-libp2p-core v0.5.1
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0
