@@ -31,11 +31,11 @@ services:
       - textile-fc-lotus:/root/lotus
   
   lotus:
-    image: textile/lotus:latest
+    image: textile/lotus:custom
     volumes:
       - textile-fc-lotus:/data
     ports:
-      - 1234:1234
+      - 1234:1235
       - 5678:5678
     restart: unless-stopped
 
