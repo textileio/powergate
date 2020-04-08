@@ -202,6 +202,11 @@ func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return reader, nil
 }
 
+func (f *ffs) Close(ctx context.Context) error {
+	_, err := f.client.Close(ctx, &pb.CloseRequest{})
+	return err
+}
+
 func (f *ffs) AddCid(ctx context.Context, c cid.Cid) error {
 	_, err := f.client.AddCid(ctx, &pb.AddCidRequest{
 		Cid: c.String(),

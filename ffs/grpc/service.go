@@ -396,6 +396,18 @@ func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
 	}
 }
 
+// Close calls API.Close
+func (s *Service) Close(ctx context.Context, req *pb.CloseRequest) (*pb.CloseReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := i.Close(); err != nil {
+		return nil, err
+	}
+	return &pb.CloseReply{}, nil
+}
+
 // AddCid adds a cid to an Api.
 func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCidReply, error) {
 	i, err := s.getInstanceByToken(ctx)
