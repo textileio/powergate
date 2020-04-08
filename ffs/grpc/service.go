@@ -40,14 +40,14 @@ func NewService(m *manager.Manager, hot ffs.HotStorage) *Service {
 
 // Create creates a new Api.
 func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateReply, error) {
-	id, addr, err := s.m.Create(ctx)
+	id, token, err := s.m.Create(ctx)
 	if err != nil {
 		log.Errorf("creating instance: %s", err)
 		return nil, err
 	}
 	return &pb.CreateReply{
-		Id:      id.String(),
-		Address: addr,
+		ID:    id.String(),
+		Token: token,
 	}, nil
 }
 

@@ -26,7 +26,7 @@ func (f *ffs) Create(ctx context.Context) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	return r.GetId(), r.GetAddress(), nil
+	return r.ID, r.Token, nil
 }
 
 func (f *ffs) ID(ctx context.Context) (ff.ApiID, error) {

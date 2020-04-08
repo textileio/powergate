@@ -117,8 +117,8 @@ message CreateRequest {
 }
 
 message CreateReply {
-    string id = 1;
-    string address = 2;
+    string ID = 1;
+    string token = 2;
 }
 
 message IDRequest {
