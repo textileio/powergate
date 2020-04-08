@@ -36,7 +36,7 @@ func New() (*FilecoinHost, error) {
 		return nil, err
 	}
 
-	dht, err := dht.New(ctx, h, dhtopts.Protocols("/lotus/kad/1.0.0"))
+	dht, err := dht.New(ctx, h, dhtopts.Protocols("/fil/kad/interop"))
 	if err != nil {
 		return nil, err
 	}
