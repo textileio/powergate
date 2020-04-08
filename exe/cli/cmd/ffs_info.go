@@ -38,15 +38,15 @@ var ffsInfoCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving instance info...")
 		s.Start()
-		info, err := fcClient.Ffs.Info(ctx)
+		resp, err := fcClient.Ffs.Info(ctx)
 		checkErr(err)
 		s.Stop()
-		Message("Information from instance ID %s:", aurora.White(info.Id).Bold())
-		Message("Wallet %s has balance %d", aurora.White(info.Wallet.Address), aurora.Green(info.Wallet.Balance))
+		Message("Information from instance ID %s:", aurora.White(resp.Info.ID).Bold())
+		Message("Wallet %s has balance %d", aurora.White(resp.Info.Wallet.Address), aurora.Green(resp.Info.Wallet.Balance))
 
 		Message("Pinned cids:")
-		data := make([][]string, len(info.Pins))
-		for i, cid := range info.Pins {
+		data := make([][]string, len(resp.Info.Pins))
+		for i, cid := range resp.Info.Pins {
 			data[i] = []string{cid}
 		}
 		RenderTable(os.Stdout, []string{"cid"}, data)

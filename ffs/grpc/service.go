@@ -440,7 +440,7 @@ func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	return i, nil
 }
 
-func receiveFile(srv pb.API_AddFileServer, writer *io.PipeWriter) {
+func receiveFile(srv pb.API_AddToHotServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {
