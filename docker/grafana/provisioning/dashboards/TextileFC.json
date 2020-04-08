@@ -2,6 +2,7 @@
   "annotations": {
     "list": [
       {
+        "$$hashKey": "object:34",
         "builtIn": 1,
         "datasource": "-- Grafana --",
         "enable": true,
@@ -73,7 +74,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -161,7 +161,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -184,7 +183,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "container_memory_working_set_bytes{name=\"docker_powergate_1\"}",
+          "expr": "container_memory_usage_bytes{name=\"docker_powergate_1\"}",
           "interval": "10s",
           "legendFormat": "powergate",
           "refId": "A"
@@ -246,7 +245,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -334,7 +332,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -418,7 +415,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -490,30 +486,36 @@
             "last"
           ],
           "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
             "mappings": [],
             "max": 1,
             "min": 0,
-            "thresholds": [
-              {
-                "color": "yellow",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "yellow",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            },
             "title": "",
             "unit": "percentunit"
           },
-          "override": {},
+          "overrides": [],
           "values": false
         },
         "orientation": "auto",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "6.5.3",
+      "pluginVersion": "6.7.2",
       "targets": [
         {
           "expr": "textilefc_indexminer_onchain_refresh_progress",
@@ -567,7 +569,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -651,7 +652,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.4.4",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -737,7 +737,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -795,30 +794,36 @@
             "last"
           ],
           "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
             "mappings": [],
             "max": 1,
             "min": 0,
-            "thresholds": [
-              {
-                "color": "yellow",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "yellow",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            },
             "title": "",
             "unit": "percentunit"
           },
-          "override": {},
+          "overrides": [],
           "values": false
         },
         "orientation": "auto",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "6.5.3",
+      "pluginVersion": "6.7.2",
       "targets": [
         {
           "expr": "textilefc_indexminer_meta_refresh_progress",
@@ -849,6 +854,9 @@
             "lastNotNull"
           ],
           "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
             "mappings": [
               {
                 "id": 0,
@@ -861,20 +869,24 @@
             "max": 100,
             "min": 0,
             "nullValueMode": "connected",
-            "thresholds": [
-              {
-                "color": "rgb(255, 255, 255)",
-                "value": null
-              }
-            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "rgb(255, 255, 255)",
+                  "value": null
+                }
+              ]
+            },
             "unit": "none"
           },
-          "override": {},
+          "overrides": [],
           "values": false
         },
-        "orientation": "vertical"
+        "orientation": "vertical",
+        "showUnfilled": true
       },
-      "pluginVersion": "6.5.3",
+      "pluginVersion": "6.7.2",
       "targets": [
         {
           "expr": "textilefc_indexminer_meta_ping_count",
@@ -916,30 +928,36 @@
             "last"
           ],
           "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
             "mappings": [],
             "max": 1,
             "min": 0,
-            "thresholds": [
-              {
-                "color": "yellow",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "yellow",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            },
             "title": "",
             "unit": "percentunit"
           },
-          "override": {},
+          "overrides": [],
           "values": false
         },
         "orientation": "auto",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "6.5.3",
+      "pluginVersion": "6.7.2",
       "targets": [
         {
           "expr": "textilefc_askindex_fullrefresh_progress",
@@ -992,7 +1010,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -1052,23 +1069,30 @@
             "last"
           ],
           "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
             "mappings": [],
             "max": 100,
             "min": 0,
-            "thresholds": [
-              {
-                "color": "rgb(255, 255, 255)",
-                "value": null
-              }
-            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "rgb(255, 255, 255)",
+                  "value": null
+                }
+              ]
+            },
             "title": ""
           },
-          "override": {},
+          "overrides": [],
           "values": false
         },
-        "orientation": "vertical"
+        "orientation": "vertical",
+        "showUnfilled": true
       },
-      "pluginVersion": "6.5.3",
+      "pluginVersion": "6.7.2",
       "targets": [
         {
           "expr": "textilefc_askindex_queryask_result",
@@ -1112,6 +1136,9 @@
             "last"
           ],
           "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
             "mappings": [
               {
                 "id": 0,
@@ -1124,26 +1151,29 @@
             "max": 1,
             "min": 0,
             "nullValueMode": "connected",
-            "thresholds": [
-              {
-                "color": "yellow",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "yellow",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            },
             "unit": "percentunit"
           },
-          "override": {},
+          "overrides": [],
           "values": false
         },
         "orientation": "horizontal",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "6.5.3",
+      "pluginVersion": "6.7.2",
       "targets": [
         {
           "expr": "textilefc_indexslashing_refresh_progress",
@@ -1196,7 +1226,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.5.3",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -1241,14 +1270,14 @@
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 21,
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1268,5 +1297,8 @@
   "timezone": "",
   "title": "Textile Filecoin",
   "uid": "p4TiQMYWk",
+  "variables": {
+    "list": []
+  },
   "version": 1
 }
