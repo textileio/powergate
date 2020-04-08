@@ -207,18 +207,8 @@ func (f *ffs) Close(ctx context.Context) error {
 	return err
 }
 
-func (f *ffs) AddCid(ctx context.Context, c cid.Cid) error {
-	_, err := f.client.AddCid(ctx, &pb.AddCidRequest{
-		Cid: c.String(),
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (f *ffs) AddFile(ctx context.Context, data io.Reader) (*cid.Cid, error) {
-	stream, err := f.client.AddFile(ctx)
+func (f *ffs) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
+	stream, err := f.client.AddToHot(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +219,7 @@ func (f *ffs) AddFile(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		sendErr := stream.Send(&pb.AddFileRequest{Chunk: buffer[:bytesRead]})
+		sendErr := stream.Send(&pb.AddToHotRequest{Chunk: buffer[:bytesRead]})
 		if sendErr != nil {
 			if sendErr == io.EOF {
 				var noOp interface{}

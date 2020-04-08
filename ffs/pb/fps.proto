@@ -205,18 +205,11 @@ message CloseRequest {
 message CloseReply {
 }
 
-message AddCidRequest {
-   string cid = 1;
-}
-
-message AddCidReply {
-}
-
-message AddFileRequest {
+message AddToHotRequest {
   bytes chunk = 1;
 }
 
-message AddFileReply {
+message AddToHotReply {
   string cid = 1;
 }
 
@@ -235,7 +228,5 @@ service API {
    rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
    rpc Get(GetRequest) returns (stream GetReply) {}
    rpc Close(CloseRequest) returns (CloseReply) {}
-   // Remove these (maybe not AddFile, it provides a way to add data to ipfs then add to ffs)
-   rpc AddCid(AddCidRequest) returns (AddCidReply) {}
-   rpc AddFile(stream AddFileRequest) returns (AddFileReply) {}
+   rpc AddToHot(stream AddToHotRequest) returns (AddToHotReply) {}
 }

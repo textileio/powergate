@@ -408,41 +408,10 @@ func (s *Service) Close(ctx context.Context, req *pb.CloseRequest) (*pb.CloseRep
 	return &pb.CloseReply{}, nil
 }
 
-// AddCid adds a cid to an Api.
-func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCidReply, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c, err := cid.Decode(req.GetCid())
-	if err != nil {
-		return nil, err
-	}
-	log.Infof("adding cid %s", c)
-	jid, err := i.PushConfig(c)
-	if err != nil {
-		return nil, err
-	}
-
-	ch, err := i.Watch(jid)
-	if err != nil {
-		return nil, fmt.Errorf("watching add cid created job: %s", err)
-	}
-	defer i.Unwatch(ch)
-	for job := range ch {
-		if job.Status == ffs.Success {
-			break
-		} else if job.Status == ffs.Cancelled || job.Status == ffs.Failed {
-			return nil, fmt.Errorf("error adding cid: %s", job.ErrCause)
-		}
-	}
-	return &pb.AddCidReply{}, nil
-}
-
-// AddFile stores data in the Hot Storage and saves it in an Api.
-func (s *Service) AddFile(srv pb.API_AddFileServer) error {
-	i, err := s.getInstanceByToken(srv.Context())
-	if err != nil {
+// AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig
+func (s *Service) AddToHot(srv pb.API_AddToHotServer) error {
+	// check that an API instance exists so not just anyone can add data to the hot layer
+	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
 		return err
 	}
 
@@ -456,24 +425,7 @@ func (s *Service) AddFile(srv pb.API_AddFileServer) error {
 		return fmt.Errorf("adding data to hot storage: %s", err)
 	}
 
-	jid, err := i.PushConfig(c)
-	if err != nil {
-		return err
-	}
-	ch, err := i.Watch(jid)
-	if err != nil {
-		return fmt.Errorf("watching add file created job: %s", err)
-	}
-	defer i.Unwatch(ch)
-	for job := range ch {
-		if job.Status == ffs.Success {
-			break
-		} else if job.Status == ffs.Failed {
-			return fmt.Errorf("error adding cid: %s", job.ErrCause)
-		}
-	}
-
-	return srv.SendAndClose(&pb.AddFileReply{Cid: c.String()})
+	return srv.SendAndClose(&pb.AddToHotReply{Cid: c.String()})
 }
 
 func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
