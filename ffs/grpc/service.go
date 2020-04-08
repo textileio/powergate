@@ -282,6 +282,44 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 	return reply, nil
 }
 
+// Watch calls API.Watch
+func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
+	i, err := s.getInstanceByToken(srv.Context())
+	if err != nil {
+		return err
+	}
+
+	jids := make([]ffs.JobID, len(req.Jids))
+	for i, jid := range req.Jids {
+		jids[i] = ffs.JobID(jid)
+	}
+
+	updates, err := i.Watch(jids...)
+	defer i.Unwatch(updates)
+
+	for {
+		select {
+		case <-srv.Context().Done():
+			return nil
+		case job, ok := <-updates:
+			if !ok {
+				return nil // do we want to return an error here? nil will result as EOF on the client i think
+			}
+			reply := &pb.WatchReply{
+				Job: &pb.Job{
+					ID:         job.ID.String(),
+					InstanceID: job.InstanceID.String(),
+					Status:     pb.JobStatus(job.Status),
+					ErrCause:   job.ErrCause,
+				},
+			}
+			if err := srv.Send(reply); err != nil {
+				return err
+			}
+		}
+	}
+}
+
 // PushConfig applies the provided cid config
 func (s *Service) PushConfig(ctx context.Context, req *pb.PushConfigRequest) (*pb.PushConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)

@@ -15,6 +15,12 @@ type ffs struct {
 	client pb.APIClient
 }
 
+// JobEvent represents an event for Watching a job
+type JobEvent struct {
+	Job ff.Job
+	Err error
+}
+
 func (f *ffs) Create(ctx context.Context) (string, string, error) {
 	r, err := f.client.Create(ctx, &pb.CreateRequest{})
 	if err != nil {
@@ -84,6 +90,40 @@ func (f *ffs) Show(ctx context.Context, c cid.Cid) (*pb.ShowReply, error) {
 
 func (f *ffs) Info(ctx context.Context) (*pb.InfoReply, error) {
 	return f.client.Info(ctx, &pb.InfoRequest{})
+}
+
+func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, error) {
+	updates := make(chan JobEvent)
+	jidStrings := make([]string, len(jids))
+	for i, jid := range jids {
+		jidStrings[i] = jid.String()
+	}
+	stream, err := f.client.Watch(ctx, &pb.WatchRequest{Jids: jidStrings})
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		for {
+			reply, err := stream.Recv()
+			if err == io.EOF {
+				close(updates)
+				break
+			}
+			if err != nil {
+				updates <- JobEvent{Err: err}
+				close(updates)
+				break
+			}
+			job := ff.Job{
+				ID:         ff.JobID(reply.Job.ID),
+				InstanceID: ff.ApiID(reply.Job.InstanceID),
+				Status:     ff.JobStatus(reply.Job.Status),
+				ErrCause:   reply.Job.ErrCause,
+			}
+			updates <- JobEvent{Job: job}
+		}
+	}()
+	return updates, nil
 }
 
 func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...api.PushConfigOption) (ff.JobID, error) {

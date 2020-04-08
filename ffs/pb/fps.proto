@@ -95,6 +95,21 @@ message InstanceInfo {
 	repeated string pins = 4;
 }
 
+enum JobStatus {
+   Queued = 0;
+	InProgress = 1;
+	Failed = 2;
+	Cancelled = 3;
+	Success = 4;
+}
+
+message Job {
+	string ID = 1; 
+	string instanceID = 2;
+	JobStatus status = 3;
+	string errCause = 4;
+}
+
 // request/reply messages
 // -------------------------------------
 
@@ -158,6 +173,14 @@ message InfoReply {
    InstanceInfo info = 1;
 }
 
+message WatchRequest {
+   repeated string jids = 1;
+}
+
+message WatchReply {
+   Job job = 1;
+}
+
 message PushConfigRequest {
    string cid = 1;
    CidConfig config = 2;
@@ -202,12 +225,11 @@ service API {
    rpc SetDefaultCidConfig(SetDefaultCidConfigRequest) returns (SetDefaultCidConfigReply) {}
    rpc Show(ShowRequest) returns (ShowReply) {}
    rpc Info(InfoRequest) returns (InfoReply) {}
-   // Watch
-   // Unwatch
+   rpc Watch(WatchRequest) returns (stream WatchReply) {}
    rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
    rpc Get(GetRequest) returns (stream GetReply) {}
    // Close
-   // Remove these
+   // Remove these (maybe not AddFile, it provides a way to add data to ipfs then add to ffs)
    rpc AddCid(AddCidRequest) returns (AddCidReply) {}
    rpc AddFile(stream AddFileRequest) returns (AddFileReply) {}
 }
