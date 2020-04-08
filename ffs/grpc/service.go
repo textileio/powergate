@@ -282,6 +282,52 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 	return reply, nil
 }
 
+// PushConfig applies the provided cid config
+func (s *Service) PushConfig(ctx context.Context, req *pb.PushConfigRequest) (*pb.PushConfigReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := cid.Decode(req.Cid)
+	if err != nil {
+		return nil, err
+	}
+
+	config := ffs.CidConfig{
+		Cid: c,
+		Hot: ffs.HotConfig{
+			Enabled:       req.Config.Hot.Enabled,
+			AllowUnfreeze: req.Config.Hot.AllowUnfreeze,
+			Ipfs: ffs.IpfsConfig{
+				AddTimeout: int(req.Config.Hot.Ipfs.AddTimeout),
+			},
+		},
+		Cold: ffs.ColdConfig{
+			Enabled: req.Config.Cold.Enabled,
+			Filecoin: ffs.FilConfig{
+				RepFactor:      int(req.Config.Cold.Filecoin.RepFactor),
+				DealDuration:   req.Config.Cold.Filecoin.DealDuration,
+				ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
+				CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
+				Renew: ffs.FilRenew{
+					Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
+					Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
+				},
+			},
+		},
+	}
+
+	jid, err := i.PushConfig(c, api.WithCidConfig(config), api.WithOverride(req.Override))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.PushConfigReply{
+		JobID: jid.String(),
+	}, nil
+}
+
 // Get gets the data for a stored Cid.
 func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())

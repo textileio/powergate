@@ -158,6 +158,16 @@ message InfoReply {
    InstanceInfo info = 1;
 }
 
+message PushConfigRequest {
+   string cid = 1;
+   CidConfig config = 2;
+   bool override = 3;
+}
+
+message PushConfigReply {
+   string jobID = 1;
+}
+
 message GetRequest {
     string cid = 1;
 }
@@ -194,9 +204,10 @@ service API {
    rpc Info(InfoRequest) returns (InfoReply) {}
    // Watch
    // Unwatch
-   // PushConfig
+   rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
    rpc Get(GetRequest) returns (stream GetReply) {}
    // Close
+   // Remove these
    rpc AddCid(AddCidRequest) returns (AddCidReply) {}
    rpc AddFile(stream AddFileRequest) returns (AddFileReply) {}
 }

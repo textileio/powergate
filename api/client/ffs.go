@@ -2,10 +2,12 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	cid "github.com/ipfs/go-cid"
 	ff "github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/api"
 	pb "github.com/textileio/powergate/ffs/pb"
 )
 
@@ -82,6 +84,53 @@ func (f *ffs) Show(ctx context.Context, c cid.Cid) (*pb.ShowReply, error) {
 
 func (f *ffs) Info(ctx context.Context) (*pb.InfoReply, error) {
 	return f.client.Info(ctx, &pb.InfoRequest{})
+}
+
+func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...api.PushConfigOption) (ff.JobID, error) {
+	pushConfig := api.PushConfig{}
+	for _, opt := range opts {
+		if err := opt(&pushConfig); err != nil {
+			return ff.EmptyJobID, fmt.Errorf("config option: %s", err)
+		}
+	}
+
+	// ToDo: verify this, possibly default, pushConfig does the right thing on the server
+	// and that if it is default, that the server defaults are what is used
+
+	req := &pb.PushConfigRequest{
+		Cid: c.String(),
+		Config: &pb.CidConfig{
+			Cid: pushConfig.Config.Cid.String(),
+			Hot: &pb.HotConfig{
+				Enabled:       pushConfig.Config.Hot.Enabled,
+				AllowUnfreeze: pushConfig.Config.Hot.AllowUnfreeze,
+				Ipfs: &pb.IpfsConfig{
+					AddTimeout: int64(pushConfig.Config.Hot.Ipfs.AddTimeout),
+				},
+			},
+			Cold: &pb.ColdConfig{
+				Enabled: pushConfig.Config.Cold.Enabled,
+				Filecoin: &pb.FilConfig{
+					RepFactor:      int64(pushConfig.Config.Cold.Filecoin.RepFactor),
+					DealDuration:   pushConfig.Config.Cold.Filecoin.DealDuration,
+					ExcludedMiners: pushConfig.Config.Cold.Filecoin.ExcludedMiners,
+					CountryCodes:   pushConfig.Config.Cold.Filecoin.CountryCodes,
+					Renew: &pb.FilRenew{
+						Enabled:   pushConfig.Config.Cold.Filecoin.Renew.Enabled,
+						Threshold: int64(pushConfig.Config.Cold.Filecoin.Renew.Threshold),
+					},
+				},
+			},
+		},
+		Override: pushConfig.OverrideConfig,
+	}
+
+	resp, err := f.client.PushConfig(ctx, req)
+	if err != nil {
+		return ff.EmptyJobID, err
+	}
+
+	return ff.JobID(resp.JobID), nil
 }
 
 func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
