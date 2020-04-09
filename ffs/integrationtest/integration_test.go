@@ -50,7 +50,7 @@ func TestMain(m *testing.M) {
 		os.Mkdir(tmpDir, os.ModePerm)
 	}
 
-	logging.SetAllLoggers(logging.LevelError)
+	logging.SetAllLoggers(logging.LevelWarn)
 	// logging.SetLogLevel("scheduler", "debug")
 	// logging.SetLogLevel("api", "debug")
 	// logging.SetLogLevel("jobstore", "debug")

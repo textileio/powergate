@@ -35,7 +35,7 @@ func New(ds datastore.Datastore) *CidLogger {
 }
 
 func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...interface{}) {
-	log.Infof(format, a)
+	log.Warnf(format, a...)
 	if err := cl.save(ctx, c, format, a...); err != nil {
 		log.Errorf("saving client-log to datastore: %s", err)
 	}

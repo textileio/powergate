@@ -172,6 +172,10 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, waddr string, p ffs
 func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, waddr string, fcfg ffs.FilConfig) ([]ffs.FilStorage, error) {
 	r := ipldToFileTransform(ctx, fc.dag, c)
 
+	for _, cfg := range cfgs {
+		fc.l.Log(ctx, c, "Proposing deal to miner %s with %d fil per epoch...", cfg.Miner, cfg.EpochPrice)
+	}
+
 	var sres []deals.StoreResult
 	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, cfgs, uint64(fcfg.DealDuration), true)
 	if err != nil {
@@ -181,18 +185,19 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.Storag
 		return nil, fmt.Errorf("stored data cid doesn't match with sent data")
 	}
 
-	proposals, err := fc.waitForDeals(ctx, sres, fcfg.DealDuration)
+	proposals, err := fc.waitForDeals(ctx, c, sres, fcfg.DealDuration)
 	if err != nil {
 		return nil, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
 	return proposals, nil
 }
 
-func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {
+func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {
 	notDone := make(map[cid.Cid]struct{})
 	var inProgressDeals []cid.Cid
 	for _, d := range storeResults {
 		if !d.Success {
+			fc.l.Log(ctx, c, "Proposal with miner %s failed.", d.Config.Miner)
 			log.Warnf("failed store result")
 			continue
 		}
@@ -203,6 +208,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 		return nil, fmt.Errorf("all proposed deals where rejected")
 	}
 
+	fc.l.Log(ctx, c, "Watching in-progress deals unfold...")
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	chDi, err := fc.dm.Watch(ctx, inProgressDeals)
@@ -234,10 +240,14 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 				ActivationEpoch: di.ActivationEpoch,
 			}
 			delete(notDone, di.ProposalCid)
+			fc.l.Log(ctx, c, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
 		} else if di.StateID == storagemarket.StorageDealError || di.StateID == storagemarket.StorageDealFailing {
-			log.Errorf("deal %s failed with state %s", di.ProposalCid, storagemarket.DealStates[di.StateID])
+			log.Errorf("deal %d failed with state %s", di.DealID, storagemarket.DealStates[di.StateID])
 			delete(activeProposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
+			fc.l.Log(ctx, c, "Deal %d with miner %s failed and won't be active on-chain", di.DealID, di.Miner)
+		} else {
+			fc.l.Log(ctx, c, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.StateID])
 		}
 		if len(notDone) == 0 {
 			break
@@ -251,6 +261,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, storeResults []deals.StoreR
 	for _, v := range activeProposals {
 		res = append(res, *v)
 	}
+	fc.l.Log(ctx, c, "Finished all in-progress deals reached final state.")
 	return res, nil
 }
 
