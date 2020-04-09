@@ -34,7 +34,7 @@ var ffsInfoCmd = &cobra.Command{
 		checkErr(err)
 		s.Stop()
 		Message("Information from instance ID %s:", aurora.White(resp.Info.ID).Bold())
-		Message("Wallet %s has balance %d", aurora.White(resp.Info.Wallet.Address), aurora.Green(resp.Info.Wallet.Balance))
+		Message("Address %s has balance %d", aurora.White(resp.Info.Wallet.Address), aurora.Green(resp.Info.Wallet.Balance))
 
 		Message("Pinned cids:")
 		data := make([][]string, len(resp.Info.Pins))
