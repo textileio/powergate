@@ -22,6 +22,7 @@ import (
 	dealsPb "github.com/textileio/powergate/deals/pb"
 	"github.com/textileio/powergate/fchost"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
@@ -33,7 +34,6 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/ffs/scheduler/cistore"
 	"github.com/textileio/powergate/ffs/scheduler/jstore"
-	"github.com/textileio/powergate/ffs/scheduler/logger"
 	"github.com/textileio/powergate/ffs/scheduler/pcstore"
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/index/ask"
@@ -177,12 +177,13 @@ func NewServer(conf Config) (*Server, error) {
 	} else {
 		ms = reptop.New(rm, ai)
 	}
-	cs := filcold.New(ms, dm, ipfs.Dag(), lchain)
-	hs := coreipfs.New(ipfs)
+
+	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
+	cs := filcold.New(ms, dm, ipfs.Dag(), lchain, l)
+	hs := coreipfs.New(ipfs, l)
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
-	l := logger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"), pcs)
 	sched := scheduler.New(js, pcs, cis, l, hs, cs)
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)

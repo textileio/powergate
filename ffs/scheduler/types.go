@@ -44,10 +44,3 @@ type CidInfoStore interface {
 	Put(ffs.CidInfo) error
 	Get(cid.Cid) (ffs.CidInfo, error)
 }
-
-type Logger interface {
-	Logger(cid.Cid, ffs.JobID) CidLogger
-}
-type CidLogger interface {
-	LogMsg(string, ...interface{})
-}

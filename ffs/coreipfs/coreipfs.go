@@ -24,14 +24,16 @@ var (
 // into a remote go-ipfs using the HTTP API.
 type CoreIpfs struct {
 	ipfs iface.CoreAPI
+	l    ffs.CidLogger
 }
 
 var _ ffs.HotStorage = (*CoreIpfs)(nil)
 
 // New returns a new CoreIpfs instance
-func New(ipfs iface.CoreAPI) *CoreIpfs {
+func New(ipfs iface.CoreAPI, l ffs.CidLogger) *CoreIpfs {
 	return &CoreIpfs{
 		ipfs: ipfs,
+		l:    l,
 	}
 }
 

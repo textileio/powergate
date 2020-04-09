@@ -24,6 +24,7 @@ type FilCold struct {
 	dm    *deals.Module
 	dag   format.DAGService
 	chain FilChain
+	l     ffs.CidLogger
 }
 
 var _ ffs.ColdStorage = (*FilCold)(nil)
@@ -34,12 +35,13 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance
-func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService, chain FilChain) *FilCold {
+func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService, chain FilChain, l ffs.CidLogger) *FilCold {
 	return &FilCold{
 		ms:    ms,
 		dm:    dm,
 		dag:   dag,
 		chain: chain,
+		l:     l,
 	}
 }
 

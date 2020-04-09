@@ -25,6 +25,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/api/istore"
+	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
@@ -32,7 +33,6 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/ffs/scheduler/cistore"
 	"github.com/textileio/powergate/ffs/scheduler/jstore"
-	"github.com/textileio/powergate/ffs/scheduler/logger"
 	"github.com/textileio/powergate/ffs/scheduler/pcstore"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -816,12 +816,12 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 	require.Nil(t, err)
 
 	fchain := lotuschain.New(client)
-	cl := filcold.New(ms, dm, ipfsClient.Dag(), fchain)
+	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
+	cl := filcold.New(ms, dm, ipfsClient.Dag(), fchain, l)
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
-	hl := coreipfs.New(ipfsClient)
-	l := logger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"), pcs)
+	hl := coreipfs.New(ipfsClient, l)
 	sched := scheduler.New(js, pcs, cis, l, hl, cl)
 
 	wm, err := wallet.New(client, &waddr, *big.NewInt(4000000000))

@@ -1,6 +1,7 @@
 package ffs
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -317,4 +318,14 @@ type FilStorage struct {
 	Duration        int64
 	ActivationEpoch int64
 	Miner           string
+}
+
+type CidLoggerCtxKey int
+
+const (
+	CtxKeyJid CidLoggerCtxKey = iota
+)
+
+type CidLogger interface {
+	Log(context.Context, cid.Cid, string, ...interface{})
 }
