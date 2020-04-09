@@ -16,13 +16,12 @@ import (
 
 func init() {
 	ffsSetDefaultCidConfigCmd.Flags().StringP("token", "t", "", "FFS auth token")
-	ffsSetDefaultCidConfigCmd.Flags().StringP("file", "f", "", "optional path to file containing default cid config json, use stdin otherwise")
 
 	ffsCmd.AddCommand(ffsSetDefaultCidConfigCmd)
 }
 
 var ffsSetDefaultCidConfigCmd = &cobra.Command{
-	Use:   "setDefaultCidConfig",
+	Use:   "setDefaultCidConfig [(optional)file]",
 	Short: "Sets the default cid storage config from stdin or a file",
 	Long:  `Sets the default cid storage config from stdin or a file`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -33,12 +32,11 @@ var ffsSetDefaultCidConfigCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		path := viper.GetString("file")
-
 		var reader io.Reader
-		if len(path) > 0 {
-			var err error
-			reader, err = os.Open(path)
+		if len(args) > 0 {
+			file, err := os.Open(args[0])
+			defer file.Close()
+			reader = file
 			checkErr(err)
 		} else {
 			reader = cmd.InOrStdin()

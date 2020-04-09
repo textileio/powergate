@@ -13,14 +13,13 @@ import (
 )
 
 func init() {
-	ffsShowCmd.Flags().StringP("cid", "c", "", "cid of the data to pin")
 	ffsShowCmd.Flags().StringP("token", "t", "", "FFS auth token")
 
 	ffsCmd.AddCommand(ffsShowCmd)
 }
 
 var ffsShowCmd = &cobra.Command{
-	Use:   "show",
+	Use:   "show [cid]",
 	Short: "Show pinned cid data",
 	Long:  `Show pinned cid data`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -31,16 +30,14 @@ var ffsShowCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		cidString := viper.GetString("cid")
-
-		if cidString == "" {
-			Fatal(errors.New("store command needs a cid"))
+		if len(args) != 1 {
+			Fatal(errors.New("you must provide a cid"))
 		}
 
-		c, err := cid.Parse(cidString)
+		c, err := cid.Parse(args[0])
 		checkErr(err)
 
-		s := spin.New("%s Getting info from cid...")
+		s := spin.New("%s Getting info for cid...")
 		s.Start()
 		info, err := fcClient.Ffs.Show(authCtx(ctx), c)
 		s.Stop()
@@ -49,6 +46,5 @@ var ffsShowCmd = &cobra.Command{
 		buf, err := json.MarshalIndent(info, "", "  ")
 		checkErr(err)
 		Message("%s", buf)
-
 	},
 }

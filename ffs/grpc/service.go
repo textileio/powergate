@@ -332,31 +332,44 @@ func (s *Service) PushConfig(ctx context.Context, req *pb.PushConfigRequest) (*p
 		return nil, err
 	}
 
-	config := ffs.CidConfig{
-		Cid: c,
-		Hot: ffs.HotConfig{
-			Enabled:       req.Config.Hot.Enabled,
-			AllowUnfreeze: req.Config.Hot.AllowUnfreeze,
-			Ipfs: ffs.IpfsConfig{
-				AddTimeout: int(req.Config.Hot.Ipfs.AddTimeout),
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Enabled: req.Config.Cold.Enabled,
-			Filecoin: ffs.FilConfig{
-				RepFactor:      int(req.Config.Cold.Filecoin.RepFactor),
-				DealDuration:   req.Config.Cold.Filecoin.DealDuration,
-				ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
-				CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
-				Renew: ffs.FilRenew{
-					Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
-					Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
+	options := []api.PushConfigOption{}
+
+	if req.HasConfig {
+		cid, err := cid.Decode(req.Config.Cid)
+		if err != nil {
+			return nil, err
+		}
+		config := ffs.CidConfig{
+			Cid: cid,
+			Hot: ffs.HotConfig{
+				Enabled:       req.Config.Hot.Enabled,
+				AllowUnfreeze: req.Config.Hot.AllowUnfreeze,
+				Ipfs: ffs.IpfsConfig{
+					AddTimeout: int(req.Config.Hot.Ipfs.AddTimeout),
 				},
 			},
-		},
+			Cold: ffs.ColdConfig{
+				Enabled: req.Config.Cold.Enabled,
+				Filecoin: ffs.FilConfig{
+					RepFactor:      int(req.Config.Cold.Filecoin.RepFactor),
+					DealDuration:   req.Config.Cold.Filecoin.DealDuration,
+					ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
+					CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
+					Renew: ffs.FilRenew{
+						Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
+						Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
+					},
+				},
+			},
+		}
+		options = append(options, api.WithCidConfig(config))
 	}
 
-	jid, err := i.PushConfig(c, api.WithCidConfig(config), api.WithOverride(req.Override))
+	if req.HasOverrideConfig {
+		options = append(options, api.WithOverride(req.OverrideConfig))
+	}
+
+	jid, err := i.PushConfig(c, options...)
 	if err != nil {
 		return nil, err
 	}

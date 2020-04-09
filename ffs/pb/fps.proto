@@ -184,7 +184,9 @@ message WatchReply {
 message PushConfigRequest {
    string cid = 1;
    CidConfig config = 2;
-   bool override = 3;
+   bool hasConfig = 3;
+   bool overrideConfig = 4;
+   bool hasOverrideConfig = 5;
 }
 
 message PushConfigReply {
