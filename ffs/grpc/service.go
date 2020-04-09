@@ -38,31 +38,150 @@ func NewService(m *manager.Manager, hot ffs.HotStorage) *Service {
 	}
 }
 
-// Info returns an Api information.
-func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply, error) {
+// Create creates a new Api.
+func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateReply, error) {
+	id, token, err := s.m.Create(ctx)
+	if err != nil {
+		log.Errorf("creating instance: %s", err)
+		return nil, err
+	}
+	return &pb.CreateReply{
+		ID:    id.String(),
+		Token: token,
+	}, nil
+}
+
+// ID returns the API instance id
+func (s *Service) ID(ctx context.Context, req *pb.IDRequest) (*pb.IDReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
+	id := i.ID()
+	return &pb.IDReply{ID: id.String()}, nil
+}
 
-	info, err := i.Info(ctx)
+// WalletAddr returns the wallet address
+func (s *Service) WalletAddr(ctx context.Context, req *pb.WalletAddrRequest) (*pb.WalletAddrReply, error) {
+	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
+	addr := i.WalletAddr()
+	return &pb.WalletAddrReply{Addr: addr}, nil
+}
 
-	reply := &pb.InfoReply{
-		Id:   info.ID.String(),
-		Pins: make([]string, len(info.Pins)),
-		Wallet: &pb.WalletInfo{
-			Address: info.Wallet.Address,
-			Balance: info.Wallet.Balance,
+// GetDefaultCidConfig returns the default cid config prepped for the provided cid
+func (s *Service) GetDefaultCidConfig(ctx context.Context, req *pb.GetDefaultCidConfigRequest) (*pb.GetDefaultCidConfigReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	c, err := cid.Decode(req.Cid)
+	if err != nil {
+		return nil, err
+	}
+	config := i.GetDefaultCidConfig(c)
+	return &pb.GetDefaultCidConfigReply{
+		Config: &pb.CidConfig{
+			Cid: config.Cid.String(),
+			Hot: &pb.HotConfig{
+				Enabled:       config.Hot.Enabled,
+				AllowUnfreeze: config.Hot.AllowUnfreeze,
+				Ipfs: &pb.IpfsConfig{
+					AddTimeout: int64(config.Hot.Ipfs.AddTimeout),
+				},
+			},
+			Cold: &pb.ColdConfig{
+				Enabled: config.Cold.Enabled,
+				Filecoin: &pb.FilConfig{
+					RepFactor:      int64(config.Cold.Filecoin.RepFactor),
+					DealDuration:   int64(config.Cold.Filecoin.DealDuration),
+					ExcludedMiners: config.Cold.Filecoin.ExcludedMiners,
+					CountryCodes:   config.Cold.Filecoin.CountryCodes,
+					Renew: &pb.FilRenew{
+						Enabled:   config.Cold.Filecoin.Renew.Enabled,
+						Threshold: int64(config.Cold.Filecoin.Renew.Threshold),
+					},
+				},
+			},
+		},
+	}, nil
+}
+
+// GetCidConfig returns the cid config for the provided cid
+func (s *Service) GetCidConfig(ctx context.Context, req *pb.GetCidConfigRequest) (*pb.GetCidConfigReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	c, err := cid.Decode(req.Cid)
+	if err != nil {
+		return nil, err
+	}
+	config, err := i.GetCidConfig(c)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetCidConfigReply{
+		Config: &pb.CidConfig{
+			Cid: config.Cid.String(),
+			Hot: &pb.HotConfig{
+				Enabled:       config.Hot.Enabled,
+				AllowUnfreeze: config.Hot.AllowUnfreeze,
+				Ipfs: &pb.IpfsConfig{
+					AddTimeout: int64(config.Hot.Ipfs.AddTimeout),
+				},
+			},
+			Cold: &pb.ColdConfig{
+				Enabled: config.Cold.Enabled,
+				Filecoin: &pb.FilConfig{
+					RepFactor:      int64(config.Cold.Filecoin.RepFactor),
+					DealDuration:   int64(config.Cold.Filecoin.DealDuration),
+					ExcludedMiners: config.Cold.Filecoin.ExcludedMiners,
+					CountryCodes:   config.Cold.Filecoin.CountryCodes,
+					Renew: &pb.FilRenew{
+						Enabled:   config.Cold.Filecoin.Renew.Enabled,
+						Threshold: int64(config.Cold.Filecoin.Renew.Threshold),
+					},
+				},
+			},
+		},
+	}, nil
+}
+
+// SetDefaultCidConfig sets a new config to be used by default
+func (s *Service) SetDefaultCidConfig(ctx context.Context, req *pb.SetDefaultCidConfigRequest) (*pb.SetDefaultCidConfigReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defaultConfig := ffs.DefaultCidConfig{
+		Hot: ffs.HotConfig{
+			Enabled:       req.Config.Hot.Enabled,
+			AllowUnfreeze: req.Config.Hot.AllowUnfreeze,
+			Ipfs: ffs.IpfsConfig{
+				AddTimeout: int(req.Config.Hot.Ipfs.AddTimeout),
+			},
+		},
+		Cold: ffs.ColdConfig{
+			Enabled: req.Config.Cold.Enabled,
+			Filecoin: ffs.FilConfig{
+				RepFactor:      int(req.Config.Cold.Filecoin.RepFactor),
+				DealDuration:   req.Config.Cold.Filecoin.DealDuration,
+				ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
+				CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
+				Renew: ffs.FilRenew{
+					Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
+					Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
+				},
+			},
 		},
 	}
-	for i, p := range info.Pins {
-		reply.Pins[i] = p.String()
+	if err := i.SetDefaultCidConfig(defaultConfig); err != nil {
+		return nil, err
 	}
-
-	return reply, nil
+	return &pb.SetDefaultCidConfigReply{}, nil
 }
 
 // Show returns information about a particular Cid.
@@ -82,115 +201,169 @@ func (s *Service) Show(ctx context.Context, req *pb.ShowRequest) (*pb.ShowReply,
 		return nil, err
 	}
 	reply := &pb.ShowReply{
-		Cid:     info.Cid.String(),
-		Created: info.Created.UnixNano(),
-		Hot: &pb.ShowReply_HotInfo{
-			Size: int64(info.Hot.Size),
-			Ipfs: &pb.ShowReply_IpfsHotInfo{
-				Created: info.Hot.Ipfs.Created.UnixNano(),
+		CidInfo: &pb.CidInfo{
+			JobID:   info.JobID.String(),
+			Cid:     info.Cid.String(),
+			Created: info.Created.UnixNano(),
+			Hot: &pb.HotInfo{
+				Enabled: info.Hot.Enabled,
+				Size:    int64(info.Hot.Size),
+				Ipfs: &pb.IpfsHotInfo{
+					Created: info.Hot.Ipfs.Created.UnixNano(),
+				},
 			},
-		},
-		Cold: &pb.ShowReply_ColdInfo{
-			Filecoin: &pb.ShowReply_FilInfo{
-				DataCid:   info.Cold.Filecoin.DataCid.String(),
-				Proposals: make([]*pb.ShowReply_FilStorage, len(info.Cold.Filecoin.Proposals)),
+			Cold: &pb.ColdInfo{
+				Filecoin: &pb.FilInfo{
+					DataCid:   info.Cold.Filecoin.DataCid.String(),
+					Proposals: make([]*pb.FilStorage, len(info.Cold.Filecoin.Proposals)),
+				},
 			},
 		},
 	}
 	for i, p := range info.Cold.Filecoin.Proposals {
-		reply.Cold.Filecoin.Proposals[i] = &pb.ShowReply_FilStorage{
+		reply.CidInfo.Cold.Filecoin.Proposals[i] = &pb.FilStorage{
 			ProposalCid:     p.ProposalCid.String(),
+			Renewed:         p.Renewed,
 			Duration:        p.Duration,
-			ActivationEpoch: int64(p.ActivationEpoch),
+			ActivationEpoch: p.ActivationEpoch,
+			Miner:           p.Miner,
 		}
 	}
-
 	return reply, nil
 }
 
-// AddCid adds a cid to an Api.
-func (s *Service) AddCid(ctx context.Context, req *pb.AddCidRequest) (*pb.AddCidReply, error) {
+// Info returns an Api information.
+func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-	c, err := cid.Decode(req.GetCid())
-	if err != nil {
-		return nil, err
-	}
-	log.Infof("adding cid %s", c)
-	jid, err := i.PushConfig(c)
+
+	info, err := i.Info(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	ch, err := i.Watch(jid)
-	if err != nil {
-		return nil, fmt.Errorf("watching add cid created job: %s", err)
+	reply := &pb.InfoReply{
+		Info: &pb.InstanceInfo{
+			ID: info.ID.String(),
+			DefaultCidConfig: &pb.DefaultCidConfig{
+				Hot: &pb.HotConfig{
+					Enabled:       info.DefaultCidConfig.Hot.Enabled,
+					AllowUnfreeze: info.DefaultCidConfig.Hot.AllowUnfreeze,
+					Ipfs: &pb.IpfsConfig{
+						AddTimeout: int64(info.DefaultCidConfig.Hot.Ipfs.AddTimeout),
+					},
+				},
+				Cold: &pb.ColdConfig{
+					Enabled: info.DefaultCidConfig.Cold.Enabled,
+					Filecoin: &pb.FilConfig{
+						RepFactor:      int64(info.DefaultCidConfig.Cold.Filecoin.RepFactor),
+						DealDuration:   info.DefaultCidConfig.Cold.Filecoin.DealDuration,
+						ExcludedMiners: info.DefaultCidConfig.Cold.Filecoin.ExcludedMiners,
+						CountryCodes:   info.DefaultCidConfig.Cold.Filecoin.CountryCodes,
+						Renew: &pb.FilRenew{
+							Enabled:   info.DefaultCidConfig.Cold.Filecoin.Renew.Enabled,
+							Threshold: int64(info.DefaultCidConfig.Cold.Filecoin.Renew.Threshold),
+						},
+					},
+				},
+			},
+			Wallet: &pb.WalletInfo{
+				Address: info.Wallet.Address,
+				Balance: info.Wallet.Balance,
+			},
+			Pins: make([]string, len(info.Pins)),
+		},
 	}
-	defer i.Unwatch(ch)
-	for job := range ch {
-		if job.Status == ffs.Success {
-			break
-		} else if job.Status == ffs.Cancelled || job.Status == ffs.Failed {
-			return nil, fmt.Errorf("error adding cid: %s", job.ErrCause)
-		}
+	for i, p := range info.Pins {
+		reply.Info.Pins[i] = p.String()
 	}
-	return &pb.AddCidReply{}, nil
+	return reply, nil
 }
 
-func receiveFile(srv pb.API_AddFileServer, writer *io.PipeWriter) {
-	for {
-		req, err := srv.Recv()
-		if err == io.EOF {
-			_ = writer.Close()
-			break
-		} else if err != nil {
-			_ = writer.CloseWithError(err)
-			break
-		}
-		_, writeErr := writer.Write(req.GetChunk())
-		if writeErr != nil {
-			writer.CloseWithError(writeErr)
-		}
-	}
-}
-
-// AddFile stores data in the Hot Storage and saves it in an Api.
-func (s *Service) AddFile(srv pb.API_AddFileServer) error {
+// Watch calls API.Watch
+func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
 	}
 
-	reader, writer := io.Pipe()
-	defer reader.Close()
-
-	go receiveFile(srv, writer)
-
-	c, err := s.hot.Add(srv.Context(), reader)
-	if err != nil {
-		return fmt.Errorf("adding data to hot storage: %s", err)
+	jids := make([]ffs.JobID, len(req.Jids))
+	for i, jid := range req.Jids {
+		jids[i] = ffs.JobID(jid)
 	}
 
-	jid, err := i.PushConfig(c)
-	if err != nil {
-		return err
-	}
-	ch, err := i.Watch(jid)
-	if err != nil {
-		return fmt.Errorf("watching add file created job: %s", err)
-	}
-	defer i.Unwatch(ch)
-	for job := range ch {
-		if job.Status == ffs.Success {
-			break
-		} else if job.Status == ffs.Failed {
-			return fmt.Errorf("error adding cid: %s", job.ErrCause)
+	updates, err := i.Watch(jids...)
+	defer i.Unwatch(updates)
+
+	for {
+		select {
+		case <-srv.Context().Done():
+			return nil
+		case job, ok := <-updates:
+			if !ok {
+				return nil // do we want to return an error here? nil will result as EOF on the client i think
+			}
+			reply := &pb.WatchReply{
+				Job: &pb.Job{
+					ID:         job.ID.String(),
+					InstanceID: job.InstanceID.String(),
+					Status:     pb.JobStatus(job.Status),
+					ErrCause:   job.ErrCause,
+				},
+			}
+			if err := srv.Send(reply); err != nil {
+				return err
+			}
 		}
 	}
+}
 
-	return srv.SendAndClose(&pb.AddFileReply{Cid: c.String()})
+// PushConfig applies the provided cid config
+func (s *Service) PushConfig(ctx context.Context, req *pb.PushConfigRequest) (*pb.PushConfigReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := cid.Decode(req.Cid)
+	if err != nil {
+		return nil, err
+	}
+
+	config := ffs.CidConfig{
+		Cid: c,
+		Hot: ffs.HotConfig{
+			Enabled:       req.Config.Hot.Enabled,
+			AllowUnfreeze: req.Config.Hot.AllowUnfreeze,
+			Ipfs: ffs.IpfsConfig{
+				AddTimeout: int(req.Config.Hot.Ipfs.AddTimeout),
+			},
+		},
+		Cold: ffs.ColdConfig{
+			Enabled: req.Config.Cold.Enabled,
+			Filecoin: ffs.FilConfig{
+				RepFactor:      int(req.Config.Cold.Filecoin.RepFactor),
+				DealDuration:   req.Config.Cold.Filecoin.DealDuration,
+				ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
+				CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
+				Renew: ffs.FilRenew{
+					Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
+					Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
+				},
+			},
+		},
+	}
+
+	jid, err := i.PushConfig(c, api.WithCidConfig(config), api.WithOverride(req.Override))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.PushConfigReply{
+		JobID: jid.String(),
+	}, nil
 }
 
 // Get gets the data for a stored Cid.
@@ -223,17 +396,36 @@ func (s *Service) Get(req *pb.GetRequest, srv pb.API_GetServer) error {
 	}
 }
 
-// Create creates a new Api.
-func (s *Service) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateReply, error) {
-	id, addr, err := s.m.Create(ctx)
+// Close calls API.Close
+func (s *Service) Close(ctx context.Context, req *pb.CloseRequest) (*pb.CloseReply, error) {
+	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		log.Errorf("creating instance: %s", err)
 		return nil, err
 	}
-	return &pb.CreateReply{
-		Id:      id.String(),
-		Address: addr,
-	}, nil
+	if err := i.Close(); err != nil {
+		return nil, err
+	}
+	return &pb.CloseReply{}, nil
+}
+
+// AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig
+func (s *Service) AddToHot(srv pb.API_AddToHotServer) error {
+	// check that an API instance exists so not just anyone can add data to the hot layer
+	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
+		return err
+	}
+
+	reader, writer := io.Pipe()
+	defer reader.Close()
+
+	go receiveFile(srv, writer)
+
+	c, err := s.hot.Add(srv.Context(), reader)
+	if err != nil {
+		return fmt.Errorf("adding data to hot storage: %s", err)
+	}
+
+	return srv.SendAndClose(&pb.AddToHotReply{Cid: c.String()})
 }
 
 func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
@@ -246,4 +438,21 @@ func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
 		return nil, err
 	}
 	return i, nil
+}
+
+func receiveFile(srv pb.API_AddToHotServer, writer *io.PipeWriter) {
+	for {
+		req, err := srv.Recv()
+		if err == io.EOF {
+			_ = writer.Close()
+			break
+		} else if err != nil {
+			_ = writer.CloseWithError(err)
+			break
+		}
+		_, writeErr := writer.Write(req.GetChunk())
+		if writeErr != nil {
+			writer.CloseWithError(writeErr)
+		}
+	}
 }
