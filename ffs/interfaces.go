@@ -56,7 +56,7 @@ type HotStorage interface {
 	Add(context.Context, io.Reader) (cid.Cid, error)
 	Remove(context.Context, cid.Cid) error
 	Get(context.Context, cid.Cid) (io.Reader, error)
-	Pin(context.Context, cid.Cid) (int, error)
+	Store(context.Context, cid.Cid) (int, error)
 	Put(context.Context, blocks.Block) error
 	IsStored(context.Context, cid.Cid) (bool, error)
 }

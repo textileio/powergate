@@ -44,8 +44,9 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	_ = os.RemoveAll(tmpDir)
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		os.Mkdir(tmpDir, os.ModeDir)
+		os.Mkdir(tmpDir, os.ModePerm)
 	}
 
 	logging.SetAllLoggers(logging.LevelError)

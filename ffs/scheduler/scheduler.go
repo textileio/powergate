@@ -266,7 +266,7 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 
 	hotPinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Ipfs.AddTimeout))
 	defer cancel()
-	size, err := s.hs.Pin(hotPinCtx, curr.Cid)
+	size, err := s.hs.Store(hotPinCtx, curr.Cid)
 	if err != nil {
 		if !cfg.AllowUnfreeze || len(curr.Cold.Filecoin.Proposals) == 0 {
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
@@ -276,7 +276,7 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
 		}
-		size, err = s.hs.Pin(ctx, carHeaderCid)
+		size, err = s.hs.Store(ctx, carHeaderCid)
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("pinning unfrozen cid: %s", err)
 		}

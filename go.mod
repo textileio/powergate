@@ -38,12 +38,12 @@ require (
 	github.com/ipfs/go-ipfs-http-client v0.0.5
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
 	github.com/ipfs/go-ipld-format v0.0.2
-	github.com/ipfs/go-log/v2 v2.0.3
+	github.com/ipfs/go-log/v2 v2.0.4
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/libp2p/go-libp2p v0.6.0
-	github.com/libp2p/go-libp2p-core v0.5.0
+	github.com/libp2p/go-libp2p-core v0.5.1
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0
@@ -65,5 +65,5 @@ require (
 	github.com/textileio/lotus-client v0.0.0-20200331225835-db60fa302a4c
 	go.opencensus.io v0.22.3
 	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
-	google.golang.org/grpc v1.28.0
+	google.golang.org/grpc v1.28.1
 )

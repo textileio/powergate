@@ -21,7 +21,7 @@ services:
       - ipfs
       - lotus
     environment:
-      - TEXPOWERGATE_LOTUSHOST=/dns4/lotus/tcp/1234
+      - TEXPOWERGATE_LOTUSHOST=/dns4/lotus/tcp/1235
       - TEXPOWERGATE_IPFSAPIADDR=/dns4/ipfs/tcp/5001
       - TEXPOWERGATE_LOTUSTOKENFILE=/root/lotus/.lotus/token
       - TEXPOWERGATE_REPOPATH=/root/powergate/.powergate
@@ -31,11 +31,11 @@ services:
       - textile-fc-lotus:/root/lotus
   
   lotus:
-    image: textile/lotus:latest
+    image: textile/lotus:custom
     volumes:
       - textile-fc-lotus:/data
     ports:
-      - 1234:1234
+      - 1235:1235
       - 5678:5678
     restart: unless-stopped
 
