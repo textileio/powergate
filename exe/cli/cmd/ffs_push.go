@@ -33,19 +33,12 @@ var ffsAddCmd = &cobra.Command{
 			Fatal(errors.New("you must provide a cid"))
 		}
 
-		token := viper.GetString("token")
-
-		if token == "" {
-			Fatal(errors.New("add requires token"))
-		}
-		ctx = context.WithValue(ctx, authKey("ffstoken"), token)
-
 		c, err := cid.Parse(args[0])
 		checkErr(err)
 
 		s := spin.New("%s Adding specified cid to FFS...")
 		s.Start()
-		jid, err := fcClient.Ffs.PushConfig(ctx, c)
+		jid, err := fcClient.Ffs.PushConfig(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 		Success("Added data for cid %s to FFS with job id: %v", c.String(), jid.String())

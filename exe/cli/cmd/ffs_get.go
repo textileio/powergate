@@ -33,14 +33,8 @@ var ffsGetCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		token := viper.GetString("token")
 		cidString := viper.GetString("cid")
 		out := viper.GetString("out")
-
-		if token == "" {
-			Fatal(errors.New("get requires token"))
-		}
-		ctx = context.WithValue(ctx, authKey("ffstoken"), token)
 
 		if cidString == "" {
 			Fatal(errors.New("store command needs a cid"))
@@ -55,7 +49,7 @@ var ffsGetCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving specified data...")
 		s.Start()
-		reader, err := fcClient.Ffs.Get(ctx, c)
+		reader, err := fcClient.Ffs.Get(authCtx(ctx), c)
 		checkErr(err)
 
 		dir := path.Dir(out)

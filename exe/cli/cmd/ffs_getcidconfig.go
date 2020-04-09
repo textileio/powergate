@@ -13,16 +13,16 @@ import (
 )
 
 func init() {
-	ffsShowCmd.Flags().StringP("cid", "c", "", "cid of the data to pin")
-	ffsShowCmd.Flags().StringP("token", "t", "", "FFS auth token")
+	ffsGetCidConfigCmd.Flags().StringP("token", "t", "", "FFS auth token")
+	ffsGetCidConfigCmd.Flags().StringP("cid", "c", "", "cid of the config to fetch")
 
-	ffsCmd.AddCommand(ffsShowCmd)
+	ffsCmd.AddCommand(ffsGetCidConfigCmd)
 }
 
-var ffsShowCmd = &cobra.Command{
-	Use:   "show",
-	Short: "Show pinned cid data",
-	Long:  `Show pinned cid data`,
+var ffsGetCidConfigCmd = &cobra.Command{
+	Use:   "getCidConfig",
+	Short: "Retuns the config for the provided cid",
+	Long:  `Retuns the config for the provided cid`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -32,23 +32,22 @@ var ffsShowCmd = &cobra.Command{
 		defer cancel()
 
 		cidString := viper.GetString("cid")
-
 		if cidString == "" {
-			Fatal(errors.New("store command needs a cid"))
+			Fatal(errors.New("cid flag required"))
 		}
 
 		c, err := cid.Parse(cidString)
 		checkErr(err)
 
-		s := spin.New("%s Getting info from cid...")
+		s := spin.New("%s Getting defautlt cid config...")
 		s.Start()
-		info, err := fcClient.Ffs.Show(authCtx(ctx), c)
+		resp, err := fcClient.Ffs.GetCidConfig(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 
-		buf, err := json.MarshalIndent(info, "", "  ")
+		json, err := json.MarshalIndent(resp.Config, "", "  ")
 		checkErr(err)
-		Message("%s", buf)
 
+		Message("Cid config:\n%s", string(json))
 	},
 }
