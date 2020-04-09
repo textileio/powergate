@@ -32,6 +32,7 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/ffs/scheduler/cistore"
 	"github.com/textileio/powergate/ffs/scheduler/jstore"
+	"github.com/textileio/powergate/ffs/scheduler/logger"
 	"github.com/textileio/powergate/ffs/scheduler/pcstore"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -820,7 +821,8 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	hl := coreipfs.New(ipfsClient)
-	sched := scheduler.New(js, pcs, cis, hl, cl)
+	l := logger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"), pcs)
+	sched := scheduler.New(js, pcs, cis, l, hl, cl)
 
 	wm, err := wallet.New(client, &waddr, *big.NewInt(4000000000))
 	require.Nil(t, err)

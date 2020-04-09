@@ -27,6 +27,7 @@ type Scheduler struct {
 	js  JobStore
 	pcs PushConfigStore
 	cis CidInfoStore
+	l   Logger
 
 	queuedWork chan struct{}
 
@@ -39,7 +40,7 @@ var _ ffs.Scheduler = (*Scheduler)(nil)
 
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
-func New(js JobStore, pcs PushConfigStore, cis CidInfoStore, hs ffs.HotStorage, cs ffs.ColdStorage) *Scheduler {
+func New(js JobStore, pcs PushConfigStore, cis CidInfoStore, l Logger, hs ffs.HotStorage, cs ffs.ColdStorage) *Scheduler {
 	ctx, cancel := context.WithCancel(context.Background())
 	sch := &Scheduler{
 		cs:  cs,
@@ -47,6 +48,7 @@ func New(js JobStore, pcs PushConfigStore, cis CidInfoStore, hs ffs.HotStorage, 
 		js:  js,
 		pcs: pcs,
 		cis: cis,
+		l:   l,
 
 		queuedWork: make(chan struct{}, 1),
 
@@ -73,6 +75,9 @@ func (s *Scheduler) PushConfig(action ffs.PushConfigAction) (ffs.JobID, error) {
 	if err := s.js.Put(j); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving push config action in store: %s", err)
 	}
+	l := s.l.Logger(action.Config.Cid, jid)
+	l.LogMsg("Pushing new configuration...")
+
 	if err := s.pcs.Put(j.ID, action); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving pushed config in store: %s", err)
 	}
@@ -80,6 +85,8 @@ func (s *Scheduler) PushConfig(action ffs.PushConfigAction) (ffs.JobID, error) {
 	case s.queuedWork <- struct{}{}:
 	default:
 	}
+
+	l.LogMsg("Configuration saved successfully")
 	return jid, nil
 }
 
@@ -143,9 +150,13 @@ func (s *Scheduler) run() {
 			log.Infof("terminating scheduler daemon")
 			return
 		case <-time.After(util.AvgBlockTime):
+			log.Debug("running renewal checks...")
 			s.scanRenewable(s.ctx)
+			log.Debug("renewal checks done")
 		case <-s.queuedWork:
+			log.Debug("running queued Job...")
 			s.executeQueuedJobs(s.ctx)
+			log.Debug("running queued job done")
 		}
 	}
 }
@@ -156,9 +167,11 @@ func (s *Scheduler) scanRenewable(ctx context.Context) {
 		log.Errorf("getting renweable cid configs from store: %s", err)
 	}
 	for _, a := range renewableActions {
+		log.Debugf("evaluating deal renewal for Cid %s", a.Config.Cid)
 		if err := s.evaluateRenewal(ctx, a); err != nil {
 			log.Errorf("renweal of %s: %s", a.Config.Cid, err)
 		}
+		log.Debugf("deal renewal done")
 	}
 }
 
@@ -171,6 +184,8 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a ffs.PushConfigAction)
 	if err != nil {
 		return fmt.Errorf("getting cid info from store: %s", err)
 	}
+	l := s.l.Logger(a.Config.Cid, ffs.EmptyJobID)
+	l.LogMsg("Evaluating deal renweal...")
 
 	inf.Cold.Filecoin, err = s.cs.EnsureRenewals(ctx, a.Config.Cid, inf.Cold.Filecoin, a.WalletAddr, a.Config.Cold.Filecoin)
 	if err != nil {
@@ -181,6 +196,7 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a ffs.PushConfigAction)
 		return fmt.Errorf("saving new cid info in store: %s", err)
 	}
 
+	l.LogMsg("Deal renewal evaluated successfully")
 	return nil
 }
 
@@ -192,29 +208,37 @@ func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 	}
 	log.Infof("detected %d queued jobs", len(js))
 	for _, j := range js {
-		log.Infof("executing job %s", j.ID)
+
 		if err := s.mutateJobStatus(j, ffs.InProgress); err != nil {
 			log.Errorf("changing job to in-progress: %s", err)
 			return
 		}
-		info, err := s.execute(s.ctx, j)
+
+		a, err := s.pcs.Get(j.ID)
+		if err != nil {
+			log.Errorf("getting push config action data from store: %s", err)
+			continue
+		}
+		l := s.l.Logger(a.Config.Cid, j.ID)
+		l.LogMsg("Executing job %s...", j.ID)
+
+		info, err := s.execute(s.ctx, a, l, j)
 		if err != nil {
 			log.Errorf("executing job %s: %s", j.ID, err)
 			j.ErrCause = err.Error()
 			if err := s.mutateJobStatus(j, ffs.Failed); err != nil {
 				log.Errorf("changing job to failed: %s", err)
 			}
-			return
+			l.LogMsg("Job %s execution failed.", j.ID)
+			continue
 		}
 		if err := s.cis.Put(info); err != nil {
 			log.Errorf("saving cid info to store: %s", err)
-			return
 		}
 		if err := s.mutateJobStatus(j, ffs.Success); err != nil {
 			log.Errorf("changing job to success: %s", err)
-			return
 		}
-		log.Infof("job %s executed with final state %d and errcause %q", j.ID, j.Status, j.ErrCause)
+		l.LogMsg("Job %s execution finished successfully.", j.ID)
 
 		if ctx.Err() != nil {
 			break
@@ -222,26 +246,27 @@ func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 	}
 }
 
-func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, error) {
-	a, err := s.pcs.Get(job.ID)
-	if err != nil {
-		return ffs.CidInfo{}, fmt.Errorf("getting push config action data from store: %s", err)
-	}
-
+func (s *Scheduler) execute(ctx context.Context, a ffs.PushConfigAction, l CidLogger, job ffs.Job) (ffs.CidInfo, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Config.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
 	}
 
-	hot, err := s.executeHotStorage(ctx, ci, a.Config.Hot, a.WalletAddr)
+	l.LogMsg("Ensuring Hot-Storage satisfies the configuration...")
+	hot, err := s.executeHotStorage(ctx, l, ci, a.Config.Hot, a.WalletAddr)
 	if err != nil {
+		l.LogMsg("Hot-Storage excution failed.")
 		return ffs.CidInfo{}, fmt.Errorf("executing hot-storage config: %s", err)
 	}
+	l.LogMsg("Hot-Storage execution ran successfully.")
 
-	cold, err := s.executeColdStorage(ctx, ci, a.Config.Cold, a.WalletAddr)
+	l.LogMsg("Ensuring Cold-Storage satisfies the configuration...")
+	cold, err := s.executeColdStorage(ctx, l, ci, a.Config.Cold, a.WalletAddr)
 	if err != nil {
+		l.LogMsg("Cold-Storage execution failed.")
 		return ffs.CidInfo{}, fmt.Errorf("executing cold-storage config: %s", err)
 	}
+	l.LogMsg("Cold-Storage execution ran successfully.")
 
 	return ffs.CidInfo{
 		JobID:   job.ID,
@@ -252,8 +277,9 @@ func (s *Scheduler) execute(ctx context.Context, job ffs.Job) (ffs.CidInfo, erro
 	}, nil
 }
 
-func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string) (ffs.HotInfo, error) {
+func (s *Scheduler) executeHotStorage(ctx context.Context, l CidLogger, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string) (ffs.HotInfo, error) {
 	if cfg.Enabled == curr.Hot.Enabled {
+		l.LogMsg("Current Cid state is healthy in Hot-Storage.")
 		return curr.Hot, nil
 	}
 
@@ -261,6 +287,7 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 		if err := s.hs.Remove(ctx, curr.Cid); err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("removing from hot storage: %s", err)
 		}
+		l.LogMsg("Cid successfully removed from Hot-Storage.")
 		return ffs.HotInfo{Enabled: false}, nil
 	}
 
@@ -268,14 +295,18 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 	defer cancel()
 	size, err := s.hs.Store(hotPinCtx, curr.Cid)
 	if err != nil {
+		l.LogMsg("Direct fetching from IPFS wasn't possible.")
 		if !cfg.AllowUnfreeze || len(curr.Cold.Filecoin.Proposals) == 0 {
+			l.LogMsg("Unfreeze is disabled or active Filecoin deals are unavailable.")
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
+		l.LogMsg("Unfreezing from Filecoin...")
 		bs := &hotStorageBlockstore{ctx: ctx, put: s.hs.Put}
 		carHeaderCid, err := s.cs.Retrieve(ctx, curr.Cold.Filecoin.DataCid, bs, waddr)
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
 		}
+		l.LogMsg("Unfrozen successfully, saving in Hot-Storage...")
 		size, err = s.hs.Store(ctx, carHeaderCid)
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("pinning unfrozen cid: %s", err)
@@ -337,18 +368,20 @@ func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, c cid.Cid, curr ff
 	return curr, nil
 }
 
-func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, waddr string) (ffs.ColdInfo, error) {
+func (s *Scheduler) executeColdStorage(ctx context.Context, l CidLogger, curr ffs.CidInfo, cfg ffs.ColdConfig, waddr string) (ffs.ColdInfo, error) {
 	if !cfg.Enabled {
+		l.LogMsg("Cold-Storage was disabled, Filecoin deals will eventually expire.")
 		return curr.Cold, nil
 	}
 
 	if isCurrentRepFactorEnough(cfg.Filecoin.RepFactor, curr) {
+		l.LogMsg("The current replication factor is equal or higher than desired, avoiding making new deals.")
 		log.Infof("replication well enough, avoid making new deals")
 		return curr.Cold, nil
-
 	}
 
 	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
+	l.LogMsg("Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
 	fi, err := s.cs.Store(ctx, curr.Cid, waddr, deltaFilConfig)
 	if err != nil {
 		return ffs.ColdInfo{}, err

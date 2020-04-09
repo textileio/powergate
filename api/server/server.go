@@ -33,6 +33,7 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/ffs/scheduler/cistore"
 	"github.com/textileio/powergate/ffs/scheduler/jstore"
+	"github.com/textileio/powergate/ffs/scheduler/logger"
 	"github.com/textileio/powergate/ffs/scheduler/pcstore"
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/index/ask"
@@ -181,7 +182,8 @@ func NewServer(conf Config) (*Server, error) {
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
-	sched := scheduler.New(js, pcs, cis, hs, cs)
+	l := logger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"), pcs)
+	sched := scheduler.New(js, pcs, cis, l, hs, cs)
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
