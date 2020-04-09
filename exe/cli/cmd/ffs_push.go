@@ -67,7 +67,7 @@ var ffsPushCmd = &cobra.Command{
 			_, err := buf.ReadFrom(reader)
 			checkErr(err)
 
-			config := ffs.CidConfig{}
+			config := ffs.CidConfig{Cid: c}
 			checkErr(json.Unmarshal(buf.Bytes(), &config))
 
 			options = append(options, client.WithCidConfig(config))
