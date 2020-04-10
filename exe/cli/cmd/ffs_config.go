@@ -13,15 +13,15 @@ import (
 )
 
 func init() {
-	ffsGetCidConfigCmd.Flags().StringP("token", "t", "", "FFS auth token")
+	ffsConfigCmd.Flags().StringP("token", "t", "", "FFS auth token")
 
-	ffsCmd.AddCommand(ffsGetCidConfigCmd)
+	ffsCmd.AddCommand(ffsConfigCmd)
 }
 
-var ffsGetCidConfigCmd = &cobra.Command{
-	Use:   "getCidConfig [cid]",
-	Short: "Retuns the config for the provided cid",
-	Long:  `Retuns the config for the provided cid`,
+var ffsConfigCmd = &cobra.Command{
+	Use:   "config [cid]",
+	Short: "Returns the config for the provided cid",
+	Long:  `Returns the config for the provided cid`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -37,7 +37,7 @@ var ffsGetCidConfigCmd = &cobra.Command{
 		c, err := cid.Parse(args[0])
 		checkErr(err)
 
-		s := spin.New("%s Getting defautlt cid config...")
+		s := spin.New("%s Getting cid config...")
 		s.Start()
 		resp, err := fcClient.Ffs.GetCidConfig(authCtx(ctx), c)
 		s.Stop()

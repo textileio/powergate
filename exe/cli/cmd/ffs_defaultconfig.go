@@ -19,9 +19,9 @@ func init() {
 }
 
 var ffsGetDefaultCidConfigCmd = &cobra.Command{
-	Use:   "getDefaultCidConfig [cid]",
-	Short: "Retuns the default config prepped for the provided cid",
-	Long:  `Retuns the default config prepped for the provided cid`,
+	Use:   "defaultConfig [cid]",
+	Short: "Returns the default config prepped for the provided cid",
+	Long:  `Returns the default config prepped for the provided cid`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -37,7 +37,7 @@ var ffsGetDefaultCidConfigCmd = &cobra.Command{
 		c, err := cid.Parse(args[0])
 		checkErr(err)
 
-		s := spin.New("%s Getting defautlt cid config...")
+		s := spin.New("%s Getting default cid config...")
 		s.Start()
 		resp, err := fcClient.Ffs.GetDefaultCidConfig(authCtx(ctx), c)
 		s.Stop()

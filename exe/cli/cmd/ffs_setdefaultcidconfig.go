@@ -49,7 +49,7 @@ var ffsSetDefaultCidConfigCmd = &cobra.Command{
 		config := ffs.DefaultCidConfig{}
 		checkErr(json.Unmarshal(buf.Bytes(), &config))
 
-		s := spin.New("%s Setting defautlt cid config...")
+		s := spin.New("%s Setting default cid config...")
 		s.Start()
 		err = fcClient.Ffs.SetDefaultCidConfig(authCtx(ctx), config)
 		s.Stop()

@@ -16,9 +16,9 @@ func init() {
 }
 
 var ffsWalletAddrCmd = &cobra.Command{
-	Use:   "walletAddr",
-	Short: "Retuns the FFS instance wallet address",
-	Long:  `Retuns the FFS instance wallet address`,
+	Use:   "waddr",
+	Short: "Returns the FFS instance wallet address",
+	Long:  `Returns the FFS instance wallet address`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
