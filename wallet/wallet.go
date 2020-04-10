@@ -28,15 +28,15 @@ func New(api *apistruct.FullNodeStruct, maddr *address.Address, iam big.Int) (*M
 	return m, nil
 }
 
-// NewAddress creates a new wallet
+// NewAddress creates a new address
 func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	ty := crypto.SigTypeUnknown
-	if "bls" == typ {
+	if typ == "bls" {
 		ty = crypto.SigTypeBLS
-	} else if "secp256k1" == typ {
+	} else if typ == "secp256k1" {
 		ty = crypto.SigTypeSecp256k1
 	} else {
-		return "", fmt.Errorf("unkown wallet type %s", typ)
+		return "", fmt.Errorf("unkown address type %s", typ)
 	}
 
 	addr, err := m.api.WalletNew(ctx, ty)
@@ -55,14 +55,14 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 
 		_, err = m.api.MpoolPushMessage(ctx, msg)
 		if err != nil {
-			return "", fmt.Errorf("transfering funds to new wallet: %s", err)
+			return "", fmt.Errorf("transfering funds to new address: %s", err)
 		}
 	}
 
 	return addr.String(), nil
 }
 
-// Balance returns the balance of the specified wallet
+// Balance returns the balance of the specified address.
 func (m *Module) Balance(ctx context.Context, addr string) (uint64, error) {
 	a, err := address.NewFromString(addr)
 	if err != nil {

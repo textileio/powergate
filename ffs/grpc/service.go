@@ -295,6 +295,9 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	}
 
 	updates, err := i.Watch(jids...)
+	if err != nil {
+		return err
+	}
 	defer i.Unwatch(updates)
 
 	for {

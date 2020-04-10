@@ -45,9 +45,7 @@ type WalletInfo struct {
 }
 
 type getLogsConfig struct {
-	fromStart  bool
-	closeOnEnd bool
-	jid        ffs.JobID
+	jid ffs.JobID
 }
 
 type GetLogsOption func(config *getLogsConfig)
