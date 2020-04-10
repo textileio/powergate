@@ -15,16 +15,14 @@ import (
 
 func init() {
 	ffsGetCmd.Flags().StringP("token", "t", "", "token of the request")
-	ffsGetCmd.Flags().StringP("cid", "c", "", "cid of the data to fetch")
-	ffsGetCmd.Flags().StringP("out", "o", "", "file path to write the data to")
 
 	ffsCmd.AddCommand(ffsGetCmd)
 }
 
 var ffsGetCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Get data from ffs",
-	Long:  `Get data from ffs`,
+	Use:   "get [cid] [output file path]",
+	Short: "Get data by cid from ffs",
+	Long:  `Get data by cid from ffs`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -33,18 +31,11 @@ var ffsGetCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		cidString := viper.GetString("cid")
-		out := viper.GetString("out")
-
-		if cidString == "" {
-			Fatal(errors.New("store command needs a cid"))
+		if len(args) != 2 {
+			Fatal(errors.New("you must provide cid and output file path arguments"))
 		}
 
-		if out == "" {
-			Fatal(errors.New("get command needs an out path to write the data to"))
-		}
-
-		c, err := cid.Parse(cidString)
+		c, err := cid.Parse(args[0])
 		checkErr(err)
 
 		s := spin.New("%s Retrieving specified data...")
@@ -52,12 +43,12 @@ var ffsGetCmd = &cobra.Command{
 		reader, err := fcClient.Ffs.Get(authCtx(ctx), c)
 		checkErr(err)
 
-		dir := path.Dir(out)
+		dir := path.Dir(args[1])
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			err = os.MkdirAll(dir, os.ModePerm)
 			checkErr(err)
 		}
-		file, err := os.Create(out)
+		file, err := os.Create(args[1])
 		checkErr(err)
 
 		defer file.Close()
@@ -75,5 +66,6 @@ var ffsGetCmd = &cobra.Command{
 			}
 		}
 		s.Stop()
+		Success("Data written to %v", args[1])
 	},
 }
