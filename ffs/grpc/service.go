@@ -320,6 +320,46 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	}
 }
 
+func (s *Service) WatchJobs(req *pb.WatchLogsRequest, srv pb.API_WatchLogsServer) error {
+	i, err := s.getInstanceByToken(srv.Context())
+	if err != nil {
+		return err
+	}
+
+	var opts []api.GetLogsOption
+	if req.Jid != "" {
+		opts = append(opts, api.WithJidFilter(ffs.JobID(req.Jid)))
+	}
+
+	c, err := cid.Decode(req.Cid)
+	if err != nil {
+		return err
+	}
+	ch := make(chan ffs.LogEntry, 100)
+	go func() {
+		err = i.WatchLogs(srv.Context(), ch, c, opts...)
+		close(ch)
+	}()
+	for l := range ch {
+		reply := &pb.WatchLogsReply{
+			LogEntry: &pb.LogEntry{
+				Cid:  c.String(),
+				Jid:  l.Jid.String(),
+				Time: l.Timestamp.Unix(),
+				Msg:  l.Msg,
+			},
+		}
+		if err := srv.Send(reply); err != nil {
+			return err
+		}
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // PushConfig applies the provided cid config
 func (s *Service) PushConfig(ctx context.Context, req *pb.PushConfigRequest) (*pb.PushConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)

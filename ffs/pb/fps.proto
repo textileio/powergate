@@ -181,6 +181,22 @@ message WatchReply {
    Job job = 1;
 }
 
+message WatchLogsRequest {
+	string cid = 1;
+	string jid = 2;
+}
+
+message WatchLogsReply {
+	LogEntry logEntry = 1;
+}
+
+message LogEntry {
+	string cid = 1;
+	string jid = 2;
+        int64 time = 3;
+        string msg = 4;
+}
+
 message PushConfigRequest {
    string cid = 1;
    CidConfig config = 2;
@@ -227,6 +243,7 @@ service API {
    rpc Show(ShowRequest) returns (ShowReply) {}
    rpc Info(InfoRequest) returns (InfoReply) {}
    rpc Watch(WatchRequest) returns (stream WatchReply) {}
+   rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsReply){}
    rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
    rpc Get(GetRequest) returns (stream GetReply) {}
    rpc Close(CloseRequest) returns (CloseReply) {}
