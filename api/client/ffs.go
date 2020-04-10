@@ -118,15 +118,22 @@ func (f *ffs) Info(ctx context.Context) (*pb.InfoReply, error) {
 	return f.client.Info(ctx, &pb.InfoRequest{})
 }
 
-func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, error) {
+func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, func(), error) {
 	updates := make(chan JobEvent)
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
 		jidStrings[i] = jid.String()
 	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	cancelFunc := func() {
+		cancel()
+		close(updates)
+	}
+
 	stream, err := f.client.Watch(ctx, &pb.WatchRequest{Jids: jidStrings})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	go func() {
 		for {
@@ -149,7 +156,7 @@ func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, err
 			updates <- JobEvent{Job: job}
 		}
 	}()
-	return updates, nil
+	return updates, cancelFunc, nil
 }
 
 func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ff.JobID, error) {
