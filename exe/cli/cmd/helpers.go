@@ -13,15 +13,19 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Message prints a message to stdout.
 func Message(format string, args ...interface{}) {
 	fmt.Println(aurora.Sprintf(aurora.BrightBlack("> "+format), args...))
 }
 
+// Success prints a success message to stdout.
 func Success(format string, args ...interface{}) {
 	fmt.Println(aurora.Sprintf(aurora.Cyan("> Success! %s"),
 		aurora.Sprintf(aurora.BrightBlack(format), args...)))
 }
 
+// Fatal prints a fatal error to stdout, and exits immediately with
+// error code 1.
 func Fatal(err error, args ...interface{}) {
 	words := strings.SplitN(err.Error(), " ", 2)
 	words[0] = strings.Title(words[0])
@@ -31,6 +35,7 @@ func Fatal(err error, args ...interface{}) {
 	os.Exit(1)
 }
 
+// RenderTable renders a table with header columns and data rows to writer.
 func RenderTable(writer io.Writer, header []string, data [][]string) {
 	table := tablewriter.NewWriter(writer)
 	table.SetHeader(header)

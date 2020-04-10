@@ -91,7 +91,7 @@ type Server struct {
 // Config specifies server settings.
 type Config struct {
 	WalletInitialFunds  big.Int
-	IpfsApiAddr         ma.Multiaddr
+	IpfsAPIAddr         ma.Multiaddr
 	LotusAddress        ma.Multiaddr
 	LotusAuthToken      string
 	LotusMasterAddr     string
@@ -166,7 +166,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
 
-	ipfs, err := httpapi.NewApi(conf.IpfsApiAddr)
+	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
 	if err != nil {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}

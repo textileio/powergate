@@ -82,7 +82,7 @@ func main() {
 
 	conf := server.Config{
 		WalletInitialFunds: *big.NewInt(config.GetInt64("walletinitialfund")),
-		IpfsApiAddr:        util.MustParseAddr(config.GetString("ipfsapiaddr")),
+		IpfsAPIAddr:        util.MustParseAddr(config.GetString("ipfsapiaddr")),
 		LotusAddress:       maddr,
 		LotusAuthToken:     lotusToken,
 		LotusMasterAddr:    config.GetString("lotusmasteraddr"),

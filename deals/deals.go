@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	// ErrRetrievalNotAvailableProviders indicates that the data isn't available on any provided
+	// ErrRetrievalNoAvailableProviders indicates that the data isn't available on any provided
 	// to be retrieved.
 	ErrRetrievalNoAvailableProviders = errors.New("no providers to retrieve the data")
 	// ErrDealNotFound indicates a particular ProposalCid from a deal isn't found on-chain. Currenty,
