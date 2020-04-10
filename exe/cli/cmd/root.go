@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 	"os"
@@ -87,23 +86,4 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
-}
-
-type authKey string
-
-type tokenAuth struct {
-	secure bool
-}
-
-func (t tokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
-	md := map[string]string{}
-	token, ok := ctx.Value(authKey("ffstoken")).(string)
-	if ok && token != "" {
-		md["X-ffs-Token"] = token
-	}
-	return md, nil
-}
-
-func (t tokenAuth) RequireTransportSecurity() bool {
-	return t.secure
 }

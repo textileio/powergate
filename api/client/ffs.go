@@ -2,12 +2,10 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	cid "github.com/ipfs/go-cid"
 	ff "github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
 	pb "github.com/textileio/powergate/ffs/pb"
 )
 
@@ -19,6 +17,34 @@ type ffs struct {
 type JobEvent struct {
 	Job ff.Job
 	Err error
+}
+
+// PushConfigOption mutates a push configuration.
+type PushConfigOption func(o *PushConfig)
+
+// PushConfig contains options for pushing a Cid configuration.
+type PushConfig struct {
+	Config            ff.CidConfig
+	HasConfig         bool
+	OverrideConfig    bool
+	HasOverrideConfig bool
+}
+
+// WithCidConfig overrides the Api default Cid configuration.
+func WithCidConfig(c ff.CidConfig) PushConfigOption {
+	return func(o *PushConfig) {
+		o.Config = c
+		o.HasConfig = true
+	}
+}
+
+// WithOverride allows a new push configuration to override an existing one.
+// It's used as an extra security measure to avoid unwanted configuration changes.
+func WithOverride(override bool) PushConfigOption {
+	return func(o *PushConfig) {
+		o.OverrideConfig = override
+		o.HasOverrideConfig = true
+	}
 }
 
 func (f *ffs) Create(ctx context.Context) (string, string, error) {
@@ -92,15 +118,22 @@ func (f *ffs) Info(ctx context.Context) (*pb.InfoReply, error) {
 	return f.client.Info(ctx, &pb.InfoRequest{})
 }
 
-func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, error) {
+func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, func(), error) {
 	updates := make(chan JobEvent)
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
 		jidStrings[i] = jid.String()
 	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	cancelFunc := func() {
+		cancel()
+		close(updates)
+	}
+
 	stream, err := f.client.Watch(ctx, &pb.WatchRequest{Jids: jidStrings})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	go func() {
 		for {
@@ -123,23 +156,20 @@ func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, err
 			updates <- JobEvent{Job: job}
 		}
 	}()
-	return updates, nil
+	return updates, cancelFunc, nil
 }
 
-func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...api.PushConfigOption) (ff.JobID, error) {
-	pushConfig := api.PushConfig{}
+func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ff.JobID, error) {
+	pushConfig := PushConfig{}
 	for _, opt := range opts {
-		if err := opt(&pushConfig); err != nil {
-			return ff.EmptyJobID, fmt.Errorf("config option: %s", err)
-		}
+		opt(&pushConfig)
 	}
 
-	// ToDo: verify this, possibly default, pushConfig does the right thing on the server
-	// and that if it is default, that the server defaults are what is used
+	req := &pb.PushConfigRequest{Cid: c.String()}
 
-	req := &pb.PushConfigRequest{
-		Cid: c.String(),
-		Config: &pb.CidConfig{
+	if pushConfig.HasConfig {
+		req.HasConfig = true
+		req.Config = &pb.CidConfig{
 			Cid: pushConfig.Config.Cid.String(),
 			Hot: &pb.HotConfig{
 				Enabled:       pushConfig.Config.Hot.Enabled,
@@ -161,8 +191,12 @@ func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...api.PushConfigO
 					},
 				},
 			},
-		},
-		Override: pushConfig.OverrideConfig,
+		}
+	}
+
+	if pushConfig.HasOverrideConfig {
+		req.HasOverrideConfig = true
+		req.OverrideConfig = pushConfig.OverrideConfig
 	}
 
 	resp, err := f.client.PushConfig(ctx, req)

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"os"
 
 	"github.com/caarlos0/spin"
@@ -29,20 +28,13 @@ var ffsInfoCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		token := viper.GetString("token")
-
-		if token == "" {
-			Fatal(errors.New("get requires token"))
-		}
-		ctx = context.WithValue(ctx, authKey("ffstoken"), token)
-
 		s := spin.New("%s Retrieving instance info...")
 		s.Start()
-		resp, err := fcClient.Ffs.Info(ctx)
+		resp, err := fcClient.Ffs.Info(authCtx(ctx))
 		checkErr(err)
 		s.Stop()
 		Message("Information from instance ID %s:", aurora.White(resp.Info.ID).Bold())
-		Message("Wallet %s has balance %d", aurora.White(resp.Info.Wallet.Address), aurora.Green(resp.Info.Wallet.Balance))
+		Message("Address %s has balance %d", aurora.White(resp.Info.Wallet.Address), aurora.Green(resp.Info.Wallet.Balance))
 
 		Message("Pinned cids:")
 		data := make([][]string, len(resp.Info.Pins))

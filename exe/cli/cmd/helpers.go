@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -8,6 +10,7 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
+	"github.com/spf13/viper"
 )
 
 func Message(format string, args ...interface{}) {
@@ -55,4 +58,31 @@ func checkErr(e error) {
 	if e != nil {
 		Fatal(e)
 	}
+}
+
+func authCtx(ctx context.Context) context.Context {
+	token := viper.GetString("token")
+	if token == "" {
+		Fatal(errors.New("must provide -t token"))
+	}
+	return context.WithValue(ctx, authKey("ffstoken"), token)
+}
+
+type authKey string
+
+type tokenAuth struct {
+	secure bool
+}
+
+func (t tokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
+	md := map[string]string{}
+	token, ok := ctx.Value(authKey("ffstoken")).(string)
+	if ok && token != "" {
+		md["X-ffs-Token"] = token
+	}
+	return md, nil
+}
+
+func (t tokenAuth) RequireTransportSecurity() bool {
+	return t.secure
 }
