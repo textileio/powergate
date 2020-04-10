@@ -797,17 +797,24 @@ func TestCidLogger(t *testing.T) {
 			err = fapi.WatchLogs(ctx, ch, cid)
 			close(ch)
 		}()
-		select {
-		case le := <-ch:
-			cancel()
-			require.Equal(t, cid, le.Cid)
-			require.Equal(t, jid, le.Jid)
-			require.True(t, time.Since(le.Timestamp) < time.Second*5)
-			require.NotEmpty(t, le.Msg)
-		case <-time.After(time.Second):
-			t.Fatal("no cid logs were received")
+		stop := false
+		for !stop {
+			select {
+			case le, ok := <-ch:
+				if !ok {
+					require.NoError(t, err)
+					stop = true
+					continue
+				}
+				cancel()
+				require.Equal(t, cid, le.Cid)
+				require.Equal(t, jid, le.Jid)
+				require.True(t, time.Since(le.Timestamp) < time.Second*5)
+				require.NotEmpty(t, le.Msg)
+			case <-time.After(time.Second):
+				t.Fatal("no cid logs were received")
+			}
 		}
-		require.NoError(t, err)
 
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, nil)
@@ -829,17 +836,24 @@ func TestCidLogger(t *testing.T) {
 				err = fapi.WatchLogs(ctx, ch, cid, api.WithJidFilter(jid))
 				close(ch)
 			}()
-			select {
-			case le := <-ch:
-				cancel()
-				require.Equal(t, cid, le.Cid)
-				require.Equal(t, jid, le.Jid)
-				require.True(t, time.Since(le.Timestamp) < time.Second*5)
-				require.NotEmpty(t, le.Msg)
-			case <-time.After(time.Second):
-				t.Fatal("no cid logs were received")
+			stop := false
+			for !stop {
+				select {
+				case le, ok := <-ch:
+					if !ok {
+						require.NoError(t, err)
+						stop = true
+						continue
+					}
+					cancel()
+					require.Equal(t, cid, le.Cid)
+					require.Equal(t, jid, le.Jid)
+					require.True(t, time.Since(le.Timestamp) < time.Second*5)
+					require.NotEmpty(t, le.Msg)
+				case <-time.After(time.Second):
+					t.Fatal("no cid logs were received")
+				}
 			}
-			require.NoError(t, err)
 
 			requireJobState(t, fapi, jid, ffs.Success)
 			requireCidConfig(t, fapi, cid, nil)
