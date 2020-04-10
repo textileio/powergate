@@ -14,13 +14,12 @@ import (
 
 func init() {
 	ffsGetCidConfigCmd.Flags().StringP("token", "t", "", "FFS auth token")
-	ffsGetCidConfigCmd.Flags().StringP("cid", "c", "", "cid of the config to fetch")
 
 	ffsCmd.AddCommand(ffsGetCidConfigCmd)
 }
 
 var ffsGetCidConfigCmd = &cobra.Command{
-	Use:   "getCidConfig",
+	Use:   "getCidConfig [cid]",
 	Short: "Retuns the config for the provided cid",
 	Long:  `Retuns the config for the provided cid`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -31,12 +30,11 @@ var ffsGetCidConfigCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		cidString := viper.GetString("cid")
-		if cidString == "" {
-			Fatal(errors.New("cid flag required"))
+		if len(args) != 1 {
+			Fatal(errors.New("you must provide cid argument"))
 		}
 
-		c, err := cid.Parse(cidString)
+		c, err := cid.Parse(args[0])
 		checkErr(err)
 
 		s := spin.New("%s Getting defautlt cid config...")

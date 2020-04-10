@@ -14,13 +14,12 @@ import (
 
 func init() {
 	ffsGetDefaultCidConfigCmd.Flags().StringP("token", "t", "", "FFS auth token")
-	ffsGetDefaultCidConfigCmd.Flags().StringP("cid", "c", "", "cid to use in the default config")
 
 	ffsCmd.AddCommand(ffsGetDefaultCidConfigCmd)
 }
 
 var ffsGetDefaultCidConfigCmd = &cobra.Command{
-	Use:   "getDefaultCidConfig",
+	Use:   "getDefaultCidConfig [cid]",
 	Short: "Retuns the default config prepped for the provided cid",
 	Long:  `Retuns the default config prepped for the provided cid`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -31,12 +30,11 @@ var ffsGetDefaultCidConfigCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		cidString := viper.GetString("cid")
-		if cidString == "" {
-			Fatal(errors.New("cid flag required"))
+		if len(args) != 1 {
+			Fatal(errors.New("you must provide cid argument"))
 		}
 
-		c, err := cid.Parse(cidString)
+		c, err := cid.Parse(args[0])
 		checkErr(err)
 
 		s := spin.New("%s Getting defautlt cid config...")
