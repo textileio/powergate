@@ -781,35 +781,97 @@ Loop:
 }
 
 func TestCidLogger(t *testing.T) {
-	ipfs, fapi, cls := newAPI(t, 1)
-	defer cls()
+	t.Run("WithNoFilters", func(t *testing.T) {
+		ipfs, fapi, cls := newAPI(t, 1)
+		defer cls()
 
-	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfs)
-	jid, err := fapi.PushConfig(cid)
-	require.NoError(t, err)
+		r := rand.New(rand.NewSource(22))
+		cid, _ := addRandomFile(t, r, ipfs)
+		jid, err := fapi.PushConfig(cid)
+		require.NoError(t, err)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	ch := make(chan ffs.LogEntry)
-	go func() {
-		err = fapi.WatchLogs(ctx, ch, cid)
-		close(ch)
-	}()
-	select {
-	case le := <-ch:
-		cancel()
-		require.Equal(t, cid, le.Cid)
-		require.Equal(t, jid, le.Jid)
-		require.True(t, time.Since(le.Timestamp) < time.Second*5)
-		require.NotEmpty(t, le.Msg)
-	case <-time.After(time.Second):
-		t.Fatal("no cid logs were received")
-	}
-	require.NoError(t, err)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		ch := make(chan ffs.LogEntry)
+		go func() {
+			err = fapi.WatchLogs(ctx, ch, cid)
+			close(ch)
+		}()
+		select {
+		case le := <-ch:
+			cancel()
+			require.Equal(t, cid, le.Cid)
+			require.Equal(t, jid, le.Jid)
+			require.True(t, time.Since(le.Timestamp) < time.Second*5)
+			require.NotEmpty(t, le.Msg)
+		case <-time.After(time.Second):
+			t.Fatal("no cid logs were received")
+		}
+		require.NoError(t, err)
 
-	requireJobState(t, fapi, jid, ffs.Success)
-	requireCidConfig(t, fapi, cid, nil)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, nil)
+	})
+	t.Run("WithJidFilter", func(t *testing.T) {
+		t.Run("CorrectJid", func(t *testing.T) {
+			ipfs, fapi, cls := newAPI(t, 1)
+			defer cls()
+
+			r := rand.New(rand.NewSource(22))
+			cid, _ := addRandomFile(t, r, ipfs)
+			jid, err := fapi.PushConfig(cid)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			ch := make(chan ffs.LogEntry)
+			go func() {
+				err = fapi.WatchLogs(ctx, ch, cid, api.WithJidFilter(jid))
+				close(ch)
+			}()
+			select {
+			case le := <-ch:
+				cancel()
+				require.Equal(t, cid, le.Cid)
+				require.Equal(t, jid, le.Jid)
+				require.True(t, time.Since(le.Timestamp) < time.Second*5)
+				require.NotEmpty(t, le.Msg)
+			case <-time.After(time.Second):
+				t.Fatal("no cid logs were received")
+			}
+			require.NoError(t, err)
+
+			requireJobState(t, fapi, jid, ffs.Success)
+			requireCidConfig(t, fapi, cid, nil)
+		})
+		t.Run("IncorrectJid", func(t *testing.T) {
+			ipfs, fapi, cls := newAPI(t, 1)
+			defer cls()
+
+			r := rand.New(rand.NewSource(22))
+			cid, _ := addRandomFile(t, r, ipfs)
+			jid, err := fapi.PushConfig(cid)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			ch := make(chan ffs.LogEntry)
+			go func() {
+				fakeJid := ffs.NewJobID()
+				err = fapi.WatchLogs(ctx, ch, cid, api.WithJidFilter(fakeJid))
+				close(ch)
+			}()
+			select {
+			case <-ch:
+				t.Fatal("the channels shouldn't receive any log messages")
+			case <-time.After(3 * time.Second):
+			}
+			require.NoError(t, err)
+
+			requireJobState(t, fapi, jid, ffs.Success)
+			requireCidConfig(t, fapi, cid, nil)
+		})
+	})
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
