@@ -19,7 +19,7 @@ import (
 
 func init() {
 	ffsPushCmd.Flags().StringP("token", "t", "", "FFS access token")
-	ffsPushCmd.Flags().StringP("config", "c", "", "Path to a file containing cid storage config json")
+	ffsPushCmd.Flags().StringP("config", "c", "", "Optional path to a file containing cid storage config json, optional stdin otherwise")
 	ffsPushCmd.Flags().BoolP("override", "o", false, "Path to a file containing cid storage config json")
 
 	ffsCmd.AddCommand(ffsPushCmd)
