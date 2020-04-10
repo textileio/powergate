@@ -99,6 +99,9 @@ func (ms *mockSched) GetJob(jid ffs.JobID) (ffs.Job, error) {
 func (ms *mockSched) Watch(iid ffs.ApiID) <-chan ffs.Job {
 	return nil
 }
+func (ms *mockSched) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error {
+	return nil
+}
 func (ms *mockSched) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	return ffs.CidInfo{}, nil
 }

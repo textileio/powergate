@@ -780,6 +780,38 @@ Loop:
 	}
 }
 
+func TestCidLogger(t *testing.T) {
+	ipfs, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	r := rand.New(rand.NewSource(22))
+	cid, _ := addRandomFile(t, r, ipfs)
+	jid, err := fapi.PushConfig(cid)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ch := make(chan ffs.LogEntry)
+	go func() {
+		err = fapi.WatchLogs(ctx, ch, cid)
+		close(ch)
+	}()
+	select {
+	case le := <-ch:
+		cancel()
+		require.Equal(t, cid, le.Cid)
+		require.Equal(t, jid, le.Jid)
+		require.True(t, time.Since(le.Timestamp) < time.Second*5)
+		require.NotEmpty(t, le.Msg)
+	case <-time.After(time.Second):
+		t.Fatal("no cid logs were received")
+	}
+	require.NoError(t, err)
+
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, nil)
+}
+
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchDocker()
 	t.Cleanup(func() { cls() })
@@ -867,13 +899,14 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 		if err := js.Close(); err != nil {
 			t.Fatalf("closing jobstore: %s", err)
 		}
+		if err := l.Close(); err != nil {
+			t.Fatalf("closing cidlogger: %s", err)
+		}
 	}
 }
 
 func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
-	defer cancel()
 	ch, err := fapi.Watch(jid)
 	require.Nil(t, err)
 	defer fapi.Unwatch(ch)
@@ -881,7 +914,7 @@ func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 	var res ffs.Job
 	for !stop {
 		select {
-		case <-ctx.Done():
+		case <-time.After(20 * time.Second):
 			t.Fatalf("waiting for job update timeout")
 		case job, ok := <-ch:
 			require.True(t, ok)

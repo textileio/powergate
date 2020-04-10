@@ -43,3 +43,17 @@ type WalletInfo struct {
 	Address string
 	Balance uint64
 }
+
+type getLogsConfig struct {
+	fromStart  bool
+	closeOnEnd bool
+	jid        ffs.JobID
+}
+
+type GetLogsOption func(config *getLogsConfig)
+
+func WithJidFilter(jid ffs.JobID) GetLogsOption {
+	return func(c *getLogsConfig) {
+		c.jid = jid
+	}
+}

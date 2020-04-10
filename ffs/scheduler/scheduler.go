@@ -130,6 +130,12 @@ func (s *Scheduler) Watch(iid ffs.ApiID) <-chan ffs.Job {
 	return s.js.Watch(iid)
 }
 
+// WatchLogs writes to a channel all new logs for Cids. The context should be
+// canceled when wanting to stop receiving updates to the channel.
+func (s *Scheduler) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error {
+	return s.l.Watch(ctx, c)
+}
+
 // Unwatch unregisters a subscribing channel created by Watch().
 func (s *Scheduler) Unwatch(ch <-chan ffs.Job) {
 	s.js.Unwatch(ch)

@@ -78,6 +78,7 @@ type Server struct {
 	pcs        *pcstore.Store
 	sched      *scheduler.Scheduler
 	hs         ffs.HotStorage
+	l          *cidlogger.CidLogger
 
 	grpcServer   *grpc.Server
 	grpcWebProxy *http.Server
@@ -214,6 +215,7 @@ func NewServer(conf Config) (*Server, error) {
 		cis:        cis,
 		pcs:        pcs,
 		hs:         hs,
+		l:          l,
 
 		grpcServer:   grpcServer,
 		grpcWebProxy: grpcWebProxy,
@@ -353,6 +355,9 @@ func (s *Server) Close() {
 	}
 	if err := s.js.Close(); err != nil {
 		log.Errorf("closing scheduler jobstore: %s", err)
+	}
+	if err := s.l.Close(); err != nil {
+		log.Errorf("closing cid logger: %s", err)
 	}
 	if err := s.rm.Close(); err != nil {
 		log.Errorf("closing reputation module: %s", err)

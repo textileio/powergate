@@ -328,4 +328,12 @@ const (
 
 type CidLogger interface {
 	Log(context.Context, cid.Cid, string, ...interface{})
+	Watch(context.Context, chan<- LogEntry) error
+}
+
+type LogEntry struct {
+	Cid       cid.Cid
+	Timestamp time.Time
+	Jid       JobID
+	Msg       string
 }

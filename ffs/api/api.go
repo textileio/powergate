@@ -33,18 +33,18 @@ type API struct {
 	is InstanceStore
 	wm ffs.WalletManager
 
-	sched   ffs.Scheduler
-	chSched <-chan ffs.Job
+	sched      ffs.Scheduler
+	jobWatcher <-chan ffs.Job
 
-	lock     sync.Mutex
-	config   Config
-	watchers []watcher
-	ctx      context.Context
-	cancel   context.CancelFunc
-	finished chan struct{}
+	lock        sync.Mutex
+	config      Config
+	jobWatchers []jobWatcher
+	ctx         context.Context
+	cancel      context.CancelFunc
+	finished    chan struct{}
 }
 
-type watcher struct {
+type jobWatcher struct {
 	jobIDs []ffs.JobID
 	ch     chan ffs.Job
 }
@@ -83,11 +83,11 @@ func Load(iid ffs.ApiID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletMan
 
 func new(ctx context.Context, iid ffs.ApiID, is InstanceStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
-		is:      is,
-		wm:      wm,
-		config:  config,
-		sched:   sch,
-		chSched: sch.Watch(iid),
+		is:         is,
+		wm:         wm,
+		config:     config,
+		sched:      sch,
+		jobWatcher: sch.Watch(iid),
 
 		cancel:   cancel,
 		ctx:      ctx,
@@ -189,7 +189,7 @@ func (i *API) Watch(jids ...ffs.JobID) (<-chan ffs.Job, error) {
 	}
 
 	ch := make(chan ffs.Job, 1)
-	i.watchers = append(i.watchers, watcher{jobIDs: jids, ch: ch})
+	i.jobWatchers = append(i.jobWatchers, jobWatcher{jobIDs: jids, ch: ch})
 	for _, j := range jobs {
 		select {
 		case ch <- j:
@@ -205,11 +205,11 @@ func (i *API) Watch(jids ...ffs.JobID) (<-chan ffs.Job, error) {
 func (i *API) Unwatch(ch <-chan ffs.Job) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	for j, w := range i.watchers {
+	for j, w := range i.jobWatchers {
 		if w.ch == ch {
 			close(w.ch)
-			i.watchers[j] = i.watchers[len(i.watchers)-1]
-			i.watchers = i.watchers[:len(i.watchers)-1]
+			i.jobWatchers[j] = i.jobWatchers[len(i.jobWatchers)-1]
+			i.jobWatchers = i.jobWatchers[:len(i.jobWatchers)-1]
 			return
 		}
 	}
@@ -274,13 +274,44 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return r, nil
 }
 
+func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, opts ...GetLogsOption) error {
+	_, err := i.is.GetCidConfig(c)
+	if err == ErrNotFound {
+		return ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("validating cid: %s", err)
+	}
+
+	config := &getLogsConfig{}
+	for _, o := range opts {
+		o(config)
+	}
+
+	ic := make(chan ffs.LogEntry)
+	go func() {
+		err = i.sched.WatchLogs(ctx, ic)
+		close(ic)
+	}()
+	for le := range ic {
+		if c == le.Cid && (config.jid == ffs.EmptyJobID || config.jid == le.Jid) {
+			ch <- le
+		}
+	}
+	if err != nil {
+		return fmt.Errorf("listening to cid logs: %s", err)
+	}
+
+	return nil
+}
+
 // Close terminates the running Api.
 func (i *API) Close() error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	i.cancel()
 	<-i.finished
-	i.sched.Unwatch(i.chSched)
+	i.sched.Unwatch(i.jobWatcher)
 	return nil
 }
 
@@ -291,14 +322,14 @@ func (i *API) watchJobs() {
 		case <-i.ctx.Done():
 			log.Infof("terminating job watching in %s", i.config.ID)
 			return
-		case j, ok := <-i.chSched:
+		case j, ok := <-i.jobWatcher:
 			if !ok {
 				panic("scheduler closed the watching channel")
 			}
 			log.Info("received notification from jobstore")
 			i.lock.Lock()
-			log.Infof("notifying %d subscribed watchers", len(i.watchers))
-			for k, w := range i.watchers {
+			log.Infof("notifying %d subscribed watchers", len(i.jobWatchers))
+			for k, w := range i.jobWatchers {
 				shouldNotify := len(w.jobIDs) == 0
 				for _, jid := range w.jobIDs {
 					if jid == j.ID {
