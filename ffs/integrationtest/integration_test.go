@@ -102,7 +102,7 @@ func TestAdd(t *testing.T) {
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, nil)
 		requireFilStored(t, ctx, client, cid)
-		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 	})
 
 	t.Run("WithCustomConfig", func(t *testing.T) {
@@ -484,9 +484,9 @@ func TestFilecoinEnableConfig(t *testing.T) {
 
 				// External assertions
 				if !tt.HotEnabled {
-					requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+					requireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 				} else {
-					requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+					requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 				}
 			}
 
@@ -494,7 +494,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 	}
 }
 
-func requireIpfsUnpinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
+func requireIpfsUnpinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
 	pins, err := ipfsAPI.Pin().Ls(ctx)
 	require.NoError(t, err)
 	for _, p := range pins {
@@ -502,7 +502,7 @@ func requireIpfsUnpinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfs
 	}
 }
 
-func requireIpfsPinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
+func requireIpfsPinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
 	pins, err := ipfsAPI.Pin().Ls(ctx)
 	require.NoError(t, err)
 
@@ -530,14 +530,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(false)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
@@ -552,14 +552,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 	})
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()

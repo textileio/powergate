@@ -283,7 +283,7 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 		return fmt.Errorf("validating cid: %s", err)
 	}
 
-	config := &getLogsConfig{}
+	config := &GetLogsConfig{}
 	for _, o := range opts {
 		o(config)
 	}

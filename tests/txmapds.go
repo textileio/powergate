@@ -13,30 +13,36 @@ type TxMapDatastore struct {
 	lock sync.RWMutex
 }
 
+// NewTxMapDatastore returns a new TxMapDatastore.
 func NewTxMapDatastore() *TxMapDatastore {
 	return &TxMapDatastore{
 		MapDatastore: datastore.NewMapDatastore(),
 	}
 }
 
+// Get returns the value for a key.
 func (d *TxMapDatastore) Get(key datastore.Key) ([]byte, error) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.MapDatastore.Get(key)
 }
 
+// Put sets the value of a key.
 func (d *TxMapDatastore) Put(key datastore.Key, data []byte) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.MapDatastore.Put(key, data)
 }
 
+// Query executes a query in the datastore.
 func (d *TxMapDatastore) Query(q query.Query) (query.Results, error) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.MapDatastore.Query(q)
 }
 
+// NewTransaction creates a transaction A read-only transaction should be
+// indicated with readOnly equal true.
 func (d *TxMapDatastore) NewTransaction(readOnly bool) (datastore.Txn, error) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
@@ -56,6 +62,7 @@ type SimpleTx struct {
 	target datastore.Datastore
 }
 
+// NewSimpleTx creates a transaction.
 func NewSimpleTx(ds datastore.Datastore) datastore.Txn {
 	return &SimpleTx{
 		ops:    make(map[datastore.Key]op),
@@ -63,30 +70,35 @@ func NewSimpleTx(ds datastore.Datastore) datastore.Txn {
 	}
 }
 
+// Query executes a query within the transaction scope.
 func (bt *SimpleTx) Query(q query.Query) (query.Results, error) {
 	bt.lock.RLock()
 	defer bt.lock.RUnlock()
 	return bt.target.Query(q)
 }
 
+// Get returns a key value within the transaction.
 func (bt *SimpleTx) Get(k datastore.Key) ([]byte, error) {
 	bt.lock.RLock()
 	defer bt.lock.RUnlock()
 	return bt.target.Get(k)
 }
 
+// Has returns true if the key exist, false otherwise.
 func (bt *SimpleTx) Has(k datastore.Key) (bool, error) {
 	bt.lock.RLock()
 	defer bt.lock.RUnlock()
 	return bt.target.Has(k)
 }
 
+// GetSize returns the size of the key value.
 func (bt *SimpleTx) GetSize(k datastore.Key) (int, error) {
 	bt.lock.RLock()
 	defer bt.lock.RUnlock()
 	return bt.target.GetSize(k)
 }
 
+// Put sets the value for a key.
 func (bt *SimpleTx) Put(key datastore.Key, val []byte) error {
 	bt.lock.RLock()
 	defer bt.lock.RUnlock()
@@ -94,6 +106,7 @@ func (bt *SimpleTx) Put(key datastore.Key, val []byte) error {
 	return nil
 }
 
+// Delete deletes a key.
 func (bt *SimpleTx) Delete(key datastore.Key) error {
 	bt.lock.RLock()
 	defer bt.lock.RUnlock()
@@ -101,11 +114,13 @@ func (bt *SimpleTx) Delete(key datastore.Key) error {
 	return nil
 }
 
+// Discard cancels the changes done in the transaction.
 func (bt *SimpleTx) Discard() {
 	bt.lock.RLock()
 	defer bt.lock.RUnlock()
 }
 
+// Commit confirms changes done in the transaction.
 func (bt *SimpleTx) Commit() error {
 	bt.lock.RLock()
 	defer bt.lock.RUnlock()

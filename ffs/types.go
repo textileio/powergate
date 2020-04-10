@@ -320,17 +320,21 @@ type FilStorage struct {
 	Miner           string
 }
 
+// CidLoggerCtxKey is a type to use in ctx values for CidLogger.
 type CidLoggerCtxKey int
 
 const (
+	// CtxKeyJid is the key to store Jid metadata.
 	CtxKeyJid CidLoggerCtxKey = iota
 )
 
+// CidLogger saves log information about a Cid executions.
 type CidLogger interface {
 	Log(context.Context, cid.Cid, string, ...interface{})
 	Watch(context.Context, chan<- LogEntry) error
 }
 
+// LogEntry is a log entry from a Cid execution.
 type LogEntry struct {
 	Cid       cid.Cid
 	Timestamp time.Time

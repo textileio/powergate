@@ -44,14 +44,15 @@ type WalletInfo struct {
 	Balance uint64
 }
 
-type getLogsConfig struct {
+type GetLogsConfig struct {
 	jid ffs.JobID
 }
 
-type GetLogsOption func(config *getLogsConfig)
+// GetLogsOption is a function that changes GetLogsConfig.
+type GetLogsOption func(config *GetLogsConfig)
 
 func WithJidFilter(jid ffs.JobID) GetLogsOption {
-	return func(c *getLogsConfig) {
+	return func(c *GetLogsConfig) {
 		c.jid = jid
 	}
 }
