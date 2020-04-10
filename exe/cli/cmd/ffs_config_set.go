@@ -15,13 +15,13 @@ import (
 )
 
 func init() {
-	ffsSetDefaultCidConfigCmd.Flags().StringP("token", "t", "", "FFS auth token")
+	ffsConfigSetCmd.Flags().StringP("token", "t", "", "FFS auth token")
 
-	ffsCmd.AddCommand(ffsSetDefaultCidConfigCmd)
+	ffsConfigCmd.AddCommand(ffsConfigSetCmd)
 }
 
-var ffsSetDefaultCidConfigCmd = &cobra.Command{
-	Use:   "setDefaultCidConfig [(optional)file]",
+var ffsConfigSetCmd = &cobra.Command{
+	Use:   "set [(optional)file]",
 	Short: "Sets the default cid storage config from stdin or a file",
 	Long:  `Sets the default cid storage config from stdin or a file`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -49,12 +49,12 @@ var ffsSetDefaultCidConfigCmd = &cobra.Command{
 		config := ffs.DefaultCidConfig{}
 		checkErr(json.Unmarshal(buf.Bytes(), &config))
 
-		s := spin.New("%s Setting default cid config...")
+		s := spin.New("%s Setting default storage config...")
 		s.Start()
 		err = fcClient.Ffs.SetDefaultCidConfig(authCtx(ctx), config)
 		s.Stop()
 		checkErr(err)
 
-		Success("Default cid storage config updated")
+		Success("Default storage config updated")
 	},
 }

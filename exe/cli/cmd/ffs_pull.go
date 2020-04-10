@@ -13,15 +13,15 @@ import (
 )
 
 func init() {
-	ffsGetDefaultCidConfigCmd.Flags().StringP("token", "t", "", "FFS auth token")
+	ffsPullCmd.Flags().StringP("token", "t", "", "FFS auth token")
 
-	ffsCmd.AddCommand(ffsGetDefaultCidConfigCmd)
+	ffsCmd.AddCommand(ffsPullCmd)
 }
 
-var ffsGetDefaultCidConfigCmd = &cobra.Command{
-	Use:   "defaultConfig [cid]",
-	Short: "Returns the default config prepped for the provided cid",
-	Long:  `Returns the default config prepped for the provided cid`,
+var ffsPullCmd = &cobra.Command{
+	Use:   "pull [cid]",
+	Short: "Fetches the config for the provided cid",
+	Long:  `Fetches the config for the provided cid`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -37,15 +37,15 @@ var ffsGetDefaultCidConfigCmd = &cobra.Command{
 		c, err := cid.Parse(args[0])
 		checkErr(err)
 
-		s := spin.New("%s Getting default cid config...")
+		s := spin.New("%s Pulling cid config...")
 		s.Start()
-		resp, err := fcClient.Ffs.GetDefaultCidConfig(authCtx(ctx), c)
+		resp, err := fcClient.Ffs.GetCidConfig(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 
 		json, err := json.MarshalIndent(resp.Config, "", "  ")
 		checkErr(err)
 
-		Message("Default cid config:\n%s", string(json))
+		Message("Cid config:\n%s", string(json))
 	},
 }
