@@ -89,7 +89,7 @@ func TestAdd(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchDocker()
+		ipfsDocker, cls := tests.LaunchIPFSDocker()
 		defer cls()
 		ds := tests.NewTxMapDatastore()
 		addr, client, ms := newDevnet(t, 1)
@@ -219,7 +219,7 @@ func TestShow(t *testing.T) {
 
 func TestColdInstanceLoad(t *testing.T) {
 	ctx := context.Background()
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 
 	ds := tests.NewTxMapDatastore()
@@ -386,7 +386,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 }
 
 func TestFilecoinCountryFilter(t *testing.T) {
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 
 	countries := []string{"China", "Uruguay"}
@@ -563,7 +563,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchDocker()
+		ipfsDocker, cls := tests.LaunchIPFSDocker()
 		t.Cleanup(func() { cls() })
 		ds := tests.NewTxMapDatastore()
 		addr, client, ms := newDevnet(t, 1)
@@ -590,7 +590,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchDocker()
+		ipfsDocker, cls := tests.LaunchIPFSDocker()
 		t.Cleanup(func() { cls() })
 		ds := tests.NewTxMapDatastore()
 		addr, client, ms := newDevnet(t, 1)
@@ -672,7 +672,7 @@ func TestRenew(t *testing.T) {
 	// See https://bit.ly/2JxQSQk
 	t.SkipNow()
 	util.AvgBlockTime = time.Millisecond * 200
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms := newDevnet(t, 2)
@@ -725,7 +725,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	// ToDo: unskip when testnet/3  allows more than one deal
 	// See https://bit.ly/2JxQSQk
 	t.SkipNow()
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms := newDevnet(t, 2)
@@ -889,7 +889,7 @@ func TestCidLogger(t *testing.T) {
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms := newDevnet(t, numMiners)

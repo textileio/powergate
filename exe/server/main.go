@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	log    = logging.Logger("powergated")
+	log    = logging.Logger("powd")
 	config = viper.New()
 )
 
@@ -94,11 +94,11 @@ func main() {
 		RepoPath:            repoPath,
 		GatewayHostAddr:     config.GetString("gatewayhostaddr"),
 	}
-	confJson, err := json.MarshalIndent(conf, "", "  ")
+	confJSON, err := json.MarshalIndent(conf, "", "  ")
 	if err != nil {
 		log.Fatalf("can't show current config: %s", err)
 	}
-	log.Infof("Current configuration: \n%s", confJson)
+	log.Infof("Current configuration: \n%s", confJSON)
 	log.Info("starting server...")
 	s, err := server.NewServer(conf)
 	if err != nil {

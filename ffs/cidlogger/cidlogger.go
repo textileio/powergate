@@ -18,6 +18,7 @@ var (
 	log = logging.Logger("ffs-cidlogger")
 )
 
+// CidLogger is a datastore backed implementation of ffs.CidLogger.
 type CidLogger struct {
 	ds datastore.Datastore
 
@@ -35,12 +36,15 @@ type logEntry struct {
 
 var _ ffs.CidLogger = (*CidLogger)(nil)
 
+// New returns a new CidLogger.
 func New(ds datastore.Datastore) *CidLogger {
 	return &CidLogger{
 		ds: ds,
 	}
 }
 
+// Log logs a log entry for a Cid. The ctx can contain an optional ffs.CtxKeyJid to add
+// additional metadata about the log entry being part of a Job execution.
 func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...interface{}) {
 	fmt.Printf(format+"\n", a...)
 	jid := ffs.EmptyJobID
@@ -82,6 +86,8 @@ func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...int
 	}
 }
 
+// Watch is a blocking function that writes to the channel all new created log entries.
+// The client should cancel the ctx to signal stopping writing to the channel and free resources.
 func (cl *CidLogger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
 	cl.lock.Lock()
 	ic := make(chan ffs.LogEntry)
@@ -111,6 +117,7 @@ func (cl *CidLogger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
 	return nil
 }
 
+// Close closes and cancels all watchers that might be active.
 func (cl *CidLogger) Close() error {
 	cl.lock.Lock()
 	defer cl.lock.Unlock()
