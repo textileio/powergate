@@ -13,7 +13,7 @@ type Slashing struct {
 }
 
 // Get returns the current index of miner slashes data
-func (s *Slashing) Get(ctx context.Context) (*slashing.Index, error) {
+func (s *Slashing) Get(ctx context.Context) (*slashing.IndexSnapshot, error) {
 	reply, err := s.client.Get(ctx, &pb.GetRequest{})
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func (s *Slashing) Get(ctx context.Context) (*slashing.Index, error) {
 		miners[key] = slashing.Slashes{Epochs: val.GetEpochs()}
 	}
 
-	index := &slashing.Index{
+	index := &slashing.IndexSnapshot{
 		TipSetKey: reply.GetIndex().GetTipSetKey(),
 		Miners:    miners,
 	}

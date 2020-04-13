@@ -65,9 +65,9 @@ type Server struct {
 	ds datastore.TxnDatastore
 
 	ip2l *ip2location.IP2Location
-	ai   *ask.AskIndex
-	mi   *miner.MinerIndex
-	si   *slashing.SlashingIndex
+	ai   *ask.Index
+	mi   *miner.Index
+	si   *slashing.Index
 	dm   *deals.Module
 	wm   *wallet.Module
 	rm   *reputation.Module

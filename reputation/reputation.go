@@ -28,16 +28,16 @@ type Module struct {
 	ds      datastore.TxnDatastore
 	sources *source.Store
 
-	mi *miner.MinerIndex
+	mi *miner.Index
 
-	si *slashing.SlashingIndex
+	si *slashing.Index
 
-	ai *ask.AskIndex
+	ai *ask.Index
 
 	lockIndex sync.Mutex
-	mIndex    miner.Index
-	sIndex    slashing.Index
-	aIndex    ask.Index
+	mIndex    miner.IndexSnapshot
+	sIndex    slashing.IndexSnapshot
+	aIndex    ask.IndexSnapshot
 
 	lockScores sync.Mutex
 	rebuild    chan struct{}
@@ -54,7 +54,7 @@ type MinerScore struct {
 }
 
 // New returns a new reputation Module
-func New(ds datastore.TxnDatastore, mi *miner.MinerIndex, si *slashing.SlashingIndex, ai *ask.AskIndex) *Module {
+func New(ds datastore.TxnDatastore, mi *miner.Index, si *slashing.Index, ai *ask.Index) *Module {
 	ctx, cancel := context.WithCancel(context.Background())
 	rm := &Module{
 		ds: ds,
@@ -215,7 +215,7 @@ func (rm *Module) indexBuilder() {
 }
 
 // calculateScore calculates the score for a miner
-func calculateScore(addr string, mi miner.Index, si slashing.Index, ai ask.Index, ss []source.Source) MinerScore {
+func calculateScore(addr string, mi miner.IndexSnapshot, si slashing.IndexSnapshot, ai ask.IndexSnapshot, ss []source.Source) MinerScore {
 	power := mi.Chain.Power[addr]
 	powerScore := power.Relative
 

@@ -46,18 +46,18 @@ func (f *fileSystem) Exists(prefix, path string) bool {
 type Gateway struct {
 	addr             string
 	server           *http.Server
-	askIndex         *ask.AskIndex
-	minerIndex       *miner.MinerIndex
-	slashingIndex    *slashing.SlashingIndex
+	askIndex         *ask.Index
+	minerIndex       *miner.Index
+	slashingIndex    *slashing.Index
 	reputationModule *reputation.Module
 }
 
 // NewGateway returns a new gateway.
 func NewGateway(
 	addr string,
-	askIndex *ask.AskIndex,
-	minerIndex *miner.MinerIndex,
-	slashingIndex *slashing.SlashingIndex,
+	askIndex *ask.Index,
+	minerIndex *miner.Index,
+	slashingIndex *slashing.Index,
 	reputationModule *reputation.Module,
 ) *Gateway {
 	return &Gateway{

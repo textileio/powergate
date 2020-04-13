@@ -12,14 +12,14 @@ import (
 // miners from a Reputations Module and an Ask Index.
 type RepTop struct {
 	rm *reputation.Module
-	ai *ask.AskIndex
+	ai *ask.Index
 }
 
 var _ ffs.MinerSelector = (*RepTop)(nil)
 
 // New returns a new RetTop instance that uses the specified Reputation Module
 // to select miners and the AskIndex for their epoch prices.
-func New(rm *reputation.Module, ai *ask.AskIndex) *RepTop {
+func New(rm *reputation.Module, ai *ask.Index) *RepTop {
 	return &RepTop{
 		rm: rm,
 		ai: ai,

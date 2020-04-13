@@ -12,7 +12,7 @@ type Miners struct {
 }
 
 // Get returns the current index of available asks
-func (a *Miners) Get(ctx context.Context) (*miner.Index, error) {
+func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 	time.Sleep(time.Second * 3)
 	info := map[string]miner.Meta{
 		"miner1": miner.Meta{
@@ -87,7 +87,7 @@ func (a *Miners) Get(ctx context.Context) (*miner.Index, error) {
 		Power:       power,
 	}
 
-	index := &miner.Index{
+	index := &miner.IndexSnapshot{
 		Meta:  metaIndex,
 		Chain: chainIndex,
 	}

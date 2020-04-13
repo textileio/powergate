@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	cbor.RegisterCborType(Index{})
+	cbor.RegisterCborType(IndexSnapshot{})
 	cbor.RegisterCborType(ChainIndex{})
 	cbor.RegisterCborType(Power{})
 	cbor.RegisterCborType(MetaIndex{})
@@ -16,7 +16,7 @@ func init() {
 }
 
 // Index contains on-chain and off-chain information about miners
-type Index struct {
+type IndexSnapshot struct {
 	Meta  MetaIndex
 	Chain ChainIndex
 }

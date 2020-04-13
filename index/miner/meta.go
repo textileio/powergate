@@ -27,7 +27,7 @@ var (
 )
 
 // metaWorker makes a pass on refreshing metadata information about known miners
-func (mi *MinerIndex) metaWorker() {
+func (mi *Index) metaWorker() {
 	defer func() { mi.finished <- struct{}{} }()
 	mi.chMeta <- struct{}{}
 	for {
@@ -165,7 +165,7 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 }
 
 // persisteMetaIndex saves to datastore a new MetaIndex
-func (mi *MinerIndex) persistMetaIndex(index MetaIndex) error {
+func (mi *Index) persistMetaIndex(index MetaIndex) error {
 	buf, err := cbor.DumpObject(index)
 	if err != nil {
 		return err

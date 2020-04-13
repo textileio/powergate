@@ -12,7 +12,6 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions-contrib/golangci-lint@v1
         with:
-          golangci_lint_version: 1.23.8
           args: "run -E golint --timeout 30m"
   spell-check:
     name: spell-check

@@ -26,7 +26,7 @@ const (
 
 // updateOnChainIndex updates on-chain index information in the direction of heaviest tipset
 // with some height offset to reduce sensibility to reorgs
-func (mi *MinerIndex) updateOnChainIndex() error {
+func (mi *Index) updateOnChainIndex() error {
 	log.Info("updating on-chain index...")
 	heaviest, err := mi.api.ChainHead(mi.ctx)
 	if err != nil {

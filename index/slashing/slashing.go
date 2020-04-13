@@ -32,14 +32,14 @@ var (
 	log = logging.Logger("index-slashing")
 )
 
-// SlashingIndex builds and provides slashing history of miners
-type SlashingIndex struct {
+// Index builds and provides slashing history of miners
+type Index struct {
 	api      *apistruct.FullNodeStruct
 	store    *chainstore.Store
 	signaler *signaler.Signaler
 
 	lock  sync.Mutex
-	index Index
+	index IndexSnapshot
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -50,7 +50,7 @@ type SlashingIndex struct {
 
 // New returns a new SlashingIndex. It will load previous state from ds, and
 // immediatelly start getting in sync with new on-chain.
-func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*SlashingIndex, error) {
+func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, error) {
 	cs := chainsync.New(api)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {
@@ -58,11 +58,11 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*SlashingInd
 	}
 	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
-	s := &SlashingIndex{
+	s := &Index{
 		api:      api,
 		store:    store,
 		signaler: signaler.New(),
-		index: Index{
+		index: IndexSnapshot{
 			Miners: make(map[string]Slashes),
 		},
 		ctx:      ctx,
@@ -77,10 +77,10 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*SlashingInd
 }
 
 // Get returns a copy of the current index information
-func (s *SlashingIndex) Get() Index {
+func (s *Index) Get() IndexSnapshot {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	ii := Index{
+	ii := IndexSnapshot{
 		TipSetKey: s.index.TipSetKey,
 		Miners:    make(map[string]Slashes, len(s.index.Miners)),
 	}
@@ -96,17 +96,17 @@ func (s *SlashingIndex) Get() Index {
 
 // Listen returns a a signaler channel which signals that index information
 // has been updated.
-func (s *SlashingIndex) Listen() <-chan struct{} {
+func (s *Index) Listen() <-chan struct{} {
 	return s.signaler.Listen()
 }
 
 // Unregister frees a channel from the signaler hub
-func (s *SlashingIndex) Unregister(c chan struct{}) {
+func (s *Index) Unregister(c chan struct{}) {
 	s.signaler.Unregister(c)
 }
 
 // Close closes the SlashindIndex
-func (s *SlashingIndex) Close() error {
+func (s *Index) Close() error {
 	log.Info("Closing")
 	s.clsLock.Lock()
 	defer s.clsLock.Unlock()
@@ -120,7 +120,7 @@ func (s *SlashingIndex) Close() error {
 }
 
 // start is a long running job that keeps the index up to date with chain updates
-func (s *SlashingIndex) start() {
+func (s *Index) start() {
 	defer close(s.finished)
 	if err := s.updateIndex(); err != nil {
 		log.Errorf("error on first updating slashing history: %s", err)
@@ -141,7 +141,7 @@ func (s *SlashingIndex) start() {
 }
 
 // updateIndex updates current index with a new discovered chain head.
-func (s *SlashingIndex) updateIndex() error {
+func (s *Index) updateIndex() error {
 	log.Info("updating slashing index...")
 	heaviest, err := s.api.ChainHead(s.ctx)
 	if err != nil {
@@ -155,7 +155,7 @@ func (s *SlashingIndex) updateIndex() error {
 		return err
 	}
 	newtsk := types.NewTipSetKey(new.Cids()...)
-	var index Index
+	var index IndexSnapshot
 	ts, err := s.store.LoadAndPrune(s.ctx, newtsk, &index)
 	if err != nil {
 		return err
@@ -199,7 +199,7 @@ func (s *SlashingIndex) updateIndex() error {
 
 // updateFromPath updates a saved index state walking a chain path. The path
 // usually should be the next epoch from index up to the current head TipSet.
-func updateFromPath(ctx context.Context, api *apistruct.FullNodeStruct, index *Index, path []*types.TipSet) error {
+func updateFromPath(ctx context.Context, api *apistruct.FullNodeStruct, index *IndexSnapshot, path []*types.TipSet) error {
 	for i := 1; i < len(path); i++ {
 		patch, err := epochPatch(ctx, api, path[i-1], path[i])
 		if err != nil {
@@ -279,8 +279,8 @@ func epochPatch(ctx context.Context, c *apistruct.FullNodeStruct, pts *types.Tip
 
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed
 // since its only called from New().
-func (s *SlashingIndex) loadFromDS() error {
-	var index Index
+func (s *Index) loadFromDS() error {
+	var index IndexSnapshot
 	if _, err := s.store.GetLastCheckpoint(&index); err != nil {
 		return err
 	}
