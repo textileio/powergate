@@ -54,7 +54,7 @@ var storeCmd = &cobra.Command{
 
 		file, err := os.Open(path)
 		checkErr(err)
-		defer file.Close()
+		defer checkErr(file.Close())
 
 		if lMiners == 0 {
 			Fatal(errors.New("you must supply at least one miner"))

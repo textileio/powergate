@@ -1,6 +1,7 @@
 //lint:file-ignore SA1019 We should use a better library.
 // The above line should be correct, doesn't work currently on golangci-lint, track: https://github.com/golangci/golangci-lint/issues/741
 // nolint:staticcheck
+
 package ip2location
 
 import (

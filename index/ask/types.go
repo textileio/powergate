@@ -12,7 +12,7 @@ func init() {
 	cbor.RegisterCborType(time.Time{})
 }
 
-// Index contains Ask information from markets
+// IndexSnapshot contains Ask information from markets
 type IndexSnapshot struct {
 	LastUpdated        time.Time
 	StorageMedianPrice uint64

@@ -323,6 +323,8 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	}
 }
 
+// WatchJobs returns a stream of human-readable messages related to executions of a Cid.
+// The listener is automatically unsubscribed when the client closes the stream.
 func (s *Service) WatchJobs(req *pb.WatchLogsRequest, srv pb.API_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
@@ -472,7 +474,11 @@ func (s *Service) AddToHot(srv pb.API_AddToHotServer) error {
 	}
 
 	reader, writer := io.Pipe()
-	defer reader.Close()
+	defer func() {
+		if err := reader.Close(); err != nil {
+			log.Errorf("closing reader: %s", err)
+		}
+	}()
 
 	go receiveFile(srv, writer)
 

@@ -66,7 +66,11 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Errorf("closing storing file: %s", err)
+		}
+	}()
 	if _, err := io.Copy(f, data); err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}

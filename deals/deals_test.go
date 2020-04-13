@@ -15,6 +15,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/tests"
 )
@@ -61,7 +62,7 @@ func TestRetrieve(t *testing.T) {
 
 			r, err := m.Retrieve(ctx, addr.String(), dcid, false)
 			checkErr(t, err)
-			defer r.Close()
+			defer require.NoError(t, r.Close())
 			rdata, err := ioutil.ReadAll(r)
 			checkErr(t, err)
 			if !bytes.Equal(data, rdata) {

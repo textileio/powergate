@@ -48,7 +48,11 @@ func (s *Store) GetByStatus(status ffs.JobStatus) ([]ffs.Job, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying datastore: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing getbystatus query result: %s", err)
+		}
+	}()
 
 	var ret []ffs.Job
 	for r := range res.Next() {

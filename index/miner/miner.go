@@ -30,6 +30,7 @@ var (
 	log = logging.Logger("index-miner")
 )
 
+// P2PHost provides a client to connect to a libp2p peer.
 type P2PHost interface {
 	Addrs(pid peer.ID) []multiaddr.Multiaddr
 	Ping(ctx context.Context, pid peer.ID) bool

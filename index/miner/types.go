@@ -15,7 +15,7 @@ func init() {
 	cbor.RegisterCborType(Location{})
 }
 
-// Index contains on-chain and off-chain information about miners
+// IndexSnapshot contains on-chain and off-chain information about miners
 type IndexSnapshot struct {
 	Meta  MetaIndex
 	Chain ChainIndex

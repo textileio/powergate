@@ -7,7 +7,7 @@ func init() {
 	cbor.RegisterCborType(Slashes{})
 }
 
-// Index contains slashing histoy information up-to a TipSetKey.
+// IndexSnapshot contains slashing histoy information up-to a TipSetKey.
 type IndexSnapshot struct {
 	TipSetKey string
 	Miners    map[string]Slashes

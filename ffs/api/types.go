@@ -44,6 +44,8 @@ type WalletInfo struct {
 	Balance uint64
 }
 
+// GetLogsConfig contains configuration for a stream-log
+// of human-friendly messages for a Cid execution.
 type GetLogsConfig struct {
 	jid ffs.JobID
 }
@@ -51,6 +53,8 @@ type GetLogsConfig struct {
 // GetLogsOption is a function that changes GetLogsConfig.
 type GetLogsOption func(config *GetLogsConfig)
 
+// WithJidFilter filters only log messages of a Cid related to
+// the Job with id jid.
 func WithJidFilter(jid ffs.JobID) GetLogsOption {
 	return func(c *GetLogsConfig) {
 		c.jid = jid

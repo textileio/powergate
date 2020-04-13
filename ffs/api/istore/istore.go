@@ -8,11 +8,13 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 )
 
 var (
+	log              = logging.Logger("ffs-api-istore")
 	dsBase           = datastore.NewKey("instance")
 	dsInstanceConfig = datastore.NewKey("config")
 	dsCidConfig      = datastore.NewKey("cidconfig")
@@ -107,7 +109,11 @@ func (s *Store) GetCids() ([]cid.Cid, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying for all cids in instance: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
 
 	var cids []cid.Cid
 	for r := range res.Next() {

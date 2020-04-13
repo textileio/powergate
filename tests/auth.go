@@ -14,6 +14,7 @@ const (
 	lotusPort = 1234
 )
 
+// GetLotusToken returns the lotus token from a Lotus repo path.
 func GetLotusToken(lotusFolderPath string) (string, error) {
 	tokenFullPath := filepath.Join(lotusFolderPath, "token")
 	if _, err := os.Stat(tokenFullPath); err != nil {
@@ -39,6 +40,8 @@ func createAdminToken() (string, error) {
 	return string(out), err
 }
 
+// ClientConfigMA returns the prepared multiaddress and Lotus token, to
+// connect to a Lotus node.
 func ClientConfigMA() (ma.Multiaddr, string) {
 	addr := fmt.Sprintf("/ip4/%v/tcp/%v", lotusHost, lotusPort)
 	multi, err := ma.NewMultiaddr(addr)

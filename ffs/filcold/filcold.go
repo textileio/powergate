@@ -52,7 +52,11 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 	if err != nil {
 		return cid.Undef, fmt.Errorf("retrieving from deal module: %s", err)
 	}
-	defer carR.Close()
+	defer func() {
+		if err := carR.Close(); err != nil {
+			log.Errorf("closing reader from deal retrieve: %s", err)
+		}
+	}()
 	h, err := car.LoadCar(cs, carR)
 	if err != nil {
 		return cid.Undef, fmt.Errorf("loading car to carstore: %s", err)
@@ -274,7 +278,9 @@ func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) 
 				log.Errorf("closing with error: %s", err)
 			}
 		}
-		w.Close()
+		if err := w.Close(); err != nil {
+			log.Errorf("closing writer in ipld to file transform: %s", err)
+		}
 	}()
 	return r
 }
