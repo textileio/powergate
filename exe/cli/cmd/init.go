@@ -20,11 +20,11 @@ var initCmd = &cobra.Command{
 	Short: "Initializes a config file with the provided values or defaults",
 	Long:  `Initializes a config file with the provided values or defaults`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		viper.BindPFlag("address", cmd.Flags().Lookup("address"))
-		viper.BindPFlag("duration", cmd.Flags().Lookup("duration"))
-		viper.BindPFlag("maxPrice", cmd.Flags().Lookup("maxPrice"))
-		viper.BindPFlag("pieceSize", cmd.Flags().Lookup("pieceSize"))
-		viper.BindPFlag("wallets", cmd.Flags().Lookup("wallets"))
+		checkErr(viper.BindPFlag("address", cmd.Flags().Lookup("address")))
+		checkErr(viper.BindPFlag("duration", cmd.Flags().Lookup("duration")))
+		checkErr(viper.BindPFlag("maxPrice", cmd.Flags().Lookup("maxPrice")))
+		checkErr(viper.BindPFlag("pieceSize", cmd.Flags().Lookup("pieceSize")))
+		checkErr(viper.BindPFlag("wallets", cmd.Flags().Lookup("wallets")))
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		viper.SetConfigType("yaml")

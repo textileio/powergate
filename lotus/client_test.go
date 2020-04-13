@@ -23,7 +23,9 @@ const (
 func TestMain(m *testing.M) {
 	_ = os.RemoveAll(tmpDir)
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		os.Mkdir(tmpDir, os.ModePerm)
+		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
+			panic("can't create temp dir")
+		}
 	}
 	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())
@@ -45,8 +47,10 @@ func TestClientImport(t *testing.T) {
 	defer os.Remove(f.Name())
 	defer f.Close()
 	bts := make([]byte, 4)
-	rand.Read(bts)
-	io.Copy(f, bytes.NewReader(bts))
+	_, err = rand.Read(bts)
+	checkErr(t, err)
+	_, err = io.Copy(f, bytes.NewReader(bts))
+	checkErr(t, err)
 
 	ref := api.FileRef{
 		Path: f.Name(),

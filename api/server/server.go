@@ -280,7 +280,9 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		minerPb.RegisterAPIServer(server, minerService)
 		slashingPb.RegisterAPIServer(server, slashingService)
 		ffsPb.RegisterAPIServer(server, ffsService)
-		server.Serve(listener)
+		if err := server.Serve(listener); err != nil {
+			log.Errorf("serving grpc endpoint: %s", err)
+		}
 	}()
 
 	go func() {
@@ -301,7 +303,9 @@ func startIndexHTTPServer(s *Server) {
 				http.Error(w, "Error", http.StatusInternalServerError)
 				return
 			}
-			w.Write(buf)
+			if _, err := w.Write(buf); err != nil {
+				log.Errorf("writting response body: %s", err)
+			}
 		})
 		mux.HandleFunc("/index/miners", func(w http.ResponseWriter, r *http.Request) {
 			index := s.mi.Get()
@@ -310,7 +314,9 @@ func startIndexHTTPServer(s *Server) {
 				http.Error(w, "Error", http.StatusInternalServerError)
 				return
 			}
-			w.Write(buf)
+			if _, err := w.Write(buf); err != nil {
+				log.Errorf("writting response body: %s", err)
+			}
 		})
 		mux.HandleFunc("/index/slashing", func(w http.ResponseWriter, r *http.Request) {
 			index := s.si.Get()
@@ -319,7 +325,9 @@ func startIndexHTTPServer(s *Server) {
 				http.Error(w, "Error", http.StatusInternalServerError)
 				return
 			}
-			w.Write(buf)
+			if _, err := w.Write(buf); err != nil {
+				log.Errorf("writting response body: %s", err)
+			}
 		})
 		if err := http.ListenAndServe(":8889", mux); err != nil {
 			log.Fatalf("Failed to run Prometheus scrape endpoint: %v", err)

@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	initialWait      = time.Second * 5
 	chanWriteTimeout = time.Second
 )
 

@@ -13,7 +13,6 @@ import (
 func TestMain(m *testing.M) {
 	util.AvgBlockTime = time.Millisecond * 10
 	logging.SetAllLoggers(logging.LevelError)
-	logging.SetLogLevel("index-miner", "debug")
 	os.Exit(m.Run())
 }
 

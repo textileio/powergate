@@ -104,7 +104,9 @@ func deltaRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex
 		}
 		addrs = append(addrs, a)
 	}
-	updateForAddrs(ctx, api, chainIndex, addrs)
+	if err := updateForAddrs(ctx, api, chainIndex, addrs); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -119,7 +121,9 @@ func fullRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex 
 	if err != nil {
 		return err
 	}
-	updateForAddrs(ctx, api, chainIndex, addrs)
+	if err := updateForAddrs(ctx, api, chainIndex, addrs); err != nil {
+		return fmt.Errorf("updating for addresses: %s", err)
+	}
 	return nil
 }
 

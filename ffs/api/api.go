@@ -50,7 +50,7 @@ type jobWatcher struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, iid ffs.ApiID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultCidConfig) (*API, error) {
+func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultCidConfig) (*API, error) {
 	if err := dc.Validate(); err != nil {
 		return nil, fmt.Errorf("default cid config is invalid: %s", err)
 	}
@@ -72,7 +72,7 @@ func New(ctx context.Context, iid ffs.ApiID, is InstanceStore, sch ffs.Scheduler
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(iid ffs.ApiID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletManager) (*API, error) {
+func Load(iid ffs.APIID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletManager) (*API, error) {
 	c, err := is.GetConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
@@ -81,7 +81,7 @@ func Load(iid ffs.ApiID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletMan
 	return new(ctx, iid, is, wm, c, sched, cancel), nil
 }
 
-func new(ctx context.Context, iid ffs.ApiID, is InstanceStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler, cancel context.CancelFunc) *API {
+func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:         is,
 		wm:         wm,
@@ -98,7 +98,7 @@ func new(ctx context.Context, iid ffs.ApiID, is InstanceStore, wm ffs.WalletMana
 }
 
 // ID returns the ID.
-func (i *API) ID() ffs.ApiID {
+func (i *API) ID() ffs.APIID {
 	return i.config.ID
 }
 

@@ -6,15 +6,12 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 var (
-	log = logging.Logger("ffs-sched-pcstore")
-
 	dsBase = datastore.NewKey("pcstore")
 )
 

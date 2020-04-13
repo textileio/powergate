@@ -1,3 +1,4 @@
+//lint:file-ignore SA1019 We should use a better library.
 package ip2location
 
 import (

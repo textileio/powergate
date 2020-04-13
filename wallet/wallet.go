@@ -30,7 +30,7 @@ func New(api *apistruct.FullNodeStruct, maddr *address.Address, iam big.Int) (*M
 
 // NewAddress creates a new address
 func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
-	ty := crypto.SigTypeUnknown
+	var ty crypto.SigType
 	if typ == "bls" {
 		ty = crypto.SigTypeBLS
 	} else if typ == "secp256k1" {

@@ -96,7 +96,7 @@ var dealCmd = &cobra.Command{
 			Message: "Select from available asks:",
 			Options: choices,
 		}
-		survey.AskOne(prompt, &selectedAsks, survey.WithValidator(survey.Required))
+		checkErr(survey.AskOne(prompt, &selectedAsks, survey.WithValidator(survey.Required)))
 		cmd.Println()
 
 		dealConfigs := make([]deals.StorageDealConfig, len(selectedAsks))

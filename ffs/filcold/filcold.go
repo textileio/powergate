@@ -269,7 +269,10 @@ func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) 
 	r, w := io.Pipe()
 	go func() {
 		if err := car.WriteCar(ctx, dag, []cid.Cid{c}, w); err != nil {
-			w.CloseWithError(err)
+			log.Errorf("writing car file: %s", err)
+			if err := w.CloseWithError(err); err != nil {
+				log.Errorf("closing with error: %s", err)
+			}
 		}
 		w.Close()
 	}()

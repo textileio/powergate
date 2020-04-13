@@ -277,6 +277,17 @@ func epochPatch(ctx context.Context, c *apistruct.FullNodeStruct, pts *types.Tip
 	return ret, nil
 }
 
+// loadFromDS loads persisted indexes to memory datastructures. No locks needed
+// since its only called from New().
+func (s *SlashingIndex) loadFromDS() error {
+	var index Index
+	if _, err := s.store.GetLastCheckpoint(&index); err != nil {
+		return err
+	}
+	s.index = index
+	return nil
+}
+
 func areConsecutiveEpochs(pts, ts *types.TipSet) bool {
 	if pts.Height() >= ts.Height() {
 		return false
@@ -292,15 +303,4 @@ func areConsecutiveEpochs(pts, ts *types.TipSet) bool {
 		}
 	}
 	return true
-}
-
-// loadFromDS loads persisted indexes to memory datastructures. No locks needed
-// since its only called from New().
-func (si *SlashingIndex) loadFromDS() error {
-	var index Index
-	if _, err := si.store.GetLastCheckpoint(&index); err != nil {
-		return err
-	}
-	si.index = index
-	return nil
 }

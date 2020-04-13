@@ -22,13 +22,13 @@ var (
 type Store struct {
 	lock sync.Mutex
 	ds   datastore.Datastore
-	iid  ffs.ApiID
+	iid  ffs.APIID
 }
 
 var _ api.InstanceStore = (*Store)(nil)
 
 // New returns a new ConfigStore
-func New(iid ffs.ApiID, ds datastore.Datastore) *Store {
+func New(iid ffs.APIID, ds datastore.Datastore) *Store {
 	return &Store{
 		iid: iid,
 		ds:  ds,
@@ -121,14 +121,14 @@ func (s *Store) GetCids() ([]cid.Cid, error) {
 	return cids, nil
 }
 
-func makeCidConfigKey(iid ffs.ApiID, c cid.Cid) datastore.Key {
+func makeCidConfigKey(iid ffs.APIID, c cid.Cid) datastore.Key {
 	return makeInstanceKey(iid).Child(dsCidConfig).ChildString(c.String())
 }
 
-func makeConfigKey(iid ffs.ApiID) datastore.Key {
+func makeConfigKey(iid ffs.APIID) datastore.Key {
 	return makeInstanceKey(iid).Child(dsInstanceConfig)
 }
 
-func makeInstanceKey(iid ffs.ApiID) datastore.Key {
+func makeInstanceKey(iid ffs.APIID) datastore.Key {
 	return dsBase.ChildString(iid.String())
 }

@@ -45,9 +45,13 @@ func main() {
 
 	config.SetEnvPrefix("TEXPOWERGATE")
 	config.AutomaticEnv()
-	config.BindPFlags(pflag.CommandLine)
+	if err := config.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatalf("binding pflags: %s", err)
+	}
 
-	setupLogging()
+	if err := setupLogging(); err != nil {
+		log.Fatalf("setting up logging: %s", err)
+	}
 	setupInstrumentation()
 	setupPprof()
 
@@ -136,21 +140,28 @@ func setupInstrumentation() {
 	}()
 }
 
-func setupLogging() {
-	logging.SetLogLevel("*", "error")
+func setupLogging() error {
+	if err := logging.SetLogLevel("*", "error"); err != nil {
+		return err
+	}
 	loggers := []string{"index-miner", "index-ask", "index-slashing",
 		"server", "deals", "powergated", "fchost", "ip2location", "reputation",
 		"ffs-scheduler", "ffs-manager", "ffs-auth", "ffs-api", "ffs-coreipfs",
 		"ffs-grpc-service", "ffs-filcold", "ffs-sched-cistore", "ffs-sched-jstore",
 		"ffs-sched-pcstore", "ffs-cidlogger"}
 	for _, l := range loggers {
-		logging.SetLogLevel(l, "info")
+		if err := logging.SetLogLevel(l, "info"); err != nil {
+			return err
+		}
 	}
 	if config.GetBool("debug") {
 		for _, l := range loggers {
-			logging.SetLogLevel(l, "debug")
+			if err := logging.SetLogLevel(l, "debug"); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func setupPprof() {

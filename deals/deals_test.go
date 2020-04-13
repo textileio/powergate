@@ -25,7 +25,9 @@ const (
 
 func TestMain(m *testing.M) {
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		os.Mkdir(tmpDir, os.ModePerm)
+		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
+			panic(err)
+		}
 	}
 	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())

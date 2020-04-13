@@ -11,6 +11,7 @@ import (
 
 	"github.com/caarlos0/spin"
 	"github.com/ipfs/go-cid"
+	"github.com/prometheus/common/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
@@ -49,7 +50,11 @@ var ffsPushCmd = &cobra.Command{
 		var reader io.Reader
 		if len(configPath) > 0 {
 			file, err := os.Open(configPath)
-			defer file.Close()
+			defer func() {
+				if err := file.Close(); err != nil {
+					log.Errorf("closing config file: %s", err)
+				}
+			}()
 			reader = file
 			checkErr(err)
 		} else {

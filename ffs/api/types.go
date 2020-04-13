@@ -24,14 +24,14 @@ type InstanceStore interface {
 
 // Config has general information about a Api instance.
 type Config struct {
-	ID               ffs.ApiID
+	ID               ffs.APIID
 	WalletAddr       string
 	DefaultCidConfig ffs.DefaultCidConfig
 }
 
 // InstanceInfo has general information about a running Api instance.
 type InstanceInfo struct {
-	ID               ffs.ApiID
+	ID               ffs.APIID
 	DefaultCidConfig ffs.DefaultCidConfig
 	Wallet           WalletInfo
 	Pins             []cid.Cid

@@ -141,7 +141,10 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 			PricePerEpoch: update.PricePerEpoch,
 			Duration:      update.Duration,
 		}
-		srv.Send(&pb.WatchReply{DealInfo: dealInfo})
+		if err := srv.Send(&pb.WatchReply{DealInfo: dealInfo}); err != nil {
+			log.Errorf("sending response: %s", err)
+			return err
+		}
 	}
 	return nil
 }

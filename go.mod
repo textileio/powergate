@@ -57,6 +57,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/ory/dockertest v3.3.5+incompatible
+	github.com/prometheus/common v0.6.0
 	github.com/rs/cors v1.7.0
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5

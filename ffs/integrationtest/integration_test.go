@@ -47,7 +47,9 @@ const (
 func TestMain(m *testing.M) {
 	_ = os.RemoveAll(tmpDir)
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		os.Mkdir(tmpDir, os.ModePerm)
+		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
+			panic(err)
+		}
 	}
 
 	logging.SetAllLoggers(logging.LevelWarn)
@@ -101,7 +103,7 @@ func TestAdd(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, nil)
-		requireFilStored(t, ctx, client, cid)
+		requireFilStored(ctx, t, client, cid)
 		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 	})
 
@@ -578,14 +580,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireFilUnstored(t, ctx, client, cid)
+		requireFilUnstored(ctx, t, client, cid)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireFilStored(t, ctx, client, cid)
+		requireFilStored(ctx, t, client, cid)
 
 	})
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
@@ -605,7 +607,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireFilUnstored(t, ctx, client, cid)
+		requireFilUnstored(ctx, t, client, cid)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
@@ -614,7 +616,7 @@ func TestEnabledConfigChange(t *testing.T) {
 
 		// Yes, still stored in filecoin since deals can't be
 		// undone.
-		requireFilStored(t, ctx, client, cid)
+		requireFilStored(ctx, t, client, cid)
 		// Despite of the above, check that the Cid Config still reflects
 		// that this *shouldn't* be in the Cold Storage. To indicate
 		// this can't be renewed, or any other future action that tries to
@@ -623,13 +625,13 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 }
 
-func requireFilUnstored(t *testing.T, ctx context.Context, client *apistruct.FullNodeStruct, c cid.Cid) {
+func requireFilUnstored(ctx context.Context, t *testing.T, client *apistruct.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c)
 	require.NoError(t, err)
 	require.Empty(t, offers)
 }
 
-func requireFilStored(t *testing.T, ctx context.Context, client *apistruct.FullNodeStruct, c cid.Cid) {
+func requireFilStored(ctx context.Context, t *testing.T, client *apistruct.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c)
 	require.NoError(t, err)
 	require.NotEmpty(t, offers)
@@ -914,7 +916,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 	return addr, client, ms
 }
 
-func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
+func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
 	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
@@ -937,7 +939,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 
 	var fapi *api.API
 	if iid == ffs.EmptyInstanceID {
-		iid = ffs.NewApiID()
+		iid = ffs.NewAPIID()
 		is := istore.New(iid, txndstr.Wrap(ds, "ffs/api/istore"))
 		defConfig := ffs.DefaultCidConfig{
 			Hot: ffs.HotConfig{

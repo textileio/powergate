@@ -508,7 +508,9 @@ func receiveFile(srv pb.API_AddToHotServer, writer *io.PipeWriter) {
 		}
 		_, writeErr := writer.Write(req.GetChunk())
 		if writeErr != nil {
-			writer.CloseWithError(writeErr)
+			if err := writer.CloseWithError(writeErr); err != nil {
+				log.Errorf("closing with error: %s", err)
+			}
 		}
 	}
 }
