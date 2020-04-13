@@ -1,4 +1,4 @@
-name: ReviewDog
+name: Review
 on:
   push:
     branches:

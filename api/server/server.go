@@ -304,7 +304,7 @@ func startIndexHTTPServer(s *Server) {
 				return
 			}
 			if _, err := w.Write(buf); err != nil {
-				log.Errorf("writting response body: %s", err)
+				log.Errorf("writing response body: %s", err)
 			}
 		})
 		mux.HandleFunc("/index/miners", func(w http.ResponseWriter, r *http.Request) {
@@ -315,7 +315,7 @@ func startIndexHTTPServer(s *Server) {
 				return
 			}
 			if _, err := w.Write(buf); err != nil {
-				log.Errorf("writting response body: %s", err)
+				log.Errorf("writing response body: %s", err)
 			}
 		})
 		mux.HandleFunc("/index/slashing", func(w http.ResponseWriter, r *http.Request) {
@@ -326,7 +326,7 @@ func startIndexHTTPServer(s *Server) {
 				return
 			}
 			if _, err := w.Write(buf); err != nil {
-				log.Errorf("writting response body: %s", err)
+				log.Errorf("writing response body: %s", err)
 			}
 		})
 		if err := http.ListenAndServe(":8889", mux); err != nil {
