@@ -36,7 +36,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	} else if typ == "secp256k1" {
 		ty = crypto.SigTypeSecp256k1
 	} else {
-		return "", fmt.Errorf("unkown address type %s", typ)
+		return "", fmt.Errorf("unknown address type %s", typ)
 	}
 
 	addr, err := m.api.WalletNew(ctx, ty)
@@ -55,7 +55,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 
 		_, err = m.api.MpoolPushMessage(ctx, msg)
 		if err != nil {
-			return "", fmt.Errorf("transfering funds to new address: %s", err)
+			return "", fmt.Errorf("transferring funds to new address: %s", err)
 		}
 	}
 
