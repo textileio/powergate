@@ -25,6 +25,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/api/istore"
+	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
@@ -46,7 +47,9 @@ const (
 func TestMain(m *testing.M) {
 	_ = os.RemoveAll(tmpDir)
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		os.Mkdir(tmpDir, os.ModePerm)
+		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
+			panic(err)
+		}
 	}
 
 	logging.SetAllLoggers(logging.LevelError)
@@ -88,7 +91,7 @@ func TestAdd(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchDocker()
+		ipfsDocker, cls := tests.LaunchIPFSDocker()
 		defer cls()
 		ds := tests.NewTxMapDatastore()
 		addr, client, ms := newDevnet(t, 1)
@@ -100,8 +103,8 @@ func TestAdd(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, nil)
-		requireFilStored(t, ctx, client, cid)
-		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+		requireFilStored(ctx, t, client, cid)
+		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 	})
 
 	t.Run("WithCustomConfig", func(t *testing.T) {
@@ -218,7 +221,7 @@ func TestShow(t *testing.T) {
 
 func TestColdInstanceLoad(t *testing.T) {
 	ctx := context.Background()
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 
 	ds := tests.NewTxMapDatastore()
@@ -385,7 +388,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 }
 
 func TestFilecoinCountryFilter(t *testing.T) {
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 
 	countries := []string{"China", "Uruguay"}
@@ -483,9 +486,9 @@ func TestFilecoinEnableConfig(t *testing.T) {
 
 				// External assertions
 				if !tt.HotEnabled {
-					requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+					requireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 				} else {
-					requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+					requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 				}
 			}
 
@@ -493,7 +496,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 	}
 }
 
-func requireIpfsUnpinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
+func requireIpfsUnpinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
 	pins, err := ipfsAPI.Pin().Ls(ctx)
 	require.NoError(t, err)
 	for _, p := range pins {
@@ -501,7 +504,7 @@ func requireIpfsUnpinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfs
 	}
 }
 
-func requireIpfsPinnedCid(t *testing.T, ctx context.Context, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
+func requireIpfsPinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
 	pins, err := ipfsAPI.Pin().Ls(ctx)
 	require.NoError(t, err)
 
@@ -529,14 +532,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(false)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
@@ -551,18 +554,18 @@ func TestEnabledConfigChange(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireIpfsUnpinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireIpfsPinnedCid(t, ctx, cid, ipfsAPI)
+		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 	})
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchDocker()
+		ipfsDocker, cls := tests.LaunchIPFSDocker()
 		t.Cleanup(func() { cls() })
 		ds := tests.NewTxMapDatastore()
 		addr, client, ms := newDevnet(t, 1)
@@ -577,19 +580,19 @@ func TestEnabledConfigChange(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireFilUnstored(t, ctx, client, cid)
+		requireFilUnstored(ctx, t, client, cid)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireFilStored(t, ctx, client, cid)
+		requireFilStored(ctx, t, client, cid)
 
 	})
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchDocker()
+		ipfsDocker, cls := tests.LaunchIPFSDocker()
 		t.Cleanup(func() { cls() })
 		ds := tests.NewTxMapDatastore()
 		addr, client, ms := newDevnet(t, 1)
@@ -604,7 +607,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
-		requireFilUnstored(t, ctx, client, cid)
+		requireFilUnstored(ctx, t, client, cid)
 
 		config = fapi.GetDefaultCidConfig(cid).WithHotEnabled(true)
 		jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
@@ -613,7 +616,7 @@ func TestEnabledConfigChange(t *testing.T) {
 
 		// Yes, still stored in filecoin since deals can't be
 		// undone.
-		requireFilStored(t, ctx, client, cid)
+		requireFilStored(ctx, t, client, cid)
 		// Despite of the above, check that the Cid Config still reflects
 		// that this *shouldn't* be in the Cold Storage. To indicate
 		// this can't be renewed, or any other future action that tries to
@@ -622,13 +625,13 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 }
 
-func requireFilUnstored(t *testing.T, ctx context.Context, client *apistruct.FullNodeStruct, c cid.Cid) {
+func requireFilUnstored(ctx context.Context, t *testing.T, client *apistruct.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c)
 	require.NoError(t, err)
 	require.Empty(t, offers)
 }
 
-func requireFilStored(t *testing.T, ctx context.Context, client *apistruct.FullNodeStruct, c cid.Cid) {
+func requireFilStored(ctx context.Context, t *testing.T, client *apistruct.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c)
 	require.NoError(t, err)
 	require.NotEmpty(t, offers)
@@ -671,7 +674,7 @@ func TestRenew(t *testing.T) {
 	// See https://bit.ly/2JxQSQk
 	t.SkipNow()
 	util.AvgBlockTime = time.Millisecond * 200
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms := newDevnet(t, 2)
@@ -724,7 +727,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	// ToDo: unskip when testnet/3  allows more than one deal
 	// See https://bit.ly/2JxQSQk
 	t.SkipNow()
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms := newDevnet(t, 2)
@@ -779,8 +782,116 @@ Loop:
 	}
 }
 
+func TestCidLogger(t *testing.T) {
+	t.Run("WithNoFilters", func(t *testing.T) {
+		ipfs, fapi, cls := newAPI(t, 1)
+		defer cls()
+
+		r := rand.New(rand.NewSource(22))
+		cid, _ := addRandomFile(t, r, ipfs)
+		jid, err := fapi.PushConfig(cid)
+		require.NoError(t, err)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		ch := make(chan ffs.LogEntry)
+		go func() {
+			err = fapi.WatchLogs(ctx, ch, cid)
+			close(ch)
+		}()
+		stop := false
+		for !stop {
+			select {
+			case le, ok := <-ch:
+				if !ok {
+					require.NoError(t, err)
+					stop = true
+					continue
+				}
+				cancel()
+				require.Equal(t, cid, le.Cid)
+				require.Equal(t, jid, le.Jid)
+				require.True(t, time.Since(le.Timestamp) < time.Second*5)
+				require.NotEmpty(t, le.Msg)
+			case <-time.After(time.Second):
+				t.Fatal("no cid logs were received")
+			}
+		}
+
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, cid, nil)
+	})
+	t.Run("WithJidFilter", func(t *testing.T) {
+		t.Run("CorrectJid", func(t *testing.T) {
+			ipfs, fapi, cls := newAPI(t, 1)
+			defer cls()
+
+			r := rand.New(rand.NewSource(22))
+			cid, _ := addRandomFile(t, r, ipfs)
+			jid, err := fapi.PushConfig(cid)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			ch := make(chan ffs.LogEntry)
+			go func() {
+				err = fapi.WatchLogs(ctx, ch, cid, api.WithJidFilter(jid))
+				close(ch)
+			}()
+			stop := false
+			for !stop {
+				select {
+				case le, ok := <-ch:
+					if !ok {
+						require.NoError(t, err)
+						stop = true
+						continue
+					}
+					cancel()
+					require.Equal(t, cid, le.Cid)
+					require.Equal(t, jid, le.Jid)
+					require.True(t, time.Since(le.Timestamp) < time.Second*5)
+					require.NotEmpty(t, le.Msg)
+				case <-time.After(time.Second):
+					t.Fatal("no cid logs were received")
+				}
+			}
+
+			requireJobState(t, fapi, jid, ffs.Success)
+			requireCidConfig(t, fapi, cid, nil)
+		})
+		t.Run("IncorrectJid", func(t *testing.T) {
+			ipfs, fapi, cls := newAPI(t, 1)
+			defer cls()
+
+			r := rand.New(rand.NewSource(22))
+			cid, _ := addRandomFile(t, r, ipfs)
+			jid, err := fapi.PushConfig(cid)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			ch := make(chan ffs.LogEntry)
+			go func() {
+				fakeJid := ffs.NewJobID()
+				err = fapi.WatchLogs(ctx, ch, cid, api.WithJidFilter(fakeJid))
+				close(ch)
+			}()
+			select {
+			case <-ch:
+				t.Fatal("the channels shouldn't receive any log messages")
+			case <-time.After(3 * time.Second):
+			}
+			require.NoError(t, err)
+
+			requireJobState(t, fapi, jid, ffs.Success)
+			requireCidConfig(t, fapi, cid, nil)
+		})
+	})
+}
+
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
-	ipfsDocker, cls := tests.LaunchDocker()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms := newDevnet(t, numMiners)
@@ -805,7 +916,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 	return addr, client, ms
 }
 
-func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
+func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
 	ctx := context.Background()
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
@@ -815,19 +926,20 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 	require.Nil(t, err)
 
 	fchain := lotuschain.New(client)
-	cl := filcold.New(ms, dm, ipfsClient.Dag(), fchain)
+	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
+	cl := filcold.New(ms, dm, ipfsClient.Dag(), fchain, l)
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
-	hl := coreipfs.New(ipfsClient)
-	sched := scheduler.New(js, pcs, cis, hl, cl)
+	hl := coreipfs.New(ipfsClient, l)
+	sched := scheduler.New(js, pcs, cis, l, hl, cl)
 
 	wm, err := wallet.New(client, &waddr, *big.NewInt(4000000000))
 	require.Nil(t, err)
 
 	var fapi *api.API
 	if iid == ffs.EmptyInstanceID {
-		iid = ffs.NewApiID()
+		iid = ffs.NewAPIID()
 		is := istore.New(iid, txndstr.Wrap(ds, "ffs/api/istore"))
 		defConfig := ffs.DefaultCidConfig{
 			Hot: ffs.HotConfig{
@@ -865,13 +977,14 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.ApiID, client
 		if err := js.Close(); err != nil {
 			t.Fatalf("closing jobstore: %s", err)
 		}
+		if err := l.Close(); err != nil {
+			t.Fatalf("closing cidlogger: %s", err)
+		}
 	}
 }
 
 func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
-	defer cancel()
 	ch, err := fapi.Watch(jid)
 	require.Nil(t, err)
 	defer fapi.Unwatch(ch)
@@ -879,7 +992,7 @@ func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 	var res ffs.Job
 	for !stop {
 		select {
-		case <-ctx.Done():
+		case <-time.After(20 * time.Second):
 			t.Fatalf("waiting for job update timeout")
 		case job, ok := <-ch:
 			require.True(t, ok)

@@ -8,10 +8,15 @@ import (
 	"os"
 	"time"
 
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/ffs"
+)
+
+var (
+	log = logging.Logger("cmd")
 )
 
 func init() {
@@ -35,7 +40,11 @@ var ffsConfigSetCmd = &cobra.Command{
 		var reader io.Reader
 		if len(args) > 0 {
 			file, err := os.Open(args[0])
-			defer file.Close()
+			defer func() {
+				if err := file.Close(); err != nil {
+					log.Errorf("closing config file: %s", err)
+				}
+			}()
 			reader = file
 			checkErr(err)
 		} else {

@@ -8,11 +8,13 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 )
 
 var (
+	log              = logging.Logger("ffs-api-istore")
 	dsBase           = datastore.NewKey("instance")
 	dsInstanceConfig = datastore.NewKey("config")
 	dsCidConfig      = datastore.NewKey("cidconfig")
@@ -22,13 +24,13 @@ var (
 type Store struct {
 	lock sync.Mutex
 	ds   datastore.Datastore
-	iid  ffs.ApiID
+	iid  ffs.APIID
 }
 
 var _ api.InstanceStore = (*Store)(nil)
 
 // New returns a new ConfigStore
-func New(iid ffs.ApiID, ds datastore.Datastore) *Store {
+func New(iid ffs.APIID, ds datastore.Datastore) *Store {
 	return &Store{
 		iid: iid,
 		ds:  ds,
@@ -107,7 +109,11 @@ func (s *Store) GetCids() ([]cid.Cid, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying for all cids in instance: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
 
 	var cids []cid.Cid
 	for r := range res.Next() {
@@ -121,14 +127,14 @@ func (s *Store) GetCids() ([]cid.Cid, error) {
 	return cids, nil
 }
 
-func makeCidConfigKey(iid ffs.ApiID, c cid.Cid) datastore.Key {
+func makeCidConfigKey(iid ffs.APIID, c cid.Cid) datastore.Key {
 	return makeInstanceKey(iid).Child(dsCidConfig).ChildString(c.String())
 }
 
-func makeConfigKey(iid ffs.ApiID) datastore.Key {
+func makeConfigKey(iid ffs.APIID) datastore.Key {
 	return makeInstanceKey(iid).Child(dsInstanceConfig)
 }
 
-func makeInstanceKey(iid ffs.ApiID) datastore.Key {
+func makeInstanceKey(iid ffs.APIID) datastore.Key {
 	return dsBase.ChildString(iid.String())
 }

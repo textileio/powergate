@@ -49,7 +49,11 @@ var ffsPushCmd = &cobra.Command{
 		var reader io.Reader
 		if len(configPath) > 0 {
 			file, err := os.Open(configPath)
-			defer file.Close()
+			defer func() {
+				if err := file.Close(); err != nil {
+					log.Errorf("closing config file: %s", err)
+				}
+			}()
 			reader = file
 			checkErr(err)
 		} else {

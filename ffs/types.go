@@ -1,6 +1,7 @@
 package ffs
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -28,26 +29,26 @@ func (jid JobID) String() string {
 
 var (
 	// EmptyInstanceID representes an empty/invalid Instance ID.
-	EmptyInstanceID = ApiID("")
+	EmptyInstanceID = APIID("")
 )
 
-// ApiID is an identifier for a Api instance.
-type ApiID string
+// APIID is an identifier for a Api instance.
+type APIID string
 
-// NewApiID returns a new InstanceID.
-func NewApiID() ApiID {
-	return ApiID(uuid.New().String())
+// NewAPIID returns a new InstanceID.
+func NewAPIID() APIID {
+	return APIID(uuid.New().String())
 }
 
 // Valid returns true if the InstanceID is valid, false
 // otherwise.
-func (i ApiID) Valid() bool {
+func (i APIID) Valid() bool {
 	_, err := uuid.Parse(string(i))
 	return err == nil
 }
 
 // String returns a string representation of InstanceID.
-func (i ApiID) String() string {
+func (i APIID) String() string {
 	return string(i)
 }
 
@@ -73,7 +74,7 @@ const (
 // Job is a task executed by the Scheduler.
 type Job struct {
 	ID         JobID
-	InstanceID ApiID
+	InstanceID APIID
 	Status     JobStatus
 	ErrCause   string
 }
@@ -182,7 +183,7 @@ func (c CidConfig) Validate() error {
 
 // PushConfigAction contains information for pushing a new Cid configuration to the Scheduler.
 type PushConfigAction struct {
-	InstanceID ApiID
+	InstanceID APIID
 	Config     CidConfig
 	WalletAddr string
 }
@@ -317,4 +318,26 @@ type FilStorage struct {
 	Duration        int64
 	ActivationEpoch int64
 	Miner           string
+}
+
+// CidLoggerCtxKey is a type to use in ctx values for CidLogger.
+type CidLoggerCtxKey int
+
+const (
+	// CtxKeyJid is the key to store Jid metadata.
+	CtxKeyJid CidLoggerCtxKey = iota
+)
+
+// CidLogger saves log information about a Cid executions.
+type CidLogger interface {
+	Log(context.Context, cid.Cid, string, ...interface{})
+	Watch(context.Context, chan<- LogEntry) error
+}
+
+// LogEntry is a log entry from a Cid execution.
+type LogEntry struct {
+	Cid       cid.Cid
+	Timestamp time.Time
+	Jid       JobID
+	Msg       string
 }

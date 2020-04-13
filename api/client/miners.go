@@ -14,7 +14,7 @@ type Miners struct {
 }
 
 // Get returns the current index of available asks
-func (a *Miners) Get(ctx context.Context) (*miner.Index, error) {
+func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 	reply, err := a.client.Get(ctx, &pb.GetRequest{})
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (a *Miners) Get(ctx context.Context) (*miner.Index, error) {
 		Power:       power,
 	}
 
-	index := &miner.Index{
+	index := &miner.IndexSnapshot{
 		Meta:  metaIndex,
 		Chain: chainIndex,
 	}

@@ -12,6 +12,7 @@ import (
 
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/powergate/tests"
 )
@@ -21,9 +22,13 @@ const (
 )
 
 func TestMain(m *testing.M) {
-	_ = os.RemoveAll(tmpDir)
+	if err := os.RemoveAll(tmpDir); err != nil {
+		panic(err)
+	}
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		os.Mkdir(tmpDir, os.ModePerm)
+		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
+			panic("can't create temp dir")
+		}
 	}
 	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())
@@ -42,11 +47,15 @@ func TestClientImport(t *testing.T) {
 
 	f, err := ioutil.TempFile(tmpDir, "")
 	checkErr(t, err)
-	defer os.Remove(f.Name())
-	defer f.Close()
+	defer func() {
+		require.NoError(t, f.Close())
+		require.NoError(t, os.Remove(f.Name()))
+	}()
 	bts := make([]byte, 4)
-	rand.Read(bts)
-	io.Copy(f, bytes.NewReader(bts))
+	_, err = rand.Read(bts)
+	checkErr(t, err)
+	_, err = io.Copy(f, bytes.NewReader(bts))
+	checkErr(t, err)
 
 	ref := api.FileRef{
 		Path: f.Name(),

@@ -10,11 +10,11 @@ import (
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	index *AskIndex
+	index *Index
 }
 
 // NewService is a helper to create a new Service
-func NewService(ai *AskIndex) *Service {
+func NewService(ai *Index) *Service {
 	return &Service{
 		index: ai,
 	}

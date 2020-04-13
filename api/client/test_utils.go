@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/server"
 	"github.com/textileio/powergate/tests"
 	"google.golang.org/grpc"
@@ -38,7 +39,7 @@ func setupConnection(t *testing.T) (*grpc.ClientConn, func()) {
 	conn, err := grpc.Dial(grpcHostAddress, grpc.WithInsecure())
 	checkErr(t, err)
 	return conn, func() {
-		conn.Close()
+		require.NoError(t, conn.Close())
 	}
 }
 

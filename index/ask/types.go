@@ -7,13 +7,13 @@ import (
 )
 
 func init() {
-	cbor.RegisterCborType(Index{})
+	cbor.RegisterCborType(IndexSnapshot{})
 	cbor.RegisterCborType(StorageAsk{})
 	cbor.RegisterCborType(time.Time{})
 }
 
-// Index contains Ask information from markets
-type Index struct {
+// IndexSnapshot contains Ask information from markets
+type IndexSnapshot struct {
 	LastUpdated        time.Time
 	StorageMedianPrice uint64
 	Storage            map[string]StorageAsk

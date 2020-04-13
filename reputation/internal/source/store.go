@@ -6,9 +6,12 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	logging "github.com/ipfs/go-log/v2"
 )
 
 var (
+	log = logging.Logger("reputation-source-store")
+
 	// ErrAlreadyExists returns when the soure already exists in Store
 	ErrAlreadyExists = errors.New("source already exists")
 	// ErrDoesntExists returns when the source isn't in the Store
@@ -76,7 +79,11 @@ func (ss *Store) GetAll() ([]Source, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("error when closing query result: %s", err)
+		}
+	}()
 	var ret []Source
 	for r := range res.Next() {
 		s := Source{}

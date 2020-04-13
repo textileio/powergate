@@ -54,20 +54,23 @@ func New() (*FilecoinHost, error) {
 }
 
 // Bootstrap connects to the bootstrap peers
-func (fh *FilecoinHost) Bootstrap() error {
+func (fc *FilecoinHost) Bootstrap() error {
 	log.Info("bootstraping libp2p host dht")
-	if err := fh.dht.Bootstrap(context.Background()); err != nil {
+	if err := fc.dht.Bootstrap(context.Background()); err != nil {
 		return err
 	}
 	log.Info("dht bootstraped!")
 	return nil
 }
 
+// Ping runs the ping protocol with a peer, returns true on success or false
+// otherwise.
 func (fc *FilecoinHost) Ping(ctx context.Context, pid peer.ID) bool {
 	r := <-fc.ping.Ping(ctx, pid)
 	return r.Error == nil
 }
 
+// GetAgentVersion returns the agent version of the peer, or empty otherwise.
 func (fc *FilecoinHost) GetAgentVersion(pid peer.ID) string {
 	if v, err := fc.h.Peerstore().Get(pid, "AgentVersion"); err == nil {
 		agent, ok := v.(string)
@@ -78,6 +81,7 @@ func (fc *FilecoinHost) GetAgentVersion(pid peer.ID) string {
 	return ""
 }
 
+// Addrs returns the known multiaddresses known of a peer.
 func (fc *FilecoinHost) Addrs(pid peer.ID) []multiaddr.Multiaddr {
 	return fc.h.Peerstore().Addrs(pid)
 }

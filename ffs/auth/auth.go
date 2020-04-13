@@ -28,7 +28,7 @@ type Auth struct {
 
 type entry struct {
 	Token      string
-	InstanceID ffs.ApiID
+	InstanceID ffs.APIID
 	// This can be extended to have permissions
 }
 
@@ -40,7 +40,7 @@ func New(store ds.Datastore) *Auth {
 }
 
 // Generate generates a new returned auth-token mapped to the iid
-func (r *Auth) Generate(iid ffs.ApiID) (string, error) {
+func (r *Auth) Generate(iid ffs.APIID) (string, error) {
 	log.Infof("generating auth-token for instance %s", iid)
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -60,7 +60,7 @@ func (r *Auth) Generate(iid ffs.ApiID) (string, error) {
 
 // Get returns the InstanceID associated with token.
 // It returns ErrNotFound if there isn't such.
-func (r *Auth) Get(token string) (ffs.ApiID, error) {
+func (r *Auth) Get(token string) (ffs.APIID, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 

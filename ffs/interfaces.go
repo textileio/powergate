@@ -45,7 +45,13 @@ type Scheduler interface {
 
 	// Watch returns a channel which will receive updates for all Jobs created by
 	// an Instance.
-	Watch(ApiID) <-chan Job
+	Watch(APIID) <-chan Job
+
+	// WatchLogs writes new log entries from Cid related executions.
+	// This is a blocking operation that should be canceled by canceling the
+	// provided context.
+	WatchLogs(context.Context, chan<- LogEntry) error
+
 	// Unwatch unregisters a subscribed channel.
 	Unwatch(<-chan Job)
 }

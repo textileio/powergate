@@ -12,6 +12,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	cbor "github.com/ipfs/go-ipld-cbor"
+	logging "github.com/ipfs/go-log/v2"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 )
 
 var (
+	log      = logging.Logger("chainstore")
 	dsNsData = datastore.NewKey("/data")
 	dsNsID   = datastore.NewKey("/id")
 )
@@ -198,7 +200,11 @@ func (s *Store) loadCheckpoints() error {
 	if err != nil {
 		return err
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
 	es, err := res.Rest()
 	if err != nil {
 		return err

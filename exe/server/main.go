@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	log    = logging.Logger("powergated")
+	log    = logging.Logger("powd")
 	config = viper.New()
 )
 
@@ -45,9 +45,13 @@ func main() {
 
 	config.SetEnvPrefix("TEXPOWERGATE")
 	config.AutomaticEnv()
-	config.BindPFlags(pflag.CommandLine)
+	if err := config.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatalf("binding pflags: %s", err)
+	}
 
-	setupLogging()
+	if err := setupLogging(); err != nil {
+		log.Fatalf("setting up logging: %s", err)
+	}
 	setupInstrumentation()
 	setupPprof()
 
@@ -82,7 +86,7 @@ func main() {
 
 	conf := server.Config{
 		WalletInitialFunds: *big.NewInt(config.GetInt64("walletinitialfund")),
-		IpfsApiAddr:        util.MustParseAddr(config.GetString("ipfsapiaddr")),
+		IpfsAPIAddr:        util.MustParseAddr(config.GetString("ipfsapiaddr")),
 		LotusAddress:       maddr,
 		LotusAuthToken:     lotusToken,
 		LotusMasterAddr:    config.GetString("lotusmasteraddr"),
@@ -94,11 +98,11 @@ func main() {
 		RepoPath:            repoPath,
 		GatewayHostAddr:     config.GetString("gatewayhostaddr"),
 	}
-	confJson, err := json.MarshalIndent(conf, "", "  ")
+	confJSON, err := json.MarshalIndent(conf, "", "  ")
 	if err != nil {
 		log.Fatalf("can't show current config: %s", err)
 	}
-	log.Infof("Current configuration: \n%s", confJson)
+	log.Infof("Current configuration: \n%s", confJSON)
 	log.Info("starting server...")
 	s, err := server.NewServer(conf)
 	if err != nil {
@@ -136,21 +140,28 @@ func setupInstrumentation() {
 	}()
 }
 
-func setupLogging() {
-	logging.SetLogLevel("*", "error")
-	loggers := []string{"index-miner", "index-ask", "index-slashing",
+func setupLogging() error {
+	if err := logging.SetLogLevel("*", "error"); err != nil {
+		return err
+	}
+	loggers := []string{"index-miner", "index-ask", "index-slashing", "chainstore",
 		"server", "deals", "powergated", "fchost", "ip2location", "reputation",
-		"ffs-scheduler", "ffs-manager", "ffs-auth", "ffs-api", "ffs-coreipfs",
-		"ffs-grpc-service", "ffs-filcold", "ffs-sched-cistore", "ffs-sched-jstore",
-		"ffs-sched-pcstore"}
+		"reputation-source-store", "ffs-scheduler", "ffs-manager", "ffs-auth",
+		"ffs-api", "ffs-api-istore", "ffs-coreipfs", "ffs-grpc-service", "ffs-filcold",
+		"ffs-sched-cistore", "ffs-sched-jstore", "ffs-sched-pcstore", "ffs-cidlogger"}
 	for _, l := range loggers {
-		logging.SetLogLevel(l, "info")
+		if err := logging.SetLogLevel(l, "info"); err != nil {
+			return err
+		}
 	}
 	if config.GetBool("debug") {
 		for _, l := range loggers {
-			logging.SetLogLevel(l, "debug")
+			if err := logging.SetLogLevel(l, "debug"); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func setupPprof() {

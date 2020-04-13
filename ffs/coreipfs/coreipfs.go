@@ -24,19 +24,22 @@ var (
 // into a remote go-ipfs using the HTTP API.
 type CoreIpfs struct {
 	ipfs iface.CoreAPI
+	l    ffs.CidLogger
 }
 
 var _ ffs.HotStorage = (*CoreIpfs)(nil)
 
 // New returns a new CoreIpfs instance
-func New(ipfs iface.CoreAPI) *CoreIpfs {
+func New(ipfs iface.CoreAPI, l ffs.CidLogger) *CoreIpfs {
 	return &CoreIpfs{
 		ipfs: ipfs,
+		l:    l,
 	}
 }
 
 // Put saves a Block.
 func (ci *CoreIpfs) Put(ctx context.Context, b blocks.Block) error {
+	log.Debugf("putting block %s", b.Cid())
 	if _, err := ci.ipfs.Block().Put(ctx, bytes.NewReader(b.RawData())); err != nil {
 		return fmt.Errorf("adding block to ipfs node: %s", err)
 	}
@@ -45,9 +48,11 @@ func (ci *CoreIpfs) Put(ctx context.Context, b blocks.Block) error {
 
 // Remove removes a Cid from the Hot Storage.
 func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
+	log.Debugf("removing cid %s", c)
 	if err := ci.ipfs.Pin().Rm(ctx, path.IpfsPath(c), options.Pin.RmRecursive(true)); err != nil {
 		return fmt.Errorf("unpinning cid from ipfs node: %s", err)
 	}
+	ci.l.Log(ctx, c, "Cid data was pinned in IPFS node.")
 	return nil
 }
 
@@ -68,15 +73,18 @@ func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
 
 // Add adds an io.Reader data as file in the IPFS node.
 func (ci *CoreIpfs) Add(ctx context.Context, r io.Reader) (cid.Cid, error) {
+	log.Debugf("adding data-stream...")
 	path, err := ci.ipfs.Unixfs().Add(ctx, ipfsfiles.NewReaderFile(r), options.Unixfs.Pin(false))
 	if err != nil {
 		return cid.Undef, fmt.Errorf("adding data to ipfs: %s", err)
 	}
+	log.Debugf("data-stream added with cid %s", path.Cid())
 	return path.Cid(), nil
 }
 
 // Get retrieves a cid from the IPFS node.
 func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
+	log.Debugf("geting cid %s", c)
 	n, err := ci.ipfs.Unixfs().Get(ctx, path.IpfsPath(c))
 	if err != nil {
 		return nil, fmt.Errorf("getting cid %s from ipfs: %s", c, err)
@@ -90,6 +98,7 @@ func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 
 // Store stores a Cid in the HotStorage. At the IPFS level, it also mark the Cid as pinned.
 func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
+	log.Debugf("fetching and pinning cid %s", c)
 	pth := path.IpfsPath(c)
 	if err := ci.ipfs.Pin().Add(ctx, pth, options.Pin.Recursive(true)); err != nil {
 		return 0, fmt.Errorf("pinning cid %s: %s", c, err)

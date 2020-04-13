@@ -30,14 +30,15 @@ var (
 	log = logging.Logger("index-miner")
 )
 
+// P2PHost provides a client to connect to a libp2p peer.
 type P2PHost interface {
 	Addrs(pid peer.ID) []multiaddr.Multiaddr
 	Ping(ctx context.Context, pid peer.ID) bool
 	GetAgentVersion(pid peer.ID) string
 }
 
-// MinerIndex builds and provides information about FC miners
-type MinerIndex struct {
+// Index builds and provides information about FC miners
+type Index struct {
 	api      *apistruct.FullNodeStruct
 	ds       datastore.TxnDatastore
 	store    *chainstore.Store
@@ -49,7 +50,7 @@ type MinerIndex struct {
 	metaTicker  *time.Ticker
 	minerTicker *time.Ticker
 	lock        sync.Mutex
-	index       Index
+	index       IndexSnapshot
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -60,7 +61,7 @@ type MinerIndex struct {
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
-func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver) (*MinerIndex, error) {
+func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver) (*Index, error) {
 	cs := chainsync.New(api)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {
@@ -68,7 +69,7 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr
 	}
 	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
-	mi := &MinerIndex{
+	mi := &Index{
 		api:         api,
 		ds:          ds,
 		store:       store,
@@ -92,10 +93,10 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr
 }
 
 // Get returns a copy of the current index information
-func (mi *MinerIndex) Get() Index {
+func (mi *Index) Get() IndexSnapshot {
 	mi.lock.Lock()
 	defer mi.lock.Unlock()
-	ii := Index{
+	ii := IndexSnapshot{
 		Meta: MetaIndex{
 			Online:  mi.index.Meta.Online,
 			Offline: mi.index.Meta.Offline,
@@ -117,17 +118,17 @@ func (mi *MinerIndex) Get() Index {
 
 // Listen returns a channel signaler to notify when new index information is
 // available.
-func (mi *MinerIndex) Listen() <-chan struct{} {
+func (mi *Index) Listen() <-chan struct{} {
 	return mi.signaler.Listen()
 }
 
 // Unregister unregisters a channel signaler from the signaler hub
-func (mi *MinerIndex) Unregister(c chan struct{}) {
+func (mi *Index) Unregister(c chan struct{}) {
 	mi.signaler.Unregister(c)
 }
 
 // Close closes a MinerIndex
-func (mi *MinerIndex) Close() error {
+func (mi *Index) Close() error {
 	log.Info("Closing")
 	mi.clsLock.Lock()
 	defer mi.clsLock.Unlock()
@@ -152,7 +153,7 @@ func (mi *MinerIndex) Close() error {
 // a new potential tipset is notified by the full node. And a metadata updater
 // which do best-efforts to gather/update off-chain information about known
 // miners.
-func (mi *MinerIndex) start() {
+func (mi *Index) start() {
 	defer func() { mi.finished <- struct{}{} }()
 
 	if err := mi.updateOnChainIndex(); err != nil {
@@ -181,8 +182,8 @@ func (mi *MinerIndex) start() {
 
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed
 // since its only called from New().
-func (mi *MinerIndex) loadFromDS() error {
-	mi.index = Index{
+func (mi *Index) loadFromDS() error {
+	mi.index = IndexSnapshot{
 		Meta:  MetaIndex{Info: make(map[string]Meta)},
 		Chain: ChainIndex{Power: make(map[string]Power)},
 	}

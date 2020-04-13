@@ -55,12 +55,12 @@ func (f *ffs) Create(ctx context.Context) (string, string, error) {
 	return r.ID, r.Token, nil
 }
 
-func (f *ffs) ID(ctx context.Context) (ff.ApiID, error) {
+func (f *ffs) ID(ctx context.Context) (ff.APIID, error) {
 	resp, err := f.client.ID(ctx, &pb.IDRequest{})
 	if err != nil {
 		return ff.EmptyInstanceID, err
 	}
-	return ff.ApiID(resp.ID), nil
+	return ff.APIID(resp.ID), nil
 }
 
 func (f *ffs) WalletAddr(ctx context.Context) (string, error) {
@@ -149,7 +149,7 @@ func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, fun
 			}
 			job := ff.Job{
 				ID:         ff.JobID(reply.Job.ID),
-				InstanceID: ff.ApiID(reply.Job.InstanceID),
+				InstanceID: ff.APIID(reply.Job.InstanceID),
 				Status:     ff.JobStatus(reply.Job.Status),
 				ErrCause:   reply.Job.ErrCause,
 			}

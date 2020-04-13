@@ -15,6 +15,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/tests"
 )
@@ -25,7 +26,9 @@ const (
 
 func TestMain(m *testing.M) {
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		os.Mkdir(tmpDir, os.ModePerm)
+		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
+			panic(err)
+		}
 	}
 	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())
@@ -59,7 +62,9 @@ func TestRetrieve(t *testing.T) {
 
 			r, err := m.Retrieve(ctx, addr.String(), dcid, false)
 			checkErr(t, err)
-			defer r.Close()
+			defer func() {
+				require.NoError(t, r.Close())
+			}()
 			rdata, err := ioutil.ReadAll(r)
 			checkErr(t, err)
 			if !bytes.Equal(data, rdata) {

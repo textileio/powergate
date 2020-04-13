@@ -27,7 +27,7 @@ type Store struct {
 var _ scheduler.JobStore = (*Store)(nil)
 
 type watcher struct {
-	iid ffs.ApiID
+	iid ffs.APIID
 	ch  chan ffs.Job
 }
 
@@ -48,7 +48,11 @@ func (s *Store) GetByStatus(status ffs.JobStatus) ([]ffs.Job, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying datastore: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing getbystatus query result: %s", err)
+		}
+	}()
 
 	var ret []ffs.Job
 	for r := range res.Next() {
@@ -99,7 +103,7 @@ func (s *Store) Get(jid ffs.JobID) (ffs.Job, error) {
 }
 
 // Watch subscribes to Job changes from a specified Api instance.
-func (s *Store) Watch(iid ffs.ApiID) <-chan ffs.Job {
+func (s *Store) Watch(iid ffs.APIID) <-chan ffs.Job {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 

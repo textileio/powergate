@@ -22,6 +22,7 @@ import (
 	dealsPb "github.com/textileio/powergate/deals/pb"
 	"github.com/textileio/powergate/fchost"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
@@ -64,9 +65,9 @@ type Server struct {
 	ds datastore.TxnDatastore
 
 	ip2l *ip2location.IP2Location
-	ai   *ask.AskIndex
-	mi   *miner.MinerIndex
-	si   *slashing.SlashingIndex
+	ai   *ask.Index
+	mi   *miner.Index
+	si   *slashing.Index
 	dm   *deals.Module
 	wm   *wallet.Module
 	rm   *reputation.Module
@@ -77,6 +78,7 @@ type Server struct {
 	pcs        *pcstore.Store
 	sched      *scheduler.Scheduler
 	hs         ffs.HotStorage
+	l          *cidlogger.CidLogger
 
 	grpcServer   *grpc.Server
 	grpcWebProxy *http.Server
@@ -89,7 +91,7 @@ type Server struct {
 // Config specifies server settings.
 type Config struct {
 	WalletInitialFunds  big.Int
-	IpfsApiAddr         ma.Multiaddr
+	IpfsAPIAddr         ma.Multiaddr
 	LotusAddress        ma.Multiaddr
 	LotusAuthToken      string
 	LotusMasterAddr     string
@@ -164,7 +166,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
 
-	ipfs, err := httpapi.NewApi(conf.IpfsApiAddr)
+	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
 	if err != nil {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
@@ -176,12 +178,14 @@ func NewServer(conf Config) (*Server, error) {
 	} else {
 		ms = reptop.New(rm, ai)
 	}
-	cs := filcold.New(ms, dm, ipfs.Dag(), lchain)
-	hs := coreipfs.New(ipfs)
+
+	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
+	cs := filcold.New(ms, dm, ipfs.Dag(), lchain, l)
+	hs := coreipfs.New(ipfs, l)
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
-	sched := scheduler.New(js, pcs, cis, hs, cs)
+	sched := scheduler.New(js, pcs, cis, l, hs, cs)
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
@@ -211,6 +215,7 @@ func NewServer(conf Config) (*Server, error) {
 		cis:        cis,
 		pcs:        pcs,
 		hs:         hs,
+		l:          l,
 
 		grpcServer:   grpcServer,
 		grpcWebProxy: grpcWebProxy,
@@ -275,7 +280,9 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		minerPb.RegisterAPIServer(server, minerService)
 		slashingPb.RegisterAPIServer(server, slashingService)
 		ffsPb.RegisterAPIServer(server, ffsService)
-		server.Serve(listener)
+		if err := server.Serve(listener); err != nil {
+			log.Errorf("serving grpc endpoint: %s", err)
+		}
 	}()
 
 	go func() {
@@ -296,7 +303,9 @@ func startIndexHTTPServer(s *Server) {
 				http.Error(w, "Error", http.StatusInternalServerError)
 				return
 			}
-			w.Write(buf)
+			if _, err := w.Write(buf); err != nil {
+				log.Errorf("writing response body: %s", err)
+			}
 		})
 		mux.HandleFunc("/index/miners", func(w http.ResponseWriter, r *http.Request) {
 			index := s.mi.Get()
@@ -305,7 +314,9 @@ func startIndexHTTPServer(s *Server) {
 				http.Error(w, "Error", http.StatusInternalServerError)
 				return
 			}
-			w.Write(buf)
+			if _, err := w.Write(buf); err != nil {
+				log.Errorf("writing response body: %s", err)
+			}
 		})
 		mux.HandleFunc("/index/slashing", func(w http.ResponseWriter, r *http.Request) {
 			index := s.si.Get()
@@ -314,7 +325,9 @@ func startIndexHTTPServer(s *Server) {
 				http.Error(w, "Error", http.StatusInternalServerError)
 				return
 			}
-			w.Write(buf)
+			if _, err := w.Write(buf); err != nil {
+				log.Errorf("writing response body: %s", err)
+			}
 		})
 		if err := http.ListenAndServe(":8889", mux); err != nil {
 			log.Fatalf("Failed to run Prometheus scrape endpoint: %v", err)
@@ -350,6 +363,9 @@ func (s *Server) Close() {
 	}
 	if err := s.js.Close(); err != nil {
 		log.Errorf("closing scheduler jobstore: %s", err)
+	}
+	if err := s.l.Close(); err != nil {
+		log.Errorf("closing cid logger: %s", err)
 	}
 	if err := s.rm.Close(); err != nil {
 		log.Errorf("closing reputation module: %s", err)

@@ -295,6 +295,9 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	}
 
 	updates, err := i.Watch(jids...)
+	if err != nil {
+		return err
+	}
 	defer i.Unwatch(updates)
 
 	for {
@@ -318,6 +321,48 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 			}
 		}
 	}
+}
+
+// WatchJobs returns a stream of human-readable messages related to executions of a Cid.
+// The listener is automatically unsubscribed when the client closes the stream.
+func (s *Service) WatchJobs(req *pb.WatchLogsRequest, srv pb.API_WatchLogsServer) error {
+	i, err := s.getInstanceByToken(srv.Context())
+	if err != nil {
+		return err
+	}
+
+	var opts []api.GetLogsOption
+	if req.Jid != "" {
+		opts = append(opts, api.WithJidFilter(ffs.JobID(req.Jid)))
+	}
+
+	c, err := cid.Decode(req.Cid)
+	if err != nil {
+		return err
+	}
+	ch := make(chan ffs.LogEntry, 100)
+	go func() {
+		err = i.WatchLogs(srv.Context(), ch, c, opts...)
+		close(ch)
+	}()
+	for l := range ch {
+		reply := &pb.WatchLogsReply{
+			LogEntry: &pb.LogEntry{
+				Cid:  c.String(),
+				Jid:  l.Jid.String(),
+				Time: l.Timestamp.Unix(),
+				Msg:  l.Msg,
+			},
+		}
+		if err := srv.Send(reply); err != nil {
+			return err
+		}
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // PushConfig applies the provided cid config
@@ -429,7 +474,11 @@ func (s *Service) AddToHot(srv pb.API_AddToHotServer) error {
 	}
 
 	reader, writer := io.Pipe()
-	defer reader.Close()
+	defer func() {
+		if err := reader.Close(); err != nil {
+			log.Errorf("closing reader: %s", err)
+		}
+	}()
 
 	go receiveFile(srv, writer)
 
@@ -465,7 +514,9 @@ func receiveFile(srv pb.API_AddToHotServer, writer *io.PipeWriter) {
 		}
 		_, writeErr := writer.Write(req.GetChunk())
 		if writeErr != nil {
-			writer.CloseWithError(writeErr)
+			if err := writer.CloseWithError(writeErr); err != nil {
+				log.Errorf("closing with error: %s", err)
+			}
 		}
 	}
 }

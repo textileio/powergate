@@ -40,7 +40,7 @@ func TestFreshBuild(t *testing.T) {
 
 func TestQueryAsk(t *testing.T) {
 	t.Parallel()
-	dm := AskIndex{}
+	dm := Index{}
 	dm.priceOrderedCache = []*StorageAsk{
 		{Price: uint64(20), MinPieceSize: 128, Miner: "t01"},
 		{Price: uint64(30), MinPieceSize: 64, Miner: "t02"},

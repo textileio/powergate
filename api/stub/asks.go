@@ -12,7 +12,7 @@ type Asks struct {
 }
 
 // Get returns the current index of available asks
-func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
+func (a *Asks) Get(ctx context.Context) (*ask.IndexSnapshot, error) {
 	time.Sleep(time.Second * 3)
 	storage := map[string]ask.StorageAsk{
 		"miner1": ask.StorageAsk{
@@ -44,7 +44,7 @@ func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 			Expiry:       100,
 		},
 	}
-	return &ask.Index{
+	return &ask.IndexSnapshot{
 		LastUpdated:        time.Now(),
 		StorageMedianPrice: 5000,
 		Storage:            storage,

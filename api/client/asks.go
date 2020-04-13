@@ -14,7 +14,7 @@ type Asks struct {
 }
 
 // Get returns the current index of available asks
-func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
+func (a *Asks) Get(ctx context.Context) (*ask.IndexSnapshot, error) {
 	reply, err := a.client.Get(ctx, &pb.GetRequest{})
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 	for key, val := range reply.GetIndex().GetStorage() {
 		storage[key] = askFromPbAsk(val)
 	}
-	return &ask.Index{
+	return &ask.IndexSnapshot{
 		LastUpdated:        lastUpdated,
 		StorageMedianPrice: reply.GetIndex().StorageMedianPrice,
 		Storage:            storage,

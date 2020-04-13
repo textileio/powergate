@@ -64,8 +64,7 @@ var retrieveCmd = &cobra.Command{
 		}
 		file, err := os.Create(out)
 		checkErr(err)
-
-		defer file.Close()
+		defer func() { checkErr(file.Close()) }()
 
 		buffer := make([]byte, 1024*32) // 32KB
 		for {

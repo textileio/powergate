@@ -21,5 +21,8 @@
 .update-modules
 
 api/client/datastore
+pow
+powd
+myfile
 
 tags

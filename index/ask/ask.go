@@ -27,14 +27,14 @@ var (
 	log = logging.Logger("index-ask")
 )
 
-// AskIndex contains cached information about markets
-type AskIndex struct {
+// Index contains cached information about markets
+type Index struct {
 	api      *apistruct.FullNodeStruct
 	ds       datastore.TxnDatastore
 	signaler *signaler.Signaler
 
 	lock              sync.Mutex
-	index             Index
+	index             IndexSnapshot
 	priceOrderedCache []*StorageAsk
 
 	ctx      context.Context
@@ -46,10 +46,10 @@ type AskIndex struct {
 
 // New returnas a new AskIndex. It loads saved information from ds, and immeediatelly
 // starts keeping the cache up to date.
-func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*AskIndex, error) {
+func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, error) {
 	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
-	ai := &AskIndex{
+	ai := &Index{
 		signaler: signaler.New(),
 		api:      api,
 		ds:       ds,
@@ -65,10 +65,10 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*AskIndex, e
 }
 
 // Get returns a copy of the current index data
-func (ai *AskIndex) Get() Index {
+func (ai *Index) Get() IndexSnapshot {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
-	index := Index{
+	index := IndexSnapshot{
 		LastUpdated:        ai.index.LastUpdated,
 		StorageMedianPrice: ai.index.StorageMedianPrice,
 		Storage:            make(map[string]StorageAsk, len(ai.index.Storage)),
@@ -80,7 +80,7 @@ func (ai *AskIndex) Get() Index {
 }
 
 // Query executes a query to retrieve active Asks
-func (ai *AskIndex) Query(q Query) ([]StorageAsk, error) {
+func (ai *Index) Query(q Query) ([]StorageAsk, error) {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
 	var res []StorageAsk
@@ -106,17 +106,17 @@ func (ai *AskIndex) Query(q Query) ([]StorageAsk, error) {
 
 // Listen returns a new channel signaler that notifies when the index gets
 // updated.
-func (ai *AskIndex) Listen() <-chan struct{} {
+func (ai *Index) Listen() <-chan struct{} {
 	return ai.signaler.Listen()
 }
 
 // Unregister unregisters a channel signaler from the signaler hub
-func (ai *AskIndex) Unregister(c chan struct{}) {
+func (ai *Index) Unregister(c chan struct{}) {
 	ai.signaler.Unregister(c)
 }
 
 // Close closes the AskIndex
-func (ai *AskIndex) Close() error {
+func (ai *Index) Close() error {
 	log.Info("Closing")
 	ai.clsLock.Lock()
 	defer ai.clsLock.Unlock()
@@ -131,7 +131,7 @@ func (ai *AskIndex) Close() error {
 }
 
 // start is a long running job that updates asks infromation in the market
-func (ai *AskIndex) start() {
+func (ai *Index) start() {
 	defer close(ai.finished)
 	if err := ai.update(); err != nil {
 		log.Errorf("error when updating miners asks: %s", err)
@@ -151,7 +151,7 @@ func (ai *AskIndex) start() {
 
 // update triggers a full-scan generates and saves a new fresh index and builds
 // views for better querying.
-func (ai *AskIndex) update() error {
+func (ai *Index) update() error {
 	log.Info("updating ask index...")
 	startTime := time.Now()
 	newIndex, err := generateIndex(ai.ctx, ai.api)
@@ -186,7 +186,7 @@ func (ai *AskIndex) update() error {
 }
 
 // generateIndex returns a fresh index
-func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*Index, error) {
+func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*IndexSnapshot, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		return nil, err
@@ -242,7 +242,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*Index, 
 	ctx, _ = tag.New(context.Background(), tag.Insert(keyAskStatus, "OK"))
 	stats.Record(ctx, mAskQueryResult.M(int64(len(newAsks))))
 
-	return &Index{
+	return &IndexSnapshot{
 		LastUpdated:        time.Now(),
 		StorageMedianPrice: calculateMedian(newAsks),
 		Storage:            newAsks,
@@ -270,11 +270,11 @@ func calculateMedian(index map[string]StorageAsk) uint64 {
 	return (prices[len/2-1] + prices[len/2]) / 2
 }
 
-func (ai *AskIndex) loadFromStore() error {
+func (ai *Index) loadFromStore() error {
 	buf, err := ai.ds.Get(dsIndex)
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			ai.index = Index{Storage: make(map[string]StorageAsk)}
+			ai.index = IndexSnapshot{Storage: make(map[string]StorageAsk)}
 			return nil
 		}
 		return err

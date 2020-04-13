@@ -14,6 +14,8 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
+// CreateLocalDevnet returns an API client that targets a local devnet with numMiners number
+// of miners. Refer to http://github.com/textileio/local-devnet for more information.
 func CreateLocalDevnet(t *testing.T, numMiners int) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
@@ -24,7 +26,9 @@ func CreateLocalDevnet(t *testing.T, numMiners int) (*apistruct.FullNodeStruct, 
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))
 	}
-	lotusDevnet.Expire(180)
+	if err := lotusDevnet.Expire(180); err != nil {
+		panic(err)
+	}
 	time.Sleep(time.Second * 3)
 	t.Cleanup(func() {
 		if err := pool.Purge(lotusDevnet); err != nil {

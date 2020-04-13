@@ -10,6 +10,8 @@ import (
 )
 
 var (
+	// AvgBlockTime is the expected duration between block in two consecutive epochs.
+	// Defined at the Filecoin spec level.
 	AvgBlockTime = time.Second * 30
 )
 
@@ -45,6 +47,7 @@ func TCPAddrFromMultiAddr(maddr ma.Multiaddr) (addr string, err error) {
 	return fmt.Sprintf("%s:%s", ip4, tcp), nil
 }
 
+// MustParseAddr returns a parsed Multiaddr, or panics if invalid.
 func MustParseAddr(str string) ma.Multiaddr {
 	addr, err := ma.NewMultiaddr(str)
 	if err != nil {

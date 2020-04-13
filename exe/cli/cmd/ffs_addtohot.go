@@ -35,7 +35,7 @@ var ffsAddToHotCmd = &cobra.Command{
 
 		f, err := os.Open(args[0])
 		checkErr(err)
-		defer f.Close()
+		defer func() { checkErr(f.Close()) }()
 
 		s := spin.New("%s Adding specified file to FFS hot storage...")
 		s.Start()
