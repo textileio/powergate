@@ -62,7 +62,9 @@ func TestRetrieve(t *testing.T) {
 
 			r, err := m.Retrieve(ctx, addr.String(), dcid, false)
 			checkErr(t, err)
-			defer require.NoError(t, r.Close())
+			defer func() {
+				require.NoError(t, r.Close())
+			}()
 			rdata, err := ioutil.ReadAll(r)
 			checkErr(t, err)
 			if !bytes.Equal(data, rdata) {

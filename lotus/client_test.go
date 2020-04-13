@@ -47,8 +47,10 @@ func TestClientImport(t *testing.T) {
 
 	f, err := ioutil.TempFile(tmpDir, "")
 	checkErr(t, err)
-	defer require.NoError(t, os.Remove(f.Name()))
-	defer require.NoError(t, f.Close())
+	defer func() {
+		require.NoError(t, f.Close())
+		require.NoError(t, os.Remove(f.Name()))
+	}()
 	bts := make([]byte, 4)
 	_, err = rand.Read(bts)
 	checkErr(t, err)
