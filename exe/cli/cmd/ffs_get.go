@@ -51,7 +51,7 @@ var ffsGetCmd = &cobra.Command{
 		file, err := os.Create(args[1])
 		checkErr(err)
 
-		defer checkErr(file.Close())
+		defer func() { checkErr(file.Close()) }()
 
 		buffer := make([]byte, 1024*32) // 32KB
 		for {
