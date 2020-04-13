@@ -275,7 +275,7 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 }
 
 // WatchLogs pushes human-friendly messages about Cid executions. The method is blocking
-// and will continue to send messages until the context is cancelled.
+// and will continue to send messages until the context is canceled.
 func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, opts ...GetLogsOption) error {
 	_, err := i.is.GetCidConfig(c)
 	if err == ErrNotFound {
