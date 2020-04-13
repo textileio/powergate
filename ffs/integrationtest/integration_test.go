@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 		}
 	}
 
-	logging.SetAllLoggers(logging.LevelWarn)
+	logging.SetAllLoggers(logging.LevelError)
 	// logging.SetLogLevel("scheduler", "debug")
 	// logging.SetLogLevel("api", "debug")
 	// logging.SetLogLevel("jobstore", "debug")

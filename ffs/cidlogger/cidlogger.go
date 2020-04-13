@@ -46,7 +46,7 @@ func New(ds datastore.Datastore) *CidLogger {
 // Log logs a log entry for a Cid. The ctx can contain an optional ffs.CtxKeyJid to add
 // additional metadata about the log entry being part of a Job execution.
 func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...interface{}) {
-	fmt.Printf(format+"\n", a...)
+	log.Infof(format, a...)
 	jid := ffs.EmptyJobID
 	if ctxjid, ok := ctx.Value(ffs.CtxKeyJid).(ffs.JobID); ok {
 		jid = ctxjid
