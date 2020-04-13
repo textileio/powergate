@@ -8,11 +8,15 @@ import (
 	"os"
 	"time"
 
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/caarlos0/spin"
-	"github.com/prometheus/common/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/ffs"
+)
+
+var (
+	log = logging.Logger("cmd")
 )
 
 func init() {
