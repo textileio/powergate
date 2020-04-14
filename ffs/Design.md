@@ -12,7 +12,7 @@ The following picture presents principal packages and interfaces that are part o
 
 The picture has an advanced scenario where different _API_ instances are wired to different _Scheduler_ instances. Component names prefixed with * don't exist but are mentioned as possible implementations of existing interfaces.
 
-The central idea about the design is that an _API_ defines the desired storing state for a _Cid_ using a _CidConfig_ struct. This struct has infromation about desired storing state configuration in the Hot and Cold storages.
+The central idea about the design is that an _API_ defines the desired storing state for a _Cid_ using a _CidConfig_ struct. This struct has information about desired storing state configuration in the Hot and Cold storages.
 
 When a new or updated _CidConfig_ is pushed in an _API_, it delegates this work to the _Scheduler_. The _Scheduler_ will execute whatever work is necessary to comply with the new/updated Cid configuration.
 
