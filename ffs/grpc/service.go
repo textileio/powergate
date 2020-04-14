@@ -282,8 +282,8 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 	return reply, nil
 }
 
-// Watch calls API.Watch
-func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
+// WatchJobs calls API.WatchJobs
+func (s *Service) WatchJobs(req *pb.WatchJobsRequest, srv pb.API_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -294,38 +294,33 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 		jids[i] = ffs.JobID(jid)
 	}
 
-	updates, err := i.Watch(jids...)
+	ch := make(chan ffs.Job, 100)
+	go func() {
+		err = i.WatchJobs(srv.Context(), ch, jids...)
+		close(ch)
+	}()
+	for job := range ch {
+		reply := &pb.WatchJobsReply{
+			Job: &pb.Job{
+				ID:         job.ID.String(),
+				InstanceID: job.InstanceID.String(),
+				Status:     pb.JobStatus(job.Status),
+				ErrCause:   job.ErrCause,
+			},
+		}
+		if err := srv.Send(reply); err != nil {
+			return err
+		}
+	}
 	if err != nil {
 		return err
 	}
-	defer i.Unwatch(updates)
-
-	for {
-		select {
-		case <-srv.Context().Done():
-			return nil
-		case job, ok := <-updates:
-			if !ok {
-				return nil // do we want to return an error here? nil will result as EOF on the client i think
-			}
-			reply := &pb.WatchReply{
-				Job: &pb.Job{
-					ID:         job.ID.String(),
-					InstanceID: job.InstanceID.String(),
-					Status:     pb.JobStatus(job.Status),
-					ErrCause:   job.ErrCause,
-				},
-			}
-			if err := srv.Send(reply); err != nil {
-				return err
-			}
-		}
-	}
+	return nil
 }
 
-// WatchJobs returns a stream of human-readable messages related to executions of a Cid.
+// WatchLogs returns a stream of human-readable messages related to executions of a Cid.
 // The listener is automatically unsubscribed when the client closes the stream.
-func (s *Service) WatchJobs(req *pb.WatchLogsRequest, srv pb.API_WatchLogsServer) error {
+func (s *Service) WatchLogs(req *pb.WatchLogsRequest, srv pb.API_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err

@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"errors"
 
 	"github.com/ipfs/go-cid"
@@ -20,11 +21,8 @@ type JobStore interface {
 	Get(ffs.JobID) (ffs.Job, error)
 	// GetByStatus returns jobs with a particular status.
 	GetByStatus(ffs.JobStatus) ([]ffs.Job, error)
-
 	// Watch subscribes to all job state changes within an instance.
-	Watch(ffs.APIID) <-chan ffs.Job
-	// Unwatch unregisters a Watch subscriber.
-	Unwatch(<-chan ffs.Job)
+	Watch(context.Context, chan<- ffs.Job, ffs.APIID) error
 }
 
 // PushConfigStore persist PushConfigActions for Cids.

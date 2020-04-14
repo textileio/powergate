@@ -43,17 +43,15 @@ type Scheduler interface {
 	// GetJob gets the a Job.
 	GetJob(JobID) (Job, error)
 
-	// Watch returns a channel which will receive updates for all Jobs created by
-	// an Instance.
-	Watch(APIID) <-chan Job
+	// WatchJobs is a blocking method that sends to a channel state updates
+	// for all Jobs created by an Instance. The ctx should be canceled when
+	// to stop receiving updates.
+	WatchJobs(context.Context, chan<- Job, APIID) error
 
 	// WatchLogs writes new log entries from Cid related executions.
 	// This is a blocking operation that should be canceled by canceling the
 	// provided context.
 	WatchLogs(context.Context, chan<- LogEntry) error
-
-	// Unwatch unregisters a subscribed channel.
-	Unwatch(<-chan Job)
 }
 
 // HotStorage is a fast datastorage layer for storing and retrieving raw
