@@ -283,7 +283,7 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 }
 
 // WatchJobs calls API.WatchJobs
-func (s *Service) WatchJobs(req *pb.WatchJobRequest, srv pb.API_WatchJobsServer) error {
+func (s *Service) WatchJobs(req *pb.WatchJobsRequest, srv pb.API_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -300,7 +300,7 @@ func (s *Service) WatchJobs(req *pb.WatchJobRequest, srv pb.API_WatchJobsServer)
 		close(ch)
 	}()
 	for job := range ch {
-		reply := &pb.WatchJobReply{
+		reply := &pb.WatchJobsReply{
 			Job: &pb.Job{
 				ID:         job.ID.String(),
 				InstanceID: job.InstanceID.String(),

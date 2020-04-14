@@ -131,7 +131,7 @@ func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent,
 		close(updates)
 	}
 
-	stream, err := f.client.WatchJobs(ctx, &pb.WatchJobRequest{Jids: jidStrings})
+	stream, err := f.client.WatchJobs(ctx, &pb.WatchJobsRequest{Jids: jidStrings})
 	if err != nil {
 		return nil, nil, err
 	}
