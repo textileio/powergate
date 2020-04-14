@@ -112,3 +112,33 @@ func (a *API) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*
 
 	return &DisconnectPeerReply{}, nil
 }
+
+func (a *API) Connectedness(ctx context.Context, req *ConnectednessRequest) (*ConnectednessReply, error) {
+	peerID := peer.ID(req.PeerID)
+	con, err := a.module.Connectedness(ctx, peerID)
+	if err != nil {
+		return nil, err
+	}
+
+	var c Connectedness
+	switch con {
+	case net.CanConnect:
+		c = Connectedness_CanConnect
+	case net.CannotConnect:
+		c = Connectedness_CannotConnect
+	case net.Connected:
+		c = Connectedness_Connected
+	case net.NotConnected:
+		c = Connectedness_NotConnected
+	case net.Unknown:
+		c = Connectedness_Unknown
+	case net.Error:
+		c = Connectedness_Error
+	default:
+		c = Connectedness_Unknown
+	}
+
+	return &ConnectednessReply{
+		Connectedness: c,
+	}, nil
+}

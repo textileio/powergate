@@ -36,6 +36,8 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler/jstore"
 	"github.com/textileio/powergate/ffs/scheduler/pcstore"
 	"github.com/textileio/powergate/gateway"
+	"github.com/textileio/powergate/health"
+	healthRpc "github.com/textileio/powergate/health/rpc"
 	"github.com/textileio/powergate/index/ask"
 	askPb "github.com/textileio/powergate/index/ask/pb"
 	"github.com/textileio/powergate/index/miner"
@@ -46,7 +48,7 @@ import (
 	"github.com/textileio/powergate/lotus"
 	pgnet "github.com/textileio/powergate/net"
 	pgnetlotus "github.com/textileio/powergate/net/lotus"
-	pgnetrpc "github.com/textileio/powergate/net/rpc"
+	pgnetRpc "github.com/textileio/powergate/net/rpc"
 	"github.com/textileio/powergate/reputation"
 	reputationPb "github.com/textileio/powergate/reputation/pb"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -75,6 +77,7 @@ type Server struct {
 	wm   *wallet.Module
 	rm   *reputation.Module
 	nm   pgnet.Module
+	hm   *health.Module
 
 	ffsManager *manager.Manager
 	js         *jstore.Store
@@ -169,10 +172,8 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
-	nm, err := pgnetlotus.New(c)
-	if err != nil {
-		return nil, fmt.Errorf("creating net module: %s", err)
-	}
+	nm := pgnetlotus.New(c)
+	hm := health.New(nm)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
 	if err != nil {
@@ -217,6 +218,7 @@ func NewServer(conf Config) (*Server, error) {
 		wm: wm,
 		rm: rm,
 		nm: nm,
+		hm: hm,
 
 		ffsManager: ffsManager,
 		sched:      sched,
@@ -269,7 +271,8 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork, hostAddress string) error {
-	netService := pgnetrpc.NewService(s.nm)
+	netService := pgnetRpc.NewService(s.nm)
+	healthSerice := healthRpc.NewService(s.hm)
 	dealsService := deals.NewService(s.dm)
 	walletService := wallet.NewService(s.wm)
 	reputationService := reputation.NewService(s.rm)
@@ -283,7 +286,8 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		pgnetrpc.RegisterAPIServer(server, netService)
+		pgnetRpc.RegisterAPIServer(server, netService)
+		healthRpc.RegisterAPIServer(server, healthSerice)
 		dealsPb.RegisterAPIServer(server, dealsService)
 		walletPb.RegisterAPIServer(server, walletService)
 		reputationPb.RegisterAPIServer(server, reputationService)
