@@ -96,10 +96,14 @@ func (dc DefaultCidConfig) Validate() error {
 	return nil
 }
 
-// CidConfig has a Cid desired storing configuration.
+// CidConfig has a Cid desired storing configuration for a Cid in
+// Hot and Cold storage.
 type CidConfig struct {
-	Cid  cid.Cid
-	Hot  HotConfig
+	// Cid is the Cid of the stored data.
+	Cid cid.Cid
+	// Hot has desired storing configuration in Hot Storage.
+	Hot HotConfig
+	// Cold has desired storing configuration in the Cold Storage.
 	Cold ColdConfig
 }
 
@@ -204,9 +208,14 @@ func (aa PushConfigAction) Validate() error {
 
 // HotConfig is the desired storage of a Cid in a Hot Storage.
 type HotConfig struct {
-	Enabled       bool
+	// Enable indicates if Cid data is stored. If true, it will consider
+	// further configurations to execute actions.
+	Enabled bool
+	// AllowUnfreeze indicates that if data isn't available in the Hot Storage,
+	// it's allowed to be feeded by Cold Storage if available.
 	AllowUnfreeze bool
-	Ipfs          IpfsConfig
+	// Ipfs contains configuration related to storing Cid data in a IPFS node.
+	Ipfs IpfsConfig
 }
 
 // Validate validates a HotConfig.
@@ -219,6 +228,8 @@ func (hc HotConfig) Validate() error {
 
 // IpfsConfig is the desired storage of a Cid in IPFS.
 type IpfsConfig struct {
+	// AddTimeout is an upper bound on adding data to IPFS node from
+	// the network before failing.
 	AddTimeout int
 }
 
@@ -232,7 +243,12 @@ func (ic *IpfsConfig) Validate() error {
 
 // ColdConfig is the desired state of a Cid in a cold layer.
 type ColdConfig struct {
-	Enabled  bool
+	// Enabled indicates that data will be saved in Cold storage.
+	// If is switched from false->true, it will consider the other attributes
+	// as the desired state of the data in this Storage.
+	Enabled bool
+	// Filecoin describes the desired Filecoin configuration for a Cid in the
+	// Filecoin network.
 	Filecoin FilConfig
 }
 
@@ -244,19 +260,30 @@ func (cc ColdConfig) Validate() error {
 	return nil
 }
 
-// FilConfig is the desired state of a Cid in the
-// Filecoin network.
+// FilConfig is the desired state of a Cid in the Filecoin network.
 type FilConfig struct {
-	RepFactor      int
-	DealDuration   int64
+	// RepFactor indicates the desired amount of active deals
+	// with different miners to store the data. While making deals
+	// the other attributes of FilConfig are considered for miner selection.
+	RepFactor int
+	// DealDuration indicates the duration to be used when making new deals.
+	DealDuration int64
+	// ExcludedMiners is a set of miner addresses won't be ever be selected
+	// when making new deals, even if they comply to other filters.
 	ExcludedMiners []string
-	CountryCodes   []string
-	Renew          FilRenew
+	// CountryCodes indicates that new deals should select miners on specific
+	// countries.
+	CountryCodes []string
+	// FilRenew indicates deal-renewal configuration.
+	Renew FilRenew
 }
 
 // FilRenew contains renew configuration for a Cid Cold Storage deals.
 type FilRenew struct {
-	Enabled   bool
+	// Enabled indicates that deal-renewal is enabled for this Cid.
+	Enabled bool
+	// Threshold indicates how many epochs before expiring should trigger
+	// deal renewal. e.g: 100 epoch before expiring.
 	Threshold int
 }
 
