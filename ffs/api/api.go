@@ -87,7 +87,7 @@ func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletMana
 		wm:         wm,
 		config:     config,
 		sched:      sch,
-		jobWatcher: sch.Watch(iid),
+		jobWatcher: sch.WatchJobs(iid),
 
 		cancel:   cancel,
 		ctx:      ctx,
@@ -168,10 +168,10 @@ func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	}, nil
 }
 
-// Watch subscribes to Job status changes. If jids is empty, it subscribes to
+// WatchJob subscribes to Job status changes. If jids is empty, it subscribes to
 // all Job status changes corresonding to the instance. If jids is not empty,
 // it immediately sends current state of those Jobs. If empty, it doesn't.
-func (i *API) Watch(jids ...ffs.JobID) (<-chan ffs.Job, error) {
+func (i *API) WatchJob(jids ...ffs.JobID) (<-chan ffs.Job, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	log.Info("registering watcher")

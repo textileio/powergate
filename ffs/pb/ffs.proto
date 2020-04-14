@@ -173,11 +173,11 @@ message InfoReply {
    InstanceInfo info = 1;
 }
 
-message WatchRequest {
+message WatchJobRequest {
    repeated string jids = 1;
 }
 
-message WatchReply {
+message WatchJobReply {
    Job job = 1;
 }
 
@@ -242,7 +242,7 @@ service API {
    rpc SetDefaultCidConfig(SetDefaultCidConfigRequest) returns (SetDefaultCidConfigReply) {}
    rpc Show(ShowRequest) returns (ShowReply) {}
    rpc Info(InfoRequest) returns (InfoReply) {}
-   rpc Watch(WatchRequest) returns (stream WatchReply) {}
+   rpc WatchJob(WatchJobRequest) returns (stream WatchJobReply) {}
    rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsReply){}
    rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
    rpc Get(GetRequest) returns (stream GetReply) {}

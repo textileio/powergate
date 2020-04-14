@@ -283,7 +283,7 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 }
 
 // Watch calls API.Watch
-func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
+func (s *Service) Watch(req *pb.WatchJobRequest, srv pb.API_WatchJobServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -294,7 +294,7 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 		jids[i] = ffs.JobID(jid)
 	}
 
-	updates, err := i.Watch(jids...)
+	updates, err := i.WatchJob(jids...)
 	if err != nil {
 		return err
 	}
@@ -308,7 +308,7 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 			if !ok {
 				return nil // do we want to return an error here? nil will result as EOF on the client i think
 			}
-			reply := &pb.WatchReply{
+			reply := &pb.WatchJobReply{
 				Job: &pb.Job{
 					ID:         job.ID.String(),
 					InstanceID: job.InstanceID.String(),
