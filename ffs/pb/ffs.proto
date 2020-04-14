@@ -242,7 +242,7 @@ service API {
    rpc SetDefaultCidConfig(SetDefaultCidConfigRequest) returns (SetDefaultCidConfigReply) {}
    rpc Show(ShowRequest) returns (ShowReply) {}
    rpc Info(InfoRequest) returns (InfoReply) {}
-   rpc WatchJob(WatchJobRequest) returns (stream WatchJobReply) {}
+   rpc WatchJobs(WatchJobRequest) returns (stream WatchJobReply) {}
    rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsReply){}
    rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
    rpc Get(GetRequest) returns (stream GetReply) {}
