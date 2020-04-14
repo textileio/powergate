@@ -282,8 +282,8 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 	return reply, nil
 }
 
-// Watch calls API.Watch
-func (s *Service) Watch(req *pb.WatchJobRequest, srv pb.API_WatchJobsServer) error {
+// WatchJobs calls API.WatchJobs
+func (s *Service) WatchJobs(req *pb.WatchJobRequest, srv pb.API_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -318,9 +318,9 @@ func (s *Service) Watch(req *pb.WatchJobRequest, srv pb.API_WatchJobsServer) err
 	return nil
 }
 
-// WatchJobs returns a stream of human-readable messages related to executions of a Cid.
+// WatchLogs returns a stream of human-readable messages related to executions of a Cid.
 // The listener is automatically unsubscribed when the client closes the stream.
-func (s *Service) WatchJobs(req *pb.WatchLogsRequest, srv pb.API_WatchLogsServer) error {
+func (s *Service) WatchLogs(req *pb.WatchLogsRequest, srv pb.API_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err

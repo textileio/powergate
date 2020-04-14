@@ -55,7 +55,7 @@ var ffsWatchCmd = &cobra.Command{
 
 		updateJobsOutput(writer, state)
 
-		ch, cancel, err := fcClient.Ffs.Watch(authCtx(ctx), jobIds...)
+		ch, cancel, err := fcClient.Ffs.WatchJobs(authCtx(ctx), jobIds...)
 		checkErr(err)
 		defer cancel()
 
