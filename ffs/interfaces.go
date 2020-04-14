@@ -43,8 +43,9 @@ type Scheduler interface {
 	// GetJob gets the a Job.
 	GetJob(JobID) (Job, error)
 
-	// WatchJobs sends to a channel state updates for all Jobs created by
-	// an Instance.
+	// WatchJobs is a blocking method that sends to a channel state updates
+	// for all Jobs created by an Instance. The ctx should be canceled when
+	// to stop receiving updates.
 	WatchJobs(context.Context, chan<- Job, APIID) error
 
 	// WatchLogs writes new log entries from Cid related executions.

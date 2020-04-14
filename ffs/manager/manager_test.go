@@ -105,4 +105,3 @@ func (ms *mockSched) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error
 func (ms *mockSched) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	return ffs.CidInfo{}, nil
 }
-func (ms *mockSched) Unwatch(<-chan ffs.Job) {}

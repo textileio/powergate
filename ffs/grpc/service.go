@@ -283,7 +283,7 @@ func (s *Service) Info(ctx context.Context, req *pb.InfoRequest) (*pb.InfoReply,
 }
 
 // Watch calls API.Watch
-func (s *Service) Watch(req *pb.WatchJobRequest, srv pb.API_WatchJobServer) error {
+func (s *Service) Watch(req *pb.WatchJobRequest, srv pb.API_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
