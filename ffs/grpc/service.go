@@ -294,33 +294,28 @@ func (s *Service) Watch(req *pb.WatchJobRequest, srv pb.API_WatchJobServer) erro
 		jids[i] = ffs.JobID(jid)
 	}
 
-	updates, err := i.WatchJob(jids...)
+	ch := make(chan ffs.Job, 100)
+	go func() {
+		err = i.WatchJobs(srv.Context(), ch, jids...)
+		close(ch)
+	}()
+	for job := range ch {
+		reply := &pb.WatchJobReply{
+			Job: &pb.Job{
+				ID:         job.ID.String(),
+				InstanceID: job.InstanceID.String(),
+				Status:     pb.JobStatus(job.Status),
+				ErrCause:   job.ErrCause,
+			},
+		}
+		if err := srv.Send(reply); err != nil {
+			return err
+		}
+	}
 	if err != nil {
 		return err
 	}
-	defer i.Unwatch(updates)
-
-	for {
-		select {
-		case <-srv.Context().Done():
-			return nil
-		case job, ok := <-updates:
-			if !ok {
-				return nil // do we want to return an error here? nil will result as EOF on the client i think
-			}
-			reply := &pb.WatchJobReply{
-				Job: &pb.Job{
-					ID:         job.ID.String(),
-					InstanceID: job.InstanceID.String(),
-					Status:     pb.JobStatus(job.Status),
-					ErrCause:   job.ErrCause,
-				},
-			}
-			if err := srv.Send(reply); err != nil {
-				return err
-			}
-		}
-	}
+	return nil
 }
 
 // WatchJobs returns a stream of human-readable messages related to executions of a Cid.

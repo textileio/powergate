@@ -30,23 +30,17 @@ var (
 // API is an Api instance, which owns a Lotus Address and allows to
 // Store and Retrieve Cids from Hot and Cold layers.
 type API struct {
-	is InstanceStore
-	wm ffs.WalletManager
+	iid ffs.APIID
+	is  InstanceStore
+	wm  ffs.WalletManager
 
-	sched      ffs.Scheduler
-	jobWatcher <-chan ffs.Job
+	sched ffs.Scheduler
 
-	lock        sync.Mutex
-	config      Config
-	jobWatchers []jobWatcher
-	ctx         context.Context
-	cancel      context.CancelFunc
-	finished    chan struct{}
-}
-
-type jobWatcher struct {
-	jobIDs []ffs.JobID
-	ch     chan ffs.Job
+	lock   sync.Mutex
+	closed bool
+	config Config
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 // New returns a new Api instance.
@@ -83,17 +77,14 @@ func Load(iid ffs.APIID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletMan
 
 func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
-		is:         is,
-		wm:         wm,
-		config:     config,
-		sched:      sch,
-		jobWatcher: sch.WatchJobs(iid),
-
-		cancel:   cancel,
-		ctx:      ctx,
-		finished: make(chan struct{}),
+		is:     is,
+		wm:     wm,
+		config: config,
+		sched:  sch,
+		cancel: cancel,
+		ctx:    ctx,
+		iid:    iid,
 	}
-	go i.watchJobs()
 	return i
 }
 
@@ -168,14 +159,10 @@ func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	}, nil
 }
 
-// WatchJob subscribes to Job status changes. If jids is empty, it subscribes to
+// WatchJobs subscribes to Job status changes. If jids is empty, it subscribes to
 // all Job status changes corresonding to the instance. If jids is not empty,
 // it immediately sends current state of those Jobs. If empty, it doesn't.
-func (i *API) WatchJob(jids ...ffs.JobID) (<-chan ffs.Job, error) {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-	log.Info("registering watcher")
-
+func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID) error {
 	var jobs []ffs.Job
 	for _, jid := range jids {
 		j, err := i.sched.GetJob(jid)
@@ -183,13 +170,12 @@ func (i *API) WatchJob(jids ...ffs.JobID) (<-chan ffs.Job, error) {
 			continue
 		}
 		if err != nil {
-			return nil, fmt.Errorf("getting current job state: %s", err)
+			return fmt.Errorf("getting current job state: %s", err)
 		}
 		jobs = append(jobs, j)
 	}
 
 	ch := make(chan ffs.Job, 1)
-	i.jobWatchers = append(i.jobWatchers, jobWatcher{jobIDs: jids, ch: ch})
 	for _, j := range jobs {
 		select {
 		case ch <- j:
@@ -197,22 +183,28 @@ func (i *API) WatchJob(jids ...ffs.JobID) (<-chan ffs.Job, error) {
 			log.Warnf("dropped notifying current job state on slow receiver on %s", i.config.ID)
 		}
 	}
-
-	return ch, nil
-}
-
-// Unwatch unregisters a ch returned by Watch to stop receiving updates.
-func (i *API) Unwatch(ch <-chan ffs.Job) {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-	for j, w := range i.jobWatchers {
-		if w.ch == ch {
-			close(w.ch)
-			i.jobWatchers[j] = i.jobWatchers[len(i.jobWatchers)-1]
-			i.jobWatchers = i.jobWatchers[:len(i.jobWatchers)-1]
-			return
+	var err error
+	go func() {
+		err = i.sched.WatchJobs(ctx, ch, i.iid)
+		close(ch)
+	}()
+	for j := range ch {
+		if len(jids) == 0 {
+			c <- j
+		}
+	JidLoop:
+		for _, jid := range jids {
+			if jid == j.ID {
+				c <- j
+				break JidLoop
+			}
 		}
 	}
+	if err != nil {
+		return fmt.Errorf("scheduler listener: %s", err)
+	}
+
+	return nil
 }
 
 // PushConfig push a new configuration for the Cid in the Hot and
@@ -311,45 +303,10 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 func (i *API) Close() error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	i.cancel()
-	<-i.finished
-	i.sched.Unwatch(i.jobWatcher)
-	return nil
-}
-
-func (i *API) watchJobs() {
-	defer close(i.finished)
-	for {
-		select {
-		case <-i.ctx.Done():
-			log.Infof("terminating job watching in %s", i.config.ID)
-			return
-		case j, ok := <-i.jobWatcher:
-			if !ok {
-				panic("scheduler closed the watching channel")
-			}
-			log.Info("received notification from jobstore")
-			i.lock.Lock()
-			log.Infof("notifying %d subscribed watchers", len(i.jobWatchers))
-			for k, w := range i.jobWatchers {
-				shouldNotify := len(w.jobIDs) == 0
-				for _, jid := range w.jobIDs {
-					if jid == j.ID {
-						shouldNotify = true
-						break
-					}
-				}
-				log.Infof("evaluating watcher %d, shouldNotify %v", k, shouldNotify)
-				if shouldNotify {
-					select {
-					case w.ch <- j:
-						log.Info("notifying watcher")
-					default:
-						log.Warnf("skipping slow api watcher")
-					}
-				}
-			}
-			i.lock.Unlock()
-		}
+	if i.closed {
+		return nil
 	}
+	i.cancel()
+	i.closed = true
+	return nil
 }
