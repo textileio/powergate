@@ -1,0 +1,56 @@
+syntax = "proto3";
+package rpc;
+
+option java_multiple_files = true;
+option java_package = "io.textile.powergate.net.rpc";
+option java_outer_classname = "PowergateNet";
+option objc_class_prefix = "TTE";
+
+message AddrInfo {
+    string ID = 1;
+    repeated string addrs = 2;
+}
+
+message ListenAddrRequest {
+}
+
+message ListenAddrReply {
+    AddrInfo addrInfo = 1;
+}
+
+message PeersRequest {
+}
+
+message PeersReply {
+    repeated AddrInfo peers = 1;
+}
+
+message FindPeerRequest {
+    string peerID = 1;
+}
+
+message FindPeerReply {
+    AddrInfo peerInfo = 1;
+}
+
+message ConnectPeerRequest {
+    AddrInfo peerInfo = 1;
+}
+
+message ConnectPeerReply {
+}
+
+message DisconnectPeerRequest {
+    string peerID = 1;
+}
+
+message DisconnectPeerReply {
+}
+
+service API {
+    rpc ListenAddr(ListenAddrRequest) returns (ListenAddrReply) {}
+    rpc Peers(PeersRequest) returns (PeersReply) {}
+    rpc FindPeer(FindPeerRequest) returns (FindPeerReply) {}
+    rpc ConnectPeer(ConnectPeerRequest) returns (ConnectPeerReply) {}
+    rpc DisconnectPeer(DisconnectPeerRequest) returns (DisconnectPeerReply) {}
+}
