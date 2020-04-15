@@ -109,6 +109,7 @@ func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
 	return s.Size(), nil
 }
 
+// Replace replaces a stored Cid with other Cid.
 func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, error) {
 	p1 := path.IpfsPath(c1)
 	p2 := path.IpfsPath(c2)

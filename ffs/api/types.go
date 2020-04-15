@@ -19,6 +19,7 @@ type InstanceStore interface {
 
 	GetCidConfig(cid.Cid) (ffs.CidConfig, error)
 	PutCidConfig(ffs.CidConfig) error
+	RemoveCidConfig(cid.Cid) error
 	GetCids() ([]cid.Cid, error)
 }
 

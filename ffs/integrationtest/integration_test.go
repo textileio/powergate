@@ -900,29 +900,36 @@ func TestPushCidReplace(t *testing.T) {
 	defer closeInternal()
 
 	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfs)
-	config := fapi.GetDefaultCidConfig(cid).WithColdEnabled(false)
-	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+	c1, _ := addRandomFile(t, r, ipfs)
+
+	// Test case that an unkown cid is being replaced
+	nc, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
+	_, err := fapi.Replace(nc, c1)
+	require.Equal(t, api.ErrReplacedCidNotFound, err)
+
+	// Test tipical case
+	config := fapi.GetDefaultCidConfig(c1).WithColdEnabled(false)
+	jid, err := fapi.PushConfig(c1, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
-	requireCidConfig(t, fapi, cid, &config)
+	requireCidConfig(t, fapi, c1, &config)
 
-	cid2, _ := addRandomFile(t, r, ipfs)
-	jid, err = fapi.Replace(cid, cid2)
+	c2, _ := addRandomFile(t, r, ipfs)
+	jid, err = fapi.Replace(c1, c2)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 
-	config2, err := fapi.GetCidConfig(cid2)
+	config2, err := fapi.GetCidConfig(c2)
 	require.NoError(t, err)
 	require.Equal(t, config.Cold.Enabled, config2.Cold.Enabled)
 
-	_, err = fapi.GetCidConfig(cid)
-	require.Error(t, api.ErrNotFound, err)
+	_, err = fapi.GetCidConfig(c1)
+	require.Equal(t, api.ErrNotFound, err)
 
-	requireIpfsUnpinnedCid(ctx, t, cid, ipfs)
-	requireIpfsPinnedCid(ctx, t, cid2, ipfs)
-	requireFilUnstored(ctx, t, client, cid)
-	requireFilUnstored(ctx, t, client, cid2)
+	requireIpfsUnpinnedCid(ctx, t, c1, ipfs)
+	requireIpfsPinnedCid(ctx, t, c2, ipfs)
+	requireFilUnstored(ctx, t, client, c1)
+	requireFilUnstored(ctx, t, client, c2)
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {

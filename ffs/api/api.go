@@ -22,7 +22,8 @@ var (
 var (
 	// ErrMustOverrideConfig returned when trying to push config for storing a Cid
 	// without the override flag.
-	ErrMustOverrideConfig  = errors.New("cid already pinned, consider using override flag")
+	ErrMustOverrideConfig = errors.New("cid already pinned, consider using override flag")
+	// ErrReplacedCidNotFound returns when replacing a Cid that isn't stored.
 	ErrReplacedCidNotFound = errors.New("provided replaced cid wasn't found")
 )
 
@@ -107,6 +108,9 @@ func (i *API) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
 // GetCidConfig returns the current CidConfig for a Cid.
 func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
 	conf, err := i.is.GetCidConfig(c)
+	if err == ErrNotFound {
+		return ffs.CidConfig{}, err
+	}
 	if err != nil {
 		return ffs.CidConfig{}, fmt.Errorf("getting cid config from store: %s", err)
 	}
@@ -206,6 +210,8 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 	return nil
 }
 
+// Replace push a CidConfig of c2 equal to c1, and removes c1. This operation
+// is more efficient than manually removing and adding in two separate operations.
 func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 	cfg, err := i.is.GetCidConfig(c1)
 	if err == ErrNotFound {
@@ -227,6 +233,9 @@ func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 	}
 	if err := i.is.PutCidConfig(conf.Config); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c2, err)
+	}
+	if err := i.is.RemoveCidConfig(c1); err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("deleting replaced cid config: %s", err)
 	}
 	return jid, nil
 }
@@ -269,9 +278,6 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil
-}
-
-func (i *API) pushToScheduler() {
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.
