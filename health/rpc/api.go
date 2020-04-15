@@ -6,6 +6,7 @@ import (
 	"github.com/textileio/powergate/health"
 )
 
+// API implements the rpc service
 type API struct {
 	UnimplementedAPIServer
 
@@ -17,6 +18,7 @@ func NewService(m *health.Module) *API {
 	return &API{module: m}
 }
 
+// Check calls module.Check
 func (a *API) Check(ctx context.Context, req *CheckRequest) (*CheckReply, error) {
 	status, messages, err := a.module.Check(ctx)
 	if err != nil {

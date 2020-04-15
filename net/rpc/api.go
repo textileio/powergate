@@ -8,6 +8,7 @@ import (
 	"github.com/textileio/powergate/net"
 )
 
+// API implements the rpc service
 type API struct {
 	UnimplementedAPIServer
 
@@ -19,6 +20,7 @@ func NewService(m net.Module) *API {
 	return &API{module: m}
 }
 
+// ListenAddr calls module.ListenAddr
 func (a *API) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAddrReply, error) {
 	addrInfo, err := a.module.ListenAddr(ctx)
 	if err != nil {
@@ -38,6 +40,7 @@ func (a *API) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAd
 	}, nil
 }
 
+// Peers calls module.Peers
 func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error) {
 	peers, err := a.module.Peers(ctx)
 	if err != nil {
@@ -68,6 +71,7 @@ func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 	}, nil
 }
 
+// FindPeer calls module.FindPeer
 func (a *API) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerReply, error) {
 	peerId := peer.ID(req.PeerID)
 	peerInfo, err := a.module.FindPeer(ctx, peerId)
@@ -95,6 +99,7 @@ func (a *API) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerRepl
 	}, nil
 }
 
+// ConnectPeer calls module.ConnectPeer
 func (a *API) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*ConnectPeerReply, error) {
 	addrs := make([]ma.Multiaddr, len(req.PeerInfo.Addrs))
 	for i, addr := range req.PeerInfo.Addrs {
@@ -117,6 +122,7 @@ func (a *API) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*Connec
 	return &ConnectPeerReply{}, nil
 }
 
+// DisconnectPeer calls module.DisconnectPeer
 func (a *API) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*DisconnectPeerReply, error) {
 	peerID := peer.ID(req.PeerID)
 
@@ -127,6 +133,7 @@ func (a *API) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*
 	return &DisconnectPeerReply{}, nil
 }
 
+// Connectedness calls module.Connectedness
 func (a *API) Connectedness(ctx context.Context, req *ConnectednessRequest) (*ConnectednessReply, error) {
 	peerID := peer.ID(req.PeerID)
 	con, err := a.module.Connectedness(ctx, peerID)

@@ -27,18 +27,22 @@ func New(api *apistruct.FullNodeStruct, lr iplocation.LocationResolver) *Module 
 	return m
 }
 
+// ListenAddr implements ListenAddr
 func (m *Module) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
 	return m.api.NetAddrsListen(ctx)
 }
 
+// ConnectPeer implements ConnectPeer
 func (m *Module) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
 	return m.api.NetConnect(ctx, addrInfo)
 }
 
+// DisconnectPeer implements DisconnectPeer
 func (m *Module) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
 	return m.api.NetDisconnect(ctx, peerID)
 }
 
+// FindPeer implements FindPeer
 func (m *Module) FindPeer(ctx context.Context, peerID peer.ID) (net.PeerInfo, error) {
 	addrInfo, err := m.api.NetFindPeer(ctx, peerID)
 	if err != nil {
@@ -54,6 +58,7 @@ func (m *Module) FindPeer(ctx context.Context, peerID peer.ID) (net.PeerInfo, er
 	}, nil
 }
 
+// Peers implements Peers
 func (m *Module) Peers(ctx context.Context) ([]net.PeerInfo, error) {
 	addrInfos, err := m.api.NetPeers(ctx)
 	if err != nil {
@@ -73,6 +78,7 @@ func (m *Module) Peers(ctx context.Context) ([]net.PeerInfo, error) {
 	return peerInfos, nil
 }
 
+// Connectedness implements Connectedness
 func (m *Module) Connectedness(ctx context.Context, peerID peer.ID) (net.Connectedness, error) {
 	con, err := m.api.NetConnectedness(ctx, peerID)
 	if err != nil {

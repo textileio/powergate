@@ -30,16 +30,24 @@ const (
 	Error
 )
 
+// PeerInfo provides address info and location info about a peer
 type PeerInfo struct {
 	AddrInfo peer.AddrInfo
 	Location iplocation.Location
 }
 
+//Module defines the net API
 type Module interface {
+	// ListenAddr returns listener address info for the local node
 	ListenAddr(context.Context) (peer.AddrInfo, error)
+	// Peers returns a list of peers
 	Peers(context.Context) ([]PeerInfo, error)
+	// FindPeer finds a peer by peer id
 	FindPeer(context.Context, peer.ID) (PeerInfo, error)
+	// ConnectPeer connects to a peer
 	ConnectPeer(context.Context, peer.AddrInfo) error
+	// DisconnectPeer disconnects from a peer
 	DisconnectPeer(context.Context, peer.ID) error
+	// Connectedness returns the connection status to a peer
 	Connectedness(context.Context, peer.ID) (Connectedness, error)
 }
