@@ -254,7 +254,7 @@ func (s *Scheduler) execute(ctx context.Context, a ffs.PushConfigAction, job ffs
 	}
 
 	s.l.Log(ctx, a.Config.Cid, "Ensuring Hot-Storage satisfies the configuration...")
-	hot, err := s.executeHotStorage(ctx, ci, a.Config.Hot, a.WalletAddr)
+	hot, err := s.executeHotStorage(ctx, ci, a.Config.Hot, a.WalletAddr, a.ReplaceCid)
 	if err != nil {
 		s.l.Log(ctx, a.Config.Cid, "Hot-Storage excution failed.")
 		return ffs.CidInfo{}, fmt.Errorf("executing hot-storage config: %s", err)
@@ -278,7 +278,7 @@ func (s *Scheduler) execute(ctx context.Context, a ffs.PushConfigAction, job ffs
 	}, nil
 }
 
-func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string) (ffs.HotInfo, error) {
+func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string, replaceCid cid.Cid) (ffs.HotInfo, error) {
 	if cfg.Enabled == curr.Hot.Enabled {
 		s.l.Log(ctx, curr.Cid, "Current Cid state is healthy in Hot-Storage.")
 		return curr.Hot, nil
@@ -292,9 +292,16 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 		return ffs.HotInfo{Enabled: false}, nil
 	}
 
-	hotPinCtx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Ipfs.AddTimeout))
+	sctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(cfg.Ipfs.AddTimeout))
 	defer cancel()
-	size, err := s.hs.Store(hotPinCtx, curr.Cid)
+
+	var size int
+	var err error
+	if !replaceCid.Defined() {
+		size, err = s.hs.Store(sctx, curr.Cid)
+	} else {
+		size, err = s.hs.Replace(sctx, replaceCid, curr.Cid)
+	}
 	if err != nil {
 		s.l.Log(ctx, curr.Cid, "Direct fetching from IPFS wasn't possible.")
 		if !cfg.AllowUnfreeze || len(curr.Cold.Filecoin.Proposals) == 0 {

@@ -22,9 +22,8 @@ var (
 var (
 	// ErrMustOverrideConfig returned when trying to push config for storing a Cid
 	// without the override flag.
-	ErrMustOverrideConfig = errors.New("cid already pinned, consider using override flag")
-	// ErrNotStored returned Store's items doesn't exist.
-	ErrNotStored = errors.New("cid isn't stored")
+	ErrMustOverrideConfig  = errors.New("cid already pinned, consider using override flag")
+	ErrReplacedCidNotFound = errors.New("provided replaced cid wasn't found")
 )
 
 // API is an Api instance, which owns a Lotus Address and allows to
@@ -126,11 +125,11 @@ func (i *API) SetDefaultCidConfig(c ffs.DefaultCidConfig) error {
 }
 
 // Show returns the information about a stored Cid. If no information is available,
-// since the Cid was never stored, it returns ErrNotStore.
+// since the Cid was never stored, it returns ErrNotFound.
 func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
 	inf, err := i.sched.GetCidInfo(c)
 	if err == scheduler.ErrNotFound {
-		return inf, ErrNotStored
+		return inf, ErrNotFound
 	}
 	if err != nil {
 		return inf, fmt.Errorf("getting cid information: %s", err)
@@ -207,19 +206,44 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 	return nil
 }
 
+func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
+	cfg, err := i.is.GetCidConfig(c1)
+	if err == ErrNotFound {
+		return ffs.EmptyJobID, ErrReplacedCidNotFound
+	}
+	if err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("getting replaced cid config: %s", err)
+	}
+	cfg.Cid = c2
+	conf := ffs.PushConfigAction{
+		InstanceID: i.config.ID,
+		Config:     cfg,
+		WalletAddr: i.config.WalletAddr,
+		ReplaceCid: c1,
+	}
+	jid, err := i.sched.PushConfig(conf)
+	if err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("scheduling replacement %s to %s: %s", c1, c2, err)
+	}
+	if err := i.is.PutCidConfig(conf.Config); err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c2, err)
+	}
+	return jid, nil
+}
+
 // PushConfig push a new configuration for the Cid in the Hot and
 // Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig
 func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	addConfig := newDefaultPushConfig(c, i.config.DefaultCidConfig)
+	cfg := newDefaultPushConfig(c, i.config.DefaultCidConfig)
 	for _, opt := range opts {
-		if err := opt(&addConfig); err != nil {
+		if err := opt(&cfg); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)
 		}
 	}
-	if !addConfig.OverrideConfig {
+	if !cfg.OverrideConfig {
 		_, err := i.is.GetCidConfig(c)
 		if err == nil {
 			return ffs.EmptyJobID, ErrMustOverrideConfig
@@ -228,13 +252,13 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 			return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
 		}
 	}
-	if err := addConfig.Config.Validate(); err != nil {
+	if err := cfg.Config.Validate(); err != nil {
 		return ffs.EmptyJobID, err
 	}
 
 	conf := ffs.PushConfigAction{
 		InstanceID: i.config.ID,
-		Config:     addConfig.Config,
+		Config:     cfg.Config,
 		WalletAddr: i.config.WalletAddr,
 	}
 	jid, err := i.sched.PushConfig(conf)
@@ -245,6 +269,9 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil
+}
+
+func (i *API) pushToScheduler() {
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.

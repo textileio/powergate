@@ -58,7 +58,6 @@ func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 
 // IsStored return if a particular Cid is stored.
 func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
-	ci.ipfs.Block()
 	pins, err := ci.ipfs.Pin().Ls(ctx)
 	if err != nil {
 		return false, fmt.Errorf("getting pins from IPFS: %s", err)
@@ -74,12 +73,12 @@ func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
 // Add adds an io.Reader data as file in the IPFS node.
 func (ci *CoreIpfs) Add(ctx context.Context, r io.Reader) (cid.Cid, error) {
 	log.Debugf("adding data-stream...")
-	path, err := ci.ipfs.Unixfs().Add(ctx, ipfsfiles.NewReaderFile(r), options.Unixfs.Pin(false))
+	p, err := ci.ipfs.Unixfs().Add(ctx, ipfsfiles.NewReaderFile(r), options.Unixfs.Pin(false))
 	if err != nil {
 		return cid.Undef, fmt.Errorf("adding data to ipfs: %s", err)
 	}
-	log.Debugf("data-stream added with cid %s", path.Cid())
-	return path.Cid(), nil
+	log.Debugf("data-stream added with cid %s", p.Cid())
+	return p.Cid(), nil
 }
 
 // Get retrieves a cid from the IPFS node.
@@ -99,13 +98,27 @@ func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 // Store stores a Cid in the HotStorage. At the IPFS level, it also mark the Cid as pinned.
 func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
 	log.Debugf("fetching and pinning cid %s", c)
-	pth := path.IpfsPath(c)
-	if err := ci.ipfs.Pin().Add(ctx, pth, options.Pin.Recursive(true)); err != nil {
+	p := path.IpfsPath(c)
+	if err := ci.ipfs.Pin().Add(ctx, p, options.Pin.Recursive(true)); err != nil {
 		return 0, fmt.Errorf("pinning cid %s: %s", c, err)
 	}
-	stat, err := ci.ipfs.Block().Stat(ctx, pth)
+	s, err := ci.ipfs.Block().Stat(ctx, p)
 	if err != nil {
 		return 0, fmt.Errorf("getting stats of cid %s: %s", c, err)
+	}
+	return s.Size(), nil
+}
+
+func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, error) {
+	p1 := path.IpfsPath(c1)
+	p2 := path.IpfsPath(c2)
+	log.Debugf("updating pin from %s to %s", p1, p2)
+	if err := ci.ipfs.Pin().Update(ctx, p1, p2); err != nil {
+		return 0, fmt.Errorf("updating pin %s to %s: %s", c1, c2, err)
+	}
+	stat, err := ci.ipfs.Block().Stat(ctx, p2)
+	if err != nil {
+		return 0, fmt.Errorf("getting stats of cid %s: %s", c2, err)
 	}
 	return stat.Size(), nil
 }

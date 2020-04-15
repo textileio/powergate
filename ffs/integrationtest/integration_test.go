@@ -186,7 +186,7 @@ func TestShow(t *testing.T) {
 	t.Run("NotStored", func(t *testing.T) {
 		c, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 		_, err := fapi.Show(c)
-		require.Equal(t, api.ErrNotStored, err)
+		require.Equal(t, api.ErrNotFound, err)
 	})
 
 	t.Run("Success", func(t *testing.T) {
@@ -888,6 +888,41 @@ func TestCidLogger(t *testing.T) {
 			requireCidConfig(t, fapi, cid, nil)
 		})
 	})
+}
+
+func TestPushCidReplace(t *testing.T) {
+	ctx := context.Background()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
+	defer cls()
+	ds := tests.NewTxMapDatastore()
+	addr, client, ms := newDevnet(t, 1)
+	ipfs, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+	defer closeInternal()
+
+	r := rand.New(rand.NewSource(22))
+	cid, _ := addRandomFile(t, r, ipfs)
+	config := fapi.GetDefaultCidConfig(cid).WithColdEnabled(false)
+	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+
+	cid2, _ := addRandomFile(t, r, ipfs)
+	jid, err = fapi.Replace(cid, cid2)
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+
+	config2, err := fapi.GetCidConfig(cid2)
+	require.NoError(t, err)
+	require.Equal(t, config.Cold.Enabled, config2.Cold.Enabled)
+
+	_, err = fapi.GetCidConfig(cid)
+	require.Error(t, api.ErrNotFound, err)
+
+	requireIpfsUnpinnedCid(ctx, t, cid, ipfs)
+	requireIpfsPinnedCid(ctx, t, cid2, ipfs)
+	requireFilUnstored(ctx, t, client, cid)
+	requireFilUnstored(ctx, t, client, cid2)
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {

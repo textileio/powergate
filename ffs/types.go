@@ -190,6 +190,7 @@ type PushConfigAction struct {
 	InstanceID APIID
 	Config     CidConfig
 	WalletAddr string
+	ReplaceCid cid.Cid
 }
 
 // Validate validates a a PushConfigAction.
