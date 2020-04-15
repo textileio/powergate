@@ -6,6 +6,7 @@ import (
 
 	"github.com/textileio/powergate/net/lotus"
 	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/tests/mocks"
 )
 
 var (
@@ -16,7 +17,7 @@ func TestModule(t *testing.T) {
 	t.Parallel()
 
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
-	lm := lotus.New(client, &tests.LrMock{})
+	lm := lotus.New(client, &mocks.LrMock{})
 	m := New(lm)
 
 	t.Run("Health", func(t *testing.T) {

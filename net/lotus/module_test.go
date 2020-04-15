@@ -6,6 +6,7 @@ import (
 
 	"github.com/textileio/powergate/net"
 	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/tests/mocks"
 )
 
 var (
@@ -16,7 +17,7 @@ func TestModule(t *testing.T) {
 	t.Parallel()
 
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
-	m := New(client, &tests.LrMock{})
+	m := New(client, &mocks.LrMock{})
 
 	t.Run("ListenAddr", func(t *testing.T) {
 		addrInfo, err := m.ListenAddr(ctx)
