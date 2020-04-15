@@ -118,7 +118,7 @@ func (f *ffs) Info(ctx context.Context) (*pb.InfoReply, error) {
 	return f.client.Info(ctx, &pb.InfoRequest{})
 }
 
-func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, func(), error) {
+func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, func(), error) {
 	updates := make(chan JobEvent)
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
@@ -131,7 +131,7 @@ func (f *ffs) Watch(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, fun
 		close(updates)
 	}
 
-	stream, err := f.client.Watch(ctx, &pb.WatchRequest{Jids: jidStrings})
+	stream, err := f.client.WatchJobs(ctx, &pb.WatchJobsRequest{Jids: jidStrings})
 	if err != nil {
 		return nil, nil, err
 	}

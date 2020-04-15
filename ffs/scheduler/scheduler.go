@@ -124,21 +124,16 @@ func (s *Scheduler) GetJob(jid ffs.JobID) (ffs.Job, error) {
 	return j, nil
 }
 
-// Watch returns a channel to listen to Job status changes from a specified
-// Api instance. It immediately pushes the current Job state to the channel.
-func (s *Scheduler) Watch(iid ffs.APIID) <-chan ffs.Job {
-	return s.js.Watch(iid)
+// WatchJobs returns a channel to listen to Job status changes from a specified
+// API instance. It immediately pushes the current Job state to the channel.
+func (s *Scheduler) WatchJobs(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) error {
+	return s.js.Watch(ctx, c, iid)
 }
 
 // WatchLogs writes to a channel all new logs for Cids. The context should be
 // canceled when wanting to stop receiving updates to the channel.
 func (s *Scheduler) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error {
 	return s.l.Watch(ctx, c)
-}
-
-// Unwatch unregisters a subscribing channel created by Watch().
-func (s *Scheduler) Unwatch(ch <-chan ffs.Job) {
-	s.js.Unwatch(ch)
 }
 
 // Close terminates the scheduler.

@@ -985,9 +985,14 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 
 func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
 	t.Helper()
-	ch, err := fapi.Watch(jid)
-	require.Nil(t, err)
-	defer fapi.Unwatch(ch)
+	ch := make(chan ffs.Job)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var err error
+	go func() {
+		err = fapi.WatchJobs(ctx, ch, jid)
+		close(ch)
+	}()
 	stop := false
 	var res ffs.Job
 	for !stop {
@@ -1005,7 +1010,7 @@ func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 			res = job
 		}
 	}
-	fapi.Unwatch(ch)
+	require.NoError(t, err)
 	return res
 }
 

@@ -1,6 +1,7 @@
 package jstore
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -28,7 +29,7 @@ var _ scheduler.JobStore = (*Store)(nil)
 
 type watcher struct {
 	iid ffs.APIID
-	ch  chan ffs.Job
+	C   chan ffs.Job
 }
 
 // New returns a new JobStore backed by the Datastore.
@@ -103,28 +104,34 @@ func (s *Store) Get(jid ffs.JobID) (ffs.Job, error) {
 }
 
 // Watch subscribes to Job changes from a specified Api instance.
-func (s *Store) Watch(iid ffs.APIID) <-chan ffs.Job {
+func (s *Store) Watch(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) error {
 	s.lock.Lock()
-	defer s.lock.Unlock()
+	ic := make(chan ffs.Job, 1)
+	s.watchers = append(s.watchers, watcher{iid: iid, C: ic})
+	s.lock.Unlock()
 
-	ch := make(chan ffs.Job, 1)
-	s.watchers = append(s.watchers, watcher{iid: iid, ch: ch})
-	return ch
-}
+	stop := false
+	for !stop {
+		select {
+		case <-ctx.Done():
+			stop = true
+		case l, ok := <-ic:
+			if !ok {
+				return fmt.Errorf("jobstore was closed with a listening client")
+			}
+			c <- l
+		}
+	}
 
-// Unwatch unregisters a channel returned from Watch().
-func (s *Store) Unwatch(ch <-chan ffs.Job) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	for i := range s.watchers {
-		if s.watchers[i].ch == ch {
-			close(s.watchers[i].ch)
-			if len(s.watchers) > 1 {
-				s.watchers[i] = s.watchers[len(s.watchers)-1]
-			}
-			s.watchers = s.watchers[:len(s.watchers)-1]
+		if s.watchers[i].C == ic {
+			s.watchers = append(s.watchers[:i], s.watchers[i+1:]...)
+			break
 		}
 	}
+	return nil
 }
 
 // Close closes the Store, unregistering any subscribed watchers.
@@ -132,7 +139,7 @@ func (s *Store) Close() error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	for i := range s.watchers {
-		close(s.watchers[i].ch)
+		close(s.watchers[i].C)
 	}
 	return nil
 }
@@ -143,7 +150,7 @@ func (s *Store) notifyWatchers(j ffs.Job) {
 			continue
 		}
 		select {
-		case w.ch <- j:
+		case w.C <- j:
 			log.Infof("notifying watcher")
 		default:
 			log.Warnf("slow watcher skipped job %s", j.ID)

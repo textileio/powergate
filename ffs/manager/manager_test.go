@@ -96,7 +96,7 @@ func (ms *mockSched) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, e
 func (ms *mockSched) GetJob(jid ffs.JobID) (ffs.Job, error) {
 	return ffs.Job{}, nil
 }
-func (ms *mockSched) Watch(iid ffs.APIID) <-chan ffs.Job {
+func (ms *mockSched) WatchJobs(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) error {
 	return nil
 }
 func (ms *mockSched) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error {
@@ -105,4 +105,3 @@ func (ms *mockSched) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error
 func (ms *mockSched) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	return ffs.CidInfo{}, nil
 }
-func (ms *mockSched) Unwatch(<-chan ffs.Job) {}

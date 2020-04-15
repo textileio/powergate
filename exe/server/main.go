@@ -145,13 +145,13 @@ func setupLogging() error {
 		return err
 	}
 	loggers := []string{"index-miner", "index-ask", "index-slashing", "chainstore",
-		"server", "deals", "powergated", "fchost", "ip2location", "reputation",
+		"server", "deals", "powd", "fchost", "ip2location", "reputation",
 		"reputation-source-store", "ffs-scheduler", "ffs-manager", "ffs-auth",
 		"ffs-api", "ffs-api-istore", "ffs-coreipfs", "ffs-grpc-service", "ffs-filcold",
-		"ffs-sched-cistore", "ffs-sched-jstore", "ffs-sched-pcstore", "ffs-cidlogger"}
+		"ffs-sched-jstore", "ffs-sched-pcstore", "ffs-cidlogger"}
 	for _, l := range loggers {
 		if err := logging.SetLogLevel(l, "info"); err != nil {
-			return err
+			return fmt.Errorf("setting up logger %s: %s", l, err)
 		}
 	}
 	if config.GetBool("debug") {
