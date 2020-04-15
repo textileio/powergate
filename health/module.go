@@ -39,16 +39,17 @@ func (m *Module) Check(ctx context.Context) (status Status, messages []string, e
 		return Error, nil, err
 	}
 	for _, peer := range peers {
-		con, err := m.net.Connectedness(ctx, peer.ID)
+		con, err := m.net.Connectedness(ctx, peer.AddrInfo.ID)
 		if err != nil {
-			messages = append(messages, fmt.Sprintf("error checking connectedness for peer %v: %v", peer.ID.String(), err))
+			messages = append(messages, fmt.Sprintf("error checking connectedness for peer %v: %v", peer.AddrInfo.ID.String(), err))
 		}
 		if con == net.CannotConnect || con == net.Unknown || con == net.Error {
-			messages = append(messages, fmt.Sprintf("degraded connectedness %v for peer %v", con, peer.ID.String()))
+			messages = append(messages, fmt.Sprintf("degraded connectedness %v for peer %v", con, peer.AddrInfo.ID.String()))
 		}
 	}
+	status = Ok
 	if len(messages) > 0 {
-		return Degraded, messages, nil
+		status = Degraded
 	}
-	return Ok, messages, nil
+	return status, messages, nil
 }

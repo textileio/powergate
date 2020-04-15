@@ -6,6 +6,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/textileio/lotus-client/api/apistruct"
+	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/net"
 )
 
@@ -14,12 +15,14 @@ var _ net.Module = (*Module)(nil)
 // Module exposes the filecoin wallet api.
 type Module struct {
 	api *apistruct.FullNodeStruct
+	lr  iplocation.LocationResolver
 }
 
 // New creates a new net module
-func New(api *apistruct.FullNodeStruct) *Module {
+func New(api *apistruct.FullNodeStruct, lr iplocation.LocationResolver) *Module {
 	m := &Module{
 		api: api,
+		lr:  lr,
 	}
 	return m
 }
@@ -36,12 +39,38 @@ func (m *Module) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
 	return m.api.NetDisconnect(ctx, peerID)
 }
 
-func (m *Module) FindPeer(ctx context.Context, peerID peer.ID) (peer.AddrInfo, error) {
-	return m.api.NetFindPeer(ctx, peerID)
+func (m *Module) FindPeer(ctx context.Context, peerID peer.ID) (net.PeerInfo, error) {
+	addrInfo, err := m.api.NetFindPeer(ctx, peerID)
+	if err != nil {
+		return net.PeerInfo{}, err
+	}
+	loc, err := m.lr.Resolve(addrInfo.Addrs)
+	if err != nil {
+		return net.PeerInfo{}, err
+	}
+	return net.PeerInfo{
+		AddrInfo: addrInfo,
+		Location: loc,
+	}, nil
 }
 
-func (m *Module) Peers(ctx context.Context) ([]peer.AddrInfo, error) {
-	return m.api.NetPeers(ctx)
+func (m *Module) Peers(ctx context.Context) ([]net.PeerInfo, error) {
+	addrInfos, err := m.api.NetPeers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	peerInfos := make([]net.PeerInfo, len(addrInfos))
+	for i, addrInfo := range addrInfos {
+		loc, err := m.lr.Resolve(addrInfo.Addrs)
+		if err != nil {
+			return nil, err
+		}
+		peerInfos[i] = net.PeerInfo{
+			AddrInfo: addrInfo,
+			Location: loc,
+		}
+	}
+	return peerInfos, nil
 }
 
 func (m *Module) Connectedness(ctx context.Context, peerID peer.ID) (net.Connectedness, error) {

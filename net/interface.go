@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/textileio/powergate/iplocation"
 )
 
 // Connectedness signals the capacity for a connection with a given node
@@ -29,10 +30,15 @@ const (
 	Error
 )
 
+type PeerInfo struct {
+	AddrInfo peer.AddrInfo
+	Location iplocation.Location
+}
+
 type Module interface {
 	ListenAddr(context.Context) (peer.AddrInfo, error)
-	Peers(context.Context) ([]peer.AddrInfo, error)
-	FindPeer(context.Context, peer.ID) (peer.AddrInfo, error)
+	Peers(context.Context) ([]PeerInfo, error)
+	FindPeer(context.Context, peer.ID) (PeerInfo, error)
 	ConnectPeer(context.Context, peer.AddrInfo) error
 	DisconnectPeer(context.Context, peer.ID) error
 	Connectedness(context.Context, peer.ID) (Connectedness, error)

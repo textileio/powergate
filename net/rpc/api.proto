@@ -11,6 +11,17 @@ message AddrInfo {
     repeated string addrs = 2;
 }
 
+message Location {
+    string country = 1;
+    float latitude = 2;
+    float longitude = 3;
+}
+
+message PeerInfo {
+    AddrInfo addrInfo = 1;
+    Location location = 2;
+}
+
 enum Connectedness {
     NotConnected = 0;
     Connected = 1;
@@ -31,7 +42,7 @@ message PeersRequest {
 }
 
 message PeersReply {
-    repeated AddrInfo peers = 1;
+    repeated PeerInfo peers = 1;
 }
 
 message FindPeerRequest {
@@ -39,7 +50,7 @@ message FindPeerRequest {
 }
 
 message FindPeerReply {
-    AddrInfo peerInfo = 1;
+    PeerInfo peerInfo = 1;
 }
 
 message ConnectPeerRequest {

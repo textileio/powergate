@@ -44,15 +44,22 @@ func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 		return nil, err
 	}
 
-	peerResults := make([]*AddrInfo, len(peers))
+	peerResults := make([]*PeerInfo, len(peers))
 	for i, peer := range peers {
-		addrs := make([]string, len(peer.Addrs))
-		for i, addr := range peer.Addrs {
+		addrs := make([]string, len(peer.AddrInfo.Addrs))
+		for i, addr := range peer.AddrInfo.Addrs {
 			addrs[i] = addr.String()
 		}
-		peerResults[i] = &AddrInfo{
-			ID:    peer.ID.String(),
-			Addrs: addrs,
+		peerResults[i] = &PeerInfo{
+			AddrInfo: &AddrInfo{
+				ID:    peer.AddrInfo.ID.String(),
+				Addrs: addrs,
+			},
+			Location: &Location{
+				Country:   peer.Location.Country,
+				Latitude:  peer.Location.Latitude,
+				Longitude: peer.Location.Longitude,
+			},
 		}
 	}
 
@@ -63,20 +70,27 @@ func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 
 func (a *API) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerReply, error) {
 	peerId := peer.ID(req.PeerID)
-	addrInfo, err := a.module.FindPeer(ctx, peerId)
+	peerInfo, err := a.module.FindPeer(ctx, peerId)
 	if err != nil {
 		return nil, err
 	}
 
-	addrs := make([]string, len(addrInfo.Addrs))
-	for i, addr := range addrInfo.Addrs {
+	addrs := make([]string, len(peerInfo.AddrInfo.Addrs))
+	for i, addr := range peerInfo.AddrInfo.Addrs {
 		addrs[i] = addr.String()
 	}
 
 	return &FindPeerReply{
-		PeerInfo: &AddrInfo{
-			ID:    addrInfo.ID.String(),
-			Addrs: addrs,
+		PeerInfo: &PeerInfo{
+			AddrInfo: &AddrInfo{
+				ID:    peerInfo.AddrInfo.ID.String(),
+				Addrs: addrs,
+			},
+			Location: &Location{
+				Country:   peerInfo.Location.Country,
+				Latitude:  peerInfo.Location.Latitude,
+				Longitude: peerInfo.Location.Longitude,
+			},
 		},
 	}, nil
 }

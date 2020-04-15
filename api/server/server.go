@@ -172,7 +172,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
-	nm := pgnetlotus.New(c)
+	nm := pgnetlotus.New(c, ip2l)
 	hm := health.New(nm)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
