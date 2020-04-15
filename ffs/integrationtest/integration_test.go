@@ -902,7 +902,7 @@ func TestPushCidReplace(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	c1, _ := addRandomFile(t, r, ipfs)
 
-	// Test case that an unkown cid is being replaced
+	// Test case that an unknown cid is being replaced
 	nc, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 	_, err := fapi.Replace(nc, c1)
 	require.Equal(t, api.ErrReplacedCidNotFound, err)

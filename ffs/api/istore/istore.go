@@ -81,7 +81,7 @@ func (s *Store) PutCidConfig(c ffs.CidConfig) error {
 	return nil
 }
 
-// RemoveCidConfig removes the CidConfig asociated with Cid.
+// RemoveCidConfig removes the CidConfig associated with Cid.
 func (s *Store) RemoveCidConfig(c cid.Cid) error {
 	if !c.Defined() {
 		return fmt.Errorf("cid can't be undefined")
