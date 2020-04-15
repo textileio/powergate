@@ -1,16 +1,12 @@
 package miner
 
 import (
-	"context"
 	"os"
 	"testing"
 	"time"
 
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/multiformats/go-multiaddr"
-	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -28,7 +24,7 @@ func TestFullRefresh(t *testing.T) {
 	client, _, miners := tests.CreateLocalDevnet(t, 1)
 	time.Sleep(time.Second * 15) // Allow the network to some tipsets
 
-	mi, err := New(tests.NewTxMapDatastore(), client, &p2pHostMock{}, &lrMock{})
+	mi, err := New(tests.NewTxMapDatastore(), client, &tests.P2pHostMock{}, &tests.LrMock{})
 	checkErr(t, err)
 
 	l := mi.Listen()
@@ -75,30 +71,4 @@ func checkErr(t *testing.T, err error) {
 	if err != nil {
 		t.Fatal(err)
 	}
-}
-
-var _ P2PHost = (*p2pHostMock)(nil)
-
-type p2pHostMock struct{}
-
-func (hm *p2pHostMock) Addrs(id peer.ID) []multiaddr.Multiaddr {
-	return nil
-}
-func (hm *p2pHostMock) GetAgentVersion(id peer.ID) string {
-	return "fakeAgentVersion"
-}
-func (hm *p2pHostMock) Ping(ctx context.Context, pid peer.ID) bool {
-	return true
-}
-
-var _ iplocation.LocationResolver = (*lrMock)(nil)
-
-type lrMock struct{}
-
-func (lr *lrMock) Resolve(mas []multiaddr.Multiaddr) (iplocation.Location, error) {
-	return iplocation.Location{
-		Country:   "USA",
-		Latitude:  0.1,
-		Longitude: 0.1,
-	}, nil
 }
