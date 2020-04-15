@@ -73,8 +73,8 @@ func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 
 // FindPeer calls module.FindPeer
 func (a *API) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerReply, error) {
-	peerId := peer.ID(req.PeerID)
-	peerInfo, err := a.module.FindPeer(ctx, peerId)
+	peerID := peer.ID(req.PeerID)
+	peerInfo, err := a.module.FindPeer(ctx, peerID)
 	if err != nil {
 		return nil, err
 	}
