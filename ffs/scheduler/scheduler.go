@@ -79,6 +79,15 @@ func (s *Scheduler) push(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid 
 	if !cfg.Cid.Defined() {
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
 	}
+	if iid == ffs.EmptyInstanceID {
+		return ffs.EmptyJobID, fmt.Errorf("invalid Action ID")
+	}
+	if err := cfg.Validate(); err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("validating cid config: %s", err)
+	}
+	if waddr == "" {
+		return ffs.EmptyJobID, fmt.Errorf("invalid wallet address")
+	}
 	jid := ffs.NewJobID()
 	j := ffs.Job{
 		ID:     jid,
