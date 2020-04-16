@@ -10,7 +10,7 @@ import (
 
 // API implements the rpc service
 type API struct {
-	UnimplementedAPIServer
+	UnimplementedNetServer
 
 	module net.Module
 }

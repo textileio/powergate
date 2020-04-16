@@ -2,16 +2,15 @@ package client
 
 import (
 	"testing"
+
+	"google.golang.org/grpc"
 )
 
 func TestClient(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping since is a short test run")
-	}
 	done := setupServer(t)
 	defer done()
 
-	client, err := NewClient(grpcHostAddress)
+	client, err := NewClient(grpcHostAddress, grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
