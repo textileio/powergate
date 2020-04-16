@@ -1,0 +1,42 @@
+linters-settings:
+  misspell:
+    locale: US
+
+linters:
+  # please, do not use `enable-all`: it's deprecated and will be removed soon.
+  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
+  disable-all: true
+  enable:
+    - golint
+    - misspell
+
+  # don't enable:
+  # - gochecknoglobals
+  # - gocognit
+  # - godox
+  # - maligned
+  # - prealloc
+
+issues:
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    - path: gateway/assets.go
+      linters:
+        - golint
+        - misspell
+  exclude-use-default: false
+
+run:
+  skip-dirs:
+    - test/testdata_etc
+    - internal/cache
+    - internal/renameio
+    - internal/robustio
+
+# golangci.com configuration
+# https://github.com/golangci/golangci/wiki/Configuration
+service:
+  golangci-lint-version: 1.23.x # use the fixed version to not introduce new linters unexpectedly
+  prepare:
+    - echo "here I can run custom commands, but no preparation needed for this repo"
+    
