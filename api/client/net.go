@@ -11,7 +11,7 @@ import (
 )
 
 type net struct {
-	client rpc.APIClient
+	client rpc.NetClient
 }
 
 // ListenAddr returns listener address info for the local node

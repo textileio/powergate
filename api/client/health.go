@@ -9,7 +9,7 @@ import (
 
 // Health provides an API for checking node health
 type health struct {
-	client rpc.APIClient
+	client rpc.HealthClient
 }
 
 // Check returns the node health status and any related messages
