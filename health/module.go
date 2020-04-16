@@ -24,6 +24,18 @@ const (
 	Error
 )
 
+func (s Status) String() string {
+	names := [...]string{
+		"Ok",
+		"Degraded",
+		"Error",
+	}
+	if s < Ok || s > Error {
+		return "Unknown"
+	}
+	return names[s]
+}
+
 // New creates a new net module
 func New(net net.Module) *Module {
 	m := &Module{

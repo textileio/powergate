@@ -3,9 +3,11 @@ package client
 import (
 	dealsPb "github.com/textileio/powergate/deals/pb"
 	ffsPb "github.com/textileio/powergate/ffs/pb"
+	healthRpc "github.com/textileio/powergate/health/rpc"
 	asksPb "github.com/textileio/powergate/index/ask/pb"
 	minerPb "github.com/textileio/powergate/index/miner/pb"
 	slashingPb "github.com/textileio/powergate/index/slashing/pb"
+	netRpc "github.com/textileio/powergate/net/rpc"
 	reputationPb "github.com/textileio/powergate/reputation/pb"
 	walletPb "github.com/textileio/powergate/wallet/pb"
 	"google.golang.org/grpc"
@@ -20,6 +22,8 @@ type Client struct {
 	Wallet     *Wallet
 	Reputation *Reputation
 	Ffs        *ffs
+	Health     *health
+	Net        *net
 	conn       *grpc.ClientConn
 }
 
@@ -37,6 +41,8 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationPb.NewAPIClient(conn)},
 		Ffs:        &ffs{client: ffsPb.NewAPIClient(conn)},
+		Health:     &health{client: healthRpc.NewAPIClient(conn)},
+		Net:        &net{client: netRpc.NewAPIClient(conn)},
 		conn:       conn,
 	}
 	return client, nil
