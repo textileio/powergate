@@ -272,7 +272,7 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork, hostAddress string) error {
 	netService := pgnetRpc.NewService(s.nm)
-	healthSerice := healthRpc.NewService(s.hm)
+	healthService := healthRpc.NewService(s.hm)
 	dealsService := deals.NewService(s.dm)
 	walletService := wallet.NewService(s.wm)
 	reputationService := reputation.NewService(s.rm)
@@ -286,8 +286,8 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		pgnetRpc.RegisterAPIServer(server, netService)
-		healthRpc.RegisterAPIServer(server, healthSerice)
+		pgnetRpc.RegisterNetServer(server, netService)
+		healthRpc.RegisterHealthServer(server, healthService)
 		dealsPb.RegisterAPIServer(server, dealsService)
 		walletPb.RegisterAPIServer(server, walletService)
 		reputationPb.RegisterAPIServer(server, reputationService)

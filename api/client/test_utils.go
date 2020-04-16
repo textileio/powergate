@@ -2,11 +2,14 @@ package client
 
 import (
 	"context"
+	"io/ioutil"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/server"
 	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc"
 )
 
@@ -14,18 +17,35 @@ var (
 	grpcHostNetwork     = "tcp"
 	grpcHostAddress     = "127.0.0.1:5002"
 	grpcWebProxyAddress = "127.0.0.1:6002"
+	gatewayHostAddr     = "0.0.0.0:7000"
 	ctx                 = context.Background()
 )
 
 func setupServer(t *testing.T) func() {
-	lotusAddr, token := tests.ClientConfigMA()
+	repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dipfs, cls := tests.LaunchIPFSDocker()
+	t.Cleanup(func() { cls() })
+	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + dipfs.GetPort("5001/tcp"))
+
+	ddevnet := tests.LaunchDevnetDocker(t, 1)
+	devnetAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ddevnet.GetPort("7777/tcp"))
+
 	conf := server.Config{
-		LotusAddress:   lotusAddr,
-		LotusAuthToken: token,
-		// ToDo: Support secure gRPC connection
+		WalletInitialFunds:  *big.NewInt(int64(4000000000)),
+		IpfsAPIAddr:         ipfsAddr,
+		LotusAddress:        devnetAddr,
+		LotusAuthToken:      "",
+		LotusMasterAddr:     "",
+		Embedded:            true,
 		GrpcHostNetwork:     grpcHostNetwork,
 		GrpcHostAddress:     grpcHostAddress,
 		GrpcWebProxyAddress: grpcWebProxyAddress,
+		RepoPath:            repoPath,
+		GatewayHostAddr:     gatewayHostAddr,
 	}
 	server, err := server.NewServer(conf)
 	checkErr(t, err)
