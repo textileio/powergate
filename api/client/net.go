@@ -28,8 +28,12 @@ func (net *net) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
 		}
 		addrs[i] = ma
 	}
+	id, err := peer.Decode(resp.AddrInfo.ID)
+	if err != nil {
+		return peer.AddrInfo{}, err
+	}
 	return peer.AddrInfo{
-		ID:    peer.ID(resp.AddrInfo.ID),
+		ID:    id,
 		Addrs: addrs,
 	}, nil
 }
@@ -115,9 +119,13 @@ func fromProtoPeerInfo(proto *rpc.PeerInfo) (n.PeerInfo, error) {
 		}
 		addrs[i] = ma
 	}
+	id, err := peer.Decode(proto.AddrInfo.ID)
+	if err != nil {
+		return n.PeerInfo{}, err
+	}
 	peerInfo := n.PeerInfo{
 		AddrInfo: peer.AddrInfo{
-			ID:    peer.ID(proto.AddrInfo.ID),
+			ID:    id,
 			Addrs: addrs,
 		},
 		Location: iplocation.Location{

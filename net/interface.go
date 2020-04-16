@@ -30,6 +30,21 @@ const (
 	Error
 )
 
+func (s Connectedness) String() string {
+	names := [...]string{
+		"Not Connected",
+		"Connected",
+		"Can Connect",
+		"Cannot Connect",
+		"Unknown",
+		"Error",
+	}
+	if s < NotConnected || s > Error {
+		return "Unknown"
+	}
+	return names[s]
+}
+
 // PeerInfo provides address info and location info about a peer
 type PeerInfo struct {
 	AddrInfo peer.AddrInfo
