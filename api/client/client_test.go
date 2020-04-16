@@ -1,13 +1,13 @@
 package client
 
 import (
+	"context"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping since is a short test run")
-	}
 	done := setupServer(t)
 	defer done()
 
@@ -20,4 +20,9 @@ func TestClient(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to close client: %v", err)
 	}
+
+	id, token, err := client.Ffs.Create(context.Background())
+	require.Nil(t, err)
+	require.NotEmpty(t, id)
+	require.NotEmpty(t, token)
 }
