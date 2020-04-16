@@ -110,7 +110,7 @@ func deltaRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex
 	return nil
 }
 
-// fullRefresh updates chainIndex for all miners information at the currenty
+// fullRefresh updates chainIndex for all miners information at the currently
 // heaviest tipset.
 func fullRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *ChainIndex) error {
 	ts, err := api.ChainHead(ctx)
@@ -153,7 +153,7 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 
 	select {
 	case <-ctx.Done():
-		return fmt.Errorf("cancelled by context")
+		return fmt.Errorf("canceled by context")
 	default:
 	}
 	return nil

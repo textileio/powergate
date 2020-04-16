@@ -130,7 +130,7 @@ func (ai *Index) Close() error {
 	return nil
 }
 
-// start is a long running job that updates asks infromation in the market
+// start is a long running job that updates asks information in the market
 func (ai *Index) start() {
 	defer close(ai.finished)
 	if err := ai.update(); err != nil {
@@ -232,7 +232,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*IndexSn
 
 	select {
 	case <-ctx.Done():
-		return nil, fmt.Errorf("refresh was cancelled")
+		return nil, fmt.Errorf("refresh was canceled")
 	default:
 	}
 

@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	// ErrEmptyAuthToken is returned when the provided auth-token is unkown.
+	// ErrEmptyAuthToken is returned when the provided auth-token is unknown.
 	ErrEmptyAuthToken = errors.New("auth token can't be empty")
 
 	log = logger.Logger("ffs-grpc-service")

@@ -49,7 +49,7 @@ type Index struct {
 }
 
 // New returns a new SlashingIndex. It will load previous state from ds, and
-// immediatelly start getting in sync with new on-chain.
+// immediately start getting in sync with new on-chain.
 func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, error) {
 	cs := chainsync.New(api)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
@@ -270,7 +270,7 @@ func epochPatch(ctx context.Context, c *apistruct.FullNodeStruct, pts *types.Tip
 
 	select {
 	case <-ctx.Done():
-		return nil, fmt.Errorf("cancelled by context")
+		return nil, fmt.Errorf("canceled by context")
 	default:
 	}
 
