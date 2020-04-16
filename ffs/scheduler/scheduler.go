@@ -66,6 +66,8 @@ func (s *Scheduler) PushConfig(iid ffs.APIID, waddr string, cfg ffs.CidConfig) (
 	return s.push(iid, waddr, cfg, cid.Undef)
 }
 
+// PushReplace queues a new CidConfig to be executed as a new Job, replacing an oldCid that will be
+// untrack in the Scheduler (i.e: deal renewals, repairing).
 func (s *Scheduler) PushReplace(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.JobID, error) {
 	if !oldCid.Defined() {
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
@@ -114,6 +116,7 @@ func (s *Scheduler) push(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid 
 
 }
 
+// Untrack untracks a Cid for renewal and repair background crons.
 func (s *Scheduler) Untrack(c cid.Cid) error {
 	if err := s.as.Remove(c); err != nil {
 		return fmt.Errorf("removing cid from action store: %s", err)

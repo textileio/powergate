@@ -60,6 +60,7 @@ func (s *Store) Put(ji ffs.JobID, a scheduler.Action) error {
 	return nil
 }
 
+// Remove removes any Action associated with a Cid.
 func (s *Store) Remove(c cid.Cid) error {
 	// ToDo: if this becomes a bottleneck, consider including
 	// Cid in key or make an index.

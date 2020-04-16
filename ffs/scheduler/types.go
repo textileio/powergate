@@ -25,6 +25,7 @@ type JobStore interface {
 	Watch(context.Context, chan<- ffs.Job, ffs.APIID) error
 }
 
+// Action represents an action to be executed by the Scheduler.
 type Action struct {
 	APIID       ffs.APIID
 	Waddr       string
