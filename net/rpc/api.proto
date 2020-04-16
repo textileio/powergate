@@ -25,10 +25,10 @@ message PeerInfo {
 enum Connectedness {
     NotConnected = 0;
     Connected = 1;
-	CanConnect = 2;
-	CannotConnect = 3;
-	Unknown = 4;
-	Error = 5;
+    CanConnect = 2;
+    CannotConnect = 3;
+    Unknown = 4;
+    Error = 5;
 }
 
 message ListenAddrRequest {

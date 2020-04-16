@@ -9,7 +9,7 @@ option objc_class_prefix = "TTE";
 enum Status {
     Ok = 0;
     Degraded = 1;
-	Error = 2;
+    Error = 2;
 }
 
 message CheckRequest {

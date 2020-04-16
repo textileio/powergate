@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/net"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/tests/mocks"
@@ -14,77 +15,55 @@ var (
 )
 
 func TestModule(t *testing.T) {
-	t.Parallel()
-
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
 	m := New(client, &mocks.LrMock{})
 
 	t.Run("ListenAddr", func(t *testing.T) {
 		addrInfo, err := m.ListenAddr(ctx)
-		tests.CheckErr(t, err)
-		if addrInfo.ID.String() == "" {
-			t.Fatalf("got empty addrInfo.ID")
-		}
-		if len(addrInfo.Addrs) == 0 {
-			t.Fatalf("got empty addrInfo.Addrs")
-		}
+		require.Nil(t, err)
+		require.NotEmpty(t, addrInfo.ID.String())
+		require.NotEmpty(t, addrInfo.Addrs)
 	})
 
 	t.Run("Peers", func(t *testing.T) {
 		peers, err := m.Peers(ctx)
-		tests.CheckErr(t, err)
-		if len(peers) == 0 {
-			t.Fatalf("got empty peers list")
-		}
+		require.Nil(t, err)
+		require.NotEmpty(t, peers)
 	})
 
 	t.Run("Connectedness", func(t *testing.T) {
 		peers, err := m.Peers(ctx)
-		tests.CheckErr(t, err)
-		if len(peers) == 0 {
-			t.Fatalf("got empty peers list")
-		}
+		require.Nil(t, err)
+		require.NotEmpty(t, peers)
 		c, err := m.Connectedness(ctx, peers[0].AddrInfo.ID)
-		tests.CheckErr(t, err)
-		if c != net.Connected {
-			t.Fatalf("not connected to peer")
-		}
+		require.Nil(t, err)
+		require.Equal(t, net.Connected, c)
 	})
 
 	t.Run("FindPeer", func(t *testing.T) {
 		peers, err := m.Peers(ctx)
-		tests.CheckErr(t, err)
-		if len(peers) == 0 {
-			t.Fatalf("got empty peers list")
-		}
+		require.Nil(t, err)
+		require.NotEmpty(t, peers)
 		peer, err := m.FindPeer(ctx, peers[0].AddrInfo.ID)
-		tests.CheckErr(t, err)
-		if peer.AddrInfo.ID != peers[0].AddrInfo.ID {
-			t.Fatalf("expected to find peer %v but found peer %v", peers[0].AddrInfo.ID.String(), peer.AddrInfo.ID.String())
-		}
+		require.Nil(t, err)
+		require.Equal(t, peers[0].AddrInfo.ID, peer.AddrInfo.ID)
 	})
 
 	t.Run("DisconnectAndConnect", func(t *testing.T) {
 		peers0, err := m.Peers(ctx)
-		tests.CheckErr(t, err)
-		if len(peers0) == 0 {
-			t.Fatalf("got empty peers list")
-		}
+		require.Nil(t, err)
+		require.NotEmpty(t, peers0)
 
 		err = m.DisconnectPeer(ctx, peers0[0].AddrInfo.ID)
-		tests.CheckErr(t, err)
+		require.Nil(t, err)
 		peers1, err := m.Peers(ctx)
-		tests.CheckErr(t, err)
-		if len(peers1) != 0 {
-			t.Fatalf("expected no peers but have peers")
-		}
+		require.Nil(t, err)
+		require.Empty(t, peers1)
 
 		err = m.ConnectPeer(ctx, peers0[0].AddrInfo)
-		tests.CheckErr(t, err)
+		require.Nil(t, err)
 		peers2, err := m.Peers(ctx)
-		tests.CheckErr(t, err)
-		if len(peers2) != 1 {
-			t.Fatalf("expected one peer but found %v", len(peers2))
-		}
+		require.Nil(t, err)
+		require.Len(t, peers2, 1)
 	})
 }

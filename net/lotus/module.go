@@ -3,6 +3,7 @@ package lotus
 import (
 	"context"
 
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/textileio/lotus-client/api/apistruct"
@@ -10,7 +11,11 @@ import (
 	"github.com/textileio/powergate/net"
 )
 
-var _ net.Module = (*Module)(nil)
+var (
+	_ net.Module = (*Module)(nil)
+
+	log = logging.Logger("net")
+)
 
 // Module exposes the filecoin wallet api.
 type Module struct {
@@ -95,6 +100,7 @@ func (m *Module) Connectedness(ctx context.Context, peerID peer.ID) (net.Connect
 	case network.NotConnected:
 		return net.NotConnected, nil
 	default:
+		log.Warnf("unknown peer connectedness &v", con)
 		return net.Unknown, nil
 	}
 }

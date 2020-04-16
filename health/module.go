@@ -7,7 +7,7 @@ import (
 	"github.com/textileio/powergate/net"
 )
 
-// Module exposes the filecoin wallet api.
+// Module exposes the health api.
 type Module struct {
 	net net.Module
 }
@@ -42,6 +42,7 @@ func (m *Module) Check(ctx context.Context) (status Status, messages []string, e
 		con, err := m.net.Connectedness(ctx, peer.AddrInfo.ID)
 		if err != nil {
 			messages = append(messages, fmt.Sprintf("error checking connectedness for peer %v: %v", peer.AddrInfo.ID.String(), err))
+			continue
 		}
 		if con == net.CannotConnect || con == net.Unknown || con == net.Error {
 			messages = append(messages, fmt.Sprintf("degraded connectedness %v for peer %v", con, peer.AddrInfo.ID.String()))

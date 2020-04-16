@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/net/lotus"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/tests/mocks"
@@ -14,20 +15,14 @@ var (
 )
 
 func TestModule(t *testing.T) {
-	t.Parallel()
-
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
 	lm := lotus.New(client, &mocks.LrMock{})
 	m := New(lm)
 
 	t.Run("Health", func(t *testing.T) {
 		status, messages, err := m.Check(ctx)
-		tests.CheckErr(t, err)
-		if status != Ok {
-			t.Fatalf("expected Ok status but got %v", status)
-		}
-		if len(messages) != 0 {
-			t.Fatalf("expected 0 messages but got %v", messages)
-		}
+		require.Nil(t, err)
+		require.Equal(t, Ok, status)
+		require.Empty(t, messages)
 	})
 }
