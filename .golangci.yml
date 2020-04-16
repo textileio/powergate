@@ -27,6 +27,7 @@ issues:
   exclude-use-default: false
 
 run:
+  timeout: 30m
   skip-dirs:
     - test/testdata_etc
     - internal/cache
