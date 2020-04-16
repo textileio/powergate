@@ -283,6 +283,8 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 	return jid, nil
 }
 
+// Remove removes a Cid from being tracked as an active storage. The Cid should have
+// both Hot and Cold storage disabled, if that isn't the case it will return ErrActiveInStorage.
 func (i *API) Remove(c cid.Cid) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -292,7 +294,7 @@ func (i *API) Remove(c cid.Cid) error {
 		return err
 	}
 	if err != nil {
-		return fmt.Errorf("geting cid config from store: %s", err)
+		return fmt.Errorf("getting cid config from store: %s", err)
 	}
 	if cfg.Hot.Enabled || cfg.Cold.Enabled {
 		return ErrActiveInStorage
