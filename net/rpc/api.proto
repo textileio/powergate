@@ -1,0 +1,85 @@
+syntax = "proto3";
+package rpc;
+
+option java_multiple_files = true;
+option java_package = "io.textile.powergate.net.rpc";
+option java_outer_classname = "PowergateNet";
+option objc_class_prefix = "TTE";
+
+message AddrInfo {
+    string ID = 1;
+    repeated string addrs = 2;
+}
+
+message Location {
+    string country = 1;
+    float latitude = 2;
+    float longitude = 3;
+}
+
+message PeerInfo {
+    AddrInfo addrInfo = 1;
+    Location location = 2;
+}
+
+enum Connectedness {
+    NotConnected = 0;
+    Connected = 1;
+    CanConnect = 2;
+    CannotConnect = 3;
+    Unknown = 4;
+    Error = 5;
+}
+
+message ListenAddrRequest {
+}
+
+message ListenAddrReply {
+    AddrInfo addrInfo = 1;
+}
+
+message PeersRequest {
+}
+
+message PeersReply {
+    repeated PeerInfo peers = 1;
+}
+
+message FindPeerRequest {
+    string peerID = 1;
+}
+
+message FindPeerReply {
+    PeerInfo peerInfo = 1;
+}
+
+message ConnectPeerRequest {
+    AddrInfo peerInfo = 1;
+}
+
+message ConnectPeerReply {
+}
+
+message DisconnectPeerRequest {
+    string peerID = 1;
+}
+
+message DisconnectPeerReply {
+}
+
+message ConnectednessRequest {
+    string peerID = 1;
+}
+
+message ConnectednessReply {
+    Connectedness connectedness = 1;
+}
+
+service API {
+    rpc ListenAddr(ListenAddrRequest) returns (ListenAddrReply) {}
+    rpc Peers(PeersRequest) returns (PeersReply) {}
+    rpc FindPeer(FindPeerRequest) returns (FindPeerReply) {}
+    rpc ConnectPeer(ConnectPeerRequest) returns (ConnectPeerReply) {}
+    rpc DisconnectPeer(DisconnectPeerRequest) returns (DisconnectPeerReply) {}
+    rpc Connectedness(ConnectednessRequest) returns (ConnectednessReply) {}
+}

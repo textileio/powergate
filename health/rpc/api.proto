@@ -1,0 +1,25 @@
+syntax = "proto3";
+package rpc;
+
+option java_multiple_files = true;
+option java_package = "io.textile.powergate.health.rpc";
+option java_outer_classname = "PowergateHealth";
+option objc_class_prefix = "TTE";
+
+enum Status {
+    Ok = 0;
+    Degraded = 1;
+    Error = 2;
+}
+
+message CheckRequest {
+}
+
+message CheckReply {
+    Status status = 1;
+    repeated string messages = 2;
+}
+
+service API {
+    rpc Check(CheckRequest) returns (CheckReply) {}
+}
