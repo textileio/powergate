@@ -84,7 +84,7 @@ func (ci *CoreIpfs) Add(ctx context.Context, r io.Reader) (cid.Cid, error) {
 
 // Get retrieves a cid from the IPFS node.
 func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
-	log.Debugf("geting cid %s", c)
+	log.Debugf("getting cid %s", c)
 	n, err := ci.ipfs.Unixfs().Get(ctx, path.IpfsPath(c))
 	if err != nil {
 		return nil, fmt.Errorf("getting cid %s from ipfs: %s", c, err)

@@ -61,7 +61,7 @@ func (s *Signaler) Signal() {
 	}
 }
 
-// Close closes the Signaler. Any channel that wasn't explicitely unregistered,
+// Close closes the Signaler. Any channel that wasn't explicitly unregistered,
 // is closed.
 func (s *Signaler) Close() {
 	s.lock.Lock()

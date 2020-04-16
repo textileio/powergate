@@ -127,8 +127,8 @@ func jobsComplete(state map[string]*client.JobEvent) bool {
 
 func displayName(s ffs.JobStatus) string {
 	switch s {
-	case ffs.Cancelled:
-		return "Cancelled"
+	case ffs.Canceled:
+		return "Canceled"
 	case ffs.Failed:
 		return "Failed"
 	case ffs.InProgress:

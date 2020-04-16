@@ -28,7 +28,7 @@ var (
 	// ErrRetrievalNoAvailableProviders indicates that the data isn't available on any provided
 	// to be retrieved.
 	ErrRetrievalNoAvailableProviders = errors.New("no providers to retrieve the data")
-	// ErrDealNotFound indicates a particular ProposalCid from a deal isn't found on-chain. Currenty,
+	// ErrDealNotFound indicates a particular ProposalCid from a deal isn't found on-chain. Currently,
 	// in Lotus this indicates that it may never existed on-chain, or it existed but it already expired
 	// (currEpoch > StartEpoch+Duration).
 	ErrDealNotFound = errors.New("deal not found on-chain")
