@@ -28,7 +28,7 @@ func (jid JobID) String() string {
 }
 
 var (
-	// EmptyInstanceID representes an empty/invalid Instance ID.
+	// EmptyInstanceID represents an empty/invalid Instance ID.
 	EmptyInstanceID = APIID("")
 )
 
@@ -64,9 +64,9 @@ const (
 	// Failed indicates the Job failed, with job.ErrCause with
 	// the error cause.
 	Failed
-	// Cancelled indicates the Job was cancelled from Queued,
+	// Canceled indicates the Job was canceled from Queued,
 	// and didn't reach execution.
-	Cancelled
+	Canceled
 	// Success indicates the Job was successfully executed.
 	Success
 )
