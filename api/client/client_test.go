@@ -1,17 +1,16 @@
 package client
 
 import (
-	"context"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 )
 
 func TestClient(t *testing.T) {
 	done := setupServer(t)
 	defer done()
 
-	client, err := NewClient(grpcHostAddress)
+	client, err := NewClient(grpcHostAddress, grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -20,9 +19,4 @@ func TestClient(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to close client: %v", err)
 	}
-
-	id, token, err := client.Ffs.Create(context.Background())
-	require.Nil(t, err)
-	require.NotEmpty(t, id)
-	require.NotEmpty(t, token)
 }
