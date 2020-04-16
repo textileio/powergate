@@ -443,24 +443,11 @@ func TestFilecoinEnableConfig(t *testing.T) {
 			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.GetDefaultCidConfig(cid).WithColdEnabled(tt.ColdEnabled).WithHotEnabled(tt.HotEnabled)
 
-			var expectedErr error
-			if !tt.HotEnabled && !tt.ColdEnabled {
-				expectedErr = ffs.ErrBothStoragesDisabled
-			}
 			jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
-			require.Equal(t, expectedErr, err)
-			if expectedErr != nil {
-				return
-			}
+			require.Nil(t, err)
 
 			expectedJobState := ffs.Success
-			var errCause string
-			if !tt.ColdEnabled && !tt.HotEnabled {
-				expectedJobState = ffs.Failed
-				errCause = ffs.ErrBothStoragesDisabled.Error()
-			}
-			job := requireJobState(t, fapi, jid, expectedJobState)
-			require.Equal(t, errCause, job.ErrCause)
+			requireJobState(t, fapi, jid, expectedJobState)
 
 			if expectedJobState == ffs.Success {
 				requireCidConfig(t, fapi, cid, &config)
@@ -930,6 +917,33 @@ func TestPushCidReplace(t *testing.T) {
 	requireIpfsPinnedCid(ctx, t, c2, ipfs)
 	requireFilUnstored(ctx, t, client, c1)
 	requireFilUnstored(ctx, t, client, c2)
+}
+
+func TestRemove(t *testing.T) {
+	ipfs, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	r := rand.New(rand.NewSource(22))
+	c1, _ := addRandomFile(t, r, ipfs)
+
+	config := fapi.GetDefaultCidConfig(c1).WithColdEnabled(false)
+	jid, err := fapi.PushConfig(c1, api.WithCidConfig(config))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, c1, &config)
+
+	err = fapi.Remove(c1)
+	require.Equal(t, api.ErrActiveInStorage, err)
+
+	config = config.WithHotEnabled(false)
+	jid, err = fapi.PushConfig(c1, api.WithCidConfig(config), api.WithOverride(true))
+	requireJobState(t, fapi, jid, ffs.Success)
+	require.Nil(t, err)
+
+	err = fapi.Remove(c1)
+	require.Nil(t, err)
+	_, err = fapi.GetCidConfig(c1)
+	require.Equal(t, api.ErrNotFound, err)
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {

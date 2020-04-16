@@ -25,6 +25,9 @@ var (
 	ErrMustOverrideConfig = errors.New("cid already pinned, consider using override flag")
 	// ErrReplacedCidNotFound returns when replacing a Cid that isn't stored.
 	ErrReplacedCidNotFound = errors.New("provided replaced cid wasn't found")
+	// ErrActiveInStorage returns when a Cid is trying to be removed but still defined as active
+	// on Hot or Cold storage.
+	ErrActiveInStorage = errors.New("can't remove Cid, disable from Hot and Cold storage")
 )
 
 // API is an Api instance, which owns a Lotus Address and allows to
@@ -278,6 +281,26 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil
+}
+
+func (i *API) Remove(c cid.Cid) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	cfg, err := i.is.GetCidConfig(c)
+	if err == ErrNotFound {
+		return err
+	}
+	if err != nil {
+		return fmt.Errorf("geting cid config from store: %s", err)
+	}
+	if cfg.Hot.Enabled || cfg.Cold.Enabled {
+		return ErrActiveInStorage
+	}
+	if err := i.is.RemoveCidConfig(c); err != nil {
+		return fmt.Errorf("deleting replaced cid config: %s", err)
+	}
+	return nil
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.

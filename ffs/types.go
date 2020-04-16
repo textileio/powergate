@@ -179,9 +179,6 @@ func (c CidConfig) Validate() error {
 	if err := c.Cold.Validate(); err != nil {
 		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
 	}
-	if !c.Hot.Enabled && !c.Cold.Enabled {
-		return ErrBothStoragesDisabled
-	}
 	return nil
 }
 
