@@ -87,21 +87,27 @@ type mockSched struct{}
 
 var _ ffs.Scheduler = (*mockSched)(nil)
 
-func (ms *mockSched) PushConfig(pca ffs.PushConfigAction) (ffs.JobID, error) {
+func (ms *mockSched) PushConfig(_ ffs.APIID, _ string, _ ffs.CidConfig) (ffs.JobID, error) {
 	return ffs.NewJobID(), nil
 }
-func (ms *mockSched) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
+func (ms *mockSched) PushReplace(_ ffs.APIID, _ string, _ ffs.CidConfig, _ cid.Cid) (ffs.JobID, error) {
+	return ffs.NewJobID(), nil
+}
+func (ms *mockSched) GetCidFromHot(_ context.Context, _ cid.Cid) (io.Reader, error) {
 	return nil, nil
 }
-func (ms *mockSched) GetJob(jid ffs.JobID) (ffs.Job, error) {
+func (ms *mockSched) GetJob(_ ffs.JobID) (ffs.Job, error) {
 	return ffs.Job{}, nil
 }
-func (ms *mockSched) WatchJobs(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) error {
+func (ms *mockSched) WatchJobs(_ context.Context, _ chan<- ffs.Job, _ ffs.APIID) error {
 	return nil
 }
-func (ms *mockSched) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error {
+func (ms *mockSched) WatchLogs(_ context.Context, _ chan<- ffs.LogEntry) error {
 	return nil
 }
-func (ms *mockSched) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
+func (ms *mockSched) GetCidInfo(_ cid.Cid) (ffs.CidInfo, error) {
 	return ffs.CidInfo{}, nil
+}
+func (ms *mockSched) Untrack(_ cid.Cid) error {
+	return nil
 }

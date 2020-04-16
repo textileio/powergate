@@ -25,15 +25,24 @@ type JobStore interface {
 	Watch(context.Context, chan<- ffs.Job, ffs.APIID) error
 }
 
-// PushConfigStore persist PushConfigActions for Cids.
-type PushConfigStore interface {
+type Action struct {
+	APIID       ffs.APIID
+	Waddr       string
+	Cfg         ffs.CidConfig
+	ReplacedCid cid.Cid
+}
+
+// ActionStore persist actions for Cids.
+type ActionStore interface {
 	// Put saves a new state for a Job.
-	Put(ffs.JobID, ffs.PushConfigAction) error
+	Put(ffs.JobID, Action) error
 	// Get returns the current state of a Job.
-	Get(ffs.JobID) (ffs.PushConfigAction, error)
+	Get(ffs.JobID) (Action, error)
+	// Remove removes the action associated with a Cid.
+	Remove(cid.Cid) error
 	// GetRenewable returns the known pushed configs that have enabled
 	// renew Filecoin flag for their deals.
-	GetRenewable() ([]ffs.PushConfigAction, error)
+	GetRenewable() ([]Action, error)
 }
 
 // CidInfoStore persists CidInfo which represent the current storage

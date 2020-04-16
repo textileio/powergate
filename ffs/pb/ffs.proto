@@ -105,7 +105,7 @@ enum JobStatus {
 
 message Job {
 	string ID = 1; 
-	string instanceID = 2;
+	string apiID = 2;
 	JobStatus status = 3;
 	string errCause = 4;
 }

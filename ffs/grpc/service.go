@@ -302,10 +302,10 @@ func (s *Service) WatchJobs(req *pb.WatchJobsRequest, srv pb.API_WatchJobsServer
 	for job := range ch {
 		reply := &pb.WatchJobsReply{
 			Job: &pb.Job{
-				ID:         job.ID.String(),
-				InstanceID: job.InstanceID.String(),
-				Status:     pb.JobStatus(job.Status),
-				ErrCause:   job.ErrCause,
+				ID:       job.ID.String(),
+				ApiID:    job.APIID.String(),
+				Status:   pb.JobStatus(job.Status),
+				ErrCause: job.ErrCause,
 			},
 		}
 		if err := srv.Send(reply); err != nil {

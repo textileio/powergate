@@ -29,7 +29,8 @@ var (
 type Scheduler interface {
 	// PushConfig push a new or modified configuration for a Cid. It returns
 	// the JobID which tracks the current state of execution of that task.
-	PushConfig(PushConfigAction) (JobID, error)
+	PushConfig(APIID, string, CidConfig) (JobID, error)
+	PushReplace(APIID, string, CidConfig, cid.Cid) (JobID, error)
 
 	// GetCidInfo returns the current Cid storing state. This state may be different
 	// from CidConfig which is the *desired* state.
@@ -50,6 +51,8 @@ type Scheduler interface {
 	// This is a blocking operation that should be canceled by canceling the
 	// provided context.
 	WatchLogs(context.Context, chan<- LogEntry) error
+
+	Untrack(cid.Cid) error
 }
 
 // HotStorage is a fast datastorage layer for storing and retrieving raw

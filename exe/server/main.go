@@ -148,7 +148,7 @@ func setupLogging() error {
 		"server", "deals", "powd", "fchost", "ip2location", "reputation",
 		"reputation-source-store", "ffs-scheduler", "ffs-manager", "ffs-auth",
 		"ffs-api", "ffs-api-istore", "ffs-coreipfs", "ffs-grpc-service", "ffs-filcold",
-		"ffs-sched-jstore", "ffs-sched-pcstore", "ffs-cidlogger"}
+		"ffs-sched-jstore", "ffs-sched-astore", "ffs-cidlogger"}
 	for _, l := range loggers {
 		if err := logging.SetLogLevel(l, "info"); err != nil {
 			return fmt.Errorf("setting up logger %s: %s", l, err)

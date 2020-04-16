@@ -32,9 +32,9 @@ import (
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	ffsPb "github.com/textileio/powergate/ffs/pb"
 	"github.com/textileio/powergate/ffs/scheduler"
+	"github.com/textileio/powergate/ffs/scheduler/astore"
 	"github.com/textileio/powergate/ffs/scheduler/cistore"
 	"github.com/textileio/powergate/ffs/scheduler/jstore"
-	"github.com/textileio/powergate/ffs/scheduler/pcstore"
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/health"
 	healthRpc "github.com/textileio/powergate/health/rpc"
@@ -82,7 +82,7 @@ type Server struct {
 	ffsManager *manager.Manager
 	js         *jstore.Store
 	cis        *cistore.Store
-	pcs        *pcstore.Store
+	pcs        *astore.Store
 	sched      *scheduler.Scheduler
 	hs         ffs.HotStorage
 	l          *cidlogger.CidLogger
@@ -192,7 +192,7 @@ func NewServer(conf Config) (*Server, error) {
 	cs := filcold.New(ms, dm, ipfs.Dag(), lchain, l)
 	hs := coreipfs.New(ipfs, l)
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
-	pcs := pcstore.New(txndstr.Wrap(ds, "ffs/scheduler/pcstore"))
+	pcs := astore.New(txndstr.Wrap(ds, "ffs/scheduler/astore"))
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
 	sched := scheduler.New(js, pcs, cis, l, hs, cs)
 

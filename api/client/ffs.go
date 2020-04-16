@@ -148,10 +148,10 @@ func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent,
 				break
 			}
 			job := ff.Job{
-				ID:         ff.JobID(reply.Job.ID),
-				InstanceID: ff.APIID(reply.Job.InstanceID),
-				Status:     ff.JobStatus(reply.Job.Status),
-				ErrCause:   reply.Job.ErrCause,
+				ID:       ff.JobID(reply.Job.ID),
+				APIID:    ff.APIID(reply.Job.ApiID),
+				Status:   ff.JobStatus(reply.Job.Status),
+				ErrCause: reply.Job.ErrCause,
 			}
 			updates <- JobEvent{Job: job}
 		}

@@ -73,10 +73,10 @@ const (
 
 // Job is a task executed by the Scheduler.
 type Job struct {
-	ID         JobID
-	InstanceID APIID
-	Status     JobStatus
-	ErrCause   string
+	ID       JobID
+	APIID    APIID
+	Status   JobStatus
+	ErrCause string
 }
 
 // DefaultCidConfig contains a default Cid configuration for an Api.
@@ -178,28 +178,6 @@ func (c CidConfig) Validate() error {
 	}
 	if err := c.Cold.Validate(); err != nil {
 		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
-	}
-	return nil
-}
-
-// PushConfigAction contains information for pushing a new Cid configuration to the Scheduler.
-type PushConfigAction struct {
-	InstanceID APIID
-	Config     CidConfig
-	WalletAddr string
-	ReplaceCid cid.Cid
-}
-
-// Validate validates a a PushConfigAction.
-func (aa PushConfigAction) Validate() error {
-	if aa.InstanceID == EmptyInstanceID {
-		return fmt.Errorf("invalid Action ID")
-	}
-	if err := aa.Config.Validate(); err != nil {
-		return err
-	}
-	if aa.WalletAddr == "" {
-		return fmt.Errorf("invalid wallet address")
 	}
 	return nil
 }
