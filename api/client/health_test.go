@@ -9,6 +9,7 @@ import (
 )
 
 func TestHealth(t *testing.T) {
+	skipIfShort(t)
 	c, done := setupHealth(t)
 	defer done()
 
