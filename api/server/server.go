@@ -82,7 +82,7 @@ type Server struct {
 	ffsManager *manager.Manager
 	js         *jstore.Store
 	cis        *cistore.Store
-	pcs        *astore.Store
+	as         *astore.Store
 	sched      *scheduler.Scheduler
 	hs         ffs.HotStorage
 	l          *cidlogger.CidLogger
@@ -192,9 +192,9 @@ func NewServer(conf Config) (*Server, error) {
 	cs := filcold.New(ms, dm, ipfs.Dag(), lchain, l)
 	hs := coreipfs.New(ipfs, l)
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
-	pcs := astore.New(txndstr.Wrap(ds, "ffs/scheduler/astore"))
+	as := astore.New(txndstr.Wrap(ds, "ffs/scheduler/astore"))
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
-	sched := scheduler.New(js, pcs, cis, l, hs, cs)
+	sched := scheduler.New(js, as, cis, l, hs, cs)
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
@@ -224,7 +224,7 @@ func NewServer(conf Config) (*Server, error) {
 		sched:      sched,
 		js:         js,
 		cis:        cis,
-		pcs:        pcs,
+		as:         as,
 		hs:         hs,
 		l:          l,
 
