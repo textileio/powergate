@@ -27,8 +27,8 @@ type Auth struct {
 }
 
 type entry struct {
-	Token      string
-	InstanceID ffs.APIID
+	Token string
+	APIID ffs.APIID
 	// This can be extended to have permissions
 }
 
@@ -45,8 +45,8 @@ func (r *Auth) Generate(iid ffs.APIID) (string, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	e := entry{
-		Token:      uuid.New().String(),
-		InstanceID: iid,
+		Token: uuid.New().String(),
+		APIID: iid,
 	}
 	buf, err := json.Marshal(&e)
 	if err != nil {
@@ -75,7 +75,7 @@ func (r *Auth) Get(token string) (ffs.APIID, error) {
 	if err := json.Unmarshal(buf, &e); err != nil {
 		return ffs.EmptyInstanceID, fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
 	}
-	return e.InstanceID, nil
+	return e.APIID, nil
 }
 
 func makeKey(token string) ds.Key {

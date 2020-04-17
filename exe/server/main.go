@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	_ "net/http/pprof"
 
@@ -52,8 +54,7 @@ func main() {
 	if err := setupLogging(); err != nil {
 		log.Fatalf("setting up logging: %s", err)
 	}
-	setupInstrumentation()
-	setupPprof()
+	prometheusServer := setupInstrumentation()
 
 	embedded := config.GetBool("embedded")
 
@@ -115,6 +116,11 @@ func main() {
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 	<-ch
 	log.Info("Closing...")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if err := prometheusServer.Shutdown(ctx); err != nil {
+		log.Error("shutting down prometheus server: %s", err)
+	}
 	s.Close()
 	if embedded {
 		if err := os.RemoveAll(repoPath); err != nil {
@@ -124,20 +130,22 @@ func main() {
 	log.Info("Closed")
 }
 
-func setupInstrumentation() {
+func setupInstrumentation() *http.Server {
 	pe, err := prometheus.NewExporter(prometheus.Options{
 		Namespace: "textilefc",
 	})
 	if err != nil {
 		log.Fatalf("Failed to create the Prometheus stats exporter: %v", err)
 	}
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", pe)
+	srv := &http.Server{Addr: ":8888", Handler: mux}
 	go func() {
-		mux := http.NewServeMux()
-		mux.Handle("/metrics", pe)
-		if err := http.ListenAndServe(":8888", mux); err != nil {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to run Prometheus scrape endpoint: %v", err)
 		}
 	}()
+	return srv
 }
 
 func setupLogging() error {
@@ -148,7 +156,7 @@ func setupLogging() error {
 		"server", "deals", "powd", "fchost", "ip2location", "reputation",
 		"reputation-source-store", "ffs-scheduler", "ffs-manager", "ffs-auth",
 		"ffs-api", "ffs-api-istore", "ffs-coreipfs", "ffs-grpc-service", "ffs-filcold",
-		"ffs-sched-jstore", "ffs-sched-pcstore", "ffs-cidlogger"}
+		"ffs-sched-jstore", "ffs-sched-astore", "ffs-cidlogger"}
 	for _, l := range loggers {
 		if err := logging.SetLogLevel(l, "info"); err != nil {
 			return fmt.Errorf("setting up logger %s: %s", l, err)
@@ -162,15 +170,6 @@ func setupLogging() error {
 		}
 	}
 	return nil
-}
-
-func setupPprof() {
-	if !config.GetBool("pprof") {
-		return
-	}
-	go func() {
-		log.Error(http.ListenAndServe("localhost:6060", nil))
-	}()
 }
 
 func getLotusMaddr() (ma.Multiaddr, error) {

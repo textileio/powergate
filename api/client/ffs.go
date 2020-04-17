@@ -6,11 +6,11 @@ import (
 
 	cid "github.com/ipfs/go-cid"
 	ff "github.com/textileio/powergate/ffs"
-	pb "github.com/textileio/powergate/ffs/pb"
+	"github.com/textileio/powergate/ffs/rpc"
 )
 
 type ffs struct {
-	client pb.APIClient
+	client rpc.FFSAPIClient
 }
 
 // JobEvent represents an event for Watching a job
@@ -48,7 +48,7 @@ func WithOverride(override bool) PushConfigOption {
 }
 
 func (f *ffs) Create(ctx context.Context) (string, string, error) {
-	r, err := f.client.Create(ctx, &pb.CreateRequest{})
+	r, err := f.client.Create(ctx, &rpc.CreateRequest{})
 	if err != nil {
 		return "", "", err
 	}
@@ -56,7 +56,7 @@ func (f *ffs) Create(ctx context.Context) (string, string, error) {
 }
 
 func (f *ffs) ID(ctx context.Context) (ff.APIID, error) {
-	resp, err := f.client.ID(ctx, &pb.IDRequest{})
+	resp, err := f.client.ID(ctx, &rpc.IDRequest{})
 	if err != nil {
 		return ff.EmptyInstanceID, err
 	}
@@ -64,39 +64,39 @@ func (f *ffs) ID(ctx context.Context) (ff.APIID, error) {
 }
 
 func (f *ffs) WalletAddr(ctx context.Context) (string, error) {
-	resp, err := f.client.WalletAddr(ctx, &pb.WalletAddrRequest{})
+	resp, err := f.client.WalletAddr(ctx, &rpc.WalletAddrRequest{})
 	if err != nil {
 		return "", err
 	}
 	return resp.Addr, nil
 }
 
-func (f *ffs) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (*pb.GetDefaultCidConfigReply, error) {
-	return f.client.GetDefaultCidConfig(ctx, &pb.GetDefaultCidConfigRequest{Cid: c.String()})
+func (f *ffs) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetDefaultCidConfigReply, error) {
+	return f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: c.String()})
 }
 
-func (f *ffs) GetCidConfig(ctx context.Context, c cid.Cid) (*pb.GetCidConfigReply, error) {
-	return f.client.GetCidConfig(ctx, &pb.GetCidConfigRequest{Cid: c.String()})
+func (f *ffs) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigReply, error) {
+	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: c.String()})
 }
 
 func (f *ffs) SetDefaultCidConfig(ctx context.Context, config ff.DefaultCidConfig) error {
-	req := &pb.SetDefaultCidConfigRequest{
-		Config: &pb.DefaultCidConfig{
-			Hot: &pb.HotConfig{
+	req := &rpc.SetDefaultCidConfigRequest{
+		Config: &rpc.DefaultCidConfig{
+			Hot: &rpc.HotConfig{
 				Enabled:       config.Hot.Enabled,
 				AllowUnfreeze: config.Hot.AllowUnfreeze,
-				Ipfs: &pb.IpfsConfig{
+				Ipfs: &rpc.IpfsConfig{
 					AddTimeout: int64(config.Hot.Ipfs.AddTimeout),
 				},
 			},
-			Cold: &pb.ColdConfig{
+			Cold: &rpc.ColdConfig{
 				Enabled: config.Cold.Enabled,
-				Filecoin: &pb.FilConfig{
+				Filecoin: &rpc.FilConfig{
 					RepFactor:      int64(config.Cold.Filecoin.RepFactor),
 					DealDuration:   int64(config.Cold.Filecoin.DealDuration),
 					ExcludedMiners: config.Cold.Filecoin.ExcludedMiners,
 					CountryCodes:   config.Cold.Filecoin.CountryCodes,
-					Renew: &pb.FilRenew{
+					Renew: &rpc.FilRenew{
 						Enabled:   config.Cold.Filecoin.Renew.Enabled,
 						Threshold: int64(config.Cold.Filecoin.Renew.Threshold),
 					},
@@ -108,14 +108,14 @@ func (f *ffs) SetDefaultCidConfig(ctx context.Context, config ff.DefaultCidConfi
 	return err
 }
 
-func (f *ffs) Show(ctx context.Context, c cid.Cid) (*pb.ShowReply, error) {
-	return f.client.Show(ctx, &pb.ShowRequest{
+func (f *ffs) Show(ctx context.Context, c cid.Cid) (*rpc.ShowReply, error) {
+	return f.client.Show(ctx, &rpc.ShowRequest{
 		Cid: c.String(),
 	})
 }
 
-func (f *ffs) Info(ctx context.Context) (*pb.InfoReply, error) {
-	return f.client.Info(ctx, &pb.InfoRequest{})
+func (f *ffs) Info(ctx context.Context) (*rpc.InfoReply, error) {
+	return f.client.Info(ctx, &rpc.InfoRequest{})
 }
 
 func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, func(), error) {
@@ -131,7 +131,7 @@ func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent,
 		close(updates)
 	}
 
-	stream, err := f.client.WatchJobs(ctx, &pb.WatchJobsRequest{Jids: jidStrings})
+	stream, err := f.client.WatchJobs(ctx, &rpc.WatchJobsRequest{Jids: jidStrings})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -148,10 +148,10 @@ func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent,
 				break
 			}
 			job := ff.Job{
-				ID:         ff.JobID(reply.Job.ID),
-				InstanceID: ff.APIID(reply.Job.InstanceID),
-				Status:     ff.JobStatus(reply.Job.Status),
-				ErrCause:   reply.Job.ErrCause,
+				ID:       ff.JobID(reply.Job.ID),
+				APIID:    ff.APIID(reply.Job.ApiID),
+				Status:   ff.JobStatus(reply.Job.Status),
+				ErrCause: reply.Job.ErrCause,
 			}
 			updates <- JobEvent{Job: job}
 		}
@@ -165,27 +165,27 @@ func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOptio
 		opt(&pushConfig)
 	}
 
-	req := &pb.PushConfigRequest{Cid: c.String()}
+	req := &rpc.PushConfigRequest{Cid: c.String()}
 
 	if pushConfig.HasConfig {
 		req.HasConfig = true
-		req.Config = &pb.CidConfig{
+		req.Config = &rpc.CidConfig{
 			Cid: pushConfig.Config.Cid.String(),
-			Hot: &pb.HotConfig{
+			Hot: &rpc.HotConfig{
 				Enabled:       pushConfig.Config.Hot.Enabled,
 				AllowUnfreeze: pushConfig.Config.Hot.AllowUnfreeze,
-				Ipfs: &pb.IpfsConfig{
+				Ipfs: &rpc.IpfsConfig{
 					AddTimeout: int64(pushConfig.Config.Hot.Ipfs.AddTimeout),
 				},
 			},
-			Cold: &pb.ColdConfig{
+			Cold: &rpc.ColdConfig{
 				Enabled: pushConfig.Config.Cold.Enabled,
-				Filecoin: &pb.FilConfig{
+				Filecoin: &rpc.FilConfig{
 					RepFactor:      int64(pushConfig.Config.Cold.Filecoin.RepFactor),
 					DealDuration:   pushConfig.Config.Cold.Filecoin.DealDuration,
 					ExcludedMiners: pushConfig.Config.Cold.Filecoin.ExcludedMiners,
 					CountryCodes:   pushConfig.Config.Cold.Filecoin.CountryCodes,
-					Renew: &pb.FilRenew{
+					Renew: &rpc.FilRenew{
 						Enabled:   pushConfig.Config.Cold.Filecoin.Renew.Enabled,
 						Threshold: int64(pushConfig.Config.Cold.Filecoin.Renew.Threshold),
 					},
@@ -208,7 +208,7 @@ func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOptio
 }
 
 func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
-	stream, err := f.client.Get(ctx, &pb.GetRequest{
+	stream, err := f.client.Get(ctx, &rpc.GetRequest{
 		Cid: c.String(),
 	})
 	if err != nil {
@@ -237,7 +237,7 @@ func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 }
 
 func (f *ffs) Close(ctx context.Context) error {
-	_, err := f.client.Close(ctx, &pb.CloseRequest{})
+	_, err := f.client.Close(ctx, &rpc.CloseRequest{})
 	return err
 }
 
@@ -253,7 +253,7 @@ func (f *ffs) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		sendErr := stream.Send(&pb.AddToHotRequest{Chunk: buffer[:bytesRead]})
+		sendErr := stream.Send(&rpc.AddToHotRequest{Chunk: buffer[:bytesRead]})
 		if sendErr != nil {
 			if sendErr == io.EOF {
 				var noOp interface{}

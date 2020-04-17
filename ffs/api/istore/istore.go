@@ -81,6 +81,17 @@ func (s *Store) PutCidConfig(c ffs.CidConfig) error {
 	return nil
 }
 
+// RemoveCidConfig removes the CidConfig associated with Cid.
+func (s *Store) RemoveCidConfig(c cid.Cid) error {
+	if !c.Defined() {
+		return fmt.Errorf("cid can't be undefined")
+	}
+	if err := s.ds.Delete(makeCidConfigKey(s.iid, c)); err != nil {
+		return fmt.Errorf("removing from datastore: %s", err)
+	}
+	return nil
+}
+
 // GetCidConfig returns the current desired config for the Cid
 func (s *Store) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
 	buf, err := s.ds.Get(makeCidConfigKey(s.iid, c))

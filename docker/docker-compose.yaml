@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
 
   ipfs:
-    image: ipfs/go-ipfs:v0.5.0-rc1
+    image: ipfs/go-ipfs:v0.5.0-rc2
     ports:
       - 5001:5001
     volumes:

@@ -19,8 +19,6 @@ type WalletManager interface {
 }
 
 var (
-	// ErrBothStoragesDisabled returned when both storages are disabled.
-	ErrBothStoragesDisabled = errors.New("both Hot and Cold layers can't be disabled")
 	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
 	// To retrieve the data, is necessary to call unfreeze by enabling the Enabled flag in
 	// the Hot Storage for that Cid.
@@ -31,11 +29,17 @@ var (
 type Scheduler interface {
 	// PushConfig push a new or modified configuration for a Cid. It returns
 	// the JobID which tracks the current state of execution of that task.
-	PushConfig(PushConfigAction) (JobID, error)
+	PushConfig(APIID, string, CidConfig) (JobID, error)
+
+	// PushReplace push a new or modified configuration for a Cid, replacing
+	// an existing one. The replaced Cid will be unstored from the Hot Storage.
+	// Also it will be untracked (refer to Untrack() to understand implications)
+	PushReplace(APIID, string, CidConfig, cid.Cid) (JobID, error)
 
 	// GetCidInfo returns the current Cid storing state. This state may be different
 	// from CidConfig which is the *desired* state.
 	GetCidInfo(cid.Cid) (CidInfo, error)
+
 	// GetCidFromHot returns an Reader with the Cid data. If the data isn't in the Hot
 	// Storage, it errors with ErrHotStorageDisabled.
 	GetCidFromHot(context.Context, cid.Cid) (io.Reader, error)
@@ -52,31 +56,65 @@ type Scheduler interface {
 	// This is a blocking operation that should be canceled by canceling the
 	// provided context.
 	WatchLogs(context.Context, chan<- LogEntry) error
+
+	//Untrack marks a Cid to be untracked for any background processes such as
+	// deal renewal, or repairing.
+	Untrack(cid.Cid) error
 }
 
-// HotStorage is a fast datastorage layer for storing and retrieving raw
-// data or Cids.
+// HotStorage is a fast storage layer for Cid data.
 type HotStorage interface {
+	// Add adds io.Reader data ephemerally (not pinned).
 	Add(context.Context, io.Reader) (cid.Cid, error)
+
+	// Remove removes a stored Cid.
 	Remove(context.Context, cid.Cid) error
+
+	// Get retrieves a stored Cid data.
 	Get(context.Context, cid.Cid) (io.Reader, error)
+
+	// Store stores a Cid. If the data wasn't previously Added,
+	// depending on the implementation it may use internal mechanisms
+	// for pulling the data, e.g: IPFS network
 	Store(context.Context, cid.Cid) (int, error)
+
+	// Replace replaces a stored Cid with a new one. It's mostly
+	// thought for mutating data doing this efficiently.
+	Replace(context.Context, cid.Cid, cid.Cid) (int, error)
+
+	// Put adds a raw block.
 	Put(context.Context, blocks.Block) error
+
+	// IsStore returns true if the Cid is stored, or false
+	// otherwise.
 	IsStored(context.Context, cid.Cid) (bool, error)
 }
 
-// ColdStorage is a slow datastorage layer for storing Cids.
+// ColdStorage is slow/cheap storage for Cid data. It has
+// native support for Filecoin storage.
 type ColdStorage interface {
+	// Store stores a Cid using the provided configuration and
+	// account address.
 	Store(context.Context, cid.Cid, string, FilConfig) (FilInfo, error)
+
+	// Retrieve retrieves the data using an account address,
+	// and store it in a CAR store.
 	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
 
+	// EnsureRenewals executes renewal logic for a Cid under a particular
+	// configuration.
 	EnsureRenewals(context.Context, cid.Cid, FilInfo, string, FilConfig) (FilInfo, error)
+
+	// IsFIlDealActive returns true if the proposal Cid is active on chain;
+	// returns false otherwise.
 	IsFilDealActive(context.Context, cid.Cid) (bool, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a
 // desired strategy.
 type MinerSelector interface {
+	// GetMiners returns a specified amount of miners that satisfy
+	// provided filters.
 	GetMiners(int, MinerSelectorFilter) ([]MinerProposal, error)
 }
 

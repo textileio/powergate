@@ -2,7 +2,7 @@ package client
 
 import (
 	dealsPb "github.com/textileio/powergate/deals/pb"
-	ffsPb "github.com/textileio/powergate/ffs/pb"
+	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	asksPb "github.com/textileio/powergate/index/ask/pb"
 	minerPb "github.com/textileio/powergate/index/miner/pb"
@@ -40,7 +40,7 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
 		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationPb.NewAPIClient(conn)},
-		Ffs:        &ffs{client: ffsPb.NewAPIClient(conn)},
+		Ffs:        &ffs{client: ffsRpc.NewFFSAPIClient(conn)},
 		Health:     &health{client: healthRpc.NewHealthClient(conn)},
 		Net:        &net{client: netRpc.NewNetClient(conn)},
 		conn:       conn,

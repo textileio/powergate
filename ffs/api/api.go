@@ -23,8 +23,11 @@ var (
 	// ErrMustOverrideConfig returned when trying to push config for storing a Cid
 	// without the override flag.
 	ErrMustOverrideConfig = errors.New("cid already pinned, consider using override flag")
-	// ErrNotStored returned Store's items doesn't exist.
-	ErrNotStored = errors.New("cid isn't stored")
+	// ErrReplacedCidNotFound returns when replacing a Cid that isn't stored.
+	ErrReplacedCidNotFound = errors.New("provided replaced cid wasn't found")
+	// ErrActiveInStorage returns when a Cid is trying to be removed but still defined as active
+	// on Hot or Cold storage.
+	ErrActiveInStorage = errors.New("can't remove Cid, disable from Hot and Cold storage")
 )
 
 // API is an Api instance, which owns a Lotus Address and allows to
@@ -38,7 +41,7 @@ type API struct {
 
 	lock   sync.Mutex
 	closed bool
-	config Config
+	cfg    Config
 	ctx    context.Context
 	cancel context.CancelFunc
 }
@@ -60,7 +63,7 @@ func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler
 	ctx, cancel := context.WithCancel(context.Background())
 	i := new(ctx, iid, is, wm, config, sch, cancel)
 	if err := i.is.PutConfig(config); err != nil {
-		return nil, fmt.Errorf("saving new instance %s: %s", i.config.ID, err)
+		return nil, fmt.Errorf("saving new instance %s: %s", i.cfg.ID, err)
 	}
 	return i, nil
 }
@@ -79,7 +82,7 @@ func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletMana
 	i := &API{
 		is:     is,
 		wm:     wm,
-		config: config,
+		cfg:    config,
 		sched:  sch,
 		cancel: cancel,
 		ctx:    ctx,
@@ -90,24 +93,27 @@ func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletMana
 
 // ID returns the ID.
 func (i *API) ID() ffs.APIID {
-	return i.config.ID
+	return i.cfg.ID
 }
 
 // WalletAddr returns the Lotus wallet address.
 func (i *API) WalletAddr() string {
-	return i.config.WalletAddr
+	return i.cfg.WalletAddr
 }
 
 // GetDefaultCidConfig returns the default instance Cid config, prepared for a particular Cid.
 func (i *API) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	return newDefaultPushConfig(c, i.config.DefaultCidConfig).Config
+	return newDefaultPushConfig(c, i.cfg.DefaultCidConfig).Config
 }
 
 // GetCidConfig returns the current CidConfig for a Cid.
 func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
 	conf, err := i.is.GetCidConfig(c)
+	if err == ErrNotFound {
+		return ffs.CidConfig{}, err
+	}
 	if err != nil {
 		return ffs.CidConfig{}, fmt.Errorf("getting cid config from store: %s", err)
 	}
@@ -121,16 +127,16 @@ func (i *API) SetDefaultCidConfig(c ffs.DefaultCidConfig) error {
 	if err := c.Validate(); err != nil {
 		return fmt.Errorf("default cid config is invalid: %s", err)
 	}
-	i.config.DefaultCidConfig = c
+	i.cfg.DefaultCidConfig = c
 	return nil
 }
 
 // Show returns the information about a stored Cid. If no information is available,
-// since the Cid was never stored, it returns ErrNotStore.
+// since the Cid was never stored, it returns ErrNotFound.
 func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
 	inf, err := i.sched.GetCidInfo(c)
 	if err == scheduler.ErrNotFound {
-		return inf, ErrNotStored
+		return inf, ErrNotFound
 	}
 	if err != nil {
 		return inf, fmt.Errorf("getting cid information: %s", err)
@@ -144,15 +150,15 @@ func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	if err != nil {
 		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
 	}
-	balance, err := i.wm.Balance(ctx, i.config.WalletAddr)
+	balance, err := i.wm.Balance(ctx, i.cfg.WalletAddr)
 	if err != nil {
-		return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", i.config.WalletAddr, err)
+		return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", i.cfg.WalletAddr, err)
 	}
 	return InstanceInfo{
-		ID:               i.config.ID,
-		DefaultCidConfig: i.config.DefaultCidConfig,
+		ID:               i.cfg.ID,
+		DefaultCidConfig: i.cfg.DefaultCidConfig,
 		Wallet: WalletInfo{
-			Address: i.config.WalletAddr,
+			Address: i.cfg.WalletAddr,
 			Balance: balance,
 		},
 		Pins: pins,
@@ -180,7 +186,7 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 		select {
 		case ch <- j:
 		default:
-			log.Warnf("dropped notifying current job state on slow receiver on %s", i.config.ID)
+			log.Warnf("dropped notifying current job state on slow receiver on %s", i.cfg.ID)
 		}
 	}
 	var err error
@@ -207,19 +213,43 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 	return nil
 }
 
+// Replace push a CidConfig of c2 equal to c1, and removes c1. This operation
+// is more efficient than manually removing and adding in two separate operations.
+func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
+	cfg, err := i.is.GetCidConfig(c1)
+	if err == ErrNotFound {
+		return ffs.EmptyJobID, ErrReplacedCidNotFound
+	}
+	if err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("getting replaced cid config: %s", err)
+	}
+	cfg.Cid = c2
+	jid, err := i.sched.PushReplace(i.iid, i.cfg.WalletAddr, cfg, c1)
+	if err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("scheduling replacement %s to %s: %s", c1, c2, err)
+	}
+	if err := i.is.PutCidConfig(cfg); err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c2, err)
+	}
+	if err := i.is.RemoveCidConfig(c1); err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("deleting replaced cid config: %s", err)
+	}
+	return jid, nil
+}
+
 // PushConfig push a new configuration for the Cid in the Hot and
 // Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig
 func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	addConfig := newDefaultPushConfig(c, i.config.DefaultCidConfig)
+	cfg := newDefaultPushConfig(c, i.cfg.DefaultCidConfig)
 	for _, opt := range opts {
-		if err := opt(&addConfig); err != nil {
+		if err := opt(&cfg); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)
 		}
 	}
-	if !addConfig.OverrideConfig {
+	if !cfg.OverrideConfig {
 		_, err := i.is.GetCidConfig(c)
 		if err == nil {
 			return ffs.EmptyJobID, ErrMustOverrideConfig
@@ -228,23 +258,43 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 			return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
 		}
 	}
-	if err := addConfig.Config.Validate(); err != nil {
+	if err := cfg.Config.Validate(); err != nil {
 		return ffs.EmptyJobID, err
 	}
 
-	conf := ffs.PushConfigAction{
-		InstanceID: i.config.ID,
-		Config:     addConfig.Config,
-		WalletAddr: i.config.WalletAddr,
-	}
-	jid, err := i.sched.PushConfig(conf)
+	jid, err := i.sched.PushConfig(i.cfg.ID, i.cfg.WalletAddr, cfg.Config)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
 	}
-	if err := i.is.PutCidConfig(conf.Config); err != nil {
+	if err := i.is.PutCidConfig(cfg.Config); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil
+}
+
+// Remove removes a Cid from being tracked as an active storage. The Cid should have
+// both Hot and Cold storage disabled, if that isn't the case it will return ErrActiveInStorage.
+func (i *API) Remove(c cid.Cid) error {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	cfg, err := i.is.GetCidConfig(c)
+	if err == ErrNotFound {
+		return err
+	}
+	if err != nil {
+		return fmt.Errorf("getting cid config from store: %s", err)
+	}
+	if cfg.Hot.Enabled || cfg.Cold.Enabled {
+		return ErrActiveInStorage
+	}
+	if err := i.sched.Untrack(c); err != nil {
+		return fmt.Errorf("untracking from scheduler: %s", err)
+	}
+	if err := i.is.RemoveCidConfig(c); err != nil {
+		return fmt.Errorf("deleting replaced cid config: %s", err)
+	}
+	return nil
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.
