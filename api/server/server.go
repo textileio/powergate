@@ -90,7 +90,8 @@ type Server struct {
 	grpcServer   *grpc.Server
 	grpcWebProxy *http.Server
 
-	gateway *gateway.Gateway
+	gateway     *gateway.Gateway
+	indexServer *http.Server
 
 	closeLotus func()
 }
@@ -238,7 +239,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("starting GRPC services: %s", err)
 	}
 
-	startIndexHTTPServer(s)
+	s.indexServer = startIndexHTTPServer(s)
 
 	return s, nil
 }
@@ -308,53 +309,61 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	return nil
 }
 
-func startIndexHTTPServer(s *Server) {
+func startIndexHTTPServer(s *Server) *http.Server {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/index/ask", func(w http.ResponseWriter, r *http.Request) {
+		index := s.ai.Get()
+		buf, err := json.MarshalIndent(index, "", "  ")
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
+			return
+		}
+		if _, err := w.Write(buf); err != nil {
+			log.Errorf("writing response body: %s", err)
+		}
+	})
+	mux.HandleFunc("/index/miners", func(w http.ResponseWriter, r *http.Request) {
+		index := s.mi.Get()
+		buf, err := json.MarshalIndent(index, "", "  ")
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
+			return
+		}
+		if _, err := w.Write(buf); err != nil {
+			log.Errorf("writing response body: %s", err)
+		}
+	})
+	mux.HandleFunc("/index/slashing", func(w http.ResponseWriter, r *http.Request) {
+		index := s.si.Get()
+		buf, err := json.MarshalIndent(index, "", "  ")
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
+			return
+		}
+		if _, err := w.Write(buf); err != nil {
+			log.Errorf("writing response body: %s", err)
+		}
+	})
+
+	srv := &http.Server{Addr: ":8889", Handler: mux}
 	go func() {
-		mux := http.NewServeMux()
-		mux.HandleFunc("/index/ask", func(w http.ResponseWriter, r *http.Request) {
-			index := s.ai.Get()
-			buf, err := json.MarshalIndent(index, "", "  ")
-			if err != nil {
-				http.Error(w, "Error", http.StatusInternalServerError)
-				return
-			}
-			if _, err := w.Write(buf); err != nil {
-				log.Errorf("writing response body: %s", err)
-			}
-		})
-		mux.HandleFunc("/index/miners", func(w http.ResponseWriter, r *http.Request) {
-			index := s.mi.Get()
-			buf, err := json.MarshalIndent(index, "", "  ")
-			if err != nil {
-				http.Error(w, "Error", http.StatusInternalServerError)
-				return
-			}
-			if _, err := w.Write(buf); err != nil {
-				log.Errorf("writing response body: %s", err)
-			}
-		})
-		mux.HandleFunc("/index/slashing", func(w http.ResponseWriter, r *http.Request) {
-			index := s.si.Get()
-			buf, err := json.MarshalIndent(index, "", "  ")
-			if err != nil {
-				http.Error(w, "Error", http.StatusInternalServerError)
-				return
-			}
-			if _, err := w.Write(buf); err != nil {
-				log.Errorf("writing response body: %s", err)
-			}
-		})
-		if err := http.ListenAndServe(":8889", mux); err != nil {
-			log.Fatalf("Failed to run Prometheus scrape endpoint: %v", err)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("serving index http: %v", err)
 		}
 	}()
+	return srv
 }
 
 // Close shuts down the server
 func (s *Server) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
+	if err := s.indexServer.Shutdown(ctx); err != nil {
+		log.Errorf("shutting down index server: %s", err)
+	}
 
+	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
 	if err := s.grpcWebProxy.Shutdown(ctx); err != nil {
 		log.Errorf("error shutting down proxy: %s", err)
 	}
