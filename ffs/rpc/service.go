@@ -23,7 +23,7 @@ var (
 
 // Service implements the proto service definition of FFS.
 type Service struct {
-	UnimplementedFFSAPIServer
+	UnimplementedFFSServer
 
 	m   *manager.Manager
 	hot ffs.HotStorage
@@ -282,7 +282,7 @@ func (s *Service) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error
 }
 
 // WatchJobs calls API.WatchJobs
-func (s *Service) WatchJobs(req *WatchJobsRequest, srv FFSAPI_WatchJobsServer) error {
+func (s *Service) WatchJobs(req *WatchJobsRequest, srv FFS_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -319,7 +319,7 @@ func (s *Service) WatchJobs(req *WatchJobsRequest, srv FFSAPI_WatchJobsServer) e
 
 // WatchLogs returns a stream of human-readable messages related to executions of a Cid.
 // The listener is automatically unsubscribed when the client closes the stream.
-func (s *Service) WatchLogs(req *WatchLogsRequest, srv FFSAPI_WatchLogsServer) error {
+func (s *Service) WatchLogs(req *WatchLogsRequest, srv FFS_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -357,6 +357,30 @@ func (s *Service) WatchLogs(req *WatchLogsRequest, srv FFSAPI_WatchLogsServer) e
 	}
 
 	return nil
+}
+
+// Replace calls ffs.Replace
+func (s *Service) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	c1, err := cid.Decode(req.Cid1)
+	if err != nil {
+		return nil, err
+	}
+	c2, err := cid.Decode(req.Cid2)
+	if err != nil {
+		return nil, err
+	}
+
+	jid, err := i.Replace(c1, c2)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ReplaceReply{JobID: jid.String()}, nil
 }
 
 // PushConfig applies the provided cid config
@@ -418,8 +442,27 @@ func (s *Service) PushConfig(ctx context.Context, req *PushConfigRequest) (*Push
 	}, nil
 }
 
+// Remove calls ffs.Remove
+func (s *Service) Remove(ctx context.Context, req *RemoveRequest) (*RemoveReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := cid.Decode(req.Cid)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := i.Remove(c); err != nil {
+		return nil, err
+	}
+
+	return &RemoveReply{}, nil
+}
+
 // Get gets the data for a stored Cid.
-func (s *Service) Get(req *GetRequest, srv FFSAPI_GetServer) error {
+func (s *Service) Get(req *GetRequest, srv FFS_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -461,7 +504,7 @@ func (s *Service) Close(ctx context.Context, req *CloseRequest) (*CloseReply, er
 }
 
 // AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig
-func (s *Service) AddToHot(srv FFSAPI_AddToHotServer) error {
+func (s *Service) AddToHot(srv FFS_AddToHotServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
 		return err
@@ -496,7 +539,7 @@ func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	return i, nil
 }
 
-func receiveFile(srv FFSAPI_AddToHotServer, writer *io.PipeWriter) {
+func receiveFile(srv FFS_AddToHotServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {

@@ -10,7 +10,7 @@ import (
 )
 
 type ffs struct {
-	client rpc.FFSAPIClient
+	client rpc.FFSClient
 }
 
 // JobEvent represents an event for Watching a job
@@ -159,6 +159,14 @@ func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent,
 	return updates, cancelFunc, nil
 }
 
+func (f *ffs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ff.JobID, error) {
+	resp, err := f.client.Replace(ctx, &rpc.ReplaceRequest{Cid1: c1.String(), Cid2: c2.String()})
+	if err != nil {
+		return ff.EmptyJobID, err
+	}
+	return ff.JobID(resp.JobID), nil
+}
+
 func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ff.JobID, error) {
 	pushConfig := PushConfig{}
 	for _, opt := range opts {
@@ -205,6 +213,11 @@ func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOptio
 	}
 
 	return ff.JobID(resp.JobID), nil
+}
+
+func (f *ffs) Remove(ctx context.Context, c cid.Cid) error {
+	_, err := f.client.Remove(ctx, &rpc.RemoveRequest{Cid: c.String()})
+	return err
 }
 
 func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {

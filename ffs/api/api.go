@@ -213,7 +213,7 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 	return nil
 }
 
-// Replace push a CidConfig of c2 equal to c1, and removes c1. This operation
+// Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
 func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 	cfg, err := i.is.GetCidConfig(c1)

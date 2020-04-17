@@ -40,7 +40,7 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
 		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationPb.NewAPIClient(conn)},
-		Ffs:        &ffs{client: ffsRpc.NewFFSAPIClient(conn)},
+		Ffs:        &ffs{client: ffsRpc.NewFFSClient(conn)},
 		Health:     &health{client: healthRpc.NewHealthClient(conn)},
 		Net:        &net{client: netRpc.NewNetClient(conn)},
 		conn:       conn,
