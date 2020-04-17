@@ -1,5 +1,5 @@
 syntax = "proto3";
-package filecoin.ffs.pb;
+package rpc;
 
 option java_multiple_files = true;
 option java_package = "io.textile.filecoin.ffs.pb";
@@ -233,7 +233,7 @@ message AddToHotReply {
 
 
 
-service API {
+service FFSAPI {
    rpc Create(CreateRequest) returns (CreateReply) {}
    rpc ID(IDRequest) returns (IDReply) {}
    rpc WalletAddr(WalletAddrRequest) returns (WalletAddrReply) {}

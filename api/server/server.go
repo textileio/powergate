@@ -26,11 +26,11 @@ import (
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
-	ffsGrpc "github.com/textileio/powergate/ffs/grpc"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
-	ffsPb "github.com/textileio/powergate/ffs/pb"
+	ffsGrpc "github.com/textileio/powergate/ffs/rpc"
+	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/ffs/scheduler/astore"
 	"github.com/textileio/powergate/ffs/scheduler/cistore"
@@ -294,7 +294,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		askPb.RegisterAPIServer(server, askService)
 		minerPb.RegisterAPIServer(server, minerService)
 		slashingPb.RegisterAPIServer(server, slashingService)
-		ffsPb.RegisterAPIServer(server, ffsService)
+		ffsRpc.RegisterFFSAPIServer(server, ffsService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
 		}
