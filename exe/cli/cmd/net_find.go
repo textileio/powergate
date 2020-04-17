@@ -11,10 +11,10 @@ import (
 )
 
 func init() {
-	netCmd.AddCommand(netFindPeerCmd)
+	netCmd.AddCommand(netFindCmd)
 }
 
-var netFindPeerCmd = &cobra.Command{
+var netFindCmd = &cobra.Command{
 	Use:   "find [peerID]",
 	Short: "Find a peer by peer id",
 	Long:  `Find a peer by peer id`,
