@@ -73,7 +73,10 @@ func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 
 // FindPeer calls module.FindPeer
 func (a *API) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerReply, error) {
-	peerID := peer.ID(req.PeerID)
+	peerID, err := peer.Decode(req.PeerID)
+	if err != nil {
+		return nil, err
+	}
 	peerInfo, err := a.module.FindPeer(ctx, peerID)
 	if err != nil {
 		return nil, err
@@ -110,8 +113,13 @@ func (a *API) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*Connec
 		addrs[i] = ma
 	}
 
+	id, err := peer.Decode(req.PeerInfo.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	addrInfo := peer.AddrInfo{
-		ID:    peer.ID(req.PeerInfo.ID),
+		ID:    id,
 		Addrs: addrs,
 	}
 
@@ -124,7 +132,10 @@ func (a *API) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*Connec
 
 // DisconnectPeer calls module.DisconnectPeer
 func (a *API) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*DisconnectPeerReply, error) {
-	peerID := peer.ID(req.PeerID)
+	peerID, err := peer.Decode(req.PeerID)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := a.module.DisconnectPeer(ctx, peerID); err != nil {
 		return nil, err
@@ -135,7 +146,10 @@ func (a *API) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*
 
 // Connectedness calls module.Connectedness
 func (a *API) Connectedness(ctx context.Context, req *ConnectednessRequest) (*ConnectednessReply, error) {
-	peerID := peer.ID(req.PeerID)
+	peerID, err := peer.Decode(req.PeerID)
+	if err != nil {
+		return nil, err
+	}
 	con, err := a.module.Connectedness(ctx, peerID)
 	if err != nil {
 		return nil, err

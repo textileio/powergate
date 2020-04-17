@@ -7,6 +7,7 @@ import (
 )
 
 func TestClient(t *testing.T) {
+	skipIfShort(t)
 	done := setupServer(t)
 	defer done()
 
