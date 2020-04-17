@@ -34,6 +34,13 @@ func (d *TxMapDatastore) Put(key datastore.Key, data []byte) error {
 	return d.MapDatastore.Put(key, data)
 }
 
+// Delete deletes a key.
+func (d *TxMapDatastore) Delete(key datastore.Key) error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.MapDatastore.Delete(key)
+}
+
 // Query executes a query in the datastore.
 func (d *TxMapDatastore) Query(q query.Query) (query.Results, error) {
 	d.lock.Lock()
@@ -100,30 +107,30 @@ func (bt *SimpleTx) GetSize(k datastore.Key) (int, error) {
 
 // Put sets the value for a key.
 func (bt *SimpleTx) Put(key datastore.Key, val []byte) error {
-	bt.lock.RLock()
-	defer bt.lock.RUnlock()
+	bt.lock.Lock()
+	defer bt.lock.Unlock()
 	bt.ops[key] = op{value: val}
 	return nil
 }
 
 // Delete deletes a key.
 func (bt *SimpleTx) Delete(key datastore.Key) error {
-	bt.lock.RLock()
-	defer bt.lock.RUnlock()
+	bt.lock.Lock()
+	defer bt.lock.Unlock()
 	bt.ops[key] = op{delete: true}
 	return nil
 }
 
 // Discard cancels the changes done in the transaction.
 func (bt *SimpleTx) Discard() {
-	bt.lock.RLock()
-	defer bt.lock.RUnlock()
+	bt.lock.Lock()
+	defer bt.lock.Unlock()
 }
 
 // Commit confirms changes done in the transaction.
 func (bt *SimpleTx) Commit() error {
-	bt.lock.RLock()
-	defer bt.lock.RUnlock()
+	bt.lock.Lock()
+	defer bt.lock.Unlock()
 	var err error
 	for k, op := range bt.ops {
 		if op.delete {

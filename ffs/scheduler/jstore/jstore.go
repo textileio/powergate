@@ -146,7 +146,7 @@ func (s *Store) Close() error {
 
 func (s *Store) notifyWatchers(j ffs.Job) {
 	for _, w := range s.watchers {
-		if w.iid != j.InstanceID {
+		if w.iid != j.APIID {
 			continue
 		}
 		select {
