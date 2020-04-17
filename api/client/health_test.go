@@ -8,17 +8,13 @@ import (
 	"github.com/textileio/powergate/health/rpc"
 )
 
-func TestHealth(t *testing.T) {
-	skipIfShort(t)
+func TestCheck(t *testing.T) {
 	c, done := setupHealth(t)
 	defer done()
-
-	t.Run("Check", func(t *testing.T) {
-		status, messages, err := c.Check(ctx)
-		require.Nil(t, err)
-		require.Empty(t, messages)
-		require.Equal(t, h.Ok, status)
-	})
+	status, messages, err := c.Check(ctx)
+	require.Nil(t, err)
+	require.Empty(t, messages)
+	require.Equal(t, h.Ok, status)
 }
 
 func setupHealth(t *testing.T) (*health, func()) {
