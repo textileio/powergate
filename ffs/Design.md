@@ -155,7 +155,6 @@ type MinerSelector interface {
 	// provided filters.
 	GetMiners(int, MinerSelectorFilter) ([]MinerProposal, error)
 }
-
 ```
 Particular implementations of _MinerSelector_ include:
 - _FixedMiners_: which always returns a particular fixed list of miner addresses.
