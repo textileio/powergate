@@ -29,7 +29,9 @@ type Client struct {
 	conn       *grpc.ClientConn
 }
 
-type AuthKey string
+type ctxKey string
+
+const AuthKey = ctxKey("ffstoken")
 
 type TokenAuth struct {
 	secure bool
@@ -37,7 +39,7 @@ type TokenAuth struct {
 
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
 	md := map[string]string{}
-	token, ok := ctx.Value(AuthKey("ffstoken")).(string)
+	token, ok := ctx.Value(ctxKey(AuthKey)).(string)
 	if ok && token != "" {
 		md["X-ffs-Token"] = token
 	}
