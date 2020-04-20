@@ -144,33 +144,26 @@ func (f *ffs) Info(ctx context.Context) (*rpc.InfoReply, error) {
 	return f.client.Info(ctx, &rpc.InfoRequest{})
 }
 
-func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, func(), error) {
-	updates := make(chan JobEvent)
+func (f *ffs) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
 		jidStrings[i] = jid.String()
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
-	cancelFunc := func() {
-		cancel()
-		close(updates)
-	}
-
 	stream, err := f.client.WatchJobs(ctx, &rpc.WatchJobsRequest{Jids: jidStrings})
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 	go func() {
 		for {
 			reply, err := stream.Recv()
-			if err == io.EOF {
-				close(updates)
+			if err == io.EOF || status.Code(err) == codes.Canceled {
+				close(ch)
 				break
 			}
 			if err != nil {
-				updates <- JobEvent{Err: err}
-				close(updates)
+				ch <- JobEvent{Err: err}
+				close(ch)
 				break
 			}
 			job := ff.Job{
@@ -179,10 +172,10 @@ func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent,
 				Status:   ff.JobStatus(reply.Job.Status),
 				ErrCause: reply.Job.ErrCause,
 			}
-			updates <- JobEvent{Job: job}
+			ch <- JobEvent{Job: job}
 		}
 	}()
-	return updates, cancelFunc, nil
+	return nil
 }
 
 func (f *ffs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ff.JobID, error) {

@@ -30,8 +30,6 @@ var ffsLogCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
-
 		if len(args) != 1 {
 			Fatal(errors.New("you must provide a cid"))
 		}
@@ -46,8 +44,9 @@ var ffsLogCmd = &cobra.Command{
 		}
 
 		ch := make(chan client.LogEvent)
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
+
 		err = fcClient.Ffs.WatchLogs(authCtx(ctx), ch, cid, opts...)
 		checkErr(err)
 
