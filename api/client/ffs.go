@@ -166,9 +166,17 @@ func (f *ffs) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobI
 				close(ch)
 				break
 			}
+
+			c, err := cid.Decode(reply.Job.Cid)
+			if err != nil {
+				updates <- JobEvent{Err: err}
+				close(updates)
+				break
+			}
 			job := ff.Job{
 				ID:       ff.JobID(reply.Job.ID),
 				APIID:    ff.APIID(reply.Job.ApiID),
+				Cid:      c,
 				Status:   ff.JobStatus(reply.Job.Status),
 				ErrCause: reply.Job.ErrCause,
 			}

@@ -15,12 +15,15 @@ var (
 
 // JobStore persist Job information and allows to watch for Job state updates.
 type JobStore interface {
-	// Put saves job data in the store.
-	Put(ffs.Job) error
+	Queue(ffs.Job) error
+	// Dequeue returns the next queued Job. It automatically changes
+	// its state to in-progress.
+	Dequeue() (*ffs.Job, error)
+
+	// ChangeStatus changes the status of a Job.
+	ChangeStatus(ffs.JobID, ffs.JobStatus) error
 	// Get retrieves job data from the store.
 	Get(ffs.JobID) (ffs.Job, error)
-	// GetByStatus returns jobs with a particular status.
-	GetByStatus(ffs.JobStatus) ([]ffs.Job, error)
 	// Watch subscribes to all job state changes within an instance.
 	Watch(context.Context, chan<- ffs.Job, ffs.APIID) error
 }

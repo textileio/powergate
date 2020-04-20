@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
@@ -39,8 +40,21 @@ func New(ds datastore.Datastore) *Store {
 	}
 }
 
-// GetByStatus returns all Jobs with the specified JobStatus.
-func (s *Store) GetByStatus(status ffs.JobStatus) ([]ffs.Job, error) {
+func (s *Store) ChangeStatus(jid ffs.JobID, st ffs.JobStatus) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	j, err := s.Get(jid)
+	if err != nil {
+		return err
+	}
+	j.Status = st
+	if err := s.put(j); err != nil {
+		return fmt.Errorf("saving in datastore: %s", err)
+	}
+	return nil
+}
+
+func (s *Store) Dequeue() (*ffs.Job, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -54,32 +68,58 @@ func (s *Store) GetByStatus(status ffs.JobStatus) ([]ffs.Job, error) {
 			log.Errorf("closing getbystatus query result: %s", err)
 		}
 	}()
-
-	var ret []ffs.Job
 	for r := range res.Next() {
-		var job ffs.Job
-		if err := json.Unmarshal(r.Value, &job); err != nil {
-			return nil, fmt.Errorf("unmarshalling job in query: %s", err)
+		var j ffs.Job
+		if err := json.Unmarshal(r.Value, &j); err != nil {
+			return nil, fmt.Errorf("unmarshalling job: %s", err)
 		}
-		if job.Status == status {
-			ret = append(ret, job)
+		if j.Status == ffs.Queued {
+			j.Status = ffs.InProgress
+			if err := s.put(j); err != nil {
+				return nil, err
+			}
+			return &j, nil
 		}
 	}
-	return ret, nil
+	return nil, nil
 }
 
-// Put saves Job's data in the Datastore.
-func (s *Store) Put(j ffs.Job) error {
+func (s *Store) Queue(j ffs.Job) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	buf, err := json.Marshal(j)
-	if err != nil {
-		return fmt.Errorf("marshaling for datastore: %s", err)
+	if err := s.cancelQueued(j.Cid); err != nil {
+		return fmt.Errorf("canceling queued jobs: %s", err)
 	}
-	if err := s.ds.Put(makeKey(j.ID), buf); err != nil {
+	j.Status = ffs.Queued
+	if err := s.put(j); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
-	s.notifyWatchers(j)
+	return nil
+}
+
+func (s *Store) cancelQueued(c cid.Cid) error {
+	q := query.Query{Prefix: ""}
+	res, err := s.ds.Query(q)
+	if err != nil {
+		return fmt.Errorf("querying datastore: %s", err)
+	}
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing getbystatus query result: %s", err)
+		}
+	}()
+	for r := range res.Next() {
+		var j ffs.Job
+		if err := json.Unmarshal(r.Value, &j); err != nil {
+			return fmt.Errorf("unmarshalling job: %s", err)
+		}
+		if j.Status == ffs.Queued && j.Cid == c {
+			j.Status = ffs.Canceled
+			if err := s.put(j); err != nil {
+				return fmt.Errorf("canceling queued job: %s", err)
+			}
+		}
+	}
 	return nil
 }
 
@@ -141,6 +181,18 @@ func (s *Store) Close() error {
 	for i := range s.watchers {
 		close(s.watchers[i].C)
 	}
+	return nil
+}
+
+func (s *Store) put(j ffs.Job) error {
+	buf, err := json.Marshal(j)
+	if err != nil {
+		return fmt.Errorf("marshaling for datastore: %s", err)
+	}
+	if err := s.ds.Put(makeKey(j.ID), buf); err != nil {
+		return fmt.Errorf("saving to datastore: %s", err)
+	}
+	s.notifyWatchers(j)
 	return nil
 }
 
