@@ -1,6 +1,8 @@
 package client
 
 import (
+	"context"
+
 	dealsPb "github.com/textileio/powergate/deals/pb"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
@@ -25,6 +27,25 @@ type Client struct {
 	Health     *health
 	Net        *net
 	conn       *grpc.ClientConn
+}
+
+type AuthKey string
+
+type TokenAuth struct {
+	secure bool
+}
+
+func (t TokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
+	md := map[string]string{}
+	token, ok := ctx.Value(AuthKey("ffstoken")).(string)
+	if ok && token != "" {
+		md["X-ffs-Token"] = token
+	}
+	return md, nil
+}
+
+func (t TokenAuth) RequireTransportSecurity() bool {
+	return t.secure
 }
 
 // NewClient starts the client

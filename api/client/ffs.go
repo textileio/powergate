@@ -8,6 +8,8 @@ import (
 	cid "github.com/ipfs/go-cid"
 	ff "github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/rpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type ffs struct {
@@ -273,26 +275,20 @@ func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return reader, nil
 }
 
-func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) (func(), error) {
+func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) error {
 	config := WatchLogsConfig{}
 	for _, opt := range opts {
 		opt(&config)
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
-	cancelFunc := func() {
-		cancel()
-		close(ch)
-	}
-
 	stream, err := f.client.WatchLogs(ctx, &rpc.WatchLogsRequest{Cid: c.String(), Jid: config.jid.String()})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	go func() {
 		for {
 			reply, err := stream.Recv()
-			if err == io.EOF {
+			if err == io.EOF || status.Code(err) == codes.Canceled {
 				close(ch)
 				break
 			}
@@ -318,7 +314,7 @@ func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts
 			ch <- LogEvent{LogEntry: entry}
 		}
 	}()
-	return cancelFunc, nil
+	return nil
 }
 
 func (f *ffs) Close(ctx context.Context) error {

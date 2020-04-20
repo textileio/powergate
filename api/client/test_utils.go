@@ -56,7 +56,8 @@ func setupServer(t *testing.T) func() {
 }
 
 func setupConnection(t *testing.T) (*grpc.ClientConn, func()) {
-	conn, err := grpc.Dial(grpcHostAddress, grpc.WithInsecure())
+	auth := TokenAuth{}
+	conn, err := grpc.Dial(grpcHostAddress, grpc.WithInsecure(), grpc.WithPerRPCCredentials(auth))
 	checkErr(t, err)
 	return conn, func() {
 		require.NoError(t, conn.Close())
