@@ -12,7 +12,8 @@ import (
 )
 
 func init() {
-	ffsPushCmd.Flags().StringP("token", "t", "", "FFS access token")
+	ffsReplaceCmd.Flags().StringP("token", "t", "", "FFS access token")
+	ffsReplaceCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
 	ffsCmd.AddCommand(ffsReplaceCmd)
 }
@@ -44,5 +45,9 @@ var ffsReplaceCmd = &cobra.Command{
 		s.Stop()
 		checkErr(err)
 		Success("Replaced cid config with job id: %v", jid.String())
+
+		if viper.GetBool("watch") {
+			watchJobIds(jid)
+		}
 	},
 }

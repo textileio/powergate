@@ -21,6 +21,7 @@ func init() {
 	ffsPushCmd.Flags().StringP("token", "t", "", "FFS access token")
 	ffsPushCmd.Flags().StringP("config", "c", "", "Optional path to a file containing cid storage config json, falls back to stdin, uses FFS default by default")
 	ffsPushCmd.Flags().BoolP("override", "o", false, "Path to a file containing cid storage config json")
+	ffsPushCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
 	ffsCmd.AddCommand(ffsPushCmd)
 }
@@ -87,5 +88,9 @@ var ffsPushCmd = &cobra.Command{
 		s.Stop()
 		checkErr(err)
 		Success("Pushed cid config for %s to FFS with job id: %v", c.String(), jid.String())
+
+		if viper.GetBool("watch") {
+			watchJobIds(jid)
+		}
 	},
 }

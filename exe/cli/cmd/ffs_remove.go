@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	ffsPushCmd.Flags().StringP("token", "t", "", "FFS access token")
+	ffsRemoveCmd.Flags().StringP("token", "t", "", "FFS access token")
 
 	ffsCmd.AddCommand(ffsRemoveCmd)
 }
