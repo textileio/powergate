@@ -326,7 +326,7 @@ func (s *Service) WatchLogs(req *WatchLogsRequest, srv FFS_WatchLogsServer) erro
 	}
 
 	var opts []api.GetLogsOption
-	if req.Jid != "" {
+	if req.Jid != ffs.EmptyJobID.String() {
 		opts = append(opts, api.WithJidFilter(ffs.JobID(req.Jid)))
 	}
 

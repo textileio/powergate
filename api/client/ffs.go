@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"io"
+	"time"
 
 	cid "github.com/ipfs/go-cid"
 	ff "github.com/textileio/powergate/ffs"
@@ -45,6 +46,29 @@ func WithOverride(override bool) PushConfigOption {
 		o.OverrideConfig = override
 		o.HasOverrideConfig = true
 	}
+}
+
+// WatchLogsConfig contains configuration for a stream-log
+// of human-friendly messages for a Cid execution.
+type WatchLogsConfig struct {
+	jid ff.JobID
+}
+
+// WatchLogsOption is a function that changes GetLogsConfig.
+type WatchLogsOption func(config *WatchLogsConfig)
+
+// WithJidFilter filters only log messages of a Cid related to
+// the Job with id jid.
+func WithJidFilter(jid ff.JobID) WatchLogsOption {
+	return func(c *WatchLogsConfig) {
+		c.jid = jid
+	}
+}
+
+// LogEvent represents an event for watching cid logs
+type LogEvent struct {
+	LogEntry ff.LogEntry
+	Err      error
 }
 
 func (f *ffs) Create(ctx context.Context) (string, string, error) {
@@ -247,6 +271,54 @@ func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	}()
 
 	return reader, nil
+}
+
+func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) (func(), error) {
+	config := WatchLogsConfig{}
+	for _, opt := range opts {
+		opt(&config)
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	cancelFunc := func() {
+		cancel()
+		close(ch)
+	}
+
+	stream, err := f.client.WatchLogs(ctx, &rpc.WatchLogsRequest{Cid: c.String(), Jid: config.jid.String()})
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		for {
+			reply, err := stream.Recv()
+			if err == io.EOF {
+				close(ch)
+				break
+			}
+			if err != nil {
+				ch <- LogEvent{Err: err}
+				close(ch)
+				break
+			}
+
+			cid, err := cid.Decode(reply.LogEntry.Cid)
+			if err != nil {
+				ch <- LogEvent{Err: err}
+				close(ch)
+				break
+			}
+
+			entry := ff.LogEntry{
+				Cid:       cid,
+				Timestamp: time.Unix(reply.LogEntry.Time, 0),
+				Jid:       ff.JobID(reply.LogEntry.Jid),
+				Msg:       reply.LogEntry.Msg,
+			}
+			ch <- LogEvent{LogEntry: entry}
+		}
+	}()
+	return cancelFunc, nil
 }
 
 func (f *ffs) Close(ctx context.Context) error {
