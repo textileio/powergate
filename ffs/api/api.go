@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	defaultWalletType = "bls"
+	defaultAddressType = "bls"
 
 	log = logging.Logger("ffs-api")
 )
@@ -48,18 +48,28 @@ type API struct {
 
 // New returns a new Api instance.
 func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultCidConfig) (*API, error) {
-	if err := dc.Validate(); err != nil {
-		return nil, fmt.Errorf("default cid config is invalid: %s", err)
-	}
-	addr, err := wm.NewAddress(ctx, defaultWalletType)
+	addr, err := wm.NewAddress(ctx, defaultAddressType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
 	}
+
+	dc.Cold.Filecoin.Addr = addr
+
+	if err := dc.Validate(); err != nil {
+		return nil, fmt.Errorf("default cid config is invalid: %s", err)
+	}
+
+	addrInfo := AddrInfo{
+		Name: "Initial",
+		Addr: addr,
+	}
+
 	config := Config{
 		ID:               iid,
-		WalletAddr:       addr,
+		Addrs:            map[string]AddrInfo{addr: addrInfo},
 		DefaultCidConfig: dc,
 	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	i := new(ctx, iid, is, wm, config, sch, cancel)
 	if err := i.is.PutConfig(config); err != nil {
@@ -96,9 +106,39 @@ func (i *API) ID() ffs.APIID {
 	return i.cfg.ID
 }
 
-// WalletAddr returns the Lotus wallet address.
-func (i *API) WalletAddr() string {
-	return i.cfg.WalletAddr
+// WalletAddr returns the wallet addresses.
+func (i *API) WalletAddrs() map[string]AddrInfo {
+	return i.cfg.Addrs
+}
+
+// todo add options for wallet type
+func (i *API) NewAddr(name string, options ...NewAddressOption) (string, error) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
+	conf := &NewAddressConfig{
+		makeDefault: false,
+		addressType: defaultAddressType,
+	}
+	for _, option := range options {
+		option(conf)
+	}
+
+	addr, err := i.wm.NewAddress(context.Background(), conf.addressType)
+	if err != nil {
+		return "", fmt.Errorf("creating new wallet addr: %s", err)
+	}
+	i.cfg.Addrs[addr] = AddrInfo{
+		Name: name,
+		Addr: addr,
+	}
+	if conf.makeDefault {
+		i.cfg.DefaultCidConfig.Cold.Filecoin.Addr = addr
+	}
+	if err := i.is.PutConfig(i.cfg); err != nil {
+		return "", err
+	}
+	return addr, nil
 }
 
 // GetDefaultCidConfig returns the default instance Cid config, prepared for a particular Cid.
@@ -128,7 +168,7 @@ func (i *API) SetDefaultCidConfig(c ffs.DefaultCidConfig) error {
 		return fmt.Errorf("default cid config is invalid: %s", err)
 	}
 	i.cfg.DefaultCidConfig = c
-	return nil
+	return i.is.PutConfig(i.cfg)
 }
 
 // Show returns the information about a stored Cid. If no information is available,
@@ -150,18 +190,26 @@ func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	if err != nil {
 		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
 	}
-	balance, err := i.wm.Balance(ctx, i.cfg.WalletAddr)
-	if err != nil {
-		return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", i.cfg.WalletAddr, err)
+
+	wallet := make([]BalanceInfo, len(i.cfg.Addrs))
+	j := 0
+	for _, addr := range i.cfg.Addrs {
+		balance, err := i.wm.Balance(ctx, addr.Addr)
+		if err != nil {
+			return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", addr.Addr, err)
+		}
+		wallet[j] = BalanceInfo{
+			AddrInfo: addr,
+			Balance:  balance,
+		}
+		j++
 	}
+
 	return InstanceInfo{
 		ID:               i.cfg.ID,
 		DefaultCidConfig: i.cfg.DefaultCidConfig,
-		Wallet: WalletInfo{
-			Address: i.cfg.WalletAddr,
-			Balance: balance,
-		},
-		Pins: pins,
+		Wallet:           wallet,
+		Pins:             pins,
 	}, nil
 }
 

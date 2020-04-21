@@ -26,23 +26,50 @@ type InstanceStore interface {
 // Config has general information about a Api instance.
 type Config struct {
 	ID               ffs.APIID
-	WalletAddr       string
+	Addrs            map[string]AddrInfo
 	DefaultCidConfig ffs.DefaultCidConfig
+}
+
+type AddrInfo struct {
+	Name string
+	Addr string
 }
 
 // InstanceInfo has general information about a running Api instance.
 type InstanceInfo struct {
 	ID               ffs.APIID
 	DefaultCidConfig ffs.DefaultCidConfig
-	Wallet           WalletInfo
+	Wallet           []BalanceInfo
 	Pins             []cid.Cid
 }
 
-// WalletInfo contains information about the Wallet associated with
-// the Api instance.
-type WalletInfo struct {
-	Address string
+// BalanceInfo contains the balance for the associated wallet address.
+type BalanceInfo struct {
+	AddrInfo
 	Balance uint64
+}
+
+// NewAddressConfig contains options for creating a new wallet address
+type NewAddressConfig struct {
+	makeDefault bool
+	addressType string
+}
+
+// NewAddressOption is a function that changes a NewAddressConfig
+type NewAddressOption func(config *NewAddressConfig)
+
+// WithMakeDefault specifies if the new address should become the default
+func WithMakeDefault(makeDefault bool) NewAddressOption {
+	return func(c *NewAddressConfig) {
+		c.makeDefault = makeDefault
+	}
+}
+
+// WithAddressType specifies the type of address to create
+func WithAddressType(addressType string) NewAddressOption {
+	return func(c *NewAddressConfig) {
+		c.addressType = addressType
+	}
 }
 
 // GetLogsConfig contains configuration for a stream-log

@@ -252,6 +252,8 @@ type FilConfig struct {
 	CountryCodes []string
 	// FilRenew indicates deal-renewal configuration.
 	Renew FilRenew
+	// Addr is the wallet address used to store the data in filecoin
+	Addr string
 }
 
 // FilRenew contains renew configuration for a Cid Cold Storage deals.
@@ -273,6 +275,9 @@ func (fc *FilConfig) Validate() error {
 	}
 	if fc.Renew.Enabled && fc.Renew.Threshold <= 0 {
 		return fmt.Errorf("renew threshold should be positive: %d", fc.Renew.Threshold)
+	}
+	if fc.Addr == "" {
+		return fmt.Errorf("addr should be set")
 	}
 	return nil
 }
