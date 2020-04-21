@@ -13,6 +13,10 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
+const (
+	maxParallelExecutions = 10
+)
+
 var (
 	log = logging.Logger("ffs-scheduler")
 )
@@ -248,7 +252,11 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a Action) error {
 func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 	var err error
 	var j *ffs.Job
+	rateLim := make(chan struct{}, maxParallelExecutions)
 	for {
+		if ctx.Err() != nil {
+			break
+		}
 		j, err = s.js.Dequeue()
 		if err != nil {
 			log.Errorf("getting queued jobs: %s", err)
@@ -257,37 +265,46 @@ func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 		if j == nil {
 			break
 		}
-		a, err := s.as.Get(j.ID)
-		if err != nil {
-			log.Errorf("getting push config action data from store: %s", err)
-			continue
-		}
-
-		ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
-		s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
-
-		info, err := s.executePushConfigAction(ctx, a, *j)
-		if err != nil {
-			log.Errorf("executing job %s: %s", j.ID, err)
-			j.ErrCause = err.Error()
-			if err := s.js.Finalize(j.ID, ffs.Failed); err != nil {
-				log.Errorf("changing job to failed: %s", err)
+		rateLim <- struct{}{}
+		go func(j ffs.Job) {
+			if err := s.executeQueuedJob(j); err != nil {
+				log.Errorf("error executing job %s: %s", j.ID, err)
 			}
-			s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
-			continue
-		}
-		if err := s.cis.Put(info); err != nil {
-			log.Errorf("saving cid info to store: %s", err)
-		}
-		if err := s.js.Finalize(j.ID, ffs.Success); err != nil {
-			log.Errorf("changing job to success: %s", err)
-		}
-		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)
-
-		if ctx.Err() != nil {
-			break
-		}
+			<-rateLim
+		}(*j)
 	}
+	for i := 0; i < maxParallelExecutions; i++ {
+		rateLim <- struct{}{}
+	}
+}
+
+func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
+	a, err := s.as.Get(j.ID)
+	if err != nil {
+		log.Errorf("getting push config action data from store: %s", err)
+		return nil
+	}
+
+	ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
+	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
+	info, err := s.executePushConfigAction(ctx, a, j)
+	if err != nil {
+		log.Errorf("executing job %s: %s", j.ID, err)
+		j.ErrCause = err.Error()
+		if err := s.js.Finalize(j.ID, ffs.Failed); err != nil {
+			log.Errorf("changing job to failed: %s", err)
+		}
+		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
+		return nil
+	}
+	if err := s.cis.Put(info); err != nil {
+		log.Errorf("saving cid info to store: %s", err)
+	}
+	if err := s.js.Finalize(j.ID, ffs.Success); err != nil {
+		log.Errorf("changing job to success: %s", err)
+	}
+	s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)
+	return nil
 }
 
 func (s *Scheduler) executePushConfigAction(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, error) {

@@ -54,12 +54,17 @@ func (m *Module) FindPeer(ctx context.Context, peerID peer.ID) (net.PeerInfo, er
 		return net.PeerInfo{}, err
 	}
 	loc, err := m.lr.Resolve(addrInfo.Addrs)
+	if err == iplocation.ErrCantResolve {
+		return net.PeerInfo{
+			AddrInfo: addrInfo,
+		}, nil
+	}
 	if err != nil {
 		return net.PeerInfo{}, err
 	}
 	return net.PeerInfo{
 		AddrInfo: addrInfo,
-		Location: loc,
+		Location: &loc,
 	}, nil
 }
 
@@ -72,12 +77,18 @@ func (m *Module) Peers(ctx context.Context) ([]net.PeerInfo, error) {
 	peerInfos := make([]net.PeerInfo, len(addrInfos))
 	for i, addrInfo := range addrInfos {
 		loc, err := m.lr.Resolve(addrInfo.Addrs)
+		if err == iplocation.ErrCantResolve {
+			peerInfos[i] = net.PeerInfo{
+				AddrInfo: addrInfo,
+			}
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
 		peerInfos[i] = net.PeerInfo{
 			AddrInfo: addrInfo,
-			Location: loc,
+			Location: &loc,
 		}
 	}
 	return peerInfos, nil
