@@ -42,6 +42,7 @@ func New(ds datastore.Datastore) *Store {
 	}
 }
 
+// Finalize sets a Job status to a final state, i.e. Success or Failed.
 func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -59,6 +60,10 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus) error {
 	return nil
 }
 
+// Dequeue dequeues a Job which doesn't have have another in-progress Job
+// for the same Cid. Saying it differently, it's safe to execute. The returned
+// job Status is automatically changed to Queued. If no jobs are available to dequeue
+// it returns a nil *ffs.Job and no-error.
 func (s *Store) Dequeue() (*ffs.Job, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -89,6 +94,8 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 	return nil, nil
 }
 
+// Enqueue queues a new Job. If other Job for the same Cid is in Queued status,
+// it will be automatically marked as Canceled.
 func (s *Store) Enqueue(j ffs.Job) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()

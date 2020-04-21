@@ -15,10 +15,10 @@ func TestEnqueue(t *testing.T) {
 	j := createJob()
 	err := s.Enqueue(j)
 	require.Nil(t, err)
-	j_queued, err := s.Get(j.ID)
+	jQueued, err := s.Get(j.ID)
 	require.Nil(t, err)
 	j.Status = ffs.Queued
-	require.Equal(t, j, j_queued)
+	require.Equal(t, j, jQueued)
 }
 
 func TestDequeue(t *testing.T) {
@@ -87,13 +87,13 @@ func TestCancelation(t *testing.T) {
 	err = s.Enqueue(j2)
 	require.Nil(t, err)
 
-	j1_canceled, err := s.Get(j1.ID)
+	j1Canceled, err := s.Get(j1.ID)
 	require.Nil(t, err)
-	require.Equal(t, ffs.Canceled, j1_canceled.Status)
+	require.Equal(t, ffs.Canceled, j1Canceled.Status)
 
-	j2_queued, err := s.Get(j2.ID)
+	j2Queued, err := s.Get(j2.ID)
 	require.Nil(t, err)
-	require.Equal(t, ffs.Queued, j2_queued.Status)
+	require.Equal(t, ffs.Queued, j2Queued.Status)
 }
 
 func createJob() ffs.Job {
