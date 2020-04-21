@@ -233,6 +233,9 @@ func (cc ColdConfig) Validate() error {
 	if err := cc.Filecoin.Validate(); err != nil {
 		return fmt.Errorf("invalid Filecoin config: %s", err)
 	}
+	if cc.Enabled && cc.Filecoin.Addr == "" {
+		return fmt.Errorf("invalid wallet address")
+	}
 	return nil
 }
 

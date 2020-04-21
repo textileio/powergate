@@ -39,7 +39,7 @@ type AddrInfo struct {
 type InstanceInfo struct {
 	ID               ffs.APIID
 	DefaultCidConfig ffs.DefaultCidConfig
-	Wallet           []BalanceInfo
+	Balances         []BalanceInfo
 	Pins             []cid.Cid
 }
 

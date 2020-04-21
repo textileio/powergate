@@ -106,17 +106,24 @@ func (i *API) ID() ffs.APIID {
 	return i.cfg.ID
 }
 
-// WalletAddr returns the wallet addresses.
-func (i *API) WalletAddrs() map[string]AddrInfo {
-	return i.cfg.Addrs
+// Addrs returns the wallet addresses.
+func (i *API) Addrs() []AddrInfo {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	addrs := make([]AddrInfo, len(i.cfg.Addrs))
+	for _, addr := range i.cfg.Addrs {
+		addrs = append(addrs, addr)
+	}
+	return addrs
 }
 
+// GetDefaultCfg returns the DefaultCidConfig
 func (i *API) GetDefaultCfg() ffs.DefaultCidConfig {
 	return i.cfg.DefaultCidConfig
 }
 
 // NewAddr creates a new address managed by the FFS instance
-func (i *API) NewAddr(name string, options ...NewAddressOption) (string, error) {
+func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (string, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
@@ -128,7 +135,19 @@ func (i *API) NewAddr(name string, options ...NewAddressOption) (string, error) 
 		option(conf)
 	}
 
-	addr, err := i.wm.NewAddress(context.Background(), conf.addressType)
+	exists := false
+	for _, addr := range i.cfg.Addrs {
+		if addr.Name == name {
+			exists = true
+			break
+		}
+	}
+
+	if exists {
+		return "", fmt.Errorf("address with name %s already exists", name)
+	}
+
+	addr, err := i.wm.NewAddress(ctx, conf.addressType)
 	if err != nil {
 		return "", fmt.Errorf("creating new wallet addr: %s", err)
 	}
@@ -190,29 +209,31 @@ func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
 
 // Info returns instance information.
 func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
 	pins, err := i.is.GetCids()
 	if err != nil {
 		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
 	}
 
-	wallet := make([]BalanceInfo, len(i.cfg.Addrs))
-	j := 0
+	balances := make([]BalanceInfo, len(i.cfg.Addrs))
 	for _, addr := range i.cfg.Addrs {
 		balance, err := i.wm.Balance(ctx, addr.Addr)
 		if err != nil {
 			return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", addr.Addr, err)
 		}
-		wallet[j] = BalanceInfo{
+		info := BalanceInfo{
 			AddrInfo: addr,
 			Balance:  balance,
 		}
-		j++
+		balances = append(balances, info)
 	}
 
 	return InstanceInfo{
 		ID:               i.cfg.ID,
 		DefaultCidConfig: i.cfg.DefaultCidConfig,
-		Wallet:           wallet,
+		Balances:         balances,
 		Pins:             pins,
 	}, nil
 }

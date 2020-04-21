@@ -54,7 +54,7 @@ func TestGetByAuthToken(t *testing.T) {
 		new, err := m.GetByAuthToken(auth)
 		require.Nil(t, err)
 		require.Equal(t, id, new.ID())
-		require.NotEmpty(t, new.WalletAddrs())
+		require.NotEmpty(t, new.Addrs())
 	})
 	t.Run("Cold", func(t *testing.T) {
 		m, cls := newManager(t, ds)
@@ -62,7 +62,7 @@ func TestGetByAuthToken(t *testing.T) {
 		new, err := m.GetByAuthToken(auth)
 		require.Nil(t, err)
 		require.Equal(t, id, new.ID())
-		require.NotEmpty(t, new.WalletAddrs())
+		require.NotEmpty(t, new.Addrs())
 	})
 	t.Run("NonExistant", func(t *testing.T) {
 		i, err := m.GetByAuthToken(string("123"))

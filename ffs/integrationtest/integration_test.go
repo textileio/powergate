@@ -77,6 +77,7 @@ func TestSetDefaultConfig(t *testing.T) {
 			Filecoin: ffs.FilConfig{
 				DealDuration: 22333,
 				RepFactor:    23,
+				Addr:         "123456",
 			},
 		},
 	}
@@ -152,8 +153,8 @@ func TestInfo(t *testing.T) {
 		first, err = fapi.Info(ctx)
 		require.Nil(t, err)
 		require.NotEmpty(t, first.ID)
-		require.NotEmpty(t, first.Wallet[0].Addr)
-		require.Greater(t, first.Wallet[0].Balance, uint64(0))
+		require.NotEmpty(t, first.Balances[0].Addr)
+		require.Greater(t, first.Balances[0].Balance, uint64(0))
 		require.Equal(t, len(first.Pins), 0)
 	})
 
@@ -171,8 +172,8 @@ func TestInfo(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.Nil(t, err)
 		require.Equal(t, second.ID, first.ID)
-		require.Equal(t, second.Wallet[0].Addr, first.Wallet[0].Addr)
-		require.Less(t, second.Wallet[0].Balance, first.Wallet[0].Balance)
+		require.Equal(t, second.Balances[0].Addr, first.Balances[0].Addr)
+		require.Less(t, second.Balances[0].Balance, first.Balances[0].Balance)
 		require.Equal(t, n, len(second.Pins))
 	})
 }
