@@ -54,7 +54,7 @@ func TestGetByAuthToken(t *testing.T) {
 		new, err := m.GetByAuthToken(auth)
 		require.Nil(t, err)
 		require.Equal(t, id, new.ID())
-		require.NotEmpty(t, new.WalletAddr())
+		require.NotEmpty(t, new.WalletAddrs())
 	})
 	t.Run("Cold", func(t *testing.T) {
 		m, cls := newManager(t, ds)
@@ -62,7 +62,7 @@ func TestGetByAuthToken(t *testing.T) {
 		new, err := m.GetByAuthToken(auth)
 		require.Nil(t, err)
 		require.Equal(t, id, new.ID())
-		require.NotEmpty(t, new.WalletAddr())
+		require.NotEmpty(t, new.WalletAddrs())
 	})
 	t.Run("NonExistant", func(t *testing.T) {
 		i, err := m.GetByAuthToken(string("123"))
@@ -87,10 +87,10 @@ type mockSched struct{}
 
 var _ ffs.Scheduler = (*mockSched)(nil)
 
-func (ms *mockSched) PushConfig(_ ffs.APIID, _ string, _ ffs.CidConfig) (ffs.JobID, error) {
+func (ms *mockSched) PushConfig(_ ffs.APIID, _ ffs.CidConfig) (ffs.JobID, error) {
 	return ffs.NewJobID(), nil
 }
-func (ms *mockSched) PushReplace(_ ffs.APIID, _ string, _ ffs.CidConfig, _ cid.Cid) (ffs.JobID, error) {
+func (ms *mockSched) PushReplace(_ ffs.APIID, _ ffs.CidConfig, _ cid.Cid) (ffs.JobID, error) {
 	return ffs.NewJobID(), nil
 }
 func (ms *mockSched) GetCidFromHot(_ context.Context, _ cid.Cid) (io.Reader, error) {

@@ -152,8 +152,8 @@ func TestInfo(t *testing.T) {
 		first, err = fapi.Info(ctx)
 		require.Nil(t, err)
 		require.NotEmpty(t, first.ID)
-		require.NotEmpty(t, first.Wallet.Address)
-		require.Greater(t, first.Wallet.Balance, uint64(0))
+		require.NotEmpty(t, first.Wallet[0].Addr)
+		require.Greater(t, first.Wallet[0].Balance, uint64(0))
 		require.Equal(t, len(first.Pins), 0)
 	})
 
@@ -171,8 +171,8 @@ func TestInfo(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.Nil(t, err)
 		require.Equal(t, second.ID, first.ID)
-		require.Equal(t, second.Wallet.Address, first.Wallet.Address)
-		require.Less(t, second.Wallet.Balance, first.Wallet.Balance)
+		require.Equal(t, second.Wallet[0].Addr, first.Wallet[0].Addr)
+		require.Less(t, second.Wallet[0].Balance, first.Wallet[0].Balance)
 		require.Equal(t, n, len(second.Pins))
 	})
 }

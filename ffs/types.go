@@ -276,9 +276,6 @@ func (fc *FilConfig) Validate() error {
 	if fc.Renew.Enabled && fc.Renew.Threshold <= 0 {
 		return fmt.Errorf("renew threshold should be positive: %d", fc.Renew.Threshold)
 	}
-	if fc.Addr == "" {
-		return fmt.Errorf("addr should be set")
-	}
 	return nil
 }
 

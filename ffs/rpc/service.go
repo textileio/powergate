@@ -62,12 +62,12 @@ func (s *Service) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
 
 // WalletAddr returns the wallet address
 func (s *Service) WalletAddr(ctx context.Context, req *WalletAddrRequest) (*WalletAddrReply, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	addr := i.WalletAddr()
-	return &WalletAddrReply{Addr: addr}, nil
+	// i, err := s.getInstanceByToken(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// addr := i.WalletAddr()
+	return &WalletAddrReply{}, nil
 }
 
 // GetDefaultCidConfig returns the default cid config prepped for the provided cid
@@ -269,8 +269,8 @@ func (s *Service) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error
 				},
 			},
 			Wallet: &WalletInfo{
-				Address: info.Wallet.Address,
-				Balance: info.Wallet.Balance,
+				// Address: info.Wallet.Address,
+				// Balance: info.Wallet.Balance,
 			},
 			Pins: make([]string, len(info.Pins)),
 		},

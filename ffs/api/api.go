@@ -60,7 +60,7 @@ func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler
 	}
 
 	addrInfo := AddrInfo{
-		Name: "Initial",
+		Name: "Initial Address",
 		Addr: addr,
 	}
 
@@ -111,7 +111,11 @@ func (i *API) WalletAddrs() map[string]AddrInfo {
 	return i.cfg.Addrs
 }
 
-// todo add options for wallet type
+func (i *API) GetDefaultCfg() ffs.DefaultCidConfig {
+	return i.cfg.DefaultCidConfig
+}
+
+// NewAddr creates a new address managed by the FFS instance
 func (i *API) NewAddr(name string, options ...NewAddressOption) (string, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -272,7 +276,12 @@ func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 		return ffs.EmptyJobID, fmt.Errorf("getting replaced cid config: %s", err)
 	}
 	cfg.Cid = c2
-	jid, err := i.sched.PushReplace(i.iid, i.cfg.WalletAddr, cfg, c1)
+
+	if err := i.ensureValidColdCfg(cfg.Cold); err != nil {
+		return ffs.EmptyJobID, err
+	}
+
+	jid, err := i.sched.PushReplace(i.iid, cfg, c1)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling replacement %s to %s: %s", c1, c2, err)
 	}
@@ -309,8 +318,11 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 	if err := cfg.Config.Validate(); err != nil {
 		return ffs.EmptyJobID, err
 	}
+	if err := i.ensureValidColdCfg(cfg.Config.Cold); err != nil {
+		return ffs.EmptyJobID, err
+	}
 
-	jid, err := i.sched.PushConfig(i.cfg.ID, i.cfg.WalletAddr, cfg.Config)
+	jid, err := i.sched.PushConfig(i.cfg.ID, cfg.Config)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
 	}
@@ -407,4 +419,22 @@ func (i *API) Close() error {
 	i.cancel()
 	i.closed = true
 	return nil
+}
+
+func (i *API) ensureValidColdCfg(cfg ffs.ColdConfig) error {
+	if cfg.Enabled && !i.isManagedAddress(cfg.Filecoin.Addr) {
+		return fmt.Errorf("%v is not managed by ffs instance", cfg.Filecoin.Addr)
+	}
+	return nil
+}
+
+func (i *API) isManagedAddress(addr string) bool {
+	i.lock.Lock()
+	defer i.lock.Unlock()
+	for managedAddr := range i.cfg.Addrs {
+		if managedAddr == addr {
+			return true
+		}
+	}
+	return false
 }
