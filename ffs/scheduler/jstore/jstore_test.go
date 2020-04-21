@@ -9,11 +9,11 @@ import (
 	"github.com/textileio/powergate/tests"
 )
 
-func TestQueue(t *testing.T) {
+func TestEnqueue(t *testing.T) {
 	t.Parallel()
 	s := create(t)
 	j := createJob()
-	err := s.Queue(j)
+	err := s.Enqueue(j)
 	require.Nil(t, err)
 	j_queued, err := s.Get(j.ID)
 	require.Nil(t, err)
@@ -27,11 +27,12 @@ func TestDequeue(t *testing.T) {
 		t.Parallel()
 		s := create(t)
 		j := createJob()
-		err := s.Queue(j)
+		err := s.Enqueue(j)
 		require.Nil(t, err)
 		j2, err := s.Dequeue()
 		require.Nil(t, err)
 		j.Status = ffs.InProgress
+		require.NotNil(t, j2)
 		require.Equal(t, j, *j2)
 	})
 	t.Run("Empty", func(t *testing.T) {
@@ -41,6 +42,37 @@ func TestDequeue(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, j)
 	})
+	t.Run("InProgressAndFinalized", func(t *testing.T) {
+		t.Parallel()
+		s := create(t)
+
+		j1 := createJob()
+		err := s.Enqueue(j1)
+		require.Nil(t, err)
+		_, err = s.Dequeue()
+		require.Nil(t, err)
+
+		j2 := createJob()
+		err = s.Enqueue(j2)
+		require.Nil(t, err)
+
+		// Dequeue should be nil since j1 is in progress,
+		// and j2 can't be returned until that fininishes since
+		// both are jobs for the same Cid.
+		jq, err := s.Dequeue()
+		require.Nil(t, err)
+		require.Nil(t, jq)
+
+		err = s.Finalize(j1.ID, ffs.Success)
+		require.Nil(t, err)
+		// Dequeue now returns a new job since the in progress one
+		// was finalized
+		jq, err = s.Dequeue()
+		require.Nil(t, err)
+		require.NotNil(t, jq)
+		j2.Status = ffs.InProgress
+		require.Equal(t, j2, *jq)
+	})
 }
 
 func TestCancelation(t *testing.T) {
@@ -48,11 +80,11 @@ func TestCancelation(t *testing.T) {
 	s := create(t)
 
 	j1 := createJob()
-	err := s.Queue(j1)
+	err := s.Enqueue(j1)
 	require.Nil(t, err)
 
 	j2 := createJob()
-	err = s.Queue(j2)
+	err = s.Enqueue(j2)
 	require.Nil(t, err)
 
 	j1_canceled, err := s.Get(j1.ID)

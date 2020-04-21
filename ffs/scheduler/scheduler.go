@@ -96,7 +96,7 @@ func (s *Scheduler) push(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid 
 		Status: ffs.Queued,
 	}
 
-	if err := s.js.Queue(j); err != nil {
+	if err := s.js.Enqueue(j); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("enqueuing job: %s", err)
 	}
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
@@ -248,11 +248,14 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a Action) error {
 func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 	var err error
 	var j *ffs.Job
-	for j != nil {
+	for {
 		j, err = s.js.Dequeue()
 		if err != nil {
 			log.Errorf("getting queued jobs: %s", err)
 			return
+		}
+		if j == nil {
+			break
 		}
 		a, err := s.as.Get(j.ID)
 		if err != nil {
@@ -267,7 +270,7 @@ func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 		if err != nil {
 			log.Errorf("executing job %s: %s", j.ID, err)
 			j.ErrCause = err.Error()
-			if err := s.js.ChangeStatus(j.ID, ffs.Failed); err != nil {
+			if err := s.js.Finalize(j.ID, ffs.Failed); err != nil {
 				log.Errorf("changing job to failed: %s", err)
 			}
 			s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
@@ -276,7 +279,7 @@ func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 		if err := s.cis.Put(info); err != nil {
 			log.Errorf("saving cid info to store: %s", err)
 		}
-		if err := s.js.ChangeStatus(j.ID, ffs.Success); err != nil {
+		if err := s.js.Finalize(j.ID, ffs.Success); err != nil {
 			log.Errorf("changing job to success: %s", err)
 		}
 		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)

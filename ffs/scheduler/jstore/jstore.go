@@ -21,9 +21,10 @@ var (
 // Store is a Datastore implementation of JobStore, which saves
 // state of scheduler Jobs.
 type Store struct {
-	lock     sync.Mutex
-	ds       datastore.Datastore
-	watchers []watcher
+	lock       sync.Mutex
+	ds         datastore.Datastore
+	watchers   []watcher
+	inProgress map[cid.Cid]struct{}
 }
 
 var _ scheduler.JobStore = (*Store)(nil)
@@ -36,16 +37,20 @@ type watcher struct {
 // New returns a new JobStore backed by the Datastore.
 func New(ds datastore.Datastore) *Store {
 	return &Store{
-		ds: ds,
+		ds:         ds,
+		inProgress: make(map[cid.Cid]struct{}),
 	}
 }
 
-func (s *Store) ChangeStatus(jid ffs.JobID, st ffs.JobStatus) error {
+func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	j, err := s.Get(jid)
+	j, err := s.get(jid)
 	if err != nil {
 		return err
+	}
+	if st != ffs.Success && st != ffs.Failed {
+		return fmt.Errorf("new state should be final")
 	}
 	j.Status = st
 	if err := s.put(j); err != nil {
@@ -57,7 +62,6 @@ func (s *Store) ChangeStatus(jid ffs.JobID, st ffs.JobStatus) error {
 func (s *Store) Dequeue() (*ffs.Job, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-
 	q := query.Query{Prefix: ""}
 	res, err := s.ds.Query(q)
 	if err != nil {
@@ -65,7 +69,7 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 	}
 	defer func() {
 		if err := res.Close(); err != nil {
-			log.Errorf("closing getbystatus query result: %s", err)
+			log.Errorf("closing dequeue query result: %s", err)
 		}
 	}()
 	for r := range res.Next() {
@@ -73,7 +77,8 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return nil, fmt.Errorf("unmarshalling job: %s", err)
 		}
-		if j.Status == ffs.Queued {
+		_, ok := s.inProgress[j.Cid]
+		if j.Status == ffs.Queued && !ok {
 			j.Status = ffs.InProgress
 			if err := s.put(j); err != nil {
 				return nil, err
@@ -84,7 +89,7 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 	return nil, nil
 }
 
-func (s *Store) Queue(j ffs.Job) error {
+func (s *Store) Enqueue(j ffs.Job) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if err := s.cancelQueued(j.Cid); err != nil {
@@ -129,18 +134,7 @@ func (s *Store) Get(jid ffs.JobID) (ffs.Job, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	buf, err := s.ds.Get(makeKey(jid))
-	if err == datastore.ErrNotFound {
-		return ffs.Job{}, scheduler.ErrNotFound
-	}
-	if err != nil {
-		return ffs.Job{}, fmt.Errorf("getting job from datastore: %s", err)
-	}
-	var job ffs.Job
-	if err := json.Unmarshal(buf, &job); err != nil {
-		return job, fmt.Errorf("unmarshaling job from datastore: %s", err)
-	}
-	return job, nil
+	return s.get(jid)
 }
 
 // Watch subscribes to Job changes from a specified Api instance.
@@ -193,7 +187,27 @@ func (s *Store) put(j ffs.Job) error {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
 	s.notifyWatchers(j)
+	if j.Status == ffs.InProgress {
+		s.inProgress[j.Cid] = struct{}{}
+	} else if j.Status == ffs.Failed || j.Status == ffs.Success {
+		delete(s.inProgress, j.Cid)
+	}
 	return nil
+}
+
+func (s *Store) get(jid ffs.JobID) (ffs.Job, error) {
+	buf, err := s.ds.Get(makeKey(jid))
+	if err == datastore.ErrNotFound {
+		return ffs.Job{}, scheduler.ErrNotFound
+	}
+	if err != nil {
+		return ffs.Job{}, fmt.Errorf("getting job from datastore: %s", err)
+	}
+	var job ffs.Job
+	if err := json.Unmarshal(buf, &job); err != nil {
+		return job, fmt.Errorf("unmarshaling job from datastore: %s", err)
+	}
+	return job, nil
 }
 
 func (s *Store) notifyWatchers(j ffs.Job) {

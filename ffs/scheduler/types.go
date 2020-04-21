@@ -15,13 +15,13 @@ var (
 
 // JobStore persist Job information and allows to watch for Job state updates.
 type JobStore interface {
-	Queue(ffs.Job) error
+	Enqueue(ffs.Job) error
 	// Dequeue returns the next queued Job. It automatically changes
 	// its state to in-progress.
 	Dequeue() (*ffs.Job, error)
+	// Finalize sets the Job to a final state, i.e. success or failed.
+	Finalize(ffs.JobID, ffs.JobStatus) error
 
-	// ChangeStatus changes the status of a Job.
-	ChangeStatus(ffs.JobID, ffs.JobStatus) error
 	// Get retrieves job data from the store.
 	Get(ffs.JobID) (ffs.Job, error)
 	// Watch subscribes to all job state changes within an instance.
