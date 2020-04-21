@@ -1,6 +1,8 @@
 package client
 
 import (
+	"context"
+
 	dealsPb "github.com/textileio/powergate/deals/pb"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
@@ -27,6 +29,31 @@ type Client struct {
 	conn       *grpc.ClientConn
 }
 
+type ctxKey string
+
+// AuthKey is the key that should be used to set the auth token in a Context
+const AuthKey = ctxKey("ffstoken")
+
+// TokenAuth provides token based auth
+type TokenAuth struct {
+	secure bool
+}
+
+// GetRequestMetadata returns request metadata that includes the auth token
+func (t TokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
+	md := map[string]string{}
+	token, ok := ctx.Value(ctxKey(AuthKey)).(string)
+	if ok && token != "" {
+		md["X-ffs-Token"] = token
+	}
+	return md, nil
+}
+
+// RequireTransportSecurity specifies if the connection should be secure
+func (t TokenAuth) RequireTransportSecurity() bool {
+	return t.secure
+}
+
 // NewClient starts the client
 func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 	conn, err := grpc.Dial(target, opts...)
@@ -40,7 +67,7 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
 		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationPb.NewAPIClient(conn)},
-		Ffs:        &ffs{client: ffsRpc.NewFFSAPIClient(conn)},
+		Ffs:        &ffs{client: ffsRpc.NewFFSClient(conn)},
 		Health:     &health{client: healthRpc.NewHealthClient(conn)},
 		Net:        &net{client: netRpc.NewNetClient(conn)},
 		conn:       conn,

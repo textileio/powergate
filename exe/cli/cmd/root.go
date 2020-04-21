@@ -44,7 +44,7 @@ var (
 				opts = append(opts, grpc.WithInsecure())
 			}
 
-			auth := tokenAuth{}
+			auth := client.TokenAuth{}
 			opts = append(opts, grpc.WithPerRPCCredentials(auth))
 			fcClient, err = client.NewClient(target, opts...)
 			checkErr(err)

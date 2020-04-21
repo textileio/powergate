@@ -3,14 +3,17 @@ package client
 import (
 	"context"
 	"io"
+	"time"
 
 	cid "github.com/ipfs/go-cid"
 	ff "github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/rpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type ffs struct {
-	client rpc.FFSAPIClient
+	client rpc.FFSClient
 }
 
 // JobEvent represents an event for Watching a job
@@ -45,6 +48,29 @@ func WithOverride(override bool) PushConfigOption {
 		o.OverrideConfig = override
 		o.HasOverrideConfig = true
 	}
+}
+
+// WatchLogsConfig contains configuration for a stream-log
+// of human-friendly messages for a Cid execution.
+type WatchLogsConfig struct {
+	jid ff.JobID
+}
+
+// WatchLogsOption is a function that changes GetLogsConfig.
+type WatchLogsOption func(config *WatchLogsConfig)
+
+// WithJidFilter filters only log messages of a Cid related to
+// the Job with id jid.
+func WithJidFilter(jid ff.JobID) WatchLogsOption {
+	return func(c *WatchLogsConfig) {
+		c.jid = jid
+	}
+}
+
+// LogEvent represents an event for watching cid logs
+type LogEvent struct {
+	LogEntry ff.LogEntry
+	Err      error
 }
 
 func (f *ffs) Create(ctx context.Context) (string, string, error) {
@@ -118,33 +144,26 @@ func (f *ffs) Info(ctx context.Context) (*rpc.InfoReply, error) {
 	return f.client.Info(ctx, &rpc.InfoRequest{})
 }
 
-func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent, func(), error) {
-	updates := make(chan JobEvent)
+func (f *ffs) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
 		jidStrings[i] = jid.String()
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
-	cancelFunc := func() {
-		cancel()
-		close(updates)
-	}
-
 	stream, err := f.client.WatchJobs(ctx, &rpc.WatchJobsRequest{Jids: jidStrings})
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 	go func() {
 		for {
 			reply, err := stream.Recv()
-			if err == io.EOF {
-				close(updates)
+			if err == io.EOF || status.Code(err) == codes.Canceled {
+				close(ch)
 				break
 			}
 			if err != nil {
-				updates <- JobEvent{Err: err}
-				close(updates)
+				ch <- JobEvent{Err: err}
+				close(ch)
 				break
 			}
 			job := ff.Job{
@@ -153,10 +172,18 @@ func (f *ffs) WatchJobs(ctx context.Context, jids ...ff.JobID) (<-chan JobEvent,
 				Status:   ff.JobStatus(reply.Job.Status),
 				ErrCause: reply.Job.ErrCause,
 			}
-			updates <- JobEvent{Job: job}
+			ch <- JobEvent{Job: job}
 		}
 	}()
-	return updates, cancelFunc, nil
+	return nil
+}
+
+func (f *ffs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ff.JobID, error) {
+	resp, err := f.client.Replace(ctx, &rpc.ReplaceRequest{Cid1: c1.String(), Cid2: c2.String()})
+	if err != nil {
+		return ff.EmptyJobID, err
+	}
+	return ff.JobID(resp.JobID), nil
 }
 
 func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ff.JobID, error) {
@@ -207,6 +234,11 @@ func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOptio
 	return ff.JobID(resp.JobID), nil
 }
 
+func (f *ffs) Remove(ctx context.Context, c cid.Cid) error {
+	_, err := f.client.Remove(ctx, &rpc.RemoveRequest{Cid: c.String()})
+	return err
+}
+
 func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	stream, err := f.client.Get(ctx, &rpc.GetRequest{
 		Cid: c.String(),
@@ -234,6 +266,48 @@ func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	}()
 
 	return reader, nil
+}
+
+func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) error {
+	config := WatchLogsConfig{}
+	for _, opt := range opts {
+		opt(&config)
+	}
+
+	stream, err := f.client.WatchLogs(ctx, &rpc.WatchLogsRequest{Cid: c.String(), Jid: config.jid.String()})
+	if err != nil {
+		return err
+	}
+	go func() {
+		for {
+			reply, err := stream.Recv()
+			if err == io.EOF || status.Code(err) == codes.Canceled {
+				close(ch)
+				break
+			}
+			if err != nil {
+				ch <- LogEvent{Err: err}
+				close(ch)
+				break
+			}
+
+			cid, err := cid.Decode(reply.LogEntry.Cid)
+			if err != nil {
+				ch <- LogEvent{Err: err}
+				close(ch)
+				break
+			}
+
+			entry := ff.LogEntry{
+				Cid:       cid,
+				Timestamp: time.Unix(reply.LogEntry.Time, 0),
+				Jid:       ff.JobID(reply.LogEntry.Jid),
+				Msg:       reply.LogEntry.Msg,
+			}
+			ch <- LogEvent{LogEntry: entry}
+		}
+	}()
+	return nil
 }
 
 func (f *ffs) Close(ctx context.Context) error {

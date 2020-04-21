@@ -1733,6 +1733,92 @@ func (m *LogEntry) GetMsg() string {
 	return ""
 }
 
+type ReplaceRequest struct {
+	Cid1                 string   `protobuf:"bytes,1,opt,name=cid1,proto3" json:"cid1,omitempty"`
+	Cid2                 string   `protobuf:"bytes,2,opt,name=cid2,proto3" json:"cid2,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReplaceRequest) Reset()         { *m = ReplaceRequest{} }
+func (m *ReplaceRequest) String() string { return proto.CompactTextString(m) }
+func (*ReplaceRequest) ProtoMessage()    {}
+func (*ReplaceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e75cb675eef135e5, []int{37}
+}
+
+func (m *ReplaceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReplaceRequest.Unmarshal(m, b)
+}
+func (m *ReplaceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReplaceRequest.Marshal(b, m, deterministic)
+}
+func (m *ReplaceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReplaceRequest.Merge(m, src)
+}
+func (m *ReplaceRequest) XXX_Size() int {
+	return xxx_messageInfo_ReplaceRequest.Size(m)
+}
+func (m *ReplaceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReplaceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReplaceRequest proto.InternalMessageInfo
+
+func (m *ReplaceRequest) GetCid1() string {
+	if m != nil {
+		return m.Cid1
+	}
+	return ""
+}
+
+func (m *ReplaceRequest) GetCid2() string {
+	if m != nil {
+		return m.Cid2
+	}
+	return ""
+}
+
+type ReplaceReply struct {
+	JobID                string   `protobuf:"bytes,1,opt,name=jobID,proto3" json:"jobID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReplaceReply) Reset()         { *m = ReplaceReply{} }
+func (m *ReplaceReply) String() string { return proto.CompactTextString(m) }
+func (*ReplaceReply) ProtoMessage()    {}
+func (*ReplaceReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e75cb675eef135e5, []int{38}
+}
+
+func (m *ReplaceReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReplaceReply.Unmarshal(m, b)
+}
+func (m *ReplaceReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReplaceReply.Marshal(b, m, deterministic)
+}
+func (m *ReplaceReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReplaceReply.Merge(m, src)
+}
+func (m *ReplaceReply) XXX_Size() int {
+	return xxx_messageInfo_ReplaceReply.Size(m)
+}
+func (m *ReplaceReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReplaceReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReplaceReply proto.InternalMessageInfo
+
+func (m *ReplaceReply) GetJobID() string {
+	if m != nil {
+		return m.JobID
+	}
+	return ""
+}
+
 type PushConfigRequest struct {
 	Cid                  string     `protobuf:"bytes,1,opt,name=cid,proto3" json:"cid,omitempty"`
 	Config               *CidConfig `protobuf:"bytes,2,opt,name=config,proto3" json:"config,omitempty"`
@@ -1748,7 +1834,7 @@ func (m *PushConfigRequest) Reset()         { *m = PushConfigRequest{} }
 func (m *PushConfigRequest) String() string { return proto.CompactTextString(m) }
 func (*PushConfigRequest) ProtoMessage()    {}
 func (*PushConfigRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e75cb675eef135e5, []int{37}
+	return fileDescriptor_e75cb675eef135e5, []int{39}
 }
 
 func (m *PushConfigRequest) XXX_Unmarshal(b []byte) error {
@@ -1815,7 +1901,7 @@ func (m *PushConfigReply) Reset()         { *m = PushConfigReply{} }
 func (m *PushConfigReply) String() string { return proto.CompactTextString(m) }
 func (*PushConfigReply) ProtoMessage()    {}
 func (*PushConfigReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e75cb675eef135e5, []int{38}
+	return fileDescriptor_e75cb675eef135e5, []int{40}
 }
 
 func (m *PushConfigReply) XXX_Unmarshal(b []byte) error {
@@ -1843,6 +1929,76 @@ func (m *PushConfigReply) GetJobID() string {
 	return ""
 }
 
+type RemoveRequest struct {
+	Cid                  string   `protobuf:"bytes,1,opt,name=cid,proto3" json:"cid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RemoveRequest) Reset()         { *m = RemoveRequest{} }
+func (m *RemoveRequest) String() string { return proto.CompactTextString(m) }
+func (*RemoveRequest) ProtoMessage()    {}
+func (*RemoveRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e75cb675eef135e5, []int{41}
+}
+
+func (m *RemoveRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RemoveRequest.Unmarshal(m, b)
+}
+func (m *RemoveRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RemoveRequest.Marshal(b, m, deterministic)
+}
+func (m *RemoveRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveRequest.Merge(m, src)
+}
+func (m *RemoveRequest) XXX_Size() int {
+	return xxx_messageInfo_RemoveRequest.Size(m)
+}
+func (m *RemoveRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveRequest proto.InternalMessageInfo
+
+func (m *RemoveRequest) GetCid() string {
+	if m != nil {
+		return m.Cid
+	}
+	return ""
+}
+
+type RemoveReply struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RemoveReply) Reset()         { *m = RemoveReply{} }
+func (m *RemoveReply) String() string { return proto.CompactTextString(m) }
+func (*RemoveReply) ProtoMessage()    {}
+func (*RemoveReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e75cb675eef135e5, []int{42}
+}
+
+func (m *RemoveReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RemoveReply.Unmarshal(m, b)
+}
+func (m *RemoveReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RemoveReply.Marshal(b, m, deterministic)
+}
+func (m *RemoveReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoveReply.Merge(m, src)
+}
+func (m *RemoveReply) XXX_Size() int {
+	return xxx_messageInfo_RemoveReply.Size(m)
+}
+func (m *RemoveReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoveReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoveReply proto.InternalMessageInfo
+
 type GetRequest struct {
 	Cid                  string   `protobuf:"bytes,1,opt,name=cid,proto3" json:"cid,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1854,7 +2010,7 @@ func (m *GetRequest) Reset()         { *m = GetRequest{} }
 func (m *GetRequest) String() string { return proto.CompactTextString(m) }
 func (*GetRequest) ProtoMessage()    {}
 func (*GetRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e75cb675eef135e5, []int{39}
+	return fileDescriptor_e75cb675eef135e5, []int{43}
 }
 
 func (m *GetRequest) XXX_Unmarshal(b []byte) error {
@@ -1893,7 +2049,7 @@ func (m *GetReply) Reset()         { *m = GetReply{} }
 func (m *GetReply) String() string { return proto.CompactTextString(m) }
 func (*GetReply) ProtoMessage()    {}
 func (*GetReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e75cb675eef135e5, []int{40}
+	return fileDescriptor_e75cb675eef135e5, []int{44}
 }
 
 func (m *GetReply) XXX_Unmarshal(b []byte) error {
@@ -1931,7 +2087,7 @@ func (m *CloseRequest) Reset()         { *m = CloseRequest{} }
 func (m *CloseRequest) String() string { return proto.CompactTextString(m) }
 func (*CloseRequest) ProtoMessage()    {}
 func (*CloseRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e75cb675eef135e5, []int{41}
+	return fileDescriptor_e75cb675eef135e5, []int{45}
 }
 
 func (m *CloseRequest) XXX_Unmarshal(b []byte) error {
@@ -1962,7 +2118,7 @@ func (m *CloseReply) Reset()         { *m = CloseReply{} }
 func (m *CloseReply) String() string { return proto.CompactTextString(m) }
 func (*CloseReply) ProtoMessage()    {}
 func (*CloseReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e75cb675eef135e5, []int{42}
+	return fileDescriptor_e75cb675eef135e5, []int{46}
 }
 
 func (m *CloseReply) XXX_Unmarshal(b []byte) error {
@@ -1994,7 +2150,7 @@ func (m *AddToHotRequest) Reset()         { *m = AddToHotRequest{} }
 func (m *AddToHotRequest) String() string { return proto.CompactTextString(m) }
 func (*AddToHotRequest) ProtoMessage()    {}
 func (*AddToHotRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e75cb675eef135e5, []int{43}
+	return fileDescriptor_e75cb675eef135e5, []int{47}
 }
 
 func (m *AddToHotRequest) XXX_Unmarshal(b []byte) error {
@@ -2033,7 +2189,7 @@ func (m *AddToHotReply) Reset()         { *m = AddToHotReply{} }
 func (m *AddToHotReply) String() string { return proto.CompactTextString(m) }
 func (*AddToHotReply) ProtoMessage()    {}
 func (*AddToHotReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e75cb675eef135e5, []int{44}
+	return fileDescriptor_e75cb675eef135e5, []int{48}
 }
 
 func (m *AddToHotReply) XXX_Unmarshal(b []byte) error {
@@ -2100,8 +2256,12 @@ func init() {
 	proto.RegisterType((*WatchLogsRequest)(nil), "rpc.WatchLogsRequest")
 	proto.RegisterType((*WatchLogsReply)(nil), "rpc.WatchLogsReply")
 	proto.RegisterType((*LogEntry)(nil), "rpc.LogEntry")
+	proto.RegisterType((*ReplaceRequest)(nil), "rpc.ReplaceRequest")
+	proto.RegisterType((*ReplaceReply)(nil), "rpc.ReplaceReply")
 	proto.RegisterType((*PushConfigRequest)(nil), "rpc.PushConfigRequest")
 	proto.RegisterType((*PushConfigReply)(nil), "rpc.PushConfigReply")
+	proto.RegisterType((*RemoveRequest)(nil), "rpc.RemoveRequest")
+	proto.RegisterType((*RemoveReply)(nil), "rpc.RemoveReply")
 	proto.RegisterType((*GetRequest)(nil), "rpc.GetRequest")
 	proto.RegisterType((*GetReply)(nil), "rpc.GetReply")
 	proto.RegisterType((*CloseRequest)(nil), "rpc.CloseRequest")
@@ -2110,118 +2270,120 @@ func init() {
 	proto.RegisterType((*AddToHotReply)(nil), "rpc.AddToHotReply")
 }
 
-func init() {
-	proto.RegisterFile("ffs.proto", fileDescriptor_e75cb675eef135e5)
-}
+func init() { proto.RegisterFile("ffs.proto", fileDescriptor_e75cb675eef135e5) }
 
 var fileDescriptor_e75cb675eef135e5 = []byte{
-	// 1465 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x57, 0xdd, 0x72, 0xd3, 0x46,
-	0x14, 0x8e, 0x2d, 0xff, 0xe9, 0xd8, 0xb1, 0x9d, 0x25, 0x30, 0xae, 0x86, 0x42, 0x58, 0x20, 0x09,
-	0x0c, 0x78, 0x68, 0xe8, 0x74, 0x3a, 0x03, 0x17, 0x4d, 0x1c, 0x1c, 0x4c, 0x69, 0x9b, 0xae, 0xd3,
-	0x61, 0x7a, 0xd1, 0x0b, 0x59, 0x5a, 0xc7, 0x0a, 0x8a, 0xd6, 0x95, 0x64, 0x02, 0x7d, 0x88, 0x3e,
-	0x42, 0x2f, 0x3a, 0x7d, 0x88, 0x5e, 0x75, 0xa6, 0x6f, 0xd6, 0xd9, 0x3f, 0x69, 0x6d, 0xc7, 0x84,
-	0xde, 0xe9, 0xfc, 0xec, 0x39, 0x67, 0xcf, 0xf9, 0xce, 0xe7, 0x35, 0xd8, 0xe3, 0x71, 0xd2, 0x9d,
-	0xc6, 0x2c, 0x65, 0xc8, 0x8a, 0xa7, 0x1e, 0x7e, 0x04, 0x30, 0x98, 0x8e, 0x93, 0x1e, 0x8b, 0xc6,
-	0xc1, 0x29, 0xba, 0x05, 0xe0, 0xfa, 0xfe, 0x49, 0x70, 0x4e, 0xd9, 0x2c, 0xed, 0x14, 0xb6, 0x0a,
-	0xbb, 0x16, 0x31, 0x34, 0x78, 0x0a, 0xf6, 0x4b, 0x96, 0x2a, 0xe7, 0x0e, 0x54, 0x69, 0xe4, 0x8e,
-	0x42, 0xea, 0x0b, 0xcf, 0x1a, 0xd1, 0x22, 0xba, 0x07, 0xeb, 0x6e, 0x18, 0xb2, 0x8b, 0x9f, 0xa2,
-	0x71, 0x4c, 0xe9, 0x6f, 0xb4, 0x53, 0x14, 0xf6, 0x79, 0x25, 0xba, 0x0b, 0xa5, 0x60, 0x3a, 0x4e,
-	0x3a, 0xd6, 0x56, 0x61, 0xb7, 0xbe, 0xd7, 0xea, 0xc6, 0x53, 0xaf, 0x9b, 0xd7, 0x42, 0x84, 0x11,
-	0x1f, 0x40, 0xad, 0x1f, 0x84, 0x84, 0x46, 0xf4, 0xe2, 0x23, 0x09, 0x6f, 0x82, 0x9d, 0x4e, 0x62,
-	0x9a, 0x4c, 0x58, 0xe8, 0x8b, 0x64, 0x16, 0xc9, 0x15, 0xf8, 0x9f, 0x02, 0xd8, 0xfd, 0x20, 0x54,
-	0x65, 0xdf, 0x04, 0x3b, 0xa6, 0xd3, 0xbe, 0xeb, 0xa5, 0x2c, 0x56, 0x57, 0xcc, 0x15, 0x08, 0x43,
-	0xc3, 0xa7, 0x6e, 0x78, 0x38, 0x8b, 0xdd, 0x34, 0x60, 0x91, 0x0a, 0x36, 0xa7, 0x43, 0xdb, 0xd0,
-	0xa4, 0xef, 0xbd, 0x70, 0xe6, 0x53, 0xff, 0xbb, 0x20, 0xa2, 0x31, 0xbf, 0x82, 0xb5, 0x6b, 0x93,
-	0x05, 0x2d, 0x8f, 0xe5, 0xb1, 0x59, 0x94, 0xc6, 0x1f, 0x7a, 0xcc, 0xa7, 0x49, 0xa7, 0x24, 0xbc,
-	0xe6, 0x74, 0xe8, 0x2e, 0x94, 0x63, 0x7e, 0xb9, 0x4e, 0x59, 0x74, 0x61, 0x5d, 0x74, 0x41, 0xdf,
-	0x98, 0x48, 0x1b, 0x26, 0x00, 0x3d, 0x16, 0xfa, 0x57, 0xf6, 0xfd, 0x21, 0xd4, 0xc6, 0x41, 0x48,
-	0x3d, 0x16, 0xc8, 0xc2, 0xeb, 0x7b, 0x4d, 0x1d, 0x4f, 0x35, 0x35, 0xb3, 0x63, 0x1f, 0xec, 0x5e,
-	0xa0, 0x43, 0xb6, 0xc1, 0xf2, 0x02, 0x19, 0xce, 0x26, 0xfc, 0x13, 0x6d, 0x81, 0x35, 0x61, 0xe9,
-	0x5c, 0x94, 0x6c, 0xf2, 0x84, 0x9b, 0xf8, 0xf8, 0x3c, 0xde, 0x6e, 0x73, 0x7c, 0x79, 0x95, 0x44,
-	0x18, 0xf1, 0xcf, 0xd0, 0x3e, 0xa4, 0x63, 0x77, 0x16, 0xa6, 0x79, 0x32, 0x15, 0xba, 0x70, 0x75,
-	0xe8, 0xe2, 0xc7, 0x42, 0xef, 0x40, 0x9d, 0xa3, 0xe5, 0x25, 0x4b, 0x07, 0xd1, 0x98, 0xf1, 0xae,
-	0x78, 0x31, 0x75, 0x53, 0xd5, 0x15, 0x8b, 0x68, 0x11, 0xff, 0x02, 0x55, 0xc3, 0x69, 0x45, 0xeb,
-	0x10, 0x94, 0x92, 0x40, 0x21, 0xd5, 0x22, 0xe2, 0x1b, 0xdd, 0x9b, 0x03, 0x68, 0x3b, 0x03, 0xa8,
-	0x8a, 0xa6, 0x10, 0xfa, 0x57, 0x01, 0xa0, 0x1f, 0x84, 0xc3, 0x94, 0xc5, 0xee, 0x29, 0x45, 0x5b,
-	0x50, 0x9f, 0xc6, 0x6c, 0xca, 0x12, 0x37, 0xec, 0x65, 0x2d, 0x35, 0x55, 0xbc, 0x08, 0x31, 0x56,
-	0xea, 0xab, 0xbd, 0xd0, 0x22, 0x72, 0xa0, 0xe6, 0x6b, 0xe0, 0x59, 0xa2, 0x90, 0x4c, 0x46, 0xbb,
-	0xd0, 0x72, 0xbd, 0x34, 0x78, 0x27, 0xa4, 0x17, 0x53, 0xe6, 0x4d, 0x3a, 0x25, 0xe1, 0xb2, 0xa8,
-	0x46, 0x9b, 0x50, 0x3e, 0xe7, 0x00, 0x14, 0x90, 0xb2, 0x89, 0x14, 0x30, 0x81, 0x6a, 0x3f, 0x08,
-	0x75, 0x17, 0x7c, 0x37, 0x75, 0xf3, 0xf2, 0xb4, 0x88, 0x1e, 0x83, 0xad, 0x2b, 0x4d, 0x3a, 0xc5,
-	0x2d, 0x2b, 0xeb, 0x7e, 0x7e, 0x41, 0x92, 0x7b, 0xe0, 0x2f, 0xa1, 0xc6, 0xc7, 0x22, 0x82, 0xee,
-	0x1a, 0xd8, 0x93, 0xa3, 0x6d, 0xe8, 0x93, 0xa2, 0x59, 0x39, 0xf2, 0x7e, 0x2f, 0x40, 0xb5, 0x17,
-	0xc8, 0x53, 0x9b, 0x50, 0x3e, 0x63, 0xa3, 0xc1, 0xa1, 0x2a, 0x44, 0x0a, 0x1a, 0x8e, 0xc5, 0x1c,
-	0x8e, 0xc6, 0x74, 0xad, 0xb9, 0xe9, 0xa2, 0x5b, 0x12, 0x4d, 0x25, 0x23, 0xa5, 0x9e, 0x8f, 0xc0,
-	0xd2, 0x1d, 0x85, 0x25, 0x73, 0xbf, 0x74, 0xd1, 0x0a, 0x49, 0xdf, 0x00, 0xbc, 0x71, 0xc3, 0x90,
-	0x66, 0x18, 0x71, 0x7d, 0x3f, 0xa6, 0x49, 0xa2, 0xbb, 0xa3, 0x44, 0x6e, 0x19, 0xb9, 0xa1, 0x1b,
-	0x79, 0x12, 0x26, 0x25, 0xa2, 0x45, 0xfc, 0x47, 0x01, 0x1a, 0x83, 0x28, 0x49, 0xb9, 0x20, 0x82,
-	0x34, 0xa1, 0x98, 0x5d, 0xaa, 0x38, 0x38, 0x44, 0xfb, 0xd0, 0xf6, 0x17, 0xf6, 0x40, 0xa1, 0xfb,
-	0xba, 0xa8, 0x68, 0x71, 0x49, 0xc8, 0x92, 0x3b, 0xda, 0x81, 0xca, 0x85, 0xa8, 0x72, 0x6e, 0xe3,
-	0xf2, 0xc2, 0x89, 0x32, 0x73, 0x28, 0x4f, 0x83, 0x48, 0xd3, 0x8d, 0xf8, 0xc6, 0x0c, 0xac, 0x57,
-	0x6c, 0xb4, 0x54, 0xd6, 0x26, 0x94, 0xdd, 0x69, 0x30, 0x38, 0x54, 0xad, 0x96, 0x02, 0xda, 0x86,
-	0x4a, 0x92, 0xba, 0xe9, 0x4c, 0x22, 0xbf, 0xa9, 0x76, 0xf4, 0x15, 0x1b, 0x0d, 0x85, 0x96, 0x28,
-	0x2b, 0x87, 0x2b, 0x8d, 0xe3, 0x9e, 0x3b, 0x4b, 0xa8, 0xe8, 0xbf, 0x4d, 0x32, 0x19, 0xb7, 0x60,
-	0xbd, 0x27, 0x26, 0x44, 0xe8, 0xaf, 0x33, 0x9a, 0xa4, 0xf8, 0x29, 0xd4, 0xb5, 0x62, 0x1a, 0x7e,
-	0xb8, 0xac, 0x92, 0x94, 0xbd, 0xa5, 0x91, 0xae, 0x44, 0x08, 0xb8, 0x0e, 0xf6, 0xe0, 0x50, 0x47,
-	0xf8, 0x0c, 0xaa, 0x5c, 0xb8, 0xe4, 0x34, 0xbe, 0x06, 0x1b, 0xb2, 0x11, 0xfb, 0xbe, 0x1f, 0x6b,
-	0xff, 0xfb, 0xd0, 0x32, 0x95, 0xfc, 0x1c, 0x82, 0x12, 0x1f, 0xa6, 0x3a, 0x29, 0xbe, 0x71, 0x17,
-	0x9c, 0x23, 0x9a, 0x2e, 0x0d, 0x40, 0x06, 0x59, 0x66, 0x46, 0x7c, 0x00, 0x9d, 0x4b, 0xfd, 0x79,
-	0xfc, 0x6d, 0xa8, 0x78, 0x72, 0xb8, 0x26, 0xbb, 0xe5, 0x4e, 0xca, 0x8a, 0x77, 0xe0, 0xda, 0x11,
-	0xfd, 0x94, 0x64, 0xcf, 0x60, 0x63, 0xde, 0xf1, 0xff, 0x64, 0xf9, 0x16, 0x9c, 0xe1, 0xea, 0x9b,
-	0x3d, 0x5e, 0x88, 0xb2, 0x02, 0x88, 0x3a, 0x98, 0x03, 0x9d, 0xe1, 0x8a, 0x6b, 0xe3, 0xdb, 0x50,
-	0x1f, 0x4e, 0xd8, 0xc5, 0xea, 0x6b, 0x3c, 0x05, 0x5b, 0x3a, 0xc8, 0xf2, 0xab, 0x9e, 0x5c, 0xff,
-	0x39, 0xa2, 0x50, 0x94, 0x40, 0xb4, 0x11, 0xaf, 0x43, 0x5d, 0x28, 0xd4, 0x38, 0xf7, 0xc0, 0x96,
-	0x22, 0x8f, 0x71, 0x1f, 0x4a, 0x41, 0x1e, 0x60, 0x43, 0x52, 0xb3, 0xb1, 0x80, 0x44, 0x98, 0xf1,
-	0x36, 0xb4, 0xdf, 0xb8, 0xa9, 0x37, 0x79, 0xc5, 0x46, 0x89, 0xae, 0x0e, 0x41, 0xe9, 0x2c, 0xf0,
-	0xf9, 0x72, 0x8b, 0xf5, 0xe0, 0xdf, 0xf8, 0x11, 0x34, 0x0d, 0x3f, 0x9e, 0xc0, 0x01, 0xeb, 0x8c,
-	0x8d, 0x54, 0xfc, 0x9a, 0x5e, 0x00, 0xc2, 0x95, 0xf8, 0x2b, 0x15, 0xf5, 0x35, 0x3b, 0x4d, 0x56,
-	0xde, 0x99, 0x6b, 0xce, 0x72, 0x12, 0x3b, 0x13, 0xc3, 0x6c, 0x1a, 0xe7, 0x78, 0x96, 0x07, 0x50,
-	0x0b, 0xd9, 0xe9, 0x0b, 0xfe, 0x1c, 0x50, 0xa9, 0x24, 0x41, 0xbd, 0x56, 0x4a, 0x92, 0x99, 0xf1,
-	0x09, 0xd4, 0xb4, 0xf6, 0x53, 0x92, 0xf1, 0x6b, 0xa6, 0xc1, 0x39, 0x55, 0x74, 0x29, 0xbe, 0xb9,
-	0xd7, 0x79, 0x72, 0xaa, 0x76, 0x95, 0x7f, 0xe2, 0x7f, 0x0b, 0xb0, 0x71, 0x3c, 0x4b, 0x26, 0x57,
-	0xe0, 0xd0, 0x80, 0x5c, 0xf1, 0x63, 0x90, 0xe3, 0x8f, 0xab, 0x89, 0xab, 0x5e, 0x70, 0x22, 0x75,
-	0x8d, 0xe4, 0x0a, 0xfe, 0x70, 0x62, 0xef, 0x68, 0x1c, 0x07, 0x3e, 0x55, 0x2e, 0x25, 0xe1, 0xb2,
-	0xa0, 0x45, 0x8f, 0x60, 0x63, 0xe2, 0x26, 0x3f, 0xcc, 0xbb, 0x96, 0x85, 0xeb, 0xb2, 0x01, 0xef,
-	0x40, 0xcb, 0xbc, 0x02, 0xef, 0xeb, 0xa5, 0x3f, 0x2b, 0xf8, 0x16, 0xc0, 0x11, 0x4d, 0x57, 0xa3,
-	0x74, 0x0b, 0x6a, 0xc2, 0xae, 0x22, 0x78, 0x93, 0x59, 0xf4, 0x56, 0xd8, 0x1b, 0x44, 0x0a, 0xb8,
-	0x09, 0x8d, 0x5e, 0xc8, 0x92, 0x8c, 0xd4, 0x1a, 0x00, 0x4a, 0xe6, 0x6b, 0xb0, 0x03, 0xad, 0x7d,
-	0xdf, 0x3f, 0x61, 0x2f, 0x59, 0x96, 0xe4, 0xf2, 0x30, 0x77, 0x60, 0x3d, 0x77, 0xe4, 0xd9, 0x96,
-	0x6a, 0x79, 0xf8, 0x3d, 0xd8, 0x19, 0xe1, 0x22, 0x80, 0xca, 0x8f, 0x33, 0x3a, 0xa3, 0x7e, 0x7b,
-	0x0d, 0x35, 0x01, 0x06, 0xd1, 0x71, 0xcc, 0x4e, 0xf9, 0x4f, 0x52, 0xbb, 0xc0, 0x6d, 0x7d, 0x37,
-	0x08, 0xa9, 0xdf, 0x2e, 0xa2, 0x06, 0xd4, 0x7a, 0x7c, 0x03, 0xb8, 0x64, 0xa1, 0x3a, 0x54, 0x87,
-	0x33, 0xcf, 0xe3, 0x6e, 0xa5, 0xbd, 0xbf, 0x2b, 0x50, 0xe9, 0xf7, 0x87, 0xfb, 0xc7, 0x03, 0xf4,
-	0x04, 0x2a, 0x92, 0x89, 0x11, 0x92, 0x53, 0x34, 0x79, 0xda, 0x69, 0xcf, 0xe9, 0xf8, 0xb5, 0xd6,
-	0xd0, 0x3d, 0x4e, 0xb7, 0x48, 0xce, 0x3c, 0xe3, 0x63, 0xa7, 0x91, 0xc9, 0xd2, 0xeb, 0xb9, 0xfe,
-	0x19, 0xe5, 0x7c, 0x8b, 0x6e, 0x18, 0x3f, 0x4f, 0x06, 0x2b, 0x3b, 0x9b, 0x4b, 0x7a, 0x79, 0xfa,
-	0x8d, 0xa0, 0xc4, 0xa5, 0xc7, 0xe2, 0x6d, 0xe1, 0xbe, 0x9a, 0xa0, 0x9d, 0xcf, 0x57, 0x3b, 0xc8,
-	0xc0, 0x07, 0xd0, 0x30, 0x29, 0x14, 0x75, 0xf4, 0x81, 0xa5, 0x50, 0x37, 0x2e, 0xb1, 0x64, 0xc5,
-	0x0d, 0x57, 0x16, 0x37, 0xbc, 0xaa, 0xb8, 0xe1, 0xea, 0xe2, 0x1e, 0x42, 0x89, 0x13, 0x23, 0x92,
-	0x5d, 0x37, 0x48, 0xd4, 0x69, 0x1a, 0x9a, 0xcc, 0x57, 0xbc, 0x2d, 0xd4, 0x43, 0x34, 0xa7, 0x46,
-	0xe5, 0x9b, 0xb1, 0x23, 0x5e, 0x43, 0xcf, 0xc0, 0xce, 0x08, 0x0d, 0x5d, 0x57, 0x2d, 0x9f, 0x27,
-	0x42, 0xe7, 0xda, 0xa2, 0x5a, 0x1c, 0x7d, 0x52, 0xc8, 0x0e, 0x73, 0x9e, 0x32, 0x0f, 0x1b, 0x7c,
-	0x67, 0x1e, 0xce, 0xe8, 0x4c, 0x1c, 0x7e, 0x0e, 0x90, 0x6f, 0xa3, 0x42, 0xc1, 0x12, 0xc3, 0x28,
-	0x14, 0x2c, 0xac, 0x2d, 0x5e, 0x43, 0x0f, 0xc0, 0x3a, 0xa2, 0x29, 0x6a, 0xe9, 0x49, 0x68, 0xff,
-	0xf5, 0x5c, 0xa1, 0x13, 0x3d, 0x86, 0xb2, 0xd8, 0x3d, 0x24, 0xd9, 0xdf, 0xdc, 0x4b, 0xa7, 0x65,
-	0xaa, 0x64, 0xe4, 0xaf, 0xa1, 0xa6, 0x77, 0x0e, 0xc9, 0xec, 0x0b, 0xbb, 0xea, 0xa0, 0x05, 0xad,
-	0x38, 0xb7, 0x5b, 0x38, 0xf8, 0x02, 0x9c, 0x80, 0x75, 0x53, 0xfa, 0x3e, 0x0d, 0x42, 0xda, 0xd5,
-	0xcf, 0xd8, 0xae, 0xf8, 0x23, 0x3d, 0x3a, 0xa8, 0xf7, 0x95, 0x62, 0x3c, 0x4e, 0x8e, 0x0b, 0x7f,
-	0x16, 0xad, 0x93, 0x93, 0x17, 0xa3, 0x8a, 0xf8, 0x87, 0xfd, 0xf4, 0xbf, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0xf5, 0x85, 0x72, 0xbb, 0x6e, 0x0f, 0x00, 0x00,
+	// 1533 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x58, 0xdd, 0x72, 0xd3, 0xc6,
+	0x17, 0x8f, 0x2d, 0x27, 0xb6, 0x8e, 0x3f, 0xb3, 0x04, 0xc6, 0x7f, 0x0d, 0x7f, 0x08, 0x4b, 0x48,
+	0x02, 0x03, 0x19, 0x48, 0x3a, 0x1d, 0x66, 0xe8, 0x45, 0x89, 0x83, 0x83, 0x29, 0x6d, 0xe9, 0x3a,
+	0x1d, 0xa6, 0x17, 0xbd, 0x90, 0xa5, 0x75, 0xac, 0xa0, 0x68, 0x5d, 0x49, 0x26, 0xd0, 0x87, 0xe8,
+	0x13, 0x74, 0x7a, 0xd1, 0xe9, 0x73, 0x74, 0xa6, 0x6f, 0xd6, 0xd9, 0x2f, 0x69, 0x65, 0xc7, 0x84,
+	0xde, 0xed, 0xf9, 0xdc, 0xf3, 0xf1, 0x3b, 0x67, 0x35, 0x02, 0x7b, 0x3c, 0x4e, 0xf6, 0xa6, 0x31,
+	0x4b, 0x19, 0xb2, 0xe2, 0xa9, 0x87, 0x1f, 0x02, 0x0c, 0xa6, 0xe3, 0xa4, 0xc7, 0xa2, 0x71, 0x70,
+	0x8a, 0x6e, 0x01, 0xb8, 0xbe, 0x7f, 0x12, 0x9c, 0x53, 0x36, 0x4b, 0xbb, 0xa5, 0xcd, 0xd2, 0xae,
+	0x45, 0x0c, 0x0e, 0x9e, 0x82, 0xfd, 0x92, 0xa5, 0x4a, 0xb9, 0x0b, 0x55, 0x1a, 0xb9, 0xa3, 0x90,
+	0xfa, 0x42, 0xb3, 0x46, 0x34, 0x89, 0xb6, 0xa0, 0xe9, 0x86, 0x21, 0xbb, 0xf8, 0x31, 0x1a, 0xc7,
+	0x94, 0xfe, 0x4a, 0xbb, 0x65, 0x21, 0x2f, 0x32, 0xd1, 0x5d, 0xa8, 0x04, 0xd3, 0x71, 0xd2, 0xb5,
+	0x36, 0x4b, 0xbb, 0xf5, 0xfd, 0xf6, 0x5e, 0x3c, 0xf5, 0xf6, 0xf2, 0x58, 0x88, 0x10, 0xe2, 0x43,
+	0xa8, 0xf5, 0x83, 0x90, 0xd0, 0x88, 0x5e, 0x7c, 0xe2, 0xc2, 0x9b, 0x60, 0xa7, 0x93, 0x98, 0x26,
+	0x13, 0x16, 0xfa, 0xe2, 0x32, 0x8b, 0xe4, 0x0c, 0xfc, 0x77, 0x09, 0xec, 0x7e, 0x10, 0xaa, 0xb0,
+	0x6f, 0x82, 0x1d, 0xd3, 0x69, 0xdf, 0xf5, 0x52, 0x16, 0xab, 0x14, 0x73, 0x06, 0xc2, 0xd0, 0xf0,
+	0xa9, 0x1b, 0x1e, 0xcd, 0x62, 0x37, 0x0d, 0x58, 0xa4, 0x9c, 0x15, 0x78, 0x68, 0x1b, 0x5a, 0xf4,
+	0x83, 0x17, 0xce, 0x7c, 0xea, 0x7f, 0x1b, 0x44, 0x34, 0xe6, 0x29, 0x58, 0xbb, 0x36, 0x99, 0xe3,
+	0x72, 0x5f, 0x1e, 0x9b, 0x45, 0x69, 0xfc, 0xb1, 0xc7, 0x7c, 0x9a, 0x74, 0x2b, 0x42, 0xab, 0xc0,
+	0x43, 0x77, 0x61, 0x35, 0xe6, 0xc9, 0x75, 0x57, 0x45, 0x15, 0x9a, 0xa2, 0x0a, 0x3a, 0x63, 0x22,
+	0x65, 0x98, 0x00, 0xf4, 0x58, 0xe8, 0x5f, 0x59, 0xf7, 0x07, 0x50, 0x1b, 0x07, 0x21, 0xf5, 0x58,
+	0x20, 0x03, 0xaf, 0xef, 0xb7, 0xb4, 0x3f, 0x55, 0xd4, 0x4c, 0x8e, 0x7d, 0xb0, 0x7b, 0x81, 0x76,
+	0xd9, 0x01, 0xcb, 0x0b, 0xa4, 0x3b, 0x9b, 0xf0, 0x23, 0xda, 0x04, 0x6b, 0xc2, 0xd2, 0x82, 0x97,
+	0xac, 0xf3, 0x84, 0x8b, 0x78, 0xfb, 0x3c, 0x5e, 0x6e, 0xb3, 0x7d, 0x79, 0x94, 0x44, 0x08, 0xf1,
+	0x4f, 0xd0, 0x39, 0xa2, 0x63, 0x77, 0x16, 0xa6, 0xf9, 0x65, 0xca, 0x75, 0xe9, 0x6a, 0xd7, 0xe5,
+	0x4f, 0xb9, 0xde, 0x81, 0x3a, 0x47, 0xcb, 0x4b, 0x96, 0x0e, 0xa2, 0x31, 0xe3, 0x55, 0xf1, 0x62,
+	0xea, 0xa6, 0xaa, 0x2a, 0x16, 0xd1, 0x24, 0xfe, 0x19, 0xaa, 0x86, 0xd2, 0x92, 0xd2, 0x21, 0xa8,
+	0x24, 0x81, 0x42, 0xaa, 0x45, 0xc4, 0x19, 0x6d, 0x15, 0x00, 0xda, 0xc9, 0x00, 0xaa, 0xbc, 0x29,
+	0x84, 0xfe, 0x55, 0x02, 0xe8, 0x07, 0xe1, 0x30, 0x65, 0xb1, 0x7b, 0x4a, 0xd1, 0x26, 0xd4, 0xa7,
+	0x31, 0x9b, 0xb2, 0xc4, 0x0d, 0x7b, 0x59, 0x49, 0x4d, 0x16, 0x0f, 0x42, 0xb4, 0x95, 0xfa, 0x6a,
+	0x2e, 0x34, 0x89, 0x1c, 0xa8, 0xf9, 0x1a, 0x78, 0x96, 0x08, 0x24, 0xa3, 0xd1, 0x2e, 0xb4, 0x5d,
+	0x2f, 0x0d, 0xde, 0x0b, 0xea, 0xc5, 0x94, 0x79, 0x93, 0x6e, 0x45, 0xa8, 0xcc, 0xb3, 0xd1, 0x06,
+	0xac, 0x9e, 0x73, 0x00, 0x0a, 0x48, 0xd9, 0x44, 0x12, 0x98, 0x40, 0xb5, 0x1f, 0x84, 0xba, 0x0a,
+	0xbe, 0x9b, 0xba, 0x79, 0x78, 0x9a, 0x44, 0x8f, 0xc0, 0xd6, 0x91, 0x26, 0xdd, 0xf2, 0xa6, 0x95,
+	0x55, 0x3f, 0x4f, 0x90, 0xe4, 0x1a, 0xf8, 0x0b, 0xa8, 0xf1, 0xb6, 0x08, 0xa7, 0xbb, 0x06, 0xf6,
+	0x64, 0x6b, 0x1b, 0xda, 0x52, 0x14, 0x2b, 0x47, 0xde, 0x6f, 0x25, 0xa8, 0xf6, 0x02, 0x69, 0xb5,
+	0x01, 0xab, 0x67, 0x6c, 0x34, 0x38, 0x52, 0x81, 0x48, 0x42, 0xc3, 0xb1, 0x9c, 0xc3, 0xd1, 0xe8,
+	0xae, 0x55, 0xe8, 0x2e, 0xba, 0x25, 0xd1, 0x54, 0x31, 0xae, 0xd4, 0xfd, 0x11, 0x58, 0xba, 0xa3,
+	0xb0, 0x64, 0xce, 0x97, 0x0e, 0x5a, 0x21, 0xe9, 0x6b, 0x80, 0xb7, 0x6e, 0x18, 0xd2, 0x0c, 0x23,
+	0xae, 0xef, 0xc7, 0x34, 0x49, 0x74, 0x75, 0x14, 0xc9, 0x25, 0x23, 0x37, 0x74, 0x23, 0x4f, 0xc2,
+	0xa4, 0x42, 0x34, 0x89, 0xff, 0x28, 0x41, 0x63, 0x10, 0x25, 0x29, 0x27, 0x84, 0x93, 0x16, 0x94,
+	0xb3, 0xa4, 0xca, 0x83, 0x23, 0xf4, 0x1c, 0x3a, 0xfe, 0xdc, 0x1c, 0x28, 0x74, 0x5f, 0x17, 0x11,
+	0xcd, 0x0f, 0x09, 0x59, 0x50, 0x47, 0x3b, 0xb0, 0x76, 0x21, 0xa2, 0x2c, 0x4c, 0x5c, 0x1e, 0x38,
+	0x51, 0x62, 0x0e, 0xe5, 0x69, 0x10, 0xe9, 0x75, 0x23, 0xce, 0x98, 0x81, 0xf5, 0x8a, 0x8d, 0x16,
+	0xc2, 0xda, 0x80, 0x55, 0x77, 0x1a, 0x0c, 0x8e, 0x54, 0xa9, 0x25, 0x81, 0xb6, 0x61, 0x2d, 0x49,
+	0xdd, 0x74, 0x26, 0x91, 0xdf, 0x52, 0x33, 0xfa, 0x8a, 0x8d, 0x86, 0x82, 0x4b, 0x94, 0x94, 0xc3,
+	0x95, 0xc6, 0x71, 0xcf, 0x9d, 0x25, 0x54, 0xd4, 0xdf, 0x26, 0x19, 0x8d, 0xdb, 0xd0, 0xec, 0x89,
+	0x0e, 0x11, 0xfa, 0xcb, 0x8c, 0x26, 0x29, 0x3e, 0x80, 0xba, 0x66, 0x4c, 0xc3, 0x8f, 0x97, 0x45,
+	0x92, 0xb2, 0x77, 0x34, 0xd2, 0x91, 0x08, 0x02, 0xd7, 0xc1, 0x1e, 0x1c, 0x69, 0x0f, 0xff, 0x83,
+	0x2a, 0x27, 0x2e, 0xb1, 0xc6, 0xd7, 0x60, 0x5d, 0x16, 0xe2, 0xb9, 0xef, 0xc7, 0x5a, 0xff, 0x1e,
+	0xb4, 0x4d, 0x26, 0xb7, 0x43, 0x50, 0xe1, 0xcd, 0x54, 0x96, 0xe2, 0x8c, 0xf7, 0xc0, 0x39, 0xa6,
+	0xe9, 0x42, 0x03, 0xa4, 0x93, 0xc5, 0xcd, 0x88, 0x0f, 0xa1, 0x7b, 0xa9, 0x3e, 0xf7, 0xbf, 0x0d,
+	0x6b, 0x9e, 0x6c, 0xae, 0xb9, 0xdd, 0x72, 0x25, 0x25, 0xc5, 0x3b, 0x70, 0xed, 0x98, 0x7e, 0xce,
+	0x65, 0xcf, 0x60, 0xbd, 0xa8, 0xf8, 0x5f, 0x6e, 0xf9, 0x06, 0x9c, 0xe1, 0xf2, 0xcc, 0x1e, 0xcd,
+	0x79, 0x59, 0x02, 0x44, 0xed, 0xcc, 0x81, 0xee, 0x70, 0x49, 0xda, 0xf8, 0x36, 0xd4, 0x87, 0x13,
+	0x76, 0xb1, 0x3c, 0x8d, 0x03, 0xb0, 0xa5, 0x82, 0x0c, 0xbf, 0xea, 0xc9, 0xf1, 0x2f, 0x2c, 0x0a,
+	0xb5, 0x12, 0x88, 0x16, 0xe2, 0x26, 0xd4, 0x05, 0x43, 0xb5, 0x73, 0x1f, 0x6c, 0x49, 0x72, 0x1f,
+	0xf7, 0xa0, 0x12, 0xe4, 0x0e, 0xd6, 0xe5, 0x6a, 0x36, 0x06, 0x90, 0x08, 0x31, 0xde, 0x86, 0xce,
+	0x5b, 0x37, 0xf5, 0x26, 0xaf, 0xd8, 0x28, 0xd1, 0xd1, 0x21, 0xa8, 0x9c, 0x05, 0x3e, 0x1f, 0x6e,
+	0x31, 0x1e, 0xfc, 0x8c, 0x1f, 0x42, 0xcb, 0xd0, 0xe3, 0x17, 0x38, 0x60, 0x9d, 0xb1, 0x91, 0xf2,
+	0x5f, 0xd3, 0x03, 0x40, 0x38, 0x13, 0x7f, 0xa9, 0xbc, 0xbe, 0x66, 0xa7, 0xc9, 0xd2, 0x9c, 0x39,
+	0xe7, 0x2c, 0x5f, 0x62, 0x67, 0xa2, 0x99, 0x2d, 0xc3, 0x8e, 0xdf, 0x72, 0x1f, 0x6a, 0x21, 0x3b,
+	0x7d, 0xc1, 0x3f, 0x07, 0xd4, 0x55, 0x72, 0x41, 0xbd, 0x56, 0x4c, 0x92, 0x89, 0xf1, 0x09, 0xd4,
+	0x34, 0xf7, 0x73, 0x2e, 0xe3, 0x69, 0xa6, 0xc1, 0x39, 0x55, 0xeb, 0x52, 0x9c, 0xb9, 0xd6, 0x79,
+	0x72, 0xaa, 0x66, 0x95, 0x1f, 0xf1, 0x53, 0x68, 0xf1, 0x48, 0x5c, 0x8f, 0x1a, 0xe5, 0xf1, 0x02,
+	0xff, 0x89, 0x1e, 0x11, 0x7e, 0x56, 0xbc, 0x7d, 0xe5, 0x5e, 0x9c, 0xf1, 0x16, 0x34, 0x32, 0x4b,
+	0x9e, 0xca, 0xa5, 0x9b, 0x1c, 0xff, 0x53, 0x82, 0xf5, 0x37, 0xb3, 0x64, 0x72, 0x05, 0xce, 0x0d,
+	0x48, 0x97, 0x3f, 0x05, 0x69, 0xfe, 0xf1, 0x36, 0x71, 0xd5, 0x17, 0xa2, 0x48, 0xad, 0x46, 0x72,
+	0x06, 0xff, 0x30, 0x63, 0xef, 0x69, 0x1c, 0x07, 0x3e, 0x55, 0x2a, 0x15, 0xa1, 0x32, 0xc7, 0x45,
+	0x0f, 0x61, 0x7d, 0xe2, 0x26, 0xdf, 0x17, 0x55, 0x57, 0x85, 0xea, 0xa2, 0x00, 0xef, 0x40, 0xdb,
+	0x4c, 0x61, 0x79, 0xb2, 0x77, 0xa0, 0x49, 0xe8, 0x39, 0x7b, 0x4f, 0x97, 0x0f, 0x42, 0x13, 0xea,
+	0x5a, 0x85, 0x0f, 0xce, 0x2d, 0x80, 0x63, 0x9a, 0x2e, 0x57, 0xdf, 0x84, 0x9a, 0x90, 0xab, 0x3b,
+	0xbd, 0xc9, 0x2c, 0x7a, 0x27, 0xe4, 0x0d, 0x22, 0x09, 0xdc, 0x82, 0x46, 0x2f, 0x64, 0x49, 0xb6,
+	0x66, 0x1b, 0x00, 0x8a, 0xe6, 0xfe, 0x77, 0xa0, 0xfd, 0xdc, 0xf7, 0x4f, 0xd8, 0x4b, 0x96, 0x5d,
+	0x72, 0xb9, 0x9b, 0x3b, 0xd0, 0xcc, 0x15, 0xf9, 0x6d, 0x0b, 0xb1, 0x3c, 0xf8, 0x0e, 0xec, 0xec,
+	0x09, 0x40, 0x00, 0x6b, 0x3f, 0xcc, 0xe8, 0x8c, 0xfa, 0x9d, 0x15, 0xd4, 0x02, 0x18, 0x44, 0x6f,
+	0x62, 0x76, 0xca, 0x1f, 0xc9, 0x4e, 0x89, 0xcb, 0xfa, 0x6e, 0x10, 0x52, 0xbf, 0x53, 0x46, 0x0d,
+	0xa8, 0xf5, 0xf8, 0x4c, 0x72, 0xca, 0x42, 0x75, 0xa8, 0x0e, 0x67, 0x9e, 0xc7, 0xd5, 0x2a, 0xfb,
+	0xbf, 0x57, 0xc1, 0xea, 0xf7, 0x87, 0xe8, 0x31, 0xac, 0xc9, 0x87, 0x01, 0x21, 0xd9, 0x74, 0xf3,
+	0xd9, 0x70, 0x3a, 0x05, 0x1e, 0xcf, 0x69, 0x05, 0x6d, 0xf1, 0xed, 0x8f, 0x24, 0x44, 0xb2, 0xe7,
+	0xc1, 0x69, 0x64, 0xb4, 0xd4, 0xfa, 0x4a, 0xbf, 0xea, 0x7c, 0xfd, 0xa3, 0x1b, 0xc6, 0x6b, 0x69,
+	0x3c, 0x12, 0xce, 0xc6, 0x02, 0x5f, 0x5a, 0xbf, 0x15, 0x1b, 0x7a, 0xe1, 0xdb, 0xf5, 0xb6, 0x50,
+	0x5f, 0xfe, 0x5e, 0x38, 0xff, 0x5f, 0xae, 0x20, 0x1d, 0x1f, 0x42, 0xc3, 0xdc, 0xe8, 0xa8, 0xab,
+	0x0d, 0x16, 0x5c, 0xdd, 0xb8, 0x44, 0x92, 0x05, 0x37, 0x5c, 0x1a, 0xdc, 0xf0, 0xaa, 0xe0, 0x86,
+	0xcb, 0x83, 0x7b, 0x00, 0x15, 0xbe, 0xa7, 0x91, 0xac, 0xba, 0xb1, 0xd3, 0x9d, 0x96, 0xc1, 0xc9,
+	0x74, 0xc5, 0xa7, 0x8e, 0xfa, 0x2e, 0xce, 0x37, 0xb5, 0xd2, 0xcd, 0x96, 0x35, 0x5e, 0x41, 0xcf,
+	0xc0, 0xce, 0xf6, 0x2b, 0xba, 0xae, 0x4a, 0x5e, 0xdc, 0xcb, 0xce, 0xb5, 0x79, 0xb6, 0x30, 0x7d,
+	0x5c, 0xca, 0x8c, 0xf9, 0xda, 0x34, 0x8d, 0x8d, 0xf5, 0x6b, 0x1a, 0x67, 0xdb, 0x55, 0x18, 0x1f,
+	0x40, 0x55, 0xad, 0x29, 0x24, 0x75, 0x8a, 0xeb, 0xce, 0x59, 0x2f, 0x32, 0x33, 0xe8, 0xe4, 0x13,
+	0xaf, 0xa0, 0xb3, 0xb0, 0xc5, 0x14, 0x74, 0xe6, 0x56, 0x03, 0x5e, 0xe1, 0x80, 0x96, 0x33, 0xae,
+	0x00, 0x5d, 0xd8, 0x09, 0x0a, 0xd0, 0xe6, 0x12, 0x58, 0x41, 0xf7, 0xc1, 0x3a, 0xa6, 0x29, 0x6a,
+	0xeb, 0x86, 0x6b, 0xdd, 0x66, 0xce, 0xd0, 0xf9, 0x3c, 0x82, 0x55, 0x31, 0xdf, 0x48, 0x06, 0x6e,
+	0xce, 0xbe, 0xd3, 0x36, 0x59, 0xd2, 0xf3, 0x53, 0xa8, 0xe9, 0xb9, 0x46, 0x32, 0xde, 0xb9, 0x7d,
+	0xe0, 0xa0, 0x39, 0xae, 0xb0, 0xdb, 0x2d, 0x1d, 0x3e, 0x01, 0x27, 0x60, 0x7b, 0x29, 0xfd, 0x90,
+	0x06, 0x21, 0xdd, 0xd3, 0x1f, 0xef, 0x7b, 0xe2, 0xf7, 0xc1, 0xe8, 0xb0, 0xde, 0x57, 0x8c, 0xf1,
+	0x38, 0x79, 0x53, 0xfa, 0xb3, 0x6c, 0x9d, 0x9c, 0xbc, 0x18, 0xad, 0x89, 0xff, 0x0a, 0x07, 0xff,
+	0x06, 0x00, 0x00, 0xff, 0xff, 0x1e, 0xbb, 0x8e, 0x2f, 0x64, 0x10, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConnInterface
+var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
+const _ = grpc.SupportPackageIsVersion4
 
-// FFSAPIClient is the client API for FFSAPI service.
+// FFSClient is the client API for FFS service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type FFSAPIClient interface {
+type FFSClient interface {
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateReply, error)
 	ID(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*IDReply, error)
 	WalletAddr(ctx context.Context, in *WalletAddrRequest, opts ...grpc.CallOption) (*WalletAddrReply, error)
@@ -2230,100 +2392,102 @@ type FFSAPIClient interface {
 	SetDefaultCidConfig(ctx context.Context, in *SetDefaultCidConfigRequest, opts ...grpc.CallOption) (*SetDefaultCidConfigReply, error)
 	Show(ctx context.Context, in *ShowRequest, opts ...grpc.CallOption) (*ShowReply, error)
 	Info(ctx context.Context, in *InfoRequest, opts ...grpc.CallOption) (*InfoReply, error)
-	WatchJobs(ctx context.Context, in *WatchJobsRequest, opts ...grpc.CallOption) (FFSAPI_WatchJobsClient, error)
-	WatchLogs(ctx context.Context, in *WatchLogsRequest, opts ...grpc.CallOption) (FFSAPI_WatchLogsClient, error)
+	WatchJobs(ctx context.Context, in *WatchJobsRequest, opts ...grpc.CallOption) (FFS_WatchJobsClient, error)
+	WatchLogs(ctx context.Context, in *WatchLogsRequest, opts ...grpc.CallOption) (FFS_WatchLogsClient, error)
+	Replace(ctx context.Context, in *ReplaceRequest, opts ...grpc.CallOption) (*ReplaceReply, error)
 	PushConfig(ctx context.Context, in *PushConfigRequest, opts ...grpc.CallOption) (*PushConfigReply, error)
-	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (FFSAPI_GetClient, error)
+	Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveReply, error)
+	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (FFS_GetClient, error)
 	Close(ctx context.Context, in *CloseRequest, opts ...grpc.CallOption) (*CloseReply, error)
-	AddToHot(ctx context.Context, opts ...grpc.CallOption) (FFSAPI_AddToHotClient, error)
+	AddToHot(ctx context.Context, opts ...grpc.CallOption) (FFS_AddToHotClient, error)
 }
 
-type fFSAPIClient struct {
-	cc grpc.ClientConnInterface
+type fFSClient struct {
+	cc *grpc.ClientConn
 }
 
-func NewFFSAPIClient(cc grpc.ClientConnInterface) FFSAPIClient {
-	return &fFSAPIClient{cc}
+func NewFFSClient(cc *grpc.ClientConn) FFSClient {
+	return &fFSClient{cc}
 }
 
-func (c *fFSAPIClient) Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateReply, error) {
+func (c *fFSClient) Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateReply, error) {
 	out := new(CreateReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) ID(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*IDReply, error) {
+func (c *fFSClient) ID(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*IDReply, error) {
 	out := new(IDReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/ID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/ID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) WalletAddr(ctx context.Context, in *WalletAddrRequest, opts ...grpc.CallOption) (*WalletAddrReply, error) {
+func (c *fFSClient) WalletAddr(ctx context.Context, in *WalletAddrRequest, opts ...grpc.CallOption) (*WalletAddrReply, error) {
 	out := new(WalletAddrReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/WalletAddr", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/WalletAddr", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) GetDefaultCidConfig(ctx context.Context, in *GetDefaultCidConfigRequest, opts ...grpc.CallOption) (*GetDefaultCidConfigReply, error) {
+func (c *fFSClient) GetDefaultCidConfig(ctx context.Context, in *GetDefaultCidConfigRequest, opts ...grpc.CallOption) (*GetDefaultCidConfigReply, error) {
 	out := new(GetDefaultCidConfigReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/GetDefaultCidConfig", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/GetDefaultCidConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) GetCidConfig(ctx context.Context, in *GetCidConfigRequest, opts ...grpc.CallOption) (*GetCidConfigReply, error) {
+func (c *fFSClient) GetCidConfig(ctx context.Context, in *GetCidConfigRequest, opts ...grpc.CallOption) (*GetCidConfigReply, error) {
 	out := new(GetCidConfigReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/GetCidConfig", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/GetCidConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) SetDefaultCidConfig(ctx context.Context, in *SetDefaultCidConfigRequest, opts ...grpc.CallOption) (*SetDefaultCidConfigReply, error) {
+func (c *fFSClient) SetDefaultCidConfig(ctx context.Context, in *SetDefaultCidConfigRequest, opts ...grpc.CallOption) (*SetDefaultCidConfigReply, error) {
 	out := new(SetDefaultCidConfigReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/SetDefaultCidConfig", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/SetDefaultCidConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) Show(ctx context.Context, in *ShowRequest, opts ...grpc.CallOption) (*ShowReply, error) {
+func (c *fFSClient) Show(ctx context.Context, in *ShowRequest, opts ...grpc.CallOption) (*ShowReply, error) {
 	out := new(ShowReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/Show", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/Show", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) Info(ctx context.Context, in *InfoRequest, opts ...grpc.CallOption) (*InfoReply, error) {
+func (c *fFSClient) Info(ctx context.Context, in *InfoRequest, opts ...grpc.CallOption) (*InfoReply, error) {
 	out := new(InfoReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/Info", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/Info", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) WatchJobs(ctx context.Context, in *WatchJobsRequest, opts ...grpc.CallOption) (FFSAPI_WatchJobsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_FFSAPI_serviceDesc.Streams[0], "/rpc.FFSAPI/WatchJobs", opts...)
+func (c *fFSClient) WatchJobs(ctx context.Context, in *WatchJobsRequest, opts ...grpc.CallOption) (FFS_WatchJobsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_FFS_serviceDesc.Streams[0], "/rpc.FFS/WatchJobs", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &fFSAPIWatchJobsClient{stream}
+	x := &fFSWatchJobsClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -2333,16 +2497,16 @@ func (c *fFSAPIClient) WatchJobs(ctx context.Context, in *WatchJobsRequest, opts
 	return x, nil
 }
 
-type FFSAPI_WatchJobsClient interface {
+type FFS_WatchJobsClient interface {
 	Recv() (*WatchJobsReply, error)
 	grpc.ClientStream
 }
 
-type fFSAPIWatchJobsClient struct {
+type fFSWatchJobsClient struct {
 	grpc.ClientStream
 }
 
-func (x *fFSAPIWatchJobsClient) Recv() (*WatchJobsReply, error) {
+func (x *fFSWatchJobsClient) Recv() (*WatchJobsReply, error) {
 	m := new(WatchJobsReply)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -2350,12 +2514,12 @@ func (x *fFSAPIWatchJobsClient) Recv() (*WatchJobsReply, error) {
 	return m, nil
 }
 
-func (c *fFSAPIClient) WatchLogs(ctx context.Context, in *WatchLogsRequest, opts ...grpc.CallOption) (FFSAPI_WatchLogsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_FFSAPI_serviceDesc.Streams[1], "/rpc.FFSAPI/WatchLogs", opts...)
+func (c *fFSClient) WatchLogs(ctx context.Context, in *WatchLogsRequest, opts ...grpc.CallOption) (FFS_WatchLogsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_FFS_serviceDesc.Streams[1], "/rpc.FFS/WatchLogs", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &fFSAPIWatchLogsClient{stream}
+	x := &fFSWatchLogsClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -2365,16 +2529,16 @@ func (c *fFSAPIClient) WatchLogs(ctx context.Context, in *WatchLogsRequest, opts
 	return x, nil
 }
 
-type FFSAPI_WatchLogsClient interface {
+type FFS_WatchLogsClient interface {
 	Recv() (*WatchLogsReply, error)
 	grpc.ClientStream
 }
 
-type fFSAPIWatchLogsClient struct {
+type fFSWatchLogsClient struct {
 	grpc.ClientStream
 }
 
-func (x *fFSAPIWatchLogsClient) Recv() (*WatchLogsReply, error) {
+func (x *fFSWatchLogsClient) Recv() (*WatchLogsReply, error) {
 	m := new(WatchLogsReply)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -2382,21 +2546,39 @@ func (x *fFSAPIWatchLogsClient) Recv() (*WatchLogsReply, error) {
 	return m, nil
 }
 
-func (c *fFSAPIClient) PushConfig(ctx context.Context, in *PushConfigRequest, opts ...grpc.CallOption) (*PushConfigReply, error) {
-	out := new(PushConfigReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/PushConfig", in, out, opts...)
+func (c *fFSClient) Replace(ctx context.Context, in *ReplaceRequest, opts ...grpc.CallOption) (*ReplaceReply, error) {
+	out := new(ReplaceReply)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/Replace", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (FFSAPI_GetClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_FFSAPI_serviceDesc.Streams[2], "/rpc.FFSAPI/Get", opts...)
+func (c *fFSClient) PushConfig(ctx context.Context, in *PushConfigRequest, opts ...grpc.CallOption) (*PushConfigReply, error) {
+	out := new(PushConfigReply)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/PushConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &fFSAPIGetClient{stream}
+	return out, nil
+}
+
+func (c *fFSClient) Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveReply, error) {
+	out := new(RemoveReply)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/Remove", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fFSClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (FFS_GetClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_FFS_serviceDesc.Streams[2], "/rpc.FFS/Get", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &fFSGetClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -2406,16 +2588,16 @@ func (c *fFSAPIClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.Cal
 	return x, nil
 }
 
-type FFSAPI_GetClient interface {
+type FFS_GetClient interface {
 	Recv() (*GetReply, error)
 	grpc.ClientStream
 }
 
-type fFSAPIGetClient struct {
+type fFSGetClient struct {
 	grpc.ClientStream
 }
 
-func (x *fFSAPIGetClient) Recv() (*GetReply, error) {
+func (x *fFSGetClient) Recv() (*GetReply, error) {
 	m := new(GetReply)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -2423,39 +2605,39 @@ func (x *fFSAPIGetClient) Recv() (*GetReply, error) {
 	return m, nil
 }
 
-func (c *fFSAPIClient) Close(ctx context.Context, in *CloseRequest, opts ...grpc.CallOption) (*CloseReply, error) {
+func (c *fFSClient) Close(ctx context.Context, in *CloseRequest, opts ...grpc.CallOption) (*CloseReply, error) {
 	out := new(CloseReply)
-	err := c.cc.Invoke(ctx, "/rpc.FFSAPI/Close", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rpc.FFS/Close", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fFSAPIClient) AddToHot(ctx context.Context, opts ...grpc.CallOption) (FFSAPI_AddToHotClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_FFSAPI_serviceDesc.Streams[3], "/rpc.FFSAPI/AddToHot", opts...)
+func (c *fFSClient) AddToHot(ctx context.Context, opts ...grpc.CallOption) (FFS_AddToHotClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_FFS_serviceDesc.Streams[3], "/rpc.FFS/AddToHot", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &fFSAPIAddToHotClient{stream}
+	x := &fFSAddToHotClient{stream}
 	return x, nil
 }
 
-type FFSAPI_AddToHotClient interface {
+type FFS_AddToHotClient interface {
 	Send(*AddToHotRequest) error
 	CloseAndRecv() (*AddToHotReply, error)
 	grpc.ClientStream
 }
 
-type fFSAPIAddToHotClient struct {
+type fFSAddToHotClient struct {
 	grpc.ClientStream
 }
 
-func (x *fFSAPIAddToHotClient) Send(m *AddToHotRequest) error {
+func (x *fFSAddToHotClient) Send(m *AddToHotRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *fFSAPIAddToHotClient) CloseAndRecv() (*AddToHotReply, error) {
+func (x *fFSAddToHotClient) CloseAndRecv() (*AddToHotReply, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -2466,8 +2648,8 @@ func (x *fFSAPIAddToHotClient) CloseAndRecv() (*AddToHotReply, error) {
 	return m, nil
 }
 
-// FFSAPIServer is the server API for FFSAPI service.
-type FFSAPIServer interface {
+// FFSServer is the server API for FFS service.
+type FFSServer interface {
 	Create(context.Context, *CreateRequest) (*CreateReply, error)
 	ID(context.Context, *IDRequest) (*IDReply, error)
 	WalletAddr(context.Context, *WalletAddrRequest) (*WalletAddrReply, error)
@@ -2476,327 +2658,371 @@ type FFSAPIServer interface {
 	SetDefaultCidConfig(context.Context, *SetDefaultCidConfigRequest) (*SetDefaultCidConfigReply, error)
 	Show(context.Context, *ShowRequest) (*ShowReply, error)
 	Info(context.Context, *InfoRequest) (*InfoReply, error)
-	WatchJobs(*WatchJobsRequest, FFSAPI_WatchJobsServer) error
-	WatchLogs(*WatchLogsRequest, FFSAPI_WatchLogsServer) error
+	WatchJobs(*WatchJobsRequest, FFS_WatchJobsServer) error
+	WatchLogs(*WatchLogsRequest, FFS_WatchLogsServer) error
+	Replace(context.Context, *ReplaceRequest) (*ReplaceReply, error)
 	PushConfig(context.Context, *PushConfigRequest) (*PushConfigReply, error)
-	Get(*GetRequest, FFSAPI_GetServer) error
+	Remove(context.Context, *RemoveRequest) (*RemoveReply, error)
+	Get(*GetRequest, FFS_GetServer) error
 	Close(context.Context, *CloseRequest) (*CloseReply, error)
-	AddToHot(FFSAPI_AddToHotServer) error
+	AddToHot(FFS_AddToHotServer) error
 }
 
-// UnimplementedFFSAPIServer can be embedded to have forward compatible implementations.
-type UnimplementedFFSAPIServer struct {
+// UnimplementedFFSServer can be embedded to have forward compatible implementations.
+type UnimplementedFFSServer struct {
 }
 
-func (*UnimplementedFFSAPIServer) Create(ctx context.Context, req *CreateRequest) (*CreateReply, error) {
+func (*UnimplementedFFSServer) Create(ctx context.Context, req *CreateRequest) (*CreateReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (*UnimplementedFFSAPIServer) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
+func (*UnimplementedFFSServer) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ID not implemented")
 }
-func (*UnimplementedFFSAPIServer) WalletAddr(ctx context.Context, req *WalletAddrRequest) (*WalletAddrReply, error) {
+func (*UnimplementedFFSServer) WalletAddr(ctx context.Context, req *WalletAddrRequest) (*WalletAddrReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WalletAddr not implemented")
 }
-func (*UnimplementedFFSAPIServer) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigReply, error) {
+func (*UnimplementedFFSServer) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDefaultCidConfig not implemented")
 }
-func (*UnimplementedFFSAPIServer) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigReply, error) {
+func (*UnimplementedFFSServer) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCidConfig not implemented")
 }
-func (*UnimplementedFFSAPIServer) SetDefaultCidConfig(ctx context.Context, req *SetDefaultCidConfigRequest) (*SetDefaultCidConfigReply, error) {
+func (*UnimplementedFFSServer) SetDefaultCidConfig(ctx context.Context, req *SetDefaultCidConfigRequest) (*SetDefaultCidConfigReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetDefaultCidConfig not implemented")
 }
-func (*UnimplementedFFSAPIServer) Show(ctx context.Context, req *ShowRequest) (*ShowReply, error) {
+func (*UnimplementedFFSServer) Show(ctx context.Context, req *ShowRequest) (*ShowReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Show not implemented")
 }
-func (*UnimplementedFFSAPIServer) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error) {
+func (*UnimplementedFFSServer) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Info not implemented")
 }
-func (*UnimplementedFFSAPIServer) WatchJobs(req *WatchJobsRequest, srv FFSAPI_WatchJobsServer) error {
+func (*UnimplementedFFSServer) WatchJobs(req *WatchJobsRequest, srv FFS_WatchJobsServer) error {
 	return status.Errorf(codes.Unimplemented, "method WatchJobs not implemented")
 }
-func (*UnimplementedFFSAPIServer) WatchLogs(req *WatchLogsRequest, srv FFSAPI_WatchLogsServer) error {
+func (*UnimplementedFFSServer) WatchLogs(req *WatchLogsRequest, srv FFS_WatchLogsServer) error {
 	return status.Errorf(codes.Unimplemented, "method WatchLogs not implemented")
 }
-func (*UnimplementedFFSAPIServer) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigReply, error) {
+func (*UnimplementedFFSServer) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Replace not implemented")
+}
+func (*UnimplementedFFSServer) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PushConfig not implemented")
 }
-func (*UnimplementedFFSAPIServer) Get(req *GetRequest, srv FFSAPI_GetServer) error {
+func (*UnimplementedFFSServer) Remove(ctx context.Context, req *RemoveRequest) (*RemoveReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
+}
+func (*UnimplementedFFSServer) Get(req *GetRequest, srv FFS_GetServer) error {
 	return status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (*UnimplementedFFSAPIServer) Close(ctx context.Context, req *CloseRequest) (*CloseReply, error) {
+func (*UnimplementedFFSServer) Close(ctx context.Context, req *CloseRequest) (*CloseReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Close not implemented")
 }
-func (*UnimplementedFFSAPIServer) AddToHot(srv FFSAPI_AddToHotServer) error {
+func (*UnimplementedFFSServer) AddToHot(srv FFS_AddToHotServer) error {
 	return status.Errorf(codes.Unimplemented, "method AddToHot not implemented")
 }
 
-func RegisterFFSAPIServer(s *grpc.Server, srv FFSAPIServer) {
-	s.RegisterService(&_FFSAPI_serviceDesc, srv)
+func RegisterFFSServer(s *grpc.Server, srv FFSServer) {
+	s.RegisterService(&_FFS_serviceDesc, srv)
 }
 
-func _FFSAPI_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).Create(ctx, in)
+		return srv.(FFSServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/Create",
+		FullMethod: "/rpc.FFS/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).Create(ctx, req.(*CreateRequest))
+		return srv.(FFSServer).Create(ctx, req.(*CreateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_ID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_ID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).ID(ctx, in)
+		return srv.(FFSServer).ID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/ID",
+		FullMethod: "/rpc.FFS/ID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).ID(ctx, req.(*IDRequest))
+		return srv.(FFSServer).ID(ctx, req.(*IDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_WalletAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_WalletAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WalletAddrRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).WalletAddr(ctx, in)
+		return srv.(FFSServer).WalletAddr(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/WalletAddr",
+		FullMethod: "/rpc.FFS/WalletAddr",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).WalletAddr(ctx, req.(*WalletAddrRequest))
+		return srv.(FFSServer).WalletAddr(ctx, req.(*WalletAddrRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_GetDefaultCidConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_GetDefaultCidConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetDefaultCidConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).GetDefaultCidConfig(ctx, in)
+		return srv.(FFSServer).GetDefaultCidConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/GetDefaultCidConfig",
+		FullMethod: "/rpc.FFS/GetDefaultCidConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).GetDefaultCidConfig(ctx, req.(*GetDefaultCidConfigRequest))
+		return srv.(FFSServer).GetDefaultCidConfig(ctx, req.(*GetDefaultCidConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_GetCidConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_GetCidConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetCidConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).GetCidConfig(ctx, in)
+		return srv.(FFSServer).GetCidConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/GetCidConfig",
+		FullMethod: "/rpc.FFS/GetCidConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).GetCidConfig(ctx, req.(*GetCidConfigRequest))
+		return srv.(FFSServer).GetCidConfig(ctx, req.(*GetCidConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_SetDefaultCidConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_SetDefaultCidConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetDefaultCidConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).SetDefaultCidConfig(ctx, in)
+		return srv.(FFSServer).SetDefaultCidConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/SetDefaultCidConfig",
+		FullMethod: "/rpc.FFS/SetDefaultCidConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).SetDefaultCidConfig(ctx, req.(*SetDefaultCidConfigRequest))
+		return srv.(FFSServer).SetDefaultCidConfig(ctx, req.(*SetDefaultCidConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_Show_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_Show_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ShowRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).Show(ctx, in)
+		return srv.(FFSServer).Show(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/Show",
+		FullMethod: "/rpc.FFS/Show",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).Show(ctx, req.(*ShowRequest))
+		return srv.(FFSServer).Show(ctx, req.(*ShowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_Info_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_Info_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(InfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).Info(ctx, in)
+		return srv.(FFSServer).Info(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/Info",
+		FullMethod: "/rpc.FFS/Info",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).Info(ctx, req.(*InfoRequest))
+		return srv.(FFSServer).Info(ctx, req.(*InfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_WatchJobs_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _FFS_WatchJobs_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(WatchJobsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(FFSAPIServer).WatchJobs(m, &fFSAPIWatchJobsServer{stream})
+	return srv.(FFSServer).WatchJobs(m, &fFSWatchJobsServer{stream})
 }
 
-type FFSAPI_WatchJobsServer interface {
+type FFS_WatchJobsServer interface {
 	Send(*WatchJobsReply) error
 	grpc.ServerStream
 }
 
-type fFSAPIWatchJobsServer struct {
+type fFSWatchJobsServer struct {
 	grpc.ServerStream
 }
 
-func (x *fFSAPIWatchJobsServer) Send(m *WatchJobsReply) error {
+func (x *fFSWatchJobsServer) Send(m *WatchJobsReply) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _FFSAPI_WatchLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _FFS_WatchLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(WatchLogsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(FFSAPIServer).WatchLogs(m, &fFSAPIWatchLogsServer{stream})
+	return srv.(FFSServer).WatchLogs(m, &fFSWatchLogsServer{stream})
 }
 
-type FFSAPI_WatchLogsServer interface {
+type FFS_WatchLogsServer interface {
 	Send(*WatchLogsReply) error
 	grpc.ServerStream
 }
 
-type fFSAPIWatchLogsServer struct {
+type fFSWatchLogsServer struct {
 	grpc.ServerStream
 }
 
-func (x *fFSAPIWatchLogsServer) Send(m *WatchLogsReply) error {
+func (x *fFSWatchLogsServer) Send(m *WatchLogsReply) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _FFSAPI_PushConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_Replace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReplaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FFSServer).Replace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.FFS/Replace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FFSServer).Replace(ctx, req.(*ReplaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FFS_PushConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PushConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).PushConfig(ctx, in)
+		return srv.(FFSServer).PushConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/PushConfig",
+		FullMethod: "/rpc.FFS/PushConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).PushConfig(ctx, req.(*PushConfigRequest))
+		return srv.(FFSServer).PushConfig(ctx, req.(*PushConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_Get_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _FFS_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FFSServer).Remove(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.FFS/Remove",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FFSServer).Remove(ctx, req.(*RemoveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FFS_Get_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(GetRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(FFSAPIServer).Get(m, &fFSAPIGetServer{stream})
+	return srv.(FFSServer).Get(m, &fFSGetServer{stream})
 }
 
-type FFSAPI_GetServer interface {
+type FFS_GetServer interface {
 	Send(*GetReply) error
 	grpc.ServerStream
 }
 
-type fFSAPIGetServer struct {
+type fFSGetServer struct {
 	grpc.ServerStream
 }
 
-func (x *fFSAPIGetServer) Send(m *GetReply) error {
+func (x *fFSGetServer) Send(m *GetReply) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _FFSAPI_Close_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FFS_Close_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CloseRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FFSAPIServer).Close(ctx, in)
+		return srv.(FFSServer).Close(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.FFSAPI/Close",
+		FullMethod: "/rpc.FFS/Close",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FFSAPIServer).Close(ctx, req.(*CloseRequest))
+		return srv.(FFSServer).Close(ctx, req.(*CloseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FFSAPI_AddToHot_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(FFSAPIServer).AddToHot(&fFSAPIAddToHotServer{stream})
+func _FFS_AddToHot_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(FFSServer).AddToHot(&fFSAddToHotServer{stream})
 }
 
-type FFSAPI_AddToHotServer interface {
+type FFS_AddToHotServer interface {
 	SendAndClose(*AddToHotReply) error
 	Recv() (*AddToHotRequest, error)
 	grpc.ServerStream
 }
 
-type fFSAPIAddToHotServer struct {
+type fFSAddToHotServer struct {
 	grpc.ServerStream
 }
 
-func (x *fFSAPIAddToHotServer) SendAndClose(m *AddToHotReply) error {
+func (x *fFSAddToHotServer) SendAndClose(m *AddToHotReply) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *fFSAPIAddToHotServer) Recv() (*AddToHotRequest, error) {
+func (x *fFSAddToHotServer) Recv() (*AddToHotRequest, error) {
 	m := new(AddToHotRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -2804,70 +3030,78 @@ func (x *fFSAPIAddToHotServer) Recv() (*AddToHotRequest, error) {
 	return m, nil
 }
 
-var _FFSAPI_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "rpc.FFSAPI",
-	HandlerType: (*FFSAPIServer)(nil),
+var _FFS_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpc.FFS",
+	HandlerType: (*FFSServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Create",
-			Handler:    _FFSAPI_Create_Handler,
+			Handler:    _FFS_Create_Handler,
 		},
 		{
 			MethodName: "ID",
-			Handler:    _FFSAPI_ID_Handler,
+			Handler:    _FFS_ID_Handler,
 		},
 		{
 			MethodName: "WalletAddr",
-			Handler:    _FFSAPI_WalletAddr_Handler,
+			Handler:    _FFS_WalletAddr_Handler,
 		},
 		{
 			MethodName: "GetDefaultCidConfig",
-			Handler:    _FFSAPI_GetDefaultCidConfig_Handler,
+			Handler:    _FFS_GetDefaultCidConfig_Handler,
 		},
 		{
 			MethodName: "GetCidConfig",
-			Handler:    _FFSAPI_GetCidConfig_Handler,
+			Handler:    _FFS_GetCidConfig_Handler,
 		},
 		{
 			MethodName: "SetDefaultCidConfig",
-			Handler:    _FFSAPI_SetDefaultCidConfig_Handler,
+			Handler:    _FFS_SetDefaultCidConfig_Handler,
 		},
 		{
 			MethodName: "Show",
-			Handler:    _FFSAPI_Show_Handler,
+			Handler:    _FFS_Show_Handler,
 		},
 		{
 			MethodName: "Info",
-			Handler:    _FFSAPI_Info_Handler,
+			Handler:    _FFS_Info_Handler,
+		},
+		{
+			MethodName: "Replace",
+			Handler:    _FFS_Replace_Handler,
 		},
 		{
 			MethodName: "PushConfig",
-			Handler:    _FFSAPI_PushConfig_Handler,
+			Handler:    _FFS_PushConfig_Handler,
+		},
+		{
+			MethodName: "Remove",
+			Handler:    _FFS_Remove_Handler,
 		},
 		{
 			MethodName: "Close",
-			Handler:    _FFSAPI_Close_Handler,
+			Handler:    _FFS_Close_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "WatchJobs",
-			Handler:       _FFSAPI_WatchJobs_Handler,
+			Handler:       _FFS_WatchJobs_Handler,
 			ServerStreams: true,
 		},
 		{
 			StreamName:    "WatchLogs",
-			Handler:       _FFSAPI_WatchLogs_Handler,
+			Handler:       _FFS_WatchLogs_Handler,
 			ServerStreams: true,
 		},
 		{
 			StreamName:    "Get",
-			Handler:       _FFSAPI_Get_Handler,
+			Handler:       _FFS_Get_Handler,
 			ServerStreams: true,
 		},
 		{
 			StreamName:    "AddToHot",
-			Handler:       _FFSAPI_AddToHot_Handler,
+			Handler:       _FFS_AddToHot_Handler,
 			ClientStreams: true,
 		},
 	},

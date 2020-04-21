@@ -33,8 +33,6 @@ var ffsWatchCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
-
 		if len(args) != 1 {
 			Fatal(errors.New("you must provide a comma-separated list of job ids"))
 		}
@@ -45,42 +43,49 @@ var ffsWatchCmd = &cobra.Command{
 			jobIds[i] = ffs.JobID(s)
 		}
 
-		state := make(map[string]*client.JobEvent, len(jobIds))
-		for _, jobID := range jobIds {
-			state[jobID.String()] = nil
-		}
-
-		writer := uilive.New()
-		writer.Start()
-
-		updateJobsOutput(writer, state)
-
-		ch, cancel, err := fcClient.Ffs.WatchJobs(authCtx(ctx), jobIds...)
-		checkErr(err)
-		defer cancel()
-
-		c := make(chan os.Signal)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-		go func() {
-			<-c
-			cancel()
-			os.Exit(0)
-		}()
-
-		for {
-			event, ok := <-ch
-			if !ok {
-				break
-			}
-			state[event.Job.ID.String()] = &event
-			updateJobsOutput(writer, state)
-			if jobsComplete(state) {
-				break
-			}
-		}
-
-		writer.Stop()
+		watchJobIds(jobIds...)
 	},
+}
+
+func watchJobIds(jobIds ...ffs.JobID) {
+	state := make(map[string]*client.JobEvent, len(jobIds))
+	for _, jobID := range jobIds {
+		state[jobID.String()] = nil
+	}
+
+	writer := uilive.New()
+	writer.Start()
+
+	updateJobsOutput(writer, state)
+
+	ch := make(chan client.JobEvent)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := fcClient.Ffs.WatchJobs(authCtx(ctx), ch, jobIds...)
+	checkErr(err)
+
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		cancel()
+		os.Exit(0)
+	}()
+
+	for {
+		event, ok := <-ch
+		if !ok {
+			break
+		}
+		state[event.Job.ID.String()] = &event
+		updateJobsOutput(writer, state)
+		if jobsComplete(state) {
+			break
+		}
+	}
+
+	writer.Stop()
 }
 
 func updateJobsOutput(writer io.Writer, state map[string]*client.JobEvent) {

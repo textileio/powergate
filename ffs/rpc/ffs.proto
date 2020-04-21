@@ -197,6 +197,15 @@ message LogEntry {
         string msg = 4;
 }
 
+message ReplaceRequest {
+   string cid1 = 1;
+   string cid2 = 2;
+}
+
+message ReplaceReply {
+   string jobID = 1;
+}
+
 message PushConfigRequest {
    string cid = 1;
    CidConfig config = 2;
@@ -207,6 +216,13 @@ message PushConfigRequest {
 
 message PushConfigReply {
    string jobID = 1;
+}
+
+message RemoveRequest {
+   string cid = 1;
+}
+
+message RemoveReply {
 }
 
 message GetRequest {
@@ -233,7 +249,7 @@ message AddToHotReply {
 
 
 
-service FFSAPI {
+service FFS {
    rpc Create(CreateRequest) returns (CreateReply) {}
    rpc ID(IDRequest) returns (IDReply) {}
    rpc WalletAddr(WalletAddrRequest) returns (WalletAddrReply) {}
@@ -244,7 +260,9 @@ service FFSAPI {
    rpc Info(InfoRequest) returns (InfoReply) {}
    rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsReply) {}
    rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsReply){}
+   rpc Replace(ReplaceRequest) returns (ReplaceReply) {}
    rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
+   rpc Remove(RemoveRequest) returns (RemoveReply) {}
    rpc Get(GetRequest) returns (stream GetReply) {}
    rpc Close(CloseRequest) returns (CloseReply) {}
    rpc AddToHot(stream AddToHotRequest) returns (AddToHotReply) {}

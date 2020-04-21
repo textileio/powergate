@@ -295,7 +295,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		askPb.RegisterAPIServer(server, askService)
 		minerPb.RegisterAPIServer(server, minerService)
 		slashingPb.RegisterAPIServer(server, slashingService)
-		ffsRpc.RegisterFFSAPIServer(server, ffsService)
+		ffsRpc.RegisterFFSServer(server, ffsService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
 		}
