@@ -30,6 +30,7 @@ type Config struct {
 	DefaultCidConfig ffs.DefaultCidConfig
 }
 
+// AddrInfo provides information about a wallet address
 type AddrInfo struct {
 	Name string
 	Addr string
