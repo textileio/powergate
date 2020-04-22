@@ -289,7 +289,9 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 // Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
 func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
-	// ToDo: Should we be locking here?
+	i.lock.Lock()
+	defer i.lock.Unlock()
+
 	cfg, err := i.is.GetCidConfig(c1)
 	if err == ErrNotFound {
 		return ffs.EmptyJobID, ErrReplacedCidNotFound
