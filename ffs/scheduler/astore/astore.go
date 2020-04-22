@@ -103,6 +103,7 @@ func (s *Store) GetRenewable() ([]scheduler.Action, error) {
 	return as, nil
 }
 
+// GetRepairable returns all Actions that have CidConfigs with enabled auto-repair.
 func (s *Store) GetRepairable() ([]scheduler.Action, error) {
 	as, err := s.query(func(a scheduler.Action) bool {
 		return a.Cfg.Repairable
