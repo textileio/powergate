@@ -19,6 +19,8 @@ const (
 
 var (
 	log = logging.Logger("ffs-scheduler")
+
+	cronsFrequency = util.AvgBlockTime
 )
 
 // Scheduler receives actions to store a Cid in Hot and Cold layers. These actions are
@@ -195,10 +197,13 @@ func (s *Scheduler) run() {
 		case <-s.ctx.Done():
 			log.Infof("terminating scheduler daemon")
 			return
-		case <-time.After(util.AvgBlockTime):
+		case <-time.After(cronsFrequency):
 			log.Debug("running renewal checks...")
-			s.scanRenewable(s.ctx)
-			log.Debug("renewal checks done")
+			s.execRenewCron(s.ctx)
+			log.Debug("renewal cron done")
+			log.Debug("running repair checks...")
+			s.execRepairCron(s.ctx)
+			log.Debug("repair cron done")
 		case <-s.queuedWork:
 			log.Debug("running queued Job...")
 			s.executeQueuedJobs(s.ctx)
@@ -207,7 +212,30 @@ func (s *Scheduler) run() {
 	}
 }
 
-func (s *Scheduler) scanRenewable(ctx context.Context) {
+func (s *Scheduler) execRepairCron(ctx context.Context) {
+	as, err := s.as.GetRepairable()
+	if err != nil {
+		log.Errorf("getting repairable cid configs from store: %s", err)
+	}
+	for _, a := range as {
+		log.Debugf("evaluating deal repair for Cid %s", a.Cfg.Cid)
+		if err := evaluateRepair(ctx, a); err != nil {
+			log.Errorf("repair of %s: %s", a.Cfg.Cid, err)
+		}
+		log.Debugf("deal repair done")
+	}
+}
+
+func (s *Scheduler) evaluateRepair(ctx context.Context, a Action) error {
+	s.l.Log(ctx, a.Cfg.Cid, "Evaluating deal repair...")
+
+	panic("TODO")
+
+	s.l.Log(ctx, a.Cfg.Cid, "Deal repair evaluated successfully")
+	return nil
+}
+
+func (s *Scheduler) execRenewCron(ctx context.Context) {
 	as, err := s.as.GetRenewable()
 	if err != nil {
 		log.Errorf("getting renweable cid configs from store: %s", err)
@@ -283,7 +311,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 
 	ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
 	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
-	info, err := s.executePushConfigAction(ctx, a, j)
+	info, err := s.executeCidConfig(ctx, a, j)
 	if err != nil {
 		log.Errorf("executing job %s: %s", j.ID, err)
 		j.ErrCause = err.Error()
@@ -303,7 +331,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 	return nil
 }
 
-func (s *Scheduler) executePushConfigAction(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, error) {
+func (s *Scheduler) executeCidConfig(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
