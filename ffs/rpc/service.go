@@ -300,6 +300,7 @@ func (s *Service) WatchJobs(req *WatchJobsRequest, srv FFS_WatchJobsServer) erro
 			Job: &Job{
 				ID:       job.ID.String(),
 				ApiID:    job.APIID.String(),
+				Cid:      job.Cid.String(),
 				Status:   JobStatus(job.Status),
 				ErrCause: job.ErrCause,
 			},

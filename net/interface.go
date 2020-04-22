@@ -48,7 +48,7 @@ func (s Connectedness) String() string {
 // PeerInfo provides address info and location info about a peer
 type PeerInfo struct {
 	AddrInfo peer.AddrInfo
-	Location iplocation.Location
+	Location *iplocation.Location
 }
 
 //Module defines the net API

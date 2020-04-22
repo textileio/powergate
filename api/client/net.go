@@ -128,11 +128,14 @@ func fromProtoPeerInfo(proto *rpc.PeerInfo) (n.PeerInfo, error) {
 			ID:    id,
 			Addrs: addrs,
 		},
-		Location: iplocation.Location{
+	}
+	if proto.Location != nil {
+		peerInfo.Location = &iplocation.Location{
 			Country:   proto.Location.Country,
 			Latitude:  proto.Location.Latitude,
 			Longitude: proto.Location.Longitude,
-		},
+		}
 	}
+
 	return peerInfo, nil
 }

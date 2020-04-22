@@ -58,11 +58,13 @@ func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 				ID:    peer.AddrInfo.ID.String(),
 				Addrs: addrs,
 			},
-			Location: &Location{
+		}
+		if peer.Location != nil {
+			peerResults[i].Location = &Location{
 				Country:   peer.Location.Country,
 				Latitude:  peer.Location.Latitude,
 				Longitude: peer.Location.Longitude,
-			},
+			}
 		}
 	}
 
