@@ -75,6 +75,7 @@ const (
 type Job struct {
 	ID       JobID
 	APIID    APIID
+	Cid      cid.Cid
 	Status   JobStatus
 	ErrCause string
 }

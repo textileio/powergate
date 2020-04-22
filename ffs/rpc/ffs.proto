@@ -106,8 +106,9 @@ enum JobStatus {
 message Job {
 	string ID = 1; 
 	string apiID = 2;
-	JobStatus status = 3;
-	string errCause = 4;
+	string cid = 3;
+	JobStatus status = 4;
+	string errCause = 5;
 }
 
 // request/reply messages

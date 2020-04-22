@@ -13,6 +13,10 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
+const (
+	maxParallelExecutions = 10
+)
+
 var (
 	log = logging.Logger("ffs-scheduler")
 )
@@ -92,10 +96,12 @@ func (s *Scheduler) push(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid 
 	j := ffs.Job{
 		ID:     jid,
 		APIID:  iid,
+		Cid:    cfg.Cid,
 		Status: ffs.Queued,
 	}
-	if err := s.js.Put(j); err != nil {
-		return ffs.EmptyJobID, fmt.Errorf("saving replace action in store: %s", err)
+
+	if err := s.js.Enqueue(j); err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("enqueuing job: %s", err)
 	}
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
 	s.l.Log(ctx, cfg.Cid, "Pushing new configuration...")
@@ -244,50 +250,61 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a Action) error {
 }
 
 func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
-	js, err := s.js.GetByStatus(ffs.Queued)
-	if err != nil {
-		log.Errorf("getting queued jobs: %s", err)
-		return
-	}
-	log.Infof("detected %d queued jobs", len(js))
-	for _, j := range js {
-
-		if err := s.mutateJobStatus(j, ffs.InProgress); err != nil {
-			log.Errorf("changing job to in-progress: %s", err)
-			return
-		}
-
-		a, err := s.as.Get(j.ID)
-		if err != nil {
-			log.Errorf("getting push config action data from store: %s", err)
-			continue
-		}
-
-		ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
-		s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
-
-		info, err := s.executePushConfigAction(ctx, a, j)
-		if err != nil {
-			log.Errorf("executing job %s: %s", j.ID, err)
-			j.ErrCause = err.Error()
-			if err := s.mutateJobStatus(j, ffs.Failed); err != nil {
-				log.Errorf("changing job to failed: %s", err)
-			}
-			s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
-			continue
-		}
-		if err := s.cis.Put(info); err != nil {
-			log.Errorf("saving cid info to store: %s", err)
-		}
-		if err := s.mutateJobStatus(j, ffs.Success); err != nil {
-			log.Errorf("changing job to success: %s", err)
-		}
-		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)
-
+	var err error
+	var j *ffs.Job
+	rateLim := make(chan struct{}, maxParallelExecutions)
+	for {
 		if ctx.Err() != nil {
 			break
 		}
+		j, err = s.js.Dequeue()
+		if err != nil {
+			log.Errorf("getting queued jobs: %s", err)
+			return
+		}
+		if j == nil {
+			break
+		}
+		rateLim <- struct{}{}
+		go func(j ffs.Job) {
+			if err := s.executeQueuedJob(j); err != nil {
+				log.Errorf("error executing job %s: %s", j.ID, err)
+			}
+			<-rateLim
+		}(*j)
 	}
+	for i := 0; i < maxParallelExecutions; i++ {
+		rateLim <- struct{}{}
+	}
+}
+
+func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
+	a, err := s.as.Get(j.ID)
+	if err != nil {
+		log.Errorf("getting push config action data from store: %s", err)
+		return nil
+	}
+
+	ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
+	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
+	info, err := s.executePushConfigAction(ctx, a, j)
+	if err != nil {
+		log.Errorf("executing job %s: %s", j.ID, err)
+		j.ErrCause = err.Error()
+		if err := s.js.Finalize(j.ID, ffs.Failed); err != nil {
+			log.Errorf("changing job to failed: %s", err)
+		}
+		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
+		return nil
+	}
+	if err := s.cis.Put(info); err != nil {
+		log.Errorf("saving cid info to store: %s", err)
+	}
+	if err := s.js.Finalize(j.ID, ffs.Success); err != nil {
+		log.Errorf("changing job to success: %s", err)
+	}
+	s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)
+	return nil
 }
 
 func (s *Scheduler) executePushConfigAction(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, error) {
@@ -455,14 +472,6 @@ func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {
 		res.ExcludedMiners = append(res.ExcludedMiners, p.Miner)
 	}
 	return res
-}
-
-func (s *Scheduler) mutateJobStatus(j ffs.Job, status ffs.JobStatus) error {
-	j.Status = status
-	if err := s.js.Put(j); err != nil {
-		return err
-	}
-	return nil
 }
 
 type hotStorageBlockstore struct {

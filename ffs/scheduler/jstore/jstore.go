@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
@@ -20,9 +21,10 @@ var (
 // Store is a Datastore implementation of JobStore, which saves
 // state of scheduler Jobs.
 type Store struct {
-	lock     sync.Mutex
-	ds       datastore.Datastore
-	watchers []watcher
+	lock       sync.Mutex
+	ds         datastore.Datastore
+	watchers   []watcher
+	inProgress map[cid.Cid]struct{}
 }
 
 var _ scheduler.JobStore = (*Store)(nil)
@@ -35,15 +37,36 @@ type watcher struct {
 // New returns a new JobStore backed by the Datastore.
 func New(ds datastore.Datastore) *Store {
 	return &Store{
-		ds: ds,
+		ds:         ds,
+		inProgress: make(map[cid.Cid]struct{}),
 	}
 }
 
-// GetByStatus returns all Jobs with the specified JobStatus.
-func (s *Store) GetByStatus(status ffs.JobStatus) ([]ffs.Job, error) {
+// Finalize sets a Job status to a final state, i.e. Success or Failed.
+func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	j, err := s.get(jid)
+	if err != nil {
+		return err
+	}
+	if st != ffs.Success && st != ffs.Failed {
+		return fmt.Errorf("new state should be final")
+	}
+	j.Status = st
+	if err := s.put(j); err != nil {
+		return fmt.Errorf("saving in datastore: %s", err)
+	}
+	return nil
+}
 
+// Dequeue dequeues a Job which doesn't have have another in-progress Job
+// for the same Cid. Saying it differently, it's safe to execute. The returned
+// job Status is automatically changed to Queued. If no jobs are available to dequeue
+// it returns a nil *ffs.Job and no-error.
+func (s *Store) Dequeue() (*ffs.Job, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	q := query.Query{Prefix: ""}
 	res, err := s.ds.Query(q)
 	if err != nil {
@@ -51,35 +74,64 @@ func (s *Store) GetByStatus(status ffs.JobStatus) ([]ffs.Job, error) {
 	}
 	defer func() {
 		if err := res.Close(); err != nil {
+			log.Errorf("closing dequeue query result: %s", err)
+		}
+	}()
+	for r := range res.Next() {
+		var j ffs.Job
+		if err := json.Unmarshal(r.Value, &j); err != nil {
+			return nil, fmt.Errorf("unmarshalling job: %s", err)
+		}
+		_, ok := s.inProgress[j.Cid]
+		if j.Status == ffs.Queued && !ok {
+			j.Status = ffs.InProgress
+			if err := s.put(j); err != nil {
+				return nil, err
+			}
+			return &j, nil
+		}
+	}
+	return nil, nil
+}
+
+// Enqueue queues a new Job. If other Job for the same Cid is in Queued status,
+// it will be automatically marked as Canceled.
+func (s *Store) Enqueue(j ffs.Job) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	if err := s.cancelQueued(j.Cid); err != nil {
+		return fmt.Errorf("canceling queued jobs: %s", err)
+	}
+	j.Status = ffs.Queued
+	if err := s.put(j); err != nil {
+		return fmt.Errorf("saving to datastore: %s", err)
+	}
+	return nil
+}
+
+func (s *Store) cancelQueued(c cid.Cid) error {
+	q := query.Query{Prefix: ""}
+	res, err := s.ds.Query(q)
+	if err != nil {
+		return fmt.Errorf("querying datastore: %s", err)
+	}
+	defer func() {
+		if err := res.Close(); err != nil {
 			log.Errorf("closing getbystatus query result: %s", err)
 		}
 	}()
-
-	var ret []ffs.Job
 	for r := range res.Next() {
-		var job ffs.Job
-		if err := json.Unmarshal(r.Value, &job); err != nil {
-			return nil, fmt.Errorf("unmarshalling job in query: %s", err)
+		var j ffs.Job
+		if err := json.Unmarshal(r.Value, &j); err != nil {
+			return fmt.Errorf("unmarshalling job: %s", err)
 		}
-		if job.Status == status {
-			ret = append(ret, job)
+		if j.Status == ffs.Queued && j.Cid == c {
+			j.Status = ffs.Canceled
+			if err := s.put(j); err != nil {
+				return fmt.Errorf("canceling queued job: %s", err)
+			}
 		}
 	}
-	return ret, nil
-}
-
-// Put saves Job's data in the Datastore.
-func (s *Store) Put(j ffs.Job) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	buf, err := json.Marshal(j)
-	if err != nil {
-		return fmt.Errorf("marshaling for datastore: %s", err)
-	}
-	if err := s.ds.Put(makeKey(j.ID), buf); err != nil {
-		return fmt.Errorf("saving to datastore: %s", err)
-	}
-	s.notifyWatchers(j)
 	return nil
 }
 
@@ -89,18 +141,7 @@ func (s *Store) Get(jid ffs.JobID) (ffs.Job, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	buf, err := s.ds.Get(makeKey(jid))
-	if err == datastore.ErrNotFound {
-		return ffs.Job{}, scheduler.ErrNotFound
-	}
-	if err != nil {
-		return ffs.Job{}, fmt.Errorf("getting job from datastore: %s", err)
-	}
-	var job ffs.Job
-	if err := json.Unmarshal(buf, &job); err != nil {
-		return job, fmt.Errorf("unmarshaling job from datastore: %s", err)
-	}
-	return job, nil
+	return s.get(jid)
 }
 
 // Watch subscribes to Job changes from a specified Api instance.
@@ -142,6 +183,38 @@ func (s *Store) Close() error {
 		close(s.watchers[i].C)
 	}
 	return nil
+}
+
+func (s *Store) put(j ffs.Job) error {
+	buf, err := json.Marshal(j)
+	if err != nil {
+		return fmt.Errorf("marshaling for datastore: %s", err)
+	}
+	if err := s.ds.Put(makeKey(j.ID), buf); err != nil {
+		return fmt.Errorf("saving to datastore: %s", err)
+	}
+	s.notifyWatchers(j)
+	if j.Status == ffs.InProgress {
+		s.inProgress[j.Cid] = struct{}{}
+	} else if j.Status == ffs.Failed || j.Status == ffs.Success {
+		delete(s.inProgress, j.Cid)
+	}
+	return nil
+}
+
+func (s *Store) get(jid ffs.JobID) (ffs.Job, error) {
+	buf, err := s.ds.Get(makeKey(jid))
+	if err == datastore.ErrNotFound {
+		return ffs.Job{}, scheduler.ErrNotFound
+	}
+	if err != nil {
+		return ffs.Job{}, fmt.Errorf("getting job from datastore: %s", err)
+	}
+	var job ffs.Job
+	if err := json.Unmarshal(buf, &job); err != nil {
+		return job, fmt.Errorf("unmarshaling job from datastore: %s", err)
+	}
+	return job, nil
 }
 
 func (s *Store) notifyWatchers(j ffs.Job) {
