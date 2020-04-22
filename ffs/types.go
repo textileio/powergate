@@ -111,6 +111,12 @@ type CidConfig struct {
 	Repairable bool
 }
 
+// WithRepairable allows to enable/disable auto-repair.
+func (c CidConfig) WithRepairable(enabled bool) CidConfig {
+	c.Repairable = enabled
+	return c
+}
+
 // WithColdEnabled allows to enable/disable Cold storage usage.
 func (c CidConfig) WithColdEnabled(enabled bool) CidConfig {
 	c.Cold.Enabled = enabled

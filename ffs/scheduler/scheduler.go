@@ -19,8 +19,6 @@ const (
 
 var (
 	log = logging.Logger("ffs-scheduler")
-
-	cronsFrequency = util.AvgBlockTime
 )
 
 // Scheduler receives actions to store a Cid in Hot and Cold layers. These actions are
@@ -197,7 +195,7 @@ func (s *Scheduler) run() {
 		case <-s.ctx.Done():
 			log.Infof("terminating scheduler daemon")
 			return
-		case <-time.After(cronsFrequency):
+		case <-time.After(util.AvgBlockTime):
 			log.Debug("running renewal checks...")
 			s.execRenewCron(s.ctx)
 			log.Debug("renewal cron done")
