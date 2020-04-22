@@ -60,6 +60,7 @@ func (s *Service) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
 	return &IDReply{ID: id.String()}, nil
 }
 
+// Addrs calls ffs.Addrs
 func (s *Service) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -76,6 +77,7 @@ func (s *Service) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, er
 	return &AddrsReply{Addrs: res}, nil
 }
 
+// DefaultConfig calls ffs.DefaultConfig
 func (s *Service) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -84,13 +86,13 @@ func (s *Service) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) 
 	conf := i.DefaultConfig()
 	return &DefaultConfigReply{
 		DefaultConfig: &DefaultConfig{
-			Hot:  toRpcHotConfig(conf.Hot),
-			Cold: toRpcColdConfig(conf.Cold),
+			Hot:  toRPCHotConfig(conf.Hot),
+			Cold: toRPCColdConfig(conf.Cold),
 		},
 	}, nil
 }
 
-// WalletAddr returns the wallet address
+// NewAddr calls ffs.NewAddr
 func (s *Service) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -126,8 +128,8 @@ func (s *Service) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidCon
 	return &GetDefaultCidConfigReply{
 		Config: &CidConfig{
 			Cid:  config.Cid.String(),
-			Hot:  toRpcHotConfig(config.Hot),
-			Cold: toRpcColdConfig(config.Cold),
+			Hot:  toRPCHotConfig(config.Hot),
+			Cold: toRPCColdConfig(config.Cold),
 		},
 	}, nil
 }
@@ -149,8 +151,8 @@ func (s *Service) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*
 	return &GetCidConfigReply{
 		Config: &CidConfig{
 			Cid:  config.Cid.String(),
-			Hot:  toRpcHotConfig(config.Hot),
-			Cold: toRpcColdConfig(config.Cold),
+			Hot:  toRPCHotConfig(config.Hot),
+			Cold: toRPCColdConfig(config.Cold),
 		},
 	}, nil
 }
@@ -265,8 +267,8 @@ func (s *Service) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error
 		Info: &InstanceInfo{
 			ID: info.ID.String(),
 			DefaultConfig: &DefaultConfig{
-				Hot:  toRpcHotConfig(info.DefaultConfig.Hot),
-				Cold: toRpcColdConfig(info.DefaultConfig.Cold),
+				Hot:  toRPCHotConfig(info.DefaultConfig.Hot),
+				Cold: toRPCColdConfig(info.DefaultConfig.Cold),
 			},
 			Balances: balances,
 			Pins:     make([]string, len(info.Pins)),
@@ -557,7 +559,7 @@ func receiveFile(srv FFS_AddToHotServer, writer *io.PipeWriter) {
 	}
 }
 
-func toRpcHotConfig(config ffs.HotConfig) *HotConfig {
+func toRPCHotConfig(config ffs.HotConfig) *HotConfig {
 	return &HotConfig{
 		Enabled:       config.Enabled,
 		AllowUnfreeze: config.AllowUnfreeze,
@@ -567,7 +569,7 @@ func toRpcHotConfig(config ffs.HotConfig) *HotConfig {
 	}
 }
 
-func toRpcColdConfig(config ffs.ColdConfig) *ColdConfig {
+func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
 	return &ColdConfig{
 		Enabled: config.Enabled,
 		Filecoin: &FilConfig{

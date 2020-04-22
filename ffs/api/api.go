@@ -117,7 +117,7 @@ func (i *API) Addrs() []AddrInfo {
 	return addrs
 }
 
-// GetDefaultCfg returns the DefaultCidConfig
+// DefaultConfig returns the DefaultConfig
 func (i *API) DefaultConfig() ffs.DefaultConfig {
 	return i.cfg.DefaultConfig
 }

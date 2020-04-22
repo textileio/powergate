@@ -49,8 +49,8 @@ func WithCidConfig(c ff.CidConfig) PushConfigOption {
 		r.HasConfig = true
 		r.Config = &rpc.CidConfig{
 			Cid:  c.Cid.String(),
-			Hot:  toRpcHotConfig(c.Hot),
-			Cold: toRpcColdConfig(c.Cold),
+			Hot:  toRPCHotConfig(c.Hot),
+			Cold: toRPCColdConfig(c.Cold),
 		}
 	}
 }
@@ -162,8 +162,8 @@ func (f *ffs) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigRep
 func (f *ffs) SetDefaultConfig(ctx context.Context, config ff.DefaultConfig) error {
 	req := &rpc.SetDefaultConfigRequest{
 		Config: &rpc.DefaultConfig{
-			Hot:  toRpcHotConfig(config.Hot),
-			Cold: toRpcColdConfig(config.Cold),
+			Hot:  toRPCHotConfig(config.Hot),
+			Cold: toRPCColdConfig(config.Cold),
 		},
 	}
 	_, err := f.client.SetDefaultConfig(ctx, req)
@@ -361,7 +361,7 @@ func (f *ffs) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	return &cid, nil
 }
 
-func toRpcHotConfig(config ff.HotConfig) *rpc.HotConfig {
+func toRPCHotConfig(config ff.HotConfig) *rpc.HotConfig {
 	return &rpc.HotConfig{
 		Enabled:       config.Enabled,
 		AllowUnfreeze: config.AllowUnfreeze,
@@ -371,7 +371,7 @@ func toRpcHotConfig(config ff.HotConfig) *rpc.HotConfig {
 	}
 }
 
-func toRpcColdConfig(config ff.ColdConfig) *rpc.ColdConfig {
+func toRPCColdConfig(config ff.ColdConfig) *rpc.ColdConfig {
 	return &rpc.ColdConfig{
 		Enabled: config.Enabled,
 		Filecoin: &rpc.FilConfig{
