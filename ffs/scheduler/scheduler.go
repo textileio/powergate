@@ -218,20 +218,21 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
 	for _, a := range as {
-		log.Debugf("evaluating deal repair for Cid %s", a.Cfg.Cid)
-		if err := evaluateRepair(ctx, a); err != nil {
+		log.Debugf("scheduling deal repair for Cid %s", a.Cfg.Cid)
+		if err := s.scheduleRepairJob(ctx, a); err != nil {
 			log.Errorf("repair of %s: %s", a.Cfg.Cid, err)
 		}
-		log.Debugf("deal repair done")
+		log.Debugf("scheduling repair done")
 	}
 }
 
-func (s *Scheduler) evaluateRepair(ctx context.Context, a Action) error {
-	s.l.Log(ctx, a.Cfg.Cid, "Evaluating deal repair...")
-
-	panic("TODO")
-
-	s.l.Log(ctx, a.Cfg.Cid, "Deal repair evaluated successfully")
+func (s *Scheduler) scheduleRepairJob(ctx context.Context, a Action) error {
+	s.l.Log(ctx, a.Cfg.Cid, "Scheduling deal repair...")
+	jid, err := s.push(a.APIID, a.Cfg, cid.Undef)
+	if err != nil {
+		return fmt.Errorf("scheduling repair job: %s", err)
+	}
+	s.l.Log(ctx, a.Cfg.Cid, "Job %s was queued for repair evaluation.", jid)
 	return nil
 }
 

@@ -46,6 +46,7 @@ type ActionStore interface {
 	// GetRenewable returns the known pushed configs that have enabled
 	// renew Filecoin flag for their deals.
 	GetRenewable() ([]Action, error)
+	GetRepairable() ([]Action, error)
 }
 
 // CidInfoStore persists CidInfo which represent the current storage

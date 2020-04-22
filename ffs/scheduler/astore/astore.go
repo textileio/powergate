@@ -94,6 +94,26 @@ func (s *Store) Remove(c cid.Cid) error {
 // GetRenewable returns all Actions that have CidConfigs that have the Renew flag enabled
 // and should be inspected for Deal renewals.
 func (s *Store) GetRenewable() ([]scheduler.Action, error) {
+	as, err := s.query(func(a scheduler.Action) bool {
+		return a.Cfg.Cold.Enabled && a.Cfg.Cold.Filecoin.Renew.Enabled
+	})
+	if err != nil {
+		return nil, fmt.Errorf("querying for repairable actions: %s", err)
+	}
+	return as, nil
+}
+
+func (s *Store) GetRepairable() ([]scheduler.Action, error) {
+	as, err := s.query(func(a scheduler.Action) bool {
+		return a.Cfg.Repairable
+	})
+	if err != nil {
+		return nil, fmt.Errorf("querying for repairable actions: %s", err)
+	}
+	return as, nil
+}
+
+func (s *Store) query(selector func(scheduler.Action) bool) ([]scheduler.Action, error) {
 	q := query.Query{Prefix: ""}
 	res, err := s.ds.Query(q)
 	if err != nil {
@@ -111,11 +131,12 @@ func (s *Store) GetRenewable() ([]scheduler.Action, error) {
 		if err := json.Unmarshal(r.Value, &a); err != nil {
 			return nil, fmt.Errorf("unmarshalling push config action in query: %s", err)
 		}
-		if a.Cfg.Cold.Enabled && a.Cfg.Cold.Filecoin.Renew.Enabled {
+		if selector(a) {
 			as = append(as, a)
 		}
 	}
 	return as, nil
+
 }
 
 func makeKey(jid ffs.JobID) datastore.Key {
