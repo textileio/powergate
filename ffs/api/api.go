@@ -47,7 +47,7 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultCidConfig) (*API, error) {
+func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultConfig) (*API, error) {
 	addr, err := wm.NewAddress(ctx, defaultAddressType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
@@ -65,9 +65,9 @@ func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler
 	}
 
 	config := Config{
-		ID:               iid,
-		Addrs:            map[string]AddrInfo{addr: addrInfo},
-		DefaultCidConfig: dc,
+		ID:            iid,
+		Addrs:         map[string]AddrInfo{addr: addrInfo},
+		DefaultConfig: dc,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -118,8 +118,8 @@ func (i *API) Addrs() []AddrInfo {
 }
 
 // GetDefaultCfg returns the DefaultCidConfig
-func (i *API) GetDefaultCfg() ffs.DefaultCidConfig {
-	return i.cfg.DefaultCidConfig
+func (i *API) DefaultConfig() ffs.DefaultConfig {
+	return i.cfg.DefaultConfig
 }
 
 // NewAddr creates a new address managed by the FFS instance
@@ -156,7 +156,7 @@ func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 		Addr: addr,
 	}
 	if conf.makeDefault {
-		i.cfg.DefaultCidConfig.Cold.Filecoin.Addr = addr
+		i.cfg.DefaultConfig.Cold.Filecoin.Addr = addr
 	}
 	if err := i.is.PutConfig(i.cfg); err != nil {
 		return "", err
@@ -168,7 +168,7 @@ func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 func (i *API) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
 	i.lock.Lock()
 	defer i.lock.Unlock()
-	return newDefaultPushConfig(c, i.cfg.DefaultCidConfig).Config
+	return newDefaultPushConfig(c, i.cfg.DefaultConfig).Config
 }
 
 // GetCidConfig returns the current CidConfig for a Cid.
@@ -183,14 +183,14 @@ func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
 	return conf, nil
 }
 
-// SetDefaultCidConfig sets a new default CidConfig.
-func (i *API) SetDefaultCidConfig(c ffs.DefaultCidConfig) error {
+// SetDefaultConfig sets a new default CidConfig.
+func (i *API) SetDefaultConfig(c ffs.DefaultConfig) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	if err := c.Validate(); err != nil {
 		return fmt.Errorf("default cid config is invalid: %s", err)
 	}
-	i.cfg.DefaultCidConfig = c
+	i.cfg.DefaultConfig = c
 	return i.is.PutConfig(i.cfg)
 }
 
@@ -231,10 +231,10 @@ func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	}
 
 	return InstanceInfo{
-		ID:               i.cfg.ID,
-		DefaultCidConfig: i.cfg.DefaultCidConfig,
-		Balances:         balances,
-		Pins:             pins,
+		ID:            i.cfg.ID,
+		DefaultConfig: i.cfg.DefaultConfig,
+		Balances:      balances,
+		Pins:          pins,
 	}, nil
 }
 
@@ -322,7 +322,7 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg := newDefaultPushConfig(c, i.cfg.DefaultCidConfig)
+	cfg := newDefaultPushConfig(c, i.cfg.DefaultConfig)
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)

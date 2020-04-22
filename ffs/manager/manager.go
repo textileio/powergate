@@ -20,7 +20,7 @@ var (
 	ErrAuthTokenNotFound = errors.New("auth token not found")
 
 	createDefConfig sync.Once
-	defCidConfig    ffs.DefaultCidConfig
+	defCidConfig    ffs.DefaultConfig
 
 	istoreNamespace = ds.NewKey("ffs/api/istore")
 
@@ -57,7 +57,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	defer m.lock.Unlock()
 
 	createDefConfig.Do(func() {
-		defCidConfig = ffs.DefaultCidConfig{
+		defCidConfig = ffs.DefaultConfig{
 			Hot: ffs.HotConfig{
 				Enabled: true,
 				Ipfs: ffs.IpfsConfig{

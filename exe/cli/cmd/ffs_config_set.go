@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	logging "github.com/ipfs/go-log/v2"
 	"github.com/caarlos0/spin"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/ffs"
@@ -55,12 +55,12 @@ var ffsConfigSetCmd = &cobra.Command{
 		_, err := buf.ReadFrom(reader)
 		checkErr(err)
 
-		config := ffs.DefaultCidConfig{}
+		config := ffs.DefaultConfig{}
 		checkErr(json.Unmarshal(buf.Bytes(), &config))
 
 		s := spin.New("%s Setting default storage config...")
 		s.Start()
-		err = fcClient.Ffs.SetDefaultCidConfig(authCtx(ctx), config)
+		err = fcClient.Ffs.SetDefaultConfig(authCtx(ctx), config)
 		s.Stop()
 		checkErr(err)
 

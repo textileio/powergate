@@ -79,14 +79,14 @@ type Job struct {
 	ErrCause string
 }
 
-// DefaultCidConfig contains a default Cid configuration for an Api.
-type DefaultCidConfig struct {
+// DefaultConfig contains a default storage configuration for an Api instance.
+type DefaultConfig struct {
 	Hot  HotConfig
 	Cold ColdConfig
 }
 
 // Validate validates a default Cid configuration.
-func (dc DefaultCidConfig) Validate() error {
+func (dc DefaultConfig) Validate() error {
 	if err := dc.Hot.Validate(); err != nil {
 		return err
 	}

@@ -65,7 +65,7 @@ func TestSetDefaultConfig(t *testing.T) {
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
-	config := ffs.DefaultCidConfig{
+	config := ffs.DefaultConfig{
 		Hot: ffs.HotConfig{
 			Enabled: false,
 			Ipfs: ffs.IpfsConfig{
@@ -81,7 +81,7 @@ func TestSetDefaultConfig(t *testing.T) {
 			},
 		},
 	}
-	err := fapi.SetDefaultCidConfig(config)
+	err := fapi.SetDefaultConfig(config)
 	require.Nil(t, err)
 	newConfig := fapi.GetDefaultCidConfig(cid.Undef)
 	require.Equal(t, newConfig.Hot, config.Hot)
@@ -118,7 +118,7 @@ func TestNewAddressDefault(t *testing.T) {
 	require.Nil(t, err)
 	require.NotEmpty(t, addr)
 
-	defaultConf := fapi.GetDefaultCfg()
+	defaultConf := fapi.DefaultConfig()
 	require.Equal(t, defaultConf.Cold.Filecoin.Addr, addr)
 }
 
@@ -126,7 +126,7 @@ func TestGetDefaultConfig(t *testing.T) {
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
-	defaultConf := fapi.GetDefaultCfg()
+	defaultConf := fapi.DefaultConfig()
 	require.Nil(t, defaultConf.Validate())
 }
 
@@ -1042,7 +1042,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 	if iid == ffs.EmptyInstanceID {
 		iid = ffs.NewAPIID()
 		is := istore.New(iid, txndstr.Wrap(ds, "ffs/api/istore"))
-		defConfig := ffs.DefaultCidConfig{
+		defConfig := ffs.DefaultConfig{
 			Hot: ffs.HotConfig{
 				Enabled:       true,
 				AllowUnfreeze: false,

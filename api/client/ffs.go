@@ -7,6 +7,7 @@ import (
 
 	cid "github.com/ipfs/go-cid"
 	ff "github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/rpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,48 +23,55 @@ type JobEvent struct {
 	Err error
 }
 
-// PushConfigOption mutates a push configuration.
-type PushConfigOption func(o *PushConfig)
+// NewAddressOption is a function that changes a NewAddressConfig
+type NewAddressOption func(r *rpc.NewAddrRequest)
 
-// PushConfig contains options for pushing a Cid configuration.
-type PushConfig struct {
-	Config            ff.CidConfig
-	HasConfig         bool
-	OverrideConfig    bool
-	HasOverrideConfig bool
+// WithMakeDefault specifies if the new address should become the default
+func WithMakeDefault(makeDefault bool) NewAddressOption {
+	return func(r *rpc.NewAddrRequest) {
+		r.MakeDefault = makeDefault
+	}
 }
+
+// WithAddressType specifies the type of address to create
+func WithAddressType(addressType string) NewAddressOption {
+	return func(r *rpc.NewAddrRequest) {
+		r.AddressType = addressType
+	}
+}
+
+// PushConfigOption mutates a push request.
+type PushConfigOption func(r *rpc.PushConfigRequest)
 
 // WithCidConfig overrides the Api default Cid configuration.
 func WithCidConfig(c ff.CidConfig) PushConfigOption {
-	return func(o *PushConfig) {
-		o.Config = c
-		o.HasConfig = true
+	return func(r *rpc.PushConfigRequest) {
+		r.HasConfig = true
+		r.Config = &rpc.CidConfig{
+			Cid:  c.Cid.String(),
+			Hot:  toRpcHotConfig(c.Hot),
+			Cold: toRpcColdConfig(c.Cold),
+		}
 	}
 }
 
 // WithOverride allows a new push configuration to override an existing one.
 // It's used as an extra security measure to avoid unwanted configuration changes.
 func WithOverride(override bool) PushConfigOption {
-	return func(o *PushConfig) {
-		o.OverrideConfig = override
-		o.HasOverrideConfig = true
+	return func(r *rpc.PushConfigRequest) {
+		r.HasOverrideConfig = true
+		r.OverrideConfig = override
 	}
 }
 
-// WatchLogsConfig contains configuration for a stream-log
-// of human-friendly messages for a Cid execution.
-type WatchLogsConfig struct {
-	jid ff.JobID
-}
-
 // WatchLogsOption is a function that changes GetLogsConfig.
-type WatchLogsOption func(config *WatchLogsConfig)
+type WatchLogsOption func(r *rpc.WatchLogsRequest)
 
 // WithJidFilter filters only log messages of a Cid related to
 // the Job with id jid.
 func WithJidFilter(jid ff.JobID) WatchLogsOption {
-	return func(c *WatchLogsConfig) {
-		c.jid = jid
+	return func(r *rpc.WatchLogsRequest) {
+		r.Jid = jid.String()
 	}
 }
 
@@ -89,12 +97,58 @@ func (f *ffs) ID(ctx context.Context) (ff.APIID, error) {
 	return ff.APIID(resp.ID), nil
 }
 
-func (f *ffs) WalletAddr(ctx context.Context) (string, error) {
-	resp, err := f.client.WalletAddr(ctx, &rpc.WalletAddrRequest{})
+func (f *ffs) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
+	resp, err := f.client.Addrs(ctx, &rpc.AddrsRequest{})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return resp.Addr, nil
+	addrs := make([]api.AddrInfo, len(resp.Addrs))
+	for i, addr := range resp.Addrs {
+		addrs[i] = api.AddrInfo{
+			Name: addr.Name,
+			Addr: addr.Addr,
+		}
+	}
+	return addrs, nil
+}
+
+func (f *ffs) DefaultConfig(ctx context.Context) (ff.DefaultConfig, error) {
+	resp, err := f.client.DefaultConfig(ctx, &rpc.DefaultConfigRequest{})
+	if err != nil {
+		return ff.DefaultConfig{}, err
+	}
+	return ff.DefaultConfig{
+		Hot: ff.HotConfig{
+			Enabled:       resp.DefaultConfig.Hot.Enabled,
+			AllowUnfreeze: resp.DefaultConfig.Hot.AllowUnfreeze,
+			Ipfs: ff.IpfsConfig{
+				AddTimeout: int(resp.DefaultConfig.Hot.Ipfs.AddTimeout),
+			},
+		},
+		Cold: ff.ColdConfig{
+			Enabled: resp.DefaultConfig.Cold.Enabled,
+			Filecoin: ff.FilConfig{
+				RepFactor:      int(resp.DefaultConfig.Cold.Filecoin.RepFactor),
+				DealDuration:   resp.DefaultConfig.Cold.Filecoin.DealDuration,
+				ExcludedMiners: resp.DefaultConfig.Cold.Filecoin.ExcludedMiners,
+				CountryCodes:   resp.DefaultConfig.Cold.Filecoin.CountryCodes,
+				Renew: ff.FilRenew{
+					Enabled:   resp.DefaultConfig.Cold.Filecoin.Renew.Enabled,
+					Threshold: int(resp.DefaultConfig.Cold.Filecoin.Renew.Threshold),
+				},
+				Addr: resp.DefaultConfig.Cold.Filecoin.Addr,
+			},
+		},
+	}, nil
+}
+
+func (f *ffs) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (string, error) {
+	r := &rpc.NewAddrRequest{Name: name}
+	for _, opt := range options {
+		opt(r)
+	}
+	resp, err := f.client.NewAddr(ctx, r)
+	return resp.Addr, err
 }
 
 func (f *ffs) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetDefaultCidConfigReply, error) {
@@ -105,32 +159,14 @@ func (f *ffs) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigRep
 	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: c.String()})
 }
 
-func (f *ffs) SetDefaultCidConfig(ctx context.Context, config ff.DefaultCidConfig) error {
-	req := &rpc.SetDefaultCidConfigRequest{
-		Config: &rpc.DefaultCidConfig{
-			Hot: &rpc.HotConfig{
-				Enabled:       config.Hot.Enabled,
-				AllowUnfreeze: config.Hot.AllowUnfreeze,
-				Ipfs: &rpc.IpfsConfig{
-					AddTimeout: int64(config.Hot.Ipfs.AddTimeout),
-				},
-			},
-			Cold: &rpc.ColdConfig{
-				Enabled: config.Cold.Enabled,
-				Filecoin: &rpc.FilConfig{
-					RepFactor:      int64(config.Cold.Filecoin.RepFactor),
-					DealDuration:   int64(config.Cold.Filecoin.DealDuration),
-					ExcludedMiners: config.Cold.Filecoin.ExcludedMiners,
-					CountryCodes:   config.Cold.Filecoin.CountryCodes,
-					Renew: &rpc.FilRenew{
-						Enabled:   config.Cold.Filecoin.Renew.Enabled,
-						Threshold: int64(config.Cold.Filecoin.Renew.Threshold),
-					},
-				},
-			},
+func (f *ffs) SetDefaultConfig(ctx context.Context, config ff.DefaultConfig) error {
+	req := &rpc.SetDefaultConfigRequest{
+		Config: &rpc.DefaultConfig{
+			Hot:  toRpcHotConfig(config.Hot),
+			Cold: toRpcColdConfig(config.Cold),
 		},
 	}
-	_, err := f.client.SetDefaultCidConfig(ctx, req)
+	_, err := f.client.SetDefaultConfig(ctx, req)
 	return err
 }
 
@@ -187,43 +223,9 @@ func (f *ffs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ff.JobID, er
 }
 
 func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ff.JobID, error) {
-	pushConfig := PushConfig{}
-	for _, opt := range opts {
-		opt(&pushConfig)
-	}
-
 	req := &rpc.PushConfigRequest{Cid: c.String()}
-
-	if pushConfig.HasConfig {
-		req.HasConfig = true
-		req.Config = &rpc.CidConfig{
-			Cid: pushConfig.Config.Cid.String(),
-			Hot: &rpc.HotConfig{
-				Enabled:       pushConfig.Config.Hot.Enabled,
-				AllowUnfreeze: pushConfig.Config.Hot.AllowUnfreeze,
-				Ipfs: &rpc.IpfsConfig{
-					AddTimeout: int64(pushConfig.Config.Hot.Ipfs.AddTimeout),
-				},
-			},
-			Cold: &rpc.ColdConfig{
-				Enabled: pushConfig.Config.Cold.Enabled,
-				Filecoin: &rpc.FilConfig{
-					RepFactor:      int64(pushConfig.Config.Cold.Filecoin.RepFactor),
-					DealDuration:   pushConfig.Config.Cold.Filecoin.DealDuration,
-					ExcludedMiners: pushConfig.Config.Cold.Filecoin.ExcludedMiners,
-					CountryCodes:   pushConfig.Config.Cold.Filecoin.CountryCodes,
-					Renew: &rpc.FilRenew{
-						Enabled:   pushConfig.Config.Cold.Filecoin.Renew.Enabled,
-						Threshold: int64(pushConfig.Config.Cold.Filecoin.Renew.Threshold),
-					},
-				},
-			},
-		}
-	}
-
-	if pushConfig.HasOverrideConfig {
-		req.HasOverrideConfig = true
-		req.OverrideConfig = pushConfig.OverrideConfig
+	for _, opt := range opts {
+		opt(req)
 	}
 
 	resp, err := f.client.PushConfig(ctx, req)
@@ -269,12 +271,12 @@ func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 }
 
 func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) error {
-	config := WatchLogsConfig{}
+	r := &rpc.WatchLogsRequest{Cid: c.String()}
 	for _, opt := range opts {
-		opt(&config)
+		opt(r)
 	}
 
-	stream, err := f.client.WatchLogs(ctx, &rpc.WatchLogsRequest{Cid: c.String(), Jid: config.jid.String()})
+	stream, err := f.client.WatchLogs(ctx, r)
 	if err != nil {
 		return err
 	}
@@ -349,4 +351,31 @@ func (f *ffs) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		return nil, err
 	}
 	return &cid, nil
+}
+
+func toRpcHotConfig(config ff.HotConfig) *rpc.HotConfig {
+	return &rpc.HotConfig{
+		Enabled:       config.Enabled,
+		AllowUnfreeze: config.AllowUnfreeze,
+		Ipfs: &rpc.IpfsConfig{
+			AddTimeout: int64(config.Ipfs.AddTimeout),
+		},
+	}
+}
+
+func toRpcColdConfig(config ff.ColdConfig) *rpc.ColdConfig {
+	return &rpc.ColdConfig{
+		Enabled: config.Enabled,
+		Filecoin: &rpc.FilConfig{
+			RepFactor:      int64(config.Filecoin.RepFactor),
+			DealDuration:   int64(config.Filecoin.DealDuration),
+			ExcludedMiners: config.Filecoin.ExcludedMiners,
+			CountryCodes:   config.Filecoin.CountryCodes,
+			Renew: &rpc.FilRenew{
+				Enabled:   config.Filecoin.Renew.Enabled,
+				Threshold: int64(config.Filecoin.Renew.Threshold),
+			},
+			Addr: config.Filecoin.Addr,
+		},
+	}
 }
