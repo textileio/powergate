@@ -19,39 +19,39 @@ message IpfsConfig {
 }
 
 message HotConfig {
-	bool enabled = 1;
-	bool allowUnfreeze = 2;
-	IpfsConfig ipfs = 3;
+   bool enabled = 1;
+   bool allowUnfreeze = 2;
+   IpfsConfig ipfs = 3;
 }
 
 message FilRenew {
-	bool enabled = 1;
+   bool enabled = 1;
    int64 threshold = 2;
 }
 
 message FilConfig {
-	int64 repFactor = 1;
-	int64 dealDuration = 2;
-	repeated string excludedMiners = 3;
-	repeated string countryCodes = 4;
+   int64 repFactor = 1;
+   int64 dealDuration = 2;
+   repeated string excludedMiners = 3;
+   repeated string countryCodes = 4;
    FilRenew renew = 5;
    string addr = 6;
 }
 
 message ColdConfig {
-	bool enabled = 1;
-	FilConfig filecoin = 2;
+   bool enabled = 1;
+   FilConfig filecoin = 2;
 }
 
 message CidConfig {
    string cid = 1;
    HotConfig hot = 2;
-	ColdConfig cold = 3;
+   ColdConfig cold = 3;
 }
 
 message DefaultConfig {
-	HotConfig hot = 1;
-	ColdConfig cold = 2;
+   HotConfig hot = 1;
+   ColdConfig cold = 2;
 }
 
 message IpfsHotInfo {
@@ -82,11 +82,11 @@ message ColdInfo {
 }
 
 message CidInfo {
-	string jobID = 1;
-	string cid = 2;
-	int64 created = 3;
-	HotInfo hot = 4; 
-	ColdInfo cold = 5;
+   string jobID = 1;
+   string cid = 2;
+   int64 created = 3;
+   HotInfo hot = 4; 
+   ColdInfo cold = 5;
 }
 
 message BalanceInfo {
@@ -95,26 +95,26 @@ message BalanceInfo {
 }
 
 message InstanceInfo {
-	string ID = 1;
-	DefaultConfig defaultConfig = 2;
-	repeated BalanceInfo balances = 3;
-	repeated string pins = 4;
+   string ID = 1;
+   DefaultConfig defaultConfig = 2;
+   repeated BalanceInfo balances = 3;
+   repeated string pins = 4;
 }
 
 enum JobStatus {
    Queued = 0;
-	InProgress = 1;
-	Failed = 2;
-	Canceled = 3;
-	Success = 4;
+   InProgress = 1;
+   Failed = 2;
+   Canceled = 3;
+   Success = 4;
 }
 
 message Job {
-	string ID = 1; 
-	string apiID = 2;
-	string cid = 3;
-	JobStatus status = 4;
-	string errCause = 5;
+   string ID = 1; 
+   string apiID = 2;
+   string cid = 3;
+   JobStatus status = 4;
+   string errCause = 5;
 }
 
 // request/reply messages
@@ -124,8 +124,8 @@ message CreateRequest {
 }
 
 message CreateReply {
-    string ID = 1;
-    string token = 2;
+   string ID = 1;
+   string token = 2;
 }
 
 message IDRequest {
@@ -206,19 +206,19 @@ message WatchJobsReply {
 }
 
 message WatchLogsRequest {
-	string cid = 1;
-	string jid = 2;
+   string cid = 1;
+   string jid = 2;
 }
 
 message WatchLogsReply {
-	LogEntry logEntry = 1;
+   LogEntry logEntry = 1;
 }
 
 message LogEntry {
-	string cid = 1;
-	string jid = 2;
-        int64 time = 3;
-        string msg = 4;
+   string cid = 1;
+   string jid = 2;
+   int64 time = 3;
+   string msg = 4;
 }
 
 message ReplaceRequest {
@@ -250,11 +250,11 @@ message RemoveReply {
 }
 
 message GetRequest {
-    string cid = 1;
+   string cid = 1;
 }
 
 message GetReply {
-    bytes chunk = 1;
+   bytes chunk = 1;
 }
 
 message CloseRequest {
@@ -264,11 +264,11 @@ message CloseReply {
 }
 
 message AddToHotRequest {
-  bytes chunk = 1;
+   bytes chunk = 1;
 }
 
 message AddToHotReply {
-  string cid = 1;
+   string cid = 1;
 }
 
 
