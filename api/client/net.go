@@ -70,7 +70,7 @@ func (net *net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
 	for i, addr := range addrInfo.Addrs {
 		addrs[i] = addr.String()
 	}
-	info := &rpc.AddrInfo{
+	info := &rpc.PeerAddrInfo{
 		ID:    addrInfo.ID.String(),
 		Addrs: addrs,
 	}

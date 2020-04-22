@@ -6,7 +6,7 @@ option java_package = "io.textile.powergate.net.rpc";
 option java_outer_classname = "PowergateNet";
 option objc_class_prefix = "TTE";
 
-message AddrInfo {
+message PeerAddrInfo {
     string ID = 1;
     repeated string addrs = 2;
 }
@@ -18,7 +18,7 @@ message Location {
 }
 
 message PeerInfo {
-    AddrInfo addrInfo = 1;
+    PeerAddrInfo addrInfo = 1;
     Location location = 2;
 }
 
@@ -35,7 +35,7 @@ message ListenAddrRequest {
 }
 
 message ListenAddrReply {
-    AddrInfo addrInfo = 1;
+    PeerAddrInfo addrInfo = 1;
 }
 
 message PeersRequest {
@@ -54,7 +54,7 @@ message FindPeerReply {
 }
 
 message ConnectPeerRequest {
-    AddrInfo peerInfo = 1;
+    PeerAddrInfo peerInfo = 1;
 }
 
 message ConnectPeerReply {
