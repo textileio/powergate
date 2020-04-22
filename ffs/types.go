@@ -80,14 +80,14 @@ type Job struct {
 	ErrCause string
 }
 
-// DefaultCidConfig contains a default Cid configuration for an Api.
-type DefaultCidConfig struct {
+// DefaultConfig contains a default storage configuration for an Api instance.
+type DefaultConfig struct {
 	Hot  HotConfig
 	Cold ColdConfig
 }
 
 // Validate validates a default Cid configuration.
-func (dc DefaultCidConfig) Validate() error {
+func (dc DefaultConfig) Validate() error {
 	if err := dc.Hot.Validate(); err != nil {
 		return err
 	}
@@ -234,6 +234,9 @@ func (cc ColdConfig) Validate() error {
 	if err := cc.Filecoin.Validate(); err != nil {
 		return fmt.Errorf("invalid Filecoin config: %s", err)
 	}
+	if cc.Enabled && cc.Filecoin.Addr == "" {
+		return fmt.Errorf("invalid wallet address")
+	}
 	return nil
 }
 
@@ -253,6 +256,8 @@ type FilConfig struct {
 	CountryCodes []string
 	// FilRenew indicates deal-renewal configuration.
 	Renew FilRenew
+	// Addr is the wallet address used to store the data in filecoin
+	Addr string
 }
 
 // FilRenew contains renew configuration for a Cid Cold Storage deals.

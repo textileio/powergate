@@ -60,14 +60,58 @@ func (s *Service) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
 	return &IDReply{ID: id.String()}, nil
 }
 
-// WalletAddr returns the wallet address
-func (s *Service) WalletAddr(ctx context.Context, req *WalletAddrRequest) (*WalletAddrReply, error) {
+// Addrs calls ffs.Addrs
+func (s *Service) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-	addr := i.WalletAddr()
-	return &WalletAddrReply{Addr: addr}, nil
+	addrs := i.Addrs()
+	res := make([]*AddrInfo, len(addrs))
+	for i, addr := range addrs {
+		res[i] = &AddrInfo{
+			Name: addr.Name,
+			Addr: addr.Addr,
+		}
+	}
+	return &AddrsReply{Addrs: res}, nil
+}
+
+// DefaultConfig calls ffs.DefaultConfig
+func (s *Service) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conf := i.DefaultConfig()
+	return &DefaultConfigReply{
+		DefaultConfig: &DefaultConfig{
+			Hot:  toRPCHotConfig(conf.Hot),
+			Cold: toRPCColdConfig(conf.Cold),
+		},
+	}, nil
+}
+
+// NewAddr calls ffs.NewAddr
+func (s *Service) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var opts []api.NewAddressOption
+	if req.AddressType != "" {
+		opts = append(opts, api.WithAddressType(req.AddressType))
+	}
+	if req.MakeDefault {
+		opts = append(opts, api.WithMakeDefault(req.MakeDefault))
+	}
+
+	addr, err := i.NewAddr(ctx, req.Name, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &NewAddrReply{Addr: addr}, nil
 }
 
 // GetDefaultCidConfig returns the default cid config prepped for the provided cid
@@ -83,27 +127,9 @@ func (s *Service) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidCon
 	config := i.GetDefaultCidConfig(c)
 	return &GetDefaultCidConfigReply{
 		Config: &CidConfig{
-			Cid: config.Cid.String(),
-			Hot: &HotConfig{
-				Enabled:       config.Hot.Enabled,
-				AllowUnfreeze: config.Hot.AllowUnfreeze,
-				Ipfs: &IpfsConfig{
-					AddTimeout: int64(config.Hot.Ipfs.AddTimeout),
-				},
-			},
-			Cold: &ColdConfig{
-				Enabled: config.Cold.Enabled,
-				Filecoin: &FilConfig{
-					RepFactor:      int64(config.Cold.Filecoin.RepFactor),
-					DealDuration:   int64(config.Cold.Filecoin.DealDuration),
-					ExcludedMiners: config.Cold.Filecoin.ExcludedMiners,
-					CountryCodes:   config.Cold.Filecoin.CountryCodes,
-					Renew: &FilRenew{
-						Enabled:   config.Cold.Filecoin.Renew.Enabled,
-						Threshold: int64(config.Cold.Filecoin.Renew.Threshold),
-					},
-				},
-			},
+			Cid:  config.Cid.String(),
+			Hot:  toRPCHotConfig(config.Hot),
+			Cold: toRPCColdConfig(config.Cold),
 		},
 	}, nil
 }
@@ -124,38 +150,20 @@ func (s *Service) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*
 	}
 	return &GetCidConfigReply{
 		Config: &CidConfig{
-			Cid: config.Cid.String(),
-			Hot: &HotConfig{
-				Enabled:       config.Hot.Enabled,
-				AllowUnfreeze: config.Hot.AllowUnfreeze,
-				Ipfs: &IpfsConfig{
-					AddTimeout: int64(config.Hot.Ipfs.AddTimeout),
-				},
-			},
-			Cold: &ColdConfig{
-				Enabled: config.Cold.Enabled,
-				Filecoin: &FilConfig{
-					RepFactor:      int64(config.Cold.Filecoin.RepFactor),
-					DealDuration:   int64(config.Cold.Filecoin.DealDuration),
-					ExcludedMiners: config.Cold.Filecoin.ExcludedMiners,
-					CountryCodes:   config.Cold.Filecoin.CountryCodes,
-					Renew: &FilRenew{
-						Enabled:   config.Cold.Filecoin.Renew.Enabled,
-						Threshold: int64(config.Cold.Filecoin.Renew.Threshold),
-					},
-				},
-			},
+			Cid:  config.Cid.String(),
+			Hot:  toRPCHotConfig(config.Hot),
+			Cold: toRPCColdConfig(config.Cold),
 		},
 	}, nil
 }
 
-// SetDefaultCidConfig sets a new config to be used by default
-func (s *Service) SetDefaultCidConfig(ctx context.Context, req *SetDefaultCidConfigRequest) (*SetDefaultCidConfigReply, error) {
+// SetDefaultConfig sets a new config to be used by default
+func (s *Service) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest) (*SetDefaultConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defaultConfig := ffs.DefaultCidConfig{
+	defaultConfig := ffs.DefaultConfig{
 		Hot: ffs.HotConfig{
 			Enabled:       req.Config.Hot.Enabled,
 			AllowUnfreeze: req.Config.Hot.AllowUnfreeze,
@@ -174,13 +182,14 @@ func (s *Service) SetDefaultCidConfig(ctx context.Context, req *SetDefaultCidCon
 					Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
 					Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
 				},
+				Addr: req.Config.Cold.Filecoin.Addr,
 			},
 		},
 	}
-	if err := i.SetDefaultCidConfig(defaultConfig); err != nil {
+	if err := i.SetDefaultConfig(defaultConfig); err != nil {
 		return nil, err
 	}
-	return &SetDefaultCidConfigReply{}, nil
+	return &SetDefaultConfigReply{}, nil
 }
 
 // Show returns information about a particular Cid.
@@ -243,36 +252,26 @@ func (s *Service) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error
 		return nil, err
 	}
 
+	balances := make([]*BalanceInfo, len(info.Balances))
+	for i, balanceInfo := range info.Balances {
+		balances[i] = &BalanceInfo{
+			Addr: &AddrInfo{
+				Name: balanceInfo.Name,
+				Addr: balanceInfo.Addr,
+			},
+			Balance: int64(balanceInfo.Balance),
+		}
+	}
+
 	reply := &InfoReply{
 		Info: &InstanceInfo{
 			ID: info.ID.String(),
-			DefaultCidConfig: &DefaultCidConfig{
-				Hot: &HotConfig{
-					Enabled:       info.DefaultCidConfig.Hot.Enabled,
-					AllowUnfreeze: info.DefaultCidConfig.Hot.AllowUnfreeze,
-					Ipfs: &IpfsConfig{
-						AddTimeout: int64(info.DefaultCidConfig.Hot.Ipfs.AddTimeout),
-					},
-				},
-				Cold: &ColdConfig{
-					Enabled: info.DefaultCidConfig.Cold.Enabled,
-					Filecoin: &FilConfig{
-						RepFactor:      int64(info.DefaultCidConfig.Cold.Filecoin.RepFactor),
-						DealDuration:   info.DefaultCidConfig.Cold.Filecoin.DealDuration,
-						ExcludedMiners: info.DefaultCidConfig.Cold.Filecoin.ExcludedMiners,
-						CountryCodes:   info.DefaultCidConfig.Cold.Filecoin.CountryCodes,
-						Renew: &FilRenew{
-							Enabled:   info.DefaultCidConfig.Cold.Filecoin.Renew.Enabled,
-							Threshold: int64(info.DefaultCidConfig.Cold.Filecoin.Renew.Threshold),
-						},
-					},
-				},
+			DefaultConfig: &DefaultConfig{
+				Hot:  toRPCHotConfig(info.DefaultConfig.Hot),
+				Cold: toRPCColdConfig(info.DefaultConfig.Cold),
 			},
-			Wallet: &WalletInfo{
-				Address: info.Wallet.Address,
-				Balance: info.Wallet.Balance,
-			},
-			Pins: make([]string, len(info.Pins)),
+			Balances: balances,
+			Pins:     make([]string, len(info.Pins)),
 		},
 	}
 	for i, p := range info.Pins {
@@ -423,6 +422,7 @@ func (s *Service) PushConfig(ctx context.Context, req *PushConfigRequest) (*Push
 						Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
 						Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
 					},
+					Addr: req.Config.Cold.Filecoin.Addr,
 				},
 			},
 		}
@@ -556,5 +556,32 @@ func receiveFile(srv FFS_AddToHotServer, writer *io.PipeWriter) {
 				log.Errorf("closing with error: %s", err)
 			}
 		}
+	}
+}
+
+func toRPCHotConfig(config ffs.HotConfig) *HotConfig {
+	return &HotConfig{
+		Enabled:       config.Enabled,
+		AllowUnfreeze: config.AllowUnfreeze,
+		Ipfs: &IpfsConfig{
+			AddTimeout: int64(config.Ipfs.AddTimeout),
+		},
+	}
+}
+
+func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
+	return &ColdConfig{
+		Enabled: config.Enabled,
+		Filecoin: &FilConfig{
+			RepFactor:      int64(config.Filecoin.RepFactor),
+			DealDuration:   int64(config.Filecoin.DealDuration),
+			ExcludedMiners: config.Filecoin.ExcludedMiners,
+			CountryCodes:   config.Filecoin.CountryCodes,
+			Renew: &FilRenew{
+				Enabled:   config.Filecoin.Renew.Enabled,
+				Threshold: int64(config.Filecoin.Renew.Threshold),
+			},
+			Addr: config.Filecoin.Addr,
+		},
 	}
 }

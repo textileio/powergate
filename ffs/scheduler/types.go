@@ -31,7 +31,6 @@ type JobStore interface {
 // Action represents an action to be executed by the Scheduler.
 type Action struct {
 	APIID       ffs.APIID
-	Waddr       string
 	Cfg         ffs.CidConfig
 	ReplacedCid cid.Cid
 }

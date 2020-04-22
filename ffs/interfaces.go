@@ -29,12 +29,12 @@ var (
 type Scheduler interface {
 	// PushConfig push a new or modified configuration for a Cid. It returns
 	// the JobID which tracks the current state of execution of that task.
-	PushConfig(APIID, string, CidConfig) (JobID, error)
+	PushConfig(APIID, CidConfig) (JobID, error)
 
 	// PushReplace push a new or modified configuration for a Cid, replacing
 	// an existing one. The replaced Cid will be unstored from the Hot Storage.
 	// Also it will be untracked (refer to Untrack() to understand implications)
-	PushReplace(APIID, string, CidConfig, cid.Cid) (JobID, error)
+	PushReplace(APIID, CidConfig, cid.Cid) (JobID, error)
 
 	// GetCidInfo returns the current Cid storing state. This state may be different
 	// from CidConfig which is the *desired* state.
@@ -95,7 +95,7 @@ type HotStorage interface {
 type ColdStorage interface {
 	// Store stores a Cid using the provided configuration and
 	// account address.
-	Store(context.Context, cid.Cid, string, FilConfig) (FilInfo, error)
+	Store(context.Context, cid.Cid, FilConfig) (FilInfo, error)
 
 	// Retrieve retrieves the data using an account address,
 	// and store it in a CAR store.
@@ -103,7 +103,7 @@ type ColdStorage interface {
 
 	// EnsureRenewals executes renewal logic for a Cid under a particular
 	// configuration.
-	EnsureRenewals(context.Context, cid.Cid, FilInfo, string, FilConfig) (FilInfo, error)
+	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig) (FilInfo, error)
 
 	// IsFIlDealActive returns true if the proposal Cid is active on chain;
 	// returns false otherwise.

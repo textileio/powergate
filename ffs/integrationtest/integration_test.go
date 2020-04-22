@@ -63,7 +63,7 @@ func TestSetDefaultConfig(t *testing.T) {
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
-	config := ffs.DefaultCidConfig{
+	config := ffs.DefaultConfig{
 		Hot: ffs.HotConfig{
 			Enabled: false,
 			Ipfs: ffs.IpfsConfig{
@@ -75,14 +75,57 @@ func TestSetDefaultConfig(t *testing.T) {
 			Filecoin: ffs.FilConfig{
 				DealDuration: 22333,
 				RepFactor:    23,
+				Addr:         "123456",
 			},
 		},
 	}
-	err := fapi.SetDefaultCidConfig(config)
+	err := fapi.SetDefaultConfig(config)
 	require.Nil(t, err)
 	newConfig := fapi.GetDefaultCidConfig(cid.Undef)
 	require.Equal(t, newConfig.Hot, config.Hot)
 	require.Equal(t, newConfig.Cold, config.Cold)
+}
+
+func TestAddrs(t *testing.T) {
+	_, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	addrs := fapi.Addrs()
+	require.Len(t, addrs, 1)
+	require.NotEmpty(t, addrs[0].Name)
+	require.NotEmpty(t, addrs[0].Addr)
+}
+
+func TestNewAddress(t *testing.T) {
+	_, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	addr, err := fapi.NewAddr(context.Background(), "my address")
+	require.Nil(t, err)
+	require.NotEmpty(t, addr)
+
+	addrs := fapi.Addrs()
+	require.Len(t, addrs, 2)
+}
+
+func TestNewAddressDefault(t *testing.T) {
+	_, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	addr, err := fapi.NewAddr(context.Background(), "my address", api.WithMakeDefault(true))
+	require.Nil(t, err)
+	require.NotEmpty(t, addr)
+
+	defaultConf := fapi.DefaultConfig()
+	require.Equal(t, defaultConf.Cold.Filecoin.Addr, addr)
+}
+
+func TestGetDefaultConfig(t *testing.T) {
+	_, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	defaultConf := fapi.DefaultConfig()
+	require.Nil(t, defaultConf.Validate())
 }
 
 func TestAdd(t *testing.T) {
@@ -150,8 +193,9 @@ func TestInfo(t *testing.T) {
 		first, err = fapi.Info(ctx)
 		require.Nil(t, err)
 		require.NotEmpty(t, first.ID)
-		require.NotEmpty(t, first.Wallet.Address)
-		require.Greater(t, first.Wallet.Balance, uint64(0))
+		require.Len(t, first.Balances, 1)
+		require.NotEmpty(t, first.Balances[0].Addr)
+		require.Greater(t, first.Balances[0].Balance, uint64(0))
 		require.Equal(t, len(first.Pins), 0)
 	})
 
@@ -169,8 +213,9 @@ func TestInfo(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.Nil(t, err)
 		require.Equal(t, second.ID, first.ID)
-		require.Equal(t, second.Wallet.Address, first.Wallet.Address)
-		require.Less(t, second.Wallet.Balance, first.Wallet.Balance)
+		require.Len(t, second.Balances, 1)
+		require.Equal(t, second.Balances[0].Addr, first.Balances[0].Addr)
+		require.Less(t, second.Balances[0].Balance, first.Balances[0].Balance)
 		require.Equal(t, n, len(second.Pins))
 	})
 }
@@ -995,7 +1040,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 	if iid == ffs.EmptyInstanceID {
 		iid = ffs.NewAPIID()
 		is := istore.New(iid, txndstr.Wrap(ds, "ffs/api/istore"))
-		defConfig := ffs.DefaultCidConfig{
+		defConfig := ffs.DefaultConfig{
 			Hot: ffs.HotConfig{
 				Enabled:       true,
 				AllowUnfreeze: false,

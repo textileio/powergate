@@ -33,7 +33,7 @@ func (a *API) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAd
 	}
 
 	return &ListenAddrReply{
-		AddrInfo: &AddrInfo{
+		AddrInfo: &PeerAddrInfo{
 			ID:    addrInfo.ID.String(),
 			Addrs: addrs,
 		},
@@ -54,7 +54,7 @@ func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 			addrs[i] = addr.String()
 		}
 		peerResults[i] = &PeerInfo{
-			AddrInfo: &AddrInfo{
+			AddrInfo: &PeerAddrInfo{
 				ID:    peer.AddrInfo.ID.String(),
 				Addrs: addrs,
 			},
@@ -91,7 +91,7 @@ func (a *API) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerRepl
 
 	return &FindPeerReply{
 		PeerInfo: &PeerInfo{
-			AddrInfo: &AddrInfo{
+			AddrInfo: &PeerAddrInfo{
 				ID:    peerInfo.AddrInfo.ID.String(),
 				Addrs: addrs,
 			},

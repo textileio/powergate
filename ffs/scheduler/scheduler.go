@@ -66,20 +66,20 @@ func New(js JobStore, as ActionStore, cis CidInfoStore, l ffs.CidLogger, hs ffs.
 
 // PushConfig queues the specified CidConfig to be executed as a new Job. It returns
 // the created JobID for further tracking of its state.
-func (s *Scheduler) PushConfig(iid ffs.APIID, waddr string, cfg ffs.CidConfig) (ffs.JobID, error) {
-	return s.push(iid, waddr, cfg, cid.Undef)
+func (s *Scheduler) PushConfig(iid ffs.APIID, cfg ffs.CidConfig) (ffs.JobID, error) {
+	return s.push(iid, cfg, cid.Undef)
 }
 
 // PushReplace queues a new CidConfig to be executed as a new Job, replacing an oldCid that will be
 // untrack in the Scheduler (i.e: deal renewals, repairing).
-func (s *Scheduler) PushReplace(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.JobID, error) {
+func (s *Scheduler) PushReplace(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.JobID, error) {
 	if !oldCid.Defined() {
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
 	}
-	return s.push(iid, waddr, cfg, oldCid)
+	return s.push(iid, cfg, oldCid)
 }
 
-func (s *Scheduler) push(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.JobID, error) {
+func (s *Scheduler) push(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.JobID, error) {
 	if !cfg.Cid.Defined() {
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
 	}
@@ -88,9 +88,6 @@ func (s *Scheduler) push(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid 
 	}
 	if err := cfg.Validate(); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("validating cid config: %s", err)
-	}
-	if waddr == "" {
-		return ffs.EmptyJobID, fmt.Errorf("invalid wallet address")
 	}
 	jid := ffs.NewJobID()
 	j := ffs.Job{
@@ -108,7 +105,6 @@ func (s *Scheduler) push(iid ffs.APIID, waddr string, cfg ffs.CidConfig, oldCid 
 
 	aa := Action{
 		APIID:       iid,
-		Waddr:       waddr,
 		Cfg:         cfg,
 		ReplacedCid: oldCid,
 	}
@@ -236,7 +232,7 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a Action) error {
 	}
 	s.l.Log(ctx, a.Cfg.Cid, "Evaluating deal renweal...")
 
-	inf.Cold.Filecoin, err = s.cs.EnsureRenewals(ctx, a.Cfg.Cid, inf.Cold.Filecoin, a.Waddr, a.Cfg.Cold.Filecoin)
+	inf.Cold.Filecoin, err = s.cs.EnsureRenewals(ctx, a.Cfg.Cid, inf.Cold.Filecoin, a.Cfg.Cold.Filecoin)
 	if err != nil {
 		return fmt.Errorf("evaluating renewal in cold-storage: %s", err)
 	}
@@ -314,7 +310,7 @@ func (s *Scheduler) executePushConfigAction(ctx context.Context, a Action, job f
 	}
 
 	s.l.Log(ctx, a.Cfg.Cid, "Ensuring Hot-Storage satisfies the configuration...")
-	hot, err := s.executeHotStorage(ctx, ci, a.Cfg.Hot, a.Waddr, a.ReplacedCid)
+	hot, err := s.executeHotStorage(ctx, ci, a.Cfg.Hot, a.Cfg.Cold.Filecoin.Addr, a.ReplacedCid)
 	if err != nil {
 		s.l.Log(ctx, a.Cfg.Cid, "Hot-Storage excution failed.")
 		return ffs.CidInfo{}, fmt.Errorf("executing hot-storage config: %s", err)
@@ -322,7 +318,7 @@ func (s *Scheduler) executePushConfigAction(ctx context.Context, a Action, job f
 	s.l.Log(ctx, a.Cfg.Cid, "Hot-Storage execution ran successfully.")
 
 	s.l.Log(ctx, a.Cfg.Cid, "Ensuring Cold-Storage satisfies the configuration...")
-	cold, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold, a.Waddr)
+	cold, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold)
 	if err != nil {
 		s.l.Log(ctx, a.Cfg.Cid, "Cold-Storage execution failed.")
 		return ffs.CidInfo{}, fmt.Errorf("executing cold-storage config: %s", err)
@@ -437,7 +433,7 @@ func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, c cid.Cid, curr ff
 	return curr, nil
 }
 
-func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, waddr string) (ffs.ColdInfo, error) {
+func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig) (ffs.ColdInfo, error) {
 	if !cfg.Enabled {
 		s.l.Log(ctx, curr.Cid, "Cold-Storage was disabled, Filecoin deals will eventually expire.")
 		return curr.Cold, nil
@@ -451,7 +447,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 
 	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
 	s.l.Log(ctx, curr.Cid, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
-	fi, err := s.cs.Store(ctx, curr.Cid, waddr, deltaFilConfig)
+	fi, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
 	if err != nil {
 		return ffs.ColdInfo{}, err
 	}

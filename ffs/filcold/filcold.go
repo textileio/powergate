@@ -69,7 +69,7 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation.
-func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, cfg ffs.FilConfig) (ffs.FilInfo, error) {
+func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs.FilInfo, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
 		CountryCodes:   cfg.CountryCodes,
@@ -78,7 +78,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, waddr string, cfg ffs.F
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("making deal configs: %s", err)
 	}
-	props, err := fc.makeDeals(ctx, c, cfgs, waddr, cfg)
+	props, err := fc.makeDeals(ctx, c, cfgs, cfg)
 	if err != nil {
 		return ffs.FilInfo{}, fmt.Errorf("executing deals: %s", err)
 	}
@@ -103,7 +103,7 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
-func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, waddr string, cfg ffs.FilConfig) (ffs.FilInfo, error) {
+func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig) (ffs.FilInfo, error) {
 	var activeMiners []string
 	for _, p := range inf.Proposals {
 		activeMiners = append(activeMiners, p.Miner)
@@ -142,7 +142,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	}
 	toRenew := renewable[:numToBeRenewed]
 	for i, p := range toRenew {
-		newProposal, err := fc.renewDeal(ctx, c, waddr, p, activeMiners, cfg)
+		newProposal, err := fc.renewDeal(ctx, c, p, activeMiners, cfg)
 		if err != nil {
 			log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
 			continue
@@ -154,7 +154,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return inf, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, waddr string, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: activeMiners,
 	}
@@ -163,7 +163,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, waddr string, p ffs
 		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
 	}
 
-	props, err := fc.makeDeals(ctx, c, dealConfig, waddr, fcfg)
+	props, err := fc.makeDeals(ctx, c, dealConfig, fcfg)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("executing renewed deal: %s", err)
 	}
@@ -173,7 +173,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, waddr string, p ffs
 	return props[0], nil
 }
 
-func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, waddr string, fcfg ffs.FilConfig) ([]ffs.FilStorage, error) {
+func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]ffs.FilStorage, error) {
 	r := ipldToFileTransform(ctx, fc.dag, c)
 
 	for _, cfg := range cfgs {
@@ -181,7 +181,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.Storag
 	}
 
 	var sres []deals.StoreResult
-	dataCid, sres, err := fc.dm.Store(ctx, waddr, r, cfgs, uint64(fcfg.DealDuration), true)
+	dataCid, sres, err := fc.dm.Store(ctx, fcfg.Addr, r, cfgs, uint64(fcfg.DealDuration), true)
 	if err != nil {
 		return nil, fmt.Errorf("storing deals in deal module: %s", err)
 	}
