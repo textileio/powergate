@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/caarlos0/spin"
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -33,11 +34,27 @@ var ffsInfoCmd = &cobra.Command{
 		resp, err := fcClient.Ffs.Info(authCtx(ctx))
 		checkErr(err)
 		s.Stop()
-		Message("Information from instance ID %s:", aurora.White(resp.Info.ID).Bold())
-		Message("Address %s has balance %d", aurora.White(resp.Info.Wallet.Address), aurora.Green(resp.Info.Wallet.Balance))
+
+		Message("FFS instance id: %v", resp.Info.ID)
+
+		data := make([][]string, len(resp.Info.Balances))
+		for i, balance := range resp.Info.Balances {
+			isDefault := ""
+			if balance.Addr.Addr == resp.Info.DefaultConfig.Cold.Filecoin.Addr {
+				isDefault = "yes"
+			}
+			data[i] = []string{balance.Addr.Name, balance.Addr.Addr, fmt.Sprintf("%v", balance.Balance), isDefault}
+		}
+		Message("Wallet addresses:")
+		RenderTable(os.Stdout, []string{"name", "address", "balance", "default"}, data)
+
+		bytes, err := json.MarshalIndent(resp.Info.DefaultConfig, "", "  ")
+		checkErr(err)
+
+		Message("Default storage config:\n %v", string(bytes))
 
 		Message("Pinned cids:")
-		data := make([][]string, len(resp.Info.Pins))
+		data = make([][]string, len(resp.Info.Pins))
 		for i, cid := range resp.Info.Pins {
 			data[i] = []string{cid}
 		}
