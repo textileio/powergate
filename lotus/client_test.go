@@ -134,9 +134,9 @@ func TestGetPeerID(t *testing.T) {
 	miners, err := client.StateListMiners(context.Background(), types.EmptyTSK)
 	checkErr(t, err)
 
-	pid, err := client.StateMinerPeerID(context.Background(), miners[0], types.EmptyTSK)
+	mi, err := client.StateMinerInfo(context.Background(), miners[0], types.EmptyTSK)
 	checkErr(t, err)
-	checkErr(t, pid.Validate())
+	checkErr(t, mi.PeerId.Validate())
 }
 
 func checkErr(t *testing.T, err error) {

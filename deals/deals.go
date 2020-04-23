@@ -101,10 +101,10 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 			Data: &storagemarket.DataRef{
 				Root: dataCid,
 			},
-			BlocksDuration: dur,
-			EpochPrice:     types.NewInt(c.EpochPrice),
-			Miner:          maddr,
-			Wallet:         addr,
+			MinBlocksDuration: dur,
+			EpochPrice:        types.NewInt(c.EpochPrice),
+			Miner:             maddr,
+			Wallet:            addr,
 		}
 		p, err := m.api.ClientStartDeal(ctx, params)
 		if err != nil {

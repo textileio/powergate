@@ -32,7 +32,7 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:sha-9aab2c6
+    image: textile/lotus-devnet:sha-fc918dc
     ports:
       - 7777:7777
     environment:

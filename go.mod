@@ -13,11 +13,12 @@ require (
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/filecoin-project/chain-validation v0.0.6-0.20200331055055-403d5af6c808 // indirect
 	github.com/filecoin-project/go-address v0.0.2-0.20200218010043-eb9bb40ed5be
-	github.com/filecoin-project/go-fil-markets v0.0.0-20200318012938-6403a5bda668
+	github.com/filecoin-project/go-fil-markets v0.0.0-20200415011556-4378bd41b91f
 	github.com/filecoin-project/go-sectorbuilder v0.0.2-0.20200317221918-42574fc2aab9 // indirect
-	github.com/filecoin-project/lotus v0.2.11-0.20200331202907-e94d136e3558
-	github.com/filecoin-project/specs-actors v0.0.0-20200324235424-aef9b20a9fb1
+	github.com/filecoin-project/lotus v0.2.11-0.20200423065310-a99875feaca9
+	github.com/filecoin-project/specs-actors v0.0.0-20200421235624-312ac81e2aa4
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.2
@@ -42,7 +43,7 @@ require (
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/libp2p/go-libp2p v0.6.0
+	github.com/libp2p/go-libp2p v0.6.1
 	github.com/libp2p/go-libp2p-core v0.5.1
 	github.com/libp2p/go-libp2p-kad-dht v0.5.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
@@ -62,8 +63,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
-	github.com/textileio/lotus-client v0.0.0-20200423003814-d42c2be47609
+	github.com/textileio/lotus-client v0.0.0-20200423155630-a78508702421
 	go.opencensus.io v0.22.3
-	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
 	google.golang.org/grpc v1.28.1
 )

@@ -201,12 +201,12 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*IndexSn
 			defer func() { <-rateLim }()
 			ictx, cancel := context.WithTimeout(ctx, qaTimeout)
 			defer cancel()
-			pid, err := api.StateMinerPeerID(ictx, addr, types.EmptyTSK)
+			mi, err := api.StateMinerInfo(ictx, addr, types.EmptyTSK)
 			if err != nil {
 				log.Debugf("error getting pid of %s: %s", addr, err)
 				return
 			}
-			ask, err := api.ClientQueryAsk(ictx, pid, addr)
+			ask, err := api.ClientQueryAsk(ictx, mi.PeerId, addr)
 			if err != nil {
 				log.Debugf("error query-asking miner: %s", err)
 				return
