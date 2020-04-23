@@ -478,6 +478,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	if err != nil {
 		return ffs.ColdInfo{}, err
 	}
+	fi.Proposals = append(fi.Proposals, curr.Cold.Filecoin.Proposals...)
 	return ffs.ColdInfo{
 		Filecoin: fi,
 	}, nil

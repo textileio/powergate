@@ -13,10 +13,8 @@ require (
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/filecoin-project/chain-validation v0.0.6-0.20200331055055-403d5af6c808 // indirect
 	github.com/filecoin-project/go-address v0.0.2-0.20200218010043-eb9bb40ed5be
 	github.com/filecoin-project/go-fil-markets v0.0.0-20200415011556-4378bd41b91f
-	github.com/filecoin-project/go-sectorbuilder v0.0.2-0.20200317221918-42574fc2aab9 // indirect
 	github.com/filecoin-project/lotus v0.2.11-0.20200423065310-a99875feaca9
 	github.com/filecoin-project/specs-actors v0.0.0-20200421235624-312ac81e2aa4
 	github.com/gin-contrib/location v0.0.1

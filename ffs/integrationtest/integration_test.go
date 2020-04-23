@@ -54,8 +54,8 @@ func TestMain(m *testing.M) {
 	}
 
 	logging.SetAllLoggers(logging.LevelError)
-	//logging.SetLogLevel("ffs-scheduler", "debug")
-	//logging.SetLogLevel("ffs-cidlogger", "debug")
+	logging.SetLogLevel("ffs-scheduler", "debug")
+	logging.SetLogLevel("ffs-cidlogger", "debug")
 
 	os.Exit(m.Run())
 }
@@ -324,10 +324,6 @@ func TestRepFactor(t *testing.T) {
 }
 
 func TestRepFactorIncrease(t *testing.T) {
-	// ToDo: unskip when testnet/3  allows more than one deal
-	// See https://bit.ly/2JxQSQk
-	t.SkipNow()
-
 	r := rand.New(rand.NewSource(22))
 	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
@@ -701,9 +697,6 @@ func TestUnfreeze(t *testing.T) {
 }
 
 func TestRenew(t *testing.T) {
-	// ToDo: unskip when testnet/3  allows more than one deal
-	// See https://bit.ly/2JxQSQk
-	t.SkipNow()
 	util.AvgBlockTime = time.Millisecond * 200
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
@@ -755,9 +748,6 @@ Loop:
 }
 
 func TestRenewWithDecreasedRepFactor(t *testing.T) {
-	// ToDo: unskip when testnet/3  allows more than one deal
-	// See https://bit.ly/2JxQSQk
-	t.SkipNow()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
@@ -778,7 +768,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	// Now decrease RepFactor to 1, so the renewal should consider this.
 	// Both now active deals shouldn't be renewed, only one of them.
 	config = config.WithColdFilRepFactor(1)
-	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config))
+	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireCidConfig(t, fapi, cid, &config)
