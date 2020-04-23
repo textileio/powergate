@@ -62,7 +62,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
-	github.com/textileio/lotus-client v0.0.0-20200331225835-db60fa302a4c
+	github.com/textileio/lotus-client v0.0.0-20200423003814-d42c2be47609
 	go.opencensus.io v0.22.3
 	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
 	google.golang.org/grpc v1.28.1
