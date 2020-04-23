@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync"
 
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
@@ -25,6 +26,9 @@ var (
 type CoreIpfs struct {
 	ipfs iface.CoreAPI
 	l    ffs.CidLogger
+
+	lock   sync.Mutex
+	pinset map[cid.Cid]struct{}
 }
 
 var _ ffs.HotStorage = (*CoreIpfs)(nil)
@@ -58,16 +62,31 @@ func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 
 // IsStored return if a particular Cid is stored.
 func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
-	pins, err := ci.ipfs.Pin().Ls(ctx)
-	if err != nil {
-		return false, fmt.Errorf("getting pins from IPFS: %s", err)
-	}
-	for _, p := range pins {
-		if p.Path().Cid() == c {
-			return true, nil
+	if ci.pinset == nil {
+		if err := ci.loadPinsetCache(ctx); err != nil {
+			return false, err
 		}
 	}
-	return false, nil
+	_, ok := ci.pinset[c]
+	return ok, nil
+}
+
+func (ci *CoreIpfs) loadPinsetCache(ctx context.Context) error {
+	ci.lock.Lock()
+	defer ci.lock.Unlock()
+	if ci.pinset != nil {
+		return nil
+	}
+	pins, err := ci.ipfs.Pin().Ls(ctx)
+	if err != nil {
+		ci.lock.Unlock()
+		return fmt.Errorf("getting pins from IPFS: %s", err)
+	}
+	ci.pinset = make(map[cid.Cid]struct{}, len(pins))
+	for _, p := range pins {
+		ci.pinset[p.Path().Cid()] = struct{}{}
+	}
+	return nil
 }
 
 // Add adds an io.Reader data as file in the IPFS node.
@@ -106,6 +125,9 @@ func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("getting stats of cid %s: %s", c, err)
 	}
+	ci.lock.Lock()
+	ci.pinset[c] = struct{}{}
+	ci.lock.Unlock()
 	return s.Size(), nil
 }
 
