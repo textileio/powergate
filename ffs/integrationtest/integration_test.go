@@ -201,7 +201,7 @@ func TestInfo(t *testing.T) {
 	})
 
 	r := rand.New(rand.NewSource(22))
-	n := 1
+	n := 3
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
 		jid, err := fapi.PushConfig(cid)
@@ -210,7 +210,7 @@ func TestInfo(t *testing.T) {
 		requireCidConfig(t, fapi, cid, nil)
 	}
 
-	t.Run("WithOneAdd", func(t *testing.T) {
+	t.Run("WithThreeAdd", func(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.Nil(t, err)
 		require.Equal(t, second.ID, first.ID)
@@ -1071,7 +1071,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 1000000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 1000}
 	}
 	ms := fixed.New(fixedMiners)
 	return addr, client, ms
