@@ -54,8 +54,8 @@ func TestMain(m *testing.M) {
 	}
 
 	logging.SetAllLoggers(logging.LevelError)
-	//logging.SetLogLevel("ffs-scheduler", "debug")
-	//logging.SetLogLevel("ffs-cidlogger", "debug")
+	logging.SetLogLevel("ffs-scheduler", "debug")
+	logging.SetLogLevel("ffs-cidlogger", "debug")
 
 	os.Exit(m.Run())
 }
@@ -748,6 +748,10 @@ Loop:
 }
 
 func TestRenewWithDecreasedRepFactor(t *testing.T) {
+	// ToDo: unskip when testnet/3  allows more than one deal
+	// See https://bit.ly/2JxQSQk
+	t.SkipNow()
+	util.AvgBlockTime = time.Millisecond * 200
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
@@ -790,7 +794,7 @@ Loop:
 			continue
 		}
 
-		require.Equal(t, len(i.Cold.Filecoin.Proposals), 3)
+		require.Equal(t, 3, len(i.Cold.Filecoin.Proposals))
 		// Only one of the two deas should be renewed
 		require.True(t, (firstDeal.Renewed && !secondDeal.Renewed) || (secondDeal.Renewed && !firstDeal.Renewed))
 
