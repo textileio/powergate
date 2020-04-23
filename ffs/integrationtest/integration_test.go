@@ -54,8 +54,8 @@ func TestMain(m *testing.M) {
 	}
 
 	logging.SetAllLoggers(logging.LevelError)
-	logging.SetLogLevel("ffs-scheduler", "debug")
-	logging.SetLogLevel("ffs-cidlogger", "debug")
+	//logging.SetLogLevel("ffs-scheduler", "debug")
+	//logging.SetLogLevel("ffs-cidlogger", "debug")
 
 	os.Exit(m.Run())
 }
