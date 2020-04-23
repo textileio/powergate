@@ -440,7 +440,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	}
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 1000000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 1000}
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
