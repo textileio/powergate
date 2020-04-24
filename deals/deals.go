@@ -18,6 +18,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/lotus-client/api/apistruct"
+	"github.com/textileio/powergate/util"
 )
 
 const (
@@ -184,10 +185,6 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 		return nil, fmt.Errorf("proposals list can't be empty")
 	}
 	ch := make(chan DealInfo)
-	w, err := m.api.ChainNotify(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("listening to chain changes: %s", err)
-	}
 	go func() {
 		defer close(ch)
 		currentState := make(map[cid.Cid]*api.DealInfo)
@@ -195,11 +192,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 			select {
 			case <-ctx.Done():
 				return
-			case _, ok := <-w:
-				if !ok {
-					log.Errorf("chain notify channel was closed by lotus node")
-					return
-				}
+			case <-time.After(util.AvgBlockTime):
 				if err := pushNewChanges(ctx, m.api, currentState, proposals, ch); err != nil {
 					log.Errorf("pushing new proposal states: %s", err)
 				}
