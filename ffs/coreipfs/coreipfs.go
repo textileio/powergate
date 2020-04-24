@@ -63,30 +63,12 @@ func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 // IsStored return if a particular Cid is stored.
 func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
 	if ci.pinset == nil {
-		if err := ci.loadPinsetCache(ctx); err != nil {
+		if err := ci.ensurePinsetCache(ctx); err != nil {
 			return false, err
 		}
 	}
 	_, ok := ci.pinset[c]
 	return ok, nil
-}
-
-func (ci *CoreIpfs) loadPinsetCache(ctx context.Context) error {
-	ci.lock.Lock()
-	defer ci.lock.Unlock()
-	if ci.pinset != nil {
-		return nil
-	}
-	pins, err := ci.ipfs.Pin().Ls(ctx)
-	if err != nil {
-		ci.lock.Unlock()
-		return fmt.Errorf("getting pins from IPFS: %s", err)
-	}
-	ci.pinset = make(map[cid.Cid]struct{}, len(pins))
-	for _, p := range pins {
-		ci.pinset[p.Path().Cid()] = struct{}{}
-	}
-	return nil
 }
 
 // Add adds an io.Reader data as file in the IPFS node.
@@ -125,6 +107,9 @@ func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("getting stats of cid %s: %s", c, err)
 	}
+	if err := ci.ensurePinsetCache(ctx); err != nil {
+		return 0, err
+	}
 	ci.lock.Lock()
 	ci.pinset[c] = struct{}{}
 	ci.lock.Unlock()
@@ -144,4 +129,22 @@ func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, e
 		return 0, fmt.Errorf("getting stats of cid %s: %s", c2, err)
 	}
 	return stat.Size(), nil
+}
+
+func (ci *CoreIpfs) ensurePinsetCache(ctx context.Context) error {
+	ci.lock.Lock()
+	defer ci.lock.Unlock()
+	if ci.pinset != nil {
+		return nil
+	}
+	pins, err := ci.ipfs.Pin().Ls(ctx)
+	if err != nil {
+		ci.lock.Unlock()
+		return fmt.Errorf("getting pins from IPFS: %s", err)
+	}
+	ci.pinset = make(map[cid.Cid]struct{}, len(pins))
+	for _, p := range pins {
+		ci.pinset[p.Path().Cid()] = struct{}{}
+	}
+	return nil
 }
