@@ -46,6 +46,7 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	util.AvgBlockTime = time.Millisecond * 500
 	_ = os.RemoveAll(tmpDir)
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
 		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
@@ -61,6 +62,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestSetDefaultConfig(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -88,6 +90,7 @@ func TestSetDefaultConfig(t *testing.T) {
 }
 
 func TestAddrs(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -98,6 +101,7 @@ func TestAddrs(t *testing.T) {
 }
 
 func TestNewAddress(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -110,6 +114,7 @@ func TestNewAddress(t *testing.T) {
 }
 
 func TestNewAddressDefault(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -122,6 +127,7 @@ func TestNewAddressDefault(t *testing.T) {
 }
 
 func TestGetDefaultConfig(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -130,6 +136,7 @@ func TestGetDefaultConfig(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
+	t.Parallel()
 	r := rand.New(rand.NewSource(22))
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		ctx := context.Background()
@@ -163,6 +170,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
@@ -184,6 +192,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestInfo(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
@@ -222,6 +231,7 @@ func TestInfo(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfs, fapi, cls := newAPI(t, 1)
 
@@ -264,6 +274,7 @@ func TestShow(t *testing.T) {
 }
 
 func TestColdInstanceLoad(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
@@ -303,6 +314,7 @@ func TestColdInstanceLoad(t *testing.T) {
 }
 
 func TestRepFactor(t *testing.T) {
+	t.Parallel()
 	rfs := []int{1, 2}
 	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
@@ -324,6 +336,7 @@ func TestRepFactor(t *testing.T) {
 }
 
 func TestRepFactorIncrease(t *testing.T) {
+	t.Parallel()
 	r := rand.New(rand.NewSource(22))
 	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
@@ -350,6 +363,7 @@ func TestRepFactorIncrease(t *testing.T) {
 }
 
 func TestRepFactorDecrease(t *testing.T) {
+	t.Parallel()
 	r := rand.New(rand.NewSource(22))
 	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
@@ -377,6 +391,7 @@ func TestRepFactorDecrease(t *testing.T) {
 }
 
 func TestHotTimeoutConfig(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -390,6 +405,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 }
 
 func TestDurationConfig(t *testing.T) {
+	t.Parallel()
 	ipfsAPI, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -409,6 +425,7 @@ func TestDurationConfig(t *testing.T) {
 }
 
 func TestFilecoinExcludedMiners(t *testing.T) {
+	t.Parallel()
 	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
 
@@ -428,6 +445,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 }
 
 func TestFilecoinCountryFilter(t *testing.T) {
+	t.Parallel()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 
@@ -463,6 +481,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 }
 
 func TestFilecoinEnableConfig(t *testing.T) {
+	t.Parallel()
 	tableTest := []struct {
 		HotEnabled  bool
 		ColdEnabled bool
@@ -546,6 +565,7 @@ func requireIpfsPinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAP
 }
 
 func TestEnabledConfigChange(t *testing.T) {
+	t.Parallel()
 	t.Run("HotEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
 		ipfsAPI, fapi, cls := newAPI(t, 1)
@@ -665,6 +685,7 @@ func requireFilStored(ctx context.Context, t *testing.T, client *apistruct.FullN
 }
 
 func TestUnfreeze(t *testing.T) {
+	t.Parallel()
 	ipfsAPI, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -697,7 +718,7 @@ func TestUnfreeze(t *testing.T) {
 }
 
 func TestRenew(t *testing.T) {
-	util.AvgBlockTime = time.Millisecond * 200
+	t.Parallel()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
@@ -751,7 +772,6 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	// ToDo: unskip when testnet/3  allows more than one deal
 	// See https://bit.ly/2JxQSQk
 	t.SkipNow()
-	util.AvgBlockTime = time.Millisecond * 200
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
@@ -808,6 +828,7 @@ Loop:
 }
 
 func TestCidLogger(t *testing.T) {
+	t.Parallel()
 	t.Run("WithNoFilters", func(t *testing.T) {
 		ipfs, fapi, cls := newAPI(t, 1)
 		defer cls()
@@ -916,6 +937,7 @@ func TestCidLogger(t *testing.T) {
 }
 
 func TestPushCidReplace(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	defer cls()
@@ -958,6 +980,7 @@ func TestPushCidReplace(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
+	t.Parallel()
 	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -991,7 +1014,7 @@ func TestRemove(t *testing.T) {
 // Better than no test is some test, so this tests that the repair logic gets triggered
 // and the related Job ran successfully.
 func TestRepair(t *testing.T) {
-	util.AvgBlockTime = time.Second
+	t.Parallel()
 	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
 

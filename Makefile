@@ -14,5 +14,5 @@ build: build-cli build-server
 .PHONY: build
 
 test:
-	go test -short -p 1 -race ./... 
+	go test -short -p 4 -race ./... 
 .PHONY: test

@@ -131,7 +131,6 @@ func (s *Index) start() {
 			log.Info("graceful shutdown of background slashing updater")
 			return
 		case <-time.After(util.AvgBlockTime):
-
 			if err := s.updateIndex(); err != nil {
 				log.Errorf("error when updating slashing history: %s", err)
 				continue
@@ -145,27 +144,27 @@ func (s *Index) updateIndex() error {
 	log.Info("updating slashing index...")
 	heaviest, err := s.api.ChainHead(s.ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("getting chain head: %s", err)
 	}
 	if heaviest.Height()-hOffset <= 0 {
 		return nil
 	}
 	new, err := s.api.ChainGetTipSetByHeight(s.ctx, heaviest.Height()-hOffset, heaviest.Key())
 	if err != nil {
-		return err
+		return fmt.Errorf("get tipset by height: %s", err)
 	}
 	newtsk := types.NewTipSetKey(new.Cids()...)
 	var index IndexSnapshot
 	ts, err := s.store.LoadAndPrune(s.ctx, newtsk, &index)
 	if err != nil {
-		return err
+		return fmt.Errorf("load tipset state: %s", err)
 	}
 	if index.Miners == nil {
 		index.Miners = make(map[string]Slashes)
 	}
 	_, path, err := chainsync.ResolveBase(s.ctx, s.api, ts, newtsk)
 	if err != nil {
-		return err
+		return fmt.Errorf("resolving base path: %s", err)
 	}
 	mctx := context.Background()
 	start := time.Now()
@@ -175,10 +174,10 @@ func (s *Index) updateIndex() error {
 			j = len(path)
 		}
 		if err := updateFromPath(s.ctx, s.api, &index, path[i:j]); err != nil {
-			return err
+			return fmt.Errorf("getting update from path section: %s", err)
 		}
 		if err := s.store.Save(s.ctx, types.NewTipSetKey(path[j-1].Cids()...), index); err != nil {
-			return err
+			return fmt.Errorf("saving new index state: %s", err)
 		}
 		log.Infof("processed from %d to %d", path[i].Height(), path[j-1].Height())
 		s.lock.Lock()
