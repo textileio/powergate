@@ -135,22 +135,22 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 	if err != nil {
 		return si, err
 	}
-	pid, err := c.StateMinerPeerID(ctx, addr, types.EmptyTSK)
+	mi, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
 	if err != nil {
 		return si, err
 	}
 	ctx, cancel := context.WithTimeout(ctx, pingTimeout)
 	defer cancel()
-	if alive := h.Ping(ctx, pid); !alive {
+	if alive := h.Ping(ctx, mi.PeerId); !alive {
 		return si, fmt.Errorf("peer didn't pong")
 	}
 	si.Online = true
 
-	if av := h.GetAgentVersion(pid); av != "" {
+	if av := h.GetAgentVersion(mi.PeerId); av != "" {
 		si.UserAgent = av
 	}
 
-	addrs := h.Addrs(pid)
+	addrs := h.Addrs(mi.PeerId)
 	if len(addrs) == 0 {
 		return si, nil
 	}

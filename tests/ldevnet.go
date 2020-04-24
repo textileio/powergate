@@ -21,7 +21,8 @@ func LaunchDevnetDocker(t *testing.T, numMiners int) *dockertest.Resource {
 		panic(fmt.Sprintf("couldn't create ipfs-pool: %s", err))
 	}
 	envNumMiners := fmt.Sprintf("TEXLOTUSDEVNET_NUMMINERS=%d", numMiners)
-	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: "textile/lotus-devnet", Tag: "sha-9aab2c6", Env: []string{envNumMiners}, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
+	speed := "TEXLOTUSDEVNET_SPEED=500"
+	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: "textile/lotus-devnet", Tag: "sha-c755791", Env: []string{envNumMiners, speed}, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))
 	}

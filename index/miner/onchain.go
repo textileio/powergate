@@ -165,10 +165,10 @@ func getPower(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Add
 	if err != nil {
 		return Power{}, err
 	}
-	p := mp.MinerPower.Uint64()
+	p := mp.MinerPower.RawBytePower.Uint64()
 	tp := mp.TotalPower
 	return Power{
 		Power:    p,
-		Relative: float64(p) / float64(tp.Uint64()),
+		Relative: float64(p) / float64(tp.RawBytePower.Uint64()),
 	}, nil
 }

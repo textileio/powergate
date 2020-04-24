@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"math/rand"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -45,6 +46,7 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	util.AvgBlockTime = time.Millisecond * 500
 	_ = os.RemoveAll(tmpDir)
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
 		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
@@ -60,6 +62,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestSetDefaultConfig(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -87,6 +90,7 @@ func TestSetDefaultConfig(t *testing.T) {
 }
 
 func TestAddrs(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -97,6 +101,7 @@ func TestAddrs(t *testing.T) {
 }
 
 func TestNewAddress(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -109,6 +114,7 @@ func TestNewAddress(t *testing.T) {
 }
 
 func TestNewAddressDefault(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -121,6 +127,7 @@ func TestNewAddressDefault(t *testing.T) {
 }
 
 func TestGetDefaultConfig(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -129,6 +136,7 @@ func TestGetDefaultConfig(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
+	t.Parallel()
 	r := rand.New(rand.NewSource(22))
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		ctx := context.Background()
@@ -162,6 +170,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
@@ -183,6 +192,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestInfo(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
@@ -200,7 +210,7 @@ func TestInfo(t *testing.T) {
 	})
 
 	r := rand.New(rand.NewSource(22))
-	n := 1
+	n := 3
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
 		jid, err := fapi.PushConfig(cid)
@@ -209,7 +219,7 @@ func TestInfo(t *testing.T) {
 		requireCidConfig(t, fapi, cid, nil)
 	}
 
-	t.Run("WithOneAdd", func(t *testing.T) {
+	t.Run("WithThreeAdd", func(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.Nil(t, err)
 		require.Equal(t, second.ID, first.ID)
@@ -221,6 +231,7 @@ func TestInfo(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfs, fapi, cls := newAPI(t, 1)
 
@@ -263,6 +274,7 @@ func TestShow(t *testing.T) {
 }
 
 func TestColdInstanceLoad(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
@@ -302,6 +314,7 @@ func TestColdInstanceLoad(t *testing.T) {
 }
 
 func TestRepFactor(t *testing.T) {
+	t.Parallel()
 	rfs := []int{1, 2}
 	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
@@ -323,10 +336,7 @@ func TestRepFactor(t *testing.T) {
 }
 
 func TestRepFactorIncrease(t *testing.T) {
-	// ToDo: unskip when testnet/3  allows more than one deal
-	// See https://bit.ly/2JxQSQk
-	t.SkipNow()
-
+	t.Parallel()
 	r := rand.New(rand.NewSource(22))
 	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
@@ -353,6 +363,7 @@ func TestRepFactorIncrease(t *testing.T) {
 }
 
 func TestRepFactorDecrease(t *testing.T) {
+	t.Parallel()
 	r := rand.New(rand.NewSource(22))
 	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
@@ -380,6 +391,7 @@ func TestRepFactorDecrease(t *testing.T) {
 }
 
 func TestHotTimeoutConfig(t *testing.T) {
+	t.Parallel()
 	_, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -393,6 +405,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 }
 
 func TestDurationConfig(t *testing.T) {
+	t.Parallel()
 	ipfsAPI, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -412,6 +425,7 @@ func TestDurationConfig(t *testing.T) {
 }
 
 func TestFilecoinExcludedMiners(t *testing.T) {
+	t.Parallel()
 	ipfsAPI, fapi, cls := newAPI(t, 2)
 	defer cls()
 
@@ -431,6 +445,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 }
 
 func TestFilecoinCountryFilter(t *testing.T) {
+	t.Parallel()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 
@@ -443,7 +458,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	}
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 1000000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 1000}
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
@@ -466,6 +481,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 }
 
 func TestFilecoinEnableConfig(t *testing.T) {
+	t.Parallel()
 	tableTest := []struct {
 		HotEnabled  bool
 		ColdEnabled bool
@@ -549,6 +565,7 @@ func requireIpfsPinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAP
 }
 
 func TestEnabledConfigChange(t *testing.T) {
+	t.Parallel()
 	t.Run("HotEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
 		ipfsAPI, fapi, cls := newAPI(t, 1)
@@ -668,6 +685,7 @@ func requireFilStored(ctx context.Context, t *testing.T, client *apistruct.FullN
 }
 
 func TestUnfreeze(t *testing.T) {
+	t.Parallel()
 	ipfsAPI, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -700,10 +718,7 @@ func TestUnfreeze(t *testing.T) {
 }
 
 func TestRenew(t *testing.T) {
-	// ToDo: unskip when testnet/3  allows more than one deal
-	// See https://bit.ly/2JxQSQk
-	t.SkipNow()
-	util.AvgBlockTime = time.Millisecond * 200
+	t.Parallel()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
@@ -777,7 +792,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	// Now decrease RepFactor to 1, so the renewal should consider this.
 	// Both now active deals shouldn't be renewed, only one of them.
 	config = config.WithColdFilRepFactor(1)
-	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config))
+	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireCidConfig(t, fapi, cid, &config)
@@ -799,7 +814,7 @@ Loop:
 			continue
 		}
 
-		require.Equal(t, len(i.Cold.Filecoin.Proposals), 3)
+		require.Equal(t, 3, len(i.Cold.Filecoin.Proposals))
 		// Only one of the two deas should be renewed
 		require.True(t, (firstDeal.Renewed && !secondDeal.Renewed) || (secondDeal.Renewed && !firstDeal.Renewed))
 
@@ -813,6 +828,7 @@ Loop:
 }
 
 func TestCidLogger(t *testing.T) {
+	t.Parallel()
 	t.Run("WithNoFilters", func(t *testing.T) {
 		ipfs, fapi, cls := newAPI(t, 1)
 		defer cls()
@@ -921,6 +937,7 @@ func TestCidLogger(t *testing.T) {
 }
 
 func TestPushCidReplace(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	defer cls()
@@ -963,6 +980,7 @@ func TestPushCidReplace(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
+	t.Parallel()
 	ipfs, fapi, cls := newAPI(t, 1)
 	defer cls()
 
@@ -989,6 +1007,67 @@ func TestRemove(t *testing.T) {
 	require.Equal(t, api.ErrNotFound, err)
 }
 
+// This isn't very nice way to test for repair. The main problem is that now
+// deal start is buffered for future start for 10000 blocks at the Lotus level.
+// Se we can't wait that much on a devnet. That setup has some ToDo comments so
+// most prob will change and we can do some nicier test here.
+// Better than no test is some test, so this tests that the repair logic gets triggered
+// and the related Job ran successfully.
+func TestRepair(t *testing.T) {
+	t.Parallel()
+	ipfs, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	r := rand.New(rand.NewSource(22))
+	cid, _ := addRandomFile(t, r, ipfs)
+	config := fapi.GetDefaultCidConfig(cid).WithRepairable(true)
+	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+	require.NoError(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ch := make(chan ffs.LogEntry)
+	go func() {
+		err = fapi.WatchLogs(ctx, ch, cid)
+		close(ch)
+	}()
+	stop := false
+	for !stop {
+		select {
+		case le, ok := <-ch:
+			if !ok {
+				require.NoError(t, err)
+				stop = true
+				continue
+			}
+			// Expected message: "Job %s was queued for repair evaluation."
+			if strings.Contains(le.Msg, "was queued for repair evaluation.") {
+				parts := strings.SplitN(le.Msg, " ", 3)
+				require.Equal(t, 3, len(parts), "Log message is malformed")
+				jid := ffs.JobID(parts[1])
+				var err2 error
+				ctx2, cancel2 := context.WithCancel(context.Background())
+				ch := make(chan ffs.Job, 1)
+				go func() {
+					err2 = fapi.WatchJobs(ctx2, ch, jid)
+					close(ch)
+				}()
+				repairJob := <-ch
+				cancel2()
+				<-ch
+				require.Nil(t, err2)
+				requireJobState(t, fapi, repairJob.ID, ffs.Success)
+				requireCidConfig(t, fapi, cid, &config)
+				cancel()
+			}
+		case <-time.After(time.Second * 10):
+			t.Fatal("no cid logs related with repairing were received")
+		}
+	}
+}
+
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
@@ -1009,7 +1088,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 1000000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 1000}
 	}
 	ms := fixed.New(fixedMiners)
 	return addr, client, ms

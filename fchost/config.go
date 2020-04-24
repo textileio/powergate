@@ -9,8 +9,8 @@ import (
 
 var (
 	addrs = []string{
-		"/dns4/t01000.miner.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWGzxzKZYveHXtpG6AsrUJBcWxHBFS2HsEoGTxrMLvKXtf",
-		"/ip4/52.36.61.156/tcp/1347/p2p/12D3KooWFETiESTf1v4PGUvtnxMAcEFMzLZbJGg4tjWfGEimYior",
+		"/dns4/t01000.miner.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWNjqGTNZ592wG5DmX7Rbmb76V3NHMdZMqjqPJ1xiax7w6",
+		"/ip4/54.186.82.90/tcp/1347/p2p/12D3KooWGf4ggd3cdZJKZPHkgSe8Lxf4MDsKhVC7npRGXgsPP4fz",
 	}
 )
 

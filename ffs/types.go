@@ -106,6 +106,15 @@ type CidConfig struct {
 	Hot HotConfig
 	// Cold has desired storing configuration in the Cold Storage.
 	Cold ColdConfig
+	// Repairable indicates if this cid config should be tracked
+	// for auto-repair.
+	Repairable bool
+}
+
+// WithRepairable allows to enable/disable auto-repair.
+func (c CidConfig) WithRepairable(enabled bool) CidConfig {
+	c.Repairable = enabled
+	return c
 }
 
 // WithColdEnabled allows to enable/disable Cold storage usage.

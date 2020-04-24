@@ -11,12 +11,14 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	util.AvgBlockTime = time.Millisecond * 10
+	util.AvgBlockTime = time.Millisecond * 100
 	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())
 }
 
 func TestFreshIndex(t *testing.T) {
+	// Skipped until #235 lands.
+	t.SkipNow()
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
 	time.Sleep(time.Millisecond * 500) // Allow the network to some tipsets
 

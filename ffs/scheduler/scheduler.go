@@ -197,8 +197,11 @@ func (s *Scheduler) run() {
 			return
 		case <-time.After(util.AvgBlockTime):
 			log.Debug("running renewal checks...")
-			s.scanRenewable(s.ctx)
-			log.Debug("renewal checks done")
+			s.execRenewCron(s.ctx)
+			log.Debug("renewal cron done")
+			log.Debug("running repair checks...")
+			s.execRepairCron(s.ctx)
+			log.Debug("repair cron done")
 		case <-s.queuedWork:
 			log.Debug("running queued Job...")
 			s.executeQueuedJobs(s.ctx)
@@ -207,7 +210,31 @@ func (s *Scheduler) run() {
 	}
 }
 
-func (s *Scheduler) scanRenewable(ctx context.Context) {
+func (s *Scheduler) execRepairCron(ctx context.Context) {
+	as, err := s.as.GetRepairable()
+	if err != nil {
+		log.Errorf("getting repairable cid configs from store: %s", err)
+	}
+	for _, a := range as {
+		log.Debugf("scheduling deal repair for Cid %s", a.Cfg.Cid)
+		if err := s.scheduleRepairJob(ctx, a); err != nil {
+			log.Errorf("repair of %s: %s", a.Cfg.Cid, err)
+		}
+		log.Debugf("scheduling repair done")
+	}
+}
+
+func (s *Scheduler) scheduleRepairJob(ctx context.Context, a Action) error {
+	s.l.Log(ctx, a.Cfg.Cid, "Scheduling deal repair...")
+	jid, err := s.push(a.APIID, a.Cfg, cid.Undef)
+	if err != nil {
+		return fmt.Errorf("scheduling repair job: %s", err)
+	}
+	s.l.Log(ctx, a.Cfg.Cid, "Job %s was queued for repair evaluation.", jid)
+	return nil
+}
+
+func (s *Scheduler) execRenewCron(ctx context.Context) {
 	as, err := s.as.GetRenewable()
 	if err != nil {
 		log.Errorf("getting renweable cid configs from store: %s", err)
@@ -283,7 +310,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 
 	ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
 	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
-	info, err := s.executePushConfigAction(ctx, a, j)
+	info, err := s.executeCidConfig(ctx, a, j)
 	if err != nil {
 		log.Errorf("executing job %s: %s", j.ID, err)
 		j.ErrCause = err.Error()
@@ -303,7 +330,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 	return nil
 }
 
-func (s *Scheduler) executePushConfigAction(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, error) {
+func (s *Scheduler) executeCidConfig(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
@@ -451,6 +478,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	if err != nil {
 		return ffs.ColdInfo{}, err
 	}
+	fi.Proposals = append(fi.Proposals, curr.Cold.Filecoin.Proposals...)
 	return ffs.ColdInfo{
 		Filecoin: fi,
 	}, nil
