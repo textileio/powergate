@@ -25,6 +25,9 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	if err := os.RemoveAll(tmpDir); err != nil {
+		panic(err)
+	}
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
 		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
 			panic(err)
