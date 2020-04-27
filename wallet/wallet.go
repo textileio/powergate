@@ -6,9 +6,9 @@ import (
 	"math/big"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/specs-actors/actors/crypto"
-	"github.com/textileio/lotus-client/api/apistruct"
 )
 
 // Module exposes the filecoin wallet api.

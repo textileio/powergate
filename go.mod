@@ -15,8 +15,8 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/filecoin-project/go-address v0.0.2-0.20200218010043-eb9bb40ed5be
 	github.com/filecoin-project/go-fil-markets v0.0.0-20200415011556-4378bd41b91f
-	github.com/filecoin-project/lotus v0.2.11-0.20200423065310-a99875feaca9
-	github.com/filecoin-project/specs-actors v0.0.0-20200421235624-312ac81e2aa4
+	github.com/filecoin-project/lotus v0.2.11-0.20200425000157-1bfa2311d693
+	github.com/filecoin-project/specs-actors v1.0.1-0.20200424174946-11410d0bbcaf
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.2
@@ -32,18 +32,18 @@ require (
 	github.com/ipfs/go-car v0.0.4-0.20200304012825-b6769248bfef
 	github.com/ipfs/go-cid v0.0.5
 	github.com/ipfs/go-datastore v0.4.4
-	github.com/ipfs/go-ds-badger2 v0.0.0-20200211201106-609c9d2a39c7
+	github.com/ipfs/go-ds-badger2 v0.1.0
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200228220229-2e259051cd8b
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
 	github.com/ipfs/go-ipld-format v0.0.2
-	github.com/ipfs/go-log/v2 v2.0.4
+	github.com/ipfs/go-log/v2 v2.0.5
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/libp2p/go-libp2p v0.6.1
+	github.com/libp2p/go-libp2p v0.8.1
 	github.com/libp2p/go-libp2p-core v0.5.1
-	github.com/libp2p/go-libp2p-kad-dht v0.5.0
+	github.com/libp2p/go-libp2p-kad-dht v0.7.6
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0
 	github.com/mattn/go-runewidth v0.0.8 // indirect
@@ -61,7 +61,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
-	github.com/textileio/lotus-client v0.0.0-20200423155630-a78508702421
 	go.opencensus.io v0.22.3
 	google.golang.org/grpc v1.28.1
 )

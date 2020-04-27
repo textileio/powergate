@@ -3,10 +3,10 @@ package lotus
 import (
 	"context"
 
+	"github.com/filecoin-project/lotus/api/apistruct"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/net"
 )

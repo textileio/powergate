@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/lotus-client/api"
 	"github.com/textileio/powergate/tests"
 )
 

@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-datastore"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/chainstore"
 	"github.com/textileio/powergate/chainsync"
 	"github.com/textileio/powergate/iplocation"
