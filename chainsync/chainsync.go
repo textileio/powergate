@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	hcRevert  = "revert"
-	hcApply   = "apply"
-	hcCurrent = "current"
+	hcApply = "apply"
+	// For completeness:
+	// hcRevert = "revert"
+	// hcCurrent = "current"
 )
 
 // ChainSync provides methods to resolve chain syncing situations
