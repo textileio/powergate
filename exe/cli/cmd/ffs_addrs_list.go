@@ -41,9 +41,9 @@ var ffsAddrsListCmd = &cobra.Command{
 			if addr.Addr == defaultConfig.Cold.Filecoin.Addr {
 				isDefault = "yes"
 			}
-			data[i] = []string{addr.Name, addr.Addr, isDefault}
+			data[i] = []string{addr.Name, addr.Addr, addr.Type, isDefault}
 		}
 		Message("Wallet addresses:")
-		RenderTable(os.Stdout, []string{"name", "address", "default"}, data)
+		RenderTable(os.Stdout, []string{"name", "address", "type", "default"}, data)
 	},
 }

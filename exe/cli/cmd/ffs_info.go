@@ -43,10 +43,10 @@ var ffsInfoCmd = &cobra.Command{
 			if balance.Addr.Addr == resp.Info.DefaultConfig.Cold.Filecoin.Addr {
 				isDefault = "yes"
 			}
-			data[i] = []string{balance.Addr.Name, balance.Addr.Addr, fmt.Sprintf("%v", balance.Balance), isDefault}
+			data[i] = []string{balance.Addr.Name, balance.Addr.Addr, balance.Addr.Type, fmt.Sprintf("%v", balance.Balance), isDefault}
 		}
 		Message("Wallet addresses:")
-		RenderTable(os.Stdout, []string{"name", "address", "balance", "default"}, data)
+		RenderTable(os.Stdout, []string{"name", "address", "type", "balance", "default"}, data)
 
 		bytes, err := json.MarshalIndent(resp.Info.DefaultConfig, "", "  ")
 		checkErr(err)
