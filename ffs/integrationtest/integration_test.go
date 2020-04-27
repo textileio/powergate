@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
@@ -21,7 +22,6 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/lotus-client/api/apistruct"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
@@ -42,7 +42,7 @@ import (
 )
 
 const (
-	tmpDir = "/tmp/powergate"
+	tmpDir = "/tmp/powergate/integrationtest"
 )
 
 func TestMain(m *testing.M) {

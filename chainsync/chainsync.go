@@ -4,9 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/textileio/lotus-client/api/apistruct"
-	"github.com/textileio/lotus-client/chain/store"
+)
+
+const (
+	hcApply = "apply"
+	// For completeness:
+	// hcRevert = "revert"
+	// hcCurrent = "current"
 )
 
 // ChainSync provides methods to resolve chain syncing situations
@@ -31,7 +37,7 @@ func (cs *ChainSync) Precedes(ctx context.Context, from, to types.TipSetKey) (bo
 	if len(fpath) == 0 {
 		return true, nil
 	}
-	norevert := fpath[0].Type == store.HCApply
+	norevert := fpath[0].Type == hcApply
 	return norevert, nil
 }
 
@@ -56,7 +62,7 @@ func ResolveBase(ctx context.Context, api *apistruct.FullNodeStruct, left *types
 
 	var base *types.TipSetKey
 	for _, ts := range fpath {
-		if ts.Type == store.HCApply {
+		if ts.Type == hcApply {
 			if base == nil {
 				b := types.NewTipSetKey(ts.Val.Blocks()[0].Parents...)
 				base = &b
