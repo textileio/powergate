@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	tmpDir = "/tmp/powergate"
+	tmpDir = "/tmp/powergate/clienttest"
 )
 
 func TestMain(m *testing.M) {

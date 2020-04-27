@@ -42,7 +42,7 @@ import (
 )
 
 const (
-	tmpDir = "/tmp/powergate"
+	tmpDir = "/tmp/powergate/integrationtest"
 )
 
 func TestMain(m *testing.M) {
