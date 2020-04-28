@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"github.com/multiformats/go-multiaddr"
 	dealsPb "github.com/textileio/powergate/deals/pb"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
@@ -11,6 +12,7 @@ import (
 	slashingPb "github.com/textileio/powergate/index/slashing/pb"
 	netRpc "github.com/textileio/powergate/net/rpc"
 	reputationPb "github.com/textileio/powergate/reputation/pb"
+	"github.com/textileio/powergate/util"
 	walletPb "github.com/textileio/powergate/wallet/pb"
 	"google.golang.org/grpc"
 )
@@ -54,9 +56,13 @@ func (t TokenAuth) RequireTransportSecurity() bool {
 	return t.secure
 }
 
-// NewClient starts the client
-func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
-	conn, err := grpc.Dial(target, opts...)
+// NewClient creates a client
+func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error) {
+	addr, err := util.TCPAddrFromMultiAddr(ma)
+	if err != nil {
+		return nil, err
+	}
+	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return nil, err
 	}

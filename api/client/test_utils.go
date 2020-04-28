@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/server"
 	"github.com/textileio/powergate/tests"
@@ -15,7 +16,7 @@ import (
 
 var (
 	grpcHostNetwork     = "tcp"
-	grpcHostAddress     = "127.0.0.1:5002"
+	grpcHostAddress     = "/ip4/127.0.0.1/tcp/5002"
 	grpcWebProxyAddress = "127.0.0.1:6002"
 	gatewayHostAddr     = "0.0.0.0:7000"
 	ctx                 = context.Background()
@@ -34,6 +35,7 @@ func setupServer(t *testing.T) func() {
 	ddevnet := tests.LaunchDevnetDocker(t, 1)
 	devnetAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ddevnet.GetPort("7777/tcp"))
 
+	grpcMaddr := util.MustParseAddr(grpcHostAddress)
 	conf := server.Config{
 		WalletInitialFunds:  *big.NewInt(int64(4000000000)),
 		IpfsAPIAddr:         ipfsAddr,
@@ -42,7 +44,7 @@ func setupServer(t *testing.T) func() {
 		LotusMasterAddr:     "",
 		Embedded:            true,
 		GrpcHostNetwork:     grpcHostNetwork,
-		GrpcHostAddress:     grpcHostAddress,
+		GrpcHostAddress:     grpcMaddr,
 		GrpcWebProxyAddress: grpcWebProxyAddress,
 		RepoPath:            repoPath,
 		GatewayHostAddr:     gatewayHostAddr,
@@ -57,7 +59,11 @@ func setupServer(t *testing.T) func() {
 
 func setupConnection(t *testing.T) (*grpc.ClientConn, func()) {
 	auth := TokenAuth{}
-	conn, err := grpc.Dial(grpcHostAddress, grpc.WithInsecure(), grpc.WithPerRPCCredentials(auth))
+	ma, err := multiaddr.NewMultiaddr(grpcHostAddress)
+	checkErr(t, err)
+	addr, err := util.TCPAddrFromMultiAddr(ma)
+	checkErr(t, err)
+	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(auth))
 	checkErr(t, err)
 	return conn, func() {
 		require.NoError(t, conn.Close())
