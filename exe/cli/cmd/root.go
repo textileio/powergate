@@ -8,6 +8,7 @@ import (
 	"time"
 
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	client "github.com/textileio/powergate/api/client"
@@ -46,7 +47,9 @@ var (
 
 			auth := client.TokenAuth{}
 			opts = append(opts, grpc.WithPerRPCCredentials(auth))
-			fcClient, err = client.NewClient(target, opts...)
+			ma, err := multiaddr.NewMultiaddr(target)
+			checkErr(err)
+			fcClient, err = client.NewClient(ma, opts...)
 			checkErr(err)
 		},
 	}
@@ -64,7 +67,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.powergate.yaml)")
-	rootCmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the filecoin service api")
+	rootCmd.PersistentFlags().String("serverAddress", "/ip4/127.0.0.1/tcp/5002", "address of the filecoin service api")
 }
 
 func initConfig() {

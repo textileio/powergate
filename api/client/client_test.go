@@ -3,6 +3,7 @@ package client
 import (
 	"testing"
 
+	"github.com/multiformats/go-multiaddr"
 	"google.golang.org/grpc"
 )
 
@@ -11,7 +12,11 @@ func TestClient(t *testing.T) {
 	done := setupServer(t)
 	defer done()
 
-	client, err := NewClient(grpcHostAddress, grpc.WithInsecure())
+	ma, err := multiaddr.NewMultiaddr(grpcHostAddress)
+	if err != nil {
+		t.Fatalf("parsing multiaddress: %s", err)
+	}
+	client, err := NewClient(ma, grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
