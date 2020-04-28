@@ -107,6 +107,7 @@ func (f *ffs) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 		addrs[i] = api.AddrInfo{
 			Name: addr.Name,
 			Addr: addr.Addr,
+			Type: addr.Type,
 		}
 	}
 	return addrs, nil

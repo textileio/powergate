@@ -72,6 +72,7 @@ func (s *Service) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, er
 		res[i] = &AddrInfo{
 			Name: addr.Name,
 			Addr: addr.Addr,
+			Type: addr.Type,
 		}
 	}
 	return &AddrsReply{Addrs: res}, nil
@@ -258,6 +259,7 @@ func (s *Service) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error
 			Addr: &AddrInfo{
 				Name: balanceInfo.Name,
 				Addr: balanceInfo.Addr,
+				Type: balanceInfo.Type,
 			},
 			Balance: int64(balanceInfo.Balance),
 		}

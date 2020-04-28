@@ -34,6 +34,7 @@ type Config struct {
 type AddrInfo struct {
 	Name string
 	Addr string
+	Type string
 }
 
 // InstanceInfo has general information about a running Api instance.

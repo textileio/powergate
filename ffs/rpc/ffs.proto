@@ -12,6 +12,7 @@ option objc_class_prefix = "TTE";
 message AddrInfo {
    string name = 1;
    string addr = 2;
+   string type = 3;
 }
 
 message IpfsConfig {

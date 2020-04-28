@@ -62,6 +62,7 @@ func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler
 	addrInfo := AddrInfo{
 		Name: "Initial Address",
 		Addr: addr,
+		Type: defaultAddressType,
 	}
 
 	config := Config{
@@ -154,6 +155,7 @@ func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	i.cfg.Addrs[addr] = AddrInfo{
 		Name: name,
 		Addr: addr,
+		Type: conf.addressType,
 	}
 	if conf.makeDefault {
 		i.cfg.DefaultConfig.Cold.Filecoin.Addr = addr
