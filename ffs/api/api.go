@@ -209,6 +209,29 @@ func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
 	return inf, nil
 }
 
+// ShowMatching returns a list of information about stored cids matching a selector
+func (i *API) ShowMatching(selector func(ffs.CidInfo) bool) ([]ffs.CidInfo, error) {
+	cids, err := i.is.GetCids()
+	if err != nil {
+		return nil, fmt.Errorf("getting cids from instance: %s", err)
+	}
+	infos := make([]ffs.CidInfo, len(cids))
+	for j, cid := range cids {
+		info, err := i.Show(cid)
+		if err != nil {
+			return nil, err
+		}
+		infos[j] = info
+	}
+	var res []ffs.CidInfo
+	for _, info := range infos {
+		if selector(info) {
+			res = append(res, info)
+		}
+	}
+	return res, nil
+}
+
 // Info returns instance information.
 func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	i.lock.Lock()
