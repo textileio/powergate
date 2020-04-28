@@ -35,6 +35,7 @@ func setupServer(t *testing.T) func() {
 	ddevnet := tests.LaunchDevnetDocker(t, 1)
 	devnetAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ddevnet.GetPort("7777/tcp"))
 
+	grpcMaddr := util.MustParseAddr(grpcHostAddress)
 	conf := server.Config{
 		WalletInitialFunds:  *big.NewInt(int64(4000000000)),
 		IpfsAPIAddr:         ipfsAddr,
@@ -43,7 +44,7 @@ func setupServer(t *testing.T) func() {
 		LotusMasterAddr:     "",
 		Embedded:            true,
 		GrpcHostNetwork:     grpcHostNetwork,
-		GrpcHostAddress:     grpcHostAddress,
+		GrpcHostAddress:     grpcMaddr,
 		GrpcWebProxyAddress: grpcWebProxyAddress,
 		RepoPath:            repoPath,
 		GatewayHostAddr:     gatewayHostAddr,

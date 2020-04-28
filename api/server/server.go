@@ -17,6 +17,7 @@ import (
 	badger "github.com/ipfs/go-ds-badger2"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/multiformats/go-multiaddr"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
 	dealsPb "github.com/textileio/powergate/deals/pb"
@@ -52,6 +53,7 @@ import (
 	"github.com/textileio/powergate/reputation"
 	reputationPb "github.com/textileio/powergate/reputation/pb"
 	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/util"
 	"github.com/textileio/powergate/wallet"
 	walletPb "github.com/textileio/powergate/wallet/pb"
 	"google.golang.org/grpc"
@@ -105,7 +107,7 @@ type Config struct {
 	LotusMasterAddr     string
 	Embedded            bool
 	GrpcHostNetwork     string
-	GrpcHostAddress     string
+	GrpcHostAddress     multiaddr.Multiaddr
 	GrpcServerOpts      []grpc.ServerOption
 	GrpcWebProxyAddress string
 	RepoPath            string
@@ -271,7 +273,7 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 	return grpcServer, grpcWebProxy
 }
 
-func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork, hostAddress string) error {
+func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress multiaddr.Multiaddr) error {
 	netService := pgnetRpc.NewService(s.nm)
 	healthService := healthRpc.NewService(s.hm)
 	dealsService := deals.NewService(s.dm)
@@ -282,7 +284,11 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	slashingService := slashing.NewService(s.si)
 	ffsService := ffsGrpc.NewService(s.ffsManager, s.hs)
 
-	listener, err := net.Listen(hostNetwork, hostAddress)
+	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
+	if err != nil {
+		return fmt.Errorf("parsing host multiaddr: %s", err)
+	}
+	listener, err := net.Listen(hostNetwork, hostAddr)
 	if err != nil {
 		return fmt.Errorf("listening to grpc: %s", err)
 	}

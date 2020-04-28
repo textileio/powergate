@@ -32,7 +32,7 @@ var (
 func main() {
 	pflag.Bool("debug", false, "enable debug log levels")
 	pflag.Bool("pprof", false, "enable pprof endpoint")
-	pflag.String("grpchostaddr", "0.0.0.0:5002", "grpc host listening address")
+	pflag.String("grpchostaddr", "/ip4/0.0.0.0/tcp/5002", "grpc host listening address")
 	pflag.String("grpcwebproxyaddr", "0.0.0.0:6002", "grpc webproxy listening address")
 	pflag.String("lotushost", "/ip4/127.0.0.1/tcp/1234", "lotus full-node address")
 	pflag.String("lotustoken", "", "lotus full-node auth token")
@@ -94,7 +94,7 @@ func main() {
 		Embedded:           embedded,
 		// ToDo: Support secure gRPC connection
 		GrpcHostNetwork:     "tcp",
-		GrpcHostAddress:     config.GetString("grpchostaddr"),
+		GrpcHostAddress:     util.MustParseAddr("grpchostaddr"),
 		GrpcWebProxyAddress: config.GetString("grpcwebproxyaddr"),
 		RepoPath:            repoPath,
 		GatewayHostAddr:     config.GetString("gatewayhostaddr"),
