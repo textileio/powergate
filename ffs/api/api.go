@@ -225,7 +225,9 @@ func (i *API) ShowMatching(selector func(ffs.CidInfo) bool) ([]ffs.CidInfo, erro
 	}
 	var res []ffs.CidInfo
 	for _, info := range infos {
-		if selector(info) {
+		if selector == nil {
+			res = append(res, info)
+		} else if selector(info) {
 			res = append(res, info)
 		}
 	}

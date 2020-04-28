@@ -530,6 +530,33 @@ func (s *Service) AddToHot(srv FFS_AddToHotServer) error {
 	return srv.SendAndClose(&AddToHotReply{Cid: c.String()})
 }
 
+// ActiveMiners returns information about the miners the specified FFS instance has deals with
+func (s *Service) ActiveMiners(ctx context.Context, req *ActiveMinersRequest) (*ActiveMinersReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	infos, err := i.ShowMatching(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	cidsByMiner := make(map[string][]string)
+	for _, info := range infos {
+		for _, proposal := range info.Cold.Filecoin.Proposals {
+			cidsByMiner[proposal.Miner] = append(cidsByMiner[proposal.Miner], info.Cid.String())
+		}
+	}
+
+	var activeMiners []*ActiveMiner
+	for miner, cids := range cidsByMiner {
+		activeMiners = append(activeMiners, &ActiveMiner{Miner: miner, Cids: cids})
+	}
+
+	return &ActiveMinersReply{ActiveMiners: activeMiners}, nil
+}
+
 func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-ffs-Token")
 	if token == "" {

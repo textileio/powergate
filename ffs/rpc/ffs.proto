@@ -272,7 +272,20 @@ message AddToHotReply {
    string cid = 1;
 }
 
+//------------------------------------- 
 
+message ActiveMiner {
+   string miner = 1;
+   repeated string cids = 2;
+}
+
+message ActiveMinersRequest {
+
+}
+
+message ActiveMinersReply {
+   repeated ActiveMiner activeMiners = 1;
+}
 
 service FFS {
    rpc Create(CreateRequest) returns (CreateReply) {}
@@ -293,4 +306,6 @@ service FFS {
    rpc Get(GetRequest) returns (stream GetReply) {}
    rpc Close(CloseRequest) returns (CloseReply) {}
    rpc AddToHot(stream AddToHotRequest) returns (AddToHotReply) {}
+
+   rpc ActiveMiners(ActiveMinersRequest) returns (ActiveMinersReply) {}
 }
