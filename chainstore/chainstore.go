@@ -2,6 +2,7 @@ package chainstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/bits"
 	"sort"
@@ -11,7 +12,6 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
 )
 
@@ -109,7 +109,7 @@ func (s *Store) load(tsk types.TipSetKey, v interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error getting key %s: %s", key, err)
 	}
-	if err := cbor.DecodeInto(buf, v); err != nil {
+	if err := json.Unmarshal(buf, v); err != nil {
 		return err
 	}
 	return nil
@@ -142,7 +142,7 @@ func (s *Store) save(ts types.TipSetKey, state interface{}) error {
 		return nil
 	}
 	defer txn.Discard()
-	buf, err := cbor.DumpObject(state)
+	buf, err := json.Marshal(state)
 	if err != nil {
 		return err
 	}

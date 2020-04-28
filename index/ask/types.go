@@ -2,15 +2,7 @@ package ask
 
 import (
 	"time"
-
-	cbor "github.com/ipfs/go-ipld-cbor"
 )
-
-func init() {
-	cbor.RegisterCborType(IndexSnapshot{})
-	cbor.RegisterCborType(StorageAsk{})
-	cbor.RegisterCborType(time.Time{})
-}
 
 // IndexSnapshot contains Ask information from markets
 type IndexSnapshot struct {

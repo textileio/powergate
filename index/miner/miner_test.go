@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
@@ -16,7 +15,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	cbor.RegisterCborType(time.Time{})
 	util.AvgBlockTime = time.Millisecond * 10
 	metadataRefreshInterval = time.Millisecond * 10
 	logging.SetAllLoggers(logging.LevelError)
