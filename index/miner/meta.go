@@ -2,6 +2,7 @@ package miner
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
-	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
@@ -166,7 +166,7 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 
 // persisteMetaIndex saves to datastore a new MetaIndex
 func (mi *Index) persistMetaIndex(index MetaIndex) error {
-	buf, err := cbor.DumpObject(index)
+	buf, err := json.Marshal(index)
 	if err != nil {
 		return err
 	}

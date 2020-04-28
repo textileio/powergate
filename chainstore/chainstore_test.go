@@ -3,13 +3,11 @@ package chainstore
 import (
 	"context"
 	"crypto/rand"
-	"os"
 	"testing"
 
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/ipfs/go-cid"
-	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/multiformats/go-multihash"
 	"github.com/textileio/powergate/tests"
 )
@@ -21,12 +19,6 @@ type data struct {
 
 type extraData struct {
 	Pos int
-}
-
-func TestMain(m *testing.M) {
-	cbor.RegisterCborType(data{})
-	cbor.RegisterCborType(extraData{})
-	os.Exit(m.Run())
 }
 
 func TestLoadFromEmpty(t *testing.T) {

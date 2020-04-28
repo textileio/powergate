@@ -2,6 +2,7 @@ package ask
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"sync"
@@ -11,7 +12,6 @@ import (
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
-	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/signaler"
 	"go.opencensus.io/stats"
@@ -159,7 +159,7 @@ func (ai *Index) update() error {
 		return err
 	}
 
-	buf, err := cbor.DumpObject(newIndex)
+	buf, err := json.Marshal(newIndex)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func (ai *Index) loadFromStore() error {
 		}
 		return err
 	}
-	if err = cbor.DecodeInto(buf, &ai.index); err != nil {
+	if err = json.Unmarshal(buf, &ai.index); err != nil {
 		return err
 	}
 	return nil

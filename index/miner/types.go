@@ -2,18 +2,7 @@ package miner
 
 import (
 	"time"
-
-	cbor "github.com/ipfs/go-ipld-cbor"
 )
-
-func init() {
-	cbor.RegisterCborType(IndexSnapshot{})
-	cbor.RegisterCborType(ChainIndex{})
-	cbor.RegisterCborType(Power{})
-	cbor.RegisterCborType(MetaIndex{})
-	cbor.RegisterCborType(Meta{})
-	cbor.RegisterCborType(Location{})
-}
 
 // IndexSnapshot contains on-chain and off-chain information about miners
 type IndexSnapshot struct {
