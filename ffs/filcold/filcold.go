@@ -242,6 +242,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 				Duration:        duration,
 				Miner:           d.Config.Miner,
 				ActivationEpoch: di.ActivationEpoch,
+				Size:            di.Size,
 			}
 			delete(notDone, di.ProposalCid)
 			fc.l.Log(ctx, c, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)

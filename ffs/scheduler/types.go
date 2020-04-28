@@ -56,4 +56,5 @@ type ActionStore interface {
 type CidInfoStore interface {
 	Put(ffs.CidInfo) error
 	Get(cid.Cid) (ffs.CidInfo, error)
+	Query(func(ffs.CidInfo) bool) ([]ffs.CidInfo, error)
 }
