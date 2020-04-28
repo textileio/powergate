@@ -17,6 +17,7 @@ import (
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log/v2"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/multiformats/go-multiaddr"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -85,6 +86,11 @@ func main() {
 		}
 	}
 
+	grpcHostMaddr, err := multiaddr.NewMultiaddr(config.GetString("grpchostaddr"))
+	if err != nil {
+		log.Fatalf("parsing grpchostaddr: %s", err)
+	}
+
 	conf := server.Config{
 		WalletInitialFunds: *big.NewInt(config.GetInt64("walletinitialfund")),
 		IpfsAPIAddr:        util.MustParseAddr(config.GetString("ipfsapiaddr")),
@@ -94,7 +100,7 @@ func main() {
 		Embedded:           embedded,
 		// ToDo: Support secure gRPC connection
 		GrpcHostNetwork:     "tcp",
-		GrpcHostAddress:     util.MustParseAddr("grpchostaddr"),
+		GrpcHostAddress:     grpcHostMaddr,
 		GrpcWebProxyAddress: config.GetString("grpcwebproxyaddr"),
 		RepoPath:            repoPath,
 		GatewayHostAddr:     config.GetString("gatewayhostaddr"),
