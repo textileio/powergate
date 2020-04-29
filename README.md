@@ -75,7 +75,7 @@ make embed
 This creates an ephemeral server with all working for CLI interaction.
 
 
-Here is a full example of using the embeded network:
+Here is a full example of using the embedded network:
 
 Terminal 1:
 ```bash
