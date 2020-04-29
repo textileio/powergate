@@ -2,12 +2,12 @@ package miner
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 	"time"
 
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-datastore"
-	cbor "github.com/ipfs/go-ipld-cbor"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
@@ -193,7 +193,7 @@ func (mi *Index) loadFromDS() error {
 	}
 	if err == nil {
 		var metaIndex MetaIndex
-		if err := cbor.DecodeInto(buf, &metaIndex); err != nil {
+		if err := json.Unmarshal(buf, &metaIndex); err != nil {
 			return err
 		}
 		mi.index.Meta = metaIndex
