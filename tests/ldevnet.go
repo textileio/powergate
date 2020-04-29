@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ory/dockertest"
-	"github.com/ory/dockertest/docker"
 	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/util"
 )
@@ -37,21 +35,6 @@ func LaunchDevnetDocker(t *testing.T, numMiners int) *dockertest.Resource {
 			panic(fmt.Sprintf("couldn't purge lotus-devnet from docker pool: %s", err))
 		}
 	})
-	opts := docker.LogsOptions{
-		Context: context.Background(),
-
-		Stderr:      true,
-		Stdout:      true,
-		Follow:      true,
-		Timestamps:  true,
-		RawTerminal: true,
-
-		Container: lotusDevnet.Container.ID,
-
-		OutputStream: os.Stdout,
-	}
-
-	go func() { pool.Client.Logs(opts) }()
 	return lotusDevnet
 }
 
