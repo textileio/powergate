@@ -186,7 +186,7 @@ func NewServer(conf Config) (*Server, error) {
 	lchain := lotuschain.New(c)
 	var ms ffs.MinerSelector
 	if conf.Embedded {
-		ms = fixed.New([]fixed.Miner{{Addr: "t01000", EpochPrice: 1000000}})
+		ms = fixed.New([]fixed.Miner{{Addr: "t01000", EpochPrice: 1000}})
 	} else {
 		ms = reptop.New(rm, ai)
 	}

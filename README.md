@@ -74,6 +74,37 @@ make embed
 
 This creates an ephemeral server with all working for CLI interaction.
 
+
+Here is a full example of using the embeded network:
+
+Terminal 1:
+```bash
+cd docker
+make embed
+```
+Wait for seeing logs about the height of the chain increase in a regular cadence.
+
+Terminal 2:
+```bash
+make build
+❯ head -c 700 </dev/urandom > myfile
+❯ ./pow ffs create
+> Instance created with id 0ac0fb4d-581c-4276-bd90-a9aa30dd4cb4 and token 883f57b1-4e66-47f8-b291-7cf8b10f6370
+❯ ./pow ffs addToHot -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 myfile
+> Success! Added file to FFS hot storage with cid: QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
+❯ ./pow ffs push -w -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
+> Success! Pushed cid config for QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm to FFS with job id: 966dcb44-9ef4-4d2a-9c90-a8103c77c354
+               JOB ID                   STATUS
+966dcb44-9ef4-4d2a-9c90-a8103c77c354    Success
+❯ ./pow ffs get  -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm myfile2
+> Success! Data written to myfile2
+```
+
+Notes:
+- A random `myfile` is a small random file since the devnet is running with a constrained sectorbuilder mock and sector size. Sizes close to ~700 bytes should be fine.
+- The devnet might run correctly for 150 epochs before it can become unstable.
+
+
 ### Run in full mode
 
 Running the _full mode_ can be done by:
