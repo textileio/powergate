@@ -14,8 +14,8 @@ require (
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/filecoin-project/go-address v0.0.2-0.20200218010043-eb9bb40ed5be
-	github.com/filecoin-project/go-fil-markets v0.0.0-20200415011556-4378bd41b91f
-	github.com/filecoin-project/lotus v0.2.11-0.20200425000157-1bfa2311d693
+	github.com/filecoin-project/go-fil-markets v0.1.0
+	github.com/filecoin-project/lotus v0.2.11-0.20200429011108-559b5e788523
 	github.com/filecoin-project/specs-actors v1.0.1-0.20200424174946-11410d0bbcaf
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
@@ -35,7 +35,7 @@ require (
 	github.com/ipfs/go-ds-badger2 v0.1.0
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200228220229-2e259051cd8b
-	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200204214505-252690b78669
+	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200428170625-a0bd04d3cbdf
 	github.com/ipfs/go-ipld-format v0.0.2
 	github.com/ipfs/go-log/v2 v2.0.5
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
