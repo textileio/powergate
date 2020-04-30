@@ -133,12 +133,14 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	}
 
-	fchost, err := fchost.New()
+	fchost, err := fchost.New(!conf.Embedded)
 	if err != nil {
 		return nil, fmt.Errorf("creating filecoin host: %s", err)
 	}
-	if err := fchost.Bootstrap(); err != nil {
-		return nil, fmt.Errorf("bootstrapping filecoin host: %s", err)
+	if !conf.Embedded {
+		if err := fchost.Bootstrap(); err != nil {
+			return nil, fmt.Errorf("bootstrapping filecoin host: %s", err)
+		}
 	}
 
 	path := filepath.Join(conf.RepoPath, datastoreFolderName)

@@ -29,7 +29,7 @@ type TestSetup struct {
 
 // Run runs a test setup.
 func Run(ctx context.Context, ts TestSetup) error {
-	c, err := client.NewClient(ts.LotusAddr, grpc.WithInsecure())
+	c, err := client.NewClient(ts.LotusAddr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(client.TokenAuth{}))
 	if err != nil {
 		return fmt.Errorf("creating client: %s", err)
 	}
@@ -57,6 +57,12 @@ func sanityCheck(ctx context.Context, c *client.Client) error {
 }
 
 func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
+	_, tok, err := c.Ffs.Create(ctx)
+	if err != nil {
+		return fmt.Errorf("creating ffs instance: %s", err)
+	}
+	ctx = context.WithValue(ctx, client.AuthKey, tok)
+
 	chLimit := make(chan struct{}, ts.MaxParallel)
 	chErr := make(chan error, ts.TotalSamples)
 	for i := 0; i < ts.TotalSamples; i++ {
@@ -69,9 +75,12 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 
 		}(i)
 	}
-
 	for i := 0; i < ts.MaxParallel; i++ {
 		chLimit <- struct{}{}
+	}
+	close(chErr)
+	for err := range chErr {
+		return fmt.Errorf("sample run errored: %s", err)
 	}
 	return nil
 }
@@ -81,6 +90,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64) er
 	lr := io.LimitReader(ra, size)
 
 	log.Infof("[%d] Adding to hot layer...", id)
+	fmt.Printf("HAHA: %v\n", ctx)
 	ci, err := c.Ffs.AddToHot(ctx, lr)
 	if err != nil {
 		return fmt.Errorf("importing data to hot storage (ipfs node): %s", err)

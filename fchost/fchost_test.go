@@ -8,7 +8,7 @@ import (
 )
 
 func TestPingBootstrapers(t *testing.T) {
-	h, err := New()
+	h, err := New(false)
 	require.NoError(t, err)
 	err = h.Bootstrap()
 	require.NoError(t, err)
