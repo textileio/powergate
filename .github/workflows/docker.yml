@@ -1,0 +1,20 @@
+name: Docker Image
+on:
+  create:
+  push:
+    branches:
+        - master
+jobs:
+  docker:
+    name: Docker publishing
+    runs-on: self-hosted
+    steps:
+      - name: Publish
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: exe/server/Dockerfile
+          repository: textile/powergate
+          tag_with_ref: true
+          tag_with_sha: true

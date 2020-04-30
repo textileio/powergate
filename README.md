@@ -62,7 +62,6 @@ The server connects to _Lotus_ and enables multiple modules, such as:
 - FFS: 
     - A powerful level of abstraction to pin Cids in Hot and Cold storages, more details soon!
 
-
 ### Run in _Embedded mode_
 
 The server can run in _Embedded_ mode which auto-creates a fake devnet with a single miner and connects to it.
@@ -130,6 +129,11 @@ If you don't have a fully-synced _Lotus_ node and don't want to wait, consider u
 
 ## Test
 For running tests: `make test`
+
+
+## Docker
+
+A `powd` Docker image is available at [textile/powergate](https://hub.docker.com/r/textile/powergate) on DockerHub.
 
 ## Contributing
 
