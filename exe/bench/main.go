@@ -37,7 +37,9 @@ func main() {
 
 	config.SetEnvPrefix("TEXPOWBENCH")
 	config.AutomaticEnv()
-	config.BindPFlags(pflag.CommandLine)
+	if err := config.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatalf("binding flags: %s", err)
+	}
 
 	lma, err := multiaddr.NewMultiaddr(config.GetString(cmdLotusMultiaddr))
 	if err != nil {

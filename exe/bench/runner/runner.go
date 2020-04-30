@@ -18,6 +18,7 @@ var (
 	log = logging.Logger("runner")
 )
 
+// TestSetup describes a test configuration.
 type TestSetup struct {
 	LotusAddr    multiaddr.Multiaddr
 	SampleSize   int64
@@ -26,6 +27,7 @@ type TestSetup struct {
 	RandSeed     int
 }
 
+// Run runs a test setup.
 func Run(ctx context.Context, ts TestSetup) error {
 	c, err := client.NewClient(ts.LotusAddr, grpc.WithInsecure())
 	if err != nil {
@@ -85,6 +87,12 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64) er
 	}
 
 	log.Infof("[%d] Pushing %s to FFS...", *ci, id)
+
+	// For completeness, fields that could be relied on defaults
+	// are explicitly kept here to have a better idea about their
+	// existence.
+	// This configuration will stop being static when we incorporate
+	// other test cases.
 	cidConfig := ffs.CidConfig{
 		Cid:        *ci,
 		Repairable: false,
