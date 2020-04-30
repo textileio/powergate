@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	maxParallelExecutions = 10
+	maxParallelExecutions = 50
 )
 
 var (
