@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 	util.AvgBlockTime = time.Millisecond * 500
 	_ = os.RemoveAll(tmpDir)
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
+		if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 			panic(err)
 		}
 	}

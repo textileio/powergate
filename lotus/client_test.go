@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	tmpDir = "/tmp/powergate/clienttest"
+	tmpDir = "/tmp/powergate/lotusclienttest"
 )
 
 func TestMain(m *testing.M) {
@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		if err := os.Mkdir(tmpDir, os.ModePerm); err != nil {
+		if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 			panic("can't create temp dir")
 		}
 	}
