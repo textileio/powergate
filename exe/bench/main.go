@@ -46,7 +46,7 @@ func main() {
 	ts := runner.TestSetup{
 		LotusAddr: lma,
 
-		SampleSize:   config.GetInt(cmdSampleSize),
+		SampleSize:   config.GetInt64(cmdSampleSize),
 		MaxParallel:  config.GetInt(cmdMaxParallel),
 		TotalSamples: config.GetInt(cmdTotalSamples),
 		RandSeed:     config.GetInt(cmdRandSeed),
