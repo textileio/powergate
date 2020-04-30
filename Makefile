@@ -14,7 +14,7 @@ build-bench:
 	go build -o powbench exe/bench/main.go
 .PHONY: build-bench
 
-build: build-cli build-server
+build: build-cli build-server build-bench
 .PHONY: build
 
 test:
