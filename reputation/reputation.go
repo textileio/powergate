@@ -37,8 +37,6 @@ type Module struct {
 	sIndex    slashing.IndexSnapshot
 	aIndex    ask.IndexSnapshot
 
-	forceTrusted bool
-
 	lockScores sync.Mutex
 	rebuild    chan struct{}
 	scores     []MinerScore
