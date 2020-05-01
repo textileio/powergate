@@ -15,7 +15,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/filecoin-project/go-address v0.0.2-0.20200218010043-eb9bb40ed5be
 	github.com/filecoin-project/go-fil-markets v0.1.0
-	github.com/filecoin-project/lotus v0.2.11-0.20200429011108-559b5e788523
+	github.com/filecoin-project/lotus v0.2.11-0.20200430223132-f0c89b1cd5bb
 	github.com/filecoin-project/specs-actors v1.0.1-0.20200424174946-11410d0bbcaf
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
@@ -41,7 +41,7 @@ require (
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/libp2p/go-libp2p v0.8.1
-	github.com/libp2p/go-libp2p-core v0.5.1
+	github.com/libp2p/go-libp2p-core v0.5.2
 	github.com/libp2p/go-libp2p-kad-dht v0.7.6
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0

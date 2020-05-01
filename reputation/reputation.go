@@ -29,15 +29,15 @@ type Module struct {
 	sources *source.Store
 
 	mi *miner.Index
-
 	si *slashing.Index
-
 	ai *ask.Index
 
 	lockIndex sync.Mutex
 	mIndex    miner.IndexSnapshot
 	sIndex    slashing.IndexSnapshot
 	aIndex    ask.IndexSnapshot
+
+	forceTrusted bool
 
 	lockScores sync.Mutex
 	rebuild    chan struct{}
@@ -94,8 +94,8 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 	}
 	mr := make([]MinerScore, 0, n)
 	pmr := make(map[string]struct{})
-	for _, m := range rm.scores {
-		for _, tm := range trustedMiners {
+	for _, tm := range trustedMiners {
+		for _, m := range rm.scores {
 			if m.Addr == tm {
 				pmr[tm] = struct{}{}
 				mr = append(mr, m)
@@ -213,6 +213,10 @@ func (rm *Module) indexBuilder() {
 		askIndex := rm.aIndex
 		rm.lockIndex.Unlock()
 
+		log.Errorf("Ask index: %d", len(askIndex.Storage))
+		for k, y := range askIndex.Storage {
+			log.Errorf("HAH: %s %s", k, y.Price)
+		}
 		scores := make([]MinerScore, 0, len(minerIndex.Chain.Power))
 		for addr := range minerIndex.Chain.Power {
 			score := calculateScore(addr, minerIndex, slashIndex, askIndex, sources)

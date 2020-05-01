@@ -49,6 +49,7 @@ func main() {
 	}
 	ts := runner.TestSetup{
 		LotusAddr: lma,
+		MinerAddr: config.GetString(cmdMinerAddr),
 
 		SampleSize:   config.GetInt64(cmdSampleSize),
 		MaxParallel:  config.GetInt(cmdMaxParallel),

@@ -22,6 +22,7 @@ var (
 // TestSetup describes a test configuration.
 type TestSetup struct {
 	LotusAddr    multiaddr.Multiaddr
+	MinerAddr    string
 	SampleSize   int64
 	MaxParallel  int
 	TotalSamples int
@@ -81,7 +82,7 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 		chLimit <- struct{}{}
 		go func(i int) {
 			defer func() { <-chLimit }()
-			if err := run(ctx, c, i, ts.RandSeed+i, ts.SampleSize, addr); err != nil {
+			if err := run(ctx, c, i, ts.RandSeed+i, ts.SampleSize, addr, ts.MinerAddr); err != nil {
 				chErr <- fmt.Errorf("failed run %d: %s", i, err)
 			}
 
@@ -97,7 +98,7 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 	return nil
 }
 
-func run(ctx context.Context, c *client.Client, id int, seed int, size int64, addr string) error {
+func run(ctx context.Context, c *client.Client, id int, seed int, size int64, addr string, minerAddr string) error {
 	log.Infof("[%d] Executing run...", id)
 	defer log.Infof("[%d] Done", id)
 	ra := rand.New(rand.NewSource(int64(seed)))
@@ -134,6 +135,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 				Addr:           addr,
 				CountryCodes:   nil,
 				ExcludedMiners: nil,
+				TrustedMiners:  []string{minerAddr},
 				Renew:          ffs.FilRenew{},
 			},
 		},
