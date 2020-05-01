@@ -181,6 +181,9 @@ func (f *ffs) Info(ctx context.Context) (*rpc.InfoReply, error) {
 	return f.client.Info(ctx, &rpc.InfoRequest{})
 }
 
+// WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
+// by the client after the call, so it shouldn't be closed by the client. To stop receiving
+// events, the provided ctx should be canceled.
 func (f *ffs) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {

@@ -144,7 +144,6 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	chJob := make(chan client.JobEvent, 1)
 	ctxWatch, cancel := context.WithCancel(ctx)
 	defer cancel()
-	// ToDo: this api should be blocking.
 	err = c.Ffs.WatchJobs(ctxWatch, chJob, jid)
 	if err != nil {
 		return fmt.Errorf("opening listening job status: %s", err)
@@ -163,9 +162,5 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		}
 
 	}
-	if s.Job.Status != ffs.Success {
-		return fmt.Errorf("job execution failed")
-	}
-
-	return nil
+	return fmt.Errorf("unexpected Job status watcher")
 }
