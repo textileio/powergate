@@ -25,6 +25,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestSimpleSetup(t *testing.T) {
+	// Explicitly skip this test since its meant for benchmarking stuff.
+	t.SkipNow()
 	_ = spinup(t)
 	ts := TestSetup{
 		LotusAddr:    lotusAddr,

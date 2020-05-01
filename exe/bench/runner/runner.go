@@ -31,7 +31,11 @@ type TestSetup struct {
 // Run runs a test setup.
 func Run(ctx context.Context, ts TestSetup) error {
 	c, err := client.NewClient(ts.LotusAddr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(client.TokenAuth{}))
-	defer c.Close()
+	defer func() {
+		if err := c.Close(); err != nil {
+			log.Errorf("closing powergate client: %s", err)
+		}
+	}()
 	if err != nil {
 		return fmt.Errorf("creating client: %s", err)
 	}

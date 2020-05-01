@@ -20,6 +20,6 @@ This means:
 - This wallet address should have enough funds.
 - Powergate should be started with two flags:
   - `--lotusmasteraddr`: with the above mentioned default Lotus address.
-  - `--walletinitialfund`: an reasonable amount of _attoFIL_ that will be transfered from the master address to newly created addresses of FFS instances. It should be enought to fund _all_ deals that will be ran in the scenario.
+  - `--walletinitialfund`: an reasonable amount of _attoFIL_ that will be transferred from the master address to newly created addresses of FFS instances. It should be enought to fund _all_ deals that will be ran in the scenario.
   - _Note: env variables can be used instead of command line flags, i.e: `TEXPOWERGATE_LOTUSMASTERADDR` and `TEXPOWERGATE_WALLETINITIALFUND` respectively._
 
