@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	cmdLotusMultiaddr = "lotusAddr"
-	cmdSampleSize     = "sampleSize"
-	cmdMaxParallel    = "maxParallel"
-	cmdTotalSamples   = "totalSamples"
-	cmdRandSeed       = "randSeed"
+	cmdPowergateAddr = "pgAddr"
+	cmdSampleSize    = "sampleSize"
+	cmdMaxParallel   = "maxParallel"
+	cmdTotalSamples  = "totalSamples"
+	cmdRandSeed      = "randSeed"
+	cmdMinerAddr     = "minerAddr"
 )
 
 var (
@@ -28,11 +29,12 @@ var (
 )
 
 func main() {
-	pflag.String(cmdLotusMultiaddr, "/ip4/127.0.0.1/tcp/1234", "Lotus client node API multiaddress")
+	pflag.String(cmdPowergateAddr, "/ip4/127.0.0.1/tcp/5002", "Powergate server multiaddress")
 	pflag.Int(cmdSampleSize, 1024, "Size of randomly generated files in bytes")
 	pflag.Int(cmdMaxParallel, 1, "Max parallel file storage")
 	pflag.Int(cmdTotalSamples, 3, "Total samples to run")
 	pflag.Int(cmdRandSeed, 42, "Random seed used to generate random samples data")
+	pflag.String(cmdMinerAddr, "t01000", "Miner address to force Powergate to select for making deals")
 	pflag.Parse()
 
 	config.SetEnvPrefix("TEXPOWBENCH")
@@ -41,7 +43,7 @@ func main() {
 		log.Fatalf("binding flags: %s", err)
 	}
 
-	lma, err := multiaddr.NewMultiaddr(config.GetString(cmdLotusMultiaddr))
+	lma, err := multiaddr.NewMultiaddr(config.GetString(cmdPowergateAddr))
 	if err != nil {
 		log.Fatalf("parsing lotus multiaddr: %s", err)
 	}
