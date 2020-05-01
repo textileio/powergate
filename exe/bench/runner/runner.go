@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"time"
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/multiformats/go-multiaddr"
@@ -30,6 +31,7 @@ type TestSetup struct {
 // Run runs a test setup.
 func Run(ctx context.Context, ts TestSetup) error {
 	c, err := client.NewClient(ts.LotusAddr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(client.TokenAuth{}))
+	defer c.Close()
 	if err != nil {
 		return fmt.Errorf("creating client: %s", err)
 	}
@@ -62,6 +64,12 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
 	ctx = context.WithValue(ctx, client.AuthKey, tok)
+	info, err := c.Ffs.Info(ctx)
+	if err != nil {
+		return fmt.Errorf("getting instance info: %s", err)
+	}
+	addr := info.GetInfo().GetBalances()[0].GetAddr().GetAddr()
+	time.Sleep(time.Second * 5)
 
 	chLimit := make(chan struct{}, ts.MaxParallel)
 	chErr := make(chan error, ts.TotalSamples)
@@ -69,7 +77,7 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 		chLimit <- struct{}{}
 		go func(i int) {
 			defer func() { <-chLimit }()
-			if err := run(ctx, c, i, ts.RandSeed+i, ts.SampleSize); err != nil {
+			if err := run(ctx, c, i, ts.RandSeed+i, ts.SampleSize, addr); err != nil {
 				chErr <- fmt.Errorf("failed run %d: %s", i, err)
 			}
 
@@ -85,18 +93,19 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 	return nil
 }
 
-func run(ctx context.Context, c *client.Client, id int, seed int, size int64) error {
+func run(ctx context.Context, c *client.Client, id int, seed int, size int64, addr string) error {
+	log.Infof("[%d] Executing run...", id)
+	defer log.Infof("[%d] Done", id)
 	ra := rand.New(rand.NewSource(int64(seed)))
 	lr := io.LimitReader(ra, size)
 
 	log.Infof("[%d] Adding to hot layer...", id)
-	fmt.Printf("HAHA: %v\n", ctx)
 	ci, err := c.Ffs.AddToHot(ctx, lr)
 	if err != nil {
 		return fmt.Errorf("importing data to hot storage (ipfs node): %s", err)
 	}
 
-	log.Infof("[%d] Pushing %s to FFS...", *ci, id)
+	log.Infof("[%d] Pushing %s to FFS...", id, *ci)
 
 	// For completeness, fields that could be relied on defaults
 	// are explicitly kept here to have a better idea about their
@@ -118,7 +127,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64) er
 			Filecoin: ffs.FilConfig{
 				RepFactor:      1,
 				DealDuration:   1000,
-				Addr:           "TODO",
+				Addr:           addr,
 				CountryCodes:   nil,
 				ExcludedMiners: nil,
 				Renew:          ffs.FilRenew{},
@@ -130,29 +139,33 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64) er
 	if err != nil {
 		return fmt.Errorf("pushing to FFS: %s", err)
 	}
-	log.Infof("[%d] Pushed successfully, queued job %s", id, jid)
 
-	log.Infof("[%d] Waiting for Job to be executed...", jid)
-
+	log.Infof("[%d] Pushed successfully, queued job %s. Waiting for termination...", id, jid)
 	chJob := make(chan client.JobEvent, 1)
 	ctxWatch, cancel := context.WithCancel(ctx)
 	defer cancel()
-	go func() {
-		err = c.Ffs.WatchJobs(ctxWatch, chJob, jid)
-		close(chJob)
-	}()
-	for s := range chJob {
+	// ToDo: this api should be blocking.
+	err = c.Ffs.WatchJobs(ctxWatch, chJob, jid)
+	if err != nil {
+		return fmt.Errorf("opening listening job status: %s", err)
+	}
+	var s client.JobEvent
+	for s = range chJob {
+		if s.Err != nil {
+			return fmt.Errorf("job watching: %s", s.Err)
+		}
+		log.Infof("[%d] Job changed to status %d", id, s.Job.Status)
 		if s.Job.Status == ffs.Failed {
-			return fmt.Errorf("failed job")
+			return fmt.Errorf("job execution Failed")
 		}
 		if s.Job.Status == ffs.Success {
-			cancel()
+			return nil
 		}
+
 	}
-	if err != nil {
-		return fmt.Errorf("waiting for job termination: %s", err)
+	if s.Job.Status != ffs.Success {
+		return fmt.Errorf("job execution failed")
 	}
 
-	log.Infof("[%d] Done")
 	return nil
 }

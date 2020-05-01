@@ -29,11 +29,11 @@ func TestSimpleSetup(t *testing.T) {
 	ts := TestSetup{
 		LotusAddr:    lotusAddr,
 		SampleSize:   700,
-		MaxParallel:  1,
-		TotalSamples: 1,
+		MaxParallel:  2,
+		TotalSamples: 2,
 		RandSeed:     22,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	err := Run(ctx, ts)
 	require.NoError(t, err)
@@ -53,8 +53,8 @@ func spinup(t *testing.T) *client.Client {
 
 	cmd := exec.Command("make", "embed")
 	cmd.Dir = dockerFolder
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {
 		t.Fatalf("running docker-compose: %s", err)
 	}
@@ -62,7 +62,7 @@ func spinup(t *testing.T) *client.Client {
 
 	var c *client.Client
 	var err error
-	limit := 20
+	limit := 30
 	retries := 0
 	for retries < limit {
 		c, err = client.NewClient(lotusAddr, grpc.WithInsecure())
@@ -80,6 +80,7 @@ func spinup(t *testing.T) *client.Client {
 	if retries == limit {
 		t.Fatalf("failed to connect to powergate")
 	}
+	// After PG is up, wait a bit more to ensure IPFS does to.
 	time.Sleep(time.Second * 5)
 	return c
 }
