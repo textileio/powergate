@@ -216,20 +216,25 @@ type ColdConfig struct {
 
 // FilConfig is the desired state of a Cid in the Filecoin network.
 type FilConfig struct {
-    // RepFactor indicates the desired amount of active deals
-    // with different miners to store the data. While making deals
-    // the other attributes of FilConfig are considered for miner selection.
-    RepFactor int
-    // DealDuration indicates the duration to be used when making new deals.
-    DealDuration int64
-    // ExcludedMiners is a set of miner addresses won't be ever be selected
-    // when making new deals, even if they comply to other filters.
-    ExcludedMiners []string
-    // CountryCodes indicates that new deals should select miners on specific
-    // countries.
-    CountryCodes []string
-    // FilRenew indicates deal-renewal configuration.
-    Renew FilRenew
+	// RepFactor indicates the desired amount of active deals
+	// with different miners to store the data. While making deals
+	// the other attributes of FilConfig are considered for miner selection.
+	RepFactor int
+	// DealDuration indicates the duration to be used when making new deals.
+	DealDuration int64
+	// ExcludedMiners is a set of miner addresses won't be ever be selected
+	// when making new deals, even if they comply to other filters.
+	ExcludedMiners []string
+	// TrustedMiners is a set of miner addresses which will be forcibly used
+	// when making new deals. An empty/nil list disables this feature.
+	TrustedMiners []string
+	// CountryCodes indicates that new deals should select miners on specific
+	// countries.
+	CountryCodes []string
+	// Renew indicates deal-renewal configuration.
+	Renew FilRenew
+	// Addr is the wallet address used to store the data in filecoin
+	Addr string
 }
 
 // FilRenew contains renew configuration for a Cid Cold Storage deals.

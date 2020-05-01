@@ -73,6 +73,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
 		CountryCodes:   cfg.CountryCodes,
+		TrustedMiners:  cfg.TrustedMiners,
 	}
 	cfgs, err := makeDealConfigs(ctx, fc.ms, cfg.RepFactor, f)
 	if err != nil {

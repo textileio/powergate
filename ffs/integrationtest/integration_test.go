@@ -444,6 +444,26 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 	require.NotEqual(t, p.Miner, excludedMiner)
 }
 
+func TestFilecoinTrustedMiner(t *testing.T) {
+	t.Parallel()
+	ipfsAPI, fapi, cls := newAPI(t, 2)
+	defer cls()
+
+	r := rand.New(rand.NewSource(22))
+	cid, _ := addRandomFile(t, r, ipfsAPI)
+	trustedMiner := "t01001"
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilTrustedMiners([]string{trustedMiner})
+
+	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+	cinfo, err := fapi.Show(cid)
+	require.Nil(t, err)
+	p := cinfo.Cold.Filecoin.Proposals[0]
+	require.Equal(t, p.Miner, trustedMiner)
+}
+
 func TestFilecoinCountryFilter(t *testing.T) {
 	t.Parallel()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()

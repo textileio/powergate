@@ -382,6 +382,7 @@ func toRPCColdConfig(config ff.ColdConfig) *rpc.ColdConfig {
 			RepFactor:      int64(config.Filecoin.RepFactor),
 			DealDuration:   int64(config.Filecoin.DealDuration),
 			ExcludedMiners: config.Filecoin.ExcludedMiners,
+			TrustedMiners:  config.Filecoin.TrustedMiners,
 			CountryCodes:   config.Filecoin.CountryCodes,
 			Renew: &rpc.FilRenew{
 				Enabled:   config.Filecoin.Renew.Enabled,

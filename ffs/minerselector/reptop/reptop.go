@@ -29,7 +29,7 @@ func New(rm *reputation.Module, ai *ask.Index) *RepTop {
 // GetMiners returns n miners using the configured Reputation Module and
 // Ask Index.
 func (rt *RepTop) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
-	ms, err := rt.rm.QueryMiners(n, f.ExcludedMiners, f.CountryCodes)
+	ms, err := rt.rm.QueryMiners(n, f.ExcludedMiners, f.CountryCodes, f.TrustedMiners)
 	if err != nil {
 		return nil, fmt.Errorf("getting top %d miners from reputation module: %s", n, err)
 	}

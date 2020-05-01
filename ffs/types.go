@@ -139,6 +139,15 @@ func (c CidConfig) WithColdFilExcludedMiners(miners []string) CidConfig {
 	return c
 }
 
+// WithColdFilTrustedMiners defines a list of trusted miners addresses which will be
+// returned if available. If more miners reusults are needed, other filters will be
+// applied as usual.
+func (c CidConfig) WithColdFilTrustedMiners(miners []string) CidConfig {
+	c.Cold.Filecoin.TrustedMiners = make([]string, len(miners))
+	copy(c.Cold.Filecoin.TrustedMiners, miners)
+	return c
+}
+
 // WithColdFilRepFactor defines the replication factor for Filecoin storage.
 func (c CidConfig) WithColdFilRepFactor(repFactor int) CidConfig {
 	c.Cold.Filecoin.RepFactor = repFactor
@@ -260,10 +269,13 @@ type FilConfig struct {
 	// ExcludedMiners is a set of miner addresses won't be ever be selected
 	// when making new deals, even if they comply to other filters.
 	ExcludedMiners []string
+	// TrustedMiners is a set of miner addresses which will be forcibly used
+	// when making new deals. An empty/nil list disables this feature.
+	TrustedMiners []string
 	// CountryCodes indicates that new deals should select miners on specific
 	// countries.
 	CountryCodes []string
-	// FilRenew indicates deal-renewal configuration.
+	// Renew indicates deal-renewal configuration.
 	Renew FilRenew
 	// Addr is the wallet address used to store the data in filecoin
 	Addr string

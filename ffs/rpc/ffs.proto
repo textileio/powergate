@@ -34,9 +34,10 @@ message FilConfig {
    int64 repFactor = 1;
    int64 dealDuration = 2;
    repeated string excludedMiners = 3;
-   repeated string countryCodes = 4;
-   FilRenew renew = 5;
-   string addr = 6;
+   repeated string trustedMiners = 4;
+   repeated string countryCodes = 5;
+   FilRenew renew = 6;
+   string addr = 7;
 }
 
 message ColdConfig {

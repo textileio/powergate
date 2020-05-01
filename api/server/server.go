@@ -28,7 +28,6 @@ import (
 	"github.com/textileio/powergate/ffs/filcold"
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	"github.com/textileio/powergate/ffs/manager"
-	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	ffsGrpc "github.com/textileio/powergate/ffs/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
@@ -186,12 +185,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	lchain := lotuschain.New(c)
-	var ms ffs.MinerSelector
-	if conf.Embedded {
-		ms = fixed.New([]fixed.Miner{{Addr: "t01000", EpochPrice: 1000}})
-	} else {
-		ms = reptop.New(rm, ai)
-	}
+	ms := reptop.New(rm, ai)
 
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
 	cs := filcold.New(ms, dm, ipfs.Dag(), lchain, l)
