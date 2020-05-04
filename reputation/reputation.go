@@ -173,17 +173,18 @@ func (rm *Module) subscribeIndexes() {
 	subAi := rm.ai.Listen()
 
 	for {
-		rm.lockIndex.Lock()
 		select {
 		case <-rm.ctx.Done():
 			log.Info("terminating background index update")
-			rm.lockIndex.Unlock()
 			return
 		case <-subMi:
+			rm.lockIndex.Lock()
 			rm.mIndex = rm.mi.Get()
 		case <-subSi:
+			rm.lockIndex.Lock()
 			rm.sIndex = rm.si.Get()
 		case <-subAi:
+			rm.lockIndex.Lock()
 			rm.aIndex = rm.ai.Get()
 		}
 		rm.lockIndex.Unlock()
@@ -211,10 +212,6 @@ func (rm *Module) indexBuilder() {
 		askIndex := rm.aIndex
 		rm.lockIndex.Unlock()
 
-		log.Errorf("Ask index: %d", len(askIndex.Storage))
-		for k, y := range askIndex.Storage {
-			log.Errorf("HAH: %s %s", k, y.Price)
-		}
 		scores := make([]MinerScore, 0, len(minerIndex.Chain.Power))
 		for addr := range minerIndex.Chain.Power {
 			score := calculateScore(addr, minerIndex, slashIndex, askIndex, sources)

@@ -123,6 +123,8 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	if conf.Embedded {
+		// Wait for the devnet to bootstrap completely and generate at least 1 block.
+		time.Sleep(time.Second * 6)
 		if masterAddr, err = c.WalletDefaultAddress(context.Background()); err != nil {
 			return nil, fmt.Errorf("getting default wallet addr as masteraddr: %s", err)
 		}

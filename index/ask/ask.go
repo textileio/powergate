@@ -182,6 +182,7 @@ func (ai *Index) update() error {
 	ai.lock.Unlock()
 
 	stats.Record(context.Background(), mFullRefreshDuration.M(time.Since(startTime).Milliseconds()))
+	ai.signaler.Signal()
 
 	return nil
 }
