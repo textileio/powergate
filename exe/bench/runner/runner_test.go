@@ -30,6 +30,7 @@ func TestSimpleSetup(t *testing.T) {
 	_ = spinup(t)
 	ts := TestSetup{
 		LotusAddr:    lotusAddr,
+		MinerAddr:    "t01000",
 		SampleSize:   700,
 		MaxParallel:  1,
 		TotalSamples: 1,
@@ -55,6 +56,8 @@ func spinup(t *testing.T) *client.Client {
 
 	cmd := exec.Command("docker-compose", "-f", "docker-compose-embedded.yaml", "build")
 	cmd.Dir = dockerFolder
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("docker-compose build: %s", err)
 	}

@@ -133,6 +133,7 @@ func (f *ffs) DefaultConfig(ctx context.Context) (ff.DefaultConfig, error) {
 				DealDuration:   resp.DefaultConfig.Cold.Filecoin.DealDuration,
 				ExcludedMiners: resp.DefaultConfig.Cold.Filecoin.ExcludedMiners,
 				CountryCodes:   resp.DefaultConfig.Cold.Filecoin.CountryCodes,
+				TrustedMiners:  resp.DefaultConfig.Cold.Filecoin.TrustedMiners,
 				Renew: ff.FilRenew{
 					Enabled:   resp.DefaultConfig.Cold.Filecoin.Renew.Enabled,
 					Threshold: int(resp.DefaultConfig.Cold.Filecoin.Renew.Threshold),

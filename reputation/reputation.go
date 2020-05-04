@@ -85,8 +85,8 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 		return nil, fmt.Errorf("the number of miners should be greater than zero")
 	}
 
-	minersMeta := rm.mi.Get().Meta.Info
 	rm.lockScores.Lock()
+	defer rm.lockScores.Unlock()
 	if n > len(rm.scores) {
 		n = len(rm.scores)
 	}
@@ -101,7 +101,7 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 			}
 		}
 		if len(mr) == n {
-			break
+			return mr, nil
 		}
 	}
 	for _, m := range rm.scores {
@@ -118,11 +118,12 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 		if skip {
 			continue
 		}
-		minerMeta, ok := minersMeta[m.Addr]
-		if !ok {
-			continue
-		}
+
 		if len(countryCodes) != 0 {
+			minerMeta, ok := rm.mIndex.Meta.Info[m.Addr]
+			if !ok {
+				continue
+			}
 			skip := true
 			for _, country := range countryCodes {
 				if country == minerMeta.Location.Country {
@@ -139,7 +140,6 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 			break
 		}
 	}
-	rm.lockScores.Unlock()
 	return mr, nil
 }
 
@@ -213,7 +213,7 @@ func (rm *Module) indexBuilder() {
 		rm.lockIndex.Unlock()
 
 		scores := make([]MinerScore, 0, len(minerIndex.Chain.Power))
-		for addr := range minerIndex.Chain.Power {
+		for addr := range askIndex.Storage {
 			score := calculateScore(addr, minerIndex, slashIndex, askIndex, sources)
 			scores = append(scores, score)
 		}
