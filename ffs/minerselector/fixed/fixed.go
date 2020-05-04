@@ -35,8 +35,9 @@ func New(miners []Miner) *MinerSelector {
 func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
 	res := make([]ffs.MinerProposal, 0, n)
 	mres := make(map[string]struct{})
-	for _, m := range fms.miners {
-		for _, pm := range f.TrustedMiners {
+	for _, pm := range f.TrustedMiners {
+		for _, m := range fms.miners {
+			fmt.Printf("Comparing miner %s %s\n", m.Addr, pm)
 			if m.Addr == pm {
 				mres[m.Addr] = struct{}{}
 				res = append(res, ffs.MinerProposal{
@@ -48,7 +49,7 @@ func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Min
 
 		}
 		if len(res) == n {
-			break
+			return res, nil
 		}
 	}
 
