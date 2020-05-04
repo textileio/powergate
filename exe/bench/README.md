@@ -1,4 +1,4 @@
-# Powergaet bench
+# Powergate bench
 
 Powergate `bench` is an utility tool that allows to run benchmark scenarios against a properly configured Powergate server.
 
