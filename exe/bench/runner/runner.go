@@ -159,7 +159,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		if s.Err != nil {
 			return fmt.Errorf("job watching: %s", s.Err)
 		}
-		log.Infof("[%d] Job changed to status %d", id, s.Job.Status)
+		log.Infof("[%d] Job changed to status %s", id, ffs.JobStatusStr[s.Job.Status])
 		if s.Job.Status == ffs.Failed {
 			return fmt.Errorf("job execution Failed")
 		}

@@ -131,18 +131,9 @@ func jobsComplete(state map[string]*client.JobEvent) bool {
 }
 
 func displayName(s ffs.JobStatus) string {
-	switch s {
-	case ffs.Canceled:
-		return "Canceled"
-	case ffs.Failed:
-		return "Failed"
-	case ffs.InProgress:
-		return "In progress"
-	case ffs.Queued:
-		return "Queued"
-	case ffs.Success:
-		return "Success"
-	default:
+	name, ok := ffs.JobStatusStr[s]
+	if !ok {
 		return "Unknown"
 	}
+	return name
 }

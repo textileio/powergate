@@ -71,6 +71,14 @@ const (
 	Success
 )
 
+var JobStatusStr = map[JobStatus]string{
+	Queued:     "Queued",
+	InProgress: "InProgress",
+	Failed:     "Failed",
+	Canceled:   "Canceled",
+	Success:    "Success",
+}
+
 // Job is a task executed by the Scheduler.
 type Job struct {
 	ID       JobID

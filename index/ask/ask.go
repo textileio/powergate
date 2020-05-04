@@ -153,6 +153,7 @@ func (ai *Index) start() {
 // views for better querying.
 func (ai *Index) update() error {
 	log.Info("updating ask index...")
+	defer log.Info("ask index updated")
 	startTime := time.Now()
 	newIndex, err := generateIndex(ai.ctx, ai.api)
 	if err != nil {
@@ -203,7 +204,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*IndexSn
 			defer cancel()
 			mi, err := api.StateMinerInfo(ictx, addr, types.EmptyTSK)
 			if err != nil {
-				log.Debugf("error getting pid of %s: %s", addr, err)
+				log.Debugf("error getting miner %s info: %s", addr, err)
 				return
 			}
 			ask, err := api.ClientQueryAsk(ictx, mi.PeerId, addr)

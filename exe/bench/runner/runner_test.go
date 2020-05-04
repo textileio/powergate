@@ -26,13 +26,13 @@ func TestMain(m *testing.M) {
 
 func TestSimpleSetup(t *testing.T) {
 	// Explicitly skip this test since its meant for benchmarking stuff.
-	t.SkipNow()
+	//t.SkipNow()
 	_ = spinup(t)
 	ts := TestSetup{
 		LotusAddr:    lotusAddr,
 		SampleSize:   700,
-		MaxParallel:  2,
-		TotalSamples: 2,
+		MaxParallel:  1,
+		TotalSamples: 1,
 		RandSeed:     22,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
@@ -53,10 +53,16 @@ func spinup(t *testing.T) *client.Client {
 	}
 	makeDown()
 
-	cmd := exec.Command("make", "embed")
+	cmd := exec.Command("docker-compose", "-f", "docker-compose-embedded.yaml", "build")
 	cmd.Dir = dockerFolder
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("docker-compose build: %s", err)
+	}
+
+	cmd = exec.Command("make", "embed")
+	cmd.Dir = dockerFolder
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {
 		t.Fatalf("running docker-compose: %s", err)
 	}
