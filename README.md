@@ -130,6 +130,10 @@ If you don't have a fully-synced _Lotus_ node and don't want to wait, consider u
 ## Test
 For running tests: `make test`
 
+## Benchmark
+There's a dedicated binary to run benchmarks against a Powergate server. 
+For more information see the [specific README](exe/bench/README.md).
+
 
 ## Docker
 
