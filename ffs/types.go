@@ -71,6 +71,7 @@ const (
 	Success
 )
 
+// JobStatusStr maps JobStatus to describing string.
 var JobStatusStr = map[JobStatus]string{
 	Queued:     "Queued",
 	InProgress: "InProgress",
