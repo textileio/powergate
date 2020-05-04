@@ -109,7 +109,7 @@ Notes:
 Running the _full mode_ can be done by:
 ```bash
 cd docker
-make fresh
+make up
 ```
 
 This will spinup and auto-wire:
