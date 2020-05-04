@@ -64,6 +64,12 @@ func spinup(t *testing.T) *client.Client {
 
 	cmd = exec.Command("make", "embed")
 	cmd.Dir = dockerFolder
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("docker-compose build: %s", err)
+	}
+
+	cmd = exec.Command("make", "embed")
+	cmd.Dir = dockerFolder
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {

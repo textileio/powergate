@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/ipfs/go-cid"
@@ -494,6 +495,18 @@ func (s *Service) Get(req *GetRequest, srv FFS_GetServer) error {
 			return nil
 		}
 	}
+}
+
+// SendFil sends fil from a managed address to any other address
+func (s *Service) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := i.SendFil(ctx, req.From, req.To, big.NewInt(req.Amount)); err != nil {
+		return nil, err
+	}
+	return &SendFilReply{}, nil
 }
 
 // Close calls API.Close

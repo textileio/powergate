@@ -42,7 +42,8 @@ import (
 )
 
 const (
-	tmpDir = "/tmp/powergate/integrationtest"
+	tmpDir           = "/tmp/powergate/integrationtest"
+	iWalletBal int64 = 4000000000
 )
 
 func TestMain(m *testing.M) {
@@ -1027,6 +1028,55 @@ func TestRemove(t *testing.T) {
 	require.Equal(t, api.ErrNotFound, err)
 }
 
+func TestSendFil(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	_, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	const amt int64 = 1
+
+	balForAddress := func(addr string) (uint64, error) {
+		info, err := fapi.Info(ctx)
+		if err != nil {
+			return 0, err
+		}
+		for _, balanceInfo := range info.Balances {
+			if balanceInfo.Addr == addr {
+				return balanceInfo.Balance, nil
+			}
+		}
+		return 0, fmt.Errorf("no balance info for address %v", addr)
+	}
+
+	addrs := fapi.Addrs()
+	require.NotEmpty(t, addrs)
+
+	addr1 := addrs[0].Addr
+
+	addr2, err := fapi.NewAddr(ctx, "addr2")
+	require.Nil(t, err)
+
+	hasInitialBal := func() bool {
+		bal, err := balForAddress(addr2)
+		require.Nil(t, err)
+		return bal == uint64(iWalletBal)
+	}
+
+	hasNewBal := func() bool {
+		bal, err := balForAddress(addr2)
+		require.Nil(t, err)
+		return bal == uint64(iWalletBal+amt)
+	}
+
+	require.Eventually(t, hasInitialBal, time.Second*5, time.Second)
+
+	err = fapi.SendFil(ctx, addr1, addr2, big.NewInt(amt))
+	require.Nil(t, err)
+
+	require.Eventually(t, hasNewBal, time.Second*5, time.Second)
+}
+
 // This isn't very nice way to test for repair. The main problem is that now
 // deal start is buffered for future start for 10000 blocks at the Lotus level.
 // Se we can't wait that much on a devnet. That setup has some ToDo comments so
@@ -1135,7 +1185,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 	hl := coreipfs.New(ipfsClient, l)
 	sched := scheduler.New(js, as, cis, l, hl, cl)
 
-	wm, err := wallet.New(client, &waddr, *big.NewInt(4000000000))
+	wm, err := wallet.New(client, &waddr, *big.NewInt(iWalletBal))
 	require.Nil(t, err)
 
 	var fapi *api.API

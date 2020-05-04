@@ -325,6 +325,16 @@ func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts
 	return nil
 }
 
+func (f *ffs) SendFil(ctx context.Context, from string, to string, amount int64) error {
+	req := &rpc.SendFilRequest{
+		From:   from,
+		To:     to,
+		Amount: amount,
+	}
+	_, err := f.client.SendFil(ctx, req)
+	return err
+}
+
 func (f *ffs) Close(ctx context.Context) error {
 	_, err := f.client.Close(ctx, &rpc.CloseRequest{})
 	return err

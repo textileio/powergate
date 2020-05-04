@@ -74,3 +74,24 @@ func (m *Module) Balance(ctx context.Context, addr string) (uint64, error) {
 	}
 	return b.Uint64(), nil
 }
+
+// SendFil sends fil from one address to another
+func (m *Module) SendFil(ctx context.Context, from string, to string, amount *big.Int) error {
+	f, err := address.NewFromString(from)
+	if err != nil {
+		return err
+	}
+	t, err := address.NewFromString(to)
+	if err != nil {
+		return err
+	}
+	msg := &types.Message{
+		From:     f,
+		To:       t,
+		Value:    types.BigInt{Int: amount},
+		GasLimit: 1000, // ToDo: how to handle gas?
+		GasPrice: types.NewInt(0),
+	}
+	_, err = m.api.MpoolPushMessage(ctx, msg)
+	return err
+}

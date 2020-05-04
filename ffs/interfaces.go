@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"math/big"
 
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-car"
@@ -16,6 +17,8 @@ type WalletManager interface {
 	NewAddress(context.Context, string) (string, error)
 	// Balance returns the current balance for an address.
 	Balance(context.Context, string) (uint64, error)
+	// SendFil sends fil from one address to another
+	SendFil(ctx context.Context, from string, to string, amount *big.Int) error
 }
 
 var (
