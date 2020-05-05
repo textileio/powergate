@@ -40,7 +40,7 @@ var ffsGetCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving specified data...")
 		s.Start()
-		reader, err := fcClient.Ffs.Get(authCtx(ctx), c)
+		reader, err := fcClient.FFS.Get(authCtx(ctx), c)
 		checkErr(err)
 
 		dir := path.Dir(args[1])

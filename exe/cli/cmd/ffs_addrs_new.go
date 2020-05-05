@@ -48,7 +48,7 @@ var ffsAddrsNewCmd = &cobra.Command{
 
 		s := spin.New("%s Getting FFS instance wallet address...")
 		s.Start()
-		addr, err := fcClient.Ffs.NewAddr(authCtx(ctx), args[0], opts...)
+		addr, err := fcClient.FFS.NewAddr(authCtx(ctx), args[0], opts...)
 		s.Stop()
 		checkErr(err)
 		Success("Created new wallet address: %s", addr)

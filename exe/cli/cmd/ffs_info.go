@@ -31,7 +31,7 @@ var ffsInfoCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving instance info...")
 		s.Start()
-		resp, err := fcClient.Ffs.Info(authCtx(ctx))
+		resp, err := fcClient.FFS.Info(authCtx(ctx))
 		checkErr(err)
 		s.Stop()
 

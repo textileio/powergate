@@ -25,9 +25,9 @@ type Client struct {
 	Deals      *Deals
 	Wallet     *Wallet
 	Reputation *Reputation
-	Ffs        *ffs
-	Health     *health
-	Net        *net
+	FFS        *FFS
+	Health     *Health
+	Net        *Net
 	conn       *grpc.ClientConn
 }
 
@@ -73,9 +73,9 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
 		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationPb.NewAPIClient(conn)},
-		Ffs:        &ffs{client: ffsRpc.NewFFSClient(conn)},
-		Health:     &health{client: healthRpc.NewHealthClient(conn)},
-		Net:        &net{client: netRpc.NewNetClient(conn)},
+		FFS:        &FFS{client: ffsRpc.NewFFSClient(conn)},
+		Health:     &Health{client: healthRpc.NewHealthClient(conn)},
+		Net:        &Net{client: netRpc.NewNetClient(conn)},
 		conn:       conn,
 	}
 	return client, nil

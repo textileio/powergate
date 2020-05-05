@@ -29,7 +29,7 @@ var ffsCloseCmd = &cobra.Command{
 
 		s := spin.New("%s Closing FFS instance...")
 		s.Start()
-		err := fcClient.Ffs.Close(authCtx(ctx))
+		err := fcClient.FFS.Close(authCtx(ctx))
 		s.Stop()
 		checkErr(err)
 		Message("FFS instance closed")

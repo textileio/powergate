@@ -30,7 +30,7 @@ var ffsConfigDefaultCmd = &cobra.Command{
 
 		s := spin.New("%s Getting default storage config...")
 		s.Start()
-		config, err := fcClient.Ffs.DefaultConfig(authCtx(ctx))
+		config, err := fcClient.FFS.DefaultConfig(authCtx(ctx))
 		s.Stop()
 		checkErr(err)
 

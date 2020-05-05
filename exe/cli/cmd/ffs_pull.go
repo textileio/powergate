@@ -39,7 +39,7 @@ var ffsPullCmd = &cobra.Command{
 
 		s := spin.New("%s Pulling cid config...")
 		s.Start()
-		resp, err := fcClient.Ffs.GetCidConfig(authCtx(ctx), c)
+		resp, err := fcClient.FFS.GetCidConfig(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 

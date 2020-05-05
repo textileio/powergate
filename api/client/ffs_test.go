@@ -17,10 +17,10 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func setupFfs(t *testing.T) (*ffs, func()) {
+func setupFfs(t *testing.T) (*FFS, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &ffs{client: rpc.NewFFSClient(conn)}, func() {
+	return &FFS{client: rpc.NewFFSClient(conn)}, func() {
 		done()
 		serverDone()
 	}

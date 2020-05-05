@@ -47,7 +47,7 @@ var ffsLogCmd = &cobra.Command{
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		err = fcClient.Ffs.WatchLogs(authCtx(ctx), ch, cid, opts...)
+		err = fcClient.FFS.WatchLogs(authCtx(ctx), ch, cid, opts...)
 		checkErr(err)
 
 		c := make(chan os.Signal)

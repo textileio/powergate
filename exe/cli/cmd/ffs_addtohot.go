@@ -39,7 +39,7 @@ var ffsAddToHotCmd = &cobra.Command{
 
 		s := spin.New("%s Adding specified file to FFS hot storage...")
 		s.Start()
-		cid, err := fcClient.Ffs.AddToHot(authCtx(ctx), f)
+		cid, err := fcClient.FFS.AddToHot(authCtx(ctx), f)
 		s.Stop()
 		checkErr(err)
 		Success("Added file to FFS hot storage with cid: %s", cid.String())

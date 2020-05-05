@@ -7,13 +7,13 @@ import (
 	"github.com/textileio/powergate/health/rpc"
 )
 
-// Health provides an API for checking node health
-type health struct {
+// Health provides an API for checking node Health
+type Health struct {
 	client rpc.HealthClient
 }
 
 // Check returns the node health status and any related messages
-func (health *health) Check(ctx context.Context) (h.Status, []string, error) {
+func (health *Health) Check(ctx context.Context) (h.Status, []string, error) {
 	resp, err := health.client.Check(ctx, &rpc.CheckRequest{})
 	if err != nil {
 		return h.Error, nil, err

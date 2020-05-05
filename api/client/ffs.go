@@ -13,7 +13,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type ffs struct {
+// FFS provides the API to create and interact with an FFS instance
+type FFS struct {
 	client rpc.FFSClient
 }
 
@@ -81,7 +82,8 @@ type LogEvent struct {
 	Err      error
 }
 
-func (f *ffs) Create(ctx context.Context) (string, string, error) {
+// Create creates a new FFS instance, returning the instance ID and auth token
+func (f *FFS) Create(ctx context.Context) (string, string, error) {
 	r, err := f.client.Create(ctx, &rpc.CreateRequest{})
 	if err != nil {
 		return "", "", err
@@ -89,7 +91,8 @@ func (f *ffs) Create(ctx context.Context) (string, string, error) {
 	return r.ID, r.Token, nil
 }
 
-func (f *ffs) ID(ctx context.Context) (ff.APIID, error) {
+// ID returns the FFS instance ID
+func (f *FFS) ID(ctx context.Context) (ff.APIID, error) {
 	resp, err := f.client.ID(ctx, &rpc.IDRequest{})
 	if err != nil {
 		return ff.EmptyInstanceID, err
@@ -97,7 +100,8 @@ func (f *ffs) ID(ctx context.Context) (ff.APIID, error) {
 	return ff.APIID(resp.ID), nil
 }
 
-func (f *ffs) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
+// Addrs returns a list of addresses managed by the FFS instance
+func (f *FFS) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 	resp, err := f.client.Addrs(ctx, &rpc.AddrsRequest{})
 	if err != nil {
 		return nil, err
@@ -113,7 +117,8 @@ func (f *ffs) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 	return addrs, nil
 }
 
-func (f *ffs) DefaultConfig(ctx context.Context) (ff.DefaultConfig, error) {
+// DefaultConfig returns the default storage config
+func (f *FFS) DefaultConfig(ctx context.Context) (ff.DefaultConfig, error) {
 	resp, err := f.client.DefaultConfig(ctx, &rpc.DefaultConfigRequest{})
 	if err != nil {
 		return ff.DefaultConfig{}, err
@@ -144,7 +149,8 @@ func (f *ffs) DefaultConfig(ctx context.Context) (ff.DefaultConfig, error) {
 	}, nil
 }
 
-func (f *ffs) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (string, error) {
+// NewAddr created a new wallet address managed by the FFS instance
+func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (string, error) {
 	r := &rpc.NewAddrRequest{Name: name}
 	for _, opt := range options {
 		opt(r)
@@ -153,15 +159,18 @@ func (f *ffs) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	return resp.Addr, err
 }
 
-func (f *ffs) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetDefaultCidConfigReply, error) {
+// GetDefaultCidConfig returns a CidConfig built from the default storage config and prepped for the provided cid
+func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetDefaultCidConfigReply, error) {
 	return f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: c.String()})
 }
 
-func (f *ffs) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigReply, error) {
+// GetCidConfig gets the current config for a cid
+func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigReply, error) {
 	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: c.String()})
 }
 
-func (f *ffs) SetDefaultConfig(ctx context.Context, config ff.DefaultConfig) error {
+// SetDefaultConfig sets the default storage config
+func (f *FFS) SetDefaultConfig(ctx context.Context, config ff.DefaultConfig) error {
 	req := &rpc.SetDefaultConfigRequest{
 		Config: &rpc.DefaultConfig{
 			Hot:  toRPCHotConfig(config.Hot),
@@ -172,20 +181,22 @@ func (f *ffs) SetDefaultConfig(ctx context.Context, config ff.DefaultConfig) err
 	return err
 }
 
-func (f *ffs) Show(ctx context.Context, c cid.Cid) (*rpc.ShowReply, error) {
+// Show returns information about the current storage state of a cid
+func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowReply, error) {
 	return f.client.Show(ctx, &rpc.ShowRequest{
 		Cid: c.String(),
 	})
 }
 
-func (f *ffs) Info(ctx context.Context) (*rpc.InfoReply, error) {
+// Info returns information about the FFS instance
+func (f *FFS) Info(ctx context.Context) (*rpc.InfoReply, error) {
 	return f.client.Info(ctx, &rpc.InfoRequest{})
 }
 
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
 // events, the provided ctx should be canceled.
-func (f *ffs) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
+func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
 		jidStrings[i] = jid.String()
@@ -227,7 +238,9 @@ func (f *ffs) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobI
 	return nil
 }
 
-func (f *ffs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ff.JobID, error) {
+// Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
+// is more efficient than manually removing and adding in two separate operations.
+func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ff.JobID, error) {
 	resp, err := f.client.Replace(ctx, &rpc.ReplaceRequest{Cid1: c1.String(), Cid2: c2.String()})
 	if err != nil {
 		return ff.EmptyJobID, err
@@ -235,7 +248,8 @@ func (f *ffs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ff.JobID, er
 	return ff.JobID(resp.JobID), nil
 }
 
-func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ff.JobID, error) {
+// PushConfig push a new configuration for the Cid in the Hot and Cold layers
+func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ff.JobID, error) {
 	req := &rpc.PushConfigRequest{Cid: c.String()}
 	for _, opt := range opts {
 		opt(req)
@@ -249,12 +263,15 @@ func (f *ffs) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOptio
 	return ff.JobID(resp.JobID), nil
 }
 
-func (f *ffs) Remove(ctx context.Context, c cid.Cid) error {
+// Remove removes a Cid from being tracked as an active storage. The Cid should have
+// both Hot and Cold storage disabled, if that isn't the case it will return ErrActiveInStorage.
+func (f *FFS) Remove(ctx context.Context, c cid.Cid) error {
 	_, err := f.client.Remove(ctx, &rpc.RemoveRequest{Cid: c.String()})
 	return err
 }
 
-func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
+// Get returns an io.Reader for reading a stored Cid from the Hot Storage.
+func (f *FFS) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	stream, err := f.client.Get(ctx, &rpc.GetRequest{
 		Cid: c.String(),
 	})
@@ -283,7 +300,9 @@ func (f *ffs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return reader, nil
 }
 
-func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) error {
+// WatchLogs pushes human-friendly messages about Cid executions. The method is blocking
+// and will continue to send messages until the context is canceled.
+func (f *FFS) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) error {
 	r := &rpc.WatchLogsRequest{Cid: c.String()}
 	for _, opt := range opts {
 		opt(r)
@@ -326,7 +345,7 @@ func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts
 }
 
 // SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously
-func (f *ffs) SendFil(ctx context.Context, from string, to string, amount int64) error {
+func (f *FFS) SendFil(ctx context.Context, from string, to string, amount int64) error {
 	req := &rpc.SendFilRequest{
 		From:   from,
 		To:     to,
@@ -336,12 +355,14 @@ func (f *ffs) SendFil(ctx context.Context, from string, to string, amount int64)
 	return err
 }
 
-func (f *ffs) Close(ctx context.Context) error {
+// Close terminates the running FFS instance
+func (f *FFS) Close(ctx context.Context) error {
 	_, err := f.client.Close(ctx, &rpc.CloseRequest{})
 	return err
 }
 
-func (f *ffs) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
+// AddToHot allows you to add data to the Hot layer in preparation for pushing a cid config
+func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	stream, err := f.client.AddToHot(ctx)
 	if err != nil {
 		return nil, err

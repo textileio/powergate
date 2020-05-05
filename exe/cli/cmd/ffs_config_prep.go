@@ -39,7 +39,7 @@ var ffsConfigPrepCmd = &cobra.Command{
 
 		s := spin.New("%s Getting default cid config...")
 		s.Start()
-		resp, err := fcClient.Ffs.GetDefaultCidConfig(authCtx(ctx), c)
+		resp, err := fcClient.FFS.GetDefaultCidConfig(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 

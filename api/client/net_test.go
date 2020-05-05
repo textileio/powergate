@@ -61,10 +61,10 @@ func TestConnectedness(t *testing.T) {
 	require.Equal(t, n.Connected, connectedness)
 }
 
-func setupNet(t *testing.T) (*net, func()) {
+func setupNet(t *testing.T) (*Net, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &net{client: rpc.NewNetClient(conn)}, func() {
+	return &Net{client: rpc.NewNetClient(conn)}, func() {
 		done()
 		serverDone()
 	}
