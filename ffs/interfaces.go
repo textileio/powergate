@@ -121,9 +121,15 @@ type MinerSelector interface {
 // MinerSelectorFilter establishes filters that should be considered when
 // returning miners.
 type MinerSelectorFilter struct {
-	// ExcludedMiners contains miner names that should not be considered in
+	// ExcludedMiners contains miner addresses that should not be considered in
 	// returned results. An empty list means no exclusions.
 	ExcludedMiners []string
+	// TrustedMiners contains miner addresses that will be prioritized
+	// if are available in the query result. If the number of expected
+	// results exceeeds the number of trusted miners, the remaining amount
+	// of results will be returned still applying the rest of the filters
+	// and the MinerSelector sorting logic.
+	TrustedMiners []string
 	// CountryCodes contains long-ISO country names that should be
 	// considered in selected miners. An empty list means no filtering.
 	CountryCodes []string

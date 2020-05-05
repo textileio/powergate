@@ -133,6 +133,7 @@ func (f *ffs) DefaultConfig(ctx context.Context) (ff.DefaultConfig, error) {
 				DealDuration:   resp.DefaultConfig.Cold.Filecoin.DealDuration,
 				ExcludedMiners: resp.DefaultConfig.Cold.Filecoin.ExcludedMiners,
 				CountryCodes:   resp.DefaultConfig.Cold.Filecoin.CountryCodes,
+				TrustedMiners:  resp.DefaultConfig.Cold.Filecoin.TrustedMiners,
 				Renew: ff.FilRenew{
 					Enabled:   resp.DefaultConfig.Cold.Filecoin.Renew.Enabled,
 					Threshold: int(resp.DefaultConfig.Cold.Filecoin.Renew.Threshold),
@@ -181,6 +182,9 @@ func (f *ffs) Info(ctx context.Context) (*rpc.InfoReply, error) {
 	return f.client.Info(ctx, &rpc.InfoRequest{})
 }
 
+// WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
+// by the client after the call, so it shouldn't be closed by the client. To stop receiving
+// events, the provided ctx should be canceled.
 func (f *ffs) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
@@ -379,6 +383,7 @@ func toRPCColdConfig(config ff.ColdConfig) *rpc.ColdConfig {
 			RepFactor:      int64(config.Filecoin.RepFactor),
 			DealDuration:   int64(config.Filecoin.DealDuration),
 			ExcludedMiners: config.Filecoin.ExcludedMiners,
+			TrustedMiners:  config.Filecoin.TrustedMiners,
 			CountryCodes:   config.Filecoin.CountryCodes,
 			Renew: &rpc.FilRenew{
 				Enabled:   config.Filecoin.Renew.Enabled,

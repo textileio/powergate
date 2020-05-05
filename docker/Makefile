@@ -3,9 +3,9 @@ down:
 	docker-compose -p embed down
 .PHONY: down
 
-fresh: down
+up: down
 	docker-compose up --build 
-.PHONY: fresh-up
+.PHONY: up
 
 embed: 
 	docker-compose -p embed -f docker-compose-embedded.yaml up --build -V

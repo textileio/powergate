@@ -1,5 +1,5 @@
 clean:
-	rm -f powd pow
+	rm -f powd pow powbench
 .PHONY: clean
 
 build-cli:
@@ -10,7 +10,11 @@ build-server:
 	go build -o powd exe/server/main.go
 .PHONY: build-server
 
-build: build-cli build-server
+build-bench:
+	go build -o powbench exe/bench/main.go
+.PHONY: build-bench
+
+build: build-cli build-server build-bench
 .PHONY: build
 
 test:

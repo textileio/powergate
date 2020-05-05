@@ -27,7 +27,7 @@ type FilecoinHost struct {
 }
 
 // New returns a new FilecoinHost
-func New() (*FilecoinHost, error) {
+func New(bootstrap bool) (*FilecoinHost, error) {
 	ctx := context.Background()
 	opts := getDefaultOpts()
 	h, err := libp2p.New(ctx, opts...)
@@ -40,8 +40,10 @@ func New() (*FilecoinHost, error) {
 		return nil, err
 	}
 
-	if err := connectToBootstrapPeers(h); err != nil {
-		return nil, err
+	if bootstrap {
+		if err := connectToBootstrapPeers(h); err != nil {
+			return nil, err
+		}
 	}
 
 	h = routedhost.Wrap(h, dht)

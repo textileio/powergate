@@ -34,7 +34,29 @@ func New(miners []Miner) *MinerSelector {
 // GetMiners returns the single allowed miner in the selector.
 func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
 	res := make([]ffs.MinerProposal, 0, n)
+	mres := make(map[string]struct{})
+	for _, pm := range f.TrustedMiners {
+		for _, m := range fms.miners {
+			fmt.Printf("Comparing miner %s %s\n", m.Addr, pm)
+			if m.Addr == pm {
+				mres[m.Addr] = struct{}{}
+				res = append(res, ffs.MinerProposal{
+					Addr:       m.Addr,
+					EpochPrice: m.EpochPrice,
+				})
+				break
+			}
+
+		}
+		if len(res) == n {
+			return res, nil
+		}
+	}
+
 	for _, m := range fms.miners {
+		if _, ok := mres[m.Addr]; ok {
+			continue
+		}
 		skip := false
 		for _, bAddr := range f.ExcludedMiners {
 			if bAddr == m.Addr {
@@ -61,7 +83,6 @@ func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Min
 			Addr:       m.Addr,
 			EpochPrice: m.EpochPrice,
 		})
-
 		if len(res) == n {
 			break
 		}

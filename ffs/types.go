@@ -71,6 +71,15 @@ const (
 	Success
 )
 
+// JobStatusStr maps JobStatus to describing string.
+var JobStatusStr = map[JobStatus]string{
+	Queued:     "Queued",
+	InProgress: "InProgress",
+	Failed:     "Failed",
+	Canceled:   "Canceled",
+	Success:    "Success",
+}
+
 // Job is a task executed by the Scheduler.
 type Job struct {
 	ID       JobID
@@ -136,6 +145,15 @@ func (c CidConfig) WithColdFilCountryCodes(countryCodes []string) CidConfig {
 func (c CidConfig) WithColdFilExcludedMiners(miners []string) CidConfig {
 	c.Cold.Filecoin.ExcludedMiners = make([]string, len(miners))
 	copy(c.Cold.Filecoin.ExcludedMiners, miners)
+	return c
+}
+
+// WithColdFilTrustedMiners defines a list of trusted miners addresses which will be
+// returned if available. If more miners reusults are needed, other filters will be
+// applied as usual.
+func (c CidConfig) WithColdFilTrustedMiners(miners []string) CidConfig {
+	c.Cold.Filecoin.TrustedMiners = make([]string, len(miners))
+	copy(c.Cold.Filecoin.TrustedMiners, miners)
 	return c
 }
 
@@ -260,10 +278,13 @@ type FilConfig struct {
 	// ExcludedMiners is a set of miner addresses won't be ever be selected
 	// when making new deals, even if they comply to other filters.
 	ExcludedMiners []string
+	// TrustedMiners is a set of miner addresses which will be forcibly used
+	// when making new deals. An empty/nil list disables this feature.
+	TrustedMiners []string
 	// CountryCodes indicates that new deals should select miners on specific
 	// countries.
 	CountryCodes []string
-	// FilRenew indicates deal-renewal configuration.
+	// Renew indicates deal-renewal configuration.
 	Renew FilRenew
 	// Addr is the wallet address used to store the data in filecoin
 	Addr string

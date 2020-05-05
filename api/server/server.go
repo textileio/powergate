@@ -28,7 +28,6 @@ import (
 	"github.com/textileio/powergate/ffs/filcold"
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	"github.com/textileio/powergate/ffs/manager"
-	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	ffsGrpc "github.com/textileio/powergate/ffs/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
@@ -124,6 +123,8 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	if conf.Embedded {
+		// Wait for the devnet to bootstrap completely and generate at least 1 block.
+		time.Sleep(time.Second * 6)
 		if masterAddr, err = c.WalletDefaultAddress(context.Background()); err != nil {
 			return nil, fmt.Errorf("getting default wallet addr as masteraddr: %s", err)
 		}
@@ -133,12 +134,14 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	}
 
-	fchost, err := fchost.New()
+	fchost, err := fchost.New(!conf.Embedded)
 	if err != nil {
 		return nil, fmt.Errorf("creating filecoin host: %s", err)
 	}
-	if err := fchost.Bootstrap(); err != nil {
-		return nil, fmt.Errorf("bootstrapping filecoin host: %s", err)
+	if !conf.Embedded {
+		if err := fchost.Bootstrap(); err != nil {
+			return nil, fmt.Errorf("bootstrapping filecoin host: %s", err)
+		}
 	}
 
 	path := filepath.Join(conf.RepoPath, datastoreFolderName)
@@ -184,12 +187,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	lchain := lotuschain.New(c)
-	var ms ffs.MinerSelector
-	if conf.Embedded {
-		ms = fixed.New([]fixed.Miner{{Addr: "t01000", EpochPrice: 1000}})
-	} else {
-		ms = reptop.New(rm, ai)
-	}
+	ms := reptop.New(rm, ai)
 
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
 	cs := filcold.New(ms, dm, ipfs.Dag(), lchain, l)

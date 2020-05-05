@@ -17,12 +17,9 @@
 # vscode config folder
 .vscode/
 
-.filecoin-build
-.update-modules
-
-api/client/datastore
 pow
 powd
-myfile
+powbench
 
+myfile
 tags

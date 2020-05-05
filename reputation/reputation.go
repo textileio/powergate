@@ -29,9 +29,7 @@ type Module struct {
 	sources *source.Store
 
 	mi *miner.Index
-
 	si *slashing.Index
-
 	ai *ask.Index
 
 	lockIndex sync.Mutex
@@ -82,18 +80,34 @@ func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 
 // QueryMiners makes a filtered query on the scored-sorted miner list.
 // Empty filter slices represent no-filters applied.
-func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []string) ([]MinerScore, error) {
+func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []string, trustedMiners []string) ([]MinerScore, error) {
 	if n < 1 {
 		return nil, fmt.Errorf("the number of miners should be greater than zero")
 	}
 
-	minersMeta := rm.mi.Get().Meta.Info
 	rm.lockScores.Lock()
+	defer rm.lockScores.Unlock()
 	if n > len(rm.scores) {
 		n = len(rm.scores)
 	}
 	mr := make([]MinerScore, 0, n)
+	pmr := make(map[string]struct{})
+	for _, tm := range trustedMiners {
+		for _, m := range rm.scores {
+			if m.Addr == tm {
+				pmr[tm] = struct{}{}
+				mr = append(mr, m)
+				break
+			}
+		}
+		if len(mr) == n {
+			return mr, nil
+		}
+	}
 	for _, m := range rm.scores {
+		if _, ok := pmr[m.Addr]; ok {
+			continue
+		}
 		skip := false
 		for _, mb := range excludedMiners {
 			if mb == m.Addr {
@@ -104,11 +118,12 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 		if skip {
 			continue
 		}
-		minerMeta, ok := minersMeta[m.Addr]
-		if !ok {
-			continue
-		}
+
 		if len(countryCodes) != 0 {
+			minerMeta, ok := rm.mIndex.Meta.Info[m.Addr]
+			if !ok {
+				continue
+			}
 			skip := true
 			for _, country := range countryCodes {
 				if country == minerMeta.Location.Country {
@@ -125,7 +140,6 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 			break
 		}
 	}
-	rm.lockScores.Unlock()
 	return mr, nil
 }
 
@@ -159,17 +173,18 @@ func (rm *Module) subscribeIndexes() {
 	subAi := rm.ai.Listen()
 
 	for {
-		rm.lockIndex.Lock()
 		select {
 		case <-rm.ctx.Done():
 			log.Info("terminating background index update")
-			rm.lockIndex.Unlock()
 			return
 		case <-subMi:
+			rm.lockIndex.Lock()
 			rm.mIndex = rm.mi.Get()
 		case <-subSi:
+			rm.lockIndex.Lock()
 			rm.sIndex = rm.si.Get()
 		case <-subAi:
+			rm.lockIndex.Lock()
 			rm.aIndex = rm.ai.Get()
 		}
 		rm.lockIndex.Unlock()
@@ -198,7 +213,7 @@ func (rm *Module) indexBuilder() {
 		rm.lockIndex.Unlock()
 
 		scores := make([]MinerScore, 0, len(minerIndex.Chain.Power))
-		for addr := range minerIndex.Chain.Power {
+		for addr := range askIndex.Storage {
 			score := calculateScore(addr, minerIndex, slashIndex, askIndex, sources)
 			scores = append(scores, score)
 		}

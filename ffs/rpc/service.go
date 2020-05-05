@@ -179,6 +179,7 @@ func (s *Service) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigReq
 				DealDuration:   req.Config.Cold.Filecoin.DealDuration,
 				ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
 				CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
+				TrustedMiners:  req.Config.Cold.Filecoin.TrustedMiners,
 				Renew: ffs.FilRenew{
 					Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
 					Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
@@ -420,6 +421,7 @@ func (s *Service) PushConfig(ctx context.Context, req *PushConfigRequest) (*Push
 					DealDuration:   req.Config.Cold.Filecoin.DealDuration,
 					ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
 					CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
+					TrustedMiners:  req.Config.Cold.Filecoin.TrustedMiners,
 					Renew: ffs.FilRenew{
 						Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
 						Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
@@ -578,6 +580,7 @@ func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
 			RepFactor:      int64(config.Filecoin.RepFactor),
 			DealDuration:   int64(config.Filecoin.DealDuration),
 			ExcludedMiners: config.Filecoin.ExcludedMiners,
+			TrustedMiners:  config.Filecoin.TrustedMiners,
 			CountryCodes:   config.Filecoin.CountryCodes,
 			Renew: &FilRenew{
 				Enabled:   config.Filecoin.Renew.Enabled,
