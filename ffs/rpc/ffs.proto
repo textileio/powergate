@@ -259,6 +259,15 @@ message GetReply {
    bytes chunk = 1;
 }
 
+message SendFilRequest {
+   string from = 1;
+   string to = 2;
+   int64 amount = 3;
+}
+
+message SendFilReply {
+}
+
 message CloseRequest {
 }
 
@@ -292,6 +301,7 @@ service FFS {
    rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
    rpc Remove(RemoveRequest) returns (RemoveReply) {}
    rpc Get(GetRequest) returns (stream GetReply) {}
+   rpc SendFil(SendFilRequest) returns (SendFilReply) {}
    rpc Close(CloseRequest) returns (CloseReply) {}
    rpc AddToHot(stream AddToHotRequest) returns (AddToHotReply) {}
 }
