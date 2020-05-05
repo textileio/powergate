@@ -325,6 +325,7 @@ func (f *ffs) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts
 	return nil
 }
 
+// SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously
 func (f *ffs) SendFil(ctx context.Context, from string, to string, amount int64) error {
 	req := &rpc.SendFilRequest{
 		From:   from,

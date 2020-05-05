@@ -436,7 +436,7 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 	return nil
 }
 
-// SendFil sends fil from a managed address to any another address
+// SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously
 func (i *API) SendFil(ctx context.Context, from string, to string, amount *big.Int) error {
 	if !i.isManagedAddress(from) {
 		return fmt.Errorf("%v is not managed by ffs instance", from)
