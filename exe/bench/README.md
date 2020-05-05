@@ -16,10 +16,11 @@ Usage of ./powbench:
 
 The targeted Powergate server should have enabled the auto-funding of newly created FFS instances wallet addresses.
 This means:
-- The Lotus node owned by Powergate should have a defined default wallet address.
-- This wallet address should have enough funds.
+- The Lotus node owned by Powergate must have a wallet address; the _master address_. 
+- _master address_ should have funds.
+- This address will be used to automatically send funds to the new FFS instance that will run the benchmark.
 - Powergate should be started with two flags:
-  - `--lotusmasteraddr`: with the above mentioned default Lotus address.
-  - `--walletinitialfund`: an reasonable amount of _attoFIL_ that will be transferred from the master address to newly created addresses of FFS instances. It should be enought to fund _all_ deals that will be ran in the scenario.
+  - `--lotusmasteraddr`: with the above mentioned address.
+  - `--walletinitialfund`: an reasonable amount of _attoFIL_ that will be transferred from the master address to the created FFS instance. It should be enough to fund _all_ deals that will be ran in the scenario.
   - _Note: env variables can be used instead of command line flags, i.e: `TEXPOWERGATE_LOTUSMASTERADDR` and `TEXPOWERGATE_WALLETINITIALFUND` respectively._
 
