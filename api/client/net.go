@@ -10,12 +10,13 @@ import (
 	"github.com/textileio/powergate/net/rpc"
 )
 
-type net struct {
+// Net provides the Net API
+type Net struct {
 	client rpc.NetClient
 }
 
 // ListenAddr returns listener address info for the local node
-func (net *net) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
+func (net *Net) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
 	resp, err := net.client.ListenAddr(ctx, &rpc.ListenAddrRequest{})
 	if err != nil {
 		return peer.AddrInfo{}, err
@@ -39,7 +40,7 @@ func (net *net) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
 }
 
 // Peers returns a list of peers
-func (net *net) Peers(ctx context.Context) ([]n.PeerInfo, error) {
+func (net *Net) Peers(ctx context.Context) ([]n.PeerInfo, error) {
 	resp, err := net.client.Peers(ctx, &rpc.PeersRequest{})
 	if err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func (net *net) Peers(ctx context.Context) ([]n.PeerInfo, error) {
 }
 
 // FindPeer finds a peer by peer id
-func (net *net) FindPeer(ctx context.Context, peerID peer.ID) (n.PeerInfo, error) {
+func (net *Net) FindPeer(ctx context.Context, peerID peer.ID) (n.PeerInfo, error) {
 	resp, err := net.client.FindPeer(ctx, &rpc.FindPeerRequest{PeerID: peerID.String()})
 	if err != nil {
 		return n.PeerInfo{}, err
@@ -65,7 +66,7 @@ func (net *net) FindPeer(ctx context.Context, peerID peer.ID) (n.PeerInfo, error
 }
 
 // ConnectPeer connects to a peer
-func (net *net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
+func (net *Net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
 	addrs := make([]string, len(addrInfo.Addrs))
 	for i, addr := range addrInfo.Addrs {
 		addrs[i] = addr.String()
@@ -79,13 +80,13 @@ func (net *net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
 }
 
 // DisconnectPeer disconnects from a peer
-func (net *net) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
+func (net *Net) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
 	_, err := net.client.DisconnectPeer(ctx, &rpc.DisconnectPeerRequest{PeerID: peerID.String()})
 	return err
 }
 
 // Connectedness returns the connection status to a peer
-func (net *net) Connectedness(ctx context.Context, peerID peer.ID) (n.Connectedness, error) {
+func (net *Net) Connectedness(ctx context.Context, peerID peer.ID) (n.Connectedness, error) {
 	resp, err := net.client.Connectedness(ctx, &rpc.ConnectednessRequest{PeerID: peerID.String()})
 	if err != nil {
 		return n.Error, err

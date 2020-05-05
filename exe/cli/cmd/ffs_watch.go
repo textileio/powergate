@@ -62,7 +62,7 @@ func watchJobIds(jobIds ...ffs.JobID) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := fcClient.Ffs.WatchJobs(authCtx(ctx), ch, jobIds...)
+	err := fcClient.FFS.WatchJobs(authCtx(ctx), ch, jobIds...)
 	checkErr(err)
 
 	c := make(chan os.Signal)

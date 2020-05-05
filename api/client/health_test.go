@@ -36,10 +36,10 @@ func TestCheck(t *testing.T) {
 	require.Equal(t, h.Ok, status)
 }
 
-func setupHealth(t *testing.T) (*health, func()) {
+func setupHealth(t *testing.T) (*Health, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &health{client: rpc.NewHealthClient(conn)}, func() {
+	return &Health{client: rpc.NewHealthClient(conn)}, func() {
 		done()
 		serverDone()
 	}

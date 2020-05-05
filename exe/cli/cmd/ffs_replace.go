@@ -41,7 +41,7 @@ var ffsReplaceCmd = &cobra.Command{
 
 		s := spin.New("%s Replacing cid configuration...")
 		s.Start()
-		jid, err := fcClient.Ffs.Replace(authCtx(ctx), c1, c2)
+		jid, err := fcClient.FFS.Replace(authCtx(ctx), c1, c2)
 		s.Stop()
 		checkErr(err)
 		Success("Replaced cid config with job id: %v", jid.String())

@@ -39,7 +39,7 @@ var ffsShowCmd = &cobra.Command{
 
 		s := spin.New("%s Getting info for cid...")
 		s.Start()
-		info, err := fcClient.Ffs.Show(authCtx(ctx), c)
+		info, err := fcClient.FFS.Show(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 
