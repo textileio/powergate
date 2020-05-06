@@ -74,11 +74,13 @@ func (ss *Store) GetAll() ([]Source, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer txn.Discard()
 	q := query.Query{Prefix: baseKey.String()}
 	res, err := txn.Query(q)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Close()
 	defer func() {
 		if err := res.Close(); err != nil {
 			log.Errorf("error when closing query result: %s", err)
