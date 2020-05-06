@@ -51,6 +51,22 @@ func (s *Service) Create(ctx context.Context, req *CreateRequest) (*CreateReply,
 	}, nil
 }
 
+// ListAPI returns a list of all existing API instances.
+func (s *Service) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIReply, error) {
+	lst, err := s.m.List()
+	if err != nil {
+		log.Errorf("listing instances: %s", err)
+		return nil, err
+	}
+	ins := make([]string, len(lst))
+	for i, v := range lst {
+		ins[i] = v.String()
+	}
+	return &ListAPIReply{
+		Instances: ins,
+	}, nil
+}
+
 // ID returns the API instance id
 func (s *Service) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
 	i, err := s.getInstanceByToken(ctx)

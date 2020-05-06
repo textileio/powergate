@@ -74,6 +74,7 @@ func (ss *Store) GetAll() ([]Source, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer txn.Discard()
 	q := query.Query{Prefix: baseKey.String()}
 	res, err := txn.Query(q)
 	if err != nil {
