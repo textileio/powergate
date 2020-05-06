@@ -51,6 +51,7 @@ func (s *Service) Create(ctx context.Context, req *CreateRequest) (*CreateReply,
 	}, nil
 }
 
+// ListAPI returns a list of all existing API instances.
 func (s *Service) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIReply, error) {
 	lst, err := s.m.List()
 	if err != nil {

@@ -79,6 +79,7 @@ func (r *Auth) Get(token string) (ffs.APIID, error) {
 	return e.APIID, nil
 }
 
+// List returns a list of all API instances.
 func (r *Auth) List() ([]ffs.APIID, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()

@@ -92,6 +92,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	return fapi.ID(), auth, nil
 }
 
+// List returns a list of all existing API instances.
 func (m *Manager) List() ([]ffs.APIID, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()

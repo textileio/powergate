@@ -92,6 +92,7 @@ func (f *FFS) Create(ctx context.Context) (string, string, error) {
 	return r.ID, r.Token, nil
 }
 
+// ListAPI returns a list of existing API instances.
 func (f *FFS) ListAPI(ctx context.Context) ([]ffs.APIID, error) {
 	r, err := f.client.ListAPI(ctx, &rpc.ListAPIRequest{})
 	if err != nil {
