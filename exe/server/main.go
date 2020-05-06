@@ -46,7 +46,7 @@ func main() {
 	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "gateway host listening address")
 	pflag.Parse()
 
-	config.SetEnvPrefix("TEXPOWERGATE")
+	config.SetEnvPrefix("POWD")
 	config.AutomaticEnv()
 	if err := config.BindPFlags(pflag.CommandLine); err != nil {
 		log.Fatalf("binding pflags: %s", err)

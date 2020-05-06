@@ -24,9 +24,9 @@ var (
 	cmdTimeout = time.Second * 10
 
 	rootCmd = &cobra.Command{
-		Use:   "filecoin",
-		Short: "A client for storage and retreival of filecoin data",
-		Long:  `A client for storage and retreival of filecoin data`,
+		Use:   "pow",
+		Short: "A client for storage and retreival of powergate data",
+		Long:  `A client for storage and retreival of powergate data`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			err := viper.BindPFlag("serverAddress", cmd.Root().PersistentFlags().Lookup("serverAddress"))
 			checkErr(err)
@@ -67,7 +67,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.powergate.yaml)")
-	rootCmd.PersistentFlags().String("serverAddress", "/ip4/127.0.0.1/tcp/5002", "address of the filecoin service api")
+	rootCmd.PersistentFlags().String("serverAddress", "/ip4/127.0.0.1/tcp/5002", "address of the powergate service api")
 }
 
 func initConfig() {
@@ -84,6 +84,7 @@ func initConfig() {
 		viper.SetConfigName(".powergate")
 	}
 
+	viper.SetEnvPrefix("POW")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err == nil {
