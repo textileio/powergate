@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	ds "github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/namespace"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
@@ -22,7 +22,7 @@ var (
 	createDefConfig sync.Once
 	defCidConfig    ffs.DefaultConfig
 
-	istoreNamespace = ds.NewKey("ffs/api/istore")
+	istoreNamespace = datastore.NewKey("ffs/api/istore")
 
 	log = logging.Logger("ffs-manager")
 )
@@ -33,7 +33,7 @@ type Manager struct {
 	sched ffs.Scheduler
 
 	lock      sync.Mutex
-	ds        ds.Datastore
+	ds        datastore.Datastore
 	auth      *auth.Auth
 	instances map[ffs.APIID]*api.API
 
@@ -41,9 +41,9 @@ type Manager struct {
 }
 
 // New returns a new Manager.
-func New(ds ds.Datastore, wm ffs.WalletManager, sched ffs.Scheduler) (*Manager, error) {
+func New(ds datastore.Datastore, wm ffs.WalletManager, sched ffs.Scheduler) (*Manager, error) {
 	return &Manager{
-		auth:      auth.New(ds),
+		auth:      auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
 		ds:        ds,
 		wm:        wm,
 		sched:     sched,
@@ -90,6 +90,18 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	m.instances[iid] = fapi
 
 	return fapi.ID(), auth, nil
+}
+
+// List returns a list of all existing API instances.
+func (m *Manager) List() ([]ffs.APIID, error) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	res, err := m.auth.List()
+	if err != nil {
+		return nil, fmt.Errorf("listing existing instances: %s", err)
+	}
+	return res, nil
 }
 
 // GetByAuthToken loads an existing instance using an auth-token. If auth-token doesn't exist,

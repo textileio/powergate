@@ -92,6 +92,19 @@ func (f *FFS) Create(ctx context.Context) (string, string, error) {
 	return r.ID, r.Token, nil
 }
 
+// ListAPI returns a list of existing API instances.
+func (f *FFS) ListAPI(ctx context.Context) ([]ffs.APIID, error) {
+	r, err := f.client.ListAPI(ctx, &rpc.ListAPIRequest{})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]ff.APIID, len(r.Instances))
+	for i, v := range r.Instances {
+		res[i] = ff.APIID(v)
+	}
+	return res, nil
+}
+
 // ID returns the FFS instance ID
 func (f *FFS) ID(ctx context.Context) (ff.APIID, error) {
 	resp, err := f.client.ID(ctx, &rpc.IDRequest{})
