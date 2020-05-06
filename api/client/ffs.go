@@ -6,6 +6,7 @@ import (
 	"time"
 
 	cid "github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/ffs"
 	ff "github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/rpc"
@@ -146,6 +147,7 @@ func (f *FFS) DefaultConfig(ctx context.Context) (ff.DefaultConfig, error) {
 				Addr: resp.DefaultConfig.Cold.Filecoin.Addr,
 			},
 		},
+		Repairable: resp.DefaultConfig.Repairable,
 	}, nil
 }
 
@@ -206,8 +208,9 @@ func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigRep
 func (f *FFS) SetDefaultConfig(ctx context.Context, config ff.DefaultConfig) error {
 	req := &rpc.SetDefaultConfigRequest{
 		Config: &rpc.DefaultConfig{
-			Hot:  toRPCHotConfig(config.Hot),
-			Cold: toRPCColdConfig(config.Cold),
+			Hot:        toRPCHotConfig(config.Hot),
+			Cold:       toRPCColdConfig(config.Cold),
+			Repairable: config.Repairable,
 		},
 	}
 	_, err := f.client.SetDefaultConfig(ctx, req)
@@ -222,8 +225,63 @@ func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowReply, error) {
 }
 
 // Info returns information about the FFS instance
-func (f *FFS) Info(ctx context.Context) (*rpc.InfoReply, error) {
-	return f.client.Info(ctx, &rpc.InfoRequest{})
+func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
+	res, err := f.client.Info(ctx, &rpc.InfoRequest{})
+	if err != nil {
+		return api.InstanceInfo{}, err
+	}
+
+	balances := make([]api.BalanceInfo, len(res.Info.Balances))
+	for i, bal := range res.Info.Balances {
+		balances[i] = api.BalanceInfo{
+			AddrInfo: api.AddrInfo{
+				Name: bal.Addr.Name,
+				Addr: bal.Addr.Addr,
+				Type: bal.Addr.Type,
+			},
+			Balance: uint64(bal.Balance),
+		}
+	}
+
+	pins := make([]cid.Cid, len(res.Info.Pins))
+	for i, pin := range res.Info.Pins {
+		c, err := cid.Decode(pin)
+		if err != nil {
+			return api.InstanceInfo{}, err
+		}
+		pins[i] = c
+	}
+
+	return api.InstanceInfo{
+		ID: ffs.APIID(res.Info.ID),
+		DefaultConfig: ffs.DefaultConfig{
+			Hot: ffs.HotConfig{
+				Enabled:       res.Info.DefaultConfig.Hot.Enabled,
+				AllowUnfreeze: res.Info.DefaultConfig.Hot.AllowUnfreeze,
+				Ipfs: ffs.IpfsConfig{
+					AddTimeout: int(res.Info.DefaultConfig.Hot.Ipfs.AddTimeout),
+				},
+			},
+			Cold: ffs.ColdConfig{
+				Enabled: res.Info.DefaultConfig.Cold.Enabled,
+				Filecoin: ffs.FilConfig{
+					RepFactor:      int(res.Info.DefaultConfig.Cold.Filecoin.RepFactor),
+					DealDuration:   res.Info.DefaultConfig.Cold.Filecoin.DealDuration,
+					ExcludedMiners: res.Info.DefaultConfig.Cold.Filecoin.ExcludedMiners,
+					TrustedMiners:  res.Info.DefaultConfig.Cold.Filecoin.TrustedMiners,
+					CountryCodes:   res.Info.DefaultConfig.Cold.Filecoin.CountryCodes,
+					Renew: ffs.FilRenew{
+						Enabled:   res.Info.DefaultConfig.Cold.Filecoin.Renew.Enabled,
+						Threshold: int(res.Info.DefaultConfig.Cold.Filecoin.Renew.Threshold),
+					},
+					Addr: res.Info.DefaultConfig.Cold.Filecoin.Addr,
+				},
+			},
+			Repairable: res.Info.DefaultConfig.Repairable,
+		},
+		Balances: balances,
+		Pins:     pins,
+	}, nil
 }
 
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned

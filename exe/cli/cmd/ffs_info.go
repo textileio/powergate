@@ -31,32 +31,32 @@ var ffsInfoCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving instance info...")
 		s.Start()
-		resp, err := fcClient.FFS.Info(authCtx(ctx))
+		info, err := fcClient.FFS.Info(authCtx(ctx))
 		checkErr(err)
 		s.Stop()
 
-		Message("FFS instance id: %v", resp.Info.ID)
+		Message("FFS instance id: %v", info.ID.String())
 
-		data := make([][]string, len(resp.Info.Balances))
-		for i, balance := range resp.Info.Balances {
+		data := make([][]string, len(info.Balances))
+		for i, balance := range info.Balances {
 			isDefault := ""
-			if balance.Addr.Addr == resp.Info.DefaultConfig.Cold.Filecoin.Addr {
+			if balance.Addr == info.DefaultConfig.Cold.Filecoin.Addr {
 				isDefault = "yes"
 			}
-			data[i] = []string{balance.Addr.Name, balance.Addr.Addr, balance.Addr.Type, fmt.Sprintf("%v", balance.Balance), isDefault}
+			data[i] = []string{balance.Name, balance.Addr, balance.Type, fmt.Sprintf("%v", balance.Balance), isDefault}
 		}
 		Message("Wallet addresses:")
 		RenderTable(os.Stdout, []string{"name", "address", "type", "balance", "default"}, data)
 
-		bytes, err := json.MarshalIndent(resp.Info.DefaultConfig, "", "  ")
+		bytes, err := json.MarshalIndent(info.DefaultConfig, "", "  ")
 		checkErr(err)
 
-		Message("Default storage config:\n %v", string(bytes))
+		Message("Default storage config:\n%v", string(bytes))
 
 		Message("Pinned cids:")
-		data = make([][]string, len(resp.Info.Pins))
-		for i, cid := range resp.Info.Pins {
-			data[i] = []string{cid}
+		data = make([][]string, len(info.Pins))
+		for i, cid := range info.Pins {
+			data[i] = []string{cid.String()}
 		}
 		RenderTable(os.Stdout, []string{"cid"}, data)
 	},

@@ -55,6 +55,7 @@ message CidConfig {
 message DefaultConfig {
    HotConfig hot = 1;
    ColdConfig cold = 2;
+   bool repairable = 3;
 }
 
 message IpfsHotInfo {
