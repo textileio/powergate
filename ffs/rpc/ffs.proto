@@ -130,6 +130,13 @@ message CreateReply {
    string token = 2;
 }
 
+message ListAPIRequest {
+}
+
+message ListAPIReply {
+   repeated string instances = 1;
+}
+
 message IDRequest {
 }
 
@@ -282,10 +289,12 @@ message AddToHotReply {
    string cid = 1;
 }
 
-
-
 service FFS {
+   // Admin
    rpc Create(CreateRequest) returns (CreateReply) {}
+   rpc ListAPI(ListAPIRequest) returns (ListAPIReply) {}
+
+   // Instance
    rpc ID(IDRequest) returns (IDReply) {}
    rpc Addrs(AddrsRequest) returns (AddrsReply) {}
    rpc DefaultConfig(DefaultConfigRequest) returns (DefaultConfigReply) {}
