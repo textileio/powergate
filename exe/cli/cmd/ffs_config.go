@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(ffsConfigCmd)
+	ffsCmd.AddCommand(ffsConfigCmd)
 }
 
 var ffsConfigCmd = &cobra.Command{

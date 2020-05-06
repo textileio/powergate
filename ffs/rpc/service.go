@@ -104,8 +104,9 @@ func (s *Service) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) 
 	conf := i.DefaultConfig()
 	return &DefaultConfigReply{
 		DefaultConfig: &DefaultConfig{
-			Hot:  toRPCHotConfig(conf.Hot),
-			Cold: toRPCColdConfig(conf.Cold),
+			Hot:        toRPCHotConfig(conf.Hot),
+			Cold:       toRPCColdConfig(conf.Cold),
+			Repairable: conf.Repairable,
 		},
 	}, nil
 }
@@ -145,9 +146,10 @@ func (s *Service) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidCon
 	config := i.GetDefaultCidConfig(c)
 	return &GetDefaultCidConfigReply{
 		Config: &CidConfig{
-			Cid:  config.Cid.String(),
-			Hot:  toRPCHotConfig(config.Hot),
-			Cold: toRPCColdConfig(config.Cold),
+			Cid:        config.Cid.String(),
+			Hot:        toRPCHotConfig(config.Hot),
+			Cold:       toRPCColdConfig(config.Cold),
+			Repairable: config.Repairable,
 		},
 	}, nil
 }
@@ -168,9 +170,10 @@ func (s *Service) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*
 	}
 	return &GetCidConfigReply{
 		Config: &CidConfig{
-			Cid:  config.Cid.String(),
-			Hot:  toRPCHotConfig(config.Hot),
-			Cold: toRPCColdConfig(config.Cold),
+			Cid:        config.Cid.String(),
+			Hot:        toRPCHotConfig(config.Hot),
+			Cold:       toRPCColdConfig(config.Cold),
+			Repairable: config.Repairable,
 		},
 	}, nil
 }
@@ -204,6 +207,7 @@ func (s *Service) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigReq
 				Addr: req.Config.Cold.Filecoin.Addr,
 			},
 		},
+		Repairable: req.Config.Repairable,
 	}
 	if err := i.SetDefaultConfig(defaultConfig); err != nil {
 		return nil, err
@@ -287,8 +291,9 @@ func (s *Service) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error
 		Info: &InstanceInfo{
 			ID: info.ID.String(),
 			DefaultConfig: &DefaultConfig{
-				Hot:  toRPCHotConfig(info.DefaultConfig.Hot),
-				Cold: toRPCColdConfig(info.DefaultConfig.Cold),
+				Hot:        toRPCHotConfig(info.DefaultConfig.Hot),
+				Cold:       toRPCColdConfig(info.DefaultConfig.Cold),
+				Repairable: info.DefaultConfig.Repairable,
 			},
 			Balances: balances,
 			Pins:     make([]string, len(info.Pins)),
@@ -446,6 +451,7 @@ func (s *Service) PushConfig(ctx context.Context, req *PushConfigRequest) (*Push
 					Addr: req.Config.Cold.Filecoin.Addr,
 				},
 			},
+			Repairable: req.Config.Repairable,
 		}
 		options = append(options, api.WithCidConfig(config))
 	}

@@ -91,8 +91,9 @@ type Job struct {
 
 // DefaultConfig contains a default storage configuration for an Api instance.
 type DefaultConfig struct {
-	Hot  HotConfig
-	Cold ColdConfig
+	Hot        HotConfig
+	Cold       ColdConfig
+	Repairable bool
 }
 
 // Validate validates a default Cid configuration.

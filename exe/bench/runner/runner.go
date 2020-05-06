@@ -73,7 +73,7 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)
 	}
-	addr := info.GetInfo().GetBalances()[0].GetAddr().GetAddr()
+	addr := info.Balances[0].Addr
 	time.Sleep(time.Second * 5)
 
 	chLimit := make(chan struct{}, ts.MaxParallel)

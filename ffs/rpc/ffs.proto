@@ -49,11 +49,13 @@ message CidConfig {
    string cid = 1;
    HotConfig hot = 2;
    ColdConfig cold = 3;
+   bool repairable = 4;
 }
 
 message DefaultConfig {
    HotConfig hot = 1;
    ColdConfig cold = 2;
+   bool repairable = 3;
 }
 
 message IpfsHotInfo {

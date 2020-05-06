@@ -22,5 +22,5 @@ This means:
 - Powergate should be started with two flags:
   - `--lotusmasteraddr`: with the above mentioned address.
   - `--walletinitialfund`: an reasonable amount of _attoFIL_ that will be transferred from the master address to the created FFS instance. It should be enough to fund _all_ deals that will be ran in the scenario.
-  - _Note: env variables can be used instead of command line flags, i.e: `TEXPOWERGATE_LOTUSMASTERADDR` and `TEXPOWERGATE_WALLETINITIALFUND` respectively._
+  - _Note: env variables can be used instead of command line flags, i.e: `POWD_LOTUSMASTERADDR` and `POWD_WALLETINITIALFUND` respectively._
 

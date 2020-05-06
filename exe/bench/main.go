@@ -37,7 +37,7 @@ func main() {
 	pflag.String(cmdMinerAddr, "t01000", "Miner address to force Powergate to select for making deals")
 	pflag.Parse()
 
-	config.SetEnvPrefix("TEXPOWBENCH")
+	config.SetEnvPrefix("POWBENCH")
 	config.AutomaticEnv()
 	if err := config.BindPFlags(pflag.CommandLine); err != nil {
 		log.Fatalf("binding flags: %s", err)
