@@ -6,6 +6,7 @@ import (
 	"time"
 
 	cid "github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/ffs"
 	ff "github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/rpc"
@@ -89,6 +90,18 @@ func (f *FFS) Create(ctx context.Context) (string, string, error) {
 		return "", "", err
 	}
 	return r.ID, r.Token, nil
+}
+
+func (f *FFS) ListAPI(ctx context.Context) ([]ffs.APIID, error) {
+	r, err := f.client.ListAPI(ctx, &rpc.ListAPIRequest{})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]ff.APIID, len(r.Instances))
+	for i, v := range r.Instances {
+		res[i] = ff.APIID(v)
+	}
+	return res, nil
 }
 
 // ID returns the FFS instance ID
