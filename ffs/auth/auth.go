@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	ds "github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 )
@@ -76,6 +77,31 @@ func (r *Auth) Get(token string) (ffs.APIID, error) {
 		return ffs.EmptyInstanceID, fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
 	}
 	return e.APIID, nil
+}
+
+func (r *Auth) List() ([]ffs.APIID, error) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	q := query.Query{Prefix: ""}
+	res, err := r.ds.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("executing query in datastore: %s", err)
+	}
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
+
+	var ret []ffs.APIID
+	for r := range res.Next() {
+		var e entry
+		if err := json.Unmarshal(r.Entry.Value, &e); err != nil {
+			return nil, fmt.Errorf("unmarshaling query result: %s", err)
+		}
+		ret = append(ret, e.APIID)
+	}
+	return ret, nil
 }
 
 func makeKey(token string) ds.Key {

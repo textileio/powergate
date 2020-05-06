@@ -41,6 +41,34 @@ func TestCreate(t *testing.T) {
 	require.True(t, id.Valid())
 }
 
+func TestList(t *testing.T) {
+	t.Parallel()
+	ds := tests.NewTxMapDatastore()
+	ctx := context.Background()
+	m, cls := newManager(t, ds)
+	defer cls()
+
+	lst, err := m.List()
+	require.Nil(t, err)
+	require.Equal(t, 0, len(lst))
+
+	id1, _, err := m.Create(ctx)
+	require.Nil(t, err)
+	lst, err = m.List()
+	require.Nil(t, err)
+	require.Equal(t, 1, len(lst))
+	require.Contains(t, lst, id1)
+
+	id2, _, err := m.Create(ctx)
+	require.Nil(t, err)
+
+	lst, err = m.List()
+	require.Nil(t, err)
+	require.Contains(t, lst, id1)
+	require.Contains(t, lst, id2)
+	require.Equal(t, 2, len(lst))
+}
+
 func TestGetByAuthToken(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
