@@ -160,8 +160,41 @@ func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 }
 
 // GetDefaultCidConfig returns a CidConfig built from the default storage config and prepped for the provided cid
-func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetDefaultCidConfigReply, error) {
-	return f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: c.String()})
+func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ff.CidConfig, error) {
+	res, err := f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: c.String()})
+	if err != nil {
+		return ff.CidConfig{}, err
+	}
+	resCid, err := cid.Decode(res.Config.Cid)
+	if err != nil {
+		return ff.CidConfig{}, err
+	}
+	return ff.CidConfig{
+		Cid:        resCid,
+		Repairable: res.Config.Repairable,
+		Hot: ff.HotConfig{
+			AllowUnfreeze: res.Config.Hot.AllowUnfreeze,
+			Enabled:       res.Config.Hot.Enabled,
+			Ipfs: ff.IpfsConfig{
+				AddTimeout: int(res.Config.Hot.Ipfs.AddTimeout),
+			},
+		},
+		Cold: ff.ColdConfig{
+			Enabled: res.Config.Cold.Enabled,
+			Filecoin: ff.FilConfig{
+				RepFactor:      int(res.Config.Cold.Filecoin.RepFactor),
+				Addr:           res.Config.Cold.Filecoin.Addr,
+				CountryCodes:   res.Config.Cold.Filecoin.CountryCodes,
+				DealDuration:   res.Config.Cold.Filecoin.DealDuration,
+				ExcludedMiners: res.Config.Cold.Filecoin.ExcludedMiners,
+				Renew: ff.FilRenew{
+					Enabled:   res.Config.Cold.Filecoin.Renew.Enabled,
+					Threshold: int(res.Config.Cold.Filecoin.Renew.Threshold),
+				},
+				TrustedMiners: res.Config.Cold.Filecoin.TrustedMiners,
+			},
+		},
+	}, nil
 }
 
 // GetCidConfig gets the current config for a cid

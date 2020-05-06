@@ -129,9 +129,10 @@ func (s *Service) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidCon
 	config := i.GetDefaultCidConfig(c)
 	return &GetDefaultCidConfigReply{
 		Config: &CidConfig{
-			Cid:  config.Cid.String(),
-			Hot:  toRPCHotConfig(config.Hot),
-			Cold: toRPCColdConfig(config.Cold),
+			Cid:        config.Cid.String(),
+			Hot:        toRPCHotConfig(config.Hot),
+			Cold:       toRPCColdConfig(config.Cold),
+			Repairable: config.Repairable,
 		},
 	}, nil
 }
@@ -152,9 +153,10 @@ func (s *Service) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*
 	}
 	return &GetCidConfigReply{
 		Config: &CidConfig{
-			Cid:  config.Cid.String(),
-			Hot:  toRPCHotConfig(config.Hot),
-			Cold: toRPCColdConfig(config.Cold),
+			Cid:        config.Cid.String(),
+			Hot:        toRPCHotConfig(config.Hot),
+			Cold:       toRPCColdConfig(config.Cold),
+			Repairable: config.Repairable,
 		},
 	}, nil
 }
@@ -430,6 +432,7 @@ func (s *Service) PushConfig(ctx context.Context, req *PushConfigRequest) (*Push
 					Addr: req.Config.Cold.Filecoin.Addr,
 				},
 			},
+			Repairable: req.Config.Repairable,
 		}
 		options = append(options, api.WithCidConfig(config))
 	}

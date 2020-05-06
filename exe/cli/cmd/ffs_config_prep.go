@@ -39,11 +39,11 @@ var ffsConfigPrepCmd = &cobra.Command{
 
 		s := spin.New("%s Getting default cid config...")
 		s.Start()
-		resp, err := fcClient.FFS.GetDefaultCidConfig(authCtx(ctx), c)
+		config, err := fcClient.FFS.GetDefaultCidConfig(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 
-		json, err := json.MarshalIndent(resp.Config, "", "  ")
+		json, err := json.MarshalIndent(config, "", "  ")
 		checkErr(err)
 
 		Message("Default cid config:\n%s", string(json))

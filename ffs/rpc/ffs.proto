@@ -49,6 +49,7 @@ message CidConfig {
    string cid = 1;
    HotConfig hot = 2;
    ColdConfig cold = 3;
+   bool repairable = 4;
 }
 
 message DefaultConfig {
