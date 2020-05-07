@@ -6,10 +6,10 @@ import (
 	"io"
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
+	"github.com/ipld/go-car"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 )

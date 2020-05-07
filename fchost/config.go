@@ -9,8 +9,12 @@ import (
 
 var (
 	addrs = []string{
-		"/dns4/t01000.miner.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWKEPzmKKpNKxEpyYsQKyCbZ4zrkRQVtgXsWeJTamEvS1Y",
-		"/ip4/52.36.61.156/tcp/1347/p2p/12D3KooWRn5kgsDm2WHskGoACfP9nTEJaYt2WBX7BXpvk8GQFaUm",
+		"/dns4/t01000.miner.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWG7H8eVQiu9ZKYonsBCJNNBoZygfSHqYGjYqvTZeshQqv",
+		"/ip4/34.217.110.132/tcp/1347/p2p/12D3KooWG7H8eVQiu9ZKYonsBCJNNBoZygfSHqYGjYqvTZeshQqv",
+		"/dns4/peer0.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWDiPPMy6NnAdimvBVCBbJbHjKPs2Pccrk46JXLGeFwZDi",
+		"/ip4/54.187.182.170/tcp/1347/p2p/12D3KooWDiPPMy6NnAdimvBVCBbJbHjKPs2Pccrk46JXLGeFwZDi",
+		"/dns4/peer1.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWHkiAKvQf3ppwp5znjP3HKowJ5srzBVH68LR96ZF1jyta",
+		"/ip4/52.24.84.39/tcp/1347/p2p/12D3KooWHkiAKvQf3ppwp5znjP3HKowJ5srzBVH68LR96ZF1jyta",
 	}
 )
 
