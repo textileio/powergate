@@ -143,6 +143,7 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 				di.State != storagemarket.StorageDealProposalAccepted &&
 				di.State != storagemarket.StorageDealStaged &&
 				di.State != storagemarket.StorageDealValidating &&
+				di.State != storagemarket.StorageDealClientFunding &&
 				di.State != storagemarket.StorageDealSealing {
 				return fmt.Errorf("unexpected deal state: %s", storagemarket.DealStates[di.State])
 			}
