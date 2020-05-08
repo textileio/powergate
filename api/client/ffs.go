@@ -299,7 +299,8 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
-// events, the provided ctx should be canceled.
+// events, the provided ctx should be canceled. If an error occurs, it will be returned 
+// in the Err field of JobEvent and the channel will be closed.
 func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
