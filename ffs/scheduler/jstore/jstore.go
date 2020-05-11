@@ -43,7 +43,7 @@ func New(ds datastore.Datastore) *Store {
 }
 
 // Finalize sets a Job status to a final state, i.e. Success or Failed,
-// with a list of Deal errors ocurred during job execution.
+// with a list of Deal errors occurred during job execution.
 func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, errors []ffs.DealError) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
