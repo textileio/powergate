@@ -20,7 +20,7 @@ type JobStore interface {
 	// its state to in-progress.
 	Dequeue() (*ffs.Job, error)
 	// Finalize sets the Job to a final state, i.e. success or failed.
-	Finalize(ffs.JobID, ffs.JobStatus) error
+	Finalize(ffs.JobID, ffs.JobStatus, []ffs.DealError) error
 
 	// Get retrieves job data from the store.
 	Get(ffs.JobID) (ffs.Job, error)

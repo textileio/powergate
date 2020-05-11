@@ -82,11 +82,12 @@ var JobStatusStr = map[JobStatus]string{
 
 // Job is a task executed by the Scheduler.
 type Job struct {
-	ID       JobID
-	APIID    APIID
-	Cid      cid.Cid
-	Status   JobStatus
-	ErrCause string
+	ID         JobID
+	APIID      APIID
+	Cid        cid.Cid
+	Status     JobStatus
+	ErrCause   string
+	DealErrors []DealError
 }
 
 // DefaultConfig contains a default storage configuration for an Api instance.

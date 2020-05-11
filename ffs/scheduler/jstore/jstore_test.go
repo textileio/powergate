@@ -63,7 +63,8 @@ func TestDequeue(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, jq)
 
-		err = s.Finalize(j1.ID, ffs.Success)
+		errors := []ffs.DealError{ffs.DealError{ProposalCid: cid.Undef, Miner: "t0100", Message: "abcd"}}
+		err = s.Finalize(j1.ID, ffs.Success, errors)
 		require.Nil(t, err)
 		// Dequeue now returns a new job since the in progress one
 		// was finalized

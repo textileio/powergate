@@ -1141,6 +1141,28 @@ func TestRepair(t *testing.T) {
 	}
 }
 
+func TestFailedJobMessage(t *testing.T) {
+	t.Parallel()
+	ipfs, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	r := rand.New(rand.NewSource(22))
+	// Add a file size that would be bigger than the
+	// sector size. This should make the deal fail on the miner.
+	c1, _ := addRandomFileSize(t, r, ipfs, 2000)
+
+	jid, err := fapi.PushConfig(c1)
+	require.Nil(t, err)
+	job := requireJobState(t, fapi, jid, ffs.Failed)
+	require.NotEmpty(t, job.ErrCause)
+	require.Len(t, job.DealErrors, 1)
+	de := job.DealErrors[0]
+	require.NotEmpty(t, de.ProposalCid.String())
+	require.NotEmpty(t, de.Miner)
+	require.NotEmpty(t, de.Message)
+	fmt.Println(de.Message)
+}
+
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
@@ -1282,8 +1304,12 @@ func randomBytes(r *rand.Rand, size int) []byte {
 }
 
 func addRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
+	return addRandomFileSize(t, r, ipfs, 600)
+}
+
+func addRandomFileSize(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi, size int) (cid.Cid, []byte) {
 	t.Helper()
-	data := randomBytes(r, 600)
+	data := randomBytes(r, size)
 	node, err := ipfs.Unixfs().Add(context.Background(), ipfsfiles.NewReaderFile(bytes.NewReader(data)), options.Unixfs.Pin(false))
 	if err != nil {
 		t.Fatalf("error adding random file: %s", err)

@@ -259,11 +259,14 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a Action) error {
 	}
 	s.l.Log(ctx, a.Cfg.Cid, "Evaluating deal renweal...")
 
-	inf.Cold.Filecoin, err = s.cs.EnsureRenewals(ctx, a.Cfg.Cid, inf.Cold.Filecoin, a.Cfg.Cold.Filecoin)
+	var errors []ffs.DealError
+	inf.Cold.Filecoin, errors, err = s.cs.EnsureRenewals(ctx, a.Cfg.Cid, inf.Cold.Filecoin, a.Cfg.Cold.Filecoin)
+	for _, e := range errors {
+		log.Warnf("renew deal error: %s %s %s", e.ProposalCid, e.Miner, e.Message)
+	}
 	if err != nil {
 		return fmt.Errorf("evaluating renewal in cold-storage: %s", err)
 	}
-
 	if err := s.cis.Put(inf); err != nil {
 		return fmt.Errorf("saving new cid info in store: %s", err)
 	}
@@ -310,11 +313,11 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 
 	ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
 	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
-	info, err := s.executeCidConfig(ctx, a, j)
+	info, errors, err := s.executeCidConfig(ctx, a, j)
 	if err != nil {
 		log.Errorf("executing job %s: %s", j.ID, err)
 		j.ErrCause = err.Error()
-		if err := s.js.Finalize(j.ID, ffs.Failed); err != nil {
+		if err := s.js.Finalize(j.ID, ffs.Failed, errors); err != nil {
 			log.Errorf("changing job to failed: %s", err)
 		}
 		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
@@ -323,32 +326,32 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 	if err := s.cis.Put(info); err != nil {
 		log.Errorf("saving cid info to store: %s", err)
 	}
-	if err := s.js.Finalize(j.ID, ffs.Success); err != nil {
+	if err := s.js.Finalize(j.ID, ffs.Success, errors); err != nil {
 		log.Errorf("changing job to success: %s", err)
 	}
 	s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)
 	return nil
 }
 
-func (s *Scheduler) executeCidConfig(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, error) {
+func (s *Scheduler) executeCidConfig(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
 	if err != nil {
-		return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
+		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)
 	}
 
 	s.l.Log(ctx, a.Cfg.Cid, "Ensuring Hot-Storage satisfies the configuration...")
 	hot, err := s.executeHotStorage(ctx, ci, a.Cfg.Hot, a.Cfg.Cold.Filecoin.Addr, a.ReplacedCid)
 	if err != nil {
 		s.l.Log(ctx, a.Cfg.Cid, "Hot-Storage excution failed.")
-		return ffs.CidInfo{}, fmt.Errorf("executing hot-storage config: %s", err)
+		return ffs.CidInfo{}, nil, fmt.Errorf("executing hot-storage config: %s", err)
 	}
 	s.l.Log(ctx, a.Cfg.Cid, "Hot-Storage execution ran successfully.")
 
 	s.l.Log(ctx, a.Cfg.Cid, "Ensuring Cold-Storage satisfies the configuration...")
-	cold, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold)
+	cold, errors, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold)
 	if err != nil {
 		s.l.Log(ctx, a.Cfg.Cid, "Cold-Storage execution failed.")
-		return ffs.CidInfo{}, fmt.Errorf("executing cold-storage config: %s", err)
+		return ffs.CidInfo{}, errors, fmt.Errorf("executing cold-storage config: %s", err)
 	}
 	s.l.Log(ctx, a.Cfg.Cid, "Cold-Storage execution ran successfully.")
 
@@ -358,7 +361,7 @@ func (s *Scheduler) executeCidConfig(ctx context.Context, a Action, job ffs.Job)
 		Hot:     hot,
 		Cold:    cold,
 		Created: time.Now(),
-	}, nil
+	}, errors, nil
 }
 
 func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string, replaceCid cid.Cid) (ffs.HotInfo, error) {
@@ -460,28 +463,28 @@ func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, c cid.Cid, curr ff
 	return curr, nil
 }
 
-func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig) (ffs.ColdInfo, error) {
+func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig) (ffs.ColdInfo, []ffs.DealError, error) {
 	if !cfg.Enabled {
 		s.l.Log(ctx, curr.Cid, "Cold-Storage was disabled, Filecoin deals will eventually expire.")
-		return curr.Cold, nil
+		return curr.Cold, nil, nil
 	}
 
 	if isCurrentRepFactorEnough(cfg.Filecoin.RepFactor, curr) {
 		s.l.Log(ctx, curr.Cid, "The current replication factor is equal or higher than desired, avoiding making new deals.")
 		log.Infof("replication well enough, avoid making new deals")
-		return curr.Cold, nil
+		return curr.Cold, nil, nil
 	}
 
 	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
 	s.l.Log(ctx, curr.Cid, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
-	fi, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
+	fi, errors, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
 	if err != nil {
-		return ffs.ColdInfo{}, err
+		return ffs.ColdInfo{}, errors, err
 	}
 	fi.Proposals = append(fi.Proposals, curr.Cold.Filecoin.Proposals...)
 	return ffs.ColdInfo{
 		Filecoin: fi,
-	}, nil
+	}, errors, nil
 }
 
 func isCurrentRepFactorEnough(desiredRepFactor int, curr ffs.CidInfo) bool {
