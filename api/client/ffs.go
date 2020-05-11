@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -299,7 +300,7 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
-// events, the provided ctx should be canceled. If an error occurs, it will be returned 
+// events, the provided ctx should be canceled. If an error occurs, it will be returned
 // in the Err field of JobEvent and the channel will be closed.
 func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
 	jidStrings := make([]string, len(jids))
@@ -330,12 +331,19 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobI
 				close(ch)
 				break
 			}
+			dealErrors, err := protoToDealError(reply.Job.DealErrors)
+			if err != nil {
+				ch <- JobEvent{Err: err}
+				close(ch)
+				break
+			}
 			job := ff.Job{
-				ID:       ff.JobID(reply.Job.ID),
-				APIID:    ff.APIID(reply.Job.ApiID),
-				Cid:      c,
-				Status:   ff.JobStatus(reply.Job.Status),
-				ErrCause: reply.Job.ErrCause,
+				ID:         ff.JobID(reply.Job.ID),
+				APIID:      ff.APIID(reply.Job.ApiID),
+				Cid:        c,
+				Status:     ff.JobStatus(reply.Job.Status),
+				ErrCause:   reply.Job.ErrCause,
+				DealErrors: dealErrors,
 			}
 			ch <- JobEvent{Job: job}
 		}
@@ -529,4 +537,20 @@ func toRPCColdConfig(config ff.ColdConfig) *rpc.ColdConfig {
 			Addr: config.Filecoin.Addr,
 		},
 	}
+}
+
+func protoToDealError(des []*rpc.DealError) ([]ffs.DealError, error) {
+	res := make([]ffs.DealError, len(des))
+	for i, de := range des {
+		propCid, err := cid.Decode(de.ProposalCid)
+		if err != nil {
+			return nil, fmt.Errorf("parsing proposal cid: %s", err)
+		}
+		res[i] = ffs.DealError{
+			ProposalCid: propCid,
+			Miner:       de.Miner,
+			Message:     de.Message,
+		}
+	}
+	return res, nil
 }
