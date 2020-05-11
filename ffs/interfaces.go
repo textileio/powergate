@@ -93,6 +93,7 @@ type HotStorage interface {
 	IsStored(context.Context, cid.Cid) (bool, error)
 }
 
+// DealError contains information about a failed deal.
 type DealError struct {
 	ProposalCid cid.Cid
 	Miner       string

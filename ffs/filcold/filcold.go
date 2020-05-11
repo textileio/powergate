@@ -82,7 +82,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs
 	}
 	props, errors, err := fc.makeDeals(ctx, c, cfgs, cfg)
 	if err != nil {
-		return ffs.FilInfo{}, nil, fmt.Errorf("executing deals: %s", err)
+		return ffs.FilInfo{}, errors, fmt.Errorf("executing deals: %s", err)
 	}
 
 	return ffs.FilInfo{
@@ -195,7 +195,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.Storag
 
 	proposals, errors, err := fc.waitForDeals(ctx, c, sres, fcfg.DealDuration)
 	if err != nil {
-		return nil, nil, fmt.Errorf("waiting for deals to finish: %s", err)
+		return nil, errors, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
 	return proposals, errors, nil
 }

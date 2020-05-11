@@ -1159,7 +1159,7 @@ func TestFailedJobMessage(t *testing.T) {
 	de := job.DealErrors[0]
 	require.NotEmpty(t, de.ProposalCid.String())
 	require.NotEmpty(t, de.Miner)
-	require.NotEmpty(t, de.Message)
+	require.Equal(t, "failed to start deal: cannot propose a deal whose piece size (4096) is greater than sector size (2048)", de.Message)
 	fmt.Println(de.Message)
 }
 

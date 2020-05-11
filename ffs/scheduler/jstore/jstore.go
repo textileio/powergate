@@ -44,7 +44,7 @@ func New(ds datastore.Datastore) *Store {
 
 // Finalize sets a Job status to a final state, i.e. Success or Failed,
 // with a list of Deal errors occurred during job execution.
-func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, errors []ffs.DealError) error {
+func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealErrors []ffs.DealError) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	j, err := s.get(jid)
@@ -55,7 +55,8 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, errors []ffs.DealError
 		return fmt.Errorf("new state should be final")
 	}
 	j.Status = st
-	j.DealErrors = errors
+	j.ErrCause = jobError.Error()
+	j.DealErrors = dealErrors
 	if err := s.put(j); err != nil {
 		return fmt.Errorf("saving in datastore: %s", err)
 	}

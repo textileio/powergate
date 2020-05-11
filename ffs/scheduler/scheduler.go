@@ -313,11 +313,10 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 
 	ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
 	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
-	info, errors, err := s.executeCidConfig(ctx, a, j)
+	info, dealErrors, err := s.execute(ctx, a, j)
 	if err != nil {
 		log.Errorf("executing job %s: %s", j.ID, err)
-		j.ErrCause = err.Error()
-		if err := s.js.Finalize(j.ID, ffs.Failed, errors); err != nil {
+		if err := s.js.Finalize(j.ID, ffs.Failed, err, dealErrors); err != nil {
 			log.Errorf("changing job to failed: %s", err)
 		}
 		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
@@ -326,14 +325,14 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 	if err := s.cis.Put(info); err != nil {
 		log.Errorf("saving cid info to store: %s", err)
 	}
-	if err := s.js.Finalize(j.ID, ffs.Success, errors); err != nil {
+	if err := s.js.Finalize(j.ID, ffs.Success, nil, dealErrors); err != nil {
 		log.Errorf("changing job to success: %s", err)
 	}
 	s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)
 	return nil
 }
 
-func (s *Scheduler) executeCidConfig(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
+func (s *Scheduler) execute(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)
