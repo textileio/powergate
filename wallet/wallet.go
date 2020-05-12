@@ -15,11 +15,11 @@ import (
 type Module struct {
 	api        *apistruct.FullNodeStruct
 	iAmount    *big.Int
-	masterAddr *address.Address
+	masterAddr address.Address
 }
 
 // New creates a new wallet module
-func New(api *apistruct.FullNodeStruct, maddr *address.Address, iam big.Int) (*Module, error) {
+func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int) (*Module, error) {
 	m := &Module{
 		api:        api,
 		iAmount:    &iam,
@@ -44,9 +44,9 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 		return "", err
 	}
 
-	if m.masterAddr != nil {
+	if m.masterAddr != address.Undef {
 		msg := &types.Message{
-			From:     *m.masterAddr,
+			From:     m.masterAddr,
 			To:       addr,
 			Value:    types.BigInt{Int: m.iAmount},
 			GasLimit: 1000,

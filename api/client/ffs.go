@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"time"
 
@@ -542,9 +541,13 @@ func toRPCColdConfig(config ff.ColdConfig) *rpc.ColdConfig {
 func protoToDealError(des []*rpc.DealError) ([]ffs.DealError, error) {
 	res := make([]ffs.DealError, len(des))
 	for i, de := range des {
-		propCid, err := cid.Decode(de.ProposalCid)
-		if err != nil {
-			return nil, fmt.Errorf("parsing proposal cid: %s", err)
+		var propCid cid.Cid
+		if de.ProposalCid != "" {
+			var err error
+			propCid, err = cid.Decode(de.ProposalCid)
+			if err != nil {
+				propCid = cid.Undef
+			}
 		}
 		res[i] = ffs.DealError{
 			ProposalCid: propCid,

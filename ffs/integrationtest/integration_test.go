@@ -1207,7 +1207,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 	hl := coreipfs.New(ipfsClient, l)
 	sched := scheduler.New(js, as, cis, l, hl, cl)
 
-	wm, err := wallet.New(client, &waddr, *big.NewInt(iWalletBal))
+	wm, err := wallet.New(client, waddr, *big.NewInt(iWalletBal))
 	require.Nil(t, err)
 
 	var fapi *api.API
