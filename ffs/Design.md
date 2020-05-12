@@ -85,7 +85,7 @@ type Scheduler interface {
 
 ### Responsibilities
 When a new/updated _CidConfig_ is pushed by an _API_, the _Scheduler_ bounds the work of enforcing that state in a _Job_.
-This _Job_ has a lifecycle: queued, in progress, done, or failed.
+This _Job_ has a lifecycle: Queued, Executing, Success, Canceled, or Failed.
 
 Apart from _Jobs_, the _Scheduler_ has background tasks that monitor deal renewals or repair operations.
 

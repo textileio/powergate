@@ -12,7 +12,7 @@ type StorageDealConfig struct {
 	EpochPrice uint64
 }
 
-// StoreResult contains information about in-progress deals.
+// StoreResult contains information about Executing deals.
 type StoreResult struct {
 	ProposalCid cid.Cid
 	Config      StorageDealConfig

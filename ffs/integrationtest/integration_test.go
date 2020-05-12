@@ -1275,7 +1275,7 @@ func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 		case job, ok := <-ch:
 			require.True(t, ok)
 			require.Equal(t, jid, job.ID)
-			if job.Status == ffs.Queued || job.Status == ffs.InProgress {
+			if job.Status == ffs.Queued || job.Status == ffs.Executing {
 				continue
 			}
 			require.Equal(t, status, job.Status, job.ErrCause)

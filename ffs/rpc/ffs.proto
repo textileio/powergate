@@ -107,7 +107,7 @@ message InstanceInfo {
 
 enum JobStatus {
    Queued = 0;
-   InProgress = 1;
+   Executing = 1;
    Failed = 2;
    Canceled = 3;
    Success = 4;

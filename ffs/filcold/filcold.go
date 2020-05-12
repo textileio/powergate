@@ -218,7 +218,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 		return nil, errors, fmt.Errorf("all proposed deals where rejected")
 	}
 
-	fc.l.Log(ctx, c, "Watching in-progress deals unfold...")
+	fc.l.Log(ctx, c, "Watching in-progres deals unfold...")
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	chDi, err := fc.dm.Watch(ctx, inProgressDeals)

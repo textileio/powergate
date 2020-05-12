@@ -60,7 +60,7 @@ const (
 	Queued JobStatus = iota
 	// InProgress indicates that the Job is currently being
 	// executed.
-	InProgress
+	Executing
 	// Failed indicates the Job failed, with job.ErrCause with
 	// the error cause.
 	Failed
@@ -73,11 +73,11 @@ const (
 
 // JobStatusStr maps JobStatus to describing string.
 var JobStatusStr = map[JobStatus]string{
-	Queued:     "Queued",
-	InProgress: "InProgress",
-	Failed:     "Failed",
-	Canceled:   "Canceled",
-	Success:    "Success",
+	Queued:    "Queued",
+	Executing: "Executing",
+	Failed:    "Failed",
+	Canceled:  "Canceled",
+	Success:   "Success",
 }
 
 // Job is a task executed by the Scheduler.

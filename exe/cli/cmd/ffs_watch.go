@@ -119,7 +119,7 @@ func jobsComplete(state map[string]*client.JobEvent) bool {
 	for _, event := range state {
 		processing := false
 		if event == nil ||
-			event.Job.Status == ffs.InProgress ||
+			event.Job.Status == ffs.Executing ||
 			event.Job.Status == ffs.Queued {
 			processing = true
 		}
