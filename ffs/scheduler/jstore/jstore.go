@@ -55,7 +55,9 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 		return fmt.Errorf("new state should be final")
 	}
 	j.Status = st
-	j.ErrCause = jobError.Error()
+	if jobError != nil {
+		j.ErrCause = jobError.Error()
+	}
 	j.DealErrors = dealErrors
 	if err := s.put(j); err != nil {
 		return fmt.Errorf("saving in datastore: %s", err)
