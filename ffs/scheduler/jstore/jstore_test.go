@@ -42,7 +42,7 @@ func TestDequeue(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, j)
 	})
-	t.Run("InProgressAndFinalized", func(t *testing.T) {
+	t.Run("ExecutingAndFinalized", func(t *testing.T) {
 		t.Parallel()
 		s := create(t)
 

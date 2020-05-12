@@ -58,7 +58,7 @@ type JobStatus int
 const (
 	// Queued indicates the Job is queued in the Scheduler.
 	Queued JobStatus = iota
-	// InProgress indicates that the Job is currently being
+	// Executing indicates that the Job is currently being
 	// executed.
 	Executing
 	// Failed indicates the Job failed, with job.ErrCause with
