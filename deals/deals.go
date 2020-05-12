@@ -111,7 +111,8 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 		if err != nil {
 			log.Errorf("starting deal with %v: %s", c, err)
 			res[i] = StoreResult{
-				Config: c,
+				Config:  c,
+				Message: err.Error(),
 			}
 			continue
 		}
@@ -193,7 +194,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 			case <-ctx.Done():
 				return
 			case <-time.After(util.AvgBlockTime):
-				if err := pushNewChanges(ctx, m.api, currentState, proposals, ch); err != nil {
+				if err := notifyChanges(ctx, m.api, currentState, proposals, ch); err != nil {
 					log.Errorf("pushing new proposal states: %s", err)
 				}
 			}
@@ -202,7 +203,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-func pushNewChanges(ctx context.Context, client *apistruct.FullNodeStruct, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
+func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- DealInfo) error {
 	for _, pcid := range proposals {
 		dinfo, err := client.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
@@ -221,6 +222,7 @@ func pushNewChanges(ctx context.Context, client *apistruct.FullNodeStruct, currS
 				PricePerEpoch: dinfo.PricePerEpoch.Uint64(),
 				Duration:      dinfo.Duration,
 				DealID:        uint64(dinfo.DealID),
+				Message:       dinfo.Message,
 			}
 			if dinfo.State == storagemarket.StorageDealActive {
 				ocd, err := client.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)

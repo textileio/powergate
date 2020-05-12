@@ -17,10 +17,10 @@ var (
 type JobStore interface {
 	Enqueue(ffs.Job) error
 	// Dequeue returns the next queued Job. It automatically changes
-	// its state to in-progress.
+	// its state to Executing.
 	Dequeue() (*ffs.Job, error)
 	// Finalize sets the Job to a final state, i.e. success or failed.
-	Finalize(ffs.JobID, ffs.JobStatus) error
+	Finalize(ffs.JobID, ffs.JobStatus, error, []ffs.DealError) error
 
 	// Get retrieves job data from the store.
 	Get(ffs.JobID) (ffs.Job, error)

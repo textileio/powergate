@@ -58,9 +58,9 @@ type JobStatus int
 const (
 	// Queued indicates the Job is queued in the Scheduler.
 	Queued JobStatus = iota
-	// InProgress indicates that the Job is currently being
+	// Executing indicates that the Job is currently being
 	// executed.
-	InProgress
+	Executing
 	// Failed indicates the Job failed, with job.ErrCause with
 	// the error cause.
 	Failed
@@ -73,20 +73,21 @@ const (
 
 // JobStatusStr maps JobStatus to describing string.
 var JobStatusStr = map[JobStatus]string{
-	Queued:     "Queued",
-	InProgress: "InProgress",
-	Failed:     "Failed",
-	Canceled:   "Canceled",
-	Success:    "Success",
+	Queued:    "Queued",
+	Executing: "Executing",
+	Failed:    "Failed",
+	Canceled:  "Canceled",
+	Success:   "Success",
 }
 
 // Job is a task executed by the Scheduler.
 type Job struct {
-	ID       JobID
-	APIID    APIID
-	Cid      cid.Cid
-	Status   JobStatus
-	ErrCause string
+	ID         JobID
+	APIID      APIID
+	Cid        cid.Cid
+	Status     JobStatus
+	ErrCause   string
+	DealErrors []DealError
 }
 
 // DefaultConfig contains a default storage configuration for an Api instance.

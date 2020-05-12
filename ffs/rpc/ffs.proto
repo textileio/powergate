@@ -107,7 +107,7 @@ message InstanceInfo {
 
 enum JobStatus {
    Queued = 0;
-   InProgress = 1;
+   Executing = 1;
    Failed = 2;
    Canceled = 3;
    Success = 4;
@@ -119,6 +119,13 @@ message Job {
    string cid = 3;
    JobStatus status = 4;
    string errCause = 5;
+   repeated DealError dealErrors = 6;
+}
+
+message DealError {
+   string ProposalCid = 1;
+   string Miner = 2;
+   string Message = 3;
 }
 
 // request/reply messages

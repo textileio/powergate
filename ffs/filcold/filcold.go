@@ -68,8 +68,9 @@ func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, 
 }
 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
-// the DAGService registered on instance creation.
-func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs.FilInfo, error) {
+// the DAGService registered on instance creation. It returns a slice of strings with errors related to
+// deals executions.
+func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs.FilInfo, []ffs.DealError, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
 		CountryCodes:   cfg.CountryCodes,
@@ -77,17 +78,17 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs
 	}
 	cfgs, err := makeDealConfigs(ctx, fc.ms, cfg.RepFactor, f)
 	if err != nil {
-		return ffs.FilInfo{}, fmt.Errorf("making deal configs: %s", err)
+		return ffs.FilInfo{}, nil, fmt.Errorf("making deal configs: %s", err)
 	}
-	props, err := fc.makeDeals(ctx, c, cfgs, cfg)
+	props, errors, err := fc.makeDeals(ctx, c, cfgs, cfg)
 	if err != nil {
-		return ffs.FilInfo{}, fmt.Errorf("executing deals: %s", err)
+		return ffs.FilInfo{}, errors, fmt.Errorf("executing deals: %s", err)
 	}
 
 	return ffs.FilInfo{
 		DataCid:   c,
 		Proposals: props,
-	}, nil
+	}, errors, nil
 }
 
 // IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
@@ -104,14 +105,14 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
-func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig) (ffs.FilInfo, error) {
+func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig) (ffs.FilInfo, []ffs.DealError, error) {
 	var activeMiners []string
 	for _, p := range inf.Proposals {
 		activeMiners = append(activeMiners, p.Miner)
 	}
 	height, err := fc.chain.GetHeight(ctx)
 	if err != nil {
-		return ffs.FilInfo{}, fmt.Errorf("get current filecoin height: %s", err)
+		return ffs.FilInfo{}, nil, fmt.Errorf("get current filecoin height: %s", err)
 	}
 	var renewable []ffs.FilStorage
 	for _, p := range inf.Proposals {
@@ -133,7 +134,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	if numToBeRenewed <= 0 {
 		// Nothing to be renewed to ensure RepFactor,
 		// most prob the RepFactor was decreased.
-		return inf, nil
+		return inf, nil, nil
 	}
 	if numToBeRenewed > len(renewable) {
 		// We need even more deals than renewable to ensure RepFactor,
@@ -142,39 +143,41 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		numToBeRenewed = len(renewable)
 	}
 	toRenew := renewable[:numToBeRenewed]
+	var retErrors []ffs.DealError
 	for i, p := range toRenew {
-		newProposal, err := fc.renewDeal(ctx, c, p, activeMiners, cfg)
+		newProposal, errors, err := fc.renewDeal(ctx, c, p, activeMiners, cfg)
 		if err != nil {
 			log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
 			continue
 		}
 		inf.Proposals = append(inf.Proposals, newProposal)
 		inf.Proposals[i].Renewed = true
+		retErrors = append(retErrors, errors...)
 	}
 
-	return inf, nil
+	return inf, retErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, []ffs.DealError, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: activeMiners,
 	}
 	dealConfig, err := makeDealConfigs(ctx, fc.ms, 1, f)
 	if err != nil {
-		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
+		return ffs.FilStorage{}, nil, fmt.Errorf("making new deal config: %s", err)
 	}
 
-	props, err := fc.makeDeals(ctx, c, dealConfig, fcfg)
+	props, errors, err := fc.makeDeals(ctx, c, dealConfig, fcfg)
 	if err != nil {
-		return ffs.FilStorage{}, fmt.Errorf("executing renewed deal: %s", err)
+		return ffs.FilStorage{}, errors, fmt.Errorf("executing renewed deal: %s", err)
 	}
 	if len(props) != 1 {
-		return ffs.FilStorage{}, fmt.Errorf("unsuccessful renewal")
+		return ffs.FilStorage{}, errors, fmt.Errorf("unsuccessful renewal")
 	}
-	return props[0], nil
+	return props[0], errors, nil
 }
 
-func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]ffs.FilStorage, error) {
+func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]ffs.FilStorage, []ffs.DealError, error) {
 	r := ipldToFileTransform(ctx, fc.dag, c)
 
 	for _, cfg := range cfgs {
@@ -184,25 +187,27 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.Storag
 	var sres []deals.StoreResult
 	dataCid, sres, err := fc.dm.Store(ctx, fcfg.Addr, r, cfgs, uint64(fcfg.DealDuration), true)
 	if err != nil {
-		return nil, fmt.Errorf("storing deals in deal module: %s", err)
+		return nil, nil, fmt.Errorf("storing deals in deal module: %s", err)
 	}
 	if dataCid != c {
-		return nil, fmt.Errorf("stored data cid doesn't match with sent data")
+		return nil, nil, fmt.Errorf("stored data cid doesn't match with sent data")
 	}
 
-	proposals, err := fc.waitForDeals(ctx, c, sres, fcfg.DealDuration)
+	proposals, errors, err := fc.waitForDeals(ctx, c, sres, fcfg.DealDuration)
 	if err != nil {
-		return nil, fmt.Errorf("waiting for deals to finish: %s", err)
+		return nil, errors, fmt.Errorf("waiting for deals to finish: %s", err)
 	}
-	return proposals, nil
+	return proposals, errors, nil
 }
 
-func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, error) {
+func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []deals.StoreResult, duration int64) ([]ffs.FilStorage, []ffs.DealError, error) {
+	var errors []ffs.DealError
 	notDone := make(map[cid.Cid]struct{})
 	var inProgressDeals []cid.Cid
 	for _, d := range storeResults {
 		if !d.Success {
-			fc.l.Log(ctx, c, "Proposal with miner %s failed.", d.Config.Miner)
+			fc.l.Log(ctx, c, "Proposal with miner %s failed: %s", d.Config.Miner, d.Message)
+			errors = append(errors, ffs.DealError{ProposalCid: d.ProposalCid, Miner: d.Config.Miner, Message: d.Message})
 			log.Warnf("failed store result")
 			continue
 		}
@@ -210,15 +215,15 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 		notDone[d.ProposalCid] = struct{}{}
 	}
 	if len(inProgressDeals) == 0 {
-		return nil, fmt.Errorf("all proposed deals where rejected")
+		return nil, errors, fmt.Errorf("all proposed deals where rejected")
 	}
 
-	fc.l.Log(ctx, c, "Watching in-progress deals unfold...")
+	fc.l.Log(ctx, c, "Watching in-progres deals unfold...")
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	chDi, err := fc.dm.Watch(ctx, inProgressDeals)
 	if err != nil {
-		return nil, err
+		return nil, errors, err
 	}
 
 	activeProposals := make(map[cid.Cid]*ffs.FilStorage)
@@ -236,7 +241,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 				}
 			}
 			if d == nil {
-				return nil, fmt.Errorf("deal watcher return unasked proposal, this must never happen")
+				return nil, errors, fmt.Errorf("deal watcher return unasked proposal, this must never happen")
 			}
 			activeProposals[di.ProposalCid] = &ffs.FilStorage{
 				ProposalCid:     di.ProposalCid,
@@ -250,7 +255,8 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 			log.Errorf("deal %d failed with state %s", di.DealID, storagemarket.DealStates[di.StateID])
 			delete(activeProposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
-			fc.l.Log(ctx, c, "Deal %d with miner %s failed and won't be active on-chain", di.DealID, di.Miner)
+			fc.l.Log(ctx, c, "Deal %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
+			errors = append(errors, ffs.DealError{ProposalCid: di.ProposalCid, Miner: di.Miner, Message: di.Message})
 		} else {
 			fc.l.Log(ctx, c, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.StateID])
 		}
@@ -260,14 +266,14 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 	}
 
 	if len(activeProposals) == 0 {
-		return nil, fmt.Errorf("all accepted proposals failed before becoming active")
+		return nil, errors, fmt.Errorf("all accepted proposals failed before becoming active")
 	}
 	res := make([]ffs.FilStorage, 0, len(activeProposals))
 	for _, v := range activeProposals {
 		res = append(res, *v)
 	}
 	fc.l.Log(ctx, c, "Finished all in-progress deals reached final state.")
-	return res, nil
+	return res, errors, nil
 }
 
 func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) io.Reader {

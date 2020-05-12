@@ -85,7 +85,7 @@ type Scheduler interface {
 
 ### Responsibilities
 When a new/updated _CidConfig_ is pushed by an _API_, the _Scheduler_ bounds the work of enforcing that state in a _Job_.
-This _Job_ has a lifecycle: queued, in progress, done, or failed.
+This _Job_ has a lifecycle: Queued, Executing, Success, Canceled, or Failed.
 
 Apart from _Jobs_, the _Scheduler_ has background tasks that monitor deal renewals or repair operations.
 
@@ -128,16 +128,17 @@ type HotStorage interface {
 // native support for Filecoin storage.
 type ColdStorage interface {
 	// Store stores a Cid using the provided configuration and
-	// account address.
-	Store(context.Context, cid.Cid, string, FilConfig) (FilInfo, error)
+	// account address. It returns a slice of deal errors happened
+	// during execution.
+	Store(context.Context, cid.Cid, FilConfig) (FilInfo, []DealError, error)
 
 	// Retrieve retrieves the data using an account address,
 	// and store it in a CAR store.
 	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
 
 	// EnsureRenewals executes renewal logic for a Cid under a particular
-	// configuration.
-	EnsureRenewals(context.Context, cid.Cid, FilInfo, string, FilConfig) (FilInfo, error)
+	// configuration. It returns a slice of deal errors happened during execution.
+	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig) (FilInfo, []DealError, error)
 
 	// IsFIlDealActive returns true if the proposal Cid is active on chain;
 	// returns false otherwise.

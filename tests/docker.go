@@ -14,7 +14,7 @@ func LaunchIPFSDocker() (*dockertest.Resource, func()) {
 	if err != nil {
 		panic(fmt.Sprintf("couldn't create docker pool: %s", err))
 	}
-	ipfsDocker, err := pool.Run("ipfs/go-ipfs", "v0.5.0", []string{"IPFS_PROFILE=test"})
+	ipfsDocker, err := pool.Run("ipfs/go-ipfs", "v0.5.1", []string{"IPFS_PROFILE=test"})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run ipfs docker container: %s", err))
 	}

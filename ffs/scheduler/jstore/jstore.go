@@ -42,8 +42,9 @@ func New(ds datastore.Datastore) *Store {
 	}
 }
 
-// Finalize sets a Job status to a final state, i.e. Success or Failed.
-func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus) error {
+// Finalize sets a Job status to a final state, i.e. Success or Failed,
+// with a list of Deal errors occurred during job execution.
+func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealErrors []ffs.DealError) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	j, err := s.get(jid)
@@ -54,13 +55,17 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus) error {
 		return fmt.Errorf("new state should be final")
 	}
 	j.Status = st
+	if jobError != nil {
+		j.ErrCause = jobError.Error()
+	}
+	j.DealErrors = dealErrors
 	if err := s.put(j); err != nil {
 		return fmt.Errorf("saving in datastore: %s", err)
 	}
 	return nil
 }
 
-// Dequeue dequeues a Job which doesn't have have another in-progress Job
+// Dequeue dequeues a Job which doesn't have have another Executing Job
 // for the same Cid. Saying it differently, it's safe to execute. The returned
 // job Status is automatically changed to Queued. If no jobs are available to dequeue
 // it returns a nil *ffs.Job and no-error.
@@ -84,7 +89,7 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 		}
 		_, ok := s.inProgress[j.Cid]
 		if j.Status == ffs.Queued && !ok {
-			j.Status = ffs.InProgress
+			j.Status = ffs.Executing
 			if err := s.put(j); err != nil {
 				return nil, err
 			}
@@ -194,7 +199,7 @@ func (s *Store) put(j ffs.Job) error {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
 	s.notifyWatchers(j)
-	if j.Status == ffs.InProgress {
+	if j.Status == ffs.Executing {
 		s.inProgress[j.Cid] = struct{}{}
 	} else if j.Status == ffs.Failed || j.Status == ffs.Success {
 		delete(s.inProgress, j.Cid)

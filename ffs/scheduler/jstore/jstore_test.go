@@ -31,7 +31,7 @@ func TestDequeue(t *testing.T) {
 		require.Nil(t, err)
 		j2, err := s.Dequeue()
 		require.Nil(t, err)
-		j.Status = ffs.InProgress
+		j.Status = ffs.Executing
 		require.NotNil(t, j2)
 		require.Equal(t, j, *j2)
 	})
@@ -42,7 +42,7 @@ func TestDequeue(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, j)
 	})
-	t.Run("InProgressAndFinalized", func(t *testing.T) {
+	t.Run("ExecutingAndFinalized", func(t *testing.T) {
 		t.Parallel()
 		s := create(t)
 
@@ -56,21 +56,22 @@ func TestDequeue(t *testing.T) {
 		err = s.Enqueue(j2)
 		require.Nil(t, err)
 
-		// Dequeue should be nil since j1 is in progress,
+		// Dequeue should be nil since j1 is Executing,
 		// and j2 can't be returned until that fininishes since
 		// both are jobs for the same Cid.
 		jq, err := s.Dequeue()
 		require.Nil(t, err)
 		require.Nil(t, jq)
 
-		err = s.Finalize(j1.ID, ffs.Success)
+		errors := []ffs.DealError{ffs.DealError{ProposalCid: cid.Undef, Miner: "t0100", Message: "abcd"}}
+		err = s.Finalize(j1.ID, ffs.Success, nil, errors)
 		require.Nil(t, err)
-		// Dequeue now returns a new job since the in progress one
+		// Dequeue now returns a new job since the Executing one
 		// was finalized
 		jq, err = s.Dequeue()
 		require.Nil(t, err)
 		require.NotNil(t, jq)
-		j2.Status = ffs.InProgress
+		j2.Status = ffs.Executing
 		require.Equal(t, j2, *jq)
 	})
 }

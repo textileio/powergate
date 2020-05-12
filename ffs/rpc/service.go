@@ -325,11 +325,12 @@ func (s *Service) WatchJobs(req *WatchJobsRequest, srv FFS_WatchJobsServer) erro
 	for job := range ch {
 		reply := &WatchJobsReply{
 			Job: &Job{
-				ID:       job.ID.String(),
-				ApiID:    job.APIID.String(),
-				Cid:      job.Cid.String(),
-				Status:   JobStatus(job.Status),
-				ErrCause: job.ErrCause,
+				ID:         job.ID.String(),
+				ApiID:      job.APIID.String(),
+				Cid:        job.Cid.String(),
+				Status:     JobStatus(job.Status),
+				ErrCause:   job.ErrCause,
+				DealErrors: toRPCDealErrors(job.DealErrors),
 			},
 		}
 		if err := srv.Send(reply); err != nil {
@@ -624,4 +625,16 @@ func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
 			Addr: config.Filecoin.Addr,
 		},
 	}
+}
+
+func toRPCDealErrors(des []ffs.DealError) []*DealError {
+	ret := make([]*DealError, len(des))
+	for i, de := range des {
+		ret[i] = &DealError{
+			ProposalCid: de.ProposalCid.String(),
+			Miner:       de.Miner,
+			Message:     de.Message,
+		}
+	}
+	return ret
 }
