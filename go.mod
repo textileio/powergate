@@ -16,7 +16,7 @@ require (
 	github.com/filecoin-project/go-address v0.0.2-0.20200504173055-8b6f2fb2b3ef
 	github.com/filecoin-project/go-fil-markets v0.2.3
 	github.com/filecoin-project/lotus v0.2.11-0.20200513054428-d11e375f8285
-	github.com/filecoin-project/specs-actors v1.0.1-0.20200424174946-11410d0bbcaf
+	github.com/filecoin-project/specs-actors v0.5.2
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.2
