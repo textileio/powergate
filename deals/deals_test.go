@@ -36,18 +36,7 @@ func TestMain(m *testing.M) {
 	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())
 }
-func TestStoreDouble(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
-	m, err := New(client, WithImportPath(filepath.Join(tmpDir, "imports")))
-	checkErr(t, err)
 
-	r := rand.New(rand.NewSource(22))
-	_, err = storeMultiMiner(m, client, 1, randomBytesFromSource(600, r))
-	checkErr(t, err)
-	_, err = storeMultiMiner(m, client, 1, randomBytesFromSource(600, r))
-	checkErr(t, err)
-
-}
 func TestStore(t *testing.T) {
 	numMiners := []int{1, 2}
 	for _, nm := range numMiners {
