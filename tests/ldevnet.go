@@ -56,7 +56,9 @@ func LaunchDevnetDocker(t *testing.T, numMiners int) *dockertest.Resource {
 				OutputStream: os.Stdout,
 			}
 
-			pool.Client.Logs(opts)
+			if err := pool.Client.Logs(opts); err != nil {
+				panic(err)
+			}
 		}()
 	}
 	return lotusDevnet
