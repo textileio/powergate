@@ -160,8 +160,13 @@ func checkErr(t *testing.T, err error) {
 }
 
 func randomBytes(size int) []byte {
-	buf := make([]byte, size)
 	r := rand.New(rand.NewSource(22))
+	return randomBytesFromSource(size, r)
+}
+
+func randomBytesFromSource(size int, r *rand.Rand) []byte {
+	buf := make([]byte, size)
 	_, _ = r.Read(buf)
 	return buf
+
 }

@@ -208,7 +208,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 		if !d.Success {
 			fc.l.Log(ctx, c, "Proposal with miner %s failed: %s", d.Config.Miner, d.Message)
 			errors = append(errors, ffs.DealError{ProposalCid: d.ProposalCid, Miner: d.Config.Miner, Message: d.Message})
-			log.Warnf("failed store result")
+			log.Warnf("failed store result: %s", d.Message)
 			continue
 		}
 		inProgressDeals = append(inProgressDeals, d.ProposalCid)

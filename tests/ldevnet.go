@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ory/dockertest"
+	"github.com/ory/dockertest/docker"
 	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/util"
 )
@@ -23,7 +25,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int) *dockertest.Resource {
 	envNumMiners := fmt.Sprintf("TEXLOTUSDEVNET_NUMMINERS=%d", numMiners)
 	speed := "TEXLOTUSDEVNET_SPEED=500"
 	repository := "textile/lotus-devnet"
-	tag := "sha-8978142"
+	tag := "sha-0853126"
 	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: []string{envNumMiners, speed}, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))
@@ -37,6 +39,28 @@ func LaunchDevnetDocker(t *testing.T, numMiners int) *dockertest.Resource {
 			panic(fmt.Sprintf("couldn't purge lotus-devnet from docker pool: %s", err))
 		}
 	})
+	debug := false
+	if debug {
+		go func() {
+			opts := docker.LogsOptions{
+				Context: context.Background(),
+
+				Stderr:      true,
+				Stdout:      true,
+				Follow:      true,
+				Timestamps:  true,
+				RawTerminal: true,
+
+				Container: lotusDevnet.Container.ID,
+
+				OutputStream: os.Stdout,
+			}
+
+			if err := pool.Client.Logs(opts); err != nil {
+				panic(err)
+			}
+		}()
+	}
 	return lotusDevnet
 }
 
