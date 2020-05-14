@@ -419,12 +419,20 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 		o(config)
 	}
 
-	ic := make(chan ffs.LogEntry)
+	lgs, err := i.sched.GetLogs(ctx, c)
+	if err != nil {
+		return fmt.Errorf("getting history logs of %s: %s", c, err)
+	}
+	for _, l := range lgs {
+		ch <- l
+	}
+
+	ichan := make(chan ffs.LogEntry)
 	go func() {
-		err = i.sched.WatchLogs(ctx, ic)
-		close(ic)
+		err = i.sched.WatchLogs(ctx, ichan)
+		close(ichan)
 	}()
-	for le := range ic {
+	for le := range ichan {
 		if c == le.Cid && (config.jid == ffs.EmptyJobID || config.jid == le.Jid) {
 			ch <- le
 		}

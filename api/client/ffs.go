@@ -77,6 +77,14 @@ func WithJidFilter(jid ff.JobID) WatchLogsOption {
 	}
 }
 
+// WithHistory indicates that prior history logs should
+// be sent in the channel before getting real time logs.
+func WithHistory(enabled bool) WatchLogsOption {
+	return func(r *rpc.WatchLogsRequest) {
+		r.History = enabled
+	}
+}
+
 // LogEvent represents an event for watching cid logs
 type LogEvent struct {
 	LogEntry ff.LogEntry

@@ -60,6 +60,9 @@ type Scheduler interface {
 	// provided context.
 	WatchLogs(context.Context, chan<- LogEntry) error
 
+	// GetLogs returns all registered logs for a Cid.
+	GetLogs(context.Context, cid.Cid) ([]LogEntry, error)
+
 	//Untrack marks a Cid to be untracked for any background processes such as
 	// deal renewal, or repairing.
 	Untrack(cid.Cid) error

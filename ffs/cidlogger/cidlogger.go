@@ -10,6 +10,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 )
@@ -86,6 +87,25 @@ func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...int
 	}
 }
 
+// Get returns history logs of a Cid.
+func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
+	q := query.Query{Prefix: makeCidKey(c).String()}
+	res, err := cl.ds.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("running query: %s", err)
+	}
+	defer res.Close()
+	var lgs []ffs.LogEntry
+	for r := range res.Next() {
+		var le ffs.LogEntry
+		if err := json.Unmarshal(r.Value, &le); err != nil {
+			return nil, fmt.Errorf("unmarshaling log entry: %s", err)
+		}
+		lgs = append(lgs, le)
+	}
+	return lgs, nil
+}
+
 // Watch is a blocking function that writes to the channel all new created log entries.
 // The client should cancel the ctx to signal stopping writing to the channel and free resources.
 func (cl *CidLogger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
@@ -134,5 +154,9 @@ func (cl *CidLogger) Close() error {
 
 func makeKey(c cid.Cid, t int64) datastore.Key {
 	strt := strconv.FormatInt(t, 10)
-	return datastore.NewKey(c.String()).ChildString(strt)
+	return makeCidKey(c).ChildString(strt)
+}
+
+func makeCidKey(c cid.Cid) datastore.Key {
+	return datastore.NewKey(c.String())
 }

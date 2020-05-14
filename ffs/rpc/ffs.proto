@@ -226,6 +226,7 @@ message WatchJobsReply {
 message WatchLogsRequest {
    string cid = 1;
    string jid = 2;
+   bool history = 3;
 }
 
 message WatchLogsReply {
