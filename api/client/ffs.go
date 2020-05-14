@@ -413,7 +413,8 @@ func (f *FFS) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 }
 
 // WatchLogs pushes human-friendly messages about Cid executions. The method is blocking
-// and will continue to send messages until the context is canceled.
+// and will continue to send messages until the context is canceled. The provided channel
+// is owned by the method and must not be closed.
 func (f *FFS) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) error {
 	r := &rpc.WatchLogsRequest{Cid: c.String()}
 	for _, opt := range opts {
