@@ -419,12 +419,14 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 		o(config)
 	}
 
-	lgs, err := i.sched.GetLogs(ctx, c)
-	if err != nil {
-		return fmt.Errorf("getting history logs of %s: %s", c, err)
-	}
-	for _, l := range lgs {
-		ch <- l
+	if config.history {
+		lgs, err := i.sched.GetLogs(ctx, c)
+		if err != nil {
+			return fmt.Errorf("getting history logs of %s: %s", c, err)
+		}
+		for _, l := range lgs {
+			ch <- l
+		}
 	}
 
 	ichan := make(chan ffs.LogEntry)
