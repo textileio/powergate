@@ -181,6 +181,15 @@ func (s *Scheduler) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error 
 	return s.l.Watch(ctx, c)
 }
 
+// GetLogs returns history logs of a Cid.
+func (s *Scheduler) GetLogs(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
+	lgs, err := s.l.Get(ctx, c)
+	if err != nil {
+		return nil, fmt.Errorf("getting logs: %s", err)
+	}
+	return lgs, nil
+}
+
 // Close terminates the scheduler.
 func (s *Scheduler) Close() error {
 	s.cancel()

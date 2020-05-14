@@ -124,6 +124,9 @@ func (ms *mockSched) PushReplace(_ ffs.APIID, _ ffs.CidConfig, _ cid.Cid) (ffs.J
 func (ms *mockSched) GetCidFromHot(_ context.Context, _ cid.Cid) (io.Reader, error) {
 	return nil, nil
 }
+func (ms *mockSched) GetLogs(_ context.Context, _ cid.Cid) ([]ffs.LogEntry, error) {
+	return nil, nil
+}
 func (ms *mockSched) GetJob(_ ffs.JobID) (ffs.Job, error) {
 	return ffs.Job{}, nil
 }

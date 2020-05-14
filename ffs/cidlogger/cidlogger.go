@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 )
@@ -51,13 +53,14 @@ func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...int
 	if ctxjid, ok := ctx.Value(ffs.CtxKeyJid).(ffs.JobID); ok {
 		jid = ctxjid
 	}
-	now := time.Now().UnixNano()
-	key := makeKey(c, now)
+	now := time.Now()
+	nowNano := now.UnixNano()
+	key := makeKey(c, nowNano)
 	le := logEntry{
 		Cid:       c,
 		Jid:       jid,
 		Msg:       fmt.Sprintf(format, a...),
-		Timestamp: now,
+		Timestamp: nowNano,
 	}
 	b, err := json.Marshal(le)
 	if err != nil {
@@ -72,7 +75,7 @@ func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...int
 	entry := ffs.LogEntry{
 		Cid:       le.Cid,
 		Jid:       le.Jid,
-		Timestamp: time.Unix(0, le.Timestamp),
+		Timestamp: now,
 		Msg:       fmt.Sprintf(format, a...),
 	}
 	cl.lock.Lock()
@@ -84,6 +87,37 @@ func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...int
 			log.Warn("slow cid log receiver")
 		}
 	}
+}
+
+// Get returns history logs of a Cid.
+func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
+	q := query.Query{Prefix: makeCidKey(c).String()}
+	res, err := cl.ds.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("running query: %s", err)
+	}
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
+	var lgs []ffs.LogEntry
+	for r := range res.Next() {
+		var le logEntry
+		if err := json.Unmarshal(r.Value, &le); err != nil {
+			return nil, fmt.Errorf("unmarshaling log entry: %s", err)
+		}
+		lgs = append(lgs, ffs.LogEntry{
+			Cid:       le.Cid,
+			Jid:       le.Jid,
+			Msg:       le.Msg,
+			Timestamp: time.Unix(0, le.Timestamp),
+		})
+	}
+	sort.Slice(lgs, func(a, b int) bool {
+		return lgs[a].Timestamp.Before(lgs[b].Timestamp)
+	})
+	return lgs, nil
 }
 
 // Watch is a blocking function that writes to the channel all new created log entries.
@@ -134,5 +168,9 @@ func (cl *CidLogger) Close() error {
 
 func makeKey(c cid.Cid, t int64) datastore.Key {
 	strt := strconv.FormatInt(t, 10)
-	return datastore.NewKey(c.String()).ChildString(strt)
+	return makeCidKey(c).ChildString(strt)
+}
+
+func makeCidKey(c cid.Cid) datastore.Key {
+	return datastore.NewKey(c.String())
 }

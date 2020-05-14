@@ -1160,7 +1160,39 @@ func TestFailedJobMessage(t *testing.T) {
 	require.NotEmpty(t, de.ProposalCid.String())
 	require.NotEmpty(t, de.Miner)
 	require.Equal(t, "failed to start deal: cannot propose a deal whose piece size (4096) is greater than sector size (2048)", de.Message)
-	fmt.Println(de.Message)
+}
+
+func TestLogHistory(t *testing.T) {
+	t.Parallel()
+	ipfs, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	r := rand.New(rand.NewSource(22))
+	c, _ := addRandomFile(t, r, ipfs)
+	jid, err := fapi.PushConfig(c)
+	require.Nil(t, err)
+	job := requireJobState(t, fapi, jid, ffs.Success)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
+	defer cancel()
+	ch := make(chan ffs.LogEntry, 100)
+	go func() {
+		err = fapi.WatchLogs(ctx, ch, c, api.WithHistory(true))
+		close(ch)
+	}()
+	var lgs []ffs.LogEntry
+	for le := range ch {
+		require.Equal(t, c, le.Cid)
+		require.Equal(t, job.ID, le.Jid)
+		require.NotEmpty(t, le.Msg)
+		if len(lgs) > 0 {
+			require.True(t, le.Timestamp.After(lgs[len(lgs)-1].Timestamp))
+		}
+
+		lgs = append(lgs, le)
+	}
+	require.NoError(t, err)
+	require.Greater(t, len(lgs), 3) // Ask to have more than 3 log messages.
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {

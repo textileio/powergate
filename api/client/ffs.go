@@ -77,6 +77,14 @@ func WithJidFilter(jid ff.JobID) WatchLogsOption {
 	}
 }
 
+// WithHistory indicates that prior history logs should
+// be sent in the channel before getting real time logs.
+func WithHistory(enabled bool) WatchLogsOption {
+	return func(r *rpc.WatchLogsRequest) {
+		r.History = enabled
+	}
+}
+
 // LogEvent represents an event for watching cid logs
 type LogEvent struct {
 	LogEntry ff.LogEntry
@@ -413,7 +421,8 @@ func (f *FFS) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 }
 
 // WatchLogs pushes human-friendly messages about Cid executions. The method is blocking
-// and will continue to send messages until the context is canceled.
+// and will continue to send messages until the context is canceled. The provided channel
+// is owned by the method and must not be closed.
 func (f *FFS) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) error {
 	r := &rpc.WatchLogsRequest{Cid: c.String()}
 	for _, opt := range opts {

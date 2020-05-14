@@ -218,7 +218,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 		return nil, errors, fmt.Errorf("all proposed deals where rejected")
 	}
 
-	fc.l.Log(ctx, c, "Watching in-progres deals unfold...")
+	fc.l.Log(ctx, c, "Watching deals unfold...")
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	chDi, err := fc.dm.Watch(ctx, inProgressDeals)
@@ -255,7 +255,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 			log.Errorf("deal %d failed with state %s", di.DealID, storagemarket.DealStates[di.StateID])
 			delete(activeProposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
-			fc.l.Log(ctx, c, "Deal %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
+			fc.l.Log(ctx, c, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
 			errors = append(errors, ffs.DealError{ProposalCid: di.ProposalCid, Miner: di.Miner, Message: di.Message})
 		} else {
 			fc.l.Log(ctx, c, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.StateID])
@@ -272,7 +272,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 	for _, v := range activeProposals {
 		res = append(res, *v)
 	}
-	fc.l.Log(ctx, c, "Finished all in-progress deals reached final state.")
+	fc.l.Log(ctx, c, "All deals reached final state.")
 	return res, errors, nil
 }
 

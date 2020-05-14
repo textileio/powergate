@@ -77,7 +77,8 @@ func WithAddressType(addressType string) NewAddressOption {
 // GetLogsConfig contains configuration for a stream-log
 // of human-friendly messages for a Cid execution.
 type GetLogsConfig struct {
-	jid ffs.JobID
+	jid     ffs.JobID
+	history bool
 }
 
 // GetLogsOption is a function that changes GetLogsConfig.
@@ -88,5 +89,13 @@ type GetLogsOption func(config *GetLogsConfig)
 func WithJidFilter(jid ffs.JobID) GetLogsOption {
 	return func(c *GetLogsConfig) {
 		c.jid = jid
+	}
+}
+
+// WithHistory indicates that prior log history should be sent
+// to the channel before getting realtime logs.
+func WithHistory(enabled bool) GetLogsOption {
+	return func(c *GetLogsConfig) {
+		c.history = enabled
 	}
 }

@@ -373,6 +373,7 @@ const (
 type CidLogger interface {
 	Log(context.Context, cid.Cid, string, ...interface{})
 	Watch(context.Context, chan<- LogEntry) error
+	Get(context.Context, cid.Cid) ([]LogEntry, error)
 }
 
 // LogEntry is a log entry from a Cid execution.
