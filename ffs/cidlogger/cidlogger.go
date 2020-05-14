@@ -94,7 +94,11 @@ func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error)
 	if err != nil {
 		return nil, fmt.Errorf("running query: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
 	var lgs []ffs.LogEntry
 	for r := range res.Next() {
 		var le ffs.LogEntry
