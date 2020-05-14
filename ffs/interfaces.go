@@ -16,7 +16,17 @@ type WalletManager interface {
 	// Balance returns the current balance for an address.
 	Balance(context.Context, string) (uint64, error)
 	// SendFil sends fil from one address to another
-	SendFil(ctx context.Context, from string, to string, amount *big.Int) error
+	SendFil(context.Context, string, string, *big.Int) error
+}
+
+// PaychManager provides access to payment channels
+type PaychManager interface {
+	// List lists all payment channels involving the specified addresses
+	List(ctx context.Context, addrs ...string) ([]PaychInfo, error)
+	// Create creates a new payment channel
+	Create(ctx context.Context, from string, to string, amount *big.Int) error
+	// Redeem redeems a payment channel
+	Redeem(ctx context.Context, ch string) error
 }
 
 // HotStorage is a fast storage layer for Cid data.

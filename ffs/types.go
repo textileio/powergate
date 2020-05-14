@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/filecoin-project/go-address"
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 )
@@ -416,4 +417,23 @@ type LogEntry struct {
 	Timestamp time.Time
 	Jid       JobID
 	Msg       string
+}
+
+// PaychDir specifies the direction of a payment channel
+type PaychDir int
+
+const (
+	// PaychDirUndef is an undefined direction
+	PaychDirUndef PaychDir = iota
+	// PaychDirInbound is an inbound direction
+	PaychDirInbound
+	// PaychDirOutbound is an outbound direction
+	PaychDirOutbound
+)
+
+// PaychInfo holds information about a payment channel
+type PaychInfo struct {
+	CtlAddr   address.Address
+	Addr      address.Address
+	Direction PaychDir
 }
