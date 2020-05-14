@@ -1186,8 +1186,9 @@ func TestLogHistory(t *testing.T) {
 		require.Equal(t, job.ID, le.Jid)
 		require.NotEmpty(t, le.Msg)
 		if len(lgs) > 0 {
-			require.Greater(t, time.Duration(0), le.Timestamp.Sub(lgs[len(lgs)-1].Timestamp))
+			require.True(t, le.Timestamp.After(lgs[len(lgs)-1].Timestamp))
 		}
+
 		lgs = append(lgs, le)
 	}
 	require.NoError(t, err)

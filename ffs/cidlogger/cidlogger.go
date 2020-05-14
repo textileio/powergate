@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -113,6 +114,9 @@ func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error)
 			Timestamp: time.Unix(0, le.Timestamp),
 		})
 	}
+	sort.Slice(lgs, func(a, b int) bool {
+		return lgs[a].Timestamp.Before(lgs[b].Timestamp)
+	})
 	return lgs, nil
 }
 
