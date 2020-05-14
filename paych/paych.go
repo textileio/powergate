@@ -3,11 +3,12 @@ package paych
 import (
 	"context"
 	"fmt"
-	"math/big"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
 )
 
@@ -26,10 +27,10 @@ func New(api *apistruct.FullNodeStruct) (*Module, error) {
 }
 
 // List lists all payment channels involving the specified addresses
-func (m *Module) List(ctx context.Context, addrs ...string) ([]ffs.PaychInfo, error) {
+func (m *Module) List(ctx context.Context, addrs ...address.Address) ([]ffs.PaychInfo, error) {
 	filter := make(map[string]struct{}, len(addrs))
 	for _, addr := range addrs {
-		filter[addr] = struct{}{}
+		filter[addr.String()] = struct{}{}
 	}
 
 	allAddrs, err := m.api.PaychList(ctx)
@@ -91,12 +92,23 @@ func (m *Module) List(ctx context.Context, addrs ...string) ([]ffs.PaychInfo, er
 }
 
 // Create creates a new payment channel
-func (m *Module) Create(ctx context.Context, from string, to string, amount *big.Int) error {
-	return nil
+func (m *Module) Create(ctx context.Context, from address.Address, to address.Address, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
+	a := types.NewInt(amount)
+	info, err := m.api.PaychGet(ctx, from, to, a)
+	if err != nil {
+		return ffs.PaychInfo{}, cid.Undef, err
+	}
+	// ToDo: verify these addresses and direction make sense
+	res := ffs.PaychInfo{
+		CtlAddr:   from,
+		Addr:      info.Channel,
+		Direction: ffs.PaychDirOutbound,
+	}
+	return res, info.ChannelMessage, nil
 }
 
 // Redeem redeems a payment channel
-func (m *Module) Redeem(ctx context.Context, ch string) error {
+func (m *Module) Redeem(ctx context.Context, ch address.Address) error {
 	return nil
 }
 
