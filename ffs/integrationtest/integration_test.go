@@ -1171,7 +1171,7 @@ func TestLogHistory(t *testing.T) {
 	c, _ := addRandomFile(t, r, ipfs)
 	jid, err := fapi.PushConfig(c)
 	require.Nil(t, err)
-	job := requireJobState(t, fapi, jid, ffs.Failed)
+	job := requireJobState(t, fapi, jid, ffs.Success)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
