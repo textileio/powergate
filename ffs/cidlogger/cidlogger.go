@@ -52,13 +52,14 @@ func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...int
 	if ctxjid, ok := ctx.Value(ffs.CtxKeyJid).(ffs.JobID); ok {
 		jid = ctxjid
 	}
-	now := time.Now().UnixNano()
-	key := makeKey(c, now)
+	now := time.Now()
+	nowNano := now.UnixNano()
+	key := makeKey(c, nowNano)
 	le := logEntry{
 		Cid:       c,
 		Jid:       jid,
 		Msg:       fmt.Sprintf(format, a...),
-		Timestamp: now,
+		Timestamp: nowNano,
 	}
 	b, err := json.Marshal(le)
 	if err != nil {
@@ -73,7 +74,7 @@ func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...int
 	entry := ffs.LogEntry{
 		Cid:       le.Cid,
 		Jid:       le.Jid,
-		Timestamp: time.Unix(0, le.Timestamp),
+		Timestamp: now,
 		Msg:       fmt.Sprintf(format, a...),
 	}
 	cl.lock.Lock()
@@ -101,11 +102,16 @@ func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error)
 	}()
 	var lgs []ffs.LogEntry
 	for r := range res.Next() {
-		var le ffs.LogEntry
+		var le logEntry
 		if err := json.Unmarshal(r.Value, &le); err != nil {
 			return nil, fmt.Errorf("unmarshaling log entry: %s", err)
 		}
-		lgs = append(lgs, le)
+		lgs = append(lgs, ffs.LogEntry{
+			Cid:       le.Cid,
+			Jid:       le.Jid,
+			Msg:       le.Msg,
+			Timestamp: time.Unix(0, le.Timestamp),
+		})
 	}
 	return lgs, nil
 }
