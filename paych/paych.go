@@ -8,6 +8,7 @@ import (
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/specs-actors/actors/builtin/paych"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
 )
@@ -110,6 +111,11 @@ func (m *Module) Create(ctx context.Context, from address.Address, to address.Ad
 // Redeem redeems a payment channel
 func (m *Module) Redeem(ctx context.Context, ch address.Address) error {
 	return nil
+}
+
+// CreateVoucher creates a pay channel voucher
+func (m *Module) CreateVoucher(ctx context.Context, addr address.Address, amt uint64, opts ...ffs.CreateVoucherOption) (*paych.SignedVoucher, error) {
+	return nil, nil
 }
 
 type statusResult struct {
