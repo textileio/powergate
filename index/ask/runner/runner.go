@@ -248,17 +248,18 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr address.Address) (ask.StorageAsk, bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, qaTimeout)
 	defer cancel()
+	power, err := api.StateMinerPower(ctx, addr, types.EmptyTSK)
+	if err != nil {
+		return ask.StorageAsk{}, false, fmt.Errorf("getting power %s: %s", addr, err)
+	}
+	if power.MinerPower.RawBytePower.IsZero() {
+		return ask.StorageAsk{}, false, nil
+	}
 	mi, err := api.StateMinerInfo(ctx, addr, types.EmptyTSK)
 	if err != nil {
 		return ask.StorageAsk{}, false, fmt.Errorf("getting miner %s info: %s", addr, err)
 	}
-	minfo, err := api.StateMinerPower(ctx, addr, types.EmptyTSK)
-	if err != nil {
-		return ask.StorageAsk{}, false, fmt.Errorf("getting power %s: %s", addr, err)
-	}
-	if minfo.MinerPower.RawBytePower.IsZero() {
-		return ask.StorageAsk{}, false, nil
-	}
+
 	sask, err := api.ClientQueryAsk(ctx, mi.PeerId, addr)
 	if err != nil {
 		return ask.StorageAsk{}, false, nil
