@@ -183,7 +183,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "container_memory_usage_bytes{name=\"docker_powergate_1\"}",
+          "expr": "container_memory_rss{name=\"docker_powergate_1\"}",
           "interval": "10s",
           "legendFormat": "powergate",
           "refId": "A"
