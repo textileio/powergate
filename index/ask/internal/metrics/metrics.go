@@ -1,42 +1,45 @@
-package ask
+package metrics
 
 import (
+	"fmt"
+
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 )
 
 var (
-	keyAskStatus, _ = tag.NewKey("askstatus")
+	TagAskStatus, _ = tag.NewKey("askstatus")
 
-	mFullRefreshDuration = stats.Int64("askindex/fullrefresh-duration", "Duration of Full StorageAsk refresh", "s")
-	mFullRefreshProgress = stats.Float64("askindex/fullrefresh-progress", "Full refresh progress", "By")
-	mAskQueryResult      = stats.Int64("askindex/queryask-result", "Ask query results", "By")
+	MFullRefreshDuration = stats.Int64("askindex/fullrefresh-duration", "Duration of Full StorageAsk refresh", "s")
+	MFullRefreshProgress = stats.Float64("askindex/fullrefresh-progress", "Full refresh progress", "By")
+	MAskQueryResult      = stats.Int64("askindex/queryask-result", "Ask query results", "By")
 
 	vFullRefreshTime = &view.View{
 		Name:        "askindex/fullrefresh-duration",
-		Measure:     mFullRefreshDuration,
+		Measure:     MFullRefreshDuration,
 		Description: "Full StorageAsk refresh duration",
 		Aggregation: view.LastValue(),
 	}
 	vFullRefreshProgress = &view.View{
 		Name:        "askindex/fullrefresh-progress",
-		Measure:     mFullRefreshProgress,
+		Measure:     MFullRefreshProgress,
 		Description: "Full refresh progress",
 		Aggregation: view.LastValue(),
 	}
 	vAskQueryResult = &view.View{
 		Name:        "askindex/queryask-result",
-		Measure:     mAskQueryResult,
+		Measure:     MAskQueryResult,
 		Description: "Query-Ask results",
-		TagKeys:     []tag.Key{keyAskStatus},
+		TagKeys:     []tag.Key{TagAskStatus},
 		Aggregation: view.LastValue(),
 	}
 	views = []*view.View{vFullRefreshTime, vAskQueryResult, vFullRefreshProgress}
 )
 
-func initMetrics() {
+func Init() error {
 	if err := view.Register(views...); err != nil {
-		log.Fatalf("Failed to register views: %v", err)
+		return fmt.Errorf("Failed to register views: %v", err)
 	}
+	return nil
 }

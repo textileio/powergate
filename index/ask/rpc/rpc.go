@@ -1,20 +1,21 @@
-package ask
+package rpc
 
 import (
 	"context"
 
 	pb "github.com/textileio/powergate/index/ask/pb"
+	"github.com/textileio/powergate/index/ask/runner"
 )
 
 // Service implements the gprc service
 type Service struct {
 	pb.UnimplementedAPIServer
 
-	index *Index
+	index *runner.Runner
 }
 
 // NewService is a helper to create a new Service
-func NewService(ai *Index) *Service {
+func New(ai *runner.Runner) *Service {
 	return &Service{
 		index: ai,
 	}
@@ -43,7 +44,7 @@ func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, er
 
 // Query calls askIndex.Query
 func (s *Service) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryReply, error) {
-	q := Query{
+	q := runner.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),
 		Limit:     int(req.GetQuery().GetLimit()),

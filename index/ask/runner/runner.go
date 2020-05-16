@@ -1,8 +1,7 @@
-package ask
+package runner
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sort"
 	"sync"
@@ -13,6 +12,9 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/powergate/index/ask"
+	"github.com/textileio/powergate/index/ask/internal/metrics"
+	"github.com/textileio/powergate/index/ask/internal/store"
 	"github.com/textileio/powergate/signaler"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -22,20 +24,19 @@ var (
 	qaRatelim         = 20
 	qaTimeout         = time.Second * 10
 	qaRefreshInterval = 20 * time.Minute
-	dsIndex           = datastore.NewKey("index")
 
 	log = logging.Logger("index-ask")
 )
 
 // Index contains cached information about markets
-type Index struct {
+type Runner struct {
 	api      *apistruct.FullNodeStruct
-	ds       datastore.TxnDatastore
+	store    *store.Store
 	signaler *signaler.Signaler
 
 	lock              sync.Mutex
-	index             IndexSnapshot
-	priceOrderedCache []*StorageAsk
+	index             ask.IndexSnapshot
+	priceOrderedCache []*ask.StorageAsk
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -44,34 +45,49 @@ type Index struct {
 	closed   bool
 }
 
-// New returnas a new AskIndex. It loads saved information from ds, and immeediatelly
-// starts keeping the cache up to date.
-func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, error) {
-	initMetrics()
+// Query specifies filtering and paging data to retrieve active Asks
+type Query struct {
+	MaxPrice  uint64
+	PieceSize uint64
+	Limit     int
+	Offset    int
+}
+
+// New returns a new ask index runner. It load a persisted ask index, and immediately starts building a new fresh one.
+func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, error) {
+	if err := metrics.Init(); err != nil {
+		return nil, fmt.Errorf("initing metrics: %s", err)
+	}
+	store := store.New(ds)
+	idx, err := store.Get()
+	if err != nil {
+		return nil, fmt.Errorf("loading from store: %s", err)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
-	ai := &Index{
+	ai := &Runner{
 		signaler: signaler.New(),
 		api:      api,
-		ds:       ds,
+		store:    store,
+
+		index:             idx,
+		priceOrderedCache: generateOrderedByPriceCache(idx),
+
 		ctx:      ctx,
 		cancel:   cancel,
 		finished: make(chan struct{}),
-	}
-	if err := ai.loadFromStore(); err != nil {
-		return nil, err
 	}
 	go ai.start()
 	return ai, nil
 }
 
 // Get returns a copy of the current index data
-func (ai *Index) Get() IndexSnapshot {
+func (ai *Runner) Get() ask.IndexSnapshot {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
-	index := IndexSnapshot{
+	index := ask.IndexSnapshot{
 		LastUpdated:        ai.index.LastUpdated,
 		StorageMedianPrice: ai.index.StorageMedianPrice,
-		Storage:            make(map[string]StorageAsk, len(ai.index.Storage)),
+		Storage:            make(map[string]ask.StorageAsk, len(ai.index.Storage)),
 	}
 	for addr, v := range ai.index.Storage {
 		index.Storage[addr] = v
@@ -80,10 +96,10 @@ func (ai *Index) Get() IndexSnapshot {
 }
 
 // Query executes a query to retrieve active Asks
-func (ai *Index) Query(q Query) ([]StorageAsk, error) {
+func (ai *Runner) Query(q Query) ([]ask.StorageAsk, error) {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
-	var res []StorageAsk
+	var res []ask.StorageAsk
 	offset := q.Offset
 	for _, sa := range ai.priceOrderedCache {
 		if q.MaxPrice != 0 && sa.Price > q.MaxPrice {
@@ -106,17 +122,17 @@ func (ai *Index) Query(q Query) ([]StorageAsk, error) {
 
 // Listen returns a new channel signaler that notifies when the index gets
 // updated.
-func (ai *Index) Listen() <-chan struct{} {
+func (ai *Runner) Listen() <-chan struct{} {
 	return ai.signaler.Listen()
 }
 
 // Unregister unregisters a channel signaler from the signaler hub
-func (ai *Index) Unregister(c chan struct{}) {
+func (ai *Runner) Unregister(c chan struct{}) {
 	ai.signaler.Unregister(c)
 }
 
 // Close closes the AskIndex
-func (ai *Index) Close() error {
+func (ai *Runner) Close() error {
 	log.Info("Closing")
 	ai.clsLock.Lock()
 	defer ai.clsLock.Unlock()
@@ -131,7 +147,7 @@ func (ai *Index) Close() error {
 }
 
 // start is a long running job that updates asks information in the market
-func (ai *Index) start() {
+func (ai *Runner) start() {
 	defer close(ai.finished)
 	if err := ai.update(); err != nil {
 		log.Errorf("error when updating miners asks: %s", err)
@@ -151,52 +167,38 @@ func (ai *Index) start() {
 
 // update triggers a full-scan generates and saves a new fresh index and builds
 // views for better querying.
-func (ai *Index) update() error {
+func (ai *Runner) update() error {
 	log.Info("updating ask index...")
 	defer log.Info("ask index updated")
 	startTime := time.Now()
 	newIndex, err := generateIndex(ai.ctx, ai.api)
 	if err != nil {
-		return err
+		return fmt.Errorf("generating index: %s", err)
 	}
 
-	buf, err := json.Marshal(newIndex)
-	if err != nil {
-		return err
-	}
-	if err = ai.ds.Put(dsIndex, buf); err != nil {
-		return err
-	}
-
-	cache := make([]*StorageAsk, 0, len(ai.index.Storage))
-	for _, v := range ai.index.Storage {
-		cache = append(cache, &v)
-	}
-	sort.Slice(cache, func(i, j int) bool {
-		return cache[i].Price < cache[j].Price
-	})
+	cache := generateOrderedByPriceCache(newIndex)
 
 	ai.lock.Lock()
-	ai.index = *newIndex
+	ai.index = newIndex
 	ai.priceOrderedCache = cache
 	ai.lock.Unlock()
 
-	stats.Record(context.Background(), mFullRefreshDuration.M(time.Since(startTime).Milliseconds()))
+	stats.Record(context.Background(), metrics.MFullRefreshDuration.M(time.Since(startTime).Milliseconds()))
 	ai.signaler.Signal()
 
 	return nil
 }
 
 // generateIndex returns a fresh index
-func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*IndexSnapshot, error) {
+func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.IndexSnapshot, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
-		return nil, err
+		return ask.IndexSnapshot{}, err
 	}
 
 	rateLim := make(chan struct{}, qaRatelim)
 	var lock sync.Mutex
-	newAsks := make(map[string]StorageAsk)
+	newAsks := make(map[string]ask.StorageAsk)
 	for i, addr := range addrs {
 		rateLim <- struct{}{}
 		go func(addr address.Address) {
@@ -208,23 +210,23 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*IndexSn
 				log.Debugf("error getting miner %s info: %s", addr, err)
 				return
 			}
-			ask, err := api.ClientQueryAsk(ictx, mi.PeerId, addr)
+			sask, err := api.ClientQueryAsk(ictx, mi.PeerId, addr)
 			if err != nil {
 				log.Debugf("error query-asking miner: %s", err)
 				return
 			}
 			lock.Lock()
-			newAsks[addr.String()] = StorageAsk{
-				Miner:        ask.Ask.Miner.String(),
-				Price:        ask.Ask.Price.Uint64(),
-				MinPieceSize: uint64(ask.Ask.MinPieceSize),
-				Timestamp:    int64(ask.Ask.Timestamp),
-				Expiry:       int64(ask.Ask.Expiry),
+			newAsks[addr.String()] = ask.StorageAsk{
+				Miner:        sask.Ask.Miner.String(),
+				Price:        sask.Ask.Price.Uint64(),
+				MinPieceSize: uint64(sask.Ask.MinPieceSize),
+				Timestamp:    int64(sask.Ask.Timestamp),
+				Expiry:       int64(sask.Ask.Expiry),
 			}
 			lock.Unlock()
 		}(addr)
 		if i%100 == 0 {
-			stats.Record(context.Background(), mFullRefreshProgress.M(float64(i)/float64(len(addrs))))
+			stats.Record(context.Background(), metrics.MFullRefreshProgress.M(float64(i)/float64(len(addrs))))
 			log.Debugf("progress %d/%d", i, len(addrs))
 		}
 	}
@@ -234,28 +236,28 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (*IndexSn
 
 	select {
 	case <-ctx.Done():
-		return nil, fmt.Errorf("refresh was canceled")
+		return ask.IndexSnapshot{}, fmt.Errorf("refresh was canceled")
 	default:
 	}
 
-	stats.Record(context.Background(), mFullRefreshProgress.M(1))
-	ctx, _ = tag.New(context.Background(), tag.Insert(keyAskStatus, "FAIL"))
-	stats.Record(ctx, mAskQueryResult.M(int64(len(addrs)-len(newAsks))))
-	ctx, _ = tag.New(context.Background(), tag.Insert(keyAskStatus, "OK"))
-	stats.Record(ctx, mAskQueryResult.M(int64(len(newAsks))))
+	stats.Record(context.Background(), metrics.MFullRefreshProgress.M(1))
+	ctx, _ = tag.New(context.Background(), tag.Insert(metrics.TagAskStatus, "FAIL"))
+	stats.Record(ctx, metrics.MAskQueryResult.M(int64(len(addrs)-len(newAsks))))
+	ctx, _ = tag.New(context.Background(), tag.Insert(metrics.TagAskStatus, "OK"))
+	stats.Record(ctx, metrics.MAskQueryResult.M(int64(len(newAsks))))
 
-	return &IndexSnapshot{
+	return ask.IndexSnapshot{
 		LastUpdated:        time.Now(),
 		StorageMedianPrice: calculateMedian(newAsks),
 		Storage:            newAsks,
 	}, nil
 }
 
-func calculateMedian(index map[string]StorageAsk) uint64 {
+func calculateMedian(index map[string]ask.StorageAsk) uint64 {
 	if len(index) == 0 {
 		return 0
 	}
-	prices := make([]uint64, 0, len(index))
+	prices := make([]uint64, len(index))
 	for _, v := range index {
 		prices = append(prices, v.Price)
 	}
@@ -272,17 +274,13 @@ func calculateMedian(index map[string]StorageAsk) uint64 {
 	return (prices[len/2-1] + prices[len/2]) / 2
 }
 
-func (ai *Index) loadFromStore() error {
-	buf, err := ai.ds.Get(dsIndex)
-	if err != nil {
-		if err == datastore.ErrNotFound {
-			ai.index = IndexSnapshot{Storage: make(map[string]StorageAsk)}
-			return nil
-		}
-		return err
+func generateOrderedByPriceCache(idx ask.IndexSnapshot) []*ask.StorageAsk {
+	cache := make([]*ask.StorageAsk, 0, len(idx.Storage))
+	for _, v := range idx.Storage {
+		cache = append(cache, &v)
 	}
-	if err = json.Unmarshal(buf, &ai.index); err != nil {
-		return err
-	}
-	return nil
+	sort.Slice(cache, func(i, j int) bool {
+		return cache[i].Price < cache[j].Price
+	})
+	return cache
 }

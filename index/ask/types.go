@@ -11,14 +11,6 @@ type IndexSnapshot struct {
 	Storage            map[string]StorageAsk
 }
 
-// Query specifies filtering and paging data to retrieve active Asks
-type Query struct {
-	MaxPrice  uint64
-	PieceSize uint64
-	Limit     int
-	Offset    int
-}
-
 // StorageAsk has information about an active ask from a storage miner
 type StorageAsk struct {
 	Miner        string

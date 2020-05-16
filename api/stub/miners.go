@@ -15,7 +15,7 @@ type Miners struct {
 func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 	time.Sleep(time.Second * 3)
 	info := map[string]miner.Meta{
-		"miner1": miner.Meta{
+		"miner1": {
 			LastUpdated: time.Now(),
 			UserAgent:   "miner1agent",
 			Location: miner.Location{
@@ -25,7 +25,7 @@ func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 			},
 			Online: true,
 		},
-		"miner2": miner.Meta{
+		"miner2": {
 			LastUpdated: time.Now(),
 			UserAgent:   "miner2agent",
 			Location: miner.Location{
@@ -35,7 +35,7 @@ func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 			},
 			Online: true,
 		},
-		"miner3": miner.Meta{
+		"miner3": {
 			LastUpdated: time.Now(),
 			UserAgent:   "miner3agent",
 			Location: miner.Location{
@@ -45,7 +45,7 @@ func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 			},
 			Online: true,
 		},
-		"miner4": miner.Meta{
+		"miner4": {
 			LastUpdated: time.Now(),
 			UserAgent:   "miner4agent",
 			Location: miner.Location{

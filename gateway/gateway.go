@@ -16,7 +16,7 @@ import (
 	assets "github.com/jessevdk/go-assets"
 	"github.com/rs/cors"
 	gincors "github.com/rs/cors/wrapper/gin"
-	"github.com/textileio/powergate/index/ask"
+	askRunner "github.com/textileio/powergate/index/ask/runner"
 	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/index/slashing"
 	"github.com/textileio/powergate/reputation"
@@ -46,7 +46,7 @@ func (f *fileSystem) Exists(prefix, path string) bool {
 type Gateway struct {
 	addr             string
 	server           *http.Server
-	askIndex         *ask.Index
+	askIndex         *askRunner.Runner
 	minerIndex       *miner.Index
 	slashingIndex    *slashing.Index
 	reputationModule *reputation.Module
@@ -55,7 +55,7 @@ type Gateway struct {
 // NewGateway returns a new gateway.
 func NewGateway(
 	addr string,
-	askIndex *ask.Index,
+	askIndex *askRunner.Runner,
 	minerIndex *miner.Index,
 	slashingIndex *slashing.Index,
 	reputationModule *reputation.Module,
