@@ -25,7 +25,7 @@ func New(ds datastore.Datastore) *Store {
 }
 
 // Save persist the index into the datastore.
-func (s *Store) Save(idx ask.IndexSnapshot) error {
+func (s *Store) Save(idx ask.Index) error {
 	buf, err := json.Marshal(idx)
 	if err != nil {
 		return fmt.Errorf("marshaling new index: %s", err)
@@ -38,17 +38,17 @@ func (s *Store) Save(idx ask.IndexSnapshot) error {
 
 // Get returns the last saved ask index. If no ask index was persisted,
 // it returns an valid empty index.
-func (s *Store) Get() (ask.IndexSnapshot, error) {
+func (s *Store) Get() (ask.Index, error) {
 	buf, err := s.ds.Get(dsKey)
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			return ask.IndexSnapshot{Storage: make(map[string]ask.StorageAsk)}, nil
+			return ask.Index{Storage: make(map[string]ask.StorageAsk)}, nil
 		}
-		return ask.IndexSnapshot{}, err
+		return ask.Index{}, err
 	}
-	idx := ask.IndexSnapshot{}
+	idx := ask.Index{}
 	if err = json.Unmarshal(buf, &idx); err != nil {
-		return ask.IndexSnapshot{}, err
+		return ask.Index{}, err
 	}
 	return idx, nil
 }

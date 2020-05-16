@@ -9,11 +9,17 @@ import (
 )
 
 var (
+	// TagAskStatus is a tag for query-ask results.
 	TagAskStatus, _ = tag.NewKey("askstatus")
 
+	// MFullRefreshDuration is a metric for registering the total duration of a full
+	// query ask refresh.
 	MFullRefreshDuration = stats.Int64("askindex/fullrefresh-duration", "Duration of Full StorageAsk refresh", "s")
+	// MFullRefreshProgress is a metric for registering the current progress of
+	// the full scan query ask on miners.
 	MFullRefreshProgress = stats.Float64("askindex/fullrefresh-progress", "Full refresh progress", "By")
-	MAskQueryResult      = stats.Int64("askindex/queryask-result", "Ask query results", "By")
+	// MAskQueryResult is a metric to register the number of results per TagAskStatus status.
+	MAskQueryResult = stats.Int64("askindex/queryask-result", "Ask query results", "By")
 
 	vFullRefreshTime = &view.View{
 		Name:        "askindex/fullrefresh-duration",
@@ -37,6 +43,7 @@ var (
 	views = []*view.View{vFullRefreshTime, vAskQueryResult, vFullRefreshProgress}
 )
 
+// Init register all views.
 func Init() error {
 	if err := view.Register(views...); err != nil {
 		return fmt.Errorf("Failed to register views: %v", err)

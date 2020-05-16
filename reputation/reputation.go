@@ -36,7 +36,7 @@ type Module struct {
 	lockIndex sync.Mutex
 	mIndex    miner.IndexSnapshot
 	sIndex    slashing.IndexSnapshot
-	aIndex    ask.IndexSnapshot
+	aIndex    ask.Index
 
 	lockScores sync.Mutex
 	rebuild    chan struct{}
@@ -231,7 +231,7 @@ func (rm *Module) indexBuilder() {
 }
 
 // calculateScore calculates the score for a miner
-func calculateScore(addr string, mi miner.IndexSnapshot, si slashing.IndexSnapshot, ai ask.IndexSnapshot, ss []source.Source) MinerScore {
+func calculateScore(addr string, mi miner.IndexSnapshot, si slashing.IndexSnapshot, ai ask.Index, ss []source.Source) MinerScore {
 	power := mi.Chain.Power[addr]
 	powerScore := power.Relative
 

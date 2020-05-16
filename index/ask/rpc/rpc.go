@@ -14,14 +14,14 @@ type Service struct {
 	index *runner.Runner
 }
 
-// NewService is a helper to create a new Service
+// New is a helper to create a new Service.
 func New(ai *runner.Runner) *Service {
 	return &Service{
 		index: ai,
 	}
 }
 
-// Get calls askIndex.Get
+// Get returns the current Ask Storage index.
 func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, error) {
 	index := s.index.Get()
 	storage := make(map[string]*pb.StorageAsk, len(index.Storage))
@@ -42,7 +42,7 @@ func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, er
 	return &pb.GetReply{Index: pbIndex}, nil
 }
 
-// Query calls askIndex.Query
+// Query executes a query on the current Ask Storage index.
 func (s *Service) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryReply, error) {
 	q := runner.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),

@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-// IndexSnapshot contains Ask information from markets
-type IndexSnapshot struct {
+// Index contains Ask information from markets
+type Index struct {
 	LastUpdated        time.Time
 	StorageMedianPrice uint64
 	Storage            map[string]StorageAsk

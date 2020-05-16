@@ -28,14 +28,14 @@ var (
 	log = logging.Logger("index-ask")
 )
 
-// Index contains cached information about markets
+// Runner contains cached information about markets
 type Runner struct {
 	api      *apistruct.FullNodeStruct
 	store    *store.Store
 	signaler *signaler.Signaler
 
 	lock        sync.Mutex
-	index       ask.IndexSnapshot
+	index       ask.Index
 	orderedAsks []*ask.StorageAsk
 
 	ctx      context.Context
@@ -81,10 +81,10 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, err
 }
 
 // Get returns a copy of the current index data
-func (ai *Runner) Get() ask.IndexSnapshot {
+func (ai *Runner) Get() ask.Index {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
-	index := ask.IndexSnapshot{
+	index := ask.Index{
 		LastUpdated:        ai.index.LastUpdated,
 		StorageMedianPrice: ai.index.StorageMedianPrice,
 		Storage:            make(map[string]ask.StorageAsk, len(ai.index.Storage)),
@@ -188,10 +188,10 @@ func (ai *Runner) update() error {
 }
 
 // generateIndex returns a fresh index
-func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.IndexSnapshot, []*ask.StorageAsk, error) {
+func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Index, []*ask.StorageAsk, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
-		return ask.IndexSnapshot{}, nil, err
+		return ask.Index{}, nil, err
 	}
 
 	rateLim := make(chan struct{}, qaRatelim)
@@ -224,7 +224,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 
 	select {
 	case <-ctx.Done():
-		return ask.IndexSnapshot{}, nil, fmt.Errorf("refresh was canceled")
+		return ask.Index{}, nil, fmt.Errorf("refresh was canceled")
 	default:
 	}
 
@@ -235,7 +235,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 	stats.Record(ctx, metrics.MAskQueryResult.M(int64(len(newAsks))))
 
 	cache := generateOrderedAsks(newAsks)
-	return ask.IndexSnapshot{
+	return ask.Index{
 		LastUpdated:        time.Now(),
 		StorageMedianPrice: calculateMedian(cache),
 		Storage:            newAsks,
