@@ -34,9 +34,9 @@ type Runner struct {
 	store    *store.Store
 	signaler *signaler.Signaler
 
-	lock              sync.Mutex
-	index             ask.IndexSnapshot
-	priceOrderedCache []*ask.StorageAsk
+	lock        sync.Mutex
+	index       ask.IndexSnapshot
+	orderedAsks []*ask.StorageAsk
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -69,8 +69,8 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, err
 		api:      api,
 		store:    store,
 
-		index:             idx,
-		priceOrderedCache: generateOrderedByPriceCache(idx),
+		index:       idx,
+		orderedAsks: generateOrderedAsks(idx.Storage),
 
 		ctx:      ctx,
 		cancel:   cancel,
@@ -101,7 +101,7 @@ func (ai *Runner) Query(q Query) ([]ask.StorageAsk, error) {
 	defer ai.lock.Unlock()
 	var res []ask.StorageAsk
 	offset := q.Offset
-	for _, sa := range ai.priceOrderedCache {
+	for _, sa := range ai.orderedAsks {
 		if q.MaxPrice != 0 && sa.Price > q.MaxPrice {
 			break
 		}
@@ -171,16 +171,14 @@ func (ai *Runner) update() error {
 	log.Info("updating ask index...")
 	defer log.Info("ask index updated")
 	startTime := time.Now()
-	newIndex, err := generateIndex(ai.ctx, ai.api)
+	newIndex, cache, err := generateIndex(ai.ctx, ai.api)
 	if err != nil {
 		return fmt.Errorf("generating index: %s", err)
 	}
 
-	cache := generateOrderedByPriceCache(newIndex)
-
 	ai.lock.Lock()
 	ai.index = newIndex
-	ai.priceOrderedCache = cache
+	ai.orderedAsks = cache
 	ai.lock.Unlock()
 
 	stats.Record(context.Background(), metrics.MFullRefreshDuration.M(time.Since(startTime).Milliseconds()))
@@ -190,10 +188,10 @@ func (ai *Runner) update() error {
 }
 
 // generateIndex returns a fresh index
-func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.IndexSnapshot, error) {
+func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.IndexSnapshot, []*ask.StorageAsk, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
-		return ask.IndexSnapshot{}, err
+		return ask.IndexSnapshot{}, nil, err
 	}
 
 	rateLim := make(chan struct{}, qaRatelim)
@@ -226,7 +224,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 
 	select {
 	case <-ctx.Done():
-		return ask.IndexSnapshot{}, fmt.Errorf("refresh was canceled")
+		return ask.IndexSnapshot{}, nil, fmt.Errorf("refresh was canceled")
 	default:
 	}
 
@@ -236,11 +234,12 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 	ctx, _ = tag.New(context.Background(), tag.Insert(metrics.TagAskStatus, "OK"))
 	stats.Record(ctx, metrics.MAskQueryResult.M(int64(len(newAsks))))
 
+	cache := generateOrderedAsks(newAsks)
 	return ask.IndexSnapshot{
 		LastUpdated:        time.Now(),
-		StorageMedianPrice: calculateMedian(newAsks),
+		StorageMedianPrice: calculateMedian(cache),
 		Storage:            newAsks,
-	}, nil
+	}, cache, nil
 }
 
 // getMinerStorage ask returns the result of querying the miner for its current Storage Ask.
@@ -273,30 +272,23 @@ func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr
 	}, true, nil
 }
 
-func calculateMedian(index map[string]ask.StorageAsk) uint64 {
-	if len(index) == 0 {
+func calculateMedian(orderedAsks []*ask.StorageAsk) uint64 {
+	if len(orderedAsks) == 0 {
 		return 0
 	}
-	prices := make([]uint64, len(index))
-	for _, v := range index {
-		prices = append(prices, v.Price)
-	}
-	sort.Slice(prices, func(i, j int) bool {
-		return prices[i] < prices[j]
-	})
-	len := len(prices)
+	len := len(orderedAsks)
 	if len < 2 {
-		return prices[0]
+		return orderedAsks[0].Price
 	}
 	if len%2 == 1 {
-		return prices[len/2]
+		return orderedAsks[len/2].Price
 	}
-	return (prices[len/2-1] + prices[len/2]) / 2
+	return (orderedAsks[len/2-1].Price + orderedAsks[len/2].Price) / 2
 }
 
-func generateOrderedByPriceCache(idx ask.IndexSnapshot) []*ask.StorageAsk {
-	cache := make([]*ask.StorageAsk, 0, len(idx.Storage))
-	for _, v := range idx.Storage {
+func generateOrderedAsks(asks map[string]ask.StorageAsk) []*ask.StorageAsk {
+	cache := make([]*ask.StorageAsk, 0, len(asks))
+	for _, v := range asks {
 		cache = append(cache, &v)
 	}
 	sort.Slice(cache, func(i, j int) bool {
