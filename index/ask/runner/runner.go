@@ -203,26 +203,16 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 		rateLim <- struct{}{}
 		go func(addr address.Address) {
 			defer func() { <-rateLim }()
-			ictx, cancel := context.WithTimeout(ctx, qaTimeout)
-			defer cancel()
-			mi, err := api.StateMinerInfo(ictx, addr, types.EmptyTSK)
+			sask, ok, err := getMinerStorageAsk(ctx, api, addr)
 			if err != nil {
-				log.Debugf("error getting miner %s info: %s", addr, err)
+				log.Errorf("getting miner storage ask: %s", err)
 				return
 			}
-			sask, err := api.ClientQueryAsk(ictx, mi.PeerId, addr)
-			if err != nil {
-				log.Debugf("error query-asking miner: %s", err)
+			if !ok {
 				return
 			}
 			lock.Lock()
-			newAsks[addr.String()] = ask.StorageAsk{
-				Miner:        sask.Ask.Miner.String(),
-				Price:        sask.Ask.Price.Uint64(),
-				MinPieceSize: uint64(sask.Ask.MinPieceSize),
-				Timestamp:    int64(sask.Ask.Timestamp),
-				Expiry:       int64(sask.Ask.Expiry),
-			}
+			newAsks[addr.String()] = sask
 			lock.Unlock()
 		}(addr)
 		if i%100 == 0 {
@@ -251,6 +241,35 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 		StorageMedianPrice: calculateMedian(newAsks),
 		Storage:            newAsks,
 	}, nil
+}
+
+// getMinerStorage ask returns the result of querying the miner for its current Storage Ask.
+// If the miner has zero power, it won't be queried returning false.
+func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr address.Address) (ask.StorageAsk, bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, qaTimeout)
+	defer cancel()
+	mi, err := api.StateMinerInfo(ctx, addr, types.EmptyTSK)
+	if err != nil {
+		return ask.StorageAsk{}, false, fmt.Errorf("getting miner %s info: %s", addr, err)
+	}
+	minfo, err := api.StateMinerPower(ctx, addr, types.EmptyTSK)
+	if err != nil {
+		return ask.StorageAsk{}, false, fmt.Errorf("getting power %s: %s", addr, err)
+	}
+	if minfo.MinerPower.RawBytePower.IsZero() {
+		return ask.StorageAsk{}, false, nil
+	}
+	sask, err := api.ClientQueryAsk(ctx, mi.PeerId, addr)
+	if err != nil {
+		return ask.StorageAsk{}, false, nil
+	}
+	return ask.StorageAsk{
+		Miner:        sask.Ask.Miner.String(),
+		Price:        sask.Ask.Price.Uint64(),
+		MinPieceSize: uint64(sask.Ask.MinPieceSize),
+		Timestamp:    int64(sask.Ask.Timestamp),
+		Expiry:       int64(sask.Ask.Expiry),
+	}, true, nil
 }
 
 func calculateMedian(index map[string]ask.StorageAsk) uint64 {
