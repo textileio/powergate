@@ -19,9 +19,9 @@ import (
 )
 
 var (
-	qaRatelim         = 100
+	qaRatelim         = 20
 	qaTimeout         = time.Second * 10
-	qaRefreshInterval = time.Minute
+	qaRefreshInterval = 20 * time.Minute
 	dsIndex           = datastore.NewKey("index")
 
 	log = logging.Logger("index-ask")
