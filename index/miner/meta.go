@@ -45,8 +45,10 @@ func (mi *Index) metaWorker() {
 			// doing a merge. Will depend if this too slow, but might not be the case
 			mi.lock.Lock()
 			addrs := make([]string, 0, len(mi.index.Chain.Power))
-			for addr := range mi.index.Chain.Power {
-				addrs = append(addrs, addr)
+			for addr, power := range mi.index.Chain.Power {
+				if power.Power > 0 {
+					addrs = append(addrs, addr)
+				}
 			}
 			mi.lock.Unlock()
 			newIndex, err := updateMetaIndex(mi.ctx, mi.api, mi.h, mi.lr, addrs)
