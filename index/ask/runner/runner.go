@@ -198,6 +198,9 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 	var lock sync.Mutex
 	newAsks := make(map[string]ask.StorageAsk)
 	for i, addr := range addrs {
+		if ctx.Err() != nil {
+			break
+		}
 		rateLim <- struct{}{}
 		go func(addr address.Address) {
 			defer func() { <-rateLim }()
@@ -222,10 +225,8 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 		rateLim <- struct{}{}
 	}
 
-	select {
-	case <-ctx.Done():
+	if ctx.Err() != nil {
 		return ask.Index{}, nil, fmt.Errorf("refresh was canceled")
-	default:
 	}
 
 	stats.Record(context.Background(), metrics.MFullRefreshProgress.M(1))
