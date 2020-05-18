@@ -28,9 +28,16 @@ jobs:
         uses: arduino/setup-protoc@master
         with:
           version: '3.11.2'
+      - name: Make version number
+        id: makeversion
+        uses: frabert/replace-string-action@v1.1
+        with:
+          pattern: 'v'
+          string: ${{steps.latesttag.outputs.tag}}
+          replace-with: ''
       - name: Generate JS gRPC bindings
         run: |
-          ./scripts/gen-js-protos.sh ("${{ steps.latesttag.outputs.tag }}").replace("v", "") . ./js-grpc
+          ./scripts/gen-js-protos.sh  ${{steps.makeversion.outputs.replaced}} . ./js-grpc
       - name: Publish JS gRPC bindings
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
