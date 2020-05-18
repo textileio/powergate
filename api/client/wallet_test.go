@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	pb "github.com/textileio/powergate/wallet/pb"
+	"github.com/textileio/powergate/wallet/rpc"
 )
 
 func TestNewWallet(t *testing.T) {
@@ -41,7 +41,7 @@ func TestWalletBalance(t *testing.T) {
 func setupWallet(t *testing.T) (*Wallet, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Wallet{client: pb.NewAPIClient(conn)}, func() {
+	return &Wallet{client: rpc.NewAPIClient(conn)}, func() {
 		done()
 		serverDone()
 	}

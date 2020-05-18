@@ -13,7 +13,7 @@ import (
 	netRpc "github.com/textileio/powergate/net/rpc"
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	"github.com/textileio/powergate/util"
-	walletPb "github.com/textileio/powergate/wallet/pb"
+	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 )
 
@@ -71,7 +71,7 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		Miners:     &Miners{client: minerPb.NewAPIClient(conn)},
 		Slashing:   &Slashing{client: slashingPb.NewAPIClient(conn)},
 		Deals:      &Deals{client: dealsRpc.NewAPIClient(conn)},
-		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
+		Wallet:     &Wallet{client: walletRpc.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationRpc.NewAPIClient(conn)},
 		FFS:        &FFS{client: ffsRpc.NewAPIClient(conn)},
 		Health:     &Health{client: healthRpc.NewAPIClient(conn)},

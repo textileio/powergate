@@ -1,10 +1,7 @@
 syntax = "proto3";
-package wallet.pb;
+package wallet.rpc;
 
-option java_multiple_files = true;
-option java_package = "io.textile.wallet.pb";
-option java_outer_classname = "FilecoinWallet";
-option objc_class_prefix = "TTE";
+option go_package = "rpc";
 
 message NewAddressRequest {
     string type = 1;

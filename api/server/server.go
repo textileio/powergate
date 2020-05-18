@@ -54,7 +54,7 @@ import (
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 	"github.com/textileio/powergate/wallet"
-	walletPb "github.com/textileio/powergate/wallet/pb"
+	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 )
 
@@ -275,7 +275,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	netService := pgnetRpc.NewService(s.nm)
 	healthService := healthRpc.NewService(s.hm)
 	dealsService := dealsRpc.NewService(s.dm)
-	walletService := wallet.NewService(s.wm)
+	walletService := walletRpc.NewService(s.wm)
 	reputationService := reputationRpc.NewService(s.rm)
 	askService := ask.NewService(s.ai)
 	minerService := miner.NewService(s.mi)
@@ -294,7 +294,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		pgnetRpc.RegisterAPIServer(server, netService)
 		healthRpc.RegisterAPIServer(server, healthService)
 		dealsRpc.RegisterAPIServer(server, dealsService)
-		walletPb.RegisterAPIServer(server, walletService)
+		walletRpc.RegisterAPIServer(server, walletService)
 		reputationRpc.RegisterAPIServer(server, reputationService)
 		askPb.RegisterAPIServer(server, askService)
 		minerPb.RegisterAPIServer(server, minerService)
