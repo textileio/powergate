@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	pb "github.com/textileio/powergate/index/slashing/pb"
+	"github.com/textileio/powergate/index/slashing/rpc"
 )
 
 func TestGetSlashing(t *testing.T) {
@@ -20,7 +20,7 @@ func TestGetSlashing(t *testing.T) {
 func setupSlashing(t *testing.T) (*Slashing, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Slashing{client: pb.NewAPIClient(conn)}, func() {
+	return &Slashing{client: rpc.NewAPIClient(conn)}, func() {
 		done()
 		serverDone()
 	}

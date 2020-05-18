@@ -1,10 +1,7 @@
 syntax = "proto3";
-package index.slashing.pb;
+package index.slashing.rpc;
 
-option java_multiple_files = true;
-option java_package = "io.textile.filecoin.slashing.pb";
-option java_outer_classname = "FilecoinSlashing";
-option objc_class_prefix = "TTE";
+option go_package = "rpc";
 
 message Index {
     string tipSetKey = 1;

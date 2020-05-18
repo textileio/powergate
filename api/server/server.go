@@ -43,7 +43,7 @@ import (
 	"github.com/textileio/powergate/index/miner"
 	minerPb "github.com/textileio/powergate/index/miner/pb"
 	"github.com/textileio/powergate/index/slashing"
-	slashingPb "github.com/textileio/powergate/index/slashing/pb"
+	slashingRpc "github.com/textileio/powergate/index/slashing/rpc"
 	"github.com/textileio/powergate/iplocation/ip2location"
 	"github.com/textileio/powergate/lotus"
 	pgnet "github.com/textileio/powergate/net"
@@ -279,7 +279,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	reputationService := reputationRpc.NewService(s.rm)
 	askService := askRpc.NewService(s.ai)
 	minerService := miner.NewService(s.mi)
-	slashingService := slashing.NewService(s.si)
+	slashingService := slashingRpc.NewService(s.si)
 	ffsService := ffsGrpc.NewService(s.ffsManager, s.hs)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
@@ -298,7 +298,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		reputationRpc.RegisterAPIServer(server, reputationService)
 		askRpc.RegisterAPIServer(server, askService)
 		minerPb.RegisterAPIServer(server, minerService)
-		slashingPb.RegisterAPIServer(server, slashingService)
+		slashingRpc.RegisterAPIServer(server, slashingService)
 		ffsRpc.RegisterAPIServer(server, ffsService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
