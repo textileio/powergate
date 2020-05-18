@@ -1,11 +1,7 @@
 syntax = "proto3";
-package index.miner.pb;
+package index.miner.rpc;
 
-option java_multiple_files = true;
-option java_package = "io.textile.filecoin.miner.pb";
-option java_outer_classname = "FilecoinMiner";
-option objc_class_prefix = "TTE";
-
+option go_package = "rpc";
 
 message Index {
     MetaIndex meta = 1;

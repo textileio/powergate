@@ -8,7 +8,7 @@ import (
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
-	minerPb "github.com/textileio/powergate/index/miner/pb"
+	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	slashingRpc "github.com/textileio/powergate/index/slashing/rpc"
 	netRpc "github.com/textileio/powergate/net/rpc"
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
@@ -68,7 +68,7 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 	}
 	client := &Client{
 		Asks:       &Asks{client: askRpc.NewAPIClient(conn)},
-		Miners:     &Miners{client: minerPb.NewAPIClient(conn)},
+		Miners:     &Miners{client: minerRpc.NewAPIClient(conn)},
 		Slashing:   &Slashing{client: slashingRpc.NewAPIClient(conn)},
 		Deals:      &Deals{client: dealsRpc.NewAPIClient(conn)},
 		Wallet:     &Wallet{client: walletRpc.NewAPIClient(conn)},

@@ -5,17 +5,17 @@ import (
 	"time"
 
 	"github.com/textileio/powergate/index/miner"
-	pb "github.com/textileio/powergate/index/miner/pb"
+	"github.com/textileio/powergate/index/miner/rpc"
 )
 
 // Miners provides an API for viewing miner data
 type Miners struct {
-	client pb.APIClient
+	client rpc.APIClient
 }
 
 // Get returns the current index of available asks
 func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
-	reply, err := a.client.Get(ctx, &pb.GetRequest{})
+	reply, err := a.client.Get(ctx, &rpc.GetRequest{})
 	if err != nil {
 		return nil, err
 	}

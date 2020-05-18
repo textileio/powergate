@@ -41,7 +41,7 @@ import (
 	"github.com/textileio/powergate/index/ask"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	"github.com/textileio/powergate/index/miner"
-	minerPb "github.com/textileio/powergate/index/miner/pb"
+	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	"github.com/textileio/powergate/index/slashing"
 	slashingRpc "github.com/textileio/powergate/index/slashing/rpc"
 	"github.com/textileio/powergate/iplocation/ip2location"
@@ -278,7 +278,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	walletService := walletRpc.NewService(s.wm)
 	reputationService := reputationRpc.NewService(s.rm)
 	askService := askRpc.NewService(s.ai)
-	minerService := miner.NewService(s.mi)
+	minerService := minerRpc.NewService(s.mi)
 	slashingService := slashingRpc.NewService(s.si)
 	ffsService := ffsGrpc.NewService(s.ffsManager, s.hs)
 
@@ -297,7 +297,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		walletRpc.RegisterAPIServer(server, walletService)
 		reputationRpc.RegisterAPIServer(server, reputationService)
 		askRpc.RegisterAPIServer(server, askService)
-		minerPb.RegisterAPIServer(server, minerService)
+		minerRpc.RegisterAPIServer(server, minerService)
 		slashingRpc.RegisterAPIServer(server, slashingService)
 		ffsRpc.RegisterAPIServer(server, ffsService)
 		if err := server.Serve(listener); err != nil {
