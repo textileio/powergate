@@ -1,5 +1,5 @@
 syntax = "proto3";
-package reputation.pb;
+package reputation.rpc;
 
 option java_multiple_files = true;
 option java_package = "io.textile.filecoin.reputation.pb";
