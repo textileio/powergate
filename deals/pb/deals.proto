@@ -1,5 +1,5 @@
 syntax = "proto3";
-package filecoin.deals.pb;
+package deals.pb;
 
 option java_multiple_files = true;
 option java_package = "io.textile.filecoin.deals.pb";

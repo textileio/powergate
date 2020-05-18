@@ -1,5 +1,5 @@
 syntax = "proto3";
-package filecoin.miner.pb;
+package index.miner.pb;
 
 option java_multiple_files = true;
 option java_package = "io.textile.filecoin.miner.pb";
