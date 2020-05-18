@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/multiformats/go-multiaddr"
-	dealsPb "github.com/textileio/powergate/deals/pb"
+	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	asksPb "github.com/textileio/powergate/index/ask/pb"
@@ -70,7 +70,7 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		Asks:       &Asks{client: asksPb.NewAPIClient(conn)},
 		Miners:     &Miners{client: minerPb.NewAPIClient(conn)},
 		Slashing:   &Slashing{client: slashingPb.NewAPIClient(conn)},
-		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
+		Deals:      &Deals{client: dealsRpc.NewAPIClient(conn)},
 		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationRpc.NewAPIClient(conn)},
 		FFS:        &FFS{client: ffsRpc.NewAPIClient(conn)},

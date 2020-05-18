@@ -20,7 +20,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
-	dealsPb "github.com/textileio/powergate/deals/pb"
+	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	"github.com/textileio/powergate/fchost"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/cidlogger"
@@ -274,7 +274,7 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress multiaddr.Multiaddr) error {
 	netService := pgnetRpc.NewService(s.nm)
 	healthService := healthRpc.NewService(s.hm)
-	dealsService := deals.NewService(s.dm)
+	dealsService := dealsRpc.NewService(s.dm)
 	walletService := wallet.NewService(s.wm)
 	reputationService := reputationRpc.NewService(s.rm)
 	askService := ask.NewService(s.ai)
@@ -293,7 +293,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	go func() {
 		pgnetRpc.RegisterAPIServer(server, netService)
 		healthRpc.RegisterAPIServer(server, healthService)
-		dealsPb.RegisterAPIServer(server, dealsService)
+		dealsRpc.RegisterAPIServer(server, dealsService)
 		walletPb.RegisterAPIServer(server, walletService)
 		reputationRpc.RegisterAPIServer(server, reputationService)
 		askPb.RegisterAPIServer(server, askService)

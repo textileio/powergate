@@ -1,42 +1,45 @@
-package deals
+package rpc
 
 import (
 	"context"
 	"io"
 
 	"github.com/ipfs/go-cid"
-	pb "github.com/textileio/powergate/deals/pb"
+	"github.com/textileio/powergate/deals"
 
+	logging "github.com/ipfs/go-log/v2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
+var log = logging.Logger("deals-rpc")
+
 // Service implements the gprc service
 type Service struct {
-	pb.UnimplementedAPIServer
+	UnimplementedAPIServer
 
-	Module *Module
+	Module *deals.Module
 }
 
 type storeResult struct {
 	DataCid      cid.Cid
 	ProposalCids []cid.Cid
-	FailedDeals  []StorageDealConfig
+	FailedDeals  []deals.StorageDealConfig
 	Err          error
 }
 
 // NewService is a helper to create a new Service
-func NewService(dm *Module) *Service {
+func NewService(dm *deals.Module) *Service {
 	return &Service{
 		Module: dm,
 	}
 }
 
-func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams, r io.Reader, ch chan storeResult) {
+func store(ctx context.Context, dealsModule *deals.Module, storeParams *StoreParams, r io.Reader, ch chan storeResult) {
 	defer close(ch)
-	dealConfigs := make([]StorageDealConfig, len(storeParams.GetDealConfigs()))
+	dealConfigs := make([]deals.StorageDealConfig, len(storeParams.GetDealConfigs()))
 	for i, dealConfig := range storeParams.GetDealConfigs() {
-		dealConfigs[i] = StorageDealConfig{
+		dealConfigs[i] = deals.StorageDealConfig{
 			Miner:      dealConfig.GetMiner(),
 			EpochPrice: dealConfig.GetEpochPrice(),
 		}
@@ -46,7 +49,7 @@ func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams
 		ch <- storeResult{Err: err}
 		return
 	}
-	var failedDeals []StorageDealConfig
+	var failedDeals []deals.StorageDealConfig
 	var pcids []cid.Cid
 	for _, res := range sr {
 		if res.Success {
@@ -59,14 +62,14 @@ func store(ctx context.Context, dealsModule *Module, storeParams *pb.StoreParams
 }
 
 // Store calls deals.Store
-func (s *Service) Store(srv pb.API_StoreServer) error {
+func (s *Service) Store(srv API_StoreServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
 	}
-	var storeParams *pb.StoreParams
+	var storeParams *StoreParams
 	switch payload := req.GetPayload().(type) {
-	case *pb.StoreRequest_StoreParams:
+	case *StoreRequest_StoreParams:
 		storeParams = payload.StoreParams
 	default:
 		return status.Errorf(codes.InvalidArgument, "expected StoreParams for StoreRequest.Payload but got %T", payload)
@@ -87,7 +90,7 @@ func (s *Service) Store(srv pb.API_StoreServer) error {
 			break
 		}
 		switch payload := req.GetPayload().(type) {
-		case *pb.StoreRequest_Chunk:
+		case *StoreRequest_Chunk:
 			_, writeErr := writer.Write(payload.Chunk)
 			if writeErr != nil {
 				return writeErr
@@ -107,16 +110,16 @@ func (s *Service) Store(srv pb.API_StoreServer) error {
 		replyCids[i] = cid.String()
 	}
 
-	replyFailedDeals := make([]*pb.DealConfig, len(storeResult.FailedDeals))
+	replyFailedDeals := make([]*DealConfig, len(storeResult.FailedDeals))
 	for i, dealConfig := range storeResult.FailedDeals {
-		replyFailedDeals[i] = &pb.DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice}
+		replyFailedDeals[i] = &DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice}
 	}
 
-	return srv.SendAndClose(&pb.StoreReply{DataCid: storeResult.DataCid.String(), ProposalCids: replyCids, FailedDeals: replyFailedDeals})
+	return srv.SendAndClose(&StoreReply{DataCid: storeResult.DataCid.String(), ProposalCids: replyCids, FailedDeals: replyFailedDeals})
 }
 
 // Watch calls deals.Watch
-func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
+func (s *Service) Watch(req *WatchRequest, srv API_WatchServer) error {
 	proposals := make([]cid.Cid, len(req.GetProposals()))
 	for i, proposal := range req.GetProposals() {
 		id, err := cid.Decode(proposal)
@@ -131,7 +134,7 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 	}
 
 	for update := range ch {
-		dealInfo := &pb.DealInfo{
+		dealInfo := &DealInfo{
 			ProposalCid:   update.ProposalCid.String(),
 			StateID:       update.StateID,
 			StateName:     update.StateName,
@@ -141,8 +144,8 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 			PricePerEpoch: update.PricePerEpoch,
 			Duration:      update.Duration,
 		}
-		if err := srv.Send(&pb.WatchReply{DealInfo: dealInfo}); err != nil {
-			log.Errorf("sending response: %s", err)
+		if err := srv.Send(&WatchReply{DealInfo: dealInfo}); err != nil {
+			log.Errorf("sending response: %v", err)
 			return err
 		}
 	}
@@ -150,7 +153,7 @@ func (s *Service) Watch(req *pb.WatchRequest, srv pb.API_WatchServer) error {
 }
 
 // Retrieve calls deals.Retreive
-func (s *Service) Retrieve(req *pb.RetrieveRequest, srv pb.API_RetrieveServer) error {
+func (s *Service) Retrieve(req *RetrieveRequest, srv API_RetrieveServer) error {
 	cid, err := cid.Parse(req.GetCid())
 	if err != nil {
 		return err
@@ -172,7 +175,7 @@ func (s *Service) Retrieve(req *pb.RetrieveRequest, srv pb.API_RetrieveServer) e
 		if err != nil && err != io.EOF {
 			return err
 		}
-		if sendErr := srv.Send(&pb.RetrieveReply{Chunk: buffer[:bytesRead]}); sendErr != nil {
+		if sendErr := srv.Send(&RetrieveReply{Chunk: buffer[:bytesRead]}); sendErr != nil {
 			return sendErr
 		}
 		if err == io.EOF {
