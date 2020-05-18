@@ -20,7 +20,7 @@ func TestCreate(t *testing.T) {
 func setupFfs(t *testing.T) (*FFS, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &FFS{client: rpc.NewFFSClient(conn)}, func() {
+	return &FFS{client: rpc.NewAPIClient(conn)}, func() {
 		done()
 		serverDone()
 	}

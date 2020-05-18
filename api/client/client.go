@@ -73,9 +73,9 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
 		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
 		Reputation: &Reputation{client: reputationRpc.NewAPIClient(conn)},
-		FFS:        &FFS{client: ffsRpc.NewFFSClient(conn)},
-		Health:     &Health{client: healthRpc.NewHealthClient(conn)},
-		Net:        &Net{client: netRpc.NewNetClient(conn)},
+		FFS:        &FFS{client: ffsRpc.NewAPIClient(conn)},
+		Health:     &Health{client: healthRpc.NewAPIClient(conn)},
+		Net:        &Net{client: netRpc.NewAPIClient(conn)},
 		conn:       conn,
 	}
 	return client, nil

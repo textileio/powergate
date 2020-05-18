@@ -291,15 +291,15 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		pgnetRpc.RegisterNetServer(server, netService)
-		healthRpc.RegisterHealthServer(server, healthService)
+		pgnetRpc.RegisterAPIServer(server, netService)
+		healthRpc.RegisterAPIServer(server, healthService)
 		dealsPb.RegisterAPIServer(server, dealsService)
 		walletPb.RegisterAPIServer(server, walletService)
 		reputationRpc.RegisterAPIServer(server, reputationService)
 		askPb.RegisterAPIServer(server, askService)
 		minerPb.RegisterAPIServer(server, minerService)
 		slashingPb.RegisterAPIServer(server, slashingService)
-		ffsRpc.RegisterFFSServer(server, ffsService)
+		ffsRpc.RegisterAPIServer(server, ffsService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
 		}

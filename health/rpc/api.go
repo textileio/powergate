@@ -8,7 +8,7 @@ import (
 
 // API implements the rpc service
 type API struct {
-	UnimplementedHealthServer
+	UnimplementedAPIServer
 
 	module *health.Module
 }

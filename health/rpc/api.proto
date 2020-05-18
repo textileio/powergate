@@ -21,6 +21,6 @@ message CheckReply {
     repeated string messages = 2;
 }
 
-service Health {
+service API {
     rpc Check(CheckRequest) returns (CheckReply) {}
 }
