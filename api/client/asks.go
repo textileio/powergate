@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/textileio/powergate/index/ask"
-	rpc "github.com/textileio/powergate/index/ask/rpc"
+	pb "github.com/textileio/powergate/index/ask/pb"
+	"github.com/textileio/powergate/index/ask/rpc"
+	"github.com/textileio/powergate/index/ask/runner"
 )
 
 // Asks provides an API for viewing asks data
@@ -14,8 +16,8 @@ type Asks struct {
 }
 
 // Get returns the current index of available asks
-func (a *Asks) Get(ctx context.Context) (*ask.IndexSnapshot, error) {
-	reply, err := a.client.Get(ctx, &rpc.GetRequest{})
+func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
+	reply, err := a.client.Get(ctx, &pb.GetRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +26,7 @@ func (a *Asks) Get(ctx context.Context) (*ask.IndexSnapshot, error) {
 	for key, val := range reply.GetIndex().GetStorage() {
 		storage[key] = askFromPbAsk(val)
 	}
-	return &ask.IndexSnapshot{
+	return &ask.Index{
 		LastUpdated:        lastUpdated,
 		StorageMedianPrice: reply.GetIndex().StorageMedianPrice,
 		Storage:            storage,
@@ -32,8 +34,8 @@ func (a *Asks) Get(ctx context.Context) (*ask.IndexSnapshot, error) {
 }
 
 // Query executes a query to retrieve active Asks
-func (a *Asks) Query(ctx context.Context, query ask.Query) ([]ask.StorageAsk, error) {
-	q := &rpc.Query{
+func (a *Asks) Query(ctx context.Context, query runner.Query) ([]ask.StorageAsk, error) {
+	q := &pb.Query{
 		MaxPrice:  query.MaxPrice,
 		PieceSize: query.PieceSize,
 		Limit:     int32(query.Limit),

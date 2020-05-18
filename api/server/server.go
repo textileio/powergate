@@ -38,8 +38,8 @@ import (
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/health"
 	healthRpc "github.com/textileio/powergate/health/rpc"
-	"github.com/textileio/powergate/index/ask"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
+	ask "github.com/textileio/powergate/index/ask/runner"
 	"github.com/textileio/powergate/index/miner"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	"github.com/textileio/powergate/index/slashing"
@@ -71,7 +71,7 @@ type Server struct {
 	ds datastore.TxnDatastore
 
 	ip2l *ip2location.IP2Location
-	ai   *ask.Index
+	ai   *ask.Runner
 	mi   *miner.Index
 	si   *slashing.Index
 	dm   *deals.Module

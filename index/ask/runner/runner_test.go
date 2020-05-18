@@ -1,4 +1,4 @@
-package ask
+package runner
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/powergate/index/ask"
 	"github.com/textileio/powergate/tests"
 )
 
@@ -23,7 +24,7 @@ func TestFreshBuild(t *testing.T) {
 	ctx := context.Background()
 	dnet, _, miners := tests.CreateLocalDevnet(t, 1)
 
-	index, err := generateIndex(ctx, dnet)
+	index, _, err := generateIndex(ctx, dnet)
 	checkErr(t, err)
 
 	// We should have storage info about every miner in devnet
@@ -44,15 +45,15 @@ func TestFreshBuild(t *testing.T) {
 
 func TestQueryAsk(t *testing.T) {
 	t.Parallel()
-	dm := Index{}
-	dm.priceOrderedCache = []*StorageAsk{
+	dm := Runner{}
+	dm.orderedAsks = []*ask.StorageAsk{
 		{Price: uint64(20), MinPieceSize: 128, Miner: "t01"},
 		{Price: uint64(30), MinPieceSize: 64, Miner: "t02"},
 		{Price: uint64(40), MinPieceSize: 256, Miner: "t03"},
 		{Price: uint64(50), MinPieceSize: 16, Miner: "t04"},
 	}
 
-	facr := []StorageAsk{
+	facr := []ask.StorageAsk{
 		{Price: 20, MinPieceSize: 128, Miner: "t01"},
 		{Price: 30, MinPieceSize: 64, Miner: "t02"},
 		{Price: 40, MinPieceSize: 256, Miner: "t03"},
@@ -62,13 +63,13 @@ func TestQueryAsk(t *testing.T) {
 	tests := []struct {
 		name   string
 		q      Query
-		expect []StorageAsk
+		expect []ask.StorageAsk
 	}{
 		{name: "All", q: Query{}, expect: facr},
-		{name: "LeqPrice35", q: Query{MaxPrice: 35}, expect: []StorageAsk{facr[0], facr[1]}},
+		{name: "LeqPrice35", q: Query{MaxPrice: 35}, expect: []ask.StorageAsk{facr[0], facr[1]}},
 		{name: "LeqPrice50", q: Query{MaxPrice: 50}, expect: facr},
-		{name: "LeqPrice40Piece96", q: Query{MaxPrice: 35, PieceSize: 96}, expect: []StorageAsk{facr[1]}},
-		{name: "AllLimit2Offset1", q: Query{Limit: 2, Offset: 1}, expect: []StorageAsk{facr[1], facr[2]}},
+		{name: "LeqPrice40Piece96", q: Query{MaxPrice: 35, PieceSize: 96}, expect: []ask.StorageAsk{facr[1]}},
+		{name: "AllLimit2Offset1", q: Query{Limit: 2, Offset: 1}, expect: []ask.StorageAsk{facr[1], facr[2]}},
 	}
 
 	for _, tt := range tests {
