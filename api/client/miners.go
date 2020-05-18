@@ -10,7 +10,7 @@ import (
 
 // Miners provides an API for viewing miner data
 type Miners struct {
-	client rpc.APIClient
+	client rpc.RPCClient
 }
 
 // Get returns the current index of available asks

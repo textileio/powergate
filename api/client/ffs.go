@@ -16,7 +16,7 @@ import (
 
 // FFS provides the API to create and interact with an FFS instance
 type FFS struct {
-	client rpc.APIClient
+	client rpc.RPCClient
 }
 
 // JobEvent represents an event for Watching a job

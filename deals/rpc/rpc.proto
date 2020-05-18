@@ -57,7 +57,7 @@ message RetrieveReply {
     bytes chunk = 1;
 }
 
-service API {
+service RPC {
     rpc Store(stream StoreRequest) returns (StoreReply) {}
     rpc Watch(WatchRequest) returns (stream WatchReply) {}
     rpc Retrieve(RetrieveRequest) returns (stream RetrieveReply) {}

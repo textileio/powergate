@@ -6,20 +6,20 @@ import (
 	"github.com/textileio/powergate/wallet"
 )
 
-// Service implements the gprc service
-type Service struct {
-	UnimplementedAPIServer
+// RPC implements the gprc service
+type RPC struct {
+	UnimplementedRPCServer
 
 	Module *wallet.Module
 }
 
-// NewService creates a new Service
-func NewService(m *wallet.Module) *Service {
-	return &Service{Module: m}
+// New creates a new rpc service
+func New(m *wallet.Module) *RPC {
+	return &RPC{Module: m}
 }
 
 // NewAddress creates a new wallet
-func (s *Service) NewAddress(ctx context.Context, req *NewAddressRequest) (*NewAddressReply, error) {
+func (s *RPC) NewAddress(ctx context.Context, req *NewAddressRequest) (*NewAddressReply, error) {
 	res, err := s.Module.NewAddress(ctx, req.GetType())
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func (s *Service) NewAddress(ctx context.Context, req *NewAddressRequest) (*NewA
 }
 
 // WalletBalance checks a wallet balance
-func (s *Service) WalletBalance(ctx context.Context, req *WalletBalanceRequest) (*WalletBalanceReply, error) {
+func (s *RPC) WalletBalance(ctx context.Context, req *WalletBalanceRequest) (*WalletBalanceReply, error) {
 	res, err := s.Module.Balance(ctx, req.GetAddress())
 	if err != nil {
 		return nil, err

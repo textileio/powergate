@@ -15,7 +15,7 @@ import (
 
 // Deals provides an API for managing deals and storing data
 type Deals struct {
-	client rpc.APIClient
+	client rpc.RPCClient
 }
 
 // WatchEvent is used to send data or error values for Watch

@@ -8,20 +8,20 @@ import (
 	"github.com/textileio/powergate/net"
 )
 
-// API implements the rpc service
-type API struct {
-	UnimplementedAPIServer
+// RPC implements the rpc service
+type RPC struct {
+	UnimplementedRPCServer
 
 	module net.Module
 }
 
-// NewService creates a new Service
-func NewService(m net.Module) *API {
-	return &API{module: m}
+// New creates a new rpc service
+func New(m net.Module) *RPC {
+	return &RPC{module: m}
 }
 
 // ListenAddr calls module.ListenAddr
-func (a *API) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAddrReply, error) {
+func (a *RPC) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAddrReply, error) {
 	addrInfo, err := a.module.ListenAddr(ctx)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (a *API) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAd
 }
 
 // Peers calls module.Peers
-func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error) {
+func (a *RPC) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error) {
 	peers, err := a.module.Peers(ctx)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (a *API) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 }
 
 // FindPeer calls module.FindPeer
-func (a *API) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerReply, error) {
+func (a *RPC) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerReply, error) {
 	peerID, err := peer.Decode(req.PeerID)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (a *API) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerRepl
 }
 
 // ConnectPeer calls module.ConnectPeer
-func (a *API) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*ConnectPeerReply, error) {
+func (a *RPC) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*ConnectPeerReply, error) {
 	addrs := make([]ma.Multiaddr, len(req.PeerInfo.Addrs))
 	for i, addr := range req.PeerInfo.Addrs {
 		ma, err := ma.NewMultiaddr(addr)
@@ -133,7 +133,7 @@ func (a *API) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*Connec
 }
 
 // DisconnectPeer calls module.DisconnectPeer
-func (a *API) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*DisconnectPeerReply, error) {
+func (a *RPC) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*DisconnectPeerReply, error) {
 	peerID, err := peer.Decode(req.PeerID)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (a *API) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*
 }
 
 // Connectedness calls module.Connectedness
-func (a *API) Connectedness(ctx context.Context, req *ConnectednessRequest) (*ConnectednessReply, error) {
+func (a *RPC) Connectedness(ctx context.Context, req *ConnectednessRequest) (*ConnectednessReply, error) {
 	peerID, err := peer.Decode(req.PeerID)
 	if err != nil {
 		return nil, err

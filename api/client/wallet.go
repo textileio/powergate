@@ -8,7 +8,7 @@ import (
 
 // Wallet provides an API for managing filecoin wallets
 type Wallet struct {
-	client rpc.APIClient
+	client rpc.RPCClient
 }
 
 // NewWallet creates a new filecoin address [bls|secp256k1]

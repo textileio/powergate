@@ -6,22 +6,22 @@ import (
 	"github.com/textileio/powergate/index/ask/runner"
 )
 
-// Service implements the gprc service
-type Service struct {
+// RPC implements the gprc service
+type RPC struct {
 	UnimplementedRPCServer
 
 	index *runner.Runner
 }
 
-// New is a helper to create a new Service.
-func New(ai *runner.Runner) *Service {
-	return &Service{
+// New creates a new rpc service
+func New(ai *runner.Runner) *RPC {
+	return &RPC{
 		index: ai,
 	}
 }
 
 // Get returns the current Ask Storage index.
-func (s *Service) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
+func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
 	index := s.index.Get()
 	storage := make(map[string]*StorageAsk, len(index.Storage))
 	for key, ask := range index.Storage {
@@ -42,7 +42,7 @@ func (s *Service) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
 }
 
 // Query executes a query on the current Ask Storage index.
-func (s *Service) Query(ctx context.Context, req *QueryRequest) (*QueryReply, error) {
+func (s *RPC) Query(ctx context.Context, req *QueryRequest) (*QueryReply, error) {
 	q := runner.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),

@@ -272,15 +272,15 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress multiaddr.Multiaddr) error {
-	netService := pgnetRpc.NewService(s.nm)
-	healthService := healthRpc.NewService(s.hm)
-	dealsService := dealsRpc.NewService(s.dm)
-	walletService := walletRpc.NewService(s.wm)
-	reputationService := reputationRpc.NewService(s.rm)
+	netService := pgnetRpc.New(s.nm)
+	healthService := healthRpc.New(s.hm)
+	dealsService := dealsRpc.New(s.dm)
+	walletService := walletRpc.New(s.wm)
+	reputationService := reputationRpc.New(s.rm)
 	askService := askRpc.New(s.ai)
-	minerService := minerRpc.NewService(s.mi)
-	slashingService := slashingRpc.NewService(s.si)
-	ffsService := ffsGrpc.NewService(s.ffsManager, s.hs)
+	minerService := minerRpc.New(s.mi)
+	slashingService := slashingRpc.New(s.si)
+	ffsService := ffsGrpc.New(s.ffsManager, s.hs)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {
@@ -291,15 +291,15 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		pgnetRpc.RegisterAPIServer(server, netService)
-		healthRpc.RegisterAPIServer(server, healthService)
-		dealsRpc.RegisterAPIServer(server, dealsService)
-		walletRpc.RegisterAPIServer(server, walletService)
-		reputationRpc.RegisterAPIServer(server, reputationService)
+		pgnetRpc.RegisterRPCServer(server, netService)
+		healthRpc.RegisterRPCServer(server, healthService)
+		dealsRpc.RegisterRPCServer(server, dealsService)
+		walletRpc.RegisterRPCServer(server, walletService)
+		reputationRpc.RegisterRPCServer(server, reputationService)
 		askRpc.RegisterRPCServer(server, askService)
-		minerRpc.RegisterAPIServer(server, minerService)
-		slashingRpc.RegisterAPIServer(server, slashingService)
-		ffsRpc.RegisterAPIServer(server, ffsService)
+		minerRpc.RegisterRPCServer(server, minerService)
+		slashingRpc.RegisterRPCServer(server, slashingService)
+		ffsRpc.RegisterRPCServer(server, ffsService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
 		}

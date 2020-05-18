@@ -6,22 +6,22 @@ import (
 	"github.com/textileio/powergate/index/miner"
 )
 
-// Service implements the gprc service
-type Service struct {
-	UnimplementedAPIServer
+// RPC implements the gprc service
+type RPC struct {
+	UnimplementedRPCServer
 
 	index *miner.Index
 }
 
-// NewService is a helper to create a new Service
-func NewService(mi *miner.Index) *Service {
-	return &Service{
+// New creates a new rpc service
+func New(mi *miner.Index) *RPC {
+	return &RPC{
 		index: mi,
 	}
 }
 
 // Get calls miner index Get
-func (s *Service) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
+func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
 	index := s.index.Get()
 
 	info := make(map[string]*Meta, len(index.Meta.Info))

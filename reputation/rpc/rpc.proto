@@ -33,7 +33,7 @@ message GetTopMinersReply {
     repeated MinerScore topMiners = 1;
 }
 
-service API {
+service RPC {
     rpc AddSource(AddSourceRequest) returns (AddSourceReply) {}
     rpc GetTopMiners(GetTopMinersRequest) returns (GetTopMinersReply) {}
 }

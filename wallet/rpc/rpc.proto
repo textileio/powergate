@@ -19,7 +19,7 @@ message WalletBalanceReply {
     uint64 balance = 1;
 }
 
-service API {
+service RPC {
     rpc NewAddress(NewAddressRequest) returns (NewAddressReply) {}
     rpc WalletBalance(WalletBalanceRequest) returns (WalletBalanceReply) {}
 }

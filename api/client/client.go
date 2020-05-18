@@ -68,14 +68,14 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 	}
 	client := &Client{
 		Asks:       &Asks{client: askRpc.NewRPCClient(conn)},
-		Miners:     &Miners{client: minerRpc.NewAPIClient(conn)},
-		Slashing:   &Slashing{client: slashingRpc.NewAPIClient(conn)},
-		Deals:      &Deals{client: dealsRpc.NewAPIClient(conn)},
-		Wallet:     &Wallet{client: walletRpc.NewAPIClient(conn)},
-		Reputation: &Reputation{client: reputationRpc.NewAPIClient(conn)},
-		FFS:        &FFS{client: ffsRpc.NewAPIClient(conn)},
-		Health:     &Health{client: healthRpc.NewAPIClient(conn)},
-		Net:        &Net{client: netRpc.NewAPIClient(conn)},
+		Miners:     &Miners{client: minerRpc.NewRPCClient(conn)},
+		Slashing:   &Slashing{client: slashingRpc.NewRPCClient(conn)},
+		Deals:      &Deals{client: dealsRpc.NewRPCClient(conn)},
+		Wallet:     &Wallet{client: walletRpc.NewRPCClient(conn)},
+		Reputation: &Reputation{client: reputationRpc.NewRPCClient(conn)},
+		FFS:        &FFS{client: ffsRpc.NewRPCClient(conn)},
+		Health:     &Health{client: healthRpc.NewRPCClient(conn)},
+		Net:        &Net{client: netRpc.NewRPCClient(conn)},
 		conn:       conn,
 	}
 	return client, nil

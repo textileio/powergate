@@ -300,7 +300,7 @@ message AddToHotReply {
    string cid = 1;
 }
 
-service API {
+service RPC {
    // Admin
    rpc Create(CreateRequest) returns (CreateReply) {}
    rpc ListAPI(ListAPIRequest) returns (ListAPIReply) {}

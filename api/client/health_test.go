@@ -39,7 +39,7 @@ func TestCheck(t *testing.T) {
 func setupHealth(t *testing.T) (*Health, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Health{client: rpc.NewAPIClient(conn)}, func() {
+	return &Health{client: rpc.NewRPCClient(conn)}, func() {
 		done()
 		serverDone()
 	}

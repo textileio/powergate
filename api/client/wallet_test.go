@@ -41,7 +41,7 @@ func TestWalletBalance(t *testing.T) {
 func setupWallet(t *testing.T) (*Wallet, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Wallet{client: rpc.NewAPIClient(conn)}, func() {
+	return &Wallet{client: rpc.NewRPCClient(conn)}, func() {
 		done()
 		serverDone()
 	}

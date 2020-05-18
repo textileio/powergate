@@ -72,7 +72,7 @@ message ConnectednessReply {
     Connectedness connectedness = 1;
 }
 
-service API {
+service RPC {
     rpc ListenAddr(ListenAddrRequest) returns (ListenAddrReply) {}
     rpc Peers(PeersRequest) returns (PeersReply) {}
     rpc FindPeer(FindPeerRequest) returns (FindPeerReply) {}

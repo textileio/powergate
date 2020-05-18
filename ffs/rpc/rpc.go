@@ -22,24 +22,24 @@ var (
 	log = logger.Logger("ffs-grpc-service")
 )
 
-// Service implements the proto service definition of FFS.
-type Service struct {
-	UnimplementedAPIServer
+// RPC implements the proto service definition of FFS.
+type RPC struct {
+	UnimplementedRPCServer
 
 	m   *manager.Manager
 	hot ffs.HotStorage
 }
 
-// NewService returns a new Service.
-func NewService(m *manager.Manager, hot ffs.HotStorage) *Service {
-	return &Service{
+// New creates a new rpc service
+func New(m *manager.Manager, hot ffs.HotStorage) *RPC {
+	return &RPC{
 		m:   m,
 		hot: hot,
 	}
 }
 
 // Create creates a new Api.
-func (s *Service) Create(ctx context.Context, req *CreateRequest) (*CreateReply, error) {
+func (s *RPC) Create(ctx context.Context, req *CreateRequest) (*CreateReply, error) {
 	id, token, err := s.m.Create(ctx)
 	if err != nil {
 		log.Errorf("creating instance: %s", err)
@@ -52,7 +52,7 @@ func (s *Service) Create(ctx context.Context, req *CreateRequest) (*CreateReply,
 }
 
 // ListAPI returns a list of all existing API instances.
-func (s *Service) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIReply, error) {
+func (s *RPC) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIReply, error) {
 	lst, err := s.m.List()
 	if err != nil {
 		log.Errorf("listing instances: %s", err)
@@ -68,7 +68,7 @@ func (s *Service) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIRep
 }
 
 // ID returns the API instance id
-func (s *Service) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
+func (s *RPC) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (s *Service) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
 }
 
 // Addrs calls ffs.Addrs
-func (s *Service) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, error) {
+func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (s *Service) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, er
 }
 
 // DefaultConfig calls ffs.DefaultConfig
-func (s *Service) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigReply, error) {
+func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (s *Service) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) 
 }
 
 // NewAddr calls ffs.NewAddr
-func (s *Service) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrReply, error) {
+func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func (s *Service) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrRep
 }
 
 // GetDefaultCidConfig returns the default cid config prepped for the provided cid
-func (s *Service) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigReply, error) {
+func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ func (s *Service) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidCon
 }
 
 // GetCidConfig returns the cid config for the provided cid
-func (s *Service) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigReply, error) {
+func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func (s *Service) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*
 }
 
 // SetDefaultConfig sets a new config to be used by default
-func (s *Service) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest) (*SetDefaultConfigReply, error) {
+func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest) (*SetDefaultConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -216,7 +216,7 @@ func (s *Service) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigReq
 }
 
 // Show returns information about a particular Cid.
-func (s *Service) Show(ctx context.Context, req *ShowRequest) (*ShowReply, error) {
+func (s *RPC) Show(ctx context.Context, req *ShowRequest) (*ShowReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -264,7 +264,7 @@ func (s *Service) Show(ctx context.Context, req *ShowRequest) (*ShowReply, error
 }
 
 // Info returns an Api information.
-func (s *Service) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error) {
+func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -306,7 +306,7 @@ func (s *Service) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error
 }
 
 // WatchJobs calls API.WatchJobs
-func (s *Service) WatchJobs(req *WatchJobsRequest, srv API_WatchJobsServer) error {
+func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPC_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -345,7 +345,7 @@ func (s *Service) WatchJobs(req *WatchJobsRequest, srv API_WatchJobsServer) erro
 
 // WatchLogs returns a stream of human-readable messages related to executions of a Cid.
 // The listener is automatically unsubscribed when the client closes the stream.
-func (s *Service) WatchLogs(req *WatchLogsRequest, srv API_WatchLogsServer) error {
+func (s *RPC) WatchLogs(req *WatchLogsRequest, srv RPC_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -386,7 +386,7 @@ func (s *Service) WatchLogs(req *WatchLogsRequest, srv API_WatchLogsServer) erro
 }
 
 // Replace calls ffs.Replace
-func (s *Service) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceReply, error) {
+func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -410,7 +410,7 @@ func (s *Service) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceRep
 }
 
 // PushConfig applies the provided cid config
-func (s *Service) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigReply, error) {
+func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -472,7 +472,7 @@ func (s *Service) PushConfig(ctx context.Context, req *PushConfigRequest) (*Push
 }
 
 // Remove calls ffs.Remove
-func (s *Service) Remove(ctx context.Context, req *RemoveRequest) (*RemoveReply, error) {
+func (s *RPC) Remove(ctx context.Context, req *RemoveRequest) (*RemoveReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -491,7 +491,7 @@ func (s *Service) Remove(ctx context.Context, req *RemoveRequest) (*RemoveReply,
 }
 
 // Get gets the data for a stored Cid.
-func (s *Service) Get(req *GetRequest, srv API_GetServer) error {
+func (s *RPC) Get(req *GetRequest, srv RPC_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -521,7 +521,7 @@ func (s *Service) Get(req *GetRequest, srv API_GetServer) error {
 }
 
 // SendFil sends fil from a managed address to any other address
-func (s *Service) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilReply, error) {
+func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -533,7 +533,7 @@ func (s *Service) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilRep
 }
 
 // Close calls API.Close
-func (s *Service) Close(ctx context.Context, req *CloseRequest) (*CloseReply, error) {
+func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseReply, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -545,7 +545,7 @@ func (s *Service) Close(ctx context.Context, req *CloseRequest) (*CloseReply, er
 }
 
 // AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig
-func (s *Service) AddToHot(srv API_AddToHotServer) error {
+func (s *RPC) AddToHot(srv RPC_AddToHotServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
 		return err
@@ -568,7 +568,7 @@ func (s *Service) AddToHot(srv API_AddToHotServer) error {
 	return srv.SendAndClose(&AddToHotReply{Cid: c.String()})
 }
 
-func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
+func (s *RPC) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-ffs-Token")
 	if token == "" {
 		return nil, ErrEmptyAuthToken
@@ -580,7 +580,7 @@ func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	return i, nil
 }
 
-func receiveFile(srv API_AddToHotServer, writer *io.PipeWriter) {
+func receiveFile(srv RPC_AddToHotServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {

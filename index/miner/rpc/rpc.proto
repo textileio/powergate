@@ -44,6 +44,6 @@ message GetReply {
     Index index = 1;
 }
 
-service API {
+service RPC {
     rpc Get(GetRequest) returns (GetReply) {}
 }

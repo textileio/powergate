@@ -6,22 +6,22 @@ import (
 	"github.com/textileio/powergate/index/slashing"
 )
 
-// Service implements the gprc service
-type Service struct {
-	UnimplementedAPIServer
+// RPC implements the gprc service
+type RPC struct {
+	UnimplementedRPCServer
 
 	index *slashing.Index
 }
 
-// NewService is a helper to create a new Service
-func NewService(si *slashing.Index) *Service {
-	return &Service{
+// New creates a new rpc service
+func New(si *slashing.Index) *RPC {
+	return &RPC{
 		index: si,
 	}
 }
 
 // Get calls slashing index Get
-func (s *Service) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
+func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
 	index := s.index.Get()
 
 	miners := make(map[string]*Slashes, len(index.Miners))

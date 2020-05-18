@@ -6,20 +6,20 @@ import (
 	"github.com/textileio/powergate/health"
 )
 
-// API implements the rpc service
-type API struct {
-	UnimplementedAPIServer
+// RPC implements the rpc service
+type RPC struct {
+	UnimplementedRPCServer
 
 	module *health.Module
 }
 
-// NewService creates a new Service
-func NewService(m *health.Module) *API {
-	return &API{module: m}
+// New creates a new rpc service
+func New(m *health.Module) *RPC {
+	return &RPC{module: m}
 }
 
 // Check calls module.Check
-func (a *API) Check(ctx context.Context, req *CheckRequest) (*CheckReply, error) {
+func (a *RPC) Check(ctx context.Context, req *CheckRequest) (*CheckReply, error) {
 	status, messages, err := a.module.Check(ctx)
 	if err != nil {
 		return nil, err
