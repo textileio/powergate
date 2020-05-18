@@ -1,4 +1,4 @@
-{
+ {
   "annotations": {
     "list": [
       {
@@ -218,7 +218,7 @@
         "#d44a3a"
       ],
       "datasource": null,
-      "format": "decbytes",
+      "format": "bytes",
       "gauge": {
         "maxValue": 100,
         "minValue": 0,
@@ -480,7 +480,7 @@
         "#d44a3a"
       ],
       "datasource": null,
-      "format": "decbytes",
+      "format": "bytes",
       "gauge": {
         "maxValue": 100,
         "minValue": 0,
