@@ -20,3 +20,12 @@ build: build-cli build-server build-bench
 test:
 	go test -short -p 4 -race ./... 
 .PHONY: test
+
+clean-protos:
+	rm -f **/*.pb.go
+	rm -f **/*pb_test.go
+.PHONY: clean-protos
+
+protos: clean-protos
+	./scripts/protoc_gen_plugin.bash --proto_path=. --plugin_name=go --plugin_out=. --plugin_opt=plugins=grpc
+.PHONY: protos
