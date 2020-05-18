@@ -5,19 +5,18 @@ import (
 	"time"
 
 	"github.com/textileio/powergate/index/ask"
-	pb "github.com/textileio/powergate/index/ask/pb"
 	"github.com/textileio/powergate/index/ask/rpc"
 	"github.com/textileio/powergate/index/ask/runner"
 )
 
 // Asks provides an API for viewing asks data
 type Asks struct {
-	client rpc.APIClient
+	client rpc.RPCClient
 }
 
 // Get returns the current index of available asks
 func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
-	reply, err := a.client.Get(ctx, &pb.GetRequest{})
+	reply, err := a.client.Get(ctx, &rpc.GetRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +34,7 @@ func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 
 // Query executes a query to retrieve active Asks
 func (a *Asks) Query(ctx context.Context, query runner.Query) ([]ask.StorageAsk, error) {
-	q := &pb.Query{
+	q := &rpc.Query{
 		MaxPrice:  query.MaxPrice,
 		PieceSize: query.PieceSize,
 		Limit:     int32(query.Limit),

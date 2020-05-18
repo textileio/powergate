@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	"github.com/textileio/powergate/deals/rpc"
+	"github.com/textileio/powergate/index/ask/rpc"
 	"github.com/textileio/powergate/index/ask/runner"
 )
 
@@ -32,7 +32,7 @@ func TestQuery(t *testing.T) {
 func setupAsks(t *testing.T) (*Asks, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Asks{client: rpc.NewAPIClient(conn)}, func() {
+	return &Asks{client: rpc.NewRPCClient(conn)}, func() {
 		done()
 		serverDone()
 	}

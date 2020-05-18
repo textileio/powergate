@@ -67,7 +67,7 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		return nil, err
 	}
 	client := &Client{
-		Asks:       &Asks{client: askRpc.NewAPIClient(conn)},
+		Asks:       &Asks{client: askRpc.NewRPCClient(conn)},
 		Miners:     &Miners{client: minerRpc.NewAPIClient(conn)},
 		Slashing:   &Slashing{client: slashingRpc.NewAPIClient(conn)},
 		Deals:      &Deals{client: dealsRpc.NewAPIClient(conn)},

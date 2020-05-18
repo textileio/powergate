@@ -39,7 +39,7 @@ message QueryReply {
     repeated StorageAsk asks = 1;
 }
 
-service API {
+service RPC {
     rpc Get(GetRequest) returns (GetReply) {}
     rpc Query(QueryRequest) returns (QueryReply) {}
 }
