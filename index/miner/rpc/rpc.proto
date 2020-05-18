@@ -1,0 +1,49 @@
+syntax = "proto3";
+package index.miner.rpc;
+
+option go_package = "rpc";
+
+message Index {
+    MetaIndex meta = 1;
+    ChainIndex chain = 2;
+}
+
+message ChainIndex {
+    int64 lastUpdated = 1;
+    map<string, Power> power = 2;
+}
+
+message Power {
+    uint64 power = 1;
+    float relative = 2;
+}
+
+message MetaIndex {
+    uint32 online = 1;
+    uint32 offline = 2;
+    map<string, Meta> info = 3;
+}
+
+message Meta {
+    int64 lastUpdated = 1;
+    string userAgent = 2;
+    Location location = 3;
+    bool online = 4;
+}
+
+message Location {
+    string country = 1;
+    float longitude = 2;
+    float latitude = 3;
+}
+
+message GetRequest {
+}
+
+message GetReply {
+    Index index = 1;
+}
+
+service RPC {
+    rpc Get(GetRequest) returns (GetReply) {}
+}

@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	pb "github.com/textileio/powergate/index/miner/pb"
+	"github.com/textileio/powergate/index/miner/rpc"
 )
 
 func TestGetMiners(t *testing.T) {
@@ -20,7 +20,7 @@ func TestGetMiners(t *testing.T) {
 func setupMiners(t *testing.T) (*Miners, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Miners{client: pb.NewAPIClient(conn)}, func() {
+	return &Miners{client: rpc.NewRPCClient(conn)}, func() {
 		done()
 		serverDone()
 	}

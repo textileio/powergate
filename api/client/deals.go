@@ -7,7 +7,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/deals"
-	pb "github.com/textileio/powergate/deals/pb"
+	"github.com/textileio/powergate/deals/rpc"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,7 +15,7 @@ import (
 
 // Deals provides an API for managing deals and storing data
 type Deals struct {
-	client pb.APIClient
+	client rpc.RPCClient
 }
 
 // WatchEvent is used to send data or error values for Watch
@@ -32,21 +32,21 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 		return nil, nil, err
 	}
 
-	reqDealConfigs := make([]*pb.DealConfig, len(dealConfigs))
+	reqDealConfigs := make([]*rpc.DealConfig, len(dealConfigs))
 	for i, dealConfig := range dealConfigs {
-		reqDealConfigs[i] = &pb.DealConfig{
+		reqDealConfigs[i] = &rpc.DealConfig{
 			Miner:      dealConfig.Miner,
 			EpochPrice: dealConfig.EpochPrice,
 		}
 	}
-	storeParams := &pb.StoreParams{
+	storeParams := &rpc.StoreParams{
 		Address:     addr,
 		DealConfigs: reqDealConfigs,
 		Duration:    duration,
 	}
-	innerReq := &pb.StoreRequest_StoreParams{StoreParams: storeParams}
+	innerReq := &rpc.StoreRequest_StoreParams{StoreParams: storeParams}
 
-	if err = stream.Send(&pb.StoreRequest{Payload: innerReq}); err != nil {
+	if err = stream.Send(&rpc.StoreRequest{Payload: innerReq}); err != nil {
 		return nil, nil, err
 	}
 
@@ -56,7 +56,7 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 		if err != nil && err != io.EOF {
 			return nil, nil, err
 		}
-		sendErr := stream.Send(&pb.StoreRequest{Payload: &pb.StoreRequest_Chunk{Chunk: buffer[:bytesRead]}})
+		sendErr := stream.Send(&rpc.StoreRequest{Payload: &rpc.StoreRequest_Chunk{Chunk: buffer[:bytesRead]}})
 		if sendErr != nil {
 			return nil, nil, sendErr
 		}
@@ -100,7 +100,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 	for i, proposal := range proposals {
 		proposalStrings[i] = proposal.String()
 	}
-	stream, err := d.client.Watch(ctx, &pb.WatchRequest{Proposals: proposalStrings})
+	stream, err := d.client.Watch(ctx, &rpc.WatchRequest{Proposals: proposalStrings})
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 
 // Retrieve is used to fetch data from filecoin
 func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Reader, error) {
-	req := &pb.RetrieveRequest{
+	req := &rpc.RetrieveRequest{
 		Address: waddr,
 		Cid:     cid.String(),
 	}

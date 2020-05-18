@@ -1,0 +1,22 @@
+syntax = "proto3";
+package health.rpc;
+
+option go_package = "rpc";
+
+enum Status {
+    Ok = 0;
+    Degraded = 1;
+    Error = 2;
+}
+
+message CheckRequest {
+}
+
+message CheckReply {
+    Status status = 1;
+    repeated string messages = 2;
+}
+
+service RPC {
+    rpc Check(CheckRequest) returns (CheckReply) {}
+}

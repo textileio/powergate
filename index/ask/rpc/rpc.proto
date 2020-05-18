@@ -1,0 +1,45 @@
+syntax = "proto3";
+package index.ask.rpc;
+
+option go_package = "rpc";
+
+message Query {
+    uint64 maxPrice = 1;
+	uint64 pieceSize = 2;
+	int32 limit = 3;
+	int32 offset = 4;
+}
+
+message StorageAsk {
+	uint64 price = 1;
+	uint64 minPieceSize = 2;
+	string miner = 3;
+	int64 timestamp = 4;
+	int64 expiry = 5;
+}
+
+message Index {
+    int64 lastUpdated = 1;
+    uint64 storageMedianPrice = 2;
+    map<string, StorageAsk> storage = 3;
+}
+
+message GetRequest {
+}
+
+message GetReply {
+    Index index = 1;
+}
+
+message QueryRequest {
+    Query query = 1;
+}
+
+message QueryReply {
+    repeated StorageAsk asks = 1;
+}
+
+service RPC {
+    rpc Get(GetRequest) returns (GetReply) {}
+    rpc Query(QueryRequest) returns (QueryReply) {}
+}

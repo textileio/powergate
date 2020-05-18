@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/multiformats/go-multiaddr"
-	dealsPb "github.com/textileio/powergate/deals/pb"
+	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
-	asksPb "github.com/textileio/powergate/index/ask/pb"
-	minerPb "github.com/textileio/powergate/index/miner/pb"
-	slashingPb "github.com/textileio/powergate/index/slashing/pb"
+	askRpc "github.com/textileio/powergate/index/ask/rpc"
+	minerRpc "github.com/textileio/powergate/index/miner/rpc"
+	slashingRpc "github.com/textileio/powergate/index/slashing/rpc"
 	netRpc "github.com/textileio/powergate/net/rpc"
-	reputationPb "github.com/textileio/powergate/reputation/pb"
+	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	"github.com/textileio/powergate/util"
-	walletPb "github.com/textileio/powergate/wallet/pb"
+	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 )
 
@@ -67,15 +67,15 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		return nil, err
 	}
 	client := &Client{
-		Asks:       &Asks{client: asksPb.NewAPIClient(conn)},
-		Miners:     &Miners{client: minerPb.NewAPIClient(conn)},
-		Slashing:   &Slashing{client: slashingPb.NewAPIClient(conn)},
-		Deals:      &Deals{client: dealsPb.NewAPIClient(conn)},
-		Wallet:     &Wallet{client: walletPb.NewAPIClient(conn)},
-		Reputation: &Reputation{client: reputationPb.NewAPIClient(conn)},
-		FFS:        &FFS{client: ffsRpc.NewFFSClient(conn)},
-		Health:     &Health{client: healthRpc.NewHealthClient(conn)},
-		Net:        &Net{client: netRpc.NewNetClient(conn)},
+		Asks:       &Asks{client: askRpc.NewRPCClient(conn)},
+		Miners:     &Miners{client: minerRpc.NewRPCClient(conn)},
+		Slashing:   &Slashing{client: slashingRpc.NewRPCClient(conn)},
+		Deals:      &Deals{client: dealsRpc.NewRPCClient(conn)},
+		Wallet:     &Wallet{client: walletRpc.NewRPCClient(conn)},
+		Reputation: &Reputation{client: reputationRpc.NewRPCClient(conn)},
+		FFS:        &FFS{client: ffsRpc.NewRPCClient(conn)},
+		Health:     &Health{client: healthRpc.NewRPCClient(conn)},
+		Net:        &Net{client: netRpc.NewRPCClient(conn)},
 		conn:       conn,
 	}
 	return client, nil

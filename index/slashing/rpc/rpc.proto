@@ -1,0 +1,25 @@
+syntax = "proto3";
+package index.slashing.rpc;
+
+option go_package = "rpc";
+
+message Index {
+    string tipSetKey = 1;
+    map<string, Slashes> miners = 2;
+}
+
+message Slashes {
+    repeated uint64 epochs = 1;
+}
+
+
+message GetRequest {
+}
+
+message GetReply {
+    Index index = 1;
+}
+
+service RPC {
+    rpc Get(GetRequest) returns (GetReply) {}
+}

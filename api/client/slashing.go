@@ -4,17 +4,17 @@ import (
 	"context"
 
 	"github.com/textileio/powergate/index/slashing"
-	pb "github.com/textileio/powergate/index/slashing/pb"
+	"github.com/textileio/powergate/index/slashing/rpc"
 )
 
 // Slashing provides an API for viewing slashing data
 type Slashing struct {
-	client pb.APIClient
+	client rpc.RPCClient
 }
 
 // Get returns the current index of miner slashes data
 func (s *Slashing) Get(ctx context.Context) (*slashing.IndexSnapshot, error) {
-	reply, err := s.client.Get(ctx, &pb.GetRequest{})
+	reply, err := s.client.Get(ctx, &rpc.GetRequest{})
 	if err != nil {
 		return nil, err
 	}

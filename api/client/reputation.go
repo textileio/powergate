@@ -5,17 +5,17 @@ import (
 
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/reputation"
-	pb "github.com/textileio/powergate/reputation/pb"
+	"github.com/textileio/powergate/reputation/rpc"
 )
 
 // Reputation provides an API for viewing reputation data
 type Reputation struct {
-	client pb.APIClient
+	client rpc.RPCClient
 }
 
 // AddSource adds a new external Source to be considered for reputation generation
 func (r *Reputation) AddSource(ctx context.Context, id string, maddr ma.Multiaddr) error {
-	req := &pb.AddSourceRequest{
+	req := &rpc.AddSourceRequest{
 		Id:    id,
 		Maddr: maddr.String(),
 	}
@@ -25,7 +25,7 @@ func (r *Reputation) AddSource(ctx context.Context, id string, maddr ma.Multiadd
 
 // GetTopMiners gets the top n miners with best score
 func (r *Reputation) GetTopMiners(ctx context.Context, limit int) ([]reputation.MinerScore, error) {
-	req := &pb.GetTopMinersRequest{Limit: int32(limit)}
+	req := &rpc.GetTopMinersRequest{Limit: int32(limit)}
 	reply, err := r.client.GetTopMiners(ctx, req)
 	if err != nil {
 		return []reputation.MinerScore{}, err

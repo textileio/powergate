@@ -20,7 +20,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
-	dealsPb "github.com/textileio/powergate/deals/pb"
+	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	"github.com/textileio/powergate/fchost"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/cidlogger"
@@ -38,24 +38,23 @@ import (
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/health"
 	healthRpc "github.com/textileio/powergate/health/rpc"
-	askPb "github.com/textileio/powergate/index/ask/pb"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	ask "github.com/textileio/powergate/index/ask/runner"
 	"github.com/textileio/powergate/index/miner"
-	minerPb "github.com/textileio/powergate/index/miner/pb"
+	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	"github.com/textileio/powergate/index/slashing"
-	slashingPb "github.com/textileio/powergate/index/slashing/pb"
+	slashingRpc "github.com/textileio/powergate/index/slashing/rpc"
 	"github.com/textileio/powergate/iplocation/ip2location"
 	"github.com/textileio/powergate/lotus"
 	pgnet "github.com/textileio/powergate/net"
 	pgnetlotus "github.com/textileio/powergate/net/lotus"
 	pgnetRpc "github.com/textileio/powergate/net/rpc"
 	"github.com/textileio/powergate/reputation"
-	reputationPb "github.com/textileio/powergate/reputation/pb"
+	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 	"github.com/textileio/powergate/wallet"
-	walletPb "github.com/textileio/powergate/wallet/pb"
+	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 )
 
@@ -273,15 +272,15 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress multiaddr.Multiaddr) error {
-	netService := pgnetRpc.NewService(s.nm)
-	healthService := healthRpc.NewService(s.hm)
-	dealsService := deals.NewService(s.dm)
-	walletService := wallet.NewService(s.wm)
-	reputationService := reputation.NewService(s.rm)
+	netService := pgnetRpc.New(s.nm)
+	healthService := healthRpc.New(s.hm)
+	dealsService := dealsRpc.New(s.dm)
+	walletService := walletRpc.New(s.wm)
+	reputationService := reputationRpc.New(s.rm)
 	askService := askRpc.New(s.ai)
-	minerService := miner.NewService(s.mi)
-	slashingService := slashing.NewService(s.si)
-	ffsService := ffsGrpc.NewService(s.ffsManager, s.hs)
+	minerService := minerRpc.New(s.mi)
+	slashingService := slashingRpc.New(s.si)
+	ffsService := ffsGrpc.New(s.ffsManager, s.hs)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {
@@ -292,15 +291,15 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		pgnetRpc.RegisterNetServer(server, netService)
-		healthRpc.RegisterHealthServer(server, healthService)
-		dealsPb.RegisterAPIServer(server, dealsService)
-		walletPb.RegisterAPIServer(server, walletService)
-		reputationPb.RegisterAPIServer(server, reputationService)
-		askPb.RegisterAPIServer(server, askService)
-		minerPb.RegisterAPIServer(server, minerService)
-		slashingPb.RegisterAPIServer(server, slashingService)
-		ffsRpc.RegisterFFSServer(server, ffsService)
+		pgnetRpc.RegisterRPCServer(server, netService)
+		healthRpc.RegisterRPCServer(server, healthService)
+		dealsRpc.RegisterRPCServer(server, dealsService)
+		walletRpc.RegisterRPCServer(server, walletService)
+		reputationRpc.RegisterRPCServer(server, reputationService)
+		askRpc.RegisterRPCServer(server, askService)
+		minerRpc.RegisterRPCServer(server, minerService)
+		slashingRpc.RegisterRPCServer(server, slashingService)
+		ffsRpc.RegisterRPCServer(server, ffsService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
 		}

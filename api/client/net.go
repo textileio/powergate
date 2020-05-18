@@ -12,7 +12,7 @@ import (
 
 // Net provides the Net API
 type Net struct {
-	client rpc.NetClient
+	client rpc.RPCClient
 }
 
 // ListenAddr returns listener address info for the local node

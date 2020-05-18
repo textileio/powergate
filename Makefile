@@ -21,3 +21,12 @@ build: build-cli build-server build-bench
 test:
 	go test -short -p 4 -race ./... 
 .PHONY: test
+
+clean-protos:
+	find . -type f -name '*.pb.go' -delete
+	find . -type f -name '*pb_test.go' -delete
+.PHONY: clean-protos
+
+protos: clean-protos
+	./scripts/protoc_gen_plugin.bash --proto_path=. --plugin_name=go --plugin_out=. --plugin_opt=plugins=grpc
+.PHONY: protos

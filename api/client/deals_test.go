@@ -6,7 +6,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/deals"
-	pb "github.com/textileio/powergate/deals/pb"
+	"github.com/textileio/powergate/deals/rpc"
 )
 
 func TestStore(t *testing.T) {
@@ -48,7 +48,7 @@ func TestRetrieve(t *testing.T) {
 func setupDeals(t *testing.T) (*Deals, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Deals{client: pb.NewAPIClient(conn)}, func() {
+	return &Deals{client: rpc.NewRPCClient(conn)}, func() {
 		done()
 		serverDone()
 	}
