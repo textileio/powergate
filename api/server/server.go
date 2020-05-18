@@ -50,7 +50,7 @@ import (
 	pgnetlotus "github.com/textileio/powergate/net/lotus"
 	pgnetRpc "github.com/textileio/powergate/net/rpc"
 	"github.com/textileio/powergate/reputation"
-	reputationPb "github.com/textileio/powergate/reputation/pb"
+	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 	"github.com/textileio/powergate/wallet"
@@ -276,7 +276,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	healthService := healthRpc.NewService(s.hm)
 	dealsService := deals.NewService(s.dm)
 	walletService := wallet.NewService(s.wm)
-	reputationService := reputation.NewService(s.rm)
+	reputationService := reputationRpc.NewService(s.rm)
 	askService := ask.NewService(s.ai)
 	minerService := miner.NewService(s.mi)
 	slashingService := slashing.NewService(s.si)
@@ -295,7 +295,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		healthRpc.RegisterHealthServer(server, healthService)
 		dealsPb.RegisterAPIServer(server, dealsService)
 		walletPb.RegisterAPIServer(server, walletService)
-		reputationPb.RegisterAPIServer(server, reputationService)
+		reputationRpc.RegisterAPIServer(server, reputationService)
 		askPb.RegisterAPIServer(server, askService)
 		minerPb.RegisterAPIServer(server, minerService)
 		slashingPb.RegisterAPIServer(server, slashingService)

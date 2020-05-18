@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	ma "github.com/multiformats/go-multiaddr"
-	pb "github.com/textileio/powergate/reputation/pb"
+	"github.com/textileio/powergate/reputation/rpc"
 )
 
 func TestAddSource(t *testing.T) {
@@ -35,7 +35,7 @@ func TestGetTopMiners(t *testing.T) {
 func setupReputation(t *testing.T) (*Reputation, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Reputation{client: pb.NewAPIClient(conn)}, func() {
+	return &Reputation{client: rpc.NewAPIClient(conn)}, func() {
 		done()
 		serverDone()
 	}
