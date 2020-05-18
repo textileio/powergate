@@ -38,8 +38,9 @@ import (
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/health"
 	healthRpc "github.com/textileio/powergate/health/rpc"
-	"github.com/textileio/powergate/index/ask"
 	askPb "github.com/textileio/powergate/index/ask/pb"
+	askRpc "github.com/textileio/powergate/index/ask/rpc"
+	ask "github.com/textileio/powergate/index/ask/runner"
 	"github.com/textileio/powergate/index/miner"
 	minerPb "github.com/textileio/powergate/index/miner/pb"
 	"github.com/textileio/powergate/index/slashing"
@@ -71,7 +72,7 @@ type Server struct {
 	ds datastore.TxnDatastore
 
 	ip2l *ip2location.IP2Location
-	ai   *ask.Index
+	ai   *ask.Runner
 	mi   *miner.Index
 	si   *slashing.Index
 	dm   *deals.Module
@@ -277,7 +278,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	dealsService := deals.NewService(s.dm)
 	walletService := wallet.NewService(s.wm)
 	reputationService := reputation.NewService(s.rm)
-	askService := ask.NewService(s.ai)
+	askService := askRpc.New(s.ai)
 	minerService := miner.NewService(s.mi)
 	slashingService := slashing.NewService(s.si)
 	ffsService := ffsGrpc.NewService(s.ffsManager, s.hs)

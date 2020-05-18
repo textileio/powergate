@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/server"
 	"github.com/textileio/powergate/util"
+	"go.opencensus.io/plugin/runmetrics"
 )
 
 var (
@@ -137,6 +138,13 @@ func main() {
 }
 
 func setupInstrumentation() *http.Server {
+	err := runmetrics.Enable(runmetrics.RunMetricOptions{
+		EnableCPU:    true,
+		EnableMemory: true,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 	pe, err := prometheus.NewExporter(prometheus.Options{
 		Namespace: "textilefc",
 	})
