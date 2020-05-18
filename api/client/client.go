@@ -7,7 +7,7 @@ import (
 	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
-	asksPb "github.com/textileio/powergate/index/ask/pb"
+	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	minerPb "github.com/textileio/powergate/index/miner/pb"
 	slashingPb "github.com/textileio/powergate/index/slashing/pb"
 	netRpc "github.com/textileio/powergate/net/rpc"
@@ -67,7 +67,7 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		return nil, err
 	}
 	client := &Client{
-		Asks:       &Asks{client: asksPb.NewAPIClient(conn)},
+		Asks:       &Asks{client: askRpc.NewAPIClient(conn)},
 		Miners:     &Miners{client: minerPb.NewAPIClient(conn)},
 		Slashing:   &Slashing{client: slashingPb.NewAPIClient(conn)},
 		Deals:      &Deals{client: dealsRpc.NewAPIClient(conn)},

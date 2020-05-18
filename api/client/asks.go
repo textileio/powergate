@@ -5,17 +5,17 @@ import (
 	"time"
 
 	"github.com/textileio/powergate/index/ask"
-	pb "github.com/textileio/powergate/index/ask/pb"
+	rpc "github.com/textileio/powergate/index/ask/rpc"
 )
 
 // Asks provides an API for viewing asks data
 type Asks struct {
-	client pb.APIClient
+	client rpc.APIClient
 }
 
 // Get returns the current index of available asks
 func (a *Asks) Get(ctx context.Context) (*ask.IndexSnapshot, error) {
-	reply, err := a.client.Get(ctx, &pb.GetRequest{})
+	reply, err := a.client.Get(ctx, &rpc.GetRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -33,13 +33,13 @@ func (a *Asks) Get(ctx context.Context) (*ask.IndexSnapshot, error) {
 
 // Query executes a query to retrieve active Asks
 func (a *Asks) Query(ctx context.Context, query ask.Query) ([]ask.StorageAsk, error) {
-	q := &pb.Query{
+	q := &rpc.Query{
 		MaxPrice:  query.MaxPrice,
 		PieceSize: query.PieceSize,
 		Limit:     int32(query.Limit),
 		Offset:    int32(query.Offset),
 	}
-	reply, err := a.client.Query(ctx, &pb.QueryRequest{Query: q})
+	reply, err := a.client.Query(ctx, &rpc.QueryRequest{Query: q})
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (a *Asks) Query(ctx context.Context, query ask.Query) ([]ask.StorageAsk, er
 	return asks, nil
 }
 
-func askFromPbAsk(a *pb.StorageAsk) ask.StorageAsk {
+func askFromPbAsk(a *rpc.StorageAsk) ask.StorageAsk {
 	return ask.StorageAsk{
 		Price:        a.GetPrice(),
 		MinPieceSize: a.GetMinPieceSize(),

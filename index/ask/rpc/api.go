@@ -1,31 +1,31 @@
-package ask
+package rpc
 
 import (
 	"context"
 
-	pb "github.com/textileio/powergate/index/ask/pb"
+	"github.com/textileio/powergate/index/ask"
 )
 
 // Service implements the gprc service
 type Service struct {
-	pb.UnimplementedAPIServer
+	UnimplementedAPIServer
 
-	index *Index
+	index *ask.Index
 }
 
 // NewService is a helper to create a new Service
-func NewService(ai *Index) *Service {
+func NewService(ai *ask.Index) *Service {
 	return &Service{
 		index: ai,
 	}
 }
 
 // Get calls askIndex.Get
-func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, error) {
+func (s *Service) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
 	index := s.index.Get()
-	storage := make(map[string]*pb.StorageAsk, len(index.Storage))
+	storage := make(map[string]*StorageAsk, len(index.Storage))
 	for key, ask := range index.Storage {
-		storage[key] = &pb.StorageAsk{
+		storage[key] = &StorageAsk{
 			Price:        ask.Price,
 			MinPieceSize: ask.MinPieceSize,
 			Miner:        ask.Miner,
@@ -33,17 +33,17 @@ func (s *Service) Get(ctx context.Context, req *pb.GetRequest) (*pb.GetReply, er
 			Expiry:       ask.Expiry,
 		}
 	}
-	pbIndex := &pb.Index{
+	pbIndex := &Index{
 		LastUpdated:        index.LastUpdated.Unix(),
 		StorageMedianPrice: index.StorageMedianPrice,
 		Storage:            storage,
 	}
-	return &pb.GetReply{Index: pbIndex}, nil
+	return &GetReply{Index: pbIndex}, nil
 }
 
 // Query calls askIndex.Query
-func (s *Service) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryReply, error) {
-	q := Query{
+func (s *Service) Query(ctx context.Context, req *QueryRequest) (*QueryReply, error) {
+	q := ask.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),
 		Limit:     int(req.GetQuery().GetLimit()),
@@ -53,9 +53,9 @@ func (s *Service) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryRep
 	if err != nil {
 		return nil, err
 	}
-	replyAsks := make([]*pb.StorageAsk, len(asks))
+	replyAsks := make([]*StorageAsk, len(asks))
 	for i, ask := range asks {
-		replyAsks[i] = &pb.StorageAsk{
+		replyAsks[i] = &StorageAsk{
 			Price:        ask.Price,
 			MinPieceSize: ask.MinPieceSize,
 			Miner:        ask.Miner,
@@ -63,5 +63,5 @@ func (s *Service) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryRep
 			Expiry:       ask.Expiry,
 		}
 	}
-	return &pb.QueryReply{Asks: replyAsks}, nil
+	return &QueryReply{Asks: replyAsks}, nil
 }

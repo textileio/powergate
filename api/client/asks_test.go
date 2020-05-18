@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/textileio/powergate/index/ask"
-	pb "github.com/textileio/powergate/index/ask/pb"
+	"github.com/textileio/powergate/index/ask/rpc"
 )
 
 func TestGetAsks(t *testing.T) {
@@ -32,7 +32,7 @@ func TestQuery(t *testing.T) {
 func setupAsks(t *testing.T) (*Asks, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Asks{client: pb.NewAPIClient(conn)}, func() {
+	return &Asks{client: rpc.NewAPIClient(conn)}, func() {
 		done()
 		serverDone()
 	}

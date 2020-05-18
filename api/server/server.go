@@ -39,7 +39,7 @@ import (
 	"github.com/textileio/powergate/health"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	"github.com/textileio/powergate/index/ask"
-	askPb "github.com/textileio/powergate/index/ask/pb"
+	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	"github.com/textileio/powergate/index/miner"
 	minerPb "github.com/textileio/powergate/index/miner/pb"
 	"github.com/textileio/powergate/index/slashing"
@@ -277,7 +277,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	dealsService := dealsRpc.NewService(s.dm)
 	walletService := walletRpc.NewService(s.wm)
 	reputationService := reputationRpc.NewService(s.rm)
-	askService := ask.NewService(s.ai)
+	askService := askRpc.NewService(s.ai)
 	minerService := miner.NewService(s.mi)
 	slashingService := slashing.NewService(s.si)
 	ffsService := ffsGrpc.NewService(s.ffsManager, s.hs)
@@ -296,7 +296,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		dealsRpc.RegisterAPIServer(server, dealsService)
 		walletRpc.RegisterAPIServer(server, walletService)
 		reputationRpc.RegisterAPIServer(server, reputationService)
-		askPb.RegisterAPIServer(server, askService)
+		askRpc.RegisterAPIServer(server, askService)
 		minerPb.RegisterAPIServer(server, minerService)
 		slashingPb.RegisterAPIServer(server, slashingService)
 		ffsRpc.RegisterAPIServer(server, ffsService)
