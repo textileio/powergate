@@ -23,8 +23,8 @@ test:
 .PHONY: test
 
 clean-protos:
-	rm -f **/*.pb.go
-	rm -f **/*pb_test.go
+	find . -type f -name '*.pb.go' -delete
+	find . -type f -name '*pb_test.go' -delete
 .PHONY: clean-protos
 
 protos: clean-protos
