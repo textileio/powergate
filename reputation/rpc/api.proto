@@ -1,10 +1,6 @@
 syntax = "proto3";
 package reputation.rpc;
 
-option java_multiple_files = true;
-option java_package = "io.textile.filecoin.reputation.pb";
-option java_outer_classname = "FilecoinReputation";
-option objc_class_prefix = "TTE";
 option go_package = "rpc";
 
 message MinerScore {
