@@ -320,7 +320,7 @@ func TestRepFactor(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
-			ipfsAPI, fapi, cls := newAPI(t, 2)
+			ipfsAPI, fapi, cls := newAPI(t, rf)
 			defer cls()
 			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(rf)
