@@ -44,7 +44,7 @@ func TestStore(t *testing.T) {
 			client, _, _ := tests.CreateLocalDevnet(t, nm)
 			m, err := New(client, WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
-			_, err = storeMultiMiner(m, client, nm, randomBytes(1024*1024*10))
+			_, err = storeMultiMiner(m, client, nm, randomBytes(600))
 			checkErr(t, err)
 		})
 	}

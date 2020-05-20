@@ -1336,7 +1336,7 @@ func randomBytes(r *rand.Rand, size int) []byte {
 }
 
 func addRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
-	return addRandomFileSize(t, r, ipfs, 1024*1024*10)
+	return addRandomFileSize(t, r, ipfs, 600)
 }
 
 func addRandomFileSize(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi, size int) (cid.Cid, []byte) {

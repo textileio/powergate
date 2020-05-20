@@ -105,7 +105,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 				Root: dataCid,
 			},
 			MinBlocksDuration: dur,
-			EpochPrice:        types.NewInt(uint64(math.Ceil(200 * gbSize * float64(c.EpochPrice)))),
+			EpochPrice:        types.NewInt(uint64(math.Ceil(2 * gbSize * float64(c.EpochPrice)))),
 			Miner:             maddr,
 			Wallet:            addr,
 		}
