@@ -44,7 +44,7 @@ func TestStore(t *testing.T) {
 			client, _, _ := tests.CreateLocalDevnet(t, nm)
 			m, err := New(client, WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
-			_, err = storeMultiMiner(m, client, nm, randomBytes(1024*1024*100))
+			_, err = storeMultiMiner(m, client, nm, randomBytes(1024*1024*10))
 			checkErr(t, err)
 		})
 	}
@@ -95,7 +95,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	for i := 0; i < numMiners; i++ {
 		cfgs[i] = StorageDealConfig{
 			Miner:      miners[i].String(),
-			EpochPrice: 70000000,
+			EpochPrice: 500000000,
 		}
 	}
 	dcid, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(data), cfgs, 1000, false)

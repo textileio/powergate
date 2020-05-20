@@ -252,7 +252,7 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 			delete(notDone, di.ProposalCid)
 			fc.l.Log(ctx, c, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
 		} else if di.StateID == storagemarket.StorageDealError || di.StateID == storagemarket.StorageDealFailing {
-			log.Errorf("deal %d failed with state %s", di.DealID, storagemarket.DealStates[di.StateID])
+			log.Errorf("deal %d failed with state %s: %s", di.DealID, storagemarket.DealStates[di.StateID], di.Message)
 			delete(activeProposals, di.ProposalCid)
 			delete(notDone, di.ProposalCid)
 			fc.l.Log(ctx, c, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)

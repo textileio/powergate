@@ -479,7 +479,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	}
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 1000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 500000000}
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
@@ -1215,7 +1215,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 1000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 500000000}
 	}
 	ms := fixed.New(fixedMiners)
 	return addr, client, ms
@@ -1336,7 +1336,7 @@ func randomBytes(r *rand.Rand, size int) []byte {
 }
 
 func addRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
-	return addRandomFileSize(t, r, ipfs, 600)
+	return addRandomFileSize(t, r, ipfs, 1024*1024*10)
 }
 
 func addRandomFileSize(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi, size int) (cid.Cid, []byte) {

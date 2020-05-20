@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -72,9 +73,11 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 			log.Errorf("closing storing file: %s", err)
 		}
 	}()
-	if _, err := io.Copy(f, data); err != nil {
+	var size int64
+	if size, err = io.Copy(f, data); err != nil {
 		return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
+	gbSize := float64(size) / float64(1<<30)
 	ref := api.FileRef{
 		Path:  f.Name(),
 		IsCAR: isCAR,
@@ -87,7 +90,6 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 	if err != nil {
 		return cid.Undef, nil, err
 	}
-
 	res := make([]StoreResult, len(dcfgs))
 	for i, c := range dcfgs {
 		maddr, err := address.NewFromString(c.Miner)
@@ -103,7 +105,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 				Root: dataCid,
 			},
 			MinBlocksDuration: dur,
-			EpochPrice:        types.NewInt(c.EpochPrice),
+			EpochPrice:        types.NewInt(uint64(math.Ceil(200 * gbSize * float64(c.EpochPrice)))),
 			Miner:             maddr,
 			Wallet:            addr,
 		}
