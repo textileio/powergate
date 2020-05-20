@@ -43,7 +43,7 @@ import (
 
 const (
 	tmpDir           = "/tmp/powergate/integrationtest"
-	iWalletBal int64 = 4000000000
+	iWalletBal int64 = 4000000000000000
 )
 
 func TestMain(m *testing.M) {
