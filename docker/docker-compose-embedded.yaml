@@ -37,5 +37,6 @@ services:
       - 7777:7777
     environment:
       - TEXLOTUSDEVNET_SPEED=1500
+      - TEXLOTUSDEVNET_BIGSECTORS=true
     volumes:
      - pow-embed-shared:/tmp/powergate
