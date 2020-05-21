@@ -25,7 +25,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int) *dockertest.Resource {
 	envNumMiners := fmt.Sprintf("TEXLOTUSDEVNET_NUMMINERS=%d", numMiners)
 	speed := "TEXLOTUSDEVNET_SPEED=500"
 	repository := "textile/lotus-devnet"
-	tag := "sha-fb4eb83"
+	tag := "sha-1e166c9"
 	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: []string{envNumMiners, speed}, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))
