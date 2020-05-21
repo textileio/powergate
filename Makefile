@@ -19,7 +19,7 @@ build: build-cli build-server build-bench
 .PHONY: build
 
 test:
-	go test -short -p 4 -race ./... 
+	go test -short -p 4 -race -timeout 30m ./... 
 .PHONY: test
 
 clean-protos:

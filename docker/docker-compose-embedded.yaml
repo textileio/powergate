@@ -32,10 +32,11 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:sha-7ed2544
+    image: textile/lotus-devnet:sha-1e166c9
     ports:
       - 7777:7777
     environment:
       - TEXLOTUSDEVNET_SPEED=1500
+      - TEXLOTUSDEVNET_BIGSECTORS=true
     volumes:
      - pow-embed-shared:/tmp/powergate

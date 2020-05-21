@@ -31,7 +31,7 @@ services:
       - textile-fc-lotus:/root/lotus
   
   lotus:
-    image: textile/lotus:e9eaee6
+    image: textile/lotus:cea7c41
     volumes:
       - textile-fc-lotus:/data
     ports:
