@@ -43,7 +43,7 @@ import (
 
 const (
 	tmpDir           = "/tmp/powergate/integrationtest"
-	iWalletBal int64 = 4000000000
+	iWalletBal int64 = 4000000000000000
 )
 
 func TestMain(m *testing.M) {
@@ -320,7 +320,7 @@ func TestRepFactor(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
-			ipfsAPI, fapi, cls := newAPI(t, 2)
+			ipfsAPI, fapi, cls := newAPI(t, rf)
 			defer cls()
 			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(rf)
@@ -479,7 +479,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	}
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 1000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: countries[i], EpochPrice: 500000000}
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
@@ -1215,7 +1215,7 @@ func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNod
 
 	fixedMiners := make([]fixed.Miner, len(addrs))
 	for i, a := range addrs {
-		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 1000}
+		fixedMiners[i] = fixed.Miner{Addr: a, Country: "China", EpochPrice: 500000000}
 	}
 	ms := fixed.New(fixedMiners)
 	return addr, client, ms
@@ -1302,7 +1302,7 @@ func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 	var res ffs.Job
 	for !stop {
 		select {
-		case <-time.After(20 * time.Second):
+		case <-time.After(60 * time.Second):
 			t.Fatalf("waiting for job update timeout")
 		case job, ok := <-ch:
 			require.True(t, ok)
