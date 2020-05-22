@@ -61,5 +61,5 @@ require (
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
 	go.opencensus.io v0.22.3
-	google.golang.org/grpc v1.28.1
+	google.golang.org/grpc v1.29.1
 )
