@@ -275,7 +275,8 @@ func TestColdInstanceLoad(t *testing.T) {
 	ctx := context.Background()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
-	ipfsAddr := "/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp")
+	bridgeIP := ipfsDocker.Container.NetworkSettings.Networks["bridge"].IPAddress
+	ipfsAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
 	ds := tests.NewTxMapDatastore()
 	addr, client, ms := newDevnet(t, 1, ipfsAddr)
 
@@ -465,7 +466,8 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	t.Parallel()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
-	ipfsAddr := "/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp")
+	bridgeIP := ipfsDocker.Container.NetworkSettings.Networks["bridge"].IPAddress
+	ipfsAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
 	countries := []string{"China", "Uruguay"}
 	numMiners := len(countries)
 	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr)
