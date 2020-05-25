@@ -14,9 +14,10 @@ require (
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/filecoin-project/go-address v0.0.2-0.20200504173055-8b6f2fb2b3ef
-	github.com/filecoin-project/go-fil-markets v0.2.3
-	github.com/filecoin-project/lotus v0.3.1-0.20200520104953-cea7c410235b
-	github.com/filecoin-project/specs-actors v0.5.3
+	github.com/filecoin-project/go-fil-markets v0.2.7
+	github.com/filecoin-project/go-jsonrpc v0.1.1-0.20200520183639-7c6ee2e066b4
+	github.com/filecoin-project/lotus v0.3.1-0.20200522162614-646800b8a8d2
+	github.com/filecoin-project/specs-actors v0.5.4-0.20200521014528-0df536f7e461
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.2
@@ -35,19 +36,19 @@ require (
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200228220229-2e259051cd8b
 	github.com/ipfs/go-ipld-format v0.2.0
-	github.com/ipfs/go-log/v2 v2.0.5
+	github.com/ipfs/go-log/v2 v2.0.8
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/ipld/go-car v0.1.1-0.20200430185908-8ff2e52a4c88
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/libp2p/go-libp2p v0.8.1
-	github.com/libp2p/go-libp2p-core v0.5.3
+	github.com/libp2p/go-libp2p v0.9.2
+	github.com/libp2p/go-libp2p-core v0.5.6
 	github.com/libp2p/go-libp2p-kad-dht v0.7.6
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0
 	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/multiformats/go-multiaddr v0.2.1
+	github.com/multiformats/go-multiaddr v0.2.2
 	github.com/multiformats/go-multiaddr-dns v0.2.0
 	github.com/multiformats/go-multihash v0.0.13
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
