@@ -75,7 +75,8 @@ message FilStorage {
 
 message FilInfo {
    string dataCid = 1;
-   repeated FilStorage proposals = 2;
+   int64 size = 2;
+   repeated FilStorage proposals = 3;
 }
 
 message ColdInfo {

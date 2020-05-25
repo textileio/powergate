@@ -44,7 +44,7 @@ type Module struct {
 	cfg *Config
 }
 
-// New creates a new deal module
+// New creates a new Module.
 func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 	var cfg Config
 	for _, o := range opts {
@@ -61,6 +61,9 @@ func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 	}, nil
 }
 
+// Import imports raw data in the Filecoin client. The isCAR flag indicates if the data
+// is already in CAR format, so it shouldn't be encoded into a UnixFS DAG in the Filecoin client.
+// It returns the imported data cid and the data size.
 func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Cid, int64, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
@@ -133,7 +136,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size 
 	return res, nil
 }
 
-// Retrieve fetches the data stored in filecoin at a particular cid
+// Retrieve fetches the data stored in filecoin at a particular cid.
 func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, exportCAR bool) (io.ReadCloser, error) {
 	rf, err := ioutil.TempDir(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
