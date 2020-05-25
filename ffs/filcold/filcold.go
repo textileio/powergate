@@ -3,7 +3,6 @@ package filcold
 import (
 	"context"
 	"fmt"
-	"io"
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-cid"
@@ -178,19 +177,14 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, a
 }
 
 func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]ffs.FilStorage, []ffs.DealError, error) {
-	r := ipldToFileTransform(ctx, fc.dag, c)
-
 	for _, cfg := range cfgs {
 		fc.l.Log(ctx, c, "Proposing deal to miner %s with %d fil per epoch...", cfg.Miner, cfg.EpochPrice)
 	}
 
 	var sres []deals.StoreResult
-	dataCid, sres, err := fc.dm.Store(ctx, fcfg.Addr, r, cfgs, uint64(fcfg.DealDuration), true)
+	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, cfgs, uint64(fcfg.DealDuration), true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("storing deals in deal module: %s", err)
-	}
-	if dataCid != c {
-		return nil, nil, fmt.Errorf("stored data cid doesn't match with sent data")
 	}
 
 	proposals, errors, err := fc.waitForDeals(ctx, c, sres, fcfg.DealDuration)
@@ -274,22 +268,6 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 	}
 	fc.l.Log(ctx, c, "All deals reached final state.")
 	return res, errors, nil
-}
-
-func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) io.Reader {
-	r, w := io.Pipe()
-	go func() {
-		if err := car.WriteCar(ctx, dag, []cid.Cid{c}, w); err != nil {
-			log.Errorf("writing car file: %s", err)
-			if err := w.CloseWithError(err); err != nil {
-				log.Errorf("closing with error: %s", err)
-			}
-		}
-		if err := w.Close(); err != nil {
-			log.Errorf("closing writer in ipld to file transform: %s", err)
-		}
-	}()
-	return r
 }
 
 func makeDealConfigs(ctx context.Context, ms ffs.MinerSelector, cantMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {

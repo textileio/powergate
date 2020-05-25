@@ -63,32 +63,37 @@ func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64, isCAR bool) (cid.Cid, []StoreResult, error) {
-	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
-	if err != nil {
-		return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
-	}
-	defer func() {
-		if err := f.Close(); err != nil {
-			log.Errorf("closing storing file: %s", err)
+func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, dcfgs []StorageDealConfig, dur uint64, isCAR bool) ([]StoreResult, error) {
+	/*
+		f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
+		if err != nil {
+			return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
 		}
-	}()
-	var size int64
-	if size, err = io.Copy(f, data); err != nil {
-		return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
-	}
+		defer func() {
+			if err := f.Close(); err != nil {
+				log.Errorf("closing storing file: %s", err)
+			}
+		}()
+		var size int64
+		if size, err = io.Copy(f, data); err != nil {
+			return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
+		}
+		gbSize := float64(size) / float64(1<<30)
+		ref := api.FileRef{
+			Path:  f.Name(),
+			IsCAR: isCAR,
+		}
+		dataCid, err := m.api.ClientImport(ctx, ref)
+		if err != nil {
+			return cid.Undef, nil, fmt.Errorf("error when importing data: %s", err)
+		}
+	*/
+	size := 100000000000
 	gbSize := float64(size) / float64(1<<30)
-	ref := api.FileRef{
-		Path:  f.Name(),
-		IsCAR: isCAR,
-	}
-	dataCid, err := m.api.ClientImport(ctx, ref)
-	if err != nil {
-		return cid.Undef, nil, fmt.Errorf("error when importing data: %s", err)
-	}
+
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
-		return cid.Undef, nil, err
+		return nil, err
 	}
 	res := make([]StoreResult, len(dcfgs))
 	for i, c := range dcfgs {
@@ -124,7 +129,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 			Success:     true,
 		}
 	}
-	return dataCid, res, nil
+	return res, nil
 }
 
 // Retrieve fetches the data stored in filecoin at a particular cid

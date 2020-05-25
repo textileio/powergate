@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ory/dockertest"
+	"github.com/ory/dockertest/v3"
 )
 
 // LaunchIPFSDocker runs a fresh go-ipfs docker image and returns the resource for
@@ -21,7 +21,6 @@ func LaunchIPFSDocker() (*dockertest.Resource, func()) {
 	if err := ipfsDocker.Expire(180); err != nil {
 		panic(err)
 	}
-
 	time.Sleep(time.Second * 3)
 
 	return ipfsDocker, func() {

@@ -4,29 +4,33 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/ory/dockertest"
-	"github.com/ory/dockertest/docker"
+	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/util"
 )
 
 // LaunchDevnetDocker launches the devnet docker image
-func LaunchDevnetDocker(t *testing.T, numMiners int) *dockertest.Resource {
+func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockertest.Resource {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		panic(fmt.Sprintf("couldn't create ipfs-pool: %s", err))
 	}
-	envNumMiners := fmt.Sprintf("TEXLOTUSDEVNET_NUMMINERS=%d", numMiners)
-	speed := "TEXLOTUSDEVNET_SPEED=500"
+	envs := []string{
+		devnetEnv("NUMMINERS", strconv.Itoa(numMiners)),
+		devnetEnv("SPEED", "500"),
+		devnetEnv("IPFSADDR", ipfsMaddr),
+	}
 	repository := "textile/lotus-devnet"
 	tag := "sha-59a6329"
-	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: []string{envNumMiners, speed}, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
+	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: envs, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))
 	}
@@ -64,10 +68,8 @@ func LaunchDevnetDocker(t *testing.T, numMiners int) *dockertest.Resource {
 	return lotusDevnet
 }
 
-// CreateLocalDevnet returns an API client that targets a local devnet with numMiners number
-// of miners. Refer to http://github.com/textileio/local-devnet for more information.
-func CreateLocalDevnet(t *testing.T, numMiners int) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
-	lotusDevnet := LaunchDevnetDocker(t, numMiners)
+func CreateLocalDevnetWithIPFS(t *testing.T, numMiners int, ipfsMaddr string) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
+	lotusDevnet := LaunchDevnetDocker(t, numMiners, ipfsMaddr)
 	c, cls, err := lotus.New(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "")
 	if err != nil {
 		panic(err)
@@ -85,4 +87,14 @@ func CreateLocalDevnet(t *testing.T, numMiners int) (*apistruct.FullNodeStruct, 
 	}
 
 	return c, addr, miners
+}
+
+// CreateLocalDevnet returns an API client that targets a local devnet with numMiners number
+// of miners. Refer to http://github.com/textileio/local-devnet for more information.
+func CreateLocalDevnet(t *testing.T, numMiners int) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
+	return CreateLocalDevnetWithIPFS(t, numMiners, "")
+}
+
+func devnetEnv(name string, value interface{}) string {
+	return fmt.Sprintf("TEXLOTUSDEVNET_%s=%s", name, value)
 }

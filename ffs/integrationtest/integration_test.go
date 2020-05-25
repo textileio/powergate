@@ -20,7 +20,7 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/ipfs/interface-go-ipfs-core/options"
-	"github.com/ory/dockertest"
+	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 
 func TestSetDefaultConfig(t *testing.T) {
 	t.Parallel()
-	_, fapi, cls := newAPI(t, 1)
+	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	config := ffs.DefaultConfig{
@@ -92,7 +92,7 @@ func TestSetDefaultConfig(t *testing.T) {
 
 func TestAddrs(t *testing.T) {
 	t.Parallel()
-	_, fapi, cls := newAPI(t, 1)
+	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	addrs := fapi.Addrs()
@@ -103,7 +103,7 @@ func TestAddrs(t *testing.T) {
 
 func TestNewAddress(t *testing.T) {
 	t.Parallel()
-	_, fapi, cls := newAPI(t, 1)
+	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	addr, err := fapi.NewAddr(context.Background(), "my address")
@@ -116,7 +116,7 @@ func TestNewAddress(t *testing.T) {
 
 func TestNewAddressDefault(t *testing.T) {
 	t.Parallel()
-	_, fapi, cls := newAPI(t, 1)
+	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	addr, err := fapi.NewAddr(context.Background(), "my address", api.WithMakeDefault(true))
@@ -129,7 +129,7 @@ func TestNewAddressDefault(t *testing.T) {
 
 func TestGetDefaultConfig(t *testing.T) {
 	t.Parallel()
-	_, fapi, cls := newAPI(t, 1)
+	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	defaultConf := fapi.DefaultConfig()
@@ -141,12 +141,8 @@ func TestAdd(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchIPFSDocker()
+		ipfsAPI, client, fapi, cls := newAPI(t, 1)
 		defer cls()
-		ds := tests.NewTxMapDatastore()
-		addr, client, ms := newDevnet(t, 1)
-		ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-		defer closeInternal()
 
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 		jid, err := fapi.PushConfig(cid)
@@ -158,7 +154,7 @@ func TestAdd(t *testing.T) {
 	})
 
 	t.Run("WithCustomConfig", func(t *testing.T) {
-		ipfsAPI, fapi, cls := newAPI(t, 1)
+		ipfsAPI, _, fapi, cls := newAPI(t, 1)
 		defer cls()
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 
@@ -173,7 +169,7 @@ func TestAdd(t *testing.T) {
 func TestGet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, fapi, cls := newAPI(t, 1)
+	ipfs, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -195,7 +191,7 @@ func TestGet(t *testing.T) {
 func TestInfo(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, fapi, cls := newAPI(t, 1)
+	ipfs, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	var err error
@@ -234,7 +230,7 @@ func TestInfo(t *testing.T) {
 func TestShow(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, fapi, cls := newAPI(t, 1)
+	ipfs, _, fapi, cls := newAPI(t, 1)
 
 	defer cls()
 
@@ -279,9 +275,9 @@ func TestColdInstanceLoad(t *testing.T) {
 	ctx := context.Background()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
-
+	ipfsAddr := "/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp")
 	ds := tests.NewTxMapDatastore()
-	addr, client, ms := newDevnet(t, 1)
+	addr, client, ms := newDevnet(t, 1, ipfsAddr)
 
 	ipfsAPI, fapi, cls := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
 	ra := rand.New(rand.NewSource(22))
@@ -320,7 +316,7 @@ func TestRepFactor(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
-			ipfsAPI, fapi, cls := newAPI(t, rf)
+			ipfsAPI, _, fapi, cls := newAPI(t, rf)
 			defer cls()
 			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(rf)
@@ -339,7 +335,7 @@ func TestRepFactor(t *testing.T) {
 func TestRepFactorIncrease(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(22))
-	ipfsAPI, fapi, cls := newAPI(t, 2)
+	ipfsAPI, _, fapi, cls := newAPI(t, 2)
 	defer cls()
 	cid, _ := addRandomFile(t, r, ipfsAPI)
 	jid, err := fapi.PushConfig(cid)
@@ -366,7 +362,7 @@ func TestRepFactorIncrease(t *testing.T) {
 func TestRepFactorDecrease(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(22))
-	ipfsAPI, fapi, cls := newAPI(t, 2)
+	ipfsAPI, _, fapi, cls := newAPI(t, 2)
 	defer cls()
 
 	cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -393,7 +389,7 @@ func TestRepFactorDecrease(t *testing.T) {
 
 func TestHotTimeoutConfig(t *testing.T) {
 	t.Parallel()
-	_, fapi, cls := newAPI(t, 1)
+	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	t.Run("ShortTime", func(t *testing.T) {
@@ -407,7 +403,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 
 func TestDurationConfig(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, fapi, cls := newAPI(t, 1)
+	ipfsAPI, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -427,7 +423,7 @@ func TestDurationConfig(t *testing.T) {
 
 func TestFilecoinExcludedMiners(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, fapi, cls := newAPI(t, 2)
+	ipfsAPI, _, fapi, cls := newAPI(t, 2)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -447,7 +443,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 
 func TestFilecoinTrustedMiner(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, fapi, cls := newAPI(t, 2)
+	ipfsAPI, _, fapi, cls := newAPI(t, 2)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -469,10 +465,10 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	t.Parallel()
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
-
+	ipfsAddr := "/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp")
 	countries := []string{"China", "Uruguay"}
 	numMiners := len(countries)
-	client, addr, _ := tests.CreateLocalDevnet(t, numMiners)
+	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
 		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
@@ -516,7 +512,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 	for _, tt := range tableTest {
 		name := fmt.Sprintf("Hot(%v)/Cold(%v)", tt.HotEnabled, tt.ColdEnabled)
 		t.Run(name, func(t *testing.T) {
-			ipfsAPI, fapi, cls := newAPI(t, 1)
+			ipfsAPI, _, fapi, cls := newAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -589,7 +585,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	t.Parallel()
 	t.Run("HotEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, fapi, cls := newAPI(t, 1)
+		ipfsAPI, _, fapi, cls := newAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -611,7 +607,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, fapi, cls := newAPI(t, 1)
+		ipfsAPI, _, fapi, cls := newAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -633,12 +629,8 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchIPFSDocker()
-		t.Cleanup(func() { cls() })
-		ds := tests.NewTxMapDatastore()
-		addr, client, ms := newDevnet(t, 1)
-		ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-		t.Cleanup(func() { closeInternal() })
+		ipfsAPI, client, fapi, cls := newAPI(t, 1)
+		defer cls()
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -660,12 +652,8 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsDocker, cls := tests.LaunchIPFSDocker()
-		t.Cleanup(func() { cls() })
-		ds := tests.NewTxMapDatastore()
-		addr, client, ms := newDevnet(t, 1)
-		ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-		t.Cleanup(func() { closeInternal() })
+		ipfsAPI, client, fapi, cls := newAPI(t, 1)
+		defer cls()
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -707,7 +695,7 @@ func requireFilStored(ctx context.Context, t *testing.T, client *apistruct.FullN
 
 func TestUnfreeze(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, fapi, cls := newAPI(t, 1)
+	ipfsAPI, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	ra := rand.New(rand.NewSource(22))
@@ -740,12 +728,8 @@ func TestUnfreeze(t *testing.T) {
 
 func TestRenew(t *testing.T) {
 	t.Parallel()
-	ipfsDocker, cls := tests.LaunchIPFSDocker()
-	t.Cleanup(func() { cls() })
-	ds := tests.NewTxMapDatastore()
-	addr, client, ms := newDevnet(t, 2)
-	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-	defer closeInternal()
+	ipfsAPI, client, fapi, cls := newAPI(t, 1)
+	defer cls()
 
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
@@ -790,15 +774,8 @@ Loop:
 }
 
 func TestRenewWithDecreasedRepFactor(t *testing.T) {
-	// ToDo: unskip when testnet/3  allows more than one deal
-	// See https://bit.ly/2JxQSQk
-	t.SkipNow()
-	ipfsDocker, cls := tests.LaunchIPFSDocker()
-	t.Cleanup(func() { cls() })
-	ds := tests.NewTxMapDatastore()
-	addr, client, ms := newDevnet(t, 2)
-	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-	defer closeInternal()
+	ipfsAPI, client, fapi, cls := newAPI(t, 1)
+	defer cls()
 
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
@@ -851,7 +828,7 @@ Loop:
 func TestCidLogger(t *testing.T) {
 	t.Parallel()
 	t.Run("WithNoFilters", func(t *testing.T) {
-		ipfs, fapi, cls := newAPI(t, 1)
+		ipfs, _, fapi, cls := newAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -890,7 +867,7 @@ func TestCidLogger(t *testing.T) {
 	})
 	t.Run("WithJidFilter", func(t *testing.T) {
 		t.Run("CorrectJid", func(t *testing.T) {
-			ipfs, fapi, cls := newAPI(t, 1)
+			ipfs, _, fapi, cls := newAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -928,7 +905,7 @@ func TestCidLogger(t *testing.T) {
 			requireCidConfig(t, fapi, cid, nil)
 		})
 		t.Run("IncorrectJid", func(t *testing.T) {
-			ipfs, fapi, cls := newAPI(t, 1)
+			ipfs, _, fapi, cls := newAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -960,12 +937,8 @@ func TestCidLogger(t *testing.T) {
 func TestPushCidReplace(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfsDocker, cls := tests.LaunchIPFSDocker()
+	ipfs, client, fapi, cls := newAPI(t, 1)
 	defer cls()
-	ds := tests.NewTxMapDatastore()
-	addr, client, ms := newDevnet(t, 1)
-	ipfs, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-	defer closeInternal()
 
 	r := rand.New(rand.NewSource(22))
 	c1, _ := addRandomFile(t, r, ipfs)
@@ -1002,7 +975,7 @@ func TestPushCidReplace(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	t.Parallel()
-	ipfs, fapi, cls := newAPI(t, 1)
+	ipfs, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -1031,7 +1004,7 @@ func TestRemove(t *testing.T) {
 func TestSendFil(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	_, fapi, cls := newAPI(t, 1)
+	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	const amt int64 = 1
@@ -1088,7 +1061,7 @@ func TestRepair(t *testing.T) {
 	// See if can be tuned to run better on CI.
 	t.SkipNow()
 	t.Parallel()
-	ipfs, fapi, cls := newAPI(t, 1)
+	ipfs, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -1143,7 +1116,7 @@ func TestRepair(t *testing.T) {
 
 func TestFailedJobMessage(t *testing.T) {
 	t.Parallel()
-	ipfs, fapi, cls := newAPI(t, 1)
+	ipfs, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -1164,7 +1137,7 @@ func TestFailedJobMessage(t *testing.T) {
 
 func TestLogHistory(t *testing.T) {
 	t.Parallel()
-	ipfs, fapi, cls := newAPI(t, 1)
+	ipfs, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -1195,19 +1168,21 @@ func TestLogHistory(t *testing.T) {
 	require.Greater(t, len(lgs), 3) // Ask to have more than 3 log messages.
 }
 
-func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *api.API, func()) {
+func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
 	ds := tests.NewTxMapDatastore()
-	addr, client, ms := newDevnet(t, numMiners)
+	bridgeIP := ipfsDocker.Container.NetworkSettings.Networks["bridge"].IPAddress
+	ipfsAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
+	addr, client, ms := newDevnet(t, numMiners, ipfsAddr)
 	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-	return ipfsAPI, fapi, func() {
+	return ipfsAPI, client, fapi, func() {
 		closeInternal()
 	}
 }
 
-func newDevnet(t *testing.T, numMiners int) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
-	client, addr, _ := tests.CreateLocalDevnet(t, numMiners)
+func newDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
+	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
 		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
