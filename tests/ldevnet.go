@@ -37,7 +37,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockerte
 	if err := lotusDevnet.Expire(180); err != nil {
 		panic(err)
 	}
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * time.Duration(2+numMiners))
 	t.Cleanup(func() {
 		if err := pool.Purge(lotusDevnet); err != nil {
 			panic(fmt.Sprintf("couldn't purge lotus-devnet from docker pool: %s", err))
