@@ -68,6 +68,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockerte
 	return lotusDevnet
 }
 
+// CreateLocalDevnetWithIPFS creates a local devnet connected to an IPFS node.
 func CreateLocalDevnetWithIPFS(t *testing.T, numMiners int, ipfsMaddr string) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
 	lotusDevnet := LaunchDevnetDocker(t, numMiners, ipfsMaddr)
 	c, cls, err := lotus.New(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "")
