@@ -61,18 +61,19 @@ func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 	}, nil
 }
 
-func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Cid, error) {
+func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Cid, int64, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
-		return cid.Undef, fmt.Errorf("error when creating tmpfile: %s", err)
+		return cid.Undef, 0, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
 			log.Errorf("closing storing file: %s", err)
 		}
 	}()
-	if _, err = io.Copy(f, data); err != nil {
-		return cid.Undef, fmt.Errorf("error when copying data to tmpfile: %s", err)
+	var size int64
+	if size, err = io.Copy(f, data); err != nil {
+		return cid.Undef, 0, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
 	ref := api.FileRef{
 		Path:  f.Name(),
@@ -80,16 +81,17 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 	}
 	dataCid, err := m.api.ClientImport(ctx, ref)
 	if err != nil {
-		return cid.Undef, fmt.Errorf("error when importing data: %s", err)
+		return cid.Undef, 0, fmt.Errorf("error when importing data: %s", err)
 	}
-	return dataCid, nil
+	return dataCid, size, nil
 }
 
-// Store creates a proposal deal for data using wallet addr to all miners indicated
-// by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size uint64, dcfgs []StorageDealConfig, dur uint64, isCAR bool) ([]StoreResult, error) {
+// Store create Deal Proposals with all miners indicated in dcfgs. The epoch price
+// is automatically calculated considering each miner epoch price and data size.
+// The implementation assumes the data is already imported in the Filecoin client, or
+// its accessible to it (e.g: is integrated with an IPFS node).
+func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size uint64, dcfgs []StorageDealConfig, duration uint64) ([]StoreResult, error) {
 	gbSize := float64(size) / float64(1<<30)
-
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
 		return nil, err
@@ -108,7 +110,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size 
 			Data: &storagemarket.DataRef{
 				Root: dataCid,
 			},
-			MinBlocksDuration: dur,
+			MinBlocksDuration: duration,
 			EpochPrice:        types.NewInt(uint64(math.Ceil(2 * gbSize * float64(c.EpochPrice)))),
 			Miner:             maddr,
 			Wallet:            addr,

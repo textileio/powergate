@@ -103,7 +103,7 @@ func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
 	if err := ci.ipfs.Pin().Add(ctx, p, options.Pin.Recursive(true)); err != nil {
 		return 0, fmt.Errorf("pinning cid %s: %s", c, err)
 	}
-	s, err := ci.ipfs.Block().Stat(ctx, p)
+	s, err := ci.ipfs.Object().Stat(ctx, p)
 	if err != nil {
 		return 0, fmt.Errorf("getting stats of cid %s: %s", c, err)
 	}
@@ -113,7 +113,7 @@ func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
 	ci.lock.Lock()
 	ci.pinset[c] = struct{}{}
 	ci.lock.Unlock()
-	return s.Size(), nil
+	return s.CumulativeSize, nil
 }
 
 // Replace replaces a stored Cid with other Cid.

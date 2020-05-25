@@ -363,6 +363,7 @@ type ColdInfo struct {
 // of a Cid in the Filecoin network.
 type FilInfo struct {
 	DataCid   cid.Cid
+	Size      uint64
 	Proposals []FilStorage
 }
 

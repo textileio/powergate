@@ -29,7 +29,6 @@ require (
 	github.com/ipfs/go-ds-badger2 v0.1.0
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200228220229-2e259051cd8b
-	github.com/ipfs/go-ipld-format v0.2.0
 	github.com/ipfs/go-log/v2 v2.0.8
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/ipld/go-car v0.1.1-0.20200430185908-8ff2e52a4c88

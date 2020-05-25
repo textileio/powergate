@@ -6,8 +6,9 @@ import (
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-cid"
-	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
+	iface "github.com/ipfs/interface-go-ipfs-core"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/ipld/go-car"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
@@ -17,11 +18,12 @@ var (
 	log = logger.Logger("ffs-filcold")
 )
 
-// FilCold is a ffs.ColdStorage implementation that stores data in Filecoin.
+// FilCold is a ColdStorage implementation which saves data in the Filecoin network.
+// It assumes the underlying Filecoin client has access to an IPFS node where data is stored.
 type FilCold struct {
 	ms    ffs.MinerSelector
 	dm    *deals.Module
-	dag   format.DAGService
+	ipfs  iface.CoreAPI
 	chain FilChain
 	l     ffs.CidLogger
 }
@@ -33,12 +35,12 @@ type FilChain interface {
 	GetHeight(context.Context) (uint64, error)
 }
 
-// New returns a new FilCold instance
-func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService, chain FilChain, l ffs.CidLogger) *FilCold {
+// New returns a new FilCold instance.
+func New(ms ffs.MinerSelector, dm *deals.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.CidLogger) *FilCold {
 	return &FilCold{
 		ms:    ms,
 		dm:    dm,
-		dag:   dag,
+		ipfs:  ipfs,
 		chain: chain,
 		l:     l,
 	}
@@ -79,13 +81,18 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("making deal configs: %s", err)
 	}
-	props, errors, err := fc.makeDeals(ctx, c, cfgs, cfg)
+	size, err := fc.getCidSize(ctx, c)
+	if err != nil {
+		return ffs.FilInfo{}, nil, fmt.Errorf("getting cid cummulative size: %s", err)
+	}
+	props, errors, err := fc.makeDeals(ctx, c, size, cfgs, cfg)
 	if err != nil {
 		return ffs.FilInfo{}, errors, fmt.Errorf("executing deals: %s", err)
 	}
 
 	return ffs.FilInfo{
 		DataCid:   c,
+		Size:      size,
 		Proposals: props,
 	}, errors, nil
 }
@@ -141,10 +148,11 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		// renewed.
 		numToBeRenewed = len(renewable)
 	}
+
 	toRenew := renewable[:numToBeRenewed]
 	var retErrors []ffs.DealError
 	for i, p := range toRenew {
-		newProposal, errors, err := fc.renewDeal(ctx, c, p, activeMiners, cfg)
+		newProposal, errors, err := fc.renewDeal(ctx, c, inf.Size, p, activeMiners, cfg)
 		if err != nil {
 			log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
 			continue
@@ -157,7 +165,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return inf, retErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, []ffs.DealError, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, []ffs.DealError, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: activeMiners,
 	}
@@ -166,7 +174,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, a
 		return ffs.FilStorage{}, nil, fmt.Errorf("making new deal config: %s", err)
 	}
 
-	props, errors, err := fc.makeDeals(ctx, c, dealConfig, fcfg)
+	props, errors, err := fc.makeDeals(ctx, c, size, dealConfig, fcfg)
 	if err != nil {
 		return ffs.FilStorage{}, errors, fmt.Errorf("executing renewed deal: %s", err)
 	}
@@ -176,13 +184,13 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, a
 	return props[0], errors, nil
 }
 
-func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]ffs.FilStorage, []ffs.DealError, error) {
+func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]ffs.FilStorage, []ffs.DealError, error) {
 	for _, cfg := range cfgs {
 		fc.l.Log(ctx, c, "Proposing deal to miner %s with %d fil per epoch...", cfg.Miner, cfg.EpochPrice)
 	}
 
 	var sres []deals.StoreResult
-	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, cfgs, uint64(fcfg.DealDuration), true)
+	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, size, cfgs, uint64(fcfg.DealDuration))
 	if err != nil {
 		return nil, nil, fmt.Errorf("storing deals in deal module: %s", err)
 	}
@@ -268,6 +276,14 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 	}
 	fc.l.Log(ctx, c, "All deals reached final state.")
 	return res, errors, nil
+}
+
+func (fc *FilCold) getCidSize(ctx context.Context, c cid.Cid) (uint64, error) {
+	s, err := fc.ipfs.Object().Stat(ctx, path.IpfsPath(c))
+	if err != nil {
+		return 0, fmt.Errorf("calling ipfs object stat: %s", err)
+	}
+	return uint64(s.CumulativeSize), nil
 }
 
 func makeDealConfigs(ctx context.Context, ms ffs.MinerSelector, cantMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {

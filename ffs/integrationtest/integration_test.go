@@ -1207,7 +1207,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 
 	fchain := lotuschain.New(client)
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
-	cl := filcold.New(ms, dm, ipfsClient.Dag(), fchain, l)
+	cl := filcold.New(ms, dm, ipfsClient, fchain, l)
 	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
 	as := astore.New(txndstr.Wrap(ds, "ffs/scheduler/astore"))
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))

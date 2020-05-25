@@ -190,7 +190,7 @@ func NewServer(conf Config) (*Server, error) {
 	ms := reptop.New(rm, ai)
 
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
-	cs := filcold.New(ms, dm, ipfs.Dag(), lchain, l)
+	cs := filcold.New(ms, dm, ipfs, lchain, l)
 	hs := coreipfs.New(ipfs, l)
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	as := astore.New(txndstr.Wrap(ds, "ffs/scheduler/astore"))
