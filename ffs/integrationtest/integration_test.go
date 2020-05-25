@@ -774,14 +774,14 @@ Loop:
 }
 
 func TestRenewWithDecreasedRepFactor(t *testing.T) {
-	ipfsAPI, client, fapi, cls := newAPI(t, 1)
+	ipfsAPI, _, fapi, cls := newAPI(t, 3)
 	defer cls()
 
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
 	renewThreshold := 50
-	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(200)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(150)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
@@ -797,7 +797,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-	lchain := lotuschain.New(client)
+	epochDeadline := 200
 Loop:
 	for range ticker.C {
 		i, err := fapi.Show(cid)
@@ -805,18 +805,19 @@ Loop:
 
 		firstDeal := i.Cold.Filecoin.Proposals[0]
 		secondDeal := i.Cold.Filecoin.Proposals[1]
-		h, err := lchain.GetHeight(context.Background())
 		require.Nil(t, err)
-		if firstDeal.ActivationEpoch+firstDeal.Duration-int64(renewThreshold)+int64(100) > int64(h) {
-			require.LessOrEqual(t, len(i.Cold.Filecoin.Proposals), 3)
+		if len(i.Cold.Filecoin.Proposals) < 3 {
+			epochDeadline--
+			require.Greater(t, epochDeadline, 0)
 			continue
 		}
+		fmt.Printf("WHAT: %#v\n", i.Cold.Filecoin.Proposals)
 
 		require.Equal(t, 3, len(i.Cold.Filecoin.Proposals))
 		// Only one of the two deas should be renewed
 		require.True(t, (firstDeal.Renewed && !secondDeal.Renewed) || (secondDeal.Renewed && !firstDeal.Renewed))
 
-		newDeal := i.Cold.Filecoin.Proposals[3]
+		newDeal := i.Cold.Filecoin.Proposals[2]
 		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
@@ -1059,7 +1060,6 @@ func TestSendFil(t *testing.T) {
 func TestRepair(t *testing.T) {
 	// ToDo: Flaky on CI, runs ok locally.
 	// See if can be tuned to run better on CI.
-	t.SkipNow()
 	t.Parallel()
 	ipfs, _, fapi, cls := newAPI(t, 1)
 	defer cls()
