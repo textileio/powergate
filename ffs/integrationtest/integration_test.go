@@ -728,14 +728,14 @@ func TestUnfreeze(t *testing.T) {
 
 func TestRenew(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, client, fapi, cls := newAPI(t, 1)
+	ipfsAPI, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
 	renewThreshold := 50
-	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(200)).WithColdFilRenew(true, renewThreshold)
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
@@ -747,21 +747,20 @@ func TestRenew(t *testing.T) {
 
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
-	lchain := lotuschain.New(client)
+	epochDeadline := 200
 Loop:
 	for range ticker.C {
 		i, err := fapi.Show(cid)
 		require.Nil(t, err)
 
 		firstDeal := i.Cold.Filecoin.Proposals[0]
-		h, err := lchain.GetHeight(context.Background())
 		require.Nil(t, err)
-		if firstDeal.ActivationEpoch+firstDeal.Duration-int64(renewThreshold)+int64(100) > int64(h) {
-			require.LessOrEqual(t, len(i.Cold.Filecoin.Proposals), 2)
+		if len(i.Cold.Filecoin.Proposals) < 2 {
+			require.Greater(t, epochDeadline, 0)
 			continue
 		}
 
-		require.Equal(t, len(i.Cold.Filecoin.Proposals), 2)
+		require.Equal(t, 2, len(i.Cold.Filecoin.Proposals))
 		require.True(t, firstDeal.Renewed)
 
 		newDeal := i.Cold.Filecoin.Proposals[1]
@@ -774,7 +773,7 @@ Loop:
 }
 
 func TestRenewWithDecreasedRepFactor(t *testing.T) {
-	ipfsAPI, _, fapi, cls := newAPI(t, 3)
+	ipfsAPI, _, fapi, cls := newAPI(t, 2)
 	defer cls()
 
 	ra := rand.New(rand.NewSource(22))

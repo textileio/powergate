@@ -112,10 +112,6 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
 func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig) (ffs.FilInfo, []ffs.DealError, error) {
-	var activeMiners []string
-	for _, p := range inf.Proposals {
-		activeMiners = append(activeMiners, p.Miner)
-	}
 	height, err := fc.chain.GetHeight(ctx)
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("get current filecoin height: %s", err)
@@ -152,7 +148,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	toRenew := renewable[:numToBeRenewed]
 	var retErrors []ffs.DealError
 	for i, p := range toRenew {
-		newProposal, errors, err := fc.renewDeal(ctx, c, inf.Size, p, activeMiners, cfg)
+		newProposal, errors, err := fc.renewDeal(ctx, c, inf.Size, p, cfg)
 		if err != nil {
 			log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
 			continue
@@ -165,9 +161,9 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return inf, retErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, []ffs.DealError, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig) (ffs.FilStorage, []ffs.DealError, error) {
 	f := ffs.MinerSelectorFilter{
-		ExcludedMiners: activeMiners,
+		TrustedMiners: []string{p.Miner},
 	}
 	dealConfig, err := makeDealConfigs(ctx, fc.ms, 1, f)
 	if err != nil {
