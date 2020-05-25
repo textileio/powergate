@@ -780,7 +780,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
 	renewThreshold := 50
-	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(150)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(300)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
