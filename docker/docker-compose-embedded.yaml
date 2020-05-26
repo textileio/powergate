@@ -32,11 +32,12 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:sha-59a6329
+    image: textile/lotus-devnet:sha-06e103a
     ports:
       - 7777:7777
     environment:
       - TEXLOTUSDEVNET_SPEED=1500
       - TEXLOTUSDEVNET_BIGSECTORS=true
+      - TEXLOTUSDEVNET_IPFSADDR=/ip4/ipfs/tcp/5001
     volumes:
      - pow-embed-shared:/tmp/powergate
