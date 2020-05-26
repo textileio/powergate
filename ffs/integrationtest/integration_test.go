@@ -812,7 +812,6 @@ Loop:
 			require.Greater(t, epochDeadline, 0)
 			continue
 		}
-		fmt.Printf("WHAT: %#v\n", i.Cold.Filecoin.Proposals)
 
 		require.Equal(t, 3, len(i.Cold.Filecoin.Proposals))
 		// Only one of the two deas should be renewed
