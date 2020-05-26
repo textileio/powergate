@@ -1,7 +1,7 @@
 syntax = "proto3";
 package net.rpc;
 
-option go_package = "rpc";
+option go_package = "net/rpc";
 
 message PeerAddrInfo {
     string ID = 1;

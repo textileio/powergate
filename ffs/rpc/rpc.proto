@@ -1,7 +1,7 @@
 syntax = "proto3";
 package ffs.rpc;
 
-option go_package = "rpc";
+option go_package = "ffs/rpc";
 
 // model messages
 // ------------------------------------
