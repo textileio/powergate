@@ -9,7 +9,6 @@ import (
 	logger "github.com/ipfs/go-log/v2"
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/ipld/go-car"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 )
@@ -46,26 +45,13 @@ func New(ms ffs.MinerSelector, dm *deals.Module, ipfs iface.CoreAPI, chain FilCh
 	}
 }
 
-// Retrieve returns the original data Cid, from the CAR encoded data Cid. The returned Cid is available in the
-// car.Store received as a parameter.
-func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, waddr string) (cid.Cid, error) {
-	carR, err := fc.dm.Retrieve(ctx, waddr, dataCid, true)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("retrieving from deal module: %s", err)
+// Fetch fetches the stored Cid data.The data will be considered available
+// to the underlying blockstore.
+func (fc *FilCold) Fetch(ctx context.Context, dataCid cid.Cid, waddr string) error {
+	if err := fc.dm.Fetch(ctx, waddr, dataCid); err != nil {
+		return fmt.Errorf("fetching from deal module: %s", err)
 	}
-	defer func() {
-		if err := carR.Close(); err != nil {
-			log.Errorf("closing reader from deal retrieve: %s", err)
-		}
-	}()
-	h, err := car.LoadCar(cs, carR)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("loading car to carstore: %s", err)
-	}
-	if len(h.Roots) != 1 {
-		return cid.Undef, fmt.Errorf("car header doesn't have a single root: %d", len(h.Roots))
-	}
-	return h.Roots[0], nil
+	return nil
 }
 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using

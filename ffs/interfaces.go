@@ -8,7 +8,6 @@ import (
 
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
-	"github.com/ipld/go-car"
 )
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
@@ -111,9 +110,8 @@ type ColdStorage interface {
 	// during execution.
 	Store(context.Context, cid.Cid, FilConfig) (FilInfo, []DealError, error)
 
-	// Retrieve retrieves the data using an account address,
-	// and store it in a CAR store.
-	Retrieve(context.Context, cid.Cid, car.Store, string) (cid.Cid, error)
+	// Fetch fetches the cid data in the underlying storage.
+	Fetch(context.Context, cid.Cid, string) error
 
 	// EnsureRenewals executes renewal logic for a Cid under a particular
 	// configuration. It returns a slice of deal errors happened during execution.

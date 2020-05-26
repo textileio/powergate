@@ -31,7 +31,6 @@ require (
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200228220229-2e259051cd8b
 	github.com/ipfs/go-log/v2 v2.0.8
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
-	github.com/ipld/go-car v0.1.1-0.20200430185908-8ff2e52a4c88
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/libp2p/go-libp2p v0.9.2
 	github.com/libp2p/go-libp2p-core v0.5.6

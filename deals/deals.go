@@ -177,10 +177,9 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 	if len(offers) == 0 {
 		return ErrRetrievalNoAvailableProviders
 	}
-
 	for _, o := range offers {
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
-			log.Infof("retrieving cid %s from %s: %s", cid, o.Miner, err)
+			log.Infof("fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
 		return nil
