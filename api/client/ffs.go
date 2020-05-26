@@ -7,7 +7,6 @@ import (
 
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
-	ff "github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/rpc"
 	"google.golang.org/grpc/codes"
@@ -21,7 +20,7 @@ type FFS struct {
 
 // JobEvent represents an event for Watching a job
 type JobEvent struct {
-	Job ff.Job
+	Job ffs.Job
 	Err error
 }
 
@@ -46,7 +45,7 @@ func WithAddressType(addressType string) NewAddressOption {
 type PushConfigOption func(r *rpc.PushConfigRequest)
 
 // WithCidConfig overrides the Api default Cid configuration.
-func WithCidConfig(c ff.CidConfig) PushConfigOption {
+func WithCidConfig(c ffs.CidConfig) PushConfigOption {
 	return func(r *rpc.PushConfigRequest) {
 		r.HasConfig = true
 		r.Config = &rpc.CidConfig{
@@ -71,7 +70,7 @@ type WatchLogsOption func(r *rpc.WatchLogsRequest)
 
 // WithJidFilter filters only log messages of a Cid related to
 // the Job with id jid.
-func WithJidFilter(jid ff.JobID) WatchLogsOption {
+func WithJidFilter(jid ffs.JobID) WatchLogsOption {
 	return func(r *rpc.WatchLogsRequest) {
 		r.Jid = jid.String()
 	}
@@ -87,7 +86,7 @@ func WithHistory(enabled bool) WatchLogsOption {
 
 // LogEvent represents an event for watching cid logs
 type LogEvent struct {
-	LogEntry ff.LogEntry
+	LogEntry ffs.LogEntry
 	Err      error
 }
 
@@ -106,20 +105,20 @@ func (f *FFS) ListAPI(ctx context.Context) ([]ffs.APIID, error) {
 	if err != nil {
 		return nil, err
 	}
-	res := make([]ff.APIID, len(r.Instances))
+	res := make([]ffs.APIID, len(r.Instances))
 	for i, v := range r.Instances {
-		res[i] = ff.APIID(v)
+		res[i] = ffs.APIID(v)
 	}
 	return res, nil
 }
 
 // ID returns the FFS instance ID
-func (f *FFS) ID(ctx context.Context) (ff.APIID, error) {
+func (f *FFS) ID(ctx context.Context) (ffs.APIID, error) {
 	resp, err := f.client.ID(ctx, &rpc.IDRequest{})
 	if err != nil {
-		return ff.EmptyInstanceID, err
+		return ffs.EmptyInstanceID, err
 	}
-	return ff.APIID(resp.ID), nil
+	return ffs.APIID(resp.ID), nil
 }
 
 // Addrs returns a list of addresses managed by the FFS instance
@@ -140,28 +139,28 @@ func (f *FFS) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 }
 
 // DefaultConfig returns the default storage config
-func (f *FFS) DefaultConfig(ctx context.Context) (ff.DefaultConfig, error) {
+func (f *FFS) DefaultConfig(ctx context.Context) (ffs.DefaultConfig, error) {
 	resp, err := f.client.DefaultConfig(ctx, &rpc.DefaultConfigRequest{})
 	if err != nil {
-		return ff.DefaultConfig{}, err
+		return ffs.DefaultConfig{}, err
 	}
-	return ff.DefaultConfig{
-		Hot: ff.HotConfig{
+	return ffs.DefaultConfig{
+		Hot: ffs.HotConfig{
 			Enabled:       resp.DefaultConfig.Hot.Enabled,
 			AllowUnfreeze: resp.DefaultConfig.Hot.AllowUnfreeze,
-			Ipfs: ff.IpfsConfig{
+			Ipfs: ffs.IpfsConfig{
 				AddTimeout: int(resp.DefaultConfig.Hot.Ipfs.AddTimeout),
 			},
 		},
-		Cold: ff.ColdConfig{
+		Cold: ffs.ColdConfig{
 			Enabled: resp.DefaultConfig.Cold.Enabled,
-			Filecoin: ff.FilConfig{
+			Filecoin: ffs.FilConfig{
 				RepFactor:      int(resp.DefaultConfig.Cold.Filecoin.RepFactor),
 				DealDuration:   resp.DefaultConfig.Cold.Filecoin.DealDuration,
 				ExcludedMiners: resp.DefaultConfig.Cold.Filecoin.ExcludedMiners,
 				CountryCodes:   resp.DefaultConfig.Cold.Filecoin.CountryCodes,
 				TrustedMiners:  resp.DefaultConfig.Cold.Filecoin.TrustedMiners,
-				Renew: ff.FilRenew{
+				Renew: ffs.FilRenew{
 					Enabled:   resp.DefaultConfig.Cold.Filecoin.Renew.Enabled,
 					Threshold: int(resp.DefaultConfig.Cold.Filecoin.Renew.Threshold),
 				},
@@ -183,34 +182,34 @@ func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 }
 
 // GetDefaultCidConfig returns a CidConfig built from the default storage config and prepped for the provided cid
-func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ff.CidConfig, error) {
+func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig, error) {
 	res, err := f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: c.String()})
 	if err != nil {
-		return ff.CidConfig{}, err
+		return ffs.CidConfig{}, err
 	}
 	resCid, err := cid.Decode(res.Config.Cid)
 	if err != nil {
-		return ff.CidConfig{}, err
+		return ffs.CidConfig{}, err
 	}
-	return ff.CidConfig{
+	return ffs.CidConfig{
 		Cid:        resCid,
 		Repairable: res.Config.Repairable,
-		Hot: ff.HotConfig{
+		Hot: ffs.HotConfig{
 			AllowUnfreeze: res.Config.Hot.AllowUnfreeze,
 			Enabled:       res.Config.Hot.Enabled,
-			Ipfs: ff.IpfsConfig{
+			Ipfs: ffs.IpfsConfig{
 				AddTimeout: int(res.Config.Hot.Ipfs.AddTimeout),
 			},
 		},
-		Cold: ff.ColdConfig{
+		Cold: ffs.ColdConfig{
 			Enabled: res.Config.Cold.Enabled,
-			Filecoin: ff.FilConfig{
+			Filecoin: ffs.FilConfig{
 				RepFactor:      int(res.Config.Cold.Filecoin.RepFactor),
 				Addr:           res.Config.Cold.Filecoin.Addr,
 				CountryCodes:   res.Config.Cold.Filecoin.CountryCodes,
 				DealDuration:   res.Config.Cold.Filecoin.DealDuration,
 				ExcludedMiners: res.Config.Cold.Filecoin.ExcludedMiners,
-				Renew: ff.FilRenew{
+				Renew: ffs.FilRenew{
 					Enabled:   res.Config.Cold.Filecoin.Renew.Enabled,
 					Threshold: int(res.Config.Cold.Filecoin.Renew.Threshold),
 				},
@@ -226,7 +225,7 @@ func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigRep
 }
 
 // SetDefaultConfig sets the default storage config
-func (f *FFS) SetDefaultConfig(ctx context.Context, config ff.DefaultConfig) error {
+func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.DefaultConfig) error {
 	req := &rpc.SetDefaultConfigRequest{
 		Config: &rpc.DefaultConfig{
 			Hot:        toRPCHotConfig(config.Hot),
@@ -309,7 +308,7 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
 // events, the provided ctx should be canceled. If an error occurs, it will be returned
 // in the Err field of JobEvent and the channel will be closed.
-func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobID) error {
+func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.JobID) error {
 	jidStrings := make([]string, len(jids))
 	for i, jid := range jids {
 		jidStrings[i] = jid.String()
@@ -344,11 +343,11 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobI
 				close(ch)
 				break
 			}
-			job := ff.Job{
-				ID:         ff.JobID(reply.Job.ID),
-				APIID:      ff.APIID(reply.Job.ApiID),
+			job := ffs.Job{
+				ID:         ffs.JobID(reply.Job.ID),
+				APIID:      ffs.APIID(reply.Job.ApiID),
 				Cid:        c,
-				Status:     ff.JobStatus(reply.Job.Status),
+				Status:     ffs.JobStatus(reply.Job.Status),
 				ErrCause:   reply.Job.ErrCause,
 				DealErrors: dealErrors,
 			}
@@ -360,16 +359,16 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ff.JobI
 
 // Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
-func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ff.JobID, error) {
+func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 	resp, err := f.client.Replace(ctx, &rpc.ReplaceRequest{Cid1: c1.String(), Cid2: c2.String()})
 	if err != nil {
-		return ff.EmptyJobID, err
+		return ffs.EmptyJobID, err
 	}
-	return ff.JobID(resp.JobID), nil
+	return ffs.JobID(resp.JobID), nil
 }
 
 // PushConfig push a new configuration for the Cid in the Hot and Cold layers
-func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ff.JobID, error) {
+func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
 	req := &rpc.PushConfigRequest{Cid: c.String()}
 	for _, opt := range opts {
 		opt(req)
@@ -377,10 +376,10 @@ func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOptio
 
 	resp, err := f.client.PushConfig(ctx, req)
 	if err != nil {
-		return ff.EmptyJobID, err
+		return ffs.EmptyJobID, err
 	}
 
-	return ff.JobID(resp.JobID), nil
+	return ffs.JobID(resp.JobID), nil
 }
 
 // Remove removes a Cid from being tracked as an active storage. The Cid should have
@@ -453,10 +452,10 @@ func (f *FFS) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts
 				break
 			}
 
-			entry := ff.LogEntry{
+			entry := ffs.LogEntry{
 				Cid:       cid,
 				Timestamp: time.Unix(reply.LogEntry.Time, 0),
-				Jid:       ff.JobID(reply.LogEntry.Jid),
+				Jid:       ffs.JobID(reply.LogEntry.Jid),
 				Msg:       reply.LogEntry.Msg,
 			}
 			ch <- LogEvent{LogEntry: entry}
@@ -519,7 +518,7 @@ func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	return &cid, nil
 }
 
-func toRPCHotConfig(config ff.HotConfig) *rpc.HotConfig {
+func toRPCHotConfig(config ffs.HotConfig) *rpc.HotConfig {
 	return &rpc.HotConfig{
 		Enabled:       config.Enabled,
 		AllowUnfreeze: config.AllowUnfreeze,
@@ -529,7 +528,7 @@ func toRPCHotConfig(config ff.HotConfig) *rpc.HotConfig {
 	}
 }
 
-func toRPCColdConfig(config ff.ColdConfig) *rpc.ColdConfig {
+func toRPCColdConfig(config ffs.ColdConfig) *rpc.ColdConfig {
 	return &rpc.ColdConfig{
 		Enabled: config.Enabled,
 		Filecoin: &rpc.FilConfig{
