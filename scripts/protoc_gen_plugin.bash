@@ -83,7 +83,7 @@ fi
 
 mkdir -p "${PLUGIN_OUT}"
 for proto_path in "${PROTO_PATHS[@]}"; do
-  for dir in $(find "${proto_path}" -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq); do
+  for dir in $(find "${proto_path}" -type f ! -path './buildtools/*' -name '*.proto' -print0  | xargs -0 -n1 dirname | sort | uniq); do
     echo protoc "${PROTOC_FLAGS[@]}" $(find "${dir}" -name '*.proto')
     protoc "${PROTOC_FLAGS[@]}" $(find "${dir}" -name '*.proto')
   done
