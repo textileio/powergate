@@ -21,5 +21,8 @@ pow
 powd
 powbench
 
+buildtools/protoc
+buildtools/protoc-gen-go
+
 myfile
 tags
