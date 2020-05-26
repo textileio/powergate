@@ -20,7 +20,7 @@ require (
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.2
-	github.com/golang/protobuf v1.3.5
+	github.com/golang/protobuf v1.4.0
 	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
 	github.com/gosuri/uilive v0.0.4
@@ -62,4 +62,5 @@ require (
 	github.com/stretchr/testify v1.5.1
 	go.opencensus.io v0.22.3
 	google.golang.org/grpc v1.29.1
+	google.golang.org/protobuf v1.23.0
 )
