@@ -38,6 +38,6 @@ services:
     environment:
       - TEXLOTUSDEVNET_SPEED=1500
       - TEXLOTUSDEVNET_BIGSECTORS=true
-      - TEXLOTUSDEVNET_IPFSADDR=/ip4/ipfs/tcp/5001
+      - TEXLOTUSDEVNET_IPFSADDR=/dns4/ipfs/tcp/5001
     volumes:
      - pow-embed-shared:/tmp/powergate
