@@ -55,3 +55,5 @@ require (
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.23.0
 )
+
+replace github.com/filecoin-project/lotus => github.com/jsign/lotus v0.1.2-0.20200526153621-baf9e0e939d1

@@ -136,39 +136,56 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size 
 	return res, nil
 }
 
+// Fetch fetches deal data to the underlying blockstore of the Filecoin client.
+// This API is meant for clients that use external implementations of blockstores with
+// their own API, e.g: IPFS.
+func (m *Module) Fetch(ctx context.Context, waddr string, cid cid.Cid) error {
+	return m.retrieve(ctx, waddr, cid, nil)
+}
+
 // Retrieve retrieves Deal data.
 func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error) {
 	rf, err := ioutil.TempDir(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
 		return nil, fmt.Errorf("creating temp dir for retrieval: %s", err)
 	}
-	addr, err := address.NewFromString(waddr)
-	if err != nil {
-		return nil, err
-	}
-	offers, err := m.api.ClientFindData(ctx, cid)
-	if err != nil {
-		return nil, err
-	}
-	if len(offers) == 0 {
-		return nil, ErrRetrievalNoAvailableProviders
-	}
 	ref := api.FileRef{
 		Path:  filepath.Join(rf, "ret"),
 		IsCAR: CAREncoding,
 	}
+
+	if err := m.retrieve(ctx, waddr, cid, &ref); err != nil {
+		return nil, fmt.Errorf("retrieving from lotus: %s", err)
+	}
+
+	f, err := os.Open(ref.Path)
+	if err != nil {
+		return nil, fmt.Errorf("opening retrieved file: %s", err)
+	}
+	return &autodeleteFile{File: f}, nil
+}
+
+func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *api.FileRef) error {
+	addr, err := address.NewFromString(waddr)
+	if err != nil {
+		return err
+	}
+	offers, err := m.api.ClientFindData(ctx, cid)
+	if err != nil {
+		return err
+	}
+	if len(offers) == 0 {
+		return ErrRetrievalNoAvailableProviders
+	}
+
 	for _, o := range offers {
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
 			log.Infof("retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
-		f, err := os.Open(ref.Path)
-		if err != nil {
-			return nil, fmt.Errorf("opening retrieved file: %s", err)
-		}
-		return &autodeleteFile{File: f}, nil
+		return nil
 	}
-	return nil, fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
+	return fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
 }
 
 // GetDealStatus returns the current status of the deal, and a flag indicating if the miner of the deal was slashed.
