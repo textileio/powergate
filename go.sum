@@ -592,8 +592,8 @@ github.com/jonboulle/clockwork v0.1.0 h1:VKV+ZcuP6l3yW9doeqz6ziZGgcynBVQO+obU0+0
 github.com/jonboulle/clockwork v0.1.0/go.mod h1:Ii8DK3G1RaLaWxj9trq07+26W01tbo22gdxWY5EU2bo=
 github.com/jonboulle/clockwork v0.1.1-0.20190114141812-62fb9bc030d1/go.mod h1:Ii8DK3G1RaLaWxj9trq07+26W01tbo22gdxWY5EU2bo=
 github.com/jrick/logrotate v1.0.0/go.mod h1:LNinyqDIJnpAur+b8yyulnQw/wDuN1+BYKlTRt3OuAQ=
-github.com/jsign/lotus v0.1.2-0.20200526175252-bcd84cbe9dea h1:ay/Y1UfVRbQsZYKNakal7xE2DKfex+xyhZp7qTscip0=
-github.com/jsign/lotus v0.1.2-0.20200526175252-bcd84cbe9dea/go.mod h1:yokRpORW3maBz5m04K6lN9gPH+BBxSw3Ba/yjjX0n1Y=
+github.com/jsign/lotus v0.1.2-0.20200526183520-a10690359cdc h1:80uZK5YllXx9/kO6GXeDC1R0zDizrgscsH/rj8lsE3Y=
+github.com/jsign/lotus v0.1.2-0.20200526183520-a10690359cdc/go.mod h1:yokRpORW3maBz5m04K6lN9gPH+BBxSw3Ba/yjjX0n1Y=
 github.com/json-iterator/go v1.1.6/go.mod h1:+SdeFBvtyEkXs7REEP0seUULqWtbJapLOCVDaaPEHmU=
 github.com/json-iterator/go v1.1.7/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/uOdHXbAo4=
 github.com/json-iterator/go v1.1.9 h1:9yzud/Ht36ygwatGx56VwCZtlI/2AD15T1X2sjSuGns=
