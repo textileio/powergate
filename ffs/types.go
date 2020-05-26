@@ -226,6 +226,9 @@ type HotConfig struct {
 
 // Validate validates a HotConfig.
 func (hc HotConfig) Validate() error {
+	if !hc.Enabled {
+		return nil
+	}
 	if err := hc.Ipfs.Validate(); err != nil {
 		return fmt.Errorf("invalid ipfs config: %s", err)
 	}
@@ -260,10 +263,13 @@ type ColdConfig struct {
 
 // Validate validates a ColdConfig.
 func (cc ColdConfig) Validate() error {
+	if !cc.Enabled {
+		return nil
+	}
 	if err := cc.Filecoin.Validate(); err != nil {
 		return fmt.Errorf("invalid Filecoin config: %s", err)
 	}
-	if cc.Enabled && cc.Filecoin.Addr == "" {
+	if cc.Filecoin.Addr == "" {
 		return fmt.Errorf("invalid wallet address")
 	}
 	return nil
@@ -292,6 +298,20 @@ type FilConfig struct {
 	Addr string
 }
 
+// Validate returns a non-nil error if the configuration is invalid.
+func (fc *FilConfig) Validate() error {
+	if fc.RepFactor <= 0 {
+		return fmt.Errorf("replication factor should be greater than zero, got %d", fc.RepFactor)
+	}
+	if fc.DealDuration <= 0 {
+		return fmt.Errorf("deal duration should be greater than zero, got %d", fc.DealDuration)
+	}
+	if err := fc.Renew.Validate(); err != nil {
+		return fmt.Errorf("invalid renew config: %s", err)
+	}
+	return nil
+}
+
 // FilRenew contains renew configuration for a Cid Cold Storage deals.
 type FilRenew struct {
 	// Enabled indicates that deal-renewal is enabled for this Cid.
@@ -302,15 +322,9 @@ type FilRenew struct {
 }
 
 // Validate returns a non-nil error if the configuration is invalid.
-func (fc *FilConfig) Validate() error {
-	if fc.RepFactor <= 0 {
-		return fmt.Errorf("replication factor should be greater than zero, got %d", fc.RepFactor)
-	}
-	if fc.DealDuration <= 0 {
-		return fmt.Errorf("deal duration should be greater than zero, got %d", fc.DealDuration)
-	}
-	if fc.Renew.Enabled && fc.Renew.Threshold <= 0 {
-		return fmt.Errorf("renew threshold should be positive: %d", fc.Renew.Threshold)
+func (fr *FilRenew) Validate() error {
+	if fr.Enabled && fr.Threshold <= 0 {
+		return fmt.Errorf("renew threshold should be positive: %d", fr.Threshold)
 	}
 	return nil
 }
