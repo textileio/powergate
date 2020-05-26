@@ -50,14 +50,44 @@ Want to know more about this Powergate module? Check out our presentation and de
 Powergate expose modules functionalities through gRPC endpoints. 
 You can explore our `.proto` files to generate your clients, or take advange of a ready-to-use Powergate Go and [JS client](https://github.com/textileio/js-powergate-client). 🙌
 
-We have a CLI that supports most of Powergate features. Give it a try!
+We have a CLI that supports most of Powergate features.
+```bash
+$ make build-cli
+$ ./pow --help
+A client for storage and retreival of powergate data
+
+Usage:
+  pow [command]
+
+Available Commands:
+  asks        Provides commands to view asks data
+  deal        Interactive storage deal
+  deals       Provides commands to manage storage deals
+  ffs         Provides commands to manage ffs
+  health      Display the node health status
+  help        Help about any command
+  init        Initializes a config file with the provided values or defaults
+  miners      Provides commands to view miners data
+  net         Provides commands related to peers and network
+  reputation  Provides commands to view miner reputation data
+  slashing    Provides commands to view slashing data
+  wallet      Provides commands about filecoin wallets
+
+Flags:
+      --config string          config file (default is $HOME/.powergate.yaml)
+  -h, --help                   help for pow
+      --serverAddress string   address of the powergate service api (default "/ip4/127.0.0.1/tcp/5002")
+
+Use "pow [command] --help" for more information about a command.
+```
 
 ## Installation
 
-Powergate needs external dependencies in order to provide full functionality, in particular a synced Filecoin client and a IPFS node.
+Powergate installation involves getting running external dependencies, and wiring them correctly with Powergate.
 
 ### External dependencies
-For production usage you should run 
+Powergate needs external dependencies in order to provide full functionality, in particular a synced Filecoin client and a IPFS node.
+
 
 #### Filecoin client
 Currently we support the Lotus Filecoin client, but we plan to support other clients.
@@ -71,42 +101,32 @@ We also automatically generate a public Docker image targeting the `master` bran
 ### IPFS node
 You should be running an IPFS node. You can refer [here](https://docs.ipfs.io/guides/guides/install/) for installation instructions to run native binaries or the [Dockerhub repository](https://hub.docker.com/r/ipfs/go-ipfs) if you want to run a contanerized version.
 
-
-
-Since bootstrapping a _Lotus_ node from scratch and getting it synced may take too long, _Powergate_ allows an `--embedded` flag, which 
-auto-creates a fake local testnet with a single miner, and auto-connects to it. This means, only running the _Powergate_ server with the flag enabled, allows to use it in some reasonable context with almost no extra setup.
-
-For both building the _CLI_ and the _Server_, run:
-```bash
-make build
-```
-This will create `powd` (server) and `pow` (CLI) of _Powergate_.
-
-### Client (`pow`)
-
-To build the CLI, run:
-```bash
-make build-cli
-```
-
-Try `pow --help`.
-
-### Server 
-
-To build the Server, run:
+### Server
+To build the Powergate server, run:
 ```bash
 make build-server
 ```
+You can run the `-h` flag to see the configurable flags:
+```bash
+$ ./powd -h
+Usage of ./powd:
+      --debug                     enable debug log levels
+      --embedded                  run in embedded ephemeral FIL network
+      --gatewayhostaddr string    gateway host listening address (default "0.0.0.0:7000")
+      --grpchostaddr string       grpc host listening address (default "/ip4/0.0.0.0/tcp/5002")
+      --grpcwebproxyaddr string   grpc webproxy listening address (default "0.0.0.0:6002")
+      --ipfsapiaddr string        ipfs api multiaddr (default "/ip4/127.0.0.1/tcp/5001")
+      --lotushost string          lotus full-node address (default "/ip4/127.0.0.1/tcp/1234")
+      --lotusmasteraddr string    lotus addr to be considered master for ffs
+      --lotustoken string         lotus full-node auth token
+      --lotustokenfile string     lotus full-node auth token file
+      --pprof                     enable pprof endpoint
+      --repopath string           repo-path (default "~/.powergate")
+      --walletinitialfund int     created wallets initial fund in attoFIL (default 4000000000000000)
+pflag: help requested
+```
 
-The server connects to _Lotus_ and enables multiple modules, such as:
-- Reputations module:
-   - Miners index: with on-chain and metadata information.
-   - Ask index: with an up-to-date information about available _Storage Ask_ in the network.
-   - Slashing index: contains a history of all miner-slashes.
-- Deals Module:
-    - Contain helper features for making and watching deals.
-- FFS: 
-    - A powerful level of abstraction to pin Cids in Hot and Cold storages, more details soon!
+We'll soon provide better information about Powergate configurations, stay tuned! 📻
 
 ### Run in _Embedded mode_
 
