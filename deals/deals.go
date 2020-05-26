@@ -73,9 +73,6 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 		if err := f.Close(); err != nil {
 			log.Errorf("closing storing file: %s", err)
 		}
-		if err := os.Remove(f.Name()); err != nil {
-			log.Errorf("deleting import file %s: %s", f.Name(), err)
-		}
 	}()
 	var size int64
 	if size, err = io.Copy(f, data); err != nil {
@@ -94,8 +91,8 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 
 // Store create Deal Proposals with all miners indicated in dcfgs. The epoch price
 // is automatically calculated considering each miner epoch price and data size.
-// The implementation assumes the data is already imported in the Filecoin client, or
-// its accessible to it (e.g: is integrated with an IPFS node).
+// The data of dataCid should be already imported to the Filecoin Client or should be
+// accessible to it. (e.g: is integrated with an IPFS node).
 func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size uint64, dcfgs []StorageDealConfig, duration uint64) ([]StoreResult, error) {
 	gbSize := float64(size) / float64(1<<30)
 	addr, err := address.NewFromString(waddr)
