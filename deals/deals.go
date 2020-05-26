@@ -73,6 +73,9 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 		if err := f.Close(); err != nil {
 			log.Errorf("closing storing file: %s", err)
 		}
+		if err := os.Remove(f.Name()); err != nil {
+			log.Errorf("deleting import file %s: %s", f.Name(), err)
+		}
 	}()
 	var size int64
 	if size, err = io.Copy(f, data); err != nil {
@@ -136,8 +139,8 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size 
 	return res, nil
 }
 
-// Retrieve fetches the data stored in filecoin at a particular cid.
-func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, exportCAR bool) (io.ReadCloser, error) {
+// Retrieve retrieves Deal data.
+func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error) {
 	rf, err := ioutil.TempDir(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
 		return nil, fmt.Errorf("creating temp dir for retrieval: %s", err)
@@ -153,22 +156,20 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, export
 	if len(offers) == 0 {
 		return nil, ErrRetrievalNoAvailableProviders
 	}
-	fpath := filepath.Join(rf, "ret")
+	ref := api.FileRef{
+		Path:  filepath.Join(rf, "ret"),
+		IsCAR: CAREncoding,
+	}
 	for _, o := range offers {
-		log.Debugf("trying to retrieve data from %s", o.Miner)
-		ref := api.FileRef{
-			Path:  fpath,
-			IsCAR: exportCAR,
-		}
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
 			log.Infof("retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
-		f, err := os.Open(fpath)
+		f, err := os.Open(ref.Path)
 		if err != nil {
 			return nil, fmt.Errorf("opening retrieved file: %s", err)
 		}
-		return f, nil
+		return &autodeleteFile{File: f}, nil
 	}
 	return nil, fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
 }
@@ -251,6 +252,20 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 				log.Warnf("dropping new state since chan is blocked")
 			}
 		}
+	}
+	return nil
+}
+
+type autodeleteFile struct {
+	*os.File
+}
+
+func (af *autodeleteFile) Close() error {
+	if err := af.File.Close(); err != nil {
+		return fmt.Errorf("closing retrieval file: %s", err)
+	}
+	if err := os.Remove(af.File.Name()); err != nil {
+		return fmt.Errorf("autodeleting retrieval file: %s", err)
 	}
 	return nil
 }
