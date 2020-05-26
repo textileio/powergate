@@ -3,7 +3,7 @@ set -e
 
 if [ ! -d ./protoc ]; then
 	VERSION=3.12.1
-	ZIPNAME=protoc-$VERSION-linux-x86_64
+	ZIPNAME=protoc-$VERSION-osx-x86_64
 	DOWNLOADLINK=https://github.com/protocolbuffers/protobuf/releases/download/v$VERSION/$ZIPNAME.zip
 	curl -LO $DOWNLOADLINK
 	unzip $ZIPNAME.zip -d protoc

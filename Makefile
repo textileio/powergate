@@ -30,9 +30,9 @@ clean-protos:
 install-protoc:
 	cd buildtools && ./protocInstall.sh
 	
-PROTOCBIN=$(pwd)/buildtools/protoc/bin
-PROTOCGENGO=$(pwd)/buildtools/protoc-gen-go
+PROTOCGENGO=$(shell pwd)/buildtools/protoc-gen-go
 BINARIES=$(PROTOCBIN):$(PROTOCGENGO)
 protos: install-protoc clean-protos
-	PATH=$(BINARIES):$(PATH) ./scripts/protoc_gen_plugin.bash --proto_path=. --plugin_name=go --plugin_out=. --plugin_opt=plugins=grpc
+	echo $(PROTOCGENGO)
+	PATH=$(PROTOCGENGO):$(PATH) ./scripts/protoc_gen_plugin.bash --proto_path=. --plugin_name=go --plugin_out=. --plugin_opt=plugins=grpc
 .PHONY: protos
