@@ -17,7 +17,6 @@ import (
 	badger "github.com/ipfs/go-ds-badger2"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/multiformats/go-multiaddr"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
 	dealsRpc "github.com/textileio/powergate/deals/rpc"
@@ -29,7 +28,6 @@ import (
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
-	ffsGrpc "github.com/textileio/powergate/ffs/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/ffs/scheduler/astore"
@@ -106,7 +104,7 @@ type Config struct {
 	LotusMasterAddr     string
 	Embedded            bool
 	GrpcHostNetwork     string
-	GrpcHostAddress     multiaddr.Multiaddr
+	GrpcHostAddress     ma.Multiaddr
 	GrpcServerOpts      []grpc.ServerOption
 	GrpcWebProxyAddress string
 	RepoPath            string
@@ -271,7 +269,7 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 	return grpcServer, grpcWebProxy
 }
 
-func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress multiaddr.Multiaddr) error {
+func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
 	netService := pgnetRpc.New(s.nm)
 	healthService := healthRpc.New(s.hm)
 	dealsService := dealsRpc.New(s.dm)
@@ -280,7 +278,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	askService := askRpc.New(s.ai)
 	minerService := minerRpc.New(s.mi)
 	slashingService := slashingRpc.New(s.si)
-	ffsService := ffsGrpc.New(s.ffsManager, s.hs)
+	ffsService := ffsRpc.New(s.ffsManager, s.hs)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {

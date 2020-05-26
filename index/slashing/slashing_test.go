@@ -38,10 +38,3 @@ func TestFreshIndex(t *testing.T) {
 		t.Fatalf("miner info state is invalid: %s %d", index.TipSetKey, len(index.Miners))
 	}
 }
-
-func checkErr(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
-	}
-}
