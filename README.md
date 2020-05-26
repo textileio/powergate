@@ -6,26 +6,72 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/textileio/powergate?style=flat-square)](https://goreportcard.com/report/github.com/textileio/powergate?style=flat-square)
 [![GitHub action](https://github.com/textileio/powergate/workflows/Tests/badge.svg?style=popout-square)](https://github.com/textileio/powergate/actions)
 
-> Textile's Filecoin swiss army knife for developers
+Powergate is a multitiered file storage API built on Filecoin and IPFS, and and index builder for Filecoin data. It's designed to be modular and extensible.
 
 Join us on our [public Slack channel](https://slack.textile.io/) for news, discussions, and status updates. [Check out our blog](https://medium.com/textileio) for the latest posts and announcements.
 
+*Warning* This project is still **pre-release** and is not ready for production usage.
+
 ## Table of Contents
 
--   [Usage](#usage)
+-   [Design](#design)
+-   [API + s CLI](#api&CLI)
+-   [Installation](#installation)
 -   [Contributing](#contributing)
 -   [Changelog](#changelog)
 -   [License](#license)
 
-## Usage
+## Design
 
-*Warning* This project is still **pre-release** and is only meant for testing.
+Powergate is composed of different modules which can be used independently, and compose toegheter to provide other higher-level modules.
 
-### Lotus (`lotus`)
+### 📢 Deals module
+The Deals module provides a lower layer of abstraction to a Filecoin client node. It provides simple APIs to store, watch, and retrieve data in the Filecoin network. Currently, it interacts with the Lotus client but we have plans to support other Filecoin clients.
 
-_Powergate_ communicates with a _Lotus_ node to interact with the filecoin network.
-If you want to run _Powergate_ targeting the current testnet, you should be running a fully-synced Lotus node in the same host as _Powergate_.
-For steps to install _Lotus_, refer to  [https://lotu.sh/](https://lotu.sh/) taking special attention to [its dependencies](https://docs.lotu.sh/en+install-lotus-ubuntu). 
+### 👷 Indices and Reputation scoring
+Powergate builds three indexes related to on-chain and off-chain data.
+
+The _Miners index_ provides processed data regarding registered miners (on-chain and off-chain), such as: total miner power, relative power, online status, geolocation, and more!
+
+The _Ask index_ provides a fast-retrieval up to date snapshot of miner's asking prices for data storage.
+
+The _Slashing index_ provides history data about miners faults while proving their storage on-chain. 
+
+Built on top of the previous indexes, a _Reputation_ module constructs a weighted-scoring system that allows to sort miners considering multiple on-chain and off-chain data, such as: compared price to the median of the market, low storage-fault history, power on network, and external sources (soon!).
+
+###  ⚡ FFS
+This module provides a multitiered file storage API built on Filecoin and IPFS. Storing data on IPFS and Filecoin is as easy as expressing your desired configuration for storing a Cid.
+
+Want to know more about this Powergate module? Check out our presentation and demo at the _IPFS Pinning Summit_:
+[![Video](https://img.youtube.com/vi/aiOTSkz_6aY/0.jpg)](https://youtu.be/aiOTSkz_6aY)
+
+### 💫 API + CLI
+
+Powergate expose modules functionalities through gRPC endpoints. 
+You can explore our `.proto` files to generate your clients, or take advange of a ready-to-use Powergate Go and [JS client](https://github.com/textileio/js-powergate-client). 🙌
+
+We have a CLI that supports most of Powergate features. Give it a try!
+
+## Installation
+
+Powergate needs external dependencies in order to provide full functionality, in particular a synced Filecoin client and a IPFS node.
+
+### External dependencies
+For production usage you should run 
+
+#### Filecoin client
+Currently we support the Lotus Filecoin client, but we plan to support other clients.
+
+All described modules of Powergate need to comunicate with Lotus to build indeces data, and provide storing and retrieving features in FFS. To install Lotus refer to its [official](https://lotu.sh/) documentation, taking special attention to [its dependencies](https://docs.lotu.sh/en+install-lotus-ubuntu). 
+
+Fully syncing a Lotus node can take time, so be sure to check you're fully synced doing `./lotus sync status`.
+
+We also automatically generate a public Docker image targeting the `master` branch of Lotus. This image is a pristine version of Lotus, with a sidecar reverse proxy to provide external access to the containerized API. For more information, refer to [textileio/lotus-build](https://github.com/textileio/lotus-build) and its [Dockerhub repository](https://hub.docker.com/repository/docker/textile/lotus).
+
+### IPFS node
+You should be running an IPFS node. You can refer [here](https://docs.ipfs.io/guides/guides/install/) for installation instructions to run native binaries or the [Dockerhub repository](https://hub.docker.com/r/ipfs/go-ipfs) if you want to run a contanerized version.
+
+
 
 Since bootstrapping a _Lotus_ node from scratch and getting it synced may take too long, _Powergate_ allows an `--embedded` flag, which 
 auto-creates a fake local testnet with a single miner, and auto-connects to it. This means, only running the _Powergate_ server with the flag enabled, allows to use it in some reasonable context with almost no extra setup.
