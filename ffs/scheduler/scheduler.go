@@ -403,7 +403,6 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
 		s.l.Log(ctx, curr.Cid, "Unfreezing from Filecoin...")
-		err := s.cs.Fetch(ctx, curr.Cold.Filecoin.DataCid, waddr)
 		if err := s.cs.Fetch(ctx, curr.Cold.Filecoin.DataCid, waddr); err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
 		}
