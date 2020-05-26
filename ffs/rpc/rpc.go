@@ -185,29 +185,9 @@ func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest
 		return nil, err
 	}
 	defaultConfig := ffs.DefaultConfig{
-		Hot: ffs.HotConfig{
-			Enabled:       req.Config.Hot.Enabled,
-			AllowUnfreeze: req.Config.Hot.AllowUnfreeze,
-			Ipfs: ffs.IpfsConfig{
-				AddTimeout: int(req.Config.Hot.Ipfs.AddTimeout),
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Enabled: req.Config.Cold.Enabled,
-			Filecoin: ffs.FilConfig{
-				RepFactor:      int(req.Config.Cold.Filecoin.RepFactor),
-				DealDuration:   req.Config.Cold.Filecoin.DealDuration,
-				ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
-				CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
-				TrustedMiners:  req.Config.Cold.Filecoin.TrustedMiners,
-				Renew: ffs.FilRenew{
-					Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
-					Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
-				},
-				Addr: req.Config.Cold.Filecoin.Addr,
-			},
-		},
 		Repairable: req.Config.Repairable,
+		Hot:        fromRPCHotConfig(req.Config.Hot),
+		Cold:       fromRPCColdConfig(req.Config.Cold),
 	}
 	if err := i.SetDefaultConfig(defaultConfig); err != nil {
 		return nil, err
@@ -429,30 +409,10 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 			return nil, err
 		}
 		config := ffs.CidConfig{
-			Cid: cid,
-			Hot: ffs.HotConfig{
-				Enabled:       req.Config.Hot.Enabled,
-				AllowUnfreeze: req.Config.Hot.AllowUnfreeze,
-				Ipfs: ffs.IpfsConfig{
-					AddTimeout: int(req.Config.Hot.Ipfs.AddTimeout),
-				},
-			},
-			Cold: ffs.ColdConfig{
-				Enabled: req.Config.Cold.Enabled,
-				Filecoin: ffs.FilConfig{
-					RepFactor:      int(req.Config.Cold.Filecoin.RepFactor),
-					DealDuration:   req.Config.Cold.Filecoin.DealDuration,
-					ExcludedMiners: req.Config.Cold.Filecoin.ExcludedMiners,
-					CountryCodes:   req.Config.Cold.Filecoin.CountryCodes,
-					TrustedMiners:  req.Config.Cold.Filecoin.TrustedMiners,
-					Renew: ffs.FilRenew{
-						Enabled:   req.Config.Cold.Filecoin.Renew.Enabled,
-						Threshold: int(req.Config.Cold.Filecoin.Renew.Threshold),
-					},
-					Addr: req.Config.Cold.Filecoin.Addr,
-				},
-			},
+			Cid:        cid,
 			Repairable: req.Config.Repairable,
+			Hot:        fromRPCHotConfig(req.Config.Hot),
+			Cold:       fromRPCColdConfig(req.Config.Cold),
 		}
 		options = append(options, api.WithCidConfig(config))
 	}
@@ -637,4 +597,45 @@ func toRPCDealErrors(des []ffs.DealError) []*DealError {
 		}
 	}
 	return ret
+}
+
+func fromRPCHotConfig(config *HotConfig) ffs.HotConfig {
+	res := ffs.HotConfig{}
+	if config != nil {
+		res.Enabled = config.Enabled
+		res.AllowUnfreeze = config.AllowUnfreeze
+		if config.Ipfs != nil {
+			ipfs := ffs.IpfsConfig{
+				AddTimeout: int(config.Ipfs.AddTimeout),
+			}
+			res.Ipfs = ipfs
+		}
+	}
+	return res
+}
+
+func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
+	res := ffs.ColdConfig{}
+	if config != nil {
+		res.Enabled = config.Enabled
+		if config.Filecoin != nil {
+			filecoin := ffs.FilConfig{
+				RepFactor:      int(config.Filecoin.RepFactor),
+				DealDuration:   config.Filecoin.DealDuration,
+				ExcludedMiners: config.Filecoin.ExcludedMiners,
+				CountryCodes:   config.Filecoin.CountryCodes,
+				TrustedMiners:  config.Filecoin.TrustedMiners,
+				Addr:           config.Filecoin.Addr,
+			}
+			if config.Filecoin.Renew != nil {
+				renew := ffs.FilRenew{
+					Enabled:   config.Filecoin.Renew.Enabled,
+					Threshold: int(config.Filecoin.Renew.Threshold),
+				}
+				filecoin.Renew = renew
+			}
+			res.Filecoin = filecoin
+		}
+	}
+	return res
 }
