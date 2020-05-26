@@ -1,7 +1,7 @@
 syntax = "proto3";
 package index.slashing.rpc;
 
-option go_package = "rpc";
+option go_package = "index/slashing/rpc";
 
 message Index {
     string tipSetKey = 1;
