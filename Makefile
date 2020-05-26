@@ -31,8 +31,6 @@ install-protoc:
 	cd buildtools && ./protocInstall.sh
 	
 PROTOCGENGO=$(shell pwd)/buildtools/protoc-gen-go
-BINARIES=$(PROTOCBIN):$(PROTOCGENGO)
 protos: install-protoc clean-protos
-	echo $(PROTOCGENGO)
 	PATH=$(PROTOCGENGO):$(PATH) ./scripts/protoc_gen_plugin.bash --proto_path=. --plugin_name=go --plugin_out=. --plugin_opt=plugins=grpc
 .PHONY: protos
