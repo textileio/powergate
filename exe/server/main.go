@@ -17,7 +17,6 @@ import (
 	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log/v2"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/multiformats/go-multiaddr"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -87,7 +86,7 @@ func main() {
 		}
 	}
 
-	grpcHostMaddr, err := multiaddr.NewMultiaddr(config.GetString("grpchostaddr"))
+	grpcHostMaddr, err := ma.NewMultiaddr(config.GetString("grpchostaddr"))
 	if err != nil {
 		log.Fatalf("parsing grpchostaddr: %s", err)
 	}
