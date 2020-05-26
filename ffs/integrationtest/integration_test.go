@@ -1059,9 +1059,6 @@ func TestSendFil(t *testing.T) {
 // Better than no test is some test, so this tests that the repair logic gets triggered
 // and the related Job ran successfully.
 func TestRepair(t *testing.T) {
-	// ToDo: Flaky on CI, runs ok locally.
-	// See if can be tuned to run better on CI.
-	t.Parallel()
 	ipfs, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
