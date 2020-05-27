@@ -496,6 +496,8 @@ github.com/ipfs/go-ipfs-chunker v0.0.5/go.mod h1:jhgdF8vxRHycr00k13FM8Y0E+6BoalY
 github.com/ipfs/go-ipfs-cmds v0.1.0/go.mod h1:TiK4e7/V31tuEb8YWDF8lN3qrnDH+BS7ZqWIeYJlAs8=
 github.com/ipfs/go-ipfs-cmds v0.1.1 h1:H9/BLf5rcsULHMj/x8gC0e5o+raYhqk1OQsfzbGMNM4=
 github.com/ipfs/go-ipfs-cmds v0.1.1/go.mod h1:k1zMXcOLtljA9iAnZHddbH69yVm5+weRL0snmMD/rK0=
+github.com/ipfs/go-ipfs-cmds v0.2.2 h1:F2pro/Q3ifRUsdxEKIS8cg8lO4R6WiwAyERiaG8I9no=
+github.com/ipfs/go-ipfs-cmds v0.2.2/go.mod h1:kqlUrp6m2ceoaJe40cXpADCi5aS6NKRn0NIeuLp5CeM=
 github.com/ipfs/go-ipfs-config v0.0.11 h1:5/4nas2CQXiKr2/MLxU24GDGTBvtstQIQezuk7ltOQQ=
 github.com/ipfs/go-ipfs-config v0.0.11/go.mod h1:wveA8UT5ywN26oKStByzmz1CO6cXwLKKM6Jn/Hfw08I=
 github.com/ipfs/go-ipfs-delay v0.0.0-20181109222059-70721b86a9a8/go.mod h1:8SP1YXK1M1kXuc4KJZINY3TQQ03J2rwBG9QfXmbRPrw=
@@ -524,6 +526,8 @@ github.com/ipfs/go-ipfs-flags v0.0.1/go.mod h1:RnXBb9WV53GSfTrSDVK61NLTFKvWc60n+
 github.com/ipfs/go-ipfs-http-client v0.0.5/go.mod h1:8EKP9RGUrUex4Ff86WhnKU7seEBOtjdgXlY9XHYvYMw=
 github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200228220229-2e259051cd8b h1:4rZ3J0izRx/rHKZiHXC8qnVPhDIY0x3fjkdcWPmyDaw=
 github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200228220229-2e259051cd8b/go.mod h1:KMFmyLfD9916xAgNSr4pXJ0hzRHtS6Qp7NkdcdDgcWM=
+github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200512220018-7002cce28cb1 h1:4Q0rDsvikp59JVhOLnws9Lnxo8aD9xxeNbMm9d7ebD0=
+github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200512220018-7002cce28cb1/go.mod h1:h3VsuLMjVWwiTwH03gMfKvlFNur8m8a0HHk3f3KsEeg=
 github.com/ipfs/go-ipfs-posinfo v0.0.1 h1:Esoxj+1JgSjX0+ylc0hUmJCOv6V2vFoZiETLR6OtpRs=
 github.com/ipfs/go-ipfs-posinfo v0.0.1/go.mod h1:SwyeVP+jCwiDu0C313l/8jg6ZxM0qqtlt2a0vILTc1A=
 github.com/ipfs/go-ipfs-pq v0.0.1 h1:zgUotX8dcAB/w/HidJh1zzc1yFq6Vm8J7T2F4itj/RU=
@@ -597,12 +601,15 @@ github.com/ipfs/go-verifcid v0.0.1 h1:m2HI7zIuR5TFyQ1b79Da5N9dnnCP1vcu2QqawmWlK2
 github.com/ipfs/go-verifcid v0.0.1/go.mod h1:5Hrva5KBeIog4A+UpqlaIU+DEstipcJYQQZc0g37pY0=
 github.com/ipfs/interface-go-ipfs-core v0.2.3/go.mod h1:Tihp8zxGpUeE3Tokr94L6zWZZdkRQvG5TL6i9MuNE+s=
 github.com/ipfs/interface-go-ipfs-core v0.2.4/go.mod h1:Tihp8zxGpUeE3Tokr94L6zWZZdkRQvG5TL6i9MuNE+s=
+github.com/ipfs/interface-go-ipfs-core v0.2.6 h1:4eeGPJUDWblEurSzpAtL2znDG1xqAoX2aNNIoOFwyuc=
+github.com/ipfs/interface-go-ipfs-core v0.2.6/go.mod h1:Tihp8zxGpUeE3Tokr94L6zWZZdkRQvG5TL6i9MuNE+s=
 github.com/ipfs/interface-go-ipfs-core v0.3.0 h1:oZdLLfh256gPGcYPURjivj/lv296GIcr8mUqZUnXOEI=
 github.com/ipfs/interface-go-ipfs-core v0.3.0/go.mod h1:Tihp8zxGpUeE3Tokr94L6zWZZdkRQvG5TL6i9MuNE+s=
 github.com/ipfs/iptb v1.4.0 h1:YFYTrCkLMRwk/35IMyC6+yjoQSHTEcNcefBStLJzgvo=
 github.com/ipfs/iptb v1.4.0/go.mod h1:1rzHpCYtNp87/+hTxG5TfCVn/yMY3dKnLn8tBiMfdmg=
 github.com/ipfs/iptb-plugins v0.2.1 h1:au4HWn9/pRPbkxA08pDx2oRAs4cnbgQWgV0teYXuuGA=
 github.com/ipfs/iptb-plugins v0.2.1/go.mod h1:QXMbtIWZ+jRsW8a4h13qAKU7jcM7qaittO8wOsTP0Rs=
+github.com/ipfs/iptb-plugins v0.2.2/go.mod h1:QXMbtIWZ+jRsW8a4h13qAKU7jcM7qaittO8wOsTP0Rs=
 github.com/ipld/go-car v0.1.1-0.20200429200904-c222d793c339/go.mod h1:eajxljm6I8o3LitnFeVEmucwZmz7+yLSiKce9yYMefg=
 github.com/ipld/go-car v0.1.1-0.20200430185908-8ff2e52a4c88 h1:kjpIMwbJk/OEKM8hexj+HAVZsOgVr4byKML3s++s1b0=
 github.com/ipld/go-car v0.1.1-0.20200430185908-8ff2e52a4c88/go.mod h1:2mvxpu4dKRnuH3mj5u6KW/tmRSCcXvy/KYiJ4nC6h4c=
@@ -1404,6 +1411,7 @@ golang.org/x/crypto v0.0.0-20190618222545-ea8f1a30c443/go.mod h1:yigFU9vqHzYiE8U
 golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392/go.mod h1:/lpIB1dKB+9EgE3H3cr1v9wB50oz8l4C4h62xy7jSTY=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200117160349-530e935923ad/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
