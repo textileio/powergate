@@ -42,19 +42,11 @@ import (
 )
 
 const (
-	tmpDir           = "/tmp/powergate/integrationtest"
 	iWalletBal int64 = 4000000000000000
 )
 
 func TestMain(m *testing.M) {
 	util.AvgBlockTime = time.Millisecond * 500
-	_ = os.RemoveAll(tmpDir)
-	if _, err := os.Stat(tmpDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
-			panic(err)
-		}
-	}
-
 	logging.SetAllLoggers(logging.LevelError)
 	//logging.SetLogLevel("ffs-scheduler", "debug")
 	//logging.SetLogLevel("ffs-cidlogger", "debug")
@@ -781,8 +773,8 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
-	renewThreshold := 50
-	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(300)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
+	renewThreshold := 10
+	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
@@ -1199,7 +1191,7 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 	ipfsClient, err := httpapi.NewApi(ipfsAddr)
 	require.Nil(t, err)
 
-	dm, err := deals.New(client, deals.WithImportPath(tmpDir))
+	dm, err := deals.New(client)
 	require.Nil(t, err)
 
 	fchain := lotuschain.New(client)

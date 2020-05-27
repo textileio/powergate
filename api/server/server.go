@@ -102,7 +102,7 @@ type Config struct {
 	LotusAddress        ma.Multiaddr
 	LotusAuthToken      string
 	LotusMasterAddr     string
-	Embedded            bool
+	Devnet              bool
 	GrpcHostNetwork     string
 	GrpcHostAddress     ma.Multiaddr
 	GrpcServerOpts      []grpc.ServerOption
@@ -120,7 +120,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
 
-	if conf.Embedded {
+	if conf.Devnet {
 		// Wait for the devnet to bootstrap completely and generate at least 1 block.
 		time.Sleep(time.Second * 6)
 		if masterAddr, err = c.WalletDefaultAddress(context.Background()); err != nil {
@@ -132,11 +132,11 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	}
 
-	fchost, err := fchost.New(!conf.Embedded)
+	fchost, err := fchost.New(!conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating filecoin host: %s", err)
 	}
-	if !conf.Embedded {
+	if !conf.Devnet {
 		if err := fchost.Bootstrap(); err != nil {
 			return nil, fmt.Errorf("bootstrapping filecoin host: %s", err)
 		}

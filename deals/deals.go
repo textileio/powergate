@@ -52,9 +52,6 @@ func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 			return nil, err
 		}
 	}
-	if cfg.ImportPath == "" {
-		return nil, fmt.Errorf("import path can't be empty")
-	}
 	return &Module{
 		api: api,
 		cfg: &cfg,

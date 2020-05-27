@@ -15,8 +15,12 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 ## Table of Contents
 
 -   [Design](#design)
--   [API + s CLI](#api&CLI)
+-   [API + CLI](#api&CLI)
 -   [Installation](#installation)
+-   [Devnet mode](#devnetmode)
+-   [Production setup](#productionsetup)
+-   [Test](#tests)
+-   [Benchmark](#benchmark)
 -   [Contributing](#contributing)
 -   [Changelog](#changelog)
 -   [License](#license)
@@ -83,23 +87,28 @@ Use "pow [command] --help" for more information about a command.
 
 ## Installation
 
-Powergate installation involves getting running external dependencies, and wiring them correctly with Powergate.
+Powergate installation involves running external dependencies, and wiring them correctly with Powergate.
 
 ### External dependencies
 Powergate needs external dependencies in order to provide full functionality, in particular a synced Filecoin client and a IPFS node.
 
-
 #### Filecoin client
-Currently we support the Lotus Filecoin client, but we plan to support other clients.
+Currently, we support the Lotus Filecoin client but we plan to support other clients.
 
-All described modules of Powergate need to comunicate with Lotus to build indeces data, and provide storing and retrieving features in FFS. To install Lotus refer to its [official](https://lotu.sh/) documentation, taking special attention to [its dependencies](https://docs.lotu.sh/en+install-lotus-ubuntu). 
+All described modules of Powergate need to comunicate with Lotus to build indices data, and provide storing and retrieving features in FFS. To install Lotus refer to its [official](https://lotu.sh/) documentation, taking special attention to [its dependencies](https://docs.lotu.sh/en+install-lotus-ubuntu). 
 
 Fully syncing a Lotus node can take time, so be sure to check you're fully synced doing `./lotus sync status`.
 
 We also automatically generate a public Docker image targeting the `master` branch of Lotus. This image is a pristine version of Lotus, with a sidecar reverse proxy to provide external access to the containerized API. For more information, refer to [textileio/lotus-build](https://github.com/textileio/lotus-build) and its [Dockerhub repository](https://hub.docker.com/repository/docker/textile/lotus).
 
+In short, a fully-synced Lotus node should be available with its API (`127.0.0.1:1234`, by default) port accessible to Powergate.
+
 ### IPFS node
-You should be running an IPFS node. You can refer [here](https://docs.ipfs.io/guides/guides/install/) for installation instructions to run native binaries or the [Dockerhub repository](https://hub.docker.com/r/ipfs/go-ipfs) if you want to run a contanerized version.
+A running IPFS node is needed if you plan to use the FFS module.
+
+If that's the case, you can refer [here](https://docs.ipfs.io/guides/guides/install/) for installation instructions, or its [Dockerhub repository](https://hub.docker.com/r/ipfs/go-ipfs) if you want to run a contanerized version. Currently we're supporting v0.5.1. The API endpoint should be accessible to Powergate (port 5001, by default). 
+
+Since FFS _HotStorage_ is pinning Cids in the IPFS node, Powergate should be the only party controlling the pinset of the node. Other systems can share the same IPFS node if can  **guarantee** not unpinning Cids pinned by Powergate FFS instances. 
 
 ### Server
 To build the Powergate server, run:
@@ -110,42 +119,40 @@ You can run the `-h` flag to see the configurable flags:
 ```bash
 $ ./powd -h
 Usage of ./powd:
-      --debug                     enable debug log levels
-      --embedded                  run in embedded ephemeral FIL network
-      --gatewayhostaddr string    gateway host listening address (default "0.0.0.0:7000")
-      --grpchostaddr string       grpc host listening address (default "/ip4/0.0.0.0/tcp/5002")
-      --grpcwebproxyaddr string   grpc webproxy listening address (default "0.0.0.0:6002")
-      --ipfsapiaddr string        ipfs api multiaddr (default "/ip4/127.0.0.1/tcp/5001")
-      --lotushost string          lotus full-node address (default "/ip4/127.0.0.1/tcp/1234")
-      --lotusmasteraddr string    lotus addr to be considered master for ffs
-      --lotustoken string         lotus full-node auth token
-      --lotustokenfile string     lotus full-node auth token file
-      --pprof                     enable pprof endpoint
-      --repopath string           repo-path (default "~/.powergate")
-      --walletinitialfund int     created wallets initial fund in attoFIL (default 4000000000000000)
+      --debug                     Enable debug log level in all loggers.
+      --devnet                    Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.
+      --gatewayhostaddr string    Gateway host listening address (default "0.0.0.0:7000")
+      --grpchostaddr string       gRPC host listening address. (default "/ip4/0.0.0.0/tcp/5002")
+      --grpcwebproxyaddr string   gRPC webproxy listening address. (default "0.0.0.0:6002")
+      --ipfsapiaddr string        IPFS API endpoint multiaddress. (Optional, only needed if FFS is used) (default "/ip4/127.0.0.1/tcp/5001")
+      --lotushost string          Lotus client API endpoint multiaddress. (default "/ip4/127.0.0.1/tcp/1234")
+      --lotusmasteraddr string    Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)
+      --lotustoken string         Lotus API authorization token. This flag or --lotustoken file are mandatory.
+      --lotustokenfile string     Path of a file that contains the Lotus API authorization token.
+      --repopath string           Path of the repository where Powergate state will be saved. (default "~/.powergate")
+      --walletinitialfund int     FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set) (default 4000000000000000)
 pflag: help requested
 ```
-
 We'll soon provide better information about Powergate configurations, stay tuned! 📻
 
-### Run in _Embedded mode_
+## Devnet mode
 
-The server can run in _Embedded_ mode which auto-creates a fake devnet with a single miner and connects to it.
-The simplest way to run it is:
+Having a fully synced Lotus node can take a considerable amount of time and effort to mantain. We have built [lotus-devnet](https://github.com/textileio/lotus-devnet) which runs a local devnet with a _sectorbuilder_ mock. This provides a fast way to spinup a devnet where the sealing process if mocked, but the rest of the node logic is the same as production The _devnet_ supports both 2Kib and 512Kib sectors, and the speed of block production is configurable. Refer to [lotus-devnet](https://github.com/textileio/lotus-devnet) readme for more information.
+
+If you're interested in running Powergate and experiment with the CLI, the fastest way is to replace the Lotus client dependency with a running devnet, which runs a local Lotus client connected to a network with local miners. 
+
+A simple docker-compose setup is available that will run Powergate connected to a Lotus devnet with 512Mib sectors and allows to use the gRPC API or CLI without any extra config flags 🎊
 ```bash
 cd docker
-make embed
+make devnet
 ```
+This will build Powergate `powd`, a Lotus devnet, a IPFS node and wire them correctly to be ready to use.
 
-This creates an ephemeral server with all working for CLI interaction.
-
-
-Here is a full example of using the embedded network:
-
+Here is a full example of using the devnet run:
 Terminal 1:
 ```bash
 cd docker
-make embed
+make devnet
 ```
 Wait for seeing logs about the height of the chain increase in a regular cadence.
 
@@ -165,45 +172,41 @@ make build
 > Success! Data written to myfile2
 ```
 
-Notes:
-- A random `myfile` is a small random file since the devnet is running with a constrained sectorbuilder mock and sector size. Sizes close to ~700 bytes should be fine.
-- The devnet might run correctly for 150 epochs before it can become unstable.
+In this example we created a random 700 bytes file for the test, but since the devnet supports 512Mib sectors you can store store bigger files.
 
+## Production setup
 
-### Run in full mode
-
-Running the _full mode_ can be done by:
+Apart from what was mentioned in the _Installation_ section, a docker-compose setup is available which installs extra components for better monitoring of Powergate:
 ```bash
 cd docker
 make up
 ```
-
 This will spinup and auto-wire:
-- _Prometheus_ ,endpoint for metrics
-- _Grafana_, for metrics dashboard
-- _cAdvisor_, for container metrics
-- _Lotus_ node configured for testnet.
+- _Prometheus_, which is the backend for metrics processing.
+- _Grafana_, for metrics dashboard.
+- _cAdvisor_, for container metrics.
+- _Lotus_, node running on the current Testnet.
+- _IPFS_, node running to back Powergate FFS.
 - _Powergate_, wired with all of above components.
 
-Recall that you should wait for _Lotus_ to be fully-synced which might take a long time now.
-If you're running the _Lotus_ node in the host and want to leverage its fully synced, you could:
-- Bind the `.lotus` folder to the _Lotus_ node in the docker-compose file.
-- Or, just `docker cp` it.
-In any option, you should stop the original _Lotus_ node.
+Remember that you should wait for _Lotus_ to be fully-synced which might take a long time; you can check your current node sync status running `lotus sync status` inside the Lotus container. We also provide automatically generated Dockerhub images of Powergate server, see [textile/powergate](https://hub.docker.com/r/textile/powergate).
 
-If you don't have a fully-synced _Lotus_ node and don't want to wait, consider using our [archives](https://lotus-archives.textile.io/).
+We will soon provide other non-contanerized setups, but most of the wiring can be auto-explained by the `docker/docker-compose.yaml` file.
 
 ## Test
-For running tests: `make test`
+We have a big set of tests for covering most important Powergate features.
+
+For integration tests, we leverage our `textileio/lotus-devnet` configured with 2Kib sectors to provide fast iteration and CI runs.
+
+If you want to run tests locally:
+```bash
+make test
+```
+It will auto-download any necessary dependencies and run all tests.
 
 ## Benchmark
 There's a dedicated binary to run benchmarks against a Powergate server. 
 For more information see the [specific README](exe/bench/README.md).
-
-
-## Docker
-
-A `powd` Docker image is available at [textile/powergate](https://hub.docker.com/r/textile/powergate) on DockerHub.
 
 ## Contributing
 

@@ -1,4 +1,4 @@
 **/docker-compose.yaml
-**/docker-compose-embedded.yaml
+**/docker-compose-devnet.yaml
 **/Dockerfile
 exe/bench
