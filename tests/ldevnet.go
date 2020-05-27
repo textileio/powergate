@@ -29,7 +29,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockerte
 		devnetEnv("IPFSADDR", ipfsMaddr),
 	}
 	repository := "textile/lotus-devnet"
-	tag := "sha-3b06b78"
+	tag := "sha-77f20c7
 	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: envs, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))

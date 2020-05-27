@@ -11,13 +11,13 @@ require (
 	github.com/filecoin-project/go-address v0.0.2-0.20200504173055-8b6f2fb2b3ef
 	github.com/filecoin-project/go-fil-markets v0.2.7
 	github.com/filecoin-project/go-jsonrpc v0.1.1-0.20200520183639-7c6ee2e066b4
-	github.com/filecoin-project/lotus v0.3.1-0.20200522162614-646800b8a8d2
+	github.com/filecoin-project/lotus v0.3.1-0.20200527125918-af1d54501fa6
 	github.com/filecoin-project/specs-actors v0.5.4-0.20200521014528-0df536f7e461
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
-	github.com/gin-gonic/gin v1.6.2
-	github.com/golang/protobuf v1.4.0
-	github.com/google/go-cmp v0.4.0
+	github.com/gin-gonic/gin v1.6.3
+	github.com/golang/protobuf v1.4.2
+	github.com/google/go-cmp v0.4.1
 	github.com/google/uuid v1.1.1
 	github.com/gosuri/uilive v0.0.4
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
@@ -29,8 +29,8 @@ require (
 	github.com/ipfs/go-ds-badger2 v0.1.0
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200228220229-2e259051cd8b
-	github.com/ipfs/go-log/v2 v2.0.8
-	github.com/ipfs/interface-go-ipfs-core v0.2.6
+	github.com/ipfs/go-log/v2 v2.1.1
+	github.com/ipfs/interface-go-ipfs-core v0.3.0
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/libp2p/go-libp2p v0.9.2
 	github.com/libp2p/go-libp2p-core v0.5.6
@@ -46,13 +46,11 @@ require (
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/ory/dockertest/v3 v3.6.0
 	github.com/rs/cors v1.7.0
-	github.com/spf13/cobra v0.0.7
+	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.6.2
+	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.5.1
 	go.opencensus.io v0.22.3
 	google.golang.org/grpc v1.29.1
-	google.golang.org/protobuf v1.23.0
+	google.golang.org/protobuf v1.24.0
 )
-
-replace github.com/filecoin-project/lotus => github.com/jsign/lotus v0.1.2-0.20200526183520-a10690359cdc
