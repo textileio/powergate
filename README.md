@@ -205,8 +205,9 @@ make test
 It will auto-download any necessary dependencies and run all tests.
 
 ## Benchmark
-There's a dedicated binary to run benchmarks against a Powergate server. 
-For more information see the [specific README](exe/bench/README.md).
+There's a dedicated binary to run benchmarks against a Powergate server. For more information see the [specific README](exe/bench/README.md). 
+
+Soon we'll add benchmark results against real miners in the Testnet network, so stay tuned. ⌛ 
 
 ## Contributing
 
