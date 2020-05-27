@@ -11,7 +11,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/exe/bench/runner"
+	"github.com/textileio/powergate/cmd/powbench/runner"
 )
 
 const (
@@ -64,7 +64,7 @@ func main() {
 	go func(ctx context.Context) {
 		defer wg.Done()
 		if err := runner.Run(ctx, ts); err != nil {
-			log.Errorf("running test setup: %s", err)
+			log.Fatalf("running test setup: %s", err)
 		}
 	}(ctx)
 

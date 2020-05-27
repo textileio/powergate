@@ -1,22 +1,20 @@
-clean:
-	rm -f powd pow powbench
-.PHONY: clean
-
 BUILD_FLAGS=CGO_ENABLED=0
-build-cli:
-	$(BUILD_FLAGS) go build -o pow exe/cli/main.go
-.PHONY: build-cli
 
-build-server:
-	$(BUILD_FLAGS) go build -o powd exe/server/main.go
-.PHONY: build-server
-
-build-bench:
-	$(BUILD_FLAGS) go build -o powbench exe/bench/main.go
-.PHONY: build-bench
-
-build: build-cli build-server build-bench
+build: 
+	$(BUILD_FLAGS) go install ./...
 .PHONY: build
+
+build-pow:
+	$(BUILD_FLAGS) go install ./cmd/pow
+.PHONY: build-pow
+
+build-powd:
+	$(BUILD_FLAGS) go install ./cmd/powd
+.PHONY: build-powd
+
+build-powbench:
+	$(BUILD_FLAGS) go install ./cmd/powbench
+.PHONY: build-powbench
 
 test:
 	go test -short -p 4 -race -timeout 30m ./... 

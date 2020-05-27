@@ -17,10 +17,6 @@
 # vscode config folder
 .vscode/
 
-pow
-powd
-powbench
-
 buildtools/protoc
 buildtools/protoc-gen-go
 

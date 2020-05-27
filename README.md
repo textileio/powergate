@@ -56,8 +56,8 @@ You can explore our `.proto` files to generate your clients, or take advange of 
 
 We have a CLI that supports most of Powergate features.
 ```bash
-$ make build-cli
-$ ./pow --help
+$ make build-pow
+$ pow --help
 A client for storage and retreival of powergate data
 
 Usage:
@@ -113,11 +113,11 @@ Since FFS _HotStorage_ is pinning Cids in the IPFS node, Powergate should be the
 ### Server
 To build the Powergate server, run:
 ```bash
-make build-server
+make build-powd
 ```
 You can run the `-h` flag to see the configurable flags:
 ```bash
-$ ./powd -h
+$ powd -h
 Usage of ./powd:
       --debug                     Enable debug log level in all loggers.
       --devnet                    Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.
@@ -160,15 +160,15 @@ Terminal 2:
 ```bash
 make build
 ❯ head -c 700 </dev/urandom > myfile
-❯ ./pow ffs create
+❯ pow ffs create
 > Instance created with id 0ac0fb4d-581c-4276-bd90-a9aa30dd4cb4 and token 883f57b1-4e66-47f8-b291-7cf8b10f6370
-❯ ./pow ffs addToHot -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 myfile
+❯ pow ffs addToHot -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 myfile
 > Success! Added file to FFS hot storage with cid: QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
-❯ ./pow ffs push -w -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
+❯ pow ffs push -w -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
 > Success! Pushed cid config for QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm to FFS with job id: 966dcb44-9ef4-4d2a-9c90-a8103c77c354
                JOB ID                   STATUS
 966dcb44-9ef4-4d2a-9c90-a8103c77c354    Success
-❯ ./pow ffs get  -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm myfile2
+❯ pow ffs get  -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm myfile2
 > Success! Data written to myfile2
 ```
 
