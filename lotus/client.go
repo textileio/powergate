@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/filecoin-project/lotus/api/apistruct"
-	"github.com/filecoin-project/lotus/lib/jsonrpc"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 

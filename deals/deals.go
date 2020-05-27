@@ -44,7 +44,7 @@ type Module struct {
 	cfg *Config
 }
 
-// New creates a new deal module
+// New creates a new Module.
 func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 	var cfg Config
 	for _, o := range opts {
@@ -52,21 +52,19 @@ func New(api *apistruct.FullNodeStruct, opts ...Option) (*Module, error) {
 			return nil, err
 		}
 	}
-	if cfg.ImportPath == "" {
-		return nil, fmt.Errorf("import path can't be empty")
-	}
 	return &Module{
 		api: api,
 		cfg: &cfg,
 	}, nil
 }
 
-// Store creates a proposal deal for data using wallet addr to all miners indicated
-// by dealConfigs for duration epochs
-func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs []StorageDealConfig, dur uint64, isCAR bool) (cid.Cid, []StoreResult, error) {
+// Import imports raw data in the Filecoin client. The isCAR flag indicates if the data
+// is already in CAR format, so it shouldn't be encoded into a UnixFS DAG in the Filecoin client.
+// It returns the imported data cid and the data size.
+func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Cid, int64, error) {
 	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
 	if err != nil {
-		return cid.Undef, nil, fmt.Errorf("error when creating tmpfile: %s", err)
+		return cid.Undef, 0, fmt.Errorf("error when creating tmpfile: %s", err)
 	}
 	defer func() {
 		if err := f.Close(); err != nil {
@@ -75,20 +73,28 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 	}()
 	var size int64
 	if size, err = io.Copy(f, data); err != nil {
-		return cid.Undef, nil, fmt.Errorf("error when copying data to tmpfile: %s", err)
+		return cid.Undef, 0, fmt.Errorf("error when copying data to tmpfile: %s", err)
 	}
-	gbSize := float64(size) / float64(1<<30)
 	ref := api.FileRef{
 		Path:  f.Name(),
 		IsCAR: isCAR,
 	}
 	dataCid, err := m.api.ClientImport(ctx, ref)
 	if err != nil {
-		return cid.Undef, nil, fmt.Errorf("error when importing data: %s", err)
+		return cid.Undef, 0, fmt.Errorf("error when importing data: %s", err)
 	}
+	return dataCid, size, nil
+}
+
+// Store create Deal Proposals with all miners indicated in dcfgs. The epoch price
+// is automatically calculated considering each miner epoch price and data size.
+// The data of dataCid should be already imported to the Filecoin Client or should be
+// accessible to it. (e.g: is integrated with an IPFS node).
+func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size uint64, dcfgs []StorageDealConfig, duration uint64) ([]StoreResult, error) {
+	gbSize := float64(size) / float64(1<<30)
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
-		return cid.Undef, nil, err
+		return nil, err
 	}
 	res := make([]StoreResult, len(dcfgs))
 	for i, c := range dcfgs {
@@ -104,7 +110,7 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 			Data: &storagemarket.DataRef{
 				Root: dataCid,
 			},
-			MinBlocksDuration: dur,
+			MinBlocksDuration: duration,
 			EpochPrice:        types.NewInt(uint64(math.Ceil(2 * gbSize * float64(c.EpochPrice)))),
 			Miner:             maddr,
 			Wallet:            addr,
@@ -124,44 +130,58 @@ func (m *Module) Store(ctx context.Context, waddr string, data io.Reader, dcfgs 
 			Success:     true,
 		}
 	}
-	return dataCid, res, nil
+	return res, nil
 }
 
-// Retrieve fetches the data stored in filecoin at a particular cid
-func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, exportCAR bool) (io.ReadCloser, error) {
+// Fetch fetches deal data to the underlying blockstore of the Filecoin client.
+// This API is meant for clients that use external implementations of blockstores with
+// their own API, e.g: IPFS.
+func (m *Module) Fetch(ctx context.Context, waddr string, cid cid.Cid) error {
+	return m.retrieve(ctx, waddr, cid, nil)
+}
+
+// Retrieve retrieves Deal data.
+func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error) {
 	rf, err := ioutil.TempDir(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
 		return nil, fmt.Errorf("creating temp dir for retrieval: %s", err)
 	}
+	ref := api.FileRef{
+		Path:  filepath.Join(rf, "ret"),
+		IsCAR: CAREncoding,
+	}
+
+	if err := m.retrieve(ctx, waddr, cid, &ref); err != nil {
+		return nil, fmt.Errorf("retrieving from lotus: %s", err)
+	}
+
+	f, err := os.Open(ref.Path)
+	if err != nil {
+		return nil, fmt.Errorf("opening retrieved file: %s", err)
+	}
+	return &autodeleteFile{File: f}, nil
+}
+
+func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *api.FileRef) error {
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	offers, err := m.api.ClientFindData(ctx, cid)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if len(offers) == 0 {
-		return nil, ErrRetrievalNoAvailableProviders
+		return ErrRetrievalNoAvailableProviders
 	}
-	fpath := filepath.Join(rf, "ret")
 	for _, o := range offers {
-		log.Debugf("trying to retrieve data from %s", o.Miner)
-		ref := api.FileRef{
-			Path:  fpath,
-			IsCAR: exportCAR,
-		}
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
-			log.Infof("retrieving cid %s from %s: %s", cid, o.Miner, err)
+			log.Infof("fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
-		f, err := os.Open(fpath)
-		if err != nil {
-			return nil, fmt.Errorf("opening retrieved file: %s", err)
-		}
-		return f, nil
+		return nil
 	}
-	return nil, fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
+	return fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
 }
 
 // GetDealStatus returns the current status of the deal, and a flag indicating if the miner of the deal was slashed.
@@ -242,6 +262,20 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 				log.Warnf("dropping new state since chan is blocked")
 			}
 		}
+	}
+	return nil
+}
+
+type autodeleteFile struct {
+	*os.File
+}
+
+func (af *autodeleteFile) Close() error {
+	if err := af.File.Close(); err != nil {
+		return fmt.Errorf("closing retrieval file: %s", err)
+	}
+	if err := os.Remove(af.File.Name()); err != nil {
+		return fmt.Errorf("autodeleting retrieval file: %s", err)
 	}
 	return nil
 }

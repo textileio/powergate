@@ -32,7 +32,7 @@ var ffsAddrsNewCmd = &cobra.Command{
 		defer cancel()
 
 		if len(args) != 1 {
-			Fatal(errors.New("You must provide a name for the address"))
+			Fatal(errors.New("must provide a name for the address"))
 		}
 
 		format := viper.GetString("format")

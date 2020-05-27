@@ -37,7 +37,6 @@ func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Min
 	mres := make(map[string]struct{})
 	for _, pm := range f.TrustedMiners {
 		for _, m := range fms.miners {
-			fmt.Printf("Comparing miner %s %s\n", m.Addr, pm)
 			if m.Addr == pm {
 				mres[m.Addr] = struct{}{}
 				res = append(res, ffs.MinerProposal{

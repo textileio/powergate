@@ -44,7 +44,12 @@ func store(ctx context.Context, dealsModule *deals.Module, storeParams *StorePar
 			EpochPrice: dealConfig.GetEpochPrice(),
 		}
 	}
-	dcid, sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), r, dealConfigs, storeParams.GetDuration(), false)
+	dcid, size, err := dealsModule.Import(ctx, r, false)
+	if err != nil {
+		ch <- storeResult{Err: err}
+		return
+	}
+	sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), dcid, uint64(size), dealConfigs, storeParams.GetDuration())
 	if err != nil {
 		ch <- storeResult{Err: err}
 		return

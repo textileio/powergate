@@ -30,9 +30,11 @@ func setupServer(t *testing.T) func() {
 
 	dipfs, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
-	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + dipfs.GetPort("5001/tcp"))
 
-	ddevnet := tests.LaunchDevnetDocker(t, 1)
+	ipfsAddrStr := "/ip4/127.0.0.1/tcp/" + dipfs.GetPort("5001/tcp")
+	ipfsAddr := util.MustParseAddr(ipfsAddrStr)
+
+	ddevnet := tests.LaunchDevnetDocker(t, 1, ipfsAddrStr)
 	devnetAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ddevnet.GetPort("7777/tcp"))
 
 	grpcMaddr := util.MustParseAddr(grpcHostAddress)
@@ -42,7 +44,7 @@ func setupServer(t *testing.T) func() {
 		LotusAddress:        devnetAddr,
 		LotusAuthToken:      "",
 		LotusMasterAddr:     "",
-		Embedded:            true,
+		Devnet:              true,
 		GrpcHostNetwork:     grpcHostNetwork,
 		GrpcHostAddress:     grpcMaddr,
 		GrpcWebProxyAddress: grpcWebProxyAddress,

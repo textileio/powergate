@@ -98,13 +98,18 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 			EpochPrice: 500000000,
 		}
 	}
-	dcid, srs, err := m.Store(ctx, addr.String(), bytes.NewReader(data), cfgs, 1000, false)
+	dataCid, _, err := m.Import(ctx, bytes.NewReader(data), false)
+	if err != nil {
+		return cid.Undef, err
+	}
+	if !dataCid.Defined() {
+		return cid.Undef, fmt.Errorf("data cid is undefined")
+	}
+	srs, err := m.Store(ctx, addr.String(), dataCid, uint64(len(data)), cfgs, 1000)
 	if err != nil {
 		return cid.Undef, fmt.Errorf("error when calling Store(): %s", err)
 	}
-	if !dcid.Defined() {
-		return cid.Undef, fmt.Errorf("data cid is undefined")
-	}
+
 	var pcids []cid.Cid
 	for _, r := range srs {
 		if !r.Success {
@@ -118,7 +123,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	if err := waitForDealComplete(client, pcids); err != nil {
 		return cid.Undef, fmt.Errorf("error waiting for deal to complete: %s", err)
 	}
-	return dcid, nil
+	return dataCid, nil
 }
 
 func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) error {
@@ -144,6 +149,8 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 				di.State != storagemarket.StorageDealStaged &&
 				di.State != storagemarket.StorageDealValidating &&
 				di.State != storagemarket.StorageDealClientFunding &&
+				di.State != storagemarket.StorageDealPublish &&
+				di.State != storagemarket.StorageDealPublishing &&
 				di.State != storagemarket.StorageDealSealing {
 				return fmt.Errorf("unexpected deal state: %s", storagemarket.DealStates[di.State])
 			}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -23,7 +24,7 @@ func TestFreshIndex(t *testing.T) {
 	time.Sleep(time.Millisecond * 500) // Allow the network to some tipsets
 
 	sh, err := New(tests.NewTxMapDatastore(), client)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	// Wait for some rounds of slashing updating
 	for i := 0; i < 10; i++ {
@@ -36,12 +37,5 @@ func TestFreshIndex(t *testing.T) {
 	index := sh.Get()
 	if index.TipSetKey == "" {
 		t.Fatalf("miner info state is invalid: %s %d", index.TipSetKey, len(index.Miners))
-	}
-}
-
-func checkErr(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
 	}
 }

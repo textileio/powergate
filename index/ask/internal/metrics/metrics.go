@@ -46,7 +46,7 @@ var (
 // Init register all views.
 func Init() error {
 	if err := view.Register(views...); err != nil {
-		return fmt.Errorf("Failed to register views: %v", err)
+		return fmt.Errorf("register metric views: %v", err)
 	}
 	return nil
 }

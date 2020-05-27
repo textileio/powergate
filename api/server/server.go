@@ -17,7 +17,6 @@ import (
 	badger "github.com/ipfs/go-ds-badger2"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/multiformats/go-multiaddr"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
 	dealsRpc "github.com/textileio/powergate/deals/rpc"
@@ -29,7 +28,6 @@ import (
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
-	ffsGrpc "github.com/textileio/powergate/ffs/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/ffs/scheduler/astore"
@@ -104,9 +102,9 @@ type Config struct {
 	LotusAddress        ma.Multiaddr
 	LotusAuthToken      string
 	LotusMasterAddr     string
-	Embedded            bool
+	Devnet              bool
 	GrpcHostNetwork     string
-	GrpcHostAddress     multiaddr.Multiaddr
+	GrpcHostAddress     ma.Multiaddr
 	GrpcServerOpts      []grpc.ServerOption
 	GrpcWebProxyAddress string
 	RepoPath            string
@@ -122,7 +120,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
 
-	if conf.Embedded {
+	if conf.Devnet {
 		// Wait for the devnet to bootstrap completely and generate at least 1 block.
 		time.Sleep(time.Second * 6)
 		if masterAddr, err = c.WalletDefaultAddress(context.Background()); err != nil {
@@ -134,11 +132,11 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	}
 
-	fchost, err := fchost.New(!conf.Embedded)
+	fchost, err := fchost.New(!conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating filecoin host: %s", err)
 	}
-	if !conf.Embedded {
+	if !conf.Devnet {
 		if err := fchost.Bootstrap(); err != nil {
 			return nil, fmt.Errorf("bootstrapping filecoin host: %s", err)
 		}
@@ -190,7 +188,7 @@ func NewServer(conf Config) (*Server, error) {
 	ms := reptop.New(rm, ai)
 
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
-	cs := filcold.New(ms, dm, ipfs.Dag(), lchain, l)
+	cs := filcold.New(ms, dm, ipfs, lchain, l)
 	hs := coreipfs.New(ipfs, l)
 	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	as := astore.New(txndstr.Wrap(ds, "ffs/scheduler/astore"))
@@ -271,7 +269,7 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 	return grpcServer, grpcWebProxy
 }
 
-func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress multiaddr.Multiaddr) error {
+func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
 	netService := pgnetRpc.New(s.nm)
 	healthService := healthRpc.New(s.hm)
 	dealsService := dealsRpc.New(s.dm)
@@ -280,7 +278,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	askService := askRpc.New(s.ai)
 	minerService := minerRpc.New(s.mi)
 	slashingService := slashingRpc.New(s.si)
-	ffsService := ffsGrpc.New(s.ffsManager, s.hs)
+	ffsService := ffsRpc.New(s.ffsManager, s.hs)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {

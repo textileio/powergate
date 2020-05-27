@@ -1,7 +1,7 @@
 version: '3.7'
 
 volumes:
-   pow-embed-shared:
+   pow-devnet-shared:
 
 services:
   
@@ -19,11 +19,11 @@ services:
       - ipfs
       - lotus
     environment:
-      - POWD_EMBEDDED=true
+      - POWD_DEVNET=true
       - POWD_LOTUSHOST=/dns4/lotus/tcp/7777
       - POWD_IPFSAPIADDR=/dns4/ipfs/tcp/5001
     volumes:
-      - pow-embed-shared:/tmp/powergate
+      - pow-devnet-shared:/tmp/powergate
     restart: unless-stopped
 
   ipfs:
@@ -32,11 +32,12 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:sha-1e166c9
+    image: textile/lotus-devnet:sha-77f20c7
     ports:
       - 7777:7777
     environment:
       - TEXLOTUSDEVNET_SPEED=1500
       - TEXLOTUSDEVNET_BIGSECTORS=true
+      - TEXLOTUSDEVNET_IPFSADDR=/dns4/ipfs/tcp/5001
     volumes:
-     - pow-embed-shared:/tmp/powergate
+     - pow-devnet-shared:/tmp/powergate

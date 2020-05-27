@@ -3,13 +3,12 @@ package filcold
 import (
 	"context"
 	"fmt"
-	"io"
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-cid"
-	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
-	"github.com/ipld/go-car"
+	iface "github.com/ipfs/interface-go-ipfs-core"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 )
@@ -18,11 +17,12 @@ var (
 	log = logger.Logger("ffs-filcold")
 )
 
-// FilCold is a ffs.ColdStorage implementation that stores data in Filecoin.
+// FilCold is a ColdStorage implementation which saves data in the Filecoin network.
+// It assumes the underlying Filecoin client has access to an IPFS node where data is stored.
 type FilCold struct {
 	ms    ffs.MinerSelector
 	dm    *deals.Module
-	dag   format.DAGService
+	ipfs  iface.CoreAPI
 	chain FilChain
 	l     ffs.CidLogger
 }
@@ -34,37 +34,24 @@ type FilChain interface {
 	GetHeight(context.Context) (uint64, error)
 }
 
-// New returns a new FilCold instance
-func New(ms ffs.MinerSelector, dm *deals.Module, dag format.DAGService, chain FilChain, l ffs.CidLogger) *FilCold {
+// New returns a new FilCold instance.
+func New(ms ffs.MinerSelector, dm *deals.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.CidLogger) *FilCold {
 	return &FilCold{
 		ms:    ms,
 		dm:    dm,
-		dag:   dag,
+		ipfs:  ipfs,
 		chain: chain,
 		l:     l,
 	}
 }
 
-// Retrieve returns the original data Cid, from the CAR encoded data Cid. The returned Cid is available in the
-// car.Store received as a parameter.
-func (fc *FilCold) Retrieve(ctx context.Context, dataCid cid.Cid, cs car.Store, waddr string) (cid.Cid, error) {
-	carR, err := fc.dm.Retrieve(ctx, waddr, dataCid, true)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("retrieving from deal module: %s", err)
+// Fetch fetches the stored Cid data.The data will be considered available
+// to the underlying blockstore.
+func (fc *FilCold) Fetch(ctx context.Context, dataCid cid.Cid, waddr string) error {
+	if err := fc.dm.Fetch(ctx, waddr, dataCid); err != nil {
+		return fmt.Errorf("fetching from deal module: %s", err)
 	}
-	defer func() {
-		if err := carR.Close(); err != nil {
-			log.Errorf("closing reader from deal retrieve: %s", err)
-		}
-	}()
-	h, err := car.LoadCar(cs, carR)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("loading car to carstore: %s", err)
-	}
-	if len(h.Roots) != 1 {
-		return cid.Undef, fmt.Errorf("car header doesn't have a single root: %d", len(h.Roots))
-	}
-	return h.Roots[0], nil
+	return nil
 }
 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
@@ -80,13 +67,18 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("making deal configs: %s", err)
 	}
-	props, errors, err := fc.makeDeals(ctx, c, cfgs, cfg)
+	size, err := fc.getCidSize(ctx, c)
+	if err != nil {
+		return ffs.FilInfo{}, nil, fmt.Errorf("getting cid cummulative size: %s", err)
+	}
+	props, errors, err := fc.makeDeals(ctx, c, size, cfgs, cfg)
 	if err != nil {
 		return ffs.FilInfo{}, errors, fmt.Errorf("executing deals: %s", err)
 	}
 
 	return ffs.FilInfo{
 		DataCid:   c,
+		Size:      size,
 		Proposals: props,
 	}, errors, nil
 }
@@ -106,10 +98,6 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
 func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig) (ffs.FilInfo, []ffs.DealError, error) {
-	var activeMiners []string
-	for _, p := range inf.Proposals {
-		activeMiners = append(activeMiners, p.Miner)
-	}
 	height, err := fc.chain.GetHeight(ctx)
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("get current filecoin height: %s", err)
@@ -142,10 +130,11 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		// renewed.
 		numToBeRenewed = len(renewable)
 	}
+
 	toRenew := renewable[:numToBeRenewed]
 	var retErrors []ffs.DealError
 	for i, p := range toRenew {
-		newProposal, errors, err := fc.renewDeal(ctx, c, p, activeMiners, cfg)
+		newProposal, errors, err := fc.renewDeal(ctx, c, inf.Size, p, cfg)
 		if err != nil {
 			log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
 			continue
@@ -158,16 +147,16 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return inf, retErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, activeMiners []string, fcfg ffs.FilConfig) (ffs.FilStorage, []ffs.DealError, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig) (ffs.FilStorage, []ffs.DealError, error) {
 	f := ffs.MinerSelectorFilter{
-		ExcludedMiners: activeMiners,
+		TrustedMiners: []string{p.Miner},
 	}
 	dealConfig, err := makeDealConfigs(ctx, fc.ms, 1, f)
 	if err != nil {
 		return ffs.FilStorage{}, nil, fmt.Errorf("making new deal config: %s", err)
 	}
 
-	props, errors, err := fc.makeDeals(ctx, c, dealConfig, fcfg)
+	props, errors, err := fc.makeDeals(ctx, c, size, dealConfig, fcfg)
 	if err != nil {
 		return ffs.FilStorage{}, errors, fmt.Errorf("executing renewed deal: %s", err)
 	}
@@ -177,20 +166,15 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, a
 	return props[0], errors, nil
 }
 
-func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]ffs.FilStorage, []ffs.DealError, error) {
-	r := ipldToFileTransform(ctx, fc.dag, c)
-
+func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]ffs.FilStorage, []ffs.DealError, error) {
 	for _, cfg := range cfgs {
 		fc.l.Log(ctx, c, "Proposing deal to miner %s with %d fil per epoch...", cfg.Miner, cfg.EpochPrice)
 	}
 
 	var sres []deals.StoreResult
-	dataCid, sres, err := fc.dm.Store(ctx, fcfg.Addr, r, cfgs, uint64(fcfg.DealDuration), true)
+	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, size, cfgs, uint64(fcfg.DealDuration))
 	if err != nil {
 		return nil, nil, fmt.Errorf("storing deals in deal module: %s", err)
-	}
-	if dataCid != c {
-		return nil, nil, fmt.Errorf("stored data cid doesn't match with sent data")
 	}
 
 	proposals, errors, err := fc.waitForDeals(ctx, c, sres, fcfg.DealDuration)
@@ -276,20 +260,12 @@ func (fc *FilCold) waitForDeals(ctx context.Context, c cid.Cid, storeResults []d
 	return res, errors, nil
 }
 
-func ipldToFileTransform(ctx context.Context, dag format.DAGService, c cid.Cid) io.Reader {
-	r, w := io.Pipe()
-	go func() {
-		if err := car.WriteCar(ctx, dag, []cid.Cid{c}, w); err != nil {
-			log.Errorf("writing car file: %s", err)
-			if err := w.CloseWithError(err); err != nil {
-				log.Errorf("closing with error: %s", err)
-			}
-		}
-		if err := w.Close(); err != nil {
-			log.Errorf("closing writer in ipld to file transform: %s", err)
-		}
-	}()
-	return r
+func (fc *FilCold) getCidSize(ctx context.Context, c cid.Cid) (uint64, error) {
+	s, err := fc.ipfs.Object().Stat(ctx, path.IpfsPath(c))
+	if err != nil {
+		return 0, fmt.Errorf("calling ipfs object stat: %s", err)
+	}
+	return uint64(s.CumulativeSize), nil
 }
 
 func makeDealConfigs(ctx context.Context, ms ffs.MinerSelector, cantMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {

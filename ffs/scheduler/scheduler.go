@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
@@ -404,13 +403,11 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
 		s.l.Log(ctx, curr.Cid, "Unfreezing from Filecoin...")
-		bs := &hotStorageBlockstore{ctx: ctx, put: s.hs.Put}
-		carHeaderCid, err := s.cs.Retrieve(ctx, curr.Cold.Filecoin.DataCid, bs, waddr)
-		if err != nil {
+		if err := s.cs.Fetch(ctx, curr.Cold.Filecoin.DataCid, waddr); err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
 		}
 		s.l.Log(ctx, curr.Cid, "Unfrozen successfully, saving in Hot-Storage...")
-		size, err = s.hs.Store(ctx, carHeaderCid)
+		size, err = s.hs.Store(ctx, curr.Cold.Filecoin.DataCid)
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("pinning unfrozen cid: %s", err)
 		}
@@ -507,16 +504,4 @@ func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {
 		res.ExcludedMiners = append(res.ExcludedMiners, p.Miner)
 	}
 	return res
-}
-
-type hotStorageBlockstore struct {
-	ctx context.Context
-	put func(context.Context, blocks.Block) error
-}
-
-func (hsb *hotStorageBlockstore) Put(b blocks.Block) error {
-	if err := hsb.put(hsb.ctx, b); err != nil {
-		return fmt.Errorf("saving block in hot-storage: %s", err)
-	}
-	return nil
 }

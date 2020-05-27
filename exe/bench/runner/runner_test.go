@@ -54,7 +54,7 @@ func spinup(t *testing.T) *client.Client {
 	}
 	makeDown()
 
-	cmd := exec.Command("docker-compose", "-f", "docker-compose-embedded.yaml", "build")
+	cmd := exec.Command("docker-compose", "-f", "docker-compose-devnet.yaml", "build")
 	cmd.Dir = dockerFolder
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -62,7 +62,7 @@ func spinup(t *testing.T) *client.Client {
 		t.Fatalf("docker-compose build: %s", err)
 	}
 
-	cmd = exec.Command("make", "embed")
+	cmd = exec.Command("make", "devnet")
 	cmd.Dir = dockerFolder
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
