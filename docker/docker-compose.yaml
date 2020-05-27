@@ -34,7 +34,7 @@ services:
     image: textile/lotus:75041b9
     volumes:
       - textile-fc-lotus:/data
-    enviroment:
+    environment:
       - LOTUS_API_LISTENADDRESS=/ip4/0.0.0.0/tcp/1234/http
     ports:
       - 1234:1234
