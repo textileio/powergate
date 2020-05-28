@@ -2,24 +2,24 @@ package cistore
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 var (
 	dsBase = datastore.NewKey("cistore")
+
+	ErrNotFound = errors.New("cid info not found")
 )
 
 // Store is an Datastore implementation of CidInfoStore
 type Store struct {
 	ds datastore.Datastore
 }
-
-var _ scheduler.CidInfoStore = (*Store)(nil)
 
 // New returns a new JobStore backed by the Datastore.
 func New(ds datastore.Datastore) *Store {
@@ -33,7 +33,7 @@ func (s *Store) Get(c cid.Cid) (ffs.CidInfo, error) {
 	var ci ffs.CidInfo
 	buf, err := s.ds.Get(makeKey(c))
 	if err == datastore.ErrNotFound {
-		return ci, scheduler.ErrNotFound
+		return ci, ErrNotFound
 	}
 	if err != nil {
 		return ci, fmt.Errorf("getting cid info from datastore: %s", err)

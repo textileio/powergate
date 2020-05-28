@@ -32,9 +32,6 @@ import (
 	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/scheduler"
-	"github.com/textileio/powergate/ffs/scheduler/astore"
-	"github.com/textileio/powergate/ffs/scheduler/cistore"
-	"github.com/textileio/powergate/ffs/scheduler/jstore"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -1196,13 +1193,10 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 	require.Nil(t, err)
 
 	fchain := lotuschain.New(client)
-	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
+	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
 	cl := filcold.New(ms, dm, ipfsClient, fchain, l)
-	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
-	as := astore.New(txndstr.Wrap(ds, "ffs/scheduler/astore"))
-	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
 	hl := coreipfs.New(ipfsClient, l)
-	sched := scheduler.New(js, as, cis, l, hl, cl)
+	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
 
 	wm, err := wallet.New(client, waddr, *big.NewInt(iWalletBal))
 	require.Nil(t, err)
@@ -1243,9 +1237,6 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 		}
 		if err := sched.Close(); err != nil {
 			t.Fatalf("closing scheduler: %s", err)
-		}
-		if err := js.Close(); err != nil {
-			t.Fatalf("closing jobstore: %s", err)
 		}
 		if err := l.Close(); err != nil {
 			t.Fatalf("closing cidlogger: %s", err)
