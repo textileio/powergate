@@ -661,6 +661,7 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 			Duration:        p.Duration,
 			ActivationEpoch: p.ActivationEpoch,
 			Miner:           p.Miner,
+			EpochPrice:      p.EpochPrice,
 		}
 	}
 	return cidInfo

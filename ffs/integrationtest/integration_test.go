@@ -259,6 +259,7 @@ func TestShow(t *testing.T) {
 		p := s.Cold.Filecoin.Proposals[0]
 		require.True(t, p.ProposalCid.Defined())
 		require.Greater(t, p.Duration, int64(0))
+		require.Greater(t, p.EpochPrice, uint64(0))
 	})
 }
 

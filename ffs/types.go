@@ -374,6 +374,7 @@ type FilStorage struct {
 	Duration        int64
 	ActivationEpoch int64
 	Miner           string
+	EpochPrice      uint64
 }
 
 // CidLoggerCtxKey is a type to use in ctx values for CidLogger.
