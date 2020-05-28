@@ -71,6 +71,7 @@ message FilStorage {
    int64 duration = 3;
    int64 activationEpoch = 4;
    string miner = 5;
+   uint64 epochPrice = 6;
 }
 
 message FilInfo {
