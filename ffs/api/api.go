@@ -50,7 +50,7 @@ type API struct {
 
 // New returns a new Api instance.
 func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, dc ffs.DefaultConfig) (*API, error) {
-	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore/"+iid.String())))
+	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 
 	addr, err := wm.NewAddress(ctx, defaultAddressType)
 	if err != nil {

@@ -74,7 +74,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 
 	log.Info("creating instance")
 	iid := ffs.NewAPIID()
-	fapi, err := api.New(ctx, namespace.Wrap(m.ds, datastore.NewKey("ffs/manager/api")), iid, m.sched, m.wm, defCidConfig)
+	fapi, err := api.New(ctx, namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, defCidConfig)
 	if err != nil {
 		return ffs.EmptyInstanceID, "", fmt.Errorf("creating new instance: %s", err)
 	}

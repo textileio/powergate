@@ -181,7 +181,7 @@ func NewServer(conf Config) (*Server, error) {
 	chain := filchain.New(c)
 	ms := reptop.New(rm, ai)
 
-	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
+	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
 	cs := filcold.New(ms, dm, ipfs, chain, l)
 	hs := coreipfs.New(ipfs, l)
 	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
