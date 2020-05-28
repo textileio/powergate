@@ -34,7 +34,7 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 	}
 	var err error
 	go func() {
-		err = i.sched.WatchJobs(ctx, ch, i.iid)
+		err = i.sched.WatchJobs(ctx, ch, i.cfg.ID)
 		close(ch)
 	}()
 	for j := range ch {

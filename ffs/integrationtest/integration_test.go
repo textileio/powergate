@@ -25,7 +25,6 @@ import (
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/api/istore"
 	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
@@ -1204,7 +1203,6 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 	var fapi *api.API
 	if iid == ffs.EmptyInstanceID {
 		iid = ffs.NewAPIID()
-		is := istore.New(iid, txndstr.Wrap(ds, "ffs/api/istore"))
 		defConfig := ffs.DefaultConfig{
 			Hot: ffs.HotConfig{
 				Enabled:       true,
@@ -1222,11 +1220,10 @@ func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client
 				},
 			},
 		}
-		fapi, err = api.New(ctx, iid, is, sched, wm, defConfig)
+		fapi, err = api.New(ctx, txndstr.Wrap(ds, "ffs/api"), iid, sched, wm, defConfig)
 		require.Nil(t, err)
 	} else {
-		is := istore.New(iid, txndstr.Wrap(ds, "ffs/api/istore"))
-		fapi, err = api.Load(iid, is, sched, wm)
+		fapi, err = api.Load(txndstr.Wrap(ds, "ffs/api"), iid, sched, wm)
 		require.Nil(t, err)
 	}
 	time.Sleep(time.Second * 2)

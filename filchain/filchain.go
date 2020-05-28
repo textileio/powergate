@@ -7,7 +7,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 )
 
-// FIlChain is an abstraction of the Filecoin network.
+// FilChain is an abstraction of the Filecoin network.
 type FilChain struct {
 	api API
 }

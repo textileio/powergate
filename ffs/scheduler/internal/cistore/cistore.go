@@ -13,6 +13,7 @@ import (
 var (
 	dsBase = datastore.NewKey("cistore")
 
+	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("cid info not found")
 )
 

@@ -17,6 +17,7 @@ import (
 var (
 	log = logging.Logger("ffs-sched-jstore")
 
+	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("job not found")
 )
 

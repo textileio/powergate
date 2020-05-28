@@ -15,6 +15,7 @@ import (
 var (
 	log = logging.Logger("ffs-sched-astore")
 
+	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("action not found")
 )
 

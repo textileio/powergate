@@ -23,7 +23,7 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 		}
 	}
 	if !cfg.OverrideConfig {
-		_, err := i.is.GetCidConfig(c)
+		_, err := i.is.getCidConfig(c)
 		if err == nil {
 			return ffs.EmptyJobID, ErrMustOverrideConfig
 		}
@@ -42,7 +42,7 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
 	}
-	if err := i.is.PutCidConfig(cfg.Config); err != nil {
+	if err := i.is.putCidConfig(cfg.Config); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil
@@ -54,7 +54,7 @@ func (i *API) Remove(c cid.Cid) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg, err := i.is.GetCidConfig(c)
+	cfg, err := i.is.getCidConfig(c)
 	if err == ErrNotFound {
 		return err
 	}
@@ -67,7 +67,7 @@ func (i *API) Remove(c cid.Cid) error {
 	if err := i.sched.Untrack(c); err != nil {
 		return fmt.Errorf("untracking from scheduler: %s", err)
 	}
-	if err := i.is.RemoveCidConfig(c); err != nil {
+	if err := i.is.removeCidConfig(c); err != nil {
 		return fmt.Errorf("deleting replaced cid config: %s", err)
 	}
 	return nil
@@ -84,7 +84,7 @@ func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 		return ffs.EmptyJobID, fmt.Errorf("the old and new cid should be different")
 	}
 
-	cfg, err := i.is.GetCidConfig(c1)
+	cfg, err := i.is.getCidConfig(c1)
 	if err == ErrNotFound {
 		return ffs.EmptyJobID, ErrReplacedCidNotFound
 	}
@@ -97,14 +97,14 @@ func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 		return ffs.EmptyJobID, err
 	}
 
-	jid, err := i.sched.PushReplace(i.iid, cfg, c1)
+	jid, err := i.sched.PushReplace(i.cfg.ID, cfg, c1)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling replacement %s to %s: %s", c1, c2, err)
 	}
-	if err := i.is.PutCidConfig(cfg); err != nil {
+	if err := i.is.putCidConfig(cfg); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c2, err)
 	}
-	if err := i.is.RemoveCidConfig(c1); err != nil {
+	if err := i.is.removeCidConfig(c1); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("deleting replaced cid config: %s", err)
 	}
 	return jid, nil
@@ -115,7 +115,7 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	if !c.Defined() {
 		return nil, fmt.Errorf("cid is undefined")
 	}
-	conf, err := i.is.GetCidConfig(c)
+	conf, err := i.is.getCidConfig(c)
 	if err != nil {
 		return nil, fmt.Errorf("getting cid config: %s", err)
 	}

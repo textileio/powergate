@@ -12,17 +12,6 @@ var (
 	ErrNotFound = errors.New("stored item not found")
 )
 
-// InstanceStore is a repository for all state of a Api.
-type InstanceStore interface {
-	PutConfig(c Config) error
-	GetConfig() (Config, error)
-
-	GetCidConfig(cid.Cid) (ffs.CidConfig, error)
-	PutCidConfig(ffs.CidConfig) error
-	RemoveCidConfig(cid.Cid) error
-	GetCids() ([]cid.Cid, error)
-}
-
 // Config has general information about a Api instance.
 type Config struct {
 	ID            ffs.APIID

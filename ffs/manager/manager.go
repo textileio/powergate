@@ -11,7 +11,6 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/api/istore"
 	"github.com/textileio/powergate/ffs/auth"
 	"github.com/textileio/powergate/ffs/scheduler"
 )
@@ -22,8 +21,6 @@ var (
 
 	createDefConfig sync.Once
 	defCidConfig    ffs.DefaultConfig
-
-	istoreNamespace = datastore.NewKey("ffs/api/istore")
 
 	log = logging.Logger("ffs-manager")
 )
@@ -77,8 +74,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 
 	log.Info("creating instance")
 	iid := ffs.NewAPIID()
-	is := istore.New(iid, namespace.Wrap(m.ds, istoreNamespace))
-	fapi, err := api.New(ctx, iid, is, m.sched, m.wm, defCidConfig)
+	fapi, err := api.New(ctx, namespace.Wrap(m.ds, datastore.NewKey("ffs/manager/api")), iid, m.sched, m.wm, defCidConfig)
 	if err != nil {
 		return ffs.EmptyInstanceID, "", fmt.Errorf("creating new instance: %s", err)
 	}
@@ -119,8 +115,7 @@ func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 	i, ok := m.instances[iid]
 	if !ok {
 		log.Infof("loading uncached instance %s", iid)
-		is := istore.New(iid, namespace.Wrap(m.ds, istoreNamespace))
-		i, err = api.Load(iid, is, m.sched, m.wm)
+		i, err = api.Load(namespace.Wrap(m.ds, datastore.NewKey("ffs/manager/api")), iid, m.sched, m.wm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)
 		}

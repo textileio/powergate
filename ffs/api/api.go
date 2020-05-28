@@ -7,14 +7,14 @@ import (
 	"sync"
 
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/namespace"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 var (
-	defaultAddressType = "bls"
-
 	log = logging.Logger("ffs-api")
 )
 
@@ -36,9 +36,8 @@ var (
 // API is an Api instance, which owns a Lotus Address and allows to
 // Store and Retrieve Cids from Hot and Cold layers.
 type API struct {
-	iid ffs.APIID
-	is  InstanceStore
-	wm  ffs.WalletManager
+	is *instanceStore
+	wm ffs.WalletManager
 
 	sched *scheduler.Scheduler
 
@@ -50,7 +49,9 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch *scheduler.Scheduler, wm ffs.WalletManager, dc ffs.DefaultConfig) (*API, error) {
+func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, dc ffs.DefaultConfig) (*API, error) {
+	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore/"+iid.String())))
+
 	addr, err := wm.NewAddress(ctx, defaultAddressType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
@@ -75,24 +76,25 @@ func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch *scheduler.Sc
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	i := new(ctx, iid, is, wm, config, sch, cancel)
-	if err := i.is.PutConfig(config); err != nil {
+	i := new(ctx, is, wm, config, sch, cancel)
+	if err := i.is.putConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.cfg.ID, err)
 	}
 	return i, nil
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(iid ffs.APIID, is InstanceStore, sched *scheduler.Scheduler, wm ffs.WalletManager) (*API, error) {
-	c, err := is.GetConfig()
+func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager) (*API, error) {
+	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore/"+iid.String())))
+	c, err := is.getConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return new(ctx, iid, is, wm, c, sched, cancel), nil
+	return new(ctx, is, wm, c, sched, cancel), nil
 }
 
-func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletManager, config Config, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
+func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, config Config, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:     is,
 		wm:     wm,
@@ -100,7 +102,6 @@ func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletMana
 		sched:  sch,
 		cancel: cancel,
 		ctx:    ctx,
-		iid:    iid,
 	}
 	return i
 }
@@ -124,7 +125,7 @@ func (i *API) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
 
 // GetCidConfig returns the current CidConfig for a Cid.
 func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
-	conf, err := i.is.GetCidConfig(c)
+	conf, err := i.is.getCidConfig(c)
 	if err == ErrNotFound {
 		return ffs.CidConfig{}, err
 	}
@@ -142,7 +143,7 @@ func (i *API) SetDefaultConfig(c ffs.DefaultConfig) error {
 		return fmt.Errorf("default cid config is invalid: %s", err)
 	}
 	i.cfg.DefaultConfig = c
-	return i.is.PutConfig(i.cfg)
+	return i.is.putConfig(i.cfg)
 }
 
 // Info returns instance information.
@@ -150,7 +151,7 @@ func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	pins, err := i.is.GetCids()
+	pins, err := i.is.getCids()
 	if err != nil {
 		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
 	}

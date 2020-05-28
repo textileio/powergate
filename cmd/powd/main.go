@@ -184,7 +184,6 @@ func setupLogging() error {
 		"ffs-manager",
 		"ffs-auth",
 		"ffs-api",
-		"ffs-api-istore",
 		"ffs-coreipfs",
 		"ffs-grpc-service",
 		"ffs-filcold",
