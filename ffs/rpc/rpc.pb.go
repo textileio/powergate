@@ -3198,6 +3198,91 @@ func (x *AddToHotReply) GetCid() string {
 	return ""
 }
 
+type ShowAllRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *ShowAllRequest) Reset() {
+	*x = ShowAllRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[59]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ShowAllRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShowAllRequest) ProtoMessage() {}
+
+func (x *ShowAllRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[59]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShowAllRequest.ProtoReflect.Descriptor instead.
+func (*ShowAllRequest) Descriptor() ([]byte, []int) {
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{59}
+}
+
+type ShowAllReply struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CidInfos []*CidInfo `protobuf:"bytes,1,rep,name=cidInfos,proto3" json:"cidInfos,omitempty"`
+}
+
+func (x *ShowAllReply) Reset() {
+	*x = ShowAllReply{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[60]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ShowAllReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShowAllReply) ProtoMessage() {}
+
+func (x *ShowAllReply) ProtoReflect() protoreflect.Message {
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[60]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShowAllReply.ProtoReflect.Descriptor instead.
+func (*ShowAllReply) Descriptor() ([]byte, []int) {
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{60}
+}
+
+func (x *ShowAllReply) GetCidInfos() []*CidInfo {
+	if x != nil {
+		return x.CidInfos
+	}
+	return nil
+}
+
 var File_ffs_rpc_rpc_proto protoreflect.FileDescriptor
 
 var file_ffs_rpc_rpc_proto_rawDesc = []byte{
@@ -3454,12 +3539,17 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x74, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c,
 	0x52, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x22, 0x21, 0x0a, 0x0d, 0x41, 0x64, 0x64, 0x54, 0x6f,
 	0x48, 0x6f, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x2a, 0x4d, 0x0a, 0x09, 0x4a, 0x6f,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x22, 0x10, 0x0a, 0x0e, 0x53, 0x68,
+	0x6f, 0x77, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x3c, 0x0a, 0x0c,
+	0x53, 0x68, 0x6f, 0x77, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2c, 0x0a, 0x08,
+	0x63, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x10,
+	0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f,
+	0x52, 0x08, 0x63, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x73, 0x2a, 0x4d, 0x0a, 0x09, 0x4a, 0x6f,
 	0x62, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x0a, 0x0a, 0x06, 0x51, 0x75, 0x65, 0x75, 0x65,
 	0x64, 0x10, 0x00, 0x12, 0x0d, 0x0a, 0x09, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67,
 	0x10, 0x01, 0x12, 0x0a, 0x0a, 0x06, 0x46, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x10, 0x02, 0x12, 0x0c,
 	0x0a, 0x08, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x65, 0x64, 0x10, 0x03, 0x12, 0x0b, 0x0a, 0x07,
-	0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x10, 0x04, 0x32, 0x8a, 0x0a, 0x0a, 0x03, 0x52, 0x50,
+	0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x10, 0x04, 0x32, 0xc7, 0x0a, 0x0a, 0x03, 0x52, 0x50,
 	0x43, 0x12, 0x38, 0x0a, 0x06, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x12, 0x16, 0x2e, 0x66, 0x66,
 	0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75,
 	0x65, 0x73, 0x74, 0x1a, 0x14, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x72,
@@ -3540,8 +3630,12 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x12, 0x18, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x64, 0x64, 0x54, 0x6f,
 	0x48, 0x6f, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x66, 0x66, 0x73,
 	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x64, 0x64, 0x54, 0x6f, 0x48, 0x6f, 0x74, 0x52, 0x65, 0x70,
-	0x6c, 0x79, 0x22, 0x00, 0x28, 0x01, 0x42, 0x09, 0x5a, 0x07, 0x66, 0x66, 0x73, 0x2f, 0x72, 0x70,
-	0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x79, 0x22, 0x00, 0x28, 0x01, 0x12, 0x3b, 0x0a, 0x07, 0x53, 0x68, 0x6f, 0x77, 0x41, 0x6c,
+	0x6c, 0x12, 0x17, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x68, 0x6f, 0x77,
+	0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x15, 0x2e, 0x66, 0x66, 0x73,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x68, 0x6f, 0x77, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x70, 0x6c,
+	0x79, 0x22, 0x00, 0x42, 0x09, 0x5a, 0x07, 0x66, 0x66, 0x73, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3557,7 +3651,7 @@ func file_ffs_rpc_rpc_proto_rawDescGZIP() []byte {
 }
 
 var file_ffs_rpc_rpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_ffs_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 59)
+var file_ffs_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
 var file_ffs_rpc_rpc_proto_goTypes = []interface{}{
 	(JobStatus)(0),                     // 0: ffs.rpc.JobStatus
 	(*AddrInfo)(nil),                   // 1: ffs.rpc.AddrInfo
@@ -3619,6 +3713,8 @@ var file_ffs_rpc_rpc_proto_goTypes = []interface{}{
 	(*CloseReply)(nil),                 // 57: ffs.rpc.CloseReply
 	(*AddToHotRequest)(nil),            // 58: ffs.rpc.AddToHotRequest
 	(*AddToHotReply)(nil),              // 59: ffs.rpc.AddToHotReply
+	(*ShowAllRequest)(nil),             // 60: ffs.rpc.ShowAllRequest
+	(*ShowAllReply)(nil),               // 61: ffs.rpc.ShowAllReply
 }
 var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	2,  // 0: ffs.rpc.HotConfig.ipfs:type_name -> ffs.rpc.IpfsConfig
@@ -3648,51 +3744,54 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	17, // 24: ffs.rpc.WatchJobsReply.job:type_name -> ffs.rpc.Job
 	45, // 25: ffs.rpc.WatchLogsReply.logEntry:type_name -> ffs.rpc.LogEntry
 	7,  // 26: ffs.rpc.PushConfigRequest.config:type_name -> ffs.rpc.CidConfig
-	19, // 27: ffs.rpc.RPC.Create:input_type -> ffs.rpc.CreateRequest
-	21, // 28: ffs.rpc.RPC.ListAPI:input_type -> ffs.rpc.ListAPIRequest
-	23, // 29: ffs.rpc.RPC.ID:input_type -> ffs.rpc.IDRequest
-	25, // 30: ffs.rpc.RPC.Addrs:input_type -> ffs.rpc.AddrsRequest
-	27, // 31: ffs.rpc.RPC.DefaultConfig:input_type -> ffs.rpc.DefaultConfigRequest
-	29, // 32: ffs.rpc.RPC.NewAddr:input_type -> ffs.rpc.NewAddrRequest
-	31, // 33: ffs.rpc.RPC.GetDefaultCidConfig:input_type -> ffs.rpc.GetDefaultCidConfigRequest
-	33, // 34: ffs.rpc.RPC.GetCidConfig:input_type -> ffs.rpc.GetCidConfigRequest
-	35, // 35: ffs.rpc.RPC.SetDefaultConfig:input_type -> ffs.rpc.SetDefaultConfigRequest
-	37, // 36: ffs.rpc.RPC.Show:input_type -> ffs.rpc.ShowRequest
-	39, // 37: ffs.rpc.RPC.Info:input_type -> ffs.rpc.InfoRequest
-	41, // 38: ffs.rpc.RPC.WatchJobs:input_type -> ffs.rpc.WatchJobsRequest
-	43, // 39: ffs.rpc.RPC.WatchLogs:input_type -> ffs.rpc.WatchLogsRequest
-	46, // 40: ffs.rpc.RPC.Replace:input_type -> ffs.rpc.ReplaceRequest
-	48, // 41: ffs.rpc.RPC.PushConfig:input_type -> ffs.rpc.PushConfigRequest
-	50, // 42: ffs.rpc.RPC.Remove:input_type -> ffs.rpc.RemoveRequest
-	52, // 43: ffs.rpc.RPC.Get:input_type -> ffs.rpc.GetRequest
-	54, // 44: ffs.rpc.RPC.SendFil:input_type -> ffs.rpc.SendFilRequest
-	56, // 45: ffs.rpc.RPC.Close:input_type -> ffs.rpc.CloseRequest
-	58, // 46: ffs.rpc.RPC.AddToHot:input_type -> ffs.rpc.AddToHotRequest
-	20, // 47: ffs.rpc.RPC.Create:output_type -> ffs.rpc.CreateReply
-	22, // 48: ffs.rpc.RPC.ListAPI:output_type -> ffs.rpc.ListAPIReply
-	24, // 49: ffs.rpc.RPC.ID:output_type -> ffs.rpc.IDReply
-	26, // 50: ffs.rpc.RPC.Addrs:output_type -> ffs.rpc.AddrsReply
-	28, // 51: ffs.rpc.RPC.DefaultConfig:output_type -> ffs.rpc.DefaultConfigReply
-	30, // 52: ffs.rpc.RPC.NewAddr:output_type -> ffs.rpc.NewAddrReply
-	32, // 53: ffs.rpc.RPC.GetDefaultCidConfig:output_type -> ffs.rpc.GetDefaultCidConfigReply
-	34, // 54: ffs.rpc.RPC.GetCidConfig:output_type -> ffs.rpc.GetCidConfigReply
-	36, // 55: ffs.rpc.RPC.SetDefaultConfig:output_type -> ffs.rpc.SetDefaultConfigReply
-	38, // 56: ffs.rpc.RPC.Show:output_type -> ffs.rpc.ShowReply
-	40, // 57: ffs.rpc.RPC.Info:output_type -> ffs.rpc.InfoReply
-	42, // 58: ffs.rpc.RPC.WatchJobs:output_type -> ffs.rpc.WatchJobsReply
-	44, // 59: ffs.rpc.RPC.WatchLogs:output_type -> ffs.rpc.WatchLogsReply
-	47, // 60: ffs.rpc.RPC.Replace:output_type -> ffs.rpc.ReplaceReply
-	49, // 61: ffs.rpc.RPC.PushConfig:output_type -> ffs.rpc.PushConfigReply
-	51, // 62: ffs.rpc.RPC.Remove:output_type -> ffs.rpc.RemoveReply
-	53, // 63: ffs.rpc.RPC.Get:output_type -> ffs.rpc.GetReply
-	55, // 64: ffs.rpc.RPC.SendFil:output_type -> ffs.rpc.SendFilReply
-	57, // 65: ffs.rpc.RPC.Close:output_type -> ffs.rpc.CloseReply
-	59, // 66: ffs.rpc.RPC.AddToHot:output_type -> ffs.rpc.AddToHotReply
-	47, // [47:67] is the sub-list for method output_type
-	27, // [27:47] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	14, // 27: ffs.rpc.ShowAllReply.cidInfos:type_name -> ffs.rpc.CidInfo
+	19, // 28: ffs.rpc.RPC.Create:input_type -> ffs.rpc.CreateRequest
+	21, // 29: ffs.rpc.RPC.ListAPI:input_type -> ffs.rpc.ListAPIRequest
+	23, // 30: ffs.rpc.RPC.ID:input_type -> ffs.rpc.IDRequest
+	25, // 31: ffs.rpc.RPC.Addrs:input_type -> ffs.rpc.AddrsRequest
+	27, // 32: ffs.rpc.RPC.DefaultConfig:input_type -> ffs.rpc.DefaultConfigRequest
+	29, // 33: ffs.rpc.RPC.NewAddr:input_type -> ffs.rpc.NewAddrRequest
+	31, // 34: ffs.rpc.RPC.GetDefaultCidConfig:input_type -> ffs.rpc.GetDefaultCidConfigRequest
+	33, // 35: ffs.rpc.RPC.GetCidConfig:input_type -> ffs.rpc.GetCidConfigRequest
+	35, // 36: ffs.rpc.RPC.SetDefaultConfig:input_type -> ffs.rpc.SetDefaultConfigRequest
+	37, // 37: ffs.rpc.RPC.Show:input_type -> ffs.rpc.ShowRequest
+	39, // 38: ffs.rpc.RPC.Info:input_type -> ffs.rpc.InfoRequest
+	41, // 39: ffs.rpc.RPC.WatchJobs:input_type -> ffs.rpc.WatchJobsRequest
+	43, // 40: ffs.rpc.RPC.WatchLogs:input_type -> ffs.rpc.WatchLogsRequest
+	46, // 41: ffs.rpc.RPC.Replace:input_type -> ffs.rpc.ReplaceRequest
+	48, // 42: ffs.rpc.RPC.PushConfig:input_type -> ffs.rpc.PushConfigRequest
+	50, // 43: ffs.rpc.RPC.Remove:input_type -> ffs.rpc.RemoveRequest
+	52, // 44: ffs.rpc.RPC.Get:input_type -> ffs.rpc.GetRequest
+	54, // 45: ffs.rpc.RPC.SendFil:input_type -> ffs.rpc.SendFilRequest
+	56, // 46: ffs.rpc.RPC.Close:input_type -> ffs.rpc.CloseRequest
+	58, // 47: ffs.rpc.RPC.AddToHot:input_type -> ffs.rpc.AddToHotRequest
+	60, // 48: ffs.rpc.RPC.ShowAll:input_type -> ffs.rpc.ShowAllRequest
+	20, // 49: ffs.rpc.RPC.Create:output_type -> ffs.rpc.CreateReply
+	22, // 50: ffs.rpc.RPC.ListAPI:output_type -> ffs.rpc.ListAPIReply
+	24, // 51: ffs.rpc.RPC.ID:output_type -> ffs.rpc.IDReply
+	26, // 52: ffs.rpc.RPC.Addrs:output_type -> ffs.rpc.AddrsReply
+	28, // 53: ffs.rpc.RPC.DefaultConfig:output_type -> ffs.rpc.DefaultConfigReply
+	30, // 54: ffs.rpc.RPC.NewAddr:output_type -> ffs.rpc.NewAddrReply
+	32, // 55: ffs.rpc.RPC.GetDefaultCidConfig:output_type -> ffs.rpc.GetDefaultCidConfigReply
+	34, // 56: ffs.rpc.RPC.GetCidConfig:output_type -> ffs.rpc.GetCidConfigReply
+	36, // 57: ffs.rpc.RPC.SetDefaultConfig:output_type -> ffs.rpc.SetDefaultConfigReply
+	38, // 58: ffs.rpc.RPC.Show:output_type -> ffs.rpc.ShowReply
+	40, // 59: ffs.rpc.RPC.Info:output_type -> ffs.rpc.InfoReply
+	42, // 60: ffs.rpc.RPC.WatchJobs:output_type -> ffs.rpc.WatchJobsReply
+	44, // 61: ffs.rpc.RPC.WatchLogs:output_type -> ffs.rpc.WatchLogsReply
+	47, // 62: ffs.rpc.RPC.Replace:output_type -> ffs.rpc.ReplaceReply
+	49, // 63: ffs.rpc.RPC.PushConfig:output_type -> ffs.rpc.PushConfigReply
+	51, // 64: ffs.rpc.RPC.Remove:output_type -> ffs.rpc.RemoveReply
+	53, // 65: ffs.rpc.RPC.Get:output_type -> ffs.rpc.GetReply
+	55, // 66: ffs.rpc.RPC.SendFil:output_type -> ffs.rpc.SendFilReply
+	57, // 67: ffs.rpc.RPC.Close:output_type -> ffs.rpc.CloseReply
+	59, // 68: ffs.rpc.RPC.AddToHot:output_type -> ffs.rpc.AddToHotReply
+	61, // 69: ffs.rpc.RPC.ShowAll:output_type -> ffs.rpc.ShowAllReply
+	49, // [49:70] is the sub-list for method output_type
+	28, // [28:49] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_ffs_rpc_rpc_proto_init() }
@@ -4409,6 +4508,30 @@ func file_ffs_rpc_rpc_proto_init() {
 				return nil
 			}
 		}
+		file_ffs_rpc_rpc_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ShowAllRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_ffs_rpc_rpc_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ShowAllReply); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -4416,7 +4539,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_ffs_rpc_rpc_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   59,
+			NumMessages:   61,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -4465,6 +4588,8 @@ type RPCClient interface {
 	SendFil(ctx context.Context, in *SendFilRequest, opts ...grpc.CallOption) (*SendFilReply, error)
 	Close(ctx context.Context, in *CloseRequest, opts ...grpc.CallOption) (*CloseReply, error)
 	AddToHot(ctx context.Context, opts ...grpc.CallOption) (RPC_AddToHotClient, error)
+	// UI support
+	ShowAll(ctx context.Context, in *ShowAllRequest, opts ...grpc.CallOption) (*ShowAllReply, error)
 }
 
 type rPCClient struct {
@@ -4749,6 +4874,15 @@ func (x *rPCAddToHotClient) CloseAndRecv() (*AddToHotReply, error) {
 	return m, nil
 }
 
+func (c *rPCClient) ShowAll(ctx context.Context, in *ShowAllRequest, opts ...grpc.CallOption) (*ShowAllReply, error) {
+	out := new(ShowAllReply)
+	err := c.cc.Invoke(ctx, "/ffs.rpc.RPC/ShowAll", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RPCServer is the server API for RPC service.
 type RPCServer interface {
 	// Admin
@@ -4773,6 +4907,8 @@ type RPCServer interface {
 	SendFil(context.Context, *SendFilRequest) (*SendFilReply, error)
 	Close(context.Context, *CloseRequest) (*CloseReply, error)
 	AddToHot(RPC_AddToHotServer) error
+	// UI support
+	ShowAll(context.Context, *ShowAllRequest) (*ShowAllReply, error)
 }
 
 // UnimplementedRPCServer can be embedded to have forward compatible implementations.
@@ -4838,6 +4974,9 @@ func (*UnimplementedRPCServer) Close(context.Context, *CloseRequest) (*CloseRepl
 }
 func (*UnimplementedRPCServer) AddToHot(RPC_AddToHotServer) error {
 	return status.Errorf(codes.Unimplemented, "method AddToHot not implemented")
+}
+func (*UnimplementedRPCServer) ShowAll(context.Context, *ShowAllRequest) (*ShowAllReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ShowAll not implemented")
 }
 
 func RegisterRPCServer(s *grpc.Server, srv RPCServer) {
@@ -5221,6 +5360,24 @@ func (x *rPCAddToHotServer) Recv() (*AddToHotRequest, error) {
 	return m, nil
 }
 
+func _RPC_ShowAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ShowAllRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServer).ShowAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ffs.rpc.RPC/ShowAll",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServer).ShowAll(ctx, req.(*ShowAllRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _RPC_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ffs.rpc.RPC",
 	HandlerType: (*RPCServer)(nil),
@@ -5288,6 +5445,10 @@ var _RPC_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Close",
 			Handler:    _RPC_Close_Handler,
+		},
+		{
+			MethodName: "ShowAll",
+			Handler:    _RPC_ShowAll_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

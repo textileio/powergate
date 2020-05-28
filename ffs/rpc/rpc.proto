@@ -297,6 +297,13 @@ message AddToHotReply {
    string cid = 1;
 }
 
+message ShowAllRequest {
+}
+
+message ShowAllReply {
+   repeated CidInfo cidInfos = 1;
+}
+
 service RPC {
    // Admin
    rpc Create(CreateRequest) returns (CreateReply) {}
@@ -321,4 +328,7 @@ service RPC {
    rpc SendFil(SendFilRequest) returns (SendFilReply) {}
    rpc Close(CloseRequest) returns (CloseReply) {}
    rpc AddToHot(stream AddToHotRequest) returns (AddToHotReply) {}
+
+   // UI support
+   rpc ShowAll(ShowAllRequest) returns (ShowAllReply) {}
 }
