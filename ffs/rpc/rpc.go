@@ -212,33 +212,7 @@ func (s *RPC) Show(ctx context.Context, req *ShowRequest) (*ShowReply, error) {
 		return nil, err
 	}
 	reply := &ShowReply{
-		CidInfo: &CidInfo{
-			JobID:   info.JobID.String(),
-			Cid:     info.Cid.String(),
-			Created: info.Created.UnixNano(),
-			Hot: &HotInfo{
-				Enabled: info.Hot.Enabled,
-				Size:    int64(info.Hot.Size),
-				Ipfs: &IpfsHotInfo{
-					Created: info.Hot.Ipfs.Created.UnixNano(),
-				},
-			},
-			Cold: &ColdInfo{
-				Filecoin: &FilInfo{
-					DataCid:   info.Cold.Filecoin.DataCid.String(),
-					Proposals: make([]*FilStorage, len(info.Cold.Filecoin.Proposals)),
-				},
-			},
-		},
-	}
-	for i, p := range info.Cold.Filecoin.Proposals {
-		reply.CidInfo.Cold.Filecoin.Proposals[i] = &FilStorage{
-			ProposalCid:     p.ProposalCid.String(),
-			Renewed:         p.Renewed,
-			Duration:        p.Duration,
-			ActivationEpoch: p.ActivationEpoch,
-			Miner:           p.Miner,
-		}
+		CidInfo: toRPCCidInfo(info),
 	}
 	return reply, nil
 }
@@ -528,6 +502,27 @@ func (s *RPC) AddToHot(srv RPC_AddToHotServer) error {
 	return srv.SendAndClose(&AddToHotReply{Cid: c.String()})
 }
 
+// ShowAll returns a list of CidInfo for all data stored in the FFS instance
+func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllReply, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	instanceInfo, err := i.Info(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cidInfos := make([]*CidInfo, len(instanceInfo.Pins))
+	for j, cid := range instanceInfo.Pins {
+		cidInfo, err := i.Show(cid)
+		if err != nil {
+			return nil, err
+		}
+		cidInfos[j] = toRPCCidInfo(cidInfo)
+	}
+	return &ShowAllReply{CidInfos: cidInfos}, nil
+}
+
 func (s *RPC) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-ffs-Token")
 	if token == "" {
@@ -638,4 +633,35 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 		}
 	}
 	return res
+}
+
+func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
+	cidInfo := &CidInfo{
+		JobID:   info.JobID.String(),
+		Cid:     info.Cid.String(),
+		Created: info.Created.UnixNano(),
+		Hot: &HotInfo{
+			Enabled: info.Hot.Enabled,
+			Size:    int64(info.Hot.Size),
+			Ipfs: &IpfsHotInfo{
+				Created: info.Hot.Ipfs.Created.UnixNano(),
+			},
+		},
+		Cold: &ColdInfo{
+			Filecoin: &FilInfo{
+				DataCid:   info.Cold.Filecoin.DataCid.String(),
+				Proposals: make([]*FilStorage, len(info.Cold.Filecoin.Proposals)),
+			},
+		},
+	}
+	for i, p := range info.Cold.Filecoin.Proposals {
+		cidInfo.Cold.Filecoin.Proposals[i] = &FilStorage{
+			ProposalCid:     p.ProposalCid.String(),
+			Renewed:         p.Renewed,
+			Duration:        p.Duration,
+			ActivationEpoch: p.ActivationEpoch,
+			Miner:           p.Miner,
+		}
+	}
+	return cidInfo
 }
