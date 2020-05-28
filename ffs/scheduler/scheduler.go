@@ -48,8 +48,6 @@ type Scheduler struct {
 	finished chan struct{}
 }
 
-var _ ffs.Scheduler = (*Scheduler)(nil)
-
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
 func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.ColdStorage) *Scheduler {

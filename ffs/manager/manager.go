@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/api/istore"
 	"github.com/textileio/powergate/ffs/auth"
+	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 var (
@@ -30,7 +31,7 @@ var (
 // Manager creates Api instances, or loads existing ones them from an auth-token.
 type Manager struct {
 	wm    ffs.WalletManager
-	sched ffs.Scheduler
+	sched *scheduler.Scheduler
 
 	lock      sync.Mutex
 	ds        datastore.Datastore
@@ -41,7 +42,7 @@ type Manager struct {
 }
 
 // New returns a new Manager.
-func New(ds datastore.Datastore, wm ffs.WalletManager, sched ffs.Scheduler) (*Manager, error) {
+func New(ds datastore.Datastore, wm ffs.WalletManager, sched *scheduler.Scheduler) (*Manager, error) {
 	return &Manager{
 		auth:      auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
 		ds:        ds,

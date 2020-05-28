@@ -29,6 +29,10 @@ var (
 	// ErrActiveInStorage returns when a Cid is trying to be removed but still defined as active
 	// on Hot or Cold storage.
 	ErrActiveInStorage = errors.New("can't remove Cid, disable from Hot and Cold storage")
+	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
+	// To retrieve the data, is necessary to call unfreeze by enabling the Enabled flag in
+	// the Hot Storage for that Cid.
+	ErrHotStorageDisabled = errors.New("cid disabled in hot storage")
 )
 
 // API is an Api instance, which owns a Lotus Address and allows to
@@ -38,7 +42,7 @@ type API struct {
 	is  InstanceStore
 	wm  ffs.WalletManager
 
-	sched ffs.Scheduler
+	sched *scheduler.Scheduler
 
 	lock   sync.Mutex
 	closed bool
@@ -48,7 +52,7 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler, wm ffs.WalletManager, dc ffs.DefaultConfig) (*API, error) {
+func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch *scheduler.Scheduler, wm ffs.WalletManager, dc ffs.DefaultConfig) (*API, error) {
 	addr, err := wm.NewAddress(ctx, defaultAddressType)
 	if err != nil {
 		return nil, fmt.Errorf("creating new wallet addr: %s", err)
@@ -81,7 +85,7 @@ func New(ctx context.Context, iid ffs.APIID, is InstanceStore, sch ffs.Scheduler
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(iid ffs.APIID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletManager) (*API, error) {
+func Load(iid ffs.APIID, is InstanceStore, sched *scheduler.Scheduler, wm ffs.WalletManager) (*API, error) {
 	c, err := is.GetConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
@@ -90,7 +94,7 @@ func Load(iid ffs.APIID, is InstanceStore, sched ffs.Scheduler, wm ffs.WalletMan
 	return new(ctx, iid, is, wm, c, sched, cancel), nil
 }
 
-func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletManager, config Config, sch ffs.Scheduler, cancel context.CancelFunc) *API {
+func new(ctx context.Context, iid ffs.APIID, is InstanceStore, wm ffs.WalletManager, config Config, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:     is,
 		wm:     wm,
@@ -399,7 +403,7 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 		return nil, fmt.Errorf("getting cid config: %s", err)
 	}
 	if !conf.Hot.Enabled {
-		return nil, ffs.ErrHotStorageDisabled
+		return nil, ErrHotStorageDisabled
 	}
 	r, err := i.sched.GetCidFromHot(ctx, c)
 	if err != nil {

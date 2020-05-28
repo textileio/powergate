@@ -535,7 +535,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 				_, err = fapi.Get(ctx, cid)
 				var expectedErr error
 				if !tt.HotEnabled {
-					expectedErr = ffs.ErrHotStorageDisabled
+					expectedErr = api.ErrHotStorageDisabled
 				}
 				require.Equal(t, expectedErr, err)
 
@@ -701,7 +701,7 @@ func TestUnfreeze(t *testing.T) {
 	requireCidConfig(t, fapi, cid, &config)
 
 	_, err = fapi.Get(ctx, cid)
-	require.Equal(t, ffs.ErrHotStorageDisabled, err)
+	require.Equal(t, api.ErrHotStorageDisabled, err)
 
 	err = ipfsAPI.Dag().Remove(ctx, cid)
 	require.Nil(t, err)
