@@ -85,7 +85,7 @@ func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *schedu
 
 // Load loads a saved Api instance from its ConfigStore.
 func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager) (*API, error) {
-	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore/"+iid.String())))
+	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 	c, err := is.getConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
