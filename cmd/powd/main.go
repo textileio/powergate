@@ -161,17 +161,46 @@ func setupLogging() error {
 	if err := logging.SetLogLevel("*", "error"); err != nil {
 		return err
 	}
-	loggers := []string{"index-miner", "index-ask", "index-slashing", "chainstore",
-		"server", "deals", "powd", "fchost", "ip2location", "reputation",
-		"reputation-source-store", "ffs-scheduler", "ffs-manager", "ffs-auth",
-		"ffs-api", "ffs-api-istore", "ffs-coreipfs", "ffs-grpc-service", "ffs-filcold",
-		"ffs-sched-jstore", "ffs-sched-astore", "ffs-cidlogger"}
+	loggers := []string{
+		// Top-level
+		"powd",
+		"server",
+
+		// Indexes & Reputation
+		"index-miner",
+		"index-ask",
+		"index-slashing",
+		"reputation",
+		"reputation-source-store",
+		"chainstore",
+		"fchost",
+		"ip2location",
+
+		// Deals Module
+		"deals",
+
+		// FFS
+		"ffs-scheduler",
+		"ffs-manager",
+		"ffs-auth",
+		"ffs-api",
+		"ffs-api-istore",
+		"ffs-coreipfs",
+		"ffs-grpc-service",
+		"ffs-filcold",
+		"ffs-sched-jstore",
+		"ffs-sched-astore",
+		"ffs-cidlogger",
+	}
+
+	// powd registered loggers get info level by default.
 	for _, l := range loggers {
 		if err := logging.SetLogLevel(l, "info"); err != nil {
 			return fmt.Errorf("setting up logger %s: %s", l, err)
 		}
 	}
-	if config.GetBool("debug") {
+	debugLevel := config.GetBool("debug")
+	if debugLevel {
 		for _, l := range loggers {
 			if err := logging.SetLogLevel(l, "debug"); err != nil {
 				return err
