@@ -150,8 +150,8 @@ func (s *Scheduler) Untrack(c cid.Cid) error {
 // if there isn't information for a Cid.
 func (s *Scheduler) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	info, err := s.cis.Get(c)
-	if err == ErrNotFound {
-		return ffs.CidInfo{}, err
+	if err == cistore.ErrNotFound {
+		return ffs.CidInfo{}, ErrNotFound
 	}
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting CidInfo from store: %s", err)
@@ -172,8 +172,8 @@ func (s *Scheduler) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, er
 func (s *Scheduler) GetJob(jid ffs.JobID) (ffs.Job, error) {
 	j, err := s.js.Get(jid)
 	if err != nil {
-		if err == ErrNotFound {
-			return ffs.Job{}, err
+		if err == jstore.ErrNotFound {
+			return ffs.Job{}, ErrNotFound
 		}
 		return ffs.Job{}, fmt.Errorf("get Job from store: %s", err)
 	}
@@ -440,8 +440,8 @@ func (s *Scheduler) getRefreshedInfo(ctx context.Context, c cid.Cid) (ffs.CidInf
 	var err error
 	ci, err := s.cis.Get(c)
 	if err != nil {
-		if err != ErrNotFound {
-			return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
+		if err != cistore.ErrNotFound {
+			return ffs.CidInfo{}, ErrNotFound
 		}
 		return ffs.CidInfo{Cid: c}, nil // Default value has both storages disabled
 	}

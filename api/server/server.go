@@ -25,11 +25,11 @@ import (
 	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
-	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
+	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/health"
 	healthRpc "github.com/textileio/powergate/health/rpc"
@@ -178,11 +178,11 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	lchain := lotuschain.New(c)
+	chain := filchain.New(c)
 	ms := reptop.New(rm, ai)
 
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
-	cs := filcold.New(ms, dm, ipfs, lchain, l)
+	cs := filcold.New(ms, dm, ipfs, chain, l)
 	hs := coreipfs.New(ipfs, l)
 	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
 
