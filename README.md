@@ -15,10 +15,10 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 ## Table of Contents
 
 -   [Design](#design)
--   [API + CLI](#api&CLI)
+-   [API + CLI](#api-&-CLI)
 -   [Installation](#installation)
--   [Devnet mode](#devnetmode)
--   [Production setup](#productionsetup)
+-   [Devnet mode](#devnet-mode)
+-   [Production setup](#production-setup)
 -   [Test](#tests)
 -   [Benchmark](#benchmark)
 -   [Contributing](#contributing)
