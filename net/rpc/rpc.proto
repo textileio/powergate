@@ -4,7 +4,7 @@ package net.rpc;
 option go_package = "net/rpc";
 
 message PeerAddrInfo {
-    string ID = 1;
+    string id = 1;
     repeated string addrs = 2;
 }
 
@@ -15,68 +15,68 @@ message Location {
 }
 
 message PeerInfo {
-    PeerAddrInfo addrInfo = 1;
+    PeerAddrInfo addr_info = 1;
     Location location = 2;
 }
 
 enum Connectedness {
-    NotConnected = 0;
-    Connected = 1;
-    CanConnect = 2;
-    CannotConnect = 3;
-    Unknown = 4;
-    Error = 5;
+    CONNECTEDNESS_UNSPECIFIED = 0;
+    CONNECTEDNESS_NOT_CONNECTED = 1;
+    CONNECTEDNESS_CONNECTED = 2;
+    CONNECTEDNESS_CAN_CONNECT = 3;
+    CONNECTEDNESS_CANNOT_CONNECT = 4;
+    CONNECTEDNESS_ERROR = 5;
 }
 
 message ListenAddrRequest {
 }
 
-message ListenAddrReply {
-    PeerAddrInfo addrInfo = 1;
+message ListenAddrResponse {
+    PeerAddrInfo addr_info = 1;
 }
 
 message PeersRequest {
 }
 
-message PeersReply {
+message PeersResponse {
     repeated PeerInfo peers = 1;
 }
 
 message FindPeerRequest {
-    string peerID = 1;
+    string peer_id = 1;
 }
 
-message FindPeerReply {
-    PeerInfo peerInfo = 1;
+message FindPeerResponse {
+    PeerInfo peer_info = 1;
 }
 
 message ConnectPeerRequest {
-    PeerAddrInfo peerInfo = 1;
+    PeerAddrInfo peer_info = 1;
 }
 
-message ConnectPeerReply {
+message ConnectPeerResponse {
 }
 
 message DisconnectPeerRequest {
-    string peerID = 1;
+    string peer_id = 1;
 }
 
-message DisconnectPeerReply {
+message DisconnectPeerResponse {
 }
 
 message ConnectednessRequest {
-    string peerID = 1;
+    string peer_id = 1;
 }
 
-message ConnectednessReply {
+message ConnectednessResponse {
     Connectedness connectedness = 1;
 }
 
-service RPC {
-    rpc ListenAddr(ListenAddrRequest) returns (ListenAddrReply) {}
-    rpc Peers(PeersRequest) returns (PeersReply) {}
-    rpc FindPeer(FindPeerRequest) returns (FindPeerReply) {}
-    rpc ConnectPeer(ConnectPeerRequest) returns (ConnectPeerReply) {}
-    rpc DisconnectPeer(DisconnectPeerRequest) returns (DisconnectPeerReply) {}
-    rpc Connectedness(ConnectednessRequest) returns (ConnectednessReply) {}
+service RPCService {
+    rpc ListenAddr(ListenAddrRequest) returns (ListenAddrResponse) {}
+    rpc Peers(PeersRequest) returns (PeersResponse) {}
+    rpc FindPeer(FindPeerRequest) returns (FindPeerResponse) {}
+    rpc ConnectPeer(ConnectPeerRequest) returns (ConnectPeerResponse) {}
+    rpc DisconnectPeer(DisconnectPeerRequest) returns (DisconnectPeerResponse) {}
+    rpc Connectedness(ConnectednessRequest) returns (ConnectednessResponse) {}
 }

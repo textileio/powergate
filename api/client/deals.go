@@ -15,7 +15,7 @@ import (
 
 // Deals provides an API for managing deals and storing data
 type Deals struct {
-	client rpc.RPCClient
+	client rpc.RPCServiceClient
 }
 
 // WatchEvent is used to send data or error values for Watch
@@ -120,14 +120,14 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				channel <- WatchEvent{Err: err}
 				break
 			}
-			cid, err := cid.Cast(event.GetDealInfo().GetPieceCID())
+			cid, err := cid.Cast(event.GetDealInfo().GetPieceCid())
 			if err != nil {
 				channel <- WatchEvent{Err: err}
 				break
 			}
 			deal := deals.DealInfo{
 				ProposalCid:   proposalCid,
-				StateID:       event.GetDealInfo().GetStateID(),
+				StateID:       event.GetDealInfo().GetStateId(),
 				StateName:     event.GetDealInfo().GetStateName(),
 				Miner:         event.GetDealInfo().GetMiner(),
 				PieceCID:      cid,

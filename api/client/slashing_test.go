@@ -20,7 +20,7 @@ func TestGetSlashing(t *testing.T) {
 func setupSlashing(t *testing.T) (*Slashing, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Slashing{client: rpc.NewRPCClient(conn)}, func() {
+	return &Slashing{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()
 		serverDone()
 	}

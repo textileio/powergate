@@ -8,7 +8,7 @@ import (
 
 // RPC implements the rpc service
 type RPC struct {
-	UnimplementedRPCServer
+	UnimplementedRPCServiceServer
 
 	module *health.Module
 }
@@ -19,7 +19,7 @@ func New(m *health.Module) *RPC {
 }
 
 // Check calls module.Check
-func (a *RPC) Check(ctx context.Context, req *CheckRequest) (*CheckReply, error) {
+func (a *RPC) Check(ctx context.Context, req *CheckRequest) (*CheckResponse, error) {
 	status, messages, err := a.module.Check(ctx)
 	if err != nil {
 		return nil, err
@@ -28,14 +28,16 @@ func (a *RPC) Check(ctx context.Context, req *CheckRequest) (*CheckReply, error)
 	var s Status
 	switch status {
 	case health.Ok:
-		s = Status_Ok
+		s = Status_STATUS_OK
 	case health.Degraded:
-		s = Status_Degraded
+		s = Status_STATUS_DEGRADED
 	case health.Error:
-		s = Status_Error
+		s = Status_STATUS_ERROR
+	default:
+		s = Status_STATUS_UNSPECIFIED
 	}
 
-	return &CheckReply{
+	return &CheckResponse{
 		Status:   s,
 		Messages: messages,
 	}, nil

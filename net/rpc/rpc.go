@@ -10,7 +10,7 @@ import (
 
 // RPC implements the rpc service
 type RPC struct {
-	UnimplementedRPCServer
+	UnimplementedRPCServiceServer
 
 	module net.Module
 }
@@ -21,7 +21,7 @@ func New(m net.Module) *RPC {
 }
 
 // ListenAddr calls module.ListenAddr
-func (a *RPC) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAddrReply, error) {
+func (a *RPC) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAddrResponse, error) {
 	addrInfo, err := a.module.ListenAddr(ctx)
 	if err != nil {
 		return nil, err
@@ -32,16 +32,16 @@ func (a *RPC) ListenAddr(ctx context.Context, req *ListenAddrRequest) (*ListenAd
 		addrs[i] = addr.String()
 	}
 
-	return &ListenAddrReply{
+	return &ListenAddrResponse{
 		AddrInfo: &PeerAddrInfo{
-			ID:    addrInfo.ID.String(),
+			Id:    addrInfo.ID.String(),
 			Addrs: addrs,
 		},
 	}, nil
 }
 
 // Peers calls module.Peers
-func (a *RPC) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error) {
+func (a *RPC) Peers(ctx context.Context, req *PeersRequest) (*PeersResponse, error) {
 	peers, err := a.module.Peers(ctx)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (a *RPC) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 		}
 		peerResults[i] = &PeerInfo{
 			AddrInfo: &PeerAddrInfo{
-				ID:    peer.AddrInfo.ID.String(),
+				Id:    peer.AddrInfo.ID.String(),
 				Addrs: addrs,
 			},
 		}
@@ -68,14 +68,14 @@ func (a *RPC) Peers(ctx context.Context, req *PeersRequest) (*PeersReply, error)
 		}
 	}
 
-	return &PeersReply{
+	return &PeersResponse{
 		Peers: peerResults,
 	}, nil
 }
 
 // FindPeer calls module.FindPeer
-func (a *RPC) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerReply, error) {
-	peerID, err := peer.Decode(req.PeerID)
+func (a *RPC) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerResponse, error) {
+	peerID, err := peer.Decode(req.PeerId)
 	if err != nil {
 		return nil, err
 	}
@@ -89,10 +89,10 @@ func (a *RPC) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerRepl
 		addrs[i] = addr.String()
 	}
 
-	return &FindPeerReply{
+	return &FindPeerResponse{
 		PeerInfo: &PeerInfo{
 			AddrInfo: &PeerAddrInfo{
-				ID:    peerInfo.AddrInfo.ID.String(),
+				Id:    peerInfo.AddrInfo.ID.String(),
 				Addrs: addrs,
 			},
 			Location: &Location{
@@ -105,7 +105,7 @@ func (a *RPC) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerRepl
 }
 
 // ConnectPeer calls module.ConnectPeer
-func (a *RPC) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*ConnectPeerReply, error) {
+func (a *RPC) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*ConnectPeerResponse, error) {
 	addrs := make([]ma.Multiaddr, len(req.PeerInfo.Addrs))
 	for i, addr := range req.PeerInfo.Addrs {
 		ma, err := ma.NewMultiaddr(addr)
@@ -115,7 +115,7 @@ func (a *RPC) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*Connec
 		addrs[i] = ma
 	}
 
-	id, err := peer.Decode(req.PeerInfo.ID)
+	id, err := peer.Decode(req.PeerInfo.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -129,12 +129,12 @@ func (a *RPC) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*Connec
 		return nil, err
 	}
 
-	return &ConnectPeerReply{}, nil
+	return &ConnectPeerResponse{}, nil
 }
 
 // DisconnectPeer calls module.DisconnectPeer
-func (a *RPC) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*DisconnectPeerReply, error) {
-	peerID, err := peer.Decode(req.PeerID)
+func (a *RPC) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*DisconnectPeerResponse, error) {
+	peerID, err := peer.Decode(req.PeerId)
 	if err != nil {
 		return nil, err
 	}
@@ -143,12 +143,12 @@ func (a *RPC) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*
 		return nil, err
 	}
 
-	return &DisconnectPeerReply{}, nil
+	return &DisconnectPeerResponse{}, nil
 }
 
 // Connectedness calls module.Connectedness
-func (a *RPC) Connectedness(ctx context.Context, req *ConnectednessRequest) (*ConnectednessReply, error) {
-	peerID, err := peer.Decode(req.PeerID)
+func (a *RPC) Connectedness(ctx context.Context, req *ConnectednessRequest) (*ConnectednessResponse, error) {
+	peerID, err := peer.Decode(req.PeerId)
 	if err != nil {
 		return nil, err
 	}
@@ -160,22 +160,20 @@ func (a *RPC) Connectedness(ctx context.Context, req *ConnectednessRequest) (*Co
 	var c Connectedness
 	switch con {
 	case net.CanConnect:
-		c = Connectedness_CanConnect
+		c = Connectedness_CONNECTEDNESS_CAN_CONNECT
 	case net.CannotConnect:
-		c = Connectedness_CannotConnect
+		c = Connectedness_CONNECTEDNESS_CANNOT_CONNECT
 	case net.Connected:
-		c = Connectedness_Connected
+		c = Connectedness_CONNECTEDNESS_CONNECTED
 	case net.NotConnected:
-		c = Connectedness_NotConnected
-	case net.Unknown:
-		c = Connectedness_Unknown
+		c = Connectedness_CONNECTEDNESS_NOT_CONNECTED
 	case net.Error:
-		c = Connectedness_Error
+		c = Connectedness_CONNECTEDNESS_ERROR
 	default:
-		c = Connectedness_Unknown
+		c = Connectedness_CONNECTEDNESS_UNSPECIFIED
 	}
 
-	return &ConnectednessReply{
+	return &ConnectednessResponse{
 		Connectedness: c,
 	}, nil
 }

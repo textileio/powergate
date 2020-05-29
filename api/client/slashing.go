@@ -9,7 +9,7 @@ import (
 
 // Slashing provides an API for viewing slashing data
 type Slashing struct {
-	client rpc.RPCClient
+	client rpc.RPCServiceClient
 }
 
 // Get returns the current index of miner slashes data
@@ -25,7 +25,7 @@ func (s *Slashing) Get(ctx context.Context) (*slashing.IndexSnapshot, error) {
 	}
 
 	index := &slashing.IndexSnapshot{
-		TipSetKey: reply.GetIndex().GetTipSetKey(),
+		TipSetKey: reply.GetIndex().GetTipsetkey(),
 		Miners:    miners,
 	}
 

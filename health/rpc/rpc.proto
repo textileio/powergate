@@ -4,19 +4,20 @@ package health.rpc;
 option go_package = "health/rpc";
 
 enum Status {
-    Ok = 0;
-    Degraded = 1;
-    Error = 2;
+    STATUS_UNSPECIFIED = 0;
+    STATUS_OK = 1;
+    STATUS_DEGRADED = 2;
+    STATUS_ERROR = 3;
 }
 
 message CheckRequest {
 }
 
-message CheckReply {
+message CheckResponse {
     Status status = 1;
     repeated string messages = 2;
 }
 
-service RPC {
-    rpc Check(CheckRequest) returns (CheckReply) {}
+service RPCService {
+    rpc Check(CheckRequest) returns (CheckResponse) {}
 }

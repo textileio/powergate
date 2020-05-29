@@ -13,12 +13,12 @@ message AddrInfo {
 }
 
 message IpfsConfig {
-   int64 addTimeout = 1;
+   int64 add_timeout = 1;
 }
 
 message HotConfig {
    bool enabled = 1;
-   bool allowUnfreeze = 2;
+   bool allow_unfreeze = 2;
    IpfsConfig ipfs = 3;
 }
 
@@ -28,14 +28,14 @@ message FilRenew {
 }
 
 message FilConfig {
-   int64 repFactor = 1;
-   int64 dealDuration = 2;
-   repeated string excludedMiners = 3;
-   repeated string trustedMiners = 4;
-   repeated string countryCodes = 5;
+   int64 rep_factor = 1;
+   int64 deal_duration = 2;
+   repeated string excluded_miners = 3;
+   repeated string trusted_miners = 4;
+   repeated string country_codes = 5;
    FilRenew renew = 6;
    string addr = 7;
-   uint64 maxPrice = 8;
+   uint64 max_price = 8;
 }
 
 message ColdConfig {
@@ -67,16 +67,16 @@ message HotInfo {
 }
 
 message FilStorage {
-   string proposalCid = 1;
+   string proposal_cid = 1;
    bool renewed = 2;
    int64 duration = 3;
-   int64 activationEpoch = 4;
+   int64 activation_epoch = 4;
    string miner = 5;
-   uint64 epochPrice = 6;
+   uint64 epoch_price = 6;
 }
 
 message FilInfo {
-   string dataCid = 1;
+   string data_cid = 1;
    int64 size = 2;
    repeated FilStorage proposals = 3;
 }
@@ -86,7 +86,7 @@ message ColdInfo {
 }
 
 message CidInfo {
-   string jobID = 1;
+   string job_id = 1;
    string cid = 2;
    int64 created = 3;
    HotInfo hot = 4; 
@@ -99,34 +99,34 @@ message BalanceInfo {
 }
 
 message InstanceInfo {
-   string ID = 1;
-   DefaultConfig defaultConfig = 2;
+   string id = 1;
+   DefaultConfig default_config = 2;
    repeated BalanceInfo balances = 3;
    repeated string pins = 4;
 }
 
 enum JobStatus {
-   UNSPECIFIED = 0;
-   QUEUED = 1;
-   EXECUTING = 2;
-   FAILED = 3;
-   CANCELED = 4;
-   SUCCESS = 5;
+   JOB_STATUS_UNSPECIFIED = 0;
+   JOB_STATUS_QUEUED = 1;
+   JOB_STATUS_EXECUTING = 2;
+   JOB_STATUS_FAILED = 3;
+   JOB_STATUS_CANCELED = 4;
+   JOB_STATUS_SUCCESS = 5;
 }
 
 message Job {
-   string ID = 1; 
-   string apiID = 2;
+   string id = 1; 
+   string api_id = 2;
    string cid = 3;
    JobStatus status = 4;
-   string errCause = 5;
-   repeated DealError dealErrors = 6;
+   string err_cause = 5;
+   repeated DealError deal_errors = 6;
 }
 
 message DealError {
-   string ProposalCid = 1;
-   string Miner = 2;
-   string Message = 3;
+   string proposal_cid = 1;
+   string miner = 2;
+   string message = 3;
 }
 
 // request/reply messages
@@ -135,46 +135,46 @@ message DealError {
 message CreateRequest {
 }
 
-message CreateReply {
-   string ID = 1;
+message CreateResponse {
+   string id = 1;
    string token = 2;
 }
 
 message ListAPIRequest {
 }
 
-message ListAPIReply {
+message ListAPIResponse {
    repeated string instances = 1;
 }
 
 message IDRequest {
 }
 
-message IDReply {
-   string ID = 1;
+message IDResponse {
+   string id = 1;
 }
 
 message AddrsRequest {
 }
 
-message AddrsReply {
+message AddrsResponse {
    repeated AddrInfo addrs = 1;
 }
 
 message DefaultConfigRequest {
 }
 
-message DefaultConfigReply {
-   DefaultConfig defaultConfig = 1;
+message DefaultConfigResponse {
+   DefaultConfig default_config = 1;
 }
 
 message NewAddrRequest {
    string name = 1;
-   string addressType = 2;
-   bool makeDefault = 3;
+   string address_type = 2;
+   bool make_default = 3;
 }
 
-message NewAddrReply {
+message NewAddrResponse {
    string addr = 1;
 }
 
@@ -182,7 +182,7 @@ message GetDefaultCidConfigRequest {
    string cid = 1;
 }
 
-message GetDefaultCidConfigReply {
+message GetDefaultCidConfigResponse {
    CidConfig config = 1;
 }
 
@@ -190,7 +190,7 @@ message GetCidConfigRequest {
    string cid = 1;
 }
 
-message GetCidConfigReply {
+message GetCidConfigResponse {
    CidConfig config = 1;
 }
 
@@ -198,21 +198,21 @@ message SetDefaultConfigRequest {
    DefaultConfig config = 1;
 }
 
-message SetDefaultConfigReply {
+message SetDefaultConfigResponse {
 }
 
 message ShowRequest {
    string cid = 1;
 }
 
-message ShowReply {
-   CidInfo cidInfo = 1;
+message ShowResponse {
+   CidInfo cid_info = 1;
 }
 
 message InfoRequest {
 }
 
-message InfoReply {
+message InfoResponse {
    InstanceInfo info = 1;
 }
 
@@ -220,7 +220,7 @@ message WatchJobsRequest {
    repeated string jids = 1;
 }
 
-message WatchJobsReply {
+message WatchJobsResponse {
    Job job = 1;
 }
 
@@ -230,8 +230,8 @@ message WatchLogsRequest {
    bool history = 3;
 }
 
-message WatchLogsReply {
-   LogEntry logEntry = 1;
+message WatchLogsResponse {
+   LogEntry log_entry = 1;
 }
 
 message LogEntry {
@@ -246,34 +246,34 @@ message ReplaceRequest {
    string cid2 = 2;
 }
 
-message ReplaceReply {
-   string jobID = 1;
+message ReplaceResponse {
+   string job_id = 1;
 }
 
 message PushConfigRequest {
    string cid = 1;
    CidConfig config = 2;
-   bool hasConfig = 3;
-   bool overrideConfig = 4;
-   bool hasOverrideConfig = 5;
+   bool has_config = 3;
+   bool override_config = 4;
+   bool has_override_config = 5;
 }
 
-message PushConfigReply {
-   string jobID = 1;
+message PushConfigResponse {
+   string job_id = 1;
 }
 
 message RemoveRequest {
    string cid = 1;
 }
 
-message RemoveReply {
+message RemoveResponse {
 }
 
 message GetRequest {
    string cid = 1;
 }
 
-message GetReply {
+message GetResponse {
    bytes chunk = 1;
 }
 
@@ -283,55 +283,55 @@ message SendFilRequest {
    int64 amount = 3;
 }
 
-message SendFilReply {
+message SendFilResponse {
 }
 
 message CloseRequest {
 }
 
-message CloseReply {
+message CloseResponse {
 }
 
 message AddToHotRequest {
    bytes chunk = 1;
 }
 
-message AddToHotReply {
+message AddToHotResponse {
    string cid = 1;
 }
 
 message ShowAllRequest {
 }
 
-message ShowAllReply {
-   repeated CidInfo cidInfos = 1;
+message ShowAllResponse {
+   repeated CidInfo cid_infos = 1;
 }
 
-service RPC {
+service RPCService {
    // Admin
-   rpc Create(CreateRequest) returns (CreateReply) {}
-   rpc ListAPI(ListAPIRequest) returns (ListAPIReply) {}
+   rpc Create(CreateRequest) returns (CreateResponse) {}
+   rpc ListAPI(ListAPIRequest) returns (ListAPIResponse) {}
 
    // Instance
-   rpc ID(IDRequest) returns (IDReply) {}
-   rpc Addrs(AddrsRequest) returns (AddrsReply) {}
-   rpc DefaultConfig(DefaultConfigRequest) returns (DefaultConfigReply) {}
-   rpc NewAddr(NewAddrRequest) returns (NewAddrReply) {}
-   rpc GetDefaultCidConfig(GetDefaultCidConfigRequest) returns (GetDefaultCidConfigReply) {}
-   rpc GetCidConfig(GetCidConfigRequest) returns (GetCidConfigReply) {}
-   rpc SetDefaultConfig(SetDefaultConfigRequest) returns (SetDefaultConfigReply) {}
-   rpc Show(ShowRequest) returns (ShowReply) {}
-   rpc Info(InfoRequest) returns (InfoReply) {}
-   rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsReply) {}
-   rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsReply){}
-   rpc Replace(ReplaceRequest) returns (ReplaceReply) {}
-   rpc PushConfig(PushConfigRequest) returns (PushConfigReply) {}
-   rpc Remove(RemoveRequest) returns (RemoveReply) {}
-   rpc Get(GetRequest) returns (stream GetReply) {}
-   rpc SendFil(SendFilRequest) returns (SendFilReply) {}
-   rpc Close(CloseRequest) returns (CloseReply) {}
-   rpc AddToHot(stream AddToHotRequest) returns (AddToHotReply) {}
+   rpc ID(IDRequest) returns (IDResponse) {}
+   rpc Addrs(AddrsRequest) returns (AddrsResponse) {}
+   rpc DefaultConfig(DefaultConfigRequest) returns (DefaultConfigResponse) {}
+   rpc NewAddr(NewAddrRequest) returns (NewAddrResponse) {}
+   rpc GetDefaultCidConfig(GetDefaultCidConfigRequest) returns (GetDefaultCidConfigResponse) {}
+   rpc GetCidConfig(GetCidConfigRequest) returns (GetCidConfigResponse) {}
+   rpc SetDefaultConfig(SetDefaultConfigRequest) returns (SetDefaultConfigResponse) {}
+   rpc Show(ShowRequest) returns (ShowResponse) {}
+   rpc Info(InfoRequest) returns (InfoResponse) {}
+   rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsResponse) {}
+   rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
+   rpc Replace(ReplaceRequest) returns (ReplaceResponse) {}
+   rpc PushConfig(PushConfigRequest) returns (PushConfigResponse) {}
+   rpc Remove(RemoveRequest) returns (RemoveResponse) {}
+   rpc Get(GetRequest) returns (stream GetResponse) {}
+   rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
+   rpc Close(CloseRequest) returns (CloseResponse) {}
+   rpc AddToHot(stream AddToHotRequest) returns (AddToHotResponse) {}
 
    // UI support
-   rpc ShowAll(ShowAllRequest) returns (ShowAllReply) {}
+   rpc ShowAll(ShowAllRequest) returns (ShowAllResponse) {}
 }

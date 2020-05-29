@@ -9,7 +9,7 @@ import (
 
 // RPC implements the gprc service
 type RPC struct {
-	UnimplementedRPCServer
+	UnimplementedRPCServiceServer
 
 	module *reputation.Module
 }
@@ -22,7 +22,7 @@ func New(m *reputation.Module) *RPC {
 }
 
 // AddSource calls Module.AddSource
-func (s *RPC) AddSource(ctx context.Context, req *AddSourceRequest) (*AddSourceReply, error) {
+func (s *RPC) AddSource(ctx context.Context, req *AddSourceRequest) (*AddSourceResponse, error) {
 	maddr, err := ma.NewMultiaddr(req.GetMaddr())
 	if err != nil {
 		return nil, err
@@ -30,11 +30,11 @@ func (s *RPC) AddSource(ctx context.Context, req *AddSourceRequest) (*AddSourceR
 	if err = s.module.AddSource(req.GetId(), maddr); err != nil {
 		return nil, err
 	}
-	return &AddSourceReply{}, nil
+	return &AddSourceResponse{}, nil
 }
 
 // GetTopMiners calls Module.GetTopMiners
-func (s *RPC) GetTopMiners(ctx context.Context, req *GetTopMinersRequest) (*GetTopMinersReply, error) {
+func (s *RPC) GetTopMiners(ctx context.Context, req *GetTopMinersRequest) (*GetTopMinersResponse, error) {
 	minerScores, err := s.module.GetTopMiners(int(req.GetLimit()))
 	if err != nil {
 		return nil, err
@@ -46,5 +46,5 @@ func (s *RPC) GetTopMiners(ctx context.Context, req *GetTopMinersRequest) (*GetT
 			Score: int32(minerScore.Score),
 		}
 	}
-	return &GetTopMinersReply{TopMiners: pbMinerScores}, nil
+	return &GetTopMinersResponse{TopMiners: pbMinerScores}, nil
 }

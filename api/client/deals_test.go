@@ -48,7 +48,7 @@ func TestRetrieve(t *testing.T) {
 func setupDeals(t *testing.T) (*Deals, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Deals{client: rpc.NewRPCClient(conn)}, func() {
+	return &Deals{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()
 		serverDone()
 	}

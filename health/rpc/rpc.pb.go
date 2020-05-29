@@ -32,22 +32,25 @@ const _ = proto.ProtoPackageIsVersion4
 type Status int32
 
 const (
-	Status_Ok       Status = 0
-	Status_Degraded Status = 1
-	Status_Error    Status = 2
+	Status_STATUS_UNSPECIFIED Status = 0
+	Status_STATUS_OK          Status = 1
+	Status_STATUS_DEGRADED    Status = 2
+	Status_STATUS_ERROR       Status = 3
 )
 
 // Enum value maps for Status.
 var (
 	Status_name = map[int32]string{
-		0: "Ok",
-		1: "Degraded",
-		2: "Error",
+		0: "STATUS_UNSPECIFIED",
+		1: "STATUS_OK",
+		2: "STATUS_DEGRADED",
+		3: "STATUS_ERROR",
 	}
 	Status_value = map[string]int32{
-		"Ok":       0,
-		"Degraded": 1,
-		"Error":    2,
+		"STATUS_UNSPECIFIED": 0,
+		"STATUS_OK":          1,
+		"STATUS_DEGRADED":    2,
+		"STATUS_ERROR":       3,
 	}
 )
 
@@ -116,7 +119,7 @@ func (*CheckRequest) Descriptor() ([]byte, []int) {
 	return file_health_rpc_rpc_proto_rawDescGZIP(), []int{0}
 }
 
-type CheckReply struct {
+type CheckResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -125,8 +128,8 @@ type CheckReply struct {
 	Messages []string `protobuf:"bytes,2,rep,name=messages,proto3" json:"messages,omitempty"`
 }
 
-func (x *CheckReply) Reset() {
-	*x = CheckReply{}
+func (x *CheckResponse) Reset() {
+	*x = CheckResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_health_rpc_rpc_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -134,13 +137,13 @@ func (x *CheckReply) Reset() {
 	}
 }
 
-func (x *CheckReply) String() string {
+func (x *CheckResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CheckReply) ProtoMessage() {}
+func (*CheckResponse) ProtoMessage() {}
 
-func (x *CheckReply) ProtoReflect() protoreflect.Message {
+func (x *CheckResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_health_rpc_rpc_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -152,19 +155,19 @@ func (x *CheckReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CheckReply.ProtoReflect.Descriptor instead.
-func (*CheckReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use CheckResponse.ProtoReflect.Descriptor instead.
+func (*CheckResponse) Descriptor() ([]byte, []int) {
 	return file_health_rpc_rpc_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CheckReply) GetStatus() Status {
+func (x *CheckResponse) GetStatus() Status {
 	if x != nil {
 		return x.Status
 	}
-	return Status_Ok
+	return Status_STATUS_UNSPECIFIED
 }
 
-func (x *CheckReply) GetMessages() []string {
+func (x *CheckResponse) GetMessages() []string {
 	if x != nil {
 		return x.Messages
 	}
@@ -177,20 +180,24 @@ var file_health_rpc_rpc_proto_rawDesc = []byte{
 	0x0a, 0x14, 0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x2f, 0x72, 0x70, 0x63, 0x2f, 0x72, 0x70, 0x63,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0a, 0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x2e, 0x72,
 	0x70, 0x63, 0x22, 0x0e, 0x0a, 0x0c, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x22, 0x54, 0x0a, 0x0a, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x70, 0x6c, 0x79,
-	0x12, 0x2a, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e,
-	0x32, 0x12, 0x2e, 0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74,
-	0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x1a, 0x0a, 0x08,
-	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08,
-	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x2a, 0x29, 0x0a, 0x06, 0x53, 0x74, 0x61, 0x74,
-	0x75, 0x73, 0x12, 0x06, 0x0a, 0x02, 0x4f, 0x6b, 0x10, 0x00, 0x12, 0x0c, 0x0a, 0x08, 0x44, 0x65,
-	0x67, 0x72, 0x61, 0x64, 0x65, 0x64, 0x10, 0x01, 0x12, 0x09, 0x0a, 0x05, 0x45, 0x72, 0x72, 0x6f,
-	0x72, 0x10, 0x02, 0x32, 0x42, 0x0a, 0x03, 0x52, 0x50, 0x43, 0x12, 0x3b, 0x0a, 0x05, 0x43, 0x68,
-	0x65, 0x63, 0x6b, 0x12, 0x18, 0x2e, 0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x2e, 0x72, 0x70, 0x63,
-	0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e,
-	0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b,
-	0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x42, 0x0c, 0x5a, 0x0a, 0x68, 0x65, 0x61, 0x6c, 0x74,
-	0x68, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x74, 0x22, 0x57, 0x0a, 0x0d, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x2a, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0e, 0x32, 0x12, 0x2e, 0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12,
+	0x1a, 0x0a, 0x08, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28,
+	0x09, 0x52, 0x08, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x2a, 0x56, 0x0a, 0x06, 0x53,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x16, 0x0a, 0x12, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f,
+	0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x0d, 0x0a,
+	0x09, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x4f, 0x4b, 0x10, 0x01, 0x12, 0x13, 0x0a, 0x0f,
+	0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x44, 0x45, 0x47, 0x52, 0x41, 0x44, 0x45, 0x44, 0x10,
+	0x02, 0x12, 0x10, 0x0a, 0x0c, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x45, 0x52, 0x52, 0x4f,
+	0x52, 0x10, 0x03, 0x32, 0x4c, 0x0a, 0x0a, 0x52, 0x50, 0x43, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x12, 0x3e, 0x0a, 0x05, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x12, 0x18, 0x2e, 0x68, 0x65, 0x61,
+	0x6c, 0x74, 0x68, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x2e, 0x72, 0x70,
+	0x63, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x42, 0x0c, 0x5a, 0x0a, 0x68, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x2f, 0x72, 0x70, 0x63, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -208,14 +215,14 @@ func file_health_rpc_rpc_proto_rawDescGZIP() []byte {
 var file_health_rpc_rpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_health_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_health_rpc_rpc_proto_goTypes = []interface{}{
-	(Status)(0),          // 0: health.rpc.Status
-	(*CheckRequest)(nil), // 1: health.rpc.CheckRequest
-	(*CheckReply)(nil),   // 2: health.rpc.CheckReply
+	(Status)(0),           // 0: health.rpc.Status
+	(*CheckRequest)(nil),  // 1: health.rpc.CheckRequest
+	(*CheckResponse)(nil), // 2: health.rpc.CheckResponse
 }
 var file_health_rpc_rpc_proto_depIdxs = []int32{
-	0, // 0: health.rpc.CheckReply.status:type_name -> health.rpc.Status
-	1, // 1: health.rpc.RPC.Check:input_type -> health.rpc.CheckRequest
-	2, // 2: health.rpc.RPC.Check:output_type -> health.rpc.CheckReply
+	0, // 0: health.rpc.CheckResponse.status:type_name -> health.rpc.Status
+	1, // 1: health.rpc.RPCService.Check:input_type -> health.rpc.CheckRequest
+	2, // 2: health.rpc.RPCService.Check:output_type -> health.rpc.CheckResponse
 	2, // [2:3] is the sub-list for method output_type
 	1, // [1:2] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -242,7 +249,7 @@ func file_health_rpc_rpc_proto_init() {
 			}
 		}
 		file_health_rpc_rpc_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CheckReply); i {
+			switch v := v.(*CheckResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -283,72 +290,72 @@ var _ grpc.ClientConnInterface
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
 
-// RPCClient is the client API for RPC service.
+// RPCServiceClient is the client API for RPCService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type RPCClient interface {
-	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckReply, error)
+type RPCServiceClient interface {
+	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error)
 }
 
-type rPCClient struct {
+type rPCServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewRPCClient(cc grpc.ClientConnInterface) RPCClient {
-	return &rPCClient{cc}
+func NewRPCServiceClient(cc grpc.ClientConnInterface) RPCServiceClient {
+	return &rPCServiceClient{cc}
 }
 
-func (c *rPCClient) Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckReply, error) {
-	out := new(CheckReply)
-	err := c.cc.Invoke(ctx, "/health.rpc.RPC/Check", in, out, opts...)
+func (c *rPCServiceClient) Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error) {
+	out := new(CheckResponse)
+	err := c.cc.Invoke(ctx, "/health.rpc.RPCService/Check", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// RPCServer is the server API for RPC service.
-type RPCServer interface {
-	Check(context.Context, *CheckRequest) (*CheckReply, error)
+// RPCServiceServer is the server API for RPCService service.
+type RPCServiceServer interface {
+	Check(context.Context, *CheckRequest) (*CheckResponse, error)
 }
 
-// UnimplementedRPCServer can be embedded to have forward compatible implementations.
-type UnimplementedRPCServer struct {
+// UnimplementedRPCServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedRPCServiceServer struct {
 }
 
-func (*UnimplementedRPCServer) Check(context.Context, *CheckRequest) (*CheckReply, error) {
+func (*UnimplementedRPCServiceServer) Check(context.Context, *CheckRequest) (*CheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
 }
 
-func RegisterRPCServer(s *grpc.Server, srv RPCServer) {
-	s.RegisterService(&_RPC_serviceDesc, srv)
+func RegisterRPCServiceServer(s *grpc.Server, srv RPCServiceServer) {
+	s.RegisterService(&_RPCService_serviceDesc, srv)
 }
 
-func _RPC_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CheckRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).Check(ctx, in)
+		return srv.(RPCServiceServer).Check(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/health.rpc.RPC/Check",
+		FullMethod: "/health.rpc.RPCService/Check",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).Check(ctx, req.(*CheckRequest))
+		return srv.(RPCServiceServer).Check(ctx, req.(*CheckRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _RPC_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "health.rpc.RPC",
-	HandlerType: (*RPCServer)(nil),
+var _RPCService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "health.rpc.RPCService",
+	HandlerType: (*RPCServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Check",
-			Handler:    _RPC_Check_Handler,
+			Handler:    _RPCService_Check_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

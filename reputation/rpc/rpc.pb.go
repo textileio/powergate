@@ -84,108 +84,6 @@ func (x *MinerScore) GetScore() int32 {
 	return 0
 }
 
-type Index struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	TipSetKey string              `protobuf:"bytes,1,opt,name=tipSetKey,proto3" json:"tipSetKey,omitempty"`
-	Miners    map[string]*Slashes `protobuf:"bytes,2,rep,name=miners,proto3" json:"miners,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-}
-
-func (x *Index) Reset() {
-	*x = Index{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_reputation_rpc_rpc_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Index) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Index) ProtoMessage() {}
-
-func (x *Index) ProtoReflect() protoreflect.Message {
-	mi := &file_reputation_rpc_rpc_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Index.ProtoReflect.Descriptor instead.
-func (*Index) Descriptor() ([]byte, []int) {
-	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *Index) GetTipSetKey() string {
-	if x != nil {
-		return x.TipSetKey
-	}
-	return ""
-}
-
-func (x *Index) GetMiners() map[string]*Slashes {
-	if x != nil {
-		return x.Miners
-	}
-	return nil
-}
-
-type Slashes struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Epochs []uint64 `protobuf:"varint,1,rep,packed,name=epochs,proto3" json:"epochs,omitempty"`
-}
-
-func (x *Slashes) Reset() {
-	*x = Slashes{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_reputation_rpc_rpc_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Slashes) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Slashes) ProtoMessage() {}
-
-func (x *Slashes) ProtoReflect() protoreflect.Message {
-	mi := &file_reputation_rpc_rpc_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Slashes.ProtoReflect.Descriptor instead.
-func (*Slashes) Descriptor() ([]byte, []int) {
-	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *Slashes) GetEpochs() []uint64 {
-	if x != nil {
-		return x.Epochs
-	}
-	return nil
-}
-
 type AddSourceRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -198,7 +96,7 @@ type AddSourceRequest struct {
 func (x *AddSourceRequest) Reset() {
 	*x = AddSourceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_reputation_rpc_rpc_proto_msgTypes[3]
+		mi := &file_reputation_rpc_rpc_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -211,7 +109,7 @@ func (x *AddSourceRequest) String() string {
 func (*AddSourceRequest) ProtoMessage() {}
 
 func (x *AddSourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_reputation_rpc_rpc_proto_msgTypes[3]
+	mi := &file_reputation_rpc_rpc_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -224,7 +122,7 @@ func (x *AddSourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddSourceRequest.ProtoReflect.Descriptor instead.
 func (*AddSourceRequest) Descriptor() ([]byte, []int) {
-	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{3}
+	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *AddSourceRequest) GetId() string {
@@ -241,29 +139,29 @@ func (x *AddSourceRequest) GetMaddr() string {
 	return ""
 }
 
-type AddSourceReply struct {
+type AddSourceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *AddSourceReply) Reset() {
-	*x = AddSourceReply{}
+func (x *AddSourceResponse) Reset() {
+	*x = AddSourceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_reputation_rpc_rpc_proto_msgTypes[4]
+		mi := &file_reputation_rpc_rpc_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *AddSourceReply) String() string {
+func (x *AddSourceResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AddSourceReply) ProtoMessage() {}
+func (*AddSourceResponse) ProtoMessage() {}
 
-func (x *AddSourceReply) ProtoReflect() protoreflect.Message {
-	mi := &file_reputation_rpc_rpc_proto_msgTypes[4]
+func (x *AddSourceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_reputation_rpc_rpc_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -274,9 +172,9 @@ func (x *AddSourceReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AddSourceReply.ProtoReflect.Descriptor instead.
-func (*AddSourceReply) Descriptor() ([]byte, []int) {
-	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{4}
+// Deprecated: Use AddSourceResponse.ProtoReflect.Descriptor instead.
+func (*AddSourceResponse) Descriptor() ([]byte, []int) {
+	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{2}
 }
 
 type GetTopMinersRequest struct {
@@ -290,7 +188,7 @@ type GetTopMinersRequest struct {
 func (x *GetTopMinersRequest) Reset() {
 	*x = GetTopMinersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_reputation_rpc_rpc_proto_msgTypes[5]
+		mi := &file_reputation_rpc_rpc_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -303,7 +201,7 @@ func (x *GetTopMinersRequest) String() string {
 func (*GetTopMinersRequest) ProtoMessage() {}
 
 func (x *GetTopMinersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_reputation_rpc_rpc_proto_msgTypes[5]
+	mi := &file_reputation_rpc_rpc_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -316,7 +214,7 @@ func (x *GetTopMinersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTopMinersRequest.ProtoReflect.Descriptor instead.
 func (*GetTopMinersRequest) Descriptor() ([]byte, []int) {
-	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{5}
+	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetTopMinersRequest) GetLimit() int32 {
@@ -326,31 +224,31 @@ func (x *GetTopMinersRequest) GetLimit() int32 {
 	return 0
 }
 
-type GetTopMinersReply struct {
+type GetTopMinersResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TopMiners []*MinerScore `protobuf:"bytes,1,rep,name=topMiners,proto3" json:"topMiners,omitempty"`
+	TopMiners []*MinerScore `protobuf:"bytes,1,rep,name=top_miners,json=topMiners,proto3" json:"top_miners,omitempty"`
 }
 
-func (x *GetTopMinersReply) Reset() {
-	*x = GetTopMinersReply{}
+func (x *GetTopMinersResponse) Reset() {
+	*x = GetTopMinersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_reputation_rpc_rpc_proto_msgTypes[6]
+		mi := &file_reputation_rpc_rpc_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *GetTopMinersReply) String() string {
+func (x *GetTopMinersResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetTopMinersReply) ProtoMessage() {}
+func (*GetTopMinersResponse) ProtoMessage() {}
 
-func (x *GetTopMinersReply) ProtoReflect() protoreflect.Message {
-	mi := &file_reputation_rpc_rpc_proto_msgTypes[6]
+func (x *GetTopMinersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_reputation_rpc_rpc_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -361,12 +259,12 @@ func (x *GetTopMinersReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetTopMinersReply.ProtoReflect.Descriptor instead.
-func (*GetTopMinersReply) Descriptor() ([]byte, []int) {
-	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use GetTopMinersResponse.ProtoReflect.Descriptor instead.
+func (*GetTopMinersResponse) Descriptor() ([]byte, []int) {
+	return file_reputation_rpc_rpc_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetTopMinersReply) GetTopMiners() []*MinerScore {
+func (x *GetTopMinersResponse) GetTopMiners() []*MinerScore {
 	if x != nil {
 		return x.TopMiners
 	}
@@ -382,46 +280,33 @@ var file_reputation_rpc_rpc_proto_rawDesc = []byte{
 	0x6e, 0x65, 0x72, 0x53, 0x63, 0x6f, 0x72, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x61, 0x64, 0x64, 0x72,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x61, 0x64, 0x64, 0x72, 0x12, 0x14, 0x0a, 0x05,
 	0x73, 0x63, 0x6f, 0x72, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x73, 0x63, 0x6f,
-	0x72, 0x65, 0x22, 0xb4, 0x01, 0x0a, 0x05, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x1c, 0x0a, 0x09,
-	0x74, 0x69, 0x70, 0x53, 0x65, 0x74, 0x4b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x09, 0x74, 0x69, 0x70, 0x53, 0x65, 0x74, 0x4b, 0x65, 0x79, 0x12, 0x39, 0x0a, 0x06, 0x6d, 0x69,
-	0x6e, 0x65, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x72, 0x65, 0x70,
-	0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x49, 0x6e, 0x64, 0x65,
-	0x78, 0x2e, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x06, 0x6d,
-	0x69, 0x6e, 0x65, 0x72, 0x73, 0x1a, 0x52, 0x0a, 0x0b, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73, 0x45,
-	0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x2d, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x72, 0x65, 0x70, 0x75, 0x74, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x73, 0x52, 0x05,
-	0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x21, 0x0a, 0x07, 0x53, 0x6c, 0x61,
-	0x73, 0x68, 0x65, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x73, 0x18, 0x01,
-	0x20, 0x03, 0x28, 0x04, 0x52, 0x06, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x73, 0x22, 0x38, 0x0a, 0x10,
-	0x41, 0x64, 0x64, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
-	0x12, 0x14, 0x0a, 0x05, 0x6d, 0x61, 0x64, 0x64, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x6d, 0x61, 0x64, 0x64, 0x72, 0x22, 0x10, 0x0a, 0x0e, 0x41, 0x64, 0x64, 0x53, 0x6f, 0x75,
-	0x72, 0x63, 0x65, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x2b, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x54,
-	0x6f, 0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
-	0x14, 0x0a, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05,
-	0x6c, 0x69, 0x6d, 0x69, 0x74, 0x22, 0x4d, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x54, 0x6f, 0x70, 0x4d,
-	0x69, 0x6e, 0x65, 0x72, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x38, 0x0a, 0x09, 0x74, 0x6f,
-	0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
-	0x72, 0x65, 0x70, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4d,
-	0x69, 0x6e, 0x65, 0x72, 0x53, 0x63, 0x6f, 0x72, 0x65, 0x52, 0x09, 0x74, 0x6f, 0x70, 0x4d, 0x69,
-	0x6e, 0x65, 0x72, 0x73, 0x32, 0xb0, 0x01, 0x0a, 0x03, 0x52, 0x50, 0x43, 0x12, 0x4f, 0x0a, 0x09,
-	0x41, 0x64, 0x64, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x20, 0x2e, 0x72, 0x65, 0x70, 0x75,
-	0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x64, 0x64, 0x53, 0x6f,
-	0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x72, 0x65,
-	0x70, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x64, 0x64,
-	0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x12, 0x58, 0x0a,
-	0x0c, 0x47, 0x65, 0x74, 0x54, 0x6f, 0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73, 0x12, 0x23, 0x2e,
-	0x72, 0x65, 0x70, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x47,
-	0x65, 0x74, 0x54, 0x6f, 0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x21, 0x2e, 0x72, 0x65, 0x70, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e,
-	0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x54, 0x6f, 0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73,
-	0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x42, 0x10, 0x5a, 0x0e, 0x72, 0x65, 0x70, 0x75, 0x74,
-	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x72, 0x65, 0x22, 0x38, 0x0a, 0x10, 0x41, 0x64, 0x64, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x61, 0x64, 0x64, 0x72, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6d, 0x61, 0x64, 0x64, 0x72, 0x22, 0x13, 0x0a, 0x11,
+	0x41, 0x64, 0x64, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x2b, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x54, 0x6f, 0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x69, 0x6d, 0x69,
+	0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x22, 0x51,
+	0x0a, 0x14, 0x47, 0x65, 0x74, 0x54, 0x6f, 0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x39, 0x0a, 0x0a, 0x74, 0x6f, 0x70, 0x5f, 0x6d, 0x69,
+	0x6e, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x72, 0x65, 0x70,
+	0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4d, 0x69, 0x6e, 0x65,
+	0x72, 0x53, 0x63, 0x6f, 0x72, 0x65, 0x52, 0x09, 0x74, 0x6f, 0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72,
+	0x73, 0x32, 0xbd, 0x01, 0x0a, 0x0a, 0x52, 0x50, 0x43, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x12, 0x52, 0x0a, 0x09, 0x41, 0x64, 0x64, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x20, 0x2e,
+	0x72, 0x65, 0x70, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x41,
+	0x64, 0x64, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x21, 0x2e, 0x72, 0x65, 0x70, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x41, 0x64, 0x64, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x5b, 0x0a, 0x0c, 0x47, 0x65, 0x74, 0x54, 0x6f, 0x70, 0x4d, 0x69,
+	0x6e, 0x65, 0x72, 0x73, 0x12, 0x23, 0x2e, 0x72, 0x65, 0x70, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x54, 0x6f, 0x70, 0x4d, 0x69, 0x6e, 0x65,
+	0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x72, 0x65, 0x70, 0x75,
+	0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x54, 0x6f,
+	0x70, 0x4d, 0x69, 0x6e, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x42, 0x10, 0x5a, 0x0e, 0x72, 0x65, 0x70, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f,
+	0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -436,30 +321,25 @@ func file_reputation_rpc_rpc_proto_rawDescGZIP() []byte {
 	return file_reputation_rpc_rpc_proto_rawDescData
 }
 
-var file_reputation_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_reputation_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_reputation_rpc_rpc_proto_goTypes = []interface{}{
-	(*MinerScore)(nil),          // 0: reputation.rpc.MinerScore
-	(*Index)(nil),               // 1: reputation.rpc.Index
-	(*Slashes)(nil),             // 2: reputation.rpc.Slashes
-	(*AddSourceRequest)(nil),    // 3: reputation.rpc.AddSourceRequest
-	(*AddSourceReply)(nil),      // 4: reputation.rpc.AddSourceReply
-	(*GetTopMinersRequest)(nil), // 5: reputation.rpc.GetTopMinersRequest
-	(*GetTopMinersReply)(nil),   // 6: reputation.rpc.GetTopMinersReply
-	nil,                         // 7: reputation.rpc.Index.MinersEntry
+	(*MinerScore)(nil),           // 0: reputation.rpc.MinerScore
+	(*AddSourceRequest)(nil),     // 1: reputation.rpc.AddSourceRequest
+	(*AddSourceResponse)(nil),    // 2: reputation.rpc.AddSourceResponse
+	(*GetTopMinersRequest)(nil),  // 3: reputation.rpc.GetTopMinersRequest
+	(*GetTopMinersResponse)(nil), // 4: reputation.rpc.GetTopMinersResponse
 }
 var file_reputation_rpc_rpc_proto_depIdxs = []int32{
-	7, // 0: reputation.rpc.Index.miners:type_name -> reputation.rpc.Index.MinersEntry
-	0, // 1: reputation.rpc.GetTopMinersReply.topMiners:type_name -> reputation.rpc.MinerScore
-	2, // 2: reputation.rpc.Index.MinersEntry.value:type_name -> reputation.rpc.Slashes
-	3, // 3: reputation.rpc.RPC.AddSource:input_type -> reputation.rpc.AddSourceRequest
-	5, // 4: reputation.rpc.RPC.GetTopMiners:input_type -> reputation.rpc.GetTopMinersRequest
-	4, // 5: reputation.rpc.RPC.AddSource:output_type -> reputation.rpc.AddSourceReply
-	6, // 6: reputation.rpc.RPC.GetTopMiners:output_type -> reputation.rpc.GetTopMinersReply
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0, // 0: reputation.rpc.GetTopMinersResponse.top_miners:type_name -> reputation.rpc.MinerScore
+	1, // 1: reputation.rpc.RPCService.AddSource:input_type -> reputation.rpc.AddSourceRequest
+	3, // 2: reputation.rpc.RPCService.GetTopMiners:input_type -> reputation.rpc.GetTopMinersRequest
+	2, // 3: reputation.rpc.RPCService.AddSource:output_type -> reputation.rpc.AddSourceResponse
+	4, // 4: reputation.rpc.RPCService.GetTopMiners:output_type -> reputation.rpc.GetTopMinersResponse
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_reputation_rpc_rpc_proto_init() }
@@ -481,30 +361,6 @@ func file_reputation_rpc_rpc_proto_init() {
 			}
 		}
 		file_reputation_rpc_rpc_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Index); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_reputation_rpc_rpc_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Slashes); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_reputation_rpc_rpc_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddSourceRequest); i {
 			case 0:
 				return &v.state
@@ -516,8 +372,8 @@ func file_reputation_rpc_rpc_proto_init() {
 				return nil
 			}
 		}
-		file_reputation_rpc_rpc_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AddSourceReply); i {
+		file_reputation_rpc_rpc_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddSourceResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -528,7 +384,7 @@ func file_reputation_rpc_rpc_proto_init() {
 				return nil
 			}
 		}
-		file_reputation_rpc_rpc_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_reputation_rpc_rpc_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetTopMinersRequest); i {
 			case 0:
 				return &v.state
@@ -540,8 +396,8 @@ func file_reputation_rpc_rpc_proto_init() {
 				return nil
 			}
 		}
-		file_reputation_rpc_rpc_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetTopMinersReply); i {
+		file_reputation_rpc_rpc_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetTopMinersResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -559,7 +415,7 @@ func file_reputation_rpc_rpc_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_reputation_rpc_rpc_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -581,108 +437,108 @@ var _ grpc.ClientConnInterface
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
 
-// RPCClient is the client API for RPC service.
+// RPCServiceClient is the client API for RPCService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type RPCClient interface {
-	AddSource(ctx context.Context, in *AddSourceRequest, opts ...grpc.CallOption) (*AddSourceReply, error)
-	GetTopMiners(ctx context.Context, in *GetTopMinersRequest, opts ...grpc.CallOption) (*GetTopMinersReply, error)
+type RPCServiceClient interface {
+	AddSource(ctx context.Context, in *AddSourceRequest, opts ...grpc.CallOption) (*AddSourceResponse, error)
+	GetTopMiners(ctx context.Context, in *GetTopMinersRequest, opts ...grpc.CallOption) (*GetTopMinersResponse, error)
 }
 
-type rPCClient struct {
+type rPCServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewRPCClient(cc grpc.ClientConnInterface) RPCClient {
-	return &rPCClient{cc}
+func NewRPCServiceClient(cc grpc.ClientConnInterface) RPCServiceClient {
+	return &rPCServiceClient{cc}
 }
 
-func (c *rPCClient) AddSource(ctx context.Context, in *AddSourceRequest, opts ...grpc.CallOption) (*AddSourceReply, error) {
-	out := new(AddSourceReply)
-	err := c.cc.Invoke(ctx, "/reputation.rpc.RPC/AddSource", in, out, opts...)
+func (c *rPCServiceClient) AddSource(ctx context.Context, in *AddSourceRequest, opts ...grpc.CallOption) (*AddSourceResponse, error) {
+	out := new(AddSourceResponse)
+	err := c.cc.Invoke(ctx, "/reputation.rpc.RPCService/AddSource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *rPCClient) GetTopMiners(ctx context.Context, in *GetTopMinersRequest, opts ...grpc.CallOption) (*GetTopMinersReply, error) {
-	out := new(GetTopMinersReply)
-	err := c.cc.Invoke(ctx, "/reputation.rpc.RPC/GetTopMiners", in, out, opts...)
+func (c *rPCServiceClient) GetTopMiners(ctx context.Context, in *GetTopMinersRequest, opts ...grpc.CallOption) (*GetTopMinersResponse, error) {
+	out := new(GetTopMinersResponse)
+	err := c.cc.Invoke(ctx, "/reputation.rpc.RPCService/GetTopMiners", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// RPCServer is the server API for RPC service.
-type RPCServer interface {
-	AddSource(context.Context, *AddSourceRequest) (*AddSourceReply, error)
-	GetTopMiners(context.Context, *GetTopMinersRequest) (*GetTopMinersReply, error)
+// RPCServiceServer is the server API for RPCService service.
+type RPCServiceServer interface {
+	AddSource(context.Context, *AddSourceRequest) (*AddSourceResponse, error)
+	GetTopMiners(context.Context, *GetTopMinersRequest) (*GetTopMinersResponse, error)
 }
 
-// UnimplementedRPCServer can be embedded to have forward compatible implementations.
-type UnimplementedRPCServer struct {
+// UnimplementedRPCServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedRPCServiceServer struct {
 }
 
-func (*UnimplementedRPCServer) AddSource(context.Context, *AddSourceRequest) (*AddSourceReply, error) {
+func (*UnimplementedRPCServiceServer) AddSource(context.Context, *AddSourceRequest) (*AddSourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddSource not implemented")
 }
-func (*UnimplementedRPCServer) GetTopMiners(context.Context, *GetTopMinersRequest) (*GetTopMinersReply, error) {
+func (*UnimplementedRPCServiceServer) GetTopMiners(context.Context, *GetTopMinersRequest) (*GetTopMinersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTopMiners not implemented")
 }
 
-func RegisterRPCServer(s *grpc.Server, srv RPCServer) {
-	s.RegisterService(&_RPC_serviceDesc, srv)
+func RegisterRPCServiceServer(s *grpc.Server, srv RPCServiceServer) {
+	s.RegisterService(&_RPCService_serviceDesc, srv)
 }
 
-func _RPC_AddSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_AddSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddSourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).AddSource(ctx, in)
+		return srv.(RPCServiceServer).AddSource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/reputation.rpc.RPC/AddSource",
+		FullMethod: "/reputation.rpc.RPCService/AddSource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).AddSource(ctx, req.(*AddSourceRequest))
+		return srv.(RPCServiceServer).AddSource(ctx, req.(*AddSourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RPC_GetTopMiners_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_GetTopMiners_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetTopMinersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).GetTopMiners(ctx, in)
+		return srv.(RPCServiceServer).GetTopMiners(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/reputation.rpc.RPC/GetTopMiners",
+		FullMethod: "/reputation.rpc.RPCService/GetTopMiners",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).GetTopMiners(ctx, req.(*GetTopMinersRequest))
+		return srv.(RPCServiceServer).GetTopMiners(ctx, req.(*GetTopMinersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _RPC_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "reputation.rpc.RPC",
-	HandlerType: (*RPCServer)(nil),
+var _RPCService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "reputation.rpc.RPCService",
+	HandlerType: (*RPCServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "AddSource",
-			Handler:    _RPC_AddSource_Handler,
+			Handler:    _RPCService_AddSource_Handler,
 		},
 		{
 			MethodName: "GetTopMiners",
-			Handler:    _RPC_GetTopMiners_Handler,
+			Handler:    _RPCService_GetTopMiners_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

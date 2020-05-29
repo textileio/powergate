@@ -8,7 +8,7 @@ import (
 
 // RPC implements the gprc service
 type RPC struct {
-	UnimplementedRPCServer
+	UnimplementedRPCServiceServer
 
 	index *slashing.Index
 }
@@ -21,7 +21,7 @@ func New(si *slashing.Index) *RPC {
 }
 
 // Get calls slashing index Get
-func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
+func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
 	index := s.index.Get()
 
 	miners := make(map[string]*Slashes, len(index.Miners))
@@ -32,9 +32,9 @@ func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
 	}
 
 	pbIndex := &Index{
-		TipSetKey: index.TipSetKey,
+		Tipsetkey: index.TipSetKey,
 		Miners:    miners,
 	}
 
-	return &GetReply{Index: pbIndex}, nil
+	return &GetResponse{Index: pbIndex}, nil
 }

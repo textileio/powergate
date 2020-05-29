@@ -9,7 +9,7 @@ message Index {
 }
 
 message ChainIndex {
-    int64 lastUpdated = 1;
+    int64 last_updated = 1;
     map<string, Power> power = 2;
 }
 
@@ -25,8 +25,8 @@ message MetaIndex {
 }
 
 message Meta {
-    int64 lastUpdated = 1;
-    string userAgent = 2;
+    int64 last_updated = 1;
+    string user_agent = 2;
     Location location = 3;
     bool online = 4;
 }
@@ -40,10 +40,10 @@ message Location {
 message GetRequest {
 }
 
-message GetReply {
+message GetResponse {
     Index index = 1;
 }
 
-service RPC {
-    rpc Get(GetRequest) returns (GetReply) {}
+service RPCService {
+    rpc Get(GetRequest) returns (GetResponse) {}
 }

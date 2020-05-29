@@ -15,7 +15,7 @@ import (
 
 // FFS provides the API to create and interact with an FFS instance
 type FFS struct {
-	client rpc.RPCClient
+	client rpc.RPCServiceClient
 }
 
 // JobEvent represents an event for Watching a job
@@ -96,7 +96,7 @@ func (f *FFS) Create(ctx context.Context) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	return r.ID, r.Token, nil
+	return r.Id, r.Token, nil
 }
 
 // ListAPI returns a list of existing API instances.
@@ -118,7 +118,7 @@ func (f *FFS) ID(ctx context.Context) (ffs.APIID, error) {
 	if err != nil {
 		return ffs.EmptyInstanceID, err
 	}
-	return ffs.APIID(resp.ID), nil
+	return ffs.APIID(resp.Id), nil
 }
 
 // Addrs returns a list of addresses managed by the FFS instance
@@ -222,7 +222,7 @@ func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig
 }
 
 // GetCidConfig gets the current config for a cid
-func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigReply, error) {
+func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigResponse, error) {
 	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: c.String()})
 }
 
@@ -240,7 +240,7 @@ func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.DefaultConfig) er
 }
 
 // Show returns information about the current storage state of a cid
-func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowReply, error) {
+func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowResponse, error) {
 	return f.client.Show(ctx, &rpc.ShowRequest{
 		Cid: c.String(),
 	})
@@ -275,7 +275,7 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 	}
 
 	return api.InstanceInfo{
-		ID: ffs.APIID(res.Info.ID),
+		ID: ffs.APIID(res.Info.Id),
 		DefaultConfig: ffs.DefaultConfig{
 			Hot: ffs.HotConfig{
 				Enabled:       res.Info.DefaultConfig.Hot.Enabled,
@@ -348,22 +348,22 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 			}
 			var status ffs.JobStatus
 			switch reply.Job.Status {
-			case rpc.JobStatus_QUEUED:
+			case rpc.JobStatus_JOB_STATUS_QUEUED:
 				status = ffs.Queued
-			case rpc.JobStatus_EXECUTING:
+			case rpc.JobStatus_JOB_STATUS_EXECUTING:
 				status = ffs.Executing
-			case rpc.JobStatus_FAILED:
+			case rpc.JobStatus_JOB_STATUS_FAILED:
 				status = ffs.Failed
-			case rpc.JobStatus_CANCELED:
+			case rpc.JobStatus_JOB_STATUS_CANCELED:
 				status = ffs.Canceled
-			case rpc.JobStatus_SUCCESS:
+			case rpc.JobStatus_JOB_STATUS_SUCCESS:
 				status = ffs.Success
 			default:
 				status = ffs.Unspecified
 			}
 			job := ffs.Job{
-				ID:         ffs.JobID(reply.Job.ID),
-				APIID:      ffs.APIID(reply.Job.ApiID),
+				ID:         ffs.JobID(reply.Job.Id),
+				APIID:      ffs.APIID(reply.Job.ApiId),
 				Cid:        c,
 				Status:     status,
 				ErrCause:   reply.Job.ErrCause,
@@ -382,7 +382,7 @@ func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, e
 	if err != nil {
 		return ffs.EmptyJobID, err
 	}
-	return ffs.JobID(resp.JobID), nil
+	return ffs.JobID(resp.JobId), nil
 }
 
 // PushConfig push a new configuration for the Cid in the Hot and Cold layers
@@ -397,7 +397,7 @@ func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOptio
 		return ffs.EmptyJobID, err
 	}
 
-	return ffs.JobID(resp.JobID), nil
+	return ffs.JobID(resp.JobId), nil
 }
 
 // Remove removes a Cid from being tracked as an active storage. The Cid should have

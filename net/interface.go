@@ -11,8 +11,11 @@ import (
 type Connectedness int
 
 const (
+	// Unspecified means unable to determine connectedness
+	Unspecified Connectedness = iota
+
 	// NotConnected means no connection to peer, and no extra information (default)
-	NotConnected Connectedness = iota
+	NotConnected
 
 	// Connected means has an open, live connection to peer
 	Connected
@@ -22,9 +25,6 @@ const (
 
 	// CannotConnect means recently attempted connecting but failed to connect.
 	CannotConnect
-
-	// Unknown means unable to determine connectedness
-	Unknown
 
 	// Error means there was an error determining connectedness
 	Error

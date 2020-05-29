@@ -24,7 +24,7 @@ var (
 
 // RPC implements the proto service definition of FFS.
 type RPC struct {
-	UnimplementedRPCServer
+	UnimplementedRPCServiceServer
 
 	m   *manager.Manager
 	hot ffs.HotStorage
@@ -39,20 +39,20 @@ func New(m *manager.Manager, hot ffs.HotStorage) *RPC {
 }
 
 // Create creates a new Api.
-func (s *RPC) Create(ctx context.Context, req *CreateRequest) (*CreateReply, error) {
+func (s *RPC) Create(ctx context.Context, req *CreateRequest) (*CreateResponse, error) {
 	id, token, err := s.m.Create(ctx)
 	if err != nil {
 		log.Errorf("creating instance: %s", err)
 		return nil, err
 	}
-	return &CreateReply{
-		ID:    id.String(),
+	return &CreateResponse{
+		Id:    id.String(),
 		Token: token,
 	}, nil
 }
 
 // ListAPI returns a list of all existing API instances.
-func (s *RPC) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIReply, error) {
+func (s *RPC) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIResponse, error) {
 	lst, err := s.m.List()
 	if err != nil {
 		log.Errorf("listing instances: %s", err)
@@ -62,23 +62,23 @@ func (s *RPC) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIReply, 
 	for i, v := range lst {
 		ins[i] = v.String()
 	}
-	return &ListAPIReply{
+	return &ListAPIResponse{
 		Instances: ins,
 	}, nil
 }
 
 // ID returns the API instance id
-func (s *RPC) ID(ctx context.Context, req *IDRequest) (*IDReply, error) {
+func (s *RPC) ID(ctx context.Context, req *IDRequest) (*IDResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 	id := i.ID()
-	return &IDReply{ID: id.String()}, nil
+	return &IDResponse{Id: id.String()}, nil
 }
 
 // Addrs calls ffs.Addrs
-func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, error) {
+func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -92,17 +92,17 @@ func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsReply, error)
 			Type: addr.Type,
 		}
 	}
-	return &AddrsReply{Addrs: res}, nil
+	return &AddrsResponse{Addrs: res}, nil
 }
 
 // DefaultConfig calls ffs.DefaultConfig
-func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigReply, error) {
+func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 	conf := i.DefaultConfig()
-	return &DefaultConfigReply{
+	return &DefaultConfigResponse{
 		DefaultConfig: &DefaultConfig{
 			Hot:        toRPCHotConfig(conf.Hot),
 			Cold:       toRPCColdConfig(conf.Cold),
@@ -112,7 +112,7 @@ func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*De
 }
 
 // NewAddr calls ffs.NewAddr
-func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrReply, error) {
+func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -130,11 +130,11 @@ func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrReply, 
 	if err != nil {
 		return nil, err
 	}
-	return &NewAddrReply{Addr: addr}, nil
+	return &NewAddrResponse{Addr: addr}, nil
 }
 
 // GetDefaultCidConfig returns the default cid config prepped for the provided cid
-func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigReply, error) {
+func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigR
 		return nil, err
 	}
 	config := i.GetDefaultCidConfig(c)
-	return &GetDefaultCidConfigReply{
+	return &GetDefaultCidConfigResponse{
 		Config: &CidConfig{
 			Cid:        config.Cid.String(),
 			Hot:        toRPCHotConfig(config.Hot),
@@ -155,7 +155,7 @@ func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigR
 }
 
 // GetCidConfig returns the cid config for the provided cid
-func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigReply, error) {
+func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetC
 	if err != nil {
 		return nil, err
 	}
-	return &GetCidConfigReply{
+	return &GetCidConfigResponse{
 		Config: &CidConfig{
 			Cid:        config.Cid.String(),
 			Hot:        toRPCHotConfig(config.Hot),
@@ -179,7 +179,7 @@ func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetC
 }
 
 // SetDefaultConfig sets a new config to be used by default
-func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest) (*SetDefaultConfigReply, error) {
+func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest) (*SetDefaultConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -192,11 +192,11 @@ func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest
 	if err := i.SetDefaultConfig(defaultConfig); err != nil {
 		return nil, err
 	}
-	return &SetDefaultConfigReply{}, nil
+	return &SetDefaultConfigResponse{}, nil
 }
 
 // Show returns information about a particular Cid.
-func (s *RPC) Show(ctx context.Context, req *ShowRequest) (*ShowReply, error) {
+func (s *RPC) Show(ctx context.Context, req *ShowRequest) (*ShowResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -211,14 +211,14 @@ func (s *RPC) Show(ctx context.Context, req *ShowRequest) (*ShowReply, error) {
 	if err != nil {
 		return nil, err
 	}
-	reply := &ShowReply{
+	reply := &ShowResponse{
 		CidInfo: toRPCCidInfo(info),
 	}
 	return reply, nil
 }
 
 // Info returns an Api information.
-func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error) {
+func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -241,9 +241,9 @@ func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error) {
 		}
 	}
 
-	reply := &InfoReply{
+	reply := &InfoResponse{
 		Info: &InstanceInfo{
-			ID: info.ID.String(),
+			Id: info.ID.String(),
 			DefaultConfig: &DefaultConfig{
 				Hot:        toRPCHotConfig(info.DefaultConfig.Hot),
 				Cold:       toRPCColdConfig(info.DefaultConfig.Cold),
@@ -260,7 +260,7 @@ func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoReply, error) {
 }
 
 // WatchJobs calls API.WatchJobs
-func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPC_WatchJobsServer) error {
+func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPCService_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -280,22 +280,22 @@ func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPC_WatchJobsServer) error {
 		var status JobStatus
 		switch job.Status {
 		case ffs.Queued:
-			status = JobStatus_QUEUED
+			status = JobStatus_JOB_STATUS_QUEUED
 		case ffs.Executing:
-			status = JobStatus_EXECUTING
+			status = JobStatus_JOB_STATUS_EXECUTING
 		case ffs.Failed:
-			status = JobStatus_FAILED
+			status = JobStatus_JOB_STATUS_FAILED
 		case ffs.Canceled:
-			status = JobStatus_FAILED
+			status = JobStatus_JOB_STATUS_CANCELED
 		case ffs.Success:
-			status = JobStatus_SUCCESS
+			status = JobStatus_JOB_STATUS_SUCCESS
 		default:
-			status = JobStatus_UNSPECIFIED
+			status = JobStatus_JOB_STATUS_UNSPECIFIED
 		}
-		reply := &WatchJobsReply{
+		reply := &WatchJobsResponse{
 			Job: &Job{
-				ID:         job.ID.String(),
-				ApiID:      job.APIID.String(),
+				Id:         job.ID.String(),
+				ApiId:      job.APIID.String(),
 				Cid:        job.Cid.String(),
 				Status:     status,
 				ErrCause:   job.ErrCause,
@@ -314,7 +314,7 @@ func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPC_WatchJobsServer) error {
 
 // WatchLogs returns a stream of human-readable messages related to executions of a Cid.
 // The listener is automatically unsubscribed when the client closes the stream.
-func (s *RPC) WatchLogs(req *WatchLogsRequest, srv RPC_WatchLogsServer) error {
+func (s *RPC) WatchLogs(req *WatchLogsRequest, srv RPCService_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -335,7 +335,7 @@ func (s *RPC) WatchLogs(req *WatchLogsRequest, srv RPC_WatchLogsServer) error {
 		close(ch)
 	}()
 	for l := range ch {
-		reply := &WatchLogsReply{
+		reply := &WatchLogsResponse{
 			LogEntry: &LogEntry{
 				Cid:  c.String(),
 				Jid:  l.Jid.String(),
@@ -355,7 +355,7 @@ func (s *RPC) WatchLogs(req *WatchLogsRequest, srv RPC_WatchLogsServer) error {
 }
 
 // Replace calls ffs.Replace
-func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceReply, error) {
+func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -375,11 +375,11 @@ func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceReply, 
 		return nil, err
 	}
 
-	return &ReplaceReply{JobID: jid.String()}, nil
+	return &ReplaceResponse{JobId: jid.String()}, nil
 }
 
 // PushConfig applies the provided cid config
-func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigReply, error) {
+func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -415,13 +415,13 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 		return nil, err
 	}
 
-	return &PushConfigReply{
-		JobID: jid.String(),
+	return &PushConfigResponse{
+		JobId: jid.String(),
 	}, nil
 }
 
 // Remove calls ffs.Remove
-func (s *RPC) Remove(ctx context.Context, req *RemoveRequest) (*RemoveReply, error) {
+func (s *RPC) Remove(ctx context.Context, req *RemoveRequest) (*RemoveResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -436,11 +436,11 @@ func (s *RPC) Remove(ctx context.Context, req *RemoveRequest) (*RemoveReply, err
 		return nil, err
 	}
 
-	return &RemoveReply{}, nil
+	return &RemoveResponse{}, nil
 }
 
 // Get gets the data for a stored Cid.
-func (s *RPC) Get(req *GetRequest, srv RPC_GetServer) error {
+func (s *RPC) Get(req *GetRequest, srv RPCService_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -460,7 +460,7 @@ func (s *RPC) Get(req *GetRequest, srv RPC_GetServer) error {
 		if err != nil && err != io.EOF {
 			return err
 		}
-		if sendErr := srv.Send(&GetReply{Chunk: buffer[:bytesRead]}); sendErr != nil {
+		if sendErr := srv.Send(&GetResponse{Chunk: buffer[:bytesRead]}); sendErr != nil {
 			return sendErr
 		}
 		if err == io.EOF {
@@ -470,7 +470,7 @@ func (s *RPC) Get(req *GetRequest, srv RPC_GetServer) error {
 }
 
 // SendFil sends fil from a managed address to any other address
-func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilReply, error) {
+func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -478,11 +478,11 @@ func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilReply, 
 	if err := i.SendFil(ctx, req.From, req.To, big.NewInt(req.Amount)); err != nil {
 		return nil, err
 	}
-	return &SendFilReply{}, nil
+	return &SendFilResponse{}, nil
 }
 
 // Close calls API.Close
-func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseReply, error) {
+func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -490,11 +490,11 @@ func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseReply, error)
 	if err := i.Close(); err != nil {
 		return nil, err
 	}
-	return &CloseReply{}, nil
+	return &CloseResponse{}, nil
 }
 
 // AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig
-func (s *RPC) AddToHot(srv RPC_AddToHotServer) error {
+func (s *RPC) AddToHot(srv RPCService_AddToHotServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
 		return err
@@ -514,11 +514,11 @@ func (s *RPC) AddToHot(srv RPC_AddToHotServer) error {
 		return fmt.Errorf("adding data to hot storage: %s", err)
 	}
 
-	return srv.SendAndClose(&AddToHotReply{Cid: c.String()})
+	return srv.SendAndClose(&AddToHotResponse{Cid: c.String()})
 }
 
 // ShowAll returns a list of CidInfo for all data stored in the FFS instance
-func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllReply, error) {
+func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -535,7 +535,7 @@ func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllReply, 
 		}
 		cidInfos[j] = toRPCCidInfo(cidInfo)
 	}
-	return &ShowAllReply{CidInfos: cidInfos}, nil
+	return &ShowAllResponse{CidInfos: cidInfos}, nil
 }
 
 func (s *RPC) getInstanceByToken(ctx context.Context) (*api.API, error) {
@@ -550,7 +550,7 @@ func (s *RPC) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	return i, nil
 }
 
-func receiveFile(srv RPC_AddToHotServer, writer *io.PipeWriter) {
+func receiveFile(srv RPCService_AddToHotServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {
@@ -654,7 +654,7 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 
 func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 	cidInfo := &CidInfo{
-		JobID:   info.JobID.String(),
+		JobId:   info.JobID.String(),
 		Cid:     info.Cid.String(),
 		Created: info.Created.UnixNano(),
 		Hot: &HotInfo{

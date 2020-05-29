@@ -11,7 +11,7 @@ import (
 
 // Asks provides an API for viewing asks data
 type Asks struct {
-	client rpc.RPCClient
+	client rpc.RPCServiceClient
 }
 
 // Get returns the current index of available asks
