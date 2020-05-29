@@ -505,19 +505,20 @@ func TestFilecoinCountryFilter(t *testing.T) {
 
 func TestFilecoinMaxPriceFilter(t *testing.T) {
 	t.Parallel()
-	ipfsDocker, cls := tests.LaunchIPFSDocker()
-	t.Cleanup(func() { cls() })
-	bridgeIP := ipfsDocker.Container.NetworkSettings.Networks["bridge"].IPAddress
-	ipfsAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
-	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, 1, ipfsAddr)
+	ipfs, ipfsMAddr := createIPFS(t)
+	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, 1, ipfsMAddr)
 	miner := fixed.Miner{Addr: "t01000", EpochPrice: 500000000}
 	ms := fixed.New([]fixed.Miner{miner})
 	ds := tests.NewTxMapDatastore()
-	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-	defer closeInternal()
+	manager, closeManager := newFFSManager(t, ds, client, addr, ms, ipfs)
+	defer closeManager()
+	_, auth, err := manager.Create(context.Background())
+	require.NoError(t, err)
+	fapi, err := manager.GetByAuthToken(auth)
+	require.NoError(t, err)
 
 	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfsAPI)
+	cid, _ := addRandomFile(t, r, ipfs)
 
 	config := fapi.GetDefaultCidConfig(cid).WithColdMaxPrice(400000000)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
