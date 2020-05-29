@@ -62,6 +62,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) (ffs
 		ExcludedMiners: cfg.ExcludedMiners,
 		CountryCodes:   cfg.CountryCodes,
 		TrustedMiners:  cfg.TrustedMiners,
+		MaxPrice:       cfg.MaxPrice,
 	}
 	cfgs, err := makeDealConfigs(ctx, fc.ms, cfg.RepFactor, f)
 	if err != nil {
@@ -150,6 +151,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig) (ffs.FilStorage, []ffs.DealError, error) {
 	f := ffs.MinerSelectorFilter{
 		TrustedMiners: []string{p.Miner},
+		MaxPrice:      fcfg.MaxPrice,
 	}
 	dealConfig, err := makeDealConfigs(ctx, fc.ms, 1, f)
 	if err != nil {
@@ -269,8 +271,8 @@ func (fc *FilCold) getCidSize(ctx context.Context, c cid.Cid) (uint64, error) {
 	return uint64(s.CumulativeSize), nil
 }
 
-func makeDealConfigs(ctx context.Context, ms ffs.MinerSelector, cantMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {
-	mps, err := ms.GetMiners(cantMiners, f)
+func makeDealConfigs(ctx context.Context, ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {
+	mps, err := ms.GetMiners(cntMiners, f)
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from minerselector: %s", err)
 	}

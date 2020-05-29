@@ -35,6 +35,7 @@ message FilConfig {
    repeated string countryCodes = 5;
    FilRenew renew = 6;
    string addr = 7;
+   uint64 maxPrice = 8;
 }
 
 message ColdConfig {

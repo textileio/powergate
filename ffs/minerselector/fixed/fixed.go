@@ -38,6 +38,9 @@ func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Min
 	for _, pm := range f.TrustedMiners {
 		for _, m := range fms.miners {
 			if m.Addr == pm {
+				if f.MaxPrice > 0 && m.EpochPrice > f.MaxPrice {
+					continue
+				}
 				mres[m.Addr] = struct{}{}
 				res = append(res, ffs.MinerProposal{
 					Addr:       m.Addr,
@@ -54,6 +57,9 @@ func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Min
 
 	for _, m := range fms.miners {
 		if _, ok := mres[m.Addr]; ok {
+			continue
+		}
+		if f.MaxPrice > 0 && m.EpochPrice > f.MaxPrice {
 			continue
 		}
 		skip := false

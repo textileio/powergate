@@ -83,17 +83,10 @@ func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 
 // QueryMiners makes a filtered query on the scored-sorted miner list.
 // Empty filter slices represent no-filters applied.
-func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []string, trustedMiners []string) ([]MinerScore, error) {
-	if n < 1 {
-		return nil, fmt.Errorf("the number of miners should be greater than zero")
-	}
-
+func (rm *Module) QueryMiners(excludedMiners []string, countryCodes []string, trustedMiners []string) ([]MinerScore, error) {
 	rm.lockScores.Lock()
 	defer rm.lockScores.Unlock()
-	if n > len(rm.scores) {
-		n = len(rm.scores)
-	}
-	mr := make([]MinerScore, 0, n)
+	var mr []MinerScore
 	pmr := make(map[string]struct{})
 	for _, tm := range trustedMiners {
 		for _, m := range rm.scores {
@@ -102,9 +95,6 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 				mr = append(mr, m)
 				break
 			}
-		}
-		if len(mr) == n {
-			return mr, nil
 		}
 	}
 	for _, m := range rm.scores {
@@ -139,9 +129,6 @@ func (rm *Module) QueryMiners(n int, excludedMiners []string, countryCodes []str
 			}
 		}
 		mr = append(mr, m)
-		if len(mr) == n {
-			break
-		}
 	}
 	return mr, nil
 }

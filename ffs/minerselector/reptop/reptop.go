@@ -29,24 +29,36 @@ func New(rm *reputation.Module, ai *askRunner.Runner) *RepTop {
 // GetMiners returns n miners using the configured Reputation Module and
 // Ask Index.
 func (rt *RepTop) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
-	ms, err := rt.rm.QueryMiners(n, f.ExcludedMiners, f.CountryCodes, f.TrustedMiners)
+	if n < 1 {
+		return nil, fmt.Errorf("the number of miners should be greater than zero")
+	}
+	ms, err := rt.rm.QueryMiners(f.ExcludedMiners, f.CountryCodes, f.TrustedMiners)
 	if err != nil {
-		return nil, fmt.Errorf("getting top %d miners from reputation module: %s", n, err)
+		return nil, fmt.Errorf("getting miners from reputation module: %s", err)
 	}
 	if len(ms) < n {
 		return nil, fmt.Errorf("not enough miners that satisfy the constraints")
 	}
 	aidx := rt.ai.Get()
-	res := make([]ffs.MinerProposal, 0, len(ms))
+	res := make([]ffs.MinerProposal, 0, n)
 	for _, m := range ms {
 		sa, ok := aidx.Storage[m.Addr]
 		if !ok {
+			continue
+		}
+		if f.MaxPrice > 0 && sa.Price > f.MaxPrice {
 			continue
 		}
 		res = append(res, ffs.MinerProposal{
 			Addr:       sa.Miner,
 			EpochPrice: sa.Price,
 		})
+		if len(res) == n {
+			break
+		}
+	}
+	if len(res) < n {
+		return nil, fmt.Errorf("not enough miner asks that satisfy the max price constraint")
 	}
 	return res, nil
 }

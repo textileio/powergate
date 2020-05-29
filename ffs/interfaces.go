@@ -97,6 +97,8 @@ type MinerSelectorFilter struct {
 	// CountryCodes contains long-ISO country names that should be
 	// considered in selected miners. An empty list means no filtering.
 	CountryCodes []string
+	// MaxPrice is the max ask price to consider when selecting miner deals
+	MaxPrice uint64
 }
 
 // MinerProposal contains a miners address and storage ask information
