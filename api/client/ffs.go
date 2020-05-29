@@ -343,11 +343,26 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 				close(ch)
 				break
 			}
+			var status ffs.JobStatus
+			switch reply.Job.Status {
+			case rpc.JobStatus_QUEUED:
+				status = ffs.Queued
+			case rpc.JobStatus_EXECUTING:
+				status = ffs.Executing
+			case rpc.JobStatus_FAILED:
+				status = ffs.Failed
+			case rpc.JobStatus_CANCELED:
+				status = ffs.Canceled
+			case rpc.JobStatus_SUCCESS:
+				status = ffs.Success
+			default:
+				status = ffs.Unspecified
+			}
 			job := ffs.Job{
 				ID:         ffs.JobID(reply.Job.ID),
 				APIID:      ffs.APIID(reply.Job.ApiID),
 				Cid:        c,
-				Status:     ffs.JobStatus(reply.Job.Status),
+				Status:     status,
 				ErrCause:   reply.Job.ErrCause,
 				DealErrors: dealErrors,
 			}

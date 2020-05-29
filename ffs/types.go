@@ -56,8 +56,10 @@ func (i APIID) String() string {
 type JobStatus int
 
 const (
+	// Unspecified indicates a default or empty value
+	Unspecified JobStatus = iota
 	// Queued indicates the Job is queued in the Scheduler.
-	Queued JobStatus = iota + 1
+	Queued
 	// Executing indicates that the Job is currently being
 	// executed.
 	Executing
@@ -73,11 +75,12 @@ const (
 
 // JobStatusStr maps JobStatus to describing string.
 var JobStatusStr = map[JobStatus]string{
-	Queued:    "Queued",
-	Executing: "Executing",
-	Failed:    "Failed",
-	Canceled:  "Canceled",
-	Success:   "Success",
+	Unspecified: "Unspecified",
+	Queued:      "Queued",
+	Executing:   "Executing",
+	Failed:      "Failed",
+	Canceled:    "Canceled",
+	Success:     "Success",
 }
 
 // Job is a task executed by the Scheduler.
