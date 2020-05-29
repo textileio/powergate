@@ -1047,9 +1047,7 @@ func TestDoubleReplace(t *testing.T) {
 	// Test the same workflow in different APIs instaneces,
 	// but same hot & cold layer.
 	testAddThenReplace()
-	fmt.Println("First finished good!")
 	testAddThenReplace()
-	fmt.Println("All good")
 }
 
 func TestRemove(t *testing.T) {
