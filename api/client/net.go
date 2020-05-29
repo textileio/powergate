@@ -103,10 +103,8 @@ func (net *Net) Connectedness(ctx context.Context, peerID peer.ID) (n.Connectedn
 		con = n.NotConnected
 	case rpc.Connectedness_CONNECTEDNESS_ERROR:
 		con = n.Error
-	case rpc.Connectedness_CONNECTEDNESS_UNKNOWN:
-		con = n.Unknown
 	default:
-		con = n.Unknown
+		con = n.Unspecified
 	}
 	return con, nil
 }

@@ -18,6 +18,16 @@ func (health *Health) Check(ctx context.Context) (h.Status, []string, error) {
 	if err != nil {
 		return h.Error, nil, err
 	}
-	status := h.Status(resp.Status)
+	var status h.Status
+	switch resp.Status {
+	case rpc.Status_STATUS_OK:
+		status = h.Ok
+	case rpc.Status_STATUS_DEGRADED:
+		status = h.Degraded
+	case rpc.Status_STATUS_ERROR:
+		status = h.Error
+	default:
+		status = h.Unspecified
+	}
 	return status, resp.Messages, nil
 }

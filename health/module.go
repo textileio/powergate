@@ -16,8 +16,10 @@ type Module struct {
 type Status int
 
 const (
+	// Unspecified is an unknown or empty status
+	Unspecified Status = iota
 	// Ok specifies the node is healthy
-	Ok Status = iota
+	Ok
 	// Degraded specifies there are problems with the node health
 	Degraded
 	// Error specifies there was an error when determining node health
@@ -56,7 +58,7 @@ func (m *Module) Check(ctx context.Context) (status Status, messages []string, e
 			messages = append(messages, fmt.Sprintf("error checking connectedness for peer %v: %v", peer.AddrInfo.ID.String(), err))
 			continue
 		}
-		if con == net.CannotConnect || con == net.Unknown || con == net.Error {
+		if con == net.CannotConnect || con == net.Unspecified || con == net.Error {
 			messages = append(messages, fmt.Sprintf("degraded connectedness %v for peer %v", con, peer.AddrInfo.ID.String()))
 		}
 	}

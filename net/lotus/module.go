@@ -111,7 +111,7 @@ func (m *Module) Connectedness(ctx context.Context, peerID peer.ID) (net.Connect
 	case network.NotConnected:
 		return net.NotConnected, nil
 	default:
-		log.Warnf("unknown peer connectedness &v", con)
-		return net.Unknown, nil
+		log.Warnf("unspecified peer connectedness &v", con)
+		return net.Unspecified, nil
 	}
 }

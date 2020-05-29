@@ -167,12 +167,10 @@ func (a *RPC) Connectedness(ctx context.Context, req *ConnectednessRequest) (*Co
 		c = Connectedness_CONNECTEDNESS_CONNECTED
 	case net.NotConnected:
 		c = Connectedness_CONNECTEDNESS_NOT_CONNECTED
-	case net.Unknown:
-		c = Connectedness_CONNECTEDNESS_UNKNOWN
 	case net.Error:
 		c = Connectedness_CONNECTEDNESS_ERROR
 	default:
-		c = Connectedness_CONNECTEDNESS_UNKNOWN
+		c = Connectedness_CONNECTEDNESS_UNSPECIFIED
 	}
 
 	return &ConnectednessResponse{
