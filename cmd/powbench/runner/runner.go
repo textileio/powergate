@@ -137,7 +137,6 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 				ExcludedMiners: nil,
 				TrustedMiners:  []string{minerAddr},
 				Renew:          ffs.FilRenew{},
-				MaxPrice:       0,
 			},
 		},
 	}
