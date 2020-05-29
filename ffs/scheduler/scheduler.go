@@ -2,13 +2,19 @@ package scheduler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
 
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
+	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
+	"github.com/textileio/powergate/ffs/scheduler/internal/jstore"
+	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 )
 
@@ -18,6 +24,9 @@ const (
 
 var (
 	log = logging.Logger("ffs-scheduler")
+
+	// ErrNotFound is returned when an item isn't found on a Store.
+	ErrNotFound = errors.New("item not found")
 )
 
 // Scheduler receives actions to store a Cid in Hot and Cold layers. These actions are
@@ -27,9 +36,9 @@ var (
 type Scheduler struct {
 	cs  ffs.ColdStorage
 	hs  ffs.HotStorage
-	js  JobStore
-	as  ActionStore
-	cis CidInfoStore
+	js  *jstore.Store
+	as  *astore.Store
+	cis *cistore.Store
 	l   ffs.CidLogger
 
 	queuedWork chan struct{}
@@ -39,11 +48,12 @@ type Scheduler struct {
 	finished chan struct{}
 }
 
-var _ ffs.Scheduler = (*Scheduler)(nil)
-
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
-func New(js JobStore, as ActionStore, cis CidInfoStore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.ColdStorage) *Scheduler {
+func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.ColdStorage) *Scheduler {
+	js := jstore.New(txndstr.Wrap(ds, "jstore"))
+	as := astore.New(txndstr.Wrap(ds, "astore"))
+	cis := cistore.New(txndstr.Wrap(ds, "cistore"))
 	ctx, cancel := context.WithCancel(context.Background())
 	sch := &Scheduler{
 		cs:  cs,
@@ -102,7 +112,7 @@ func (s *Scheduler) push(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
 	s.l.Log(ctx, cfg.Cid, "Pushing new configuration...")
 
-	aa := Action{
+	aa := astore.Action{
 		APIID:       iid,
 		Cfg:         cfg,
 		ReplacedCid: oldCid,
@@ -138,8 +148,8 @@ func (s *Scheduler) Untrack(c cid.Cid) error {
 // if there isn't information for a Cid.
 func (s *Scheduler) GetCidInfo(c cid.Cid) (ffs.CidInfo, error) {
 	info, err := s.cis.Get(c)
-	if err == ErrNotFound {
-		return ffs.CidInfo{}, err
+	if err == cistore.ErrNotFound {
+		return ffs.CidInfo{}, ErrNotFound
 	}
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting CidInfo from store: %s", err)
@@ -160,8 +170,8 @@ func (s *Scheduler) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, er
 func (s *Scheduler) GetJob(jid ffs.JobID) (ffs.Job, error) {
 	j, err := s.js.Get(jid)
 	if err != nil {
-		if err == ErrNotFound {
-			return ffs.Job{}, err
+		if err == jstore.ErrNotFound {
+			return ffs.Job{}, ErrNotFound
 		}
 		return ffs.Job{}, fmt.Errorf("get Job from store: %s", err)
 	}
@@ -193,6 +203,9 @@ func (s *Scheduler) GetLogs(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, err
 func (s *Scheduler) Close() error {
 	s.cancel()
 	<-s.finished
+	if err := s.js.Close(); err != nil {
+		return fmt.Errorf("closing jobstore: %s", err)
+	}
 	return nil
 }
 
@@ -232,7 +245,7 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 	}
 }
 
-func (s *Scheduler) scheduleRepairJob(ctx context.Context, a Action) error {
+func (s *Scheduler) scheduleRepairJob(ctx context.Context, a astore.Action) error {
 	s.l.Log(ctx, a.Cfg.Cid, "Scheduling deal repair...")
 	jid, err := s.push(a.APIID, a.Cfg, cid.Undef)
 	if err != nil {
@@ -256,7 +269,7 @@ func (s *Scheduler) execRenewCron(ctx context.Context) {
 	}
 }
 
-func (s *Scheduler) evaluateRenewal(ctx context.Context, a Action) error {
+func (s *Scheduler) evaluateRenewal(ctx context.Context, a astore.Action) error {
 	inf, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
 	if err == ErrNotFound {
 		log.Infof("skip renewal evaluation for %s since Cid isn't stored yet", a.Cfg.Cid)
@@ -340,7 +353,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 	return nil
 }
 
-func (s *Scheduler) execute(ctx context.Context, a Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
+func (s *Scheduler) execute(ctx context.Context, a astore.Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)
@@ -425,8 +438,8 @@ func (s *Scheduler) getRefreshedInfo(ctx context.Context, c cid.Cid) (ffs.CidInf
 	var err error
 	ci, err := s.cis.Get(c)
 	if err != nil {
-		if err != ErrNotFound {
-			return ffs.CidInfo{}, fmt.Errorf("getting current cid info from store: %s", err)
+		if err != cistore.ErrNotFound {
+			return ffs.CidInfo{}, ErrNotFound
 		}
 		return ffs.CidInfo{Cid: c}, nil // Default value has both storages disabled
 	}

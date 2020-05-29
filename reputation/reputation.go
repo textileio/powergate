@@ -42,8 +42,9 @@ type Module struct {
 	rebuild    chan struct{}
 	scores     []MinerScore
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx      context.Context
+	cancel   context.CancelFunc
+	finished chan struct{}
 }
 
 // MinerScore contains a score for a miner
@@ -61,10 +62,11 @@ func New(ds datastore.TxnDatastore, mi *miner.Index, si *slashing.Index, ai *ask
 		si: si,
 		ai: ai,
 
-		rebuild: make(chan struct{}, 1),
-		ctx:     ctx,
-		cancel:  cancel,
-		sources: source.NewStore(ds),
+		rebuild:  make(chan struct{}, 1),
+		ctx:      ctx,
+		cancel:   cancel,
+		sources:  source.NewStore(ds),
+		finished: make(chan struct{}),
 	}
 
 	go rm.updateSources()
@@ -164,11 +166,13 @@ func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
 // Close closes the reputation Module
 func (rm *Module) Close() error {
 	rm.cancel()
+	<-rm.finished
 	return nil
 }
 
 // subscribeIndexes listen to all sources changes to trigger score regeneration
 func (rm *Module) subscribeIndexes() {
+	defer close(rm.finished)
 	subMi := rm.mi.Listen()
 	subSi := rm.si.Listen()
 	subAi := rm.ai.Listen()

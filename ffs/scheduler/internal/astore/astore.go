@@ -2,6 +2,7 @@ package astore
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/ipfs/go-cid"
@@ -9,21 +10,27 @@ import (
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 var (
 	log = logging.Logger("ffs-sched-astore")
+
+	// ErrNotFound indicates the instance doesn't exist.
+	ErrNotFound = errors.New("action not found")
 )
+
+// Action represents an action to be executed by the Scheduler.
+type Action struct {
+	APIID       ffs.APIID
+	Cfg         ffs.CidConfig
+	ReplacedCid cid.Cid
+}
 
 // Store is a Datastore backed implementation of ActionStore, which saves latests
 // PushConfig actions for a Cid.
 type Store struct {
 	ds datastore.Datastore
 }
-
-var _ scheduler.ActionStore = (*Store)(nil)
 
 // New returns a new ActionStore backed by the Datastore.
 func New(ds datastore.Datastore) *Store {
@@ -33,11 +40,11 @@ func New(ds datastore.Datastore) *Store {
 }
 
 // Get gets the lastest pushed Action of a Cid.
-func (s *Store) Get(jid ffs.JobID) (scheduler.Action, error) {
-	var a scheduler.Action
+func (s *Store) Get(jid ffs.JobID) (Action, error) {
+	var a Action
 	buf, err := s.ds.Get(makeKey(jid))
 	if err == datastore.ErrNotFound {
-		return a, api.ErrNotFound
+		return a, ErrNotFound
 	}
 	if err != nil {
 		return a, fmt.Errorf("get from datastore: %s", err)
@@ -49,7 +56,7 @@ func (s *Store) Get(jid ffs.JobID) (scheduler.Action, error) {
 }
 
 // Put saves a new Action for a Cid.
-func (s *Store) Put(ji ffs.JobID, a scheduler.Action) error {
+func (s *Store) Put(ji ffs.JobID, a Action) error {
 	buf, err := json.Marshal(a)
 	if err != nil {
 		return fmt.Errorf("json marshaling: %s", err)
@@ -76,7 +83,7 @@ func (s *Store) Remove(c cid.Cid) error {
 	}()
 
 	for r := range res.Next() {
-		var a scheduler.Action
+		var a Action
 		if err := json.Unmarshal(r.Value, &a); err != nil {
 			return fmt.Errorf("unmarshalling push config action in query: %s", err)
 		}
@@ -87,14 +94,14 @@ func (s *Store) Remove(c cid.Cid) error {
 			return nil
 		}
 	}
-	return scheduler.ErrNotFound
+	return ErrNotFound
 
 }
 
 // GetRenewable returns all Actions that have CidConfigs that have the Renew flag enabled
 // and should be inspected for Deal renewals.
-func (s *Store) GetRenewable() ([]scheduler.Action, error) {
-	as, err := s.query(func(a scheduler.Action) bool {
+func (s *Store) GetRenewable() ([]Action, error) {
+	as, err := s.query(func(a Action) bool {
 		return a.Cfg.Cold.Enabled && a.Cfg.Cold.Filecoin.Renew.Enabled
 	})
 	if err != nil {
@@ -104,8 +111,8 @@ func (s *Store) GetRenewable() ([]scheduler.Action, error) {
 }
 
 // GetRepairable returns all Actions that have CidConfigs with enabled auto-repair.
-func (s *Store) GetRepairable() ([]scheduler.Action, error) {
-	as, err := s.query(func(a scheduler.Action) bool {
+func (s *Store) GetRepairable() ([]Action, error) {
+	as, err := s.query(func(a Action) bool {
 		return a.Cfg.Repairable
 	})
 	if err != nil {
@@ -114,7 +121,7 @@ func (s *Store) GetRepairable() ([]scheduler.Action, error) {
 	return as, nil
 }
 
-func (s *Store) query(selector func(scheduler.Action) bool) ([]scheduler.Action, error) {
+func (s *Store) query(selector func(Action) bool) ([]Action, error) {
 	q := query.Query{Prefix: ""}
 	res, err := s.ds.Query(q)
 	if err != nil {
@@ -126,9 +133,9 @@ func (s *Store) query(selector func(scheduler.Action) bool) ([]scheduler.Action,
 		}
 	}()
 
-	var as []scheduler.Action
+	var as []Action
 	for r := range res.Next() {
-		var a scheduler.Action
+		var a Action
 		if err := json.Unmarshal(r.Value, &a); err != nil {
 			return nil, fmt.Errorf("unmarshalling push config action in query: %s", err)
 		}

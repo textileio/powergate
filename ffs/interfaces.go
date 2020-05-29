@@ -2,7 +2,6 @@ package ffs
 
 import (
 	"context"
-	"errors"
 	"io"
 	"math/big"
 
@@ -18,53 +17,6 @@ type WalletManager interface {
 	Balance(context.Context, string) (uint64, error)
 	// SendFil sends fil from one address to another
 	SendFil(ctx context.Context, from string, to string, amount *big.Int) error
-}
-
-var (
-	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
-	// To retrieve the data, is necessary to call unfreeze by enabling the Enabled flag in
-	// the Hot Storage for that Cid.
-	ErrHotStorageDisabled = errors.New("cid disabled in hot storage")
-)
-
-// Scheduler enforces a CidConfig orchestrating Hot and Cold storages.
-type Scheduler interface {
-	// PushConfig push a new or modified configuration for a Cid. It returns
-	// the JobID which tracks the current state of execution of that task.
-	PushConfig(APIID, CidConfig) (JobID, error)
-
-	// PushReplace push a new or modified configuration for a Cid, replacing
-	// an existing one. The replaced Cid will be unstored from the Hot Storage.
-	// Also it will be untracked (refer to Untrack() to understand implications)
-	PushReplace(APIID, CidConfig, cid.Cid) (JobID, error)
-
-	// GetCidInfo returns the current Cid storing state. This state may be different
-	// from CidConfig which is the *desired* state.
-	GetCidInfo(cid.Cid) (CidInfo, error)
-
-	// GetCidFromHot returns an Reader with the Cid data. If the data isn't in the Hot
-	// Storage, it errors with ErrHotStorageDisabled.
-	GetCidFromHot(context.Context, cid.Cid) (io.Reader, error)
-
-	// GetJob gets the a Job.
-	GetJob(JobID) (Job, error)
-
-	// WatchJobs is a blocking method that sends to a channel state updates
-	// for all Jobs created by an Instance. The ctx should be canceled when
-	// to stop receiving updates.
-	WatchJobs(context.Context, chan<- Job, APIID) error
-
-	// WatchLogs writes new log entries from Cid related executions.
-	// This is a blocking operation that should be canceled by canceling the
-	// provided context.
-	WatchLogs(context.Context, chan<- LogEntry) error
-
-	// GetLogs returns all registered logs for a Cid.
-	GetLogs(context.Context, cid.Cid) ([]LogEntry, error)
-
-	//Untrack marks a Cid to be untracked for any background processes such as
-	// deal renewal, or repairing.
-	Untrack(cid.Cid) error
 }
 
 // HotStorage is a fast storage layer for Cid data.

@@ -25,14 +25,11 @@ import (
 	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
-	"github.com/textileio/powergate/ffs/filcold/lotuschain"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
-	"github.com/textileio/powergate/ffs/scheduler/astore"
-	"github.com/textileio/powergate/ffs/scheduler/cistore"
-	"github.com/textileio/powergate/ffs/scheduler/jstore"
+	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/gateway"
 	"github.com/textileio/powergate/health"
 	healthRpc "github.com/textileio/powergate/health/rpc"
@@ -79,9 +76,6 @@ type Server struct {
 	hm   *health.Module
 
 	ffsManager *manager.Manager
-	js         *jstore.Store
-	cis        *cistore.Store
-	as         *astore.Store
 	sched      *scheduler.Scheduler
 	hs         ffs.HotStorage
 	l          *cidlogger.CidLogger
@@ -184,16 +178,13 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	lchain := lotuschain.New(c)
+	chain := filchain.New(c)
 	ms := reptop.New(rm, ai)
 
-	l := cidlogger.New(txndstr.Wrap(ds, "ffs/scheduler/logger"))
-	cs := filcold.New(ms, dm, ipfs, lchain, l)
+	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
+	cs := filcold.New(ms, dm, ipfs, chain, l)
 	hs := coreipfs.New(ipfs, l)
-	js := jstore.New(txndstr.Wrap(ds, "ffs/scheduler/jstore"))
-	as := astore.New(txndstr.Wrap(ds, "ffs/scheduler/astore"))
-	cis := cistore.New(txndstr.Wrap(ds, "ffs/scheduler/cistore"))
-	sched := scheduler.New(js, as, cis, l, hs, cs)
+	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
@@ -221,9 +212,6 @@ func NewServer(conf Config) (*Server, error) {
 
 		ffsManager: ffsManager,
 		sched:      sched,
-		js:         js,
-		cis:        cis,
-		as:         as,
 		hs:         hs,
 		l:          l,
 
@@ -386,9 +374,6 @@ func (s *Server) Close() {
 	}
 	if err := s.sched.Close(); err != nil {
 		log.Errorf("closing ffs scheduler: %s", err)
-	}
-	if err := s.js.Close(); err != nil {
-		log.Errorf("closing scheduler jobstore: %s", err)
 	}
 	if err := s.l.Close(); err != nil {
 		log.Errorf("closing cid logger: %s", err)

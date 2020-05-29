@@ -3,6 +3,7 @@ package jstore
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -11,11 +12,13 @@ import (
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 var (
 	log = logging.Logger("ffs-sched-jstore")
+
+	// ErrNotFound indicates the instance doesn't exist.
+	ErrNotFound = errors.New("job not found")
 )
 
 // Store is a Datastore implementation of JobStore, which saves
@@ -26,8 +29,6 @@ type Store struct {
 	watchers   []watcher
 	inProgress map[cid.Cid]struct{}
 }
-
-var _ scheduler.JobStore = (*Store)(nil)
 
 type watcher struct {
 	iid ffs.APIID
@@ -210,7 +211,7 @@ func (s *Store) put(j ffs.Job) error {
 func (s *Store) get(jid ffs.JobID) (ffs.Job, error) {
 	buf, err := s.ds.Get(makeKey(jid))
 	if err == datastore.ErrNotFound {
-		return ffs.Job{}, scheduler.ErrNotFound
+		return ffs.Job{}, ErrNotFound
 	}
 	if err != nil {
 		return ffs.Job{}, fmt.Errorf("getting job from datastore: %s", err)

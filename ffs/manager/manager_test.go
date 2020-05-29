@@ -2,16 +2,13 @@ package manager
 
 import (
 	"context"
-	"io"
 	"math/big"
 	"os"
 	"testing"
 
-	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/wallet"
 )
@@ -103,42 +100,10 @@ func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	client, addr, _ := tests.CreateLocalDevnet(t, 1)
 	wm, err := wallet.New(client, addr, *big.NewInt(4000000000))
 	require.Nil(t, err)
-	m, err := New(ds, wm, &mockSched{})
+	m, err := New(ds, wm, nil)
 	require.Nil(t, err)
 	cls := func() {
 		require.Nil(t, m.Close())
 	}
 	return m, cls
-}
-
-type mockSched struct{}
-
-var _ ffs.Scheduler = (*mockSched)(nil)
-
-func (ms *mockSched) PushConfig(_ ffs.APIID, _ ffs.CidConfig) (ffs.JobID, error) {
-	return ffs.NewJobID(), nil
-}
-func (ms *mockSched) PushReplace(_ ffs.APIID, _ ffs.CidConfig, _ cid.Cid) (ffs.JobID, error) {
-	return ffs.NewJobID(), nil
-}
-func (ms *mockSched) GetCidFromHot(_ context.Context, _ cid.Cid) (io.Reader, error) {
-	return nil, nil
-}
-func (ms *mockSched) GetLogs(_ context.Context, _ cid.Cid) ([]ffs.LogEntry, error) {
-	return nil, nil
-}
-func (ms *mockSched) GetJob(_ ffs.JobID) (ffs.Job, error) {
-	return ffs.Job{}, nil
-}
-func (ms *mockSched) WatchJobs(_ context.Context, _ chan<- ffs.Job, _ ffs.APIID) error {
-	return nil
-}
-func (ms *mockSched) WatchLogs(_ context.Context, _ chan<- ffs.LogEntry) error {
-	return nil
-}
-func (ms *mockSched) GetCidInfo(_ cid.Cid) (ffs.CidInfo, error) {
-	return ffs.CidInfo{}, nil
-}
-func (ms *mockSched) Untrack(_ cid.Cid) error {
-	return nil
 }

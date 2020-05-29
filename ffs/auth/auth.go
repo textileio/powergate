@@ -17,8 +17,7 @@ var (
 	// ErrNotFound indicates that the auth-token isn't registered
 	ErrNotFound = errors.New("auth token not found")
 
-	dsBase = ds.NewKey("auth")
-	log    = logging.Logger("ffs-auth")
+	log = logging.Logger("ffs-auth")
 )
 
 // Auth contains a mapping between auth-tokens and Api instances.
@@ -53,7 +52,7 @@ func (r *Auth) Generate(iid ffs.APIID) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("marshaling new auth token for instance %s: %s", iid, err)
 	}
-	if err := r.ds.Put(makeKey(e.Token), buf); err != nil {
+	if err := r.ds.Put(ds.NewKey(e.Token), buf); err != nil {
 		return "", fmt.Errorf("saving generated token from %s to datastore: %s", iid, err)
 	}
 	return e.Token, nil
@@ -65,7 +64,7 @@ func (r *Auth) Get(token string) (ffs.APIID, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	buf, err := r.ds.Get(makeKey(token))
+	buf, err := r.ds.Get(ds.NewKey(token))
 	if err != nil && err == ds.ErrNotFound {
 		return ffs.EmptyInstanceID, ErrNotFound
 	}
@@ -103,8 +102,4 @@ func (r *Auth) List() ([]ffs.APIID, error) {
 		ret = append(ret, e.APIID)
 	}
 	return ret, nil
-}
-
-func makeKey(token string) ds.Key {
-	return dsBase.ChildString(token)
 }

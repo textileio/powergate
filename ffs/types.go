@@ -57,7 +57,7 @@ type JobStatus int
 
 const (
 	// Queued indicates the Job is queued in the Scheduler.
-	Queued JobStatus = iota
+	Queued JobStatus = iota + 1
 	// Executing indicates that the Job is currently being
 	// executed.
 	Executing

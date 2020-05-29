@@ -29,6 +29,228 @@ var (
 )
 
 func main() {
+	// Configure flags.
+	if err := setupFlags(); err != nil {
+		log.Fatalf("configuring flags: %s", err)
+	}
+
+	// Configure logging.
+	if err := setupLogging(); err != nil {
+		log.Fatalf("configuring up logging: %s", err)
+	}
+
+	// Configuring Prometheus exporter.
+	closeInstr, err := setupInstrumentation()
+	if err != nil {
+		log.Fatalf("starting instrumentation: %s", err)
+	}
+
+	// Create configuration from flags/envs.
+	conf, err := configFromFlags()
+	if err != nil {
+		log.Fatalf("creating config from flags: %s", err)
+	}
+	confJSON, err := json.MarshalIndent(conf, "", "  ")
+	if err != nil {
+		log.Fatalf("marshaling configuration: %s", err)
+	}
+	log.Infof("%s", confJSON)
+
+	// Start server.
+	log.Info("starting server...")
+	powd, err := server.NewServer(conf)
+	if err != nil {
+		log.Fatalf("starting server: %s", err)
+	}
+	log.Info("server started.")
+
+	// Wait for Ctrl+C and close.
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	<-ch
+	log.Info("Closing...")
+	closeInstr()
+	powd.Close()
+	if conf.Devnet {
+		if err := os.RemoveAll(conf.RepoPath); err != nil {
+			log.Error(err)
+		}
+	}
+	log.Info("Closed")
+}
+
+func configFromFlags() (server.Config, error) {
+	devnet := config.GetBool("devnet")
+
+	lotusToken, err := getLotusToken(devnet)
+	if err != nil {
+		return server.Config{}, fmt.Errorf("getting lotus auth token: %s", err)
+	}
+
+	repoPath, err := getRepoPath(devnet)
+	if err != nil {
+		return server.Config{}, fmt.Errorf("getting repo path: %s", err)
+	}
+
+	grpcHostMaddr, err := ma.NewMultiaddr(config.GetString("grpchostaddr"))
+	if err != nil {
+		return server.Config{}, fmt.Errorf("parsing grpchostaddr: %s", err)
+	}
+
+	maddr, err := ma.NewMultiaddr(config.GetString("lotushost"))
+	if err != nil {
+		return server.Config{}, fmt.Errorf("parsing lotus api multiaddr: %s", err)
+	}
+
+	walletInitialFunds := *big.NewInt(config.GetInt64("walletinitialfund"))
+	ipfsAPIAddr := util.MustParseAddr(config.GetString("ipfsapiaddr"))
+	lotusMasterAddr := config.GetString("lotusmasteraddr")
+	grpcWebProxyAddr := config.GetString("grpcwebproxyaddr")
+	gatewayHostAddr := config.GetString("gatewayhostaddr")
+
+	return server.Config{
+		WalletInitialFunds: walletInitialFunds,
+		IpfsAPIAddr:        ipfsAPIAddr,
+		LotusAddress:       maddr,
+		LotusAuthToken:     lotusToken,
+		LotusMasterAddr:    lotusMasterAddr,
+		Devnet:             devnet,
+		// ToDo: Support secure gRPC connection
+		GrpcHostNetwork:     "tcp",
+		GrpcHostAddress:     grpcHostMaddr,
+		GrpcWebProxyAddress: grpcWebProxyAddr,
+		RepoPath:            repoPath,
+		GatewayHostAddr:     gatewayHostAddr,
+	}, nil
+}
+
+func setupInstrumentation() (func(), error) {
+	err := runmetrics.Enable(runmetrics.RunMetricOptions{
+		EnableCPU:    true,
+		EnableMemory: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("enabling runtime metrics: %s", err)
+	}
+	pe, err := prometheus.NewExporter(prometheus.Options{
+		Namespace: "textilefc",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("creating the prometheus stats exporter: %v", err)
+	}
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", pe)
+	srv := &http.Server{Addr: ":8888", Handler: mux}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Errorf("running prometheus scrape endpoint: %v", err)
+		}
+	}()
+	closeFunc := func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Error("shutting down prometheus server: %s", err)
+		}
+	}
+
+	return closeFunc, nil
+}
+
+func setupLogging() error {
+	if err := logging.SetLogLevel("*", "error"); err != nil {
+		return err
+	}
+	loggers := []string{
+		// Top-level
+		"powd",
+		"server",
+
+		// Indexes & Reputation
+		"index-miner",
+		"index-ask",
+		"index-slashing",
+		"reputation",
+		"reputation-source-store",
+		"chainstore",
+		"fchost",
+		"ip2location",
+
+		// Deals Module
+		"deals",
+
+		// FFS
+		"ffs-scheduler",
+		"ffs-manager",
+		"ffs-auth",
+		"ffs-api",
+		"ffs-coreipfs",
+		"ffs-grpc-service",
+		"ffs-filcold",
+		"ffs-sched-jstore",
+		"ffs-sched-astore",
+		"ffs-cidlogger",
+	}
+
+	// powd registered loggers get info level by default.
+	for _, l := range loggers {
+		if err := logging.SetLogLevel(l, "info"); err != nil {
+			return fmt.Errorf("setting up logger %s: %s", l, err)
+		}
+	}
+	debugLevel := config.GetBool("debug")
+	if debugLevel {
+		for _, l := range loggers {
+			if err := logging.SetLogLevel(l, "debug"); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func getRepoPath(devnet bool) (string, error) {
+	if devnet {
+		repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
+		if err != nil {
+			return "", fmt.Errorf("generating temp for repo folder: %s", err)
+		}
+		return repoPath, nil
+	}
+	repoPath := config.GetString("repopath")
+	if repoPath == "~/.powergate" {
+		expandedPath, err := homedir.Expand(repoPath)
+		if err != nil {
+			log.Fatalf("expanding homedir: %s", err)
+		}
+		repoPath = expandedPath
+	}
+	return repoPath, nil
+}
+
+func getLotusToken(devnet bool) (string, error) {
+	// If running in devnet, there's no need for Lotus API auth token.
+	if devnet {
+		return "", nil
+	}
+
+	token := config.GetString("lotustoken")
+	if token != "" {
+		return token, nil
+	}
+
+	path := config.GetString("lotustokenfile")
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return "", fmt.Errorf("lotus auth token can't be empty")
+	}
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("reading token file from lotus")
+	}
+	return string(b), nil
+}
+
+func setupFlags() error {
 	pflag.Bool("debug", false, "Enable debug log level in all loggers.")
 	pflag.String("grpchostaddr", "/ip4/0.0.0.0/tcp/5002", "gRPC host listening address.")
 	pflag.String("grpcwebproxyaddr", "0.0.0.0:6002", "gRPC webproxy listening address.")
@@ -46,162 +268,7 @@ func main() {
 	config.SetEnvPrefix("POWD")
 	config.AutomaticEnv()
 	if err := config.BindPFlags(pflag.CommandLine); err != nil {
-		log.Fatalf("binding pflags: %s", err)
-	}
-
-	if err := setupLogging(); err != nil {
-		log.Fatalf("setting up logging: %s", err)
-	}
-	prometheusServer := setupInstrumentation()
-
-	devnet := config.GetBool("devnet")
-
-	var lotusToken, repoPath string
-	var err error
-	maddr, err := getLotusMaddr()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if !devnet {
-		lotusToken, err = getLotusToken()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		repoPath = config.GetString("repopath")
-		if repoPath == "~/.powergate" {
-			expandedPath, err := homedir.Expand(repoPath)
-			if err != nil {
-				log.Fatalf("expanding homedir: %s", err)
-			}
-			repoPath = expandedPath
-		}
-	} else {
-		repoPath, err = ioutil.TempDir("/tmp/powergate", ".powergate-*")
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	grpcHostMaddr, err := ma.NewMultiaddr(config.GetString("grpchostaddr"))
-	if err != nil {
-		log.Fatalf("parsing grpchostaddr: %s", err)
-	}
-
-	conf := server.Config{
-		WalletInitialFunds: *big.NewInt(config.GetInt64("walletinitialfund")),
-		IpfsAPIAddr:        util.MustParseAddr(config.GetString("ipfsapiaddr")),
-		LotusAddress:       maddr,
-		LotusAuthToken:     lotusToken,
-		LotusMasterAddr:    config.GetString("lotusmasteraddr"),
-		Devnet:             devnet,
-		// ToDo: Support secure gRPC connection
-		GrpcHostNetwork:     "tcp",
-		GrpcHostAddress:     grpcHostMaddr,
-		GrpcWebProxyAddress: config.GetString("grpcwebproxyaddr"),
-		RepoPath:            repoPath,
-		GatewayHostAddr:     config.GetString("gatewayhostaddr"),
-	}
-	confJSON, err := json.MarshalIndent(conf, "", "  ")
-	if err != nil {
-		log.Fatalf("can't show current config: %s", err)
-	}
-	log.Infof("Current configuration: \n%s", confJSON)
-	log.Info("starting server...")
-	s, err := server.NewServer(conf)
-	if err != nil {
-		log.Errorf("error starting server: %s", err)
-		os.Exit(-1)
-	}
-	log.Info("server started.")
-
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
-	<-ch
-	log.Info("Closing...")
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	if err := prometheusServer.Shutdown(ctx); err != nil {
-		log.Error("shutting down prometheus server: %s", err)
-	}
-	s.Close()
-	if devnet {
-		if err := os.RemoveAll(repoPath); err != nil {
-			log.Error(err)
-		}
-	}
-	log.Info("Closed")
-}
-
-func setupInstrumentation() *http.Server {
-	err := runmetrics.Enable(runmetrics.RunMetricOptions{
-		EnableCPU:    true,
-		EnableMemory: true,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	pe, err := prometheus.NewExporter(prometheus.Options{
-		Namespace: "textilefc",
-	})
-	if err != nil {
-		log.Fatalf("Failed to create the Prometheus stats exporter: %v", err)
-	}
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", pe)
-	srv := &http.Server{Addr: ":8888", Handler: mux}
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to run Prometheus scrape endpoint: %v", err)
-		}
-	}()
-	return srv
-}
-
-func setupLogging() error {
-	if err := logging.SetLogLevel("*", "error"); err != nil {
-		return err
-	}
-	loggers := []string{"index-miner", "index-ask", "index-slashing", "chainstore",
-		"server", "deals", "powd", "fchost", "ip2location", "reputation",
-		"reputation-source-store", "ffs-scheduler", "ffs-manager", "ffs-auth",
-		"ffs-api", "ffs-api-istore", "ffs-coreipfs", "ffs-grpc-service", "ffs-filcold",
-		"ffs-sched-jstore", "ffs-sched-astore", "ffs-cidlogger"}
-	for _, l := range loggers {
-		if err := logging.SetLogLevel(l, "info"); err != nil {
-			return fmt.Errorf("setting up logger %s: %s", l, err)
-		}
-	}
-	if config.GetBool("debug") {
-		for _, l := range loggers {
-			if err := logging.SetLogLevel(l, "debug"); err != nil {
-				return err
-			}
-		}
+		return fmt.Errorf("binding pflags: %s", err)
 	}
 	return nil
-}
-
-func getLotusMaddr() (ma.Multiaddr, error) {
-	maddr, err := ma.NewMultiaddr(config.GetString("lotushost"))
-	if err != nil {
-		return nil, err
-	}
-	return maddr, nil
-}
-
-func getLotusToken() (string, error) {
-	token := config.GetString("lotustoken")
-	if token == "" {
-		path := config.GetString("lotustokenfile")
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			return "", fmt.Errorf("lotus auth token can't be empty")
-		}
-		b, err := ioutil.ReadFile(path)
-		if err != nil {
-			return "", fmt.Errorf("reading token file from lotus")
-		}
-		token = string(b)
-	}
-	return token, nil
 }
