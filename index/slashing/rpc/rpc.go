@@ -32,7 +32,7 @@ func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
 	}
 
 	pbIndex := &Index{
-		TipSetKey: index.TipSetKey,
+		Tipsetkey: index.TipSetKey,
 		Miners:    miners,
 	}
 

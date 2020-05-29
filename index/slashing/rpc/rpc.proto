@@ -4,7 +4,7 @@ package index.slashing.rpc;
 option go_package = "index/slashing/rpc";
 
 message Index {
-    string tip_set_key = 1;
+    string tipsetkey = 1;
     map<string, Slashes> miners = 2;
 }
 

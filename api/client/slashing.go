@@ -25,7 +25,7 @@ func (s *Slashing) Get(ctx context.Context) (*slashing.IndexSnapshot, error) {
 	}
 
 	index := &slashing.IndexSnapshot{
-		TipSetKey: reply.GetIndex().GetTipSetKey(),
+		TipSetKey: reply.GetIndex().GetTipsetkey(),
 		Miners:    miners,
 	}
 
