@@ -17,7 +17,7 @@ build-powbench:
 .PHONY: build-powbench
 
 test:
-	go test -short -p 4 -race -timeout 30m ./... 
+	go test -short -parallel 4 -race -timeout 30m ./... 
 .PHONY: test
 
 clean-protos:
