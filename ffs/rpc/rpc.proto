@@ -105,11 +105,12 @@ message InstanceInfo {
 }
 
 enum JobStatus {
-   Queued = 0;
-   Executing = 1;
-   Failed = 2;
-   Canceled = 3;
-   Success = 4;
+   UNSPECIFIED = 0;
+   QUEUED = 1;
+   EXECUTING = 2;
+   FAILED = 3;
+   CANCELED = 4;
+   SUCCESS = 5;
 }
 
 message Job {

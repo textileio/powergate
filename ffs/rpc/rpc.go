@@ -277,12 +277,27 @@ func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPC_WatchJobsServer) error {
 		close(ch)
 	}()
 	for job := range ch {
+		var status JobStatus
+		switch job.Status {
+		case ffs.Queued:
+			status = JobStatus_QUEUED
+		case ffs.Executing:
+			status = JobStatus_EXECUTING
+		case ffs.Failed:
+			status = JobStatus_FAILED
+		case ffs.Canceled:
+			status = JobStatus_FAILED
+		case ffs.Success:
+			status = JobStatus_SUCCESS
+		default:
+			status = JobStatus_UNSPECIFIED
+		}
 		reply := &WatchJobsReply{
 			Job: &Job{
 				ID:         job.ID.String(),
 				ApiID:      job.APIID.String(),
 				Cid:        job.Cid.String(),
-				Status:     JobStatus(job.Status),
+				Status:     status,
 				ErrCause:   job.ErrCause,
 				DealErrors: toRPCDealErrors(job.DealErrors),
 			},
