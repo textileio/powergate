@@ -1015,25 +1015,11 @@ func TestPushCidReplace(t *testing.T) {
 
 func TestDoubleReplace(t *testing.T) {
 	t.Parallel()
-
-	// <boilerplate>
-	ipfs, ipfsDockerMAddr := createIPFS(t)
 	ds := tests.NewTxMapDatastore()
-	waddr, client, ms := newDevnet(t, 1, ipfsDockerMAddr)
-	dm, err := deals.New(client)
-	require.Nil(t, err)
-	fchain := filchain.New(client)
-	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
-	cl := filcold.New(ms, dm, ipfs, fchain, l)
-	hl := coreipfs.New(ipfs, l)
-	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
-	wm, err := wallet.New(client, waddr, *big.NewInt(iWalletBal))
-	require.Nil(t, err)
-	// </boilerplate>
-
-	// Create a manager
-	m, err := manager.New(ds, wm, sched)
-	require.NoError(t, err)
+	ipfs, ipfsMAddr := createIPFS(t)
+	addr, client, ms := newDevnet(t, 1, ipfsMAddr)
+	m, closeManager := newFFSManager(t, ds, client, addr, ms, ipfs)
+	defer closeManager()
 
 	// This will ask for a new API to the manager, and do a replace. Always the same replace.
 	testAddThenReplace := func() {
