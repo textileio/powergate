@@ -15,11 +15,10 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 ## Table of Contents
 
 -   [Design](#design)
--   [API + CLI](#api&CLI)
 -   [Installation](#installation)
--   [Devnet mode](#devnetmode)
--   [Production setup](#productionsetup)
--   [Test](#tests)
+-   [Devnet mode](#devnet-mode)
+-   [Production setup](#production-setup)
+-   [Tests](#tests)
 -   [Benchmark](#benchmark)
 -   [Contributing](#contributing)
 -   [Changelog](#changelog)
@@ -193,7 +192,7 @@ Remember that you should wait for _Lotus_ to be fully-synced which might take a 
 
 We will soon provide other non-contanerized setups, but most of the wiring can be auto-explained by the `docker/docker-compose.yaml` file.
 
-## Test
+## Tests
 We have a big set of tests for covering most important Powergate features.
 
 For integration tests, we leverage our `textileio/lotus-devnet` configured with 2Kib sectors to provide fast iteration and CI runs.
