@@ -488,6 +488,38 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	require.Equal(t, p.Miner, "t01001")
 }
 
+func TestFilecoinMaxPriceFilter(t *testing.T) {
+	t.Parallel()
+	ipfsDocker, cls := tests.LaunchIPFSDocker()
+	t.Cleanup(func() { cls() })
+	bridgeIP := ipfsDocker.Container.NetworkSettings.Networks["bridge"].IPAddress
+	ipfsAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
+	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, 1, ipfsAddr)
+	miner := fixed.Miner{Addr: "t01000", EpochPrice: 500000000}
+	ms := fixed.New([]fixed.Miner{miner})
+	ds := tests.NewTxMapDatastore()
+	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+	defer closeInternal()
+
+	r := rand.New(rand.NewSource(22))
+	cid, _ := addRandomFile(t, r, ipfsAPI)
+
+	config := fapi.GetDefaultCidConfig(cid).WithColdMaxPrice(400000000)
+	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Failed)
+
+	config = fapi.GetDefaultCidConfig(cid).WithColdMaxPrice(600000000)
+	jid, err = fapi.PushConfig(cid, api.WithCidConfig(config), api.WithOverride(true))
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+	requireCidConfig(t, fapi, cid, &config)
+	cinfo, err := fapi.Show(cid)
+	require.Nil(t, err)
+	p := cinfo.Cold.Filecoin.Proposals[0]
+	require.Equal(t, p.Miner, "t01000")
+}
+
 func TestFilecoinEnableConfig(t *testing.T) {
 	t.Parallel()
 	tableTest := []struct {

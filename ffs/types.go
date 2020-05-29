@@ -182,6 +182,19 @@ func (c CidConfig) WithColdFilRenew(enabled bool, threshold int) CidConfig {
 	return c
 }
 
+// WithColdMaxPrice specifies the max price that should be considered for
+// deal asks even when all other filers match
+func (c CidConfig) WithColdMaxPrice(maxPrice uint64) CidConfig {
+	c.Cold.Filecoin.MaxPrice = maxPrice
+	return c
+}
+
+// WithColdAddr specifies the wallet address that should be used for transactions
+func (c CidConfig) WithColdAddr(addr string) CidConfig {
+	c.Cold.Filecoin.Addr = addr
+	return c
+}
+
 // WithHotEnabled allows to enable/disable Hot storage usage.
 func (c CidConfig) WithHotEnabled(enabled bool) CidConfig {
 	c.Hot.Enabled = enabled
@@ -299,6 +312,8 @@ type FilConfig struct {
 	Renew FilRenew
 	// Addr is the wallet address used to store the data in filecoin
 	Addr string
+	// MaxPrice is the maximum price that will be spent to store the data
+	MaxPrice uint64
 }
 
 // Validate returns a non-nil error if the configuration is invalid.
