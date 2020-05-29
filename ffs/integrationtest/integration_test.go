@@ -514,6 +514,7 @@ func TestFilecoinMaxPriceFilter(t *testing.T) {
 	defer closeManager()
 	_, auth, err := manager.Create(context.Background())
 	require.NoError(t, err)
+	time.Sleep(time.Second * 3) // Wait for funding txn.
 	fapi, err := manager.GetByAuthToken(auth)
 	require.NoError(t, err)
 
