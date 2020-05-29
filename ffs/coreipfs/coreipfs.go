@@ -128,6 +128,11 @@ func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, e
 	if err != nil {
 		return 0, fmt.Errorf("getting stats of cid %s: %s", c2, err)
 	}
+	ci.lock.Lock()
+	delete(ci.pinset, c1)
+	ci.pinset[c2] = struct{}{}
+	ci.lock.Unlock()
+
 	return stat.Size(), nil
 }
 

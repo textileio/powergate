@@ -96,6 +96,35 @@ func TestGetByAuthToken(t *testing.T) {
 	})
 }
 
+func TestDefaultConfig(t *testing.T) {
+	t.Parallel()
+	ds := tests.NewTxMapDatastore()
+	m, cls := newManager(t, ds)
+	defer cls()
+
+	// A newly created manager must have
+	// the zeroConfig defined value.
+	c := m.GetDefaultConfig()
+	require.Equal(t, zeroConfig, c)
+
+	// Change the default config and test.
+	c.Hot.Enabled = false
+	c.Repairable = true
+	err := m.SetDefaultConfig(c)
+	require.NoError(t, err)
+	c2 := m.GetDefaultConfig()
+	require.Equal(t, c, c2)
+	cls()
+
+	// Re-open manager, and check that
+	// the default config was the last
+	// saved one, and not zeroConfig.
+	m, cls = newManager(t, ds)
+	defer cls()
+	c3 := m.GetDefaultConfig()
+	require.Equal(t, c, c3)
+}
+
 func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	client, addr, _ := tests.CreateLocalDevnet(t, 1)
 	wm, err := wallet.New(client, addr, *big.NewInt(4000000000))

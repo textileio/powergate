@@ -20,7 +20,6 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/ipfs/interface-go-ipfs-core/options"
-	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
@@ -28,6 +27,7 @@ import (
 	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
+	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
@@ -262,16 +262,21 @@ func TestShow(t *testing.T) {
 func TestColdInstanceLoad(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfsDocker, cls := tests.LaunchIPFSDocker()
-	t.Cleanup(func() { cls() })
-	bridgeIP := ipfsDocker.Container.NetworkSettings.Networks["bridge"].IPAddress
-	ipfsAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
-	ds := tests.NewTxMapDatastore()
-	addr, client, ms := newDevnet(t, 1, ipfsAddr)
 
-	ipfsAPI, fapi, cls := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
+	ds := tests.NewTxMapDatastore()
+	ipfs, ipfsMAddr := createIPFS(t)
+	addr, client, ms := newDevnet(t, 1, ipfsMAddr)
+	manager, closeManager := newFFSManager(t, ds, client, addr, ms, ipfs)
+
+	_, auth, err := manager.Create(context.Background())
+	require.NoError(t, err)
+	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
+
+	fapi, err := manager.GetByAuthToken(auth)
+	require.NoError(t, err)
+
 	ra := rand.New(rand.NewSource(22))
-	cid, data := addRandomFile(t, ra, ipfsAPI)
+	cid, data := addRandomFile(t, ra, ipfs)
 	jid, err := fapi.PushConfig(cid)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
@@ -281,10 +286,18 @@ func TestColdInstanceLoad(t *testing.T) {
 	require.Nil(t, err)
 	shw, err := fapi.Show(cid)
 	require.Nil(t, err)
-	cls()
 
-	_, fapi, cls = newAPIFromDs(t, ds, fapi.ID(), client, addr, ms, ipfsDocker)
-	defer cls()
+	// Now close the FFS Instance, and the manager.
+	err = fapi.Close()
+	require.NoError(t, err)
+	closeManager()
+
+	// Rehydrate things again and check state.
+	manager, closeManager = newFFSManager(t, ds, client, addr, ms, ipfs)
+	defer closeManager()
+	fapi, err = manager.GetByAuthToken(auth)
+	require.NoError(t, err)
+
 	ninfo, err := fapi.Info(ctx)
 	require.Nil(t, err)
 	require.Equal(t, info, ninfo)
@@ -453,10 +466,7 @@ func TestFilecoinTrustedMiner(t *testing.T) {
 
 func TestFilecoinCountryFilter(t *testing.T) {
 	t.Parallel()
-	ipfsDocker, cls := tests.LaunchIPFSDocker()
-	t.Cleanup(func() { cls() })
-	bridgeIP := ipfsDocker.Container.NetworkSettings.Networks["bridge"].IPAddress
-	ipfsAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
+	ipfs, ipfsAddr := createIPFS(t)
 	countries := []string{"China", "Uruguay"}
 	numMiners := len(countries)
 	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr)
@@ -470,11 +480,15 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	}
 	ms := fixed.New(fixedMiners)
 	ds := tests.NewTxMapDatastore()
-	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-	defer closeInternal()
+	manager, closeManager := newFFSManager(t, ds, client, addr, ms, ipfs)
+	defer closeManager()
+	_, auth, err := manager.Create(context.Background())
+	time.Sleep(time.Second * 3)
+	fapi, err := manager.GetByAuthToken(auth)
+	require.NoError(t, err)
 
 	r := rand.New(rand.NewSource(22))
-	cid, _ := addRandomFile(t, r, ipfsAPI)
+	cid, _ := addRandomFile(t, r, ipfs)
 	countryFilter := []string{"Uruguay"}
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilCountryCodes(countryFilter)
 
@@ -997,6 +1011,59 @@ func TestPushCidReplace(t *testing.T) {
 	requireFilUnstored(ctx, t, client, c2)
 }
 
+func TestDoubleReplace(t *testing.T) {
+	t.Parallel()
+
+	// <boilerplate>
+	ipfs, ipfsDockerMAddr := createIPFS(t)
+	ds := tests.NewTxMapDatastore()
+	waddr, client, ms := newDevnet(t, 1, ipfsDockerMAddr)
+	dm, err := deals.New(client)
+	require.Nil(t, err)
+	fchain := filchain.New(client)
+	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
+	cl := filcold.New(ms, dm, ipfs, fchain, l)
+	hl := coreipfs.New(ipfs, l)
+	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
+	wm, err := wallet.New(client, waddr, *big.NewInt(iWalletBal))
+	require.Nil(t, err)
+	// </boilerplate>
+
+	// Create a manager
+	m, err := manager.New(ds, wm, sched)
+	require.NoError(t, err)
+
+	// This will ask for a new API to the manager, and do a replace. Always the same replace.
+	testAddThenReplace := func() {
+		_, authToken, err := m.Create(context.Background())
+		require.NoError(t, err)
+		time.Sleep(time.Second * 2) // Give some time to the funding transaction
+
+		fapi, err := m.GetByAuthToken(authToken)
+		require.NoError(t, err)
+
+		r := rand.New(rand.NewSource(22))
+		c1, _ := addRandomFile(t, r, ipfs)
+		config := fapi.GetDefaultCidConfig(c1).WithColdEnabled(false)
+		jid, err := fapi.PushConfig(c1, api.WithCidConfig(config))
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+		requireCidConfig(t, fapi, c1, &config)
+
+		c2, _ := addRandomFile(t, r, ipfs)
+		jid, err = fapi.Replace(c1, c2)
+		require.Nil(t, err)
+		requireJobState(t, fapi, jid, ffs.Success)
+	}
+
+	// Test the same workflow in different APIs instaneces,
+	// but same hot & cold layer.
+	testAddThenReplace()
+	fmt.Println("First finished good!")
+	testAddThenReplace()
+	fmt.Println("All good")
+}
+
 func TestRemove(t *testing.T) {
 	t.Parallel()
 	ipfs, _, fapi, cls := newAPI(t, 1)
@@ -1189,16 +1256,32 @@ func TestLogHistory(t *testing.T) {
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
+	ds := tests.NewTxMapDatastore()
+	ipfs, ipfsMAddr := createIPFS(t)
+	addr, client, ms := newDevnet(t, numMiners, ipfsMAddr)
+	manager, closeManager := newFFSManager(t, ds, client, addr, ms, ipfs)
+	_, auth, err := manager.Create(context.Background())
+	require.NoError(t, err)
+	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
+	fapi, err := manager.GetByAuthToken(auth)
+	require.NoError(t, err)
+	return ipfs, client, fapi, func() {
+		err := fapi.Close()
+		require.NoError(t, err)
+		closeManager()
+	}
+}
+
+func createIPFS(t *testing.T) (*httpapi.HttpApi, string) {
 	ipfsDocker, cls := tests.LaunchIPFSDocker()
 	t.Cleanup(func() { cls() })
-	ds := tests.NewTxMapDatastore()
+	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
+	ipfs, err := httpapi.NewApi(ipfsAddr)
+	require.NoError(t, err)
 	bridgeIP := ipfsDocker.Container.NetworkSettings.Networks["bridge"].IPAddress
-	ipfsAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
-	addr, client, ms := newDevnet(t, numMiners, ipfsAddr)
-	ipfsAPI, fapi, closeInternal := newAPIFromDs(t, ds, ffs.EmptyInstanceID, client, addr, ms, ipfsDocker)
-	return ipfsAPI, client, fapi, func() {
-		closeInternal()
-	}
+	ipfsDockerMAddr := fmt.Sprintf("/ip4/%s/tcp/5001", bridgeIP)
+
+	return ipfs, ipfsDockerMAddr
 }
 
 func newDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
@@ -1216,54 +1299,42 @@ func newDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *
 	return addr, client, ms
 }
 
-func newAPIFromDs(t *testing.T, ds datastore.TxnDatastore, iid ffs.APIID, client *apistruct.FullNodeStruct, waddr address.Address, ms ffs.MinerSelector, ipfsDocker *dockertest.Resource) (*httpapi.HttpApi, *api.API, func()) {
-	ctx := context.Background()
-	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
-	ipfsClient, err := httpapi.NewApi(ipfsAddr)
+func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistruct.FullNodeStruct, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
+	dm, err := deals.New(lotusClient)
 	require.Nil(t, err)
 
-	dm, err := deals.New(client)
-	require.Nil(t, err)
-
-	fchain := filchain.New(client)
+	fchain := filchain.New(lotusClient)
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
 	cl := filcold.New(ms, dm, ipfsClient, fchain, l)
 	hl := coreipfs.New(ipfsClient, l)
 	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
 
-	wm, err := wallet.New(client, waddr, *big.NewInt(iWalletBal))
+	wm, err := wallet.New(lotusClient, masterAddr, *big.NewInt(iWalletBal))
 	require.Nil(t, err)
 
-	var fapi *api.API
-	if iid == ffs.EmptyInstanceID {
-		iid = ffs.NewAPIID()
-		defConfig := ffs.DefaultConfig{
-			Hot: ffs.HotConfig{
-				Enabled:       true,
-				AllowUnfreeze: false,
-				Ipfs: ffs.IpfsConfig{
-					AddTimeout: 10,
-				},
+	manager, err := manager.New(ds, wm, sched)
+	require.NoError(t, err)
+	err = manager.SetDefaultConfig(ffs.DefaultConfig{
+		Hot: ffs.HotConfig{
+			Enabled:       true,
+			AllowUnfreeze: false,
+			Ipfs: ffs.IpfsConfig{
+				AddTimeout: 10,
 			},
-			Cold: ffs.ColdConfig{
-				Enabled: true,
-				Filecoin: ffs.FilConfig{
-					ExcludedMiners: nil,
-					DealDuration:   1000,
-					RepFactor:      1,
-				},
+		},
+		Cold: ffs.ColdConfig{
+			Enabled: true,
+			Filecoin: ffs.FilConfig{
+				ExcludedMiners: nil,
+				DealDuration:   1000,
+				RepFactor:      1,
 			},
-		}
-		fapi, err = api.New(ctx, txndstr.Wrap(ds, "ffs/api"), iid, sched, wm, defConfig)
-		require.Nil(t, err)
-	} else {
-		fapi, err = api.Load(txndstr.Wrap(ds, "ffs/api"), iid, sched, wm)
-		require.Nil(t, err)
-	}
-	time.Sleep(time.Second * 2)
+		},
+	})
+	require.NoError(t, err)
 
-	return ipfsClient, fapi, func() {
-		if err := fapi.Close(); err != nil {
+	return manager, func() {
+		if err := manager.Close(); err != nil {
 			t.Fatalf("closing api: %s", err)
 		}
 		if err := sched.Close(); err != nil {
