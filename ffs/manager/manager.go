@@ -97,6 +97,8 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	return fapi.ID(), auth, nil
 }
 
+// SetDefaultConfig sets the default CidConfig to be set as default to newly created
+// FFS instances.
 func (m *Manager) SetDefaultConfig(dc ffs.DefaultConfig) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()

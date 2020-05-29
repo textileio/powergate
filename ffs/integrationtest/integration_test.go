@@ -483,6 +483,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	manager, closeManager := newFFSManager(t, ds, client, addr, ms, ipfs)
 	defer closeManager()
 	_, auth, err := manager.Create(context.Background())
+	require.NoError(t, err)
 	time.Sleep(time.Second * 3)
 	fapi, err := manager.GetByAuthToken(auth)
 	require.NoError(t, err)
