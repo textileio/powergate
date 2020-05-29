@@ -10,7 +10,7 @@ import (
 
 // Reputation provides an API for viewing reputation data
 type Reputation struct {
-	client rpc.RPCClient
+	client rpc.RPCServiceClient
 }
 
 // AddSource adds a new external Source to be considered for reputation generation

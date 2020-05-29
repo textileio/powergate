@@ -67,15 +67,15 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		return nil, err
 	}
 	client := &Client{
-		Asks:       &Asks{client: askRpc.NewRPCClient(conn)},
-		Miners:     &Miners{client: minerRpc.NewRPCClient(conn)},
-		Slashing:   &Slashing{client: slashingRpc.NewRPCClient(conn)},
-		Deals:      &Deals{client: dealsRpc.NewRPCClient(conn)},
-		Wallet:     &Wallet{client: walletRpc.NewRPCClient(conn)},
-		Reputation: &Reputation{client: reputationRpc.NewRPCClient(conn)},
-		FFS:        &FFS{client: ffsRpc.NewRPCClient(conn)},
-		Health:     &Health{client: healthRpc.NewRPCClient(conn)},
-		Net:        &Net{client: netRpc.NewRPCClient(conn)},
+		Asks:       &Asks{client: askRpc.NewRPCServiceClient(conn)},
+		Miners:     &Miners{client: minerRpc.NewRPCServiceClient(conn)},
+		Slashing:   &Slashing{client: slashingRpc.NewRPCServiceClient(conn)},
+		Deals:      &Deals{client: dealsRpc.NewRPCServiceClient(conn)},
+		Wallet:     &Wallet{client: walletRpc.NewRPCServiceClient(conn)},
+		Reputation: &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
+		FFS:        &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
+		Health:     &Health{client: healthRpc.NewRPCServiceClient(conn)},
+		Net:        &Net{client: netRpc.NewRPCServiceClient(conn)},
 		conn:       conn,
 	}
 	return client, nil

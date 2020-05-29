@@ -16,7 +16,7 @@ var log = logging.Logger("deals-rpc")
 
 // RPC implements the gprc service
 type RPC struct {
-	UnimplementedRPCServer
+	UnimplementedRPCServiceServer
 
 	Module *deals.Module
 }
@@ -67,7 +67,7 @@ func store(ctx context.Context, dealsModule *deals.Module, storeParams *StorePar
 }
 
 // Store calls deals.Store
-func (s *RPC) Store(srv RPC_StoreServer) error {
+func (s *RPC) Store(srv RPCService_StoreServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
@@ -120,11 +120,11 @@ func (s *RPC) Store(srv RPC_StoreServer) error {
 		replyFailedDeals[i] = &DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice}
 	}
 
-	return srv.SendAndClose(&StoreReply{DataCid: storeResult.DataCid.String(), ProposalCids: replyCids, FailedDeals: replyFailedDeals})
+	return srv.SendAndClose(&StoreResponse{DataCid: storeResult.DataCid.String(), ProposalCids: replyCids, FailedDeals: replyFailedDeals})
 }
 
 // Watch calls deals.Watch
-func (s *RPC) Watch(req *WatchRequest, srv RPC_WatchServer) error {
+func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 	proposals := make([]cid.Cid, len(req.GetProposals()))
 	for i, proposal := range req.GetProposals() {
 		id, err := cid.Decode(proposal)
@@ -141,15 +141,15 @@ func (s *RPC) Watch(req *WatchRequest, srv RPC_WatchServer) error {
 	for update := range ch {
 		dealInfo := &DealInfo{
 			ProposalCid:   update.ProposalCid.String(),
-			StateID:       update.StateID,
+			StateId:       update.StateID,
 			StateName:     update.StateName,
 			Miner:         update.Miner,
-			PieceCID:      update.PieceCID.Bytes(),
+			PieceCid:      update.PieceCID.Bytes(),
 			Size:          update.Size,
 			PricePerEpoch: update.PricePerEpoch,
 			Duration:      update.Duration,
 		}
-		if err := srv.Send(&WatchReply{DealInfo: dealInfo}); err != nil {
+		if err := srv.Send(&WatchResponse{DealInfo: dealInfo}); err != nil {
 			log.Errorf("sending response: %v", err)
 			return err
 		}
@@ -158,7 +158,7 @@ func (s *RPC) Watch(req *WatchRequest, srv RPC_WatchServer) error {
 }
 
 // Retrieve calls deals.Retreive
-func (s *RPC) Retrieve(req *RetrieveRequest, srv RPC_RetrieveServer) error {
+func (s *RPC) Retrieve(req *RetrieveRequest, srv RPCService_RetrieveServer) error {
 	cid, err := cid.Parse(req.GetCid())
 	if err != nil {
 		return err
@@ -180,7 +180,7 @@ func (s *RPC) Retrieve(req *RetrieveRequest, srv RPC_RetrieveServer) error {
 		if err != nil && err != io.EOF {
 			return err
 		}
-		if sendErr := srv.Send(&RetrieveReply{Chunk: buffer[:bytesRead]}); sendErr != nil {
+		if sendErr := srv.Send(&RetrieveResponse{Chunk: buffer[:bytesRead]}); sendErr != nil {
 			return sendErr
 		}
 		if err == io.EOF {

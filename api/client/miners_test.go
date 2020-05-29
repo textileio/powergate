@@ -20,7 +20,7 @@ func TestGetMiners(t *testing.T) {
 func setupMiners(t *testing.T) (*Miners, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Miners{client: rpc.NewRPCClient(conn)}, func() {
+	return &Miners{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()
 		serverDone()
 	}

@@ -32,31 +32,34 @@ const _ = proto.ProtoPackageIsVersion4
 type Connectedness int32
 
 const (
-	Connectedness_NotConnected  Connectedness = 0
-	Connectedness_Connected     Connectedness = 1
-	Connectedness_CanConnect    Connectedness = 2
-	Connectedness_CannotConnect Connectedness = 3
-	Connectedness_Unknown       Connectedness = 4
-	Connectedness_Error         Connectedness = 5
+	Connectedness_CONNECTEDNESS_UNSPECIFIED    Connectedness = 0
+	Connectedness_CONNECTEDNESS_NOT_CONNECTED  Connectedness = 1
+	Connectedness_CONNECTEDNESS_CONNECTED      Connectedness = 2
+	Connectedness_CONNECTEDNESS_CAN_CONNECT    Connectedness = 3
+	Connectedness_CONNECTEDNESS_CANNOT_CONNECT Connectedness = 4
+	Connectedness_CONNECTEDNESS_UNKNOWN        Connectedness = 5
+	Connectedness_CONNECTEDNESS_ERROR          Connectedness = 6
 )
 
 // Enum value maps for Connectedness.
 var (
 	Connectedness_name = map[int32]string{
-		0: "NotConnected",
-		1: "Connected",
-		2: "CanConnect",
-		3: "CannotConnect",
-		4: "Unknown",
-		5: "Error",
+		0: "CONNECTEDNESS_UNSPECIFIED",
+		1: "CONNECTEDNESS_NOT_CONNECTED",
+		2: "CONNECTEDNESS_CONNECTED",
+		3: "CONNECTEDNESS_CAN_CONNECT",
+		4: "CONNECTEDNESS_CANNOT_CONNECT",
+		5: "CONNECTEDNESS_UNKNOWN",
+		6: "CONNECTEDNESS_ERROR",
 	}
 	Connectedness_value = map[string]int32{
-		"NotConnected":  0,
-		"Connected":     1,
-		"CanConnect":    2,
-		"CannotConnect": 3,
-		"Unknown":       4,
-		"Error":         5,
+		"CONNECTEDNESS_UNSPECIFIED":    0,
+		"CONNECTEDNESS_NOT_CONNECTED":  1,
+		"CONNECTEDNESS_CONNECTED":      2,
+		"CONNECTEDNESS_CAN_CONNECT":    3,
+		"CONNECTEDNESS_CANNOT_CONNECT": 4,
+		"CONNECTEDNESS_UNKNOWN":        5,
+		"CONNECTEDNESS_ERROR":          6,
 	}
 )
 
@@ -92,7 +95,7 @@ type PeerAddrInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ID    string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Id    string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Addrs []string `protobuf:"bytes,2,rep,name=addrs,proto3" json:"addrs,omitempty"`
 }
 
@@ -128,9 +131,9 @@ func (*PeerAddrInfo) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *PeerAddrInfo) GetID() string {
+func (x *PeerAddrInfo) GetId() string {
 	if x != nil {
-		return x.ID
+		return x.Id
 	}
 	return ""
 }
@@ -210,7 +213,7 @@ type PeerInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AddrInfo *PeerAddrInfo `protobuf:"bytes,1,opt,name=addrInfo,proto3" json:"addrInfo,omitempty"`
+	AddrInfo *PeerAddrInfo `protobuf:"bytes,1,opt,name=addr_info,json=addrInfo,proto3" json:"addr_info,omitempty"`
 	Location *Location     `protobuf:"bytes,2,opt,name=location,proto3" json:"location,omitempty"`
 }
 
@@ -298,16 +301,16 @@ func (*ListenAddrRequest) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{3}
 }
 
-type ListenAddrReply struct {
+type ListenAddrResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AddrInfo *PeerAddrInfo `protobuf:"bytes,1,opt,name=addrInfo,proto3" json:"addrInfo,omitempty"`
+	AddrInfo *PeerAddrInfo `protobuf:"bytes,1,opt,name=addr_info,json=addrInfo,proto3" json:"addr_info,omitempty"`
 }
 
-func (x *ListenAddrReply) Reset() {
-	*x = ListenAddrReply{}
+func (x *ListenAddrResponse) Reset() {
+	*x = ListenAddrResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_net_rpc_rpc_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -315,13 +318,13 @@ func (x *ListenAddrReply) Reset() {
 	}
 }
 
-func (x *ListenAddrReply) String() string {
+func (x *ListenAddrResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListenAddrReply) ProtoMessage() {}
+func (*ListenAddrResponse) ProtoMessage() {}
 
-func (x *ListenAddrReply) ProtoReflect() protoreflect.Message {
+func (x *ListenAddrResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_net_rpc_rpc_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -333,12 +336,12 @@ func (x *ListenAddrReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListenAddrReply.ProtoReflect.Descriptor instead.
-func (*ListenAddrReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListenAddrResponse.ProtoReflect.Descriptor instead.
+func (*ListenAddrResponse) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ListenAddrReply) GetAddrInfo() *PeerAddrInfo {
+func (x *ListenAddrResponse) GetAddrInfo() *PeerAddrInfo {
 	if x != nil {
 		return x.AddrInfo
 	}
@@ -383,7 +386,7 @@ func (*PeersRequest) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{5}
 }
 
-type PeersReply struct {
+type PeersResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -391,8 +394,8 @@ type PeersReply struct {
 	Peers []*PeerInfo `protobuf:"bytes,1,rep,name=peers,proto3" json:"peers,omitempty"`
 }
 
-func (x *PeersReply) Reset() {
-	*x = PeersReply{}
+func (x *PeersResponse) Reset() {
+	*x = PeersResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_net_rpc_rpc_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -400,13 +403,13 @@ func (x *PeersReply) Reset() {
 	}
 }
 
-func (x *PeersReply) String() string {
+func (x *PeersResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PeersReply) ProtoMessage() {}
+func (*PeersResponse) ProtoMessage() {}
 
-func (x *PeersReply) ProtoReflect() protoreflect.Message {
+func (x *PeersResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_net_rpc_rpc_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -418,12 +421,12 @@ func (x *PeersReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PeersReply.ProtoReflect.Descriptor instead.
-func (*PeersReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use PeersResponse.ProtoReflect.Descriptor instead.
+func (*PeersResponse) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *PeersReply) GetPeers() []*PeerInfo {
+func (x *PeersResponse) GetPeers() []*PeerInfo {
 	if x != nil {
 		return x.Peers
 	}
@@ -435,7 +438,7 @@ type FindPeerRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	PeerID string `protobuf:"bytes,1,opt,name=peerID,proto3" json:"peerID,omitempty"`
+	PeerId string `protobuf:"bytes,1,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
 }
 
 func (x *FindPeerRequest) Reset() {
@@ -470,23 +473,23 @@ func (*FindPeerRequest) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *FindPeerRequest) GetPeerID() string {
+func (x *FindPeerRequest) GetPeerId() string {
 	if x != nil {
-		return x.PeerID
+		return x.PeerId
 	}
 	return ""
 }
 
-type FindPeerReply struct {
+type FindPeerResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	PeerInfo *PeerInfo `protobuf:"bytes,1,opt,name=peerInfo,proto3" json:"peerInfo,omitempty"`
+	PeerInfo *PeerInfo `protobuf:"bytes,1,opt,name=peer_info,json=peerInfo,proto3" json:"peer_info,omitempty"`
 }
 
-func (x *FindPeerReply) Reset() {
-	*x = FindPeerReply{}
+func (x *FindPeerResponse) Reset() {
+	*x = FindPeerResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_net_rpc_rpc_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -494,13 +497,13 @@ func (x *FindPeerReply) Reset() {
 	}
 }
 
-func (x *FindPeerReply) String() string {
+func (x *FindPeerResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FindPeerReply) ProtoMessage() {}
+func (*FindPeerResponse) ProtoMessage() {}
 
-func (x *FindPeerReply) ProtoReflect() protoreflect.Message {
+func (x *FindPeerResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_net_rpc_rpc_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -512,12 +515,12 @@ func (x *FindPeerReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use FindPeerReply.ProtoReflect.Descriptor instead.
-func (*FindPeerReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use FindPeerResponse.ProtoReflect.Descriptor instead.
+func (*FindPeerResponse) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *FindPeerReply) GetPeerInfo() *PeerInfo {
+func (x *FindPeerResponse) GetPeerInfo() *PeerInfo {
 	if x != nil {
 		return x.PeerInfo
 	}
@@ -529,7 +532,7 @@ type ConnectPeerRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	PeerInfo *PeerAddrInfo `protobuf:"bytes,1,opt,name=peerInfo,proto3" json:"peerInfo,omitempty"`
+	PeerInfo *PeerAddrInfo `protobuf:"bytes,1,opt,name=peer_info,json=peerInfo,proto3" json:"peer_info,omitempty"`
 }
 
 func (x *ConnectPeerRequest) Reset() {
@@ -571,14 +574,14 @@ func (x *ConnectPeerRequest) GetPeerInfo() *PeerAddrInfo {
 	return nil
 }
 
-type ConnectPeerReply struct {
+type ConnectPeerResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *ConnectPeerReply) Reset() {
-	*x = ConnectPeerReply{}
+func (x *ConnectPeerResponse) Reset() {
+	*x = ConnectPeerResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_net_rpc_rpc_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -586,13 +589,13 @@ func (x *ConnectPeerReply) Reset() {
 	}
 }
 
-func (x *ConnectPeerReply) String() string {
+func (x *ConnectPeerResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ConnectPeerReply) ProtoMessage() {}
+func (*ConnectPeerResponse) ProtoMessage() {}
 
-func (x *ConnectPeerReply) ProtoReflect() protoreflect.Message {
+func (x *ConnectPeerResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_net_rpc_rpc_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -604,8 +607,8 @@ func (x *ConnectPeerReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ConnectPeerReply.ProtoReflect.Descriptor instead.
-func (*ConnectPeerReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ConnectPeerResponse.ProtoReflect.Descriptor instead.
+func (*ConnectPeerResponse) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{10}
 }
 
@@ -614,7 +617,7 @@ type DisconnectPeerRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	PeerID string `protobuf:"bytes,1,opt,name=peerID,proto3" json:"peerID,omitempty"`
+	PeerId string `protobuf:"bytes,1,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
 }
 
 func (x *DisconnectPeerRequest) Reset() {
@@ -649,21 +652,21 @@ func (*DisconnectPeerRequest) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *DisconnectPeerRequest) GetPeerID() string {
+func (x *DisconnectPeerRequest) GetPeerId() string {
 	if x != nil {
-		return x.PeerID
+		return x.PeerId
 	}
 	return ""
 }
 
-type DisconnectPeerReply struct {
+type DisconnectPeerResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *DisconnectPeerReply) Reset() {
-	*x = DisconnectPeerReply{}
+func (x *DisconnectPeerResponse) Reset() {
+	*x = DisconnectPeerResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_net_rpc_rpc_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -671,13 +674,13 @@ func (x *DisconnectPeerReply) Reset() {
 	}
 }
 
-func (x *DisconnectPeerReply) String() string {
+func (x *DisconnectPeerResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DisconnectPeerReply) ProtoMessage() {}
+func (*DisconnectPeerResponse) ProtoMessage() {}
 
-func (x *DisconnectPeerReply) ProtoReflect() protoreflect.Message {
+func (x *DisconnectPeerResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_net_rpc_rpc_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -689,8 +692,8 @@ func (x *DisconnectPeerReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DisconnectPeerReply.ProtoReflect.Descriptor instead.
-func (*DisconnectPeerReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use DisconnectPeerResponse.ProtoReflect.Descriptor instead.
+func (*DisconnectPeerResponse) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{12}
 }
 
@@ -699,7 +702,7 @@ type ConnectednessRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	PeerID string `protobuf:"bytes,1,opt,name=peerID,proto3" json:"peerID,omitempty"`
+	PeerId string `protobuf:"bytes,1,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
 }
 
 func (x *ConnectednessRequest) Reset() {
@@ -734,14 +737,14 @@ func (*ConnectednessRequest) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *ConnectednessRequest) GetPeerID() string {
+func (x *ConnectednessRequest) GetPeerId() string {
 	if x != nil {
-		return x.PeerID
+		return x.PeerId
 	}
 	return ""
 }
 
-type ConnectednessReply struct {
+type ConnectednessResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -749,8 +752,8 @@ type ConnectednessReply struct {
 	Connectedness Connectedness `protobuf:"varint,1,opt,name=connectedness,proto3,enum=net.rpc.Connectedness" json:"connectedness,omitempty"`
 }
 
-func (x *ConnectednessReply) Reset() {
-	*x = ConnectednessReply{}
+func (x *ConnectednessResponse) Reset() {
+	*x = ConnectednessResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_net_rpc_rpc_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -758,13 +761,13 @@ func (x *ConnectednessReply) Reset() {
 	}
 }
 
-func (x *ConnectednessReply) String() string {
+func (x *ConnectednessResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ConnectednessReply) ProtoMessage() {}
+func (*ConnectednessResponse) ProtoMessage() {}
 
-func (x *ConnectednessReply) ProtoReflect() protoreflect.Message {
+func (x *ConnectednessResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_net_rpc_rpc_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -776,16 +779,16 @@ func (x *ConnectednessReply) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ConnectednessReply.ProtoReflect.Descriptor instead.
-func (*ConnectednessReply) Descriptor() ([]byte, []int) {
+// Deprecated: Use ConnectednessResponse.ProtoReflect.Descriptor instead.
+func (*ConnectednessResponse) Descriptor() ([]byte, []int) {
 	return file_net_rpc_rpc_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *ConnectednessReply) GetConnectedness() Connectedness {
+func (x *ConnectednessResponse) GetConnectedness() Connectedness {
 	if x != nil {
 		return x.Connectedness
 	}
-	return Connectedness_NotConnected
+	return Connectedness_CONNECTEDNESS_UNSPECIFIED
 }
 
 var File_net_rpc_rpc_proto protoreflect.FileDescriptor
@@ -794,7 +797,7 @@ var file_net_rpc_rpc_proto_rawDesc = []byte{
 	0x0a, 0x11, 0x6e, 0x65, 0x74, 0x2f, 0x72, 0x70, 0x63, 0x2f, 0x72, 0x70, 0x63, 0x2e, 0x70, 0x72,
 	0x6f, 0x74, 0x6f, 0x12, 0x07, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x22, 0x34, 0x0a, 0x0c,
 	0x50, 0x65, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x0e, 0x0a, 0x02,
-	0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x49, 0x44, 0x12, 0x14, 0x0a, 0x05,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05,
 	0x61, 0x64, 0x64, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x05, 0x61, 0x64, 0x64,
 	0x72, 0x73, 0x22, 0x5e, 0x0a, 0x08, 0x4c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x18,
 	0x0a, 0x07, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x72, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
@@ -802,84 +805,94 @@ var file_net_rpc_rpc_proto_rawDesc = []byte{
 	0x74, 0x75, 0x64, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x02, 0x52, 0x08, 0x6c, 0x61, 0x74, 0x69,
 	0x74, 0x75, 0x64, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6c, 0x6f, 0x6e, 0x67, 0x69, 0x74, 0x75, 0x64,
 	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x02, 0x52, 0x09, 0x6c, 0x6f, 0x6e, 0x67, 0x69, 0x74, 0x75,
-	0x64, 0x65, 0x22, 0x6c, 0x0a, 0x08, 0x50, 0x65, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x31,
-	0x0a, 0x08, 0x61, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x15, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x41,
-	0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x61, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66,
-	0x6f, 0x12, 0x2d, 0x0a, 0x08, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x6f,
-	0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x08, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x22, 0x13, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x41, 0x64, 0x64, 0x72, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x44, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x41,
-	0x64, 0x64, 0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x31, 0x0a, 0x08, 0x61, 0x64, 0x64, 0x72,
-	0x49, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6e, 0x65, 0x74,
-	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66,
-	0x6f, 0x52, 0x08, 0x61, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x0e, 0x0a, 0x0c, 0x50,
-	0x65, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x35, 0x0a, 0x0a, 0x50,
-	0x65, 0x65, 0x72, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x27, 0x0a, 0x05, 0x70, 0x65, 0x65,
-	0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72,
-	0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x05, 0x70, 0x65, 0x65,
-	0x72, 0x73, 0x22, 0x29, 0x0a, 0x0f, 0x46, 0x69, 0x6e, 0x64, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x70, 0x65, 0x65, 0x72, 0x49, 0x44, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x65, 0x65, 0x72, 0x49, 0x44, 0x22, 0x3e, 0x0a,
-	0x0d, 0x46, 0x69, 0x6e, 0x64, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2d,
-	0x0a, 0x08, 0x70, 0x65, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
+	0x64, 0x65, 0x22, 0x6d, 0x0a, 0x08, 0x50, 0x65, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x32,
+	0x0a, 0x09, 0x61, 0x64, 0x64, 0x72, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x15, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72,
+	0x41, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x61, 0x64, 0x64, 0x72, 0x49, 0x6e,
+	0x66, 0x6f, 0x12, 0x2d, 0x0a, 0x08, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c,
+	0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x08, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x22, 0x13, 0x0a, 0x11, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x41, 0x64, 0x64, 0x72, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x48, 0x0a, 0x12, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e,
+	0x41, 0x64, 0x64, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x32, 0x0a, 0x09,
+	0x61, 0x64, 0x64, 0x72, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x15, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x41, 0x64,
+	0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x61, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f,
+	0x22, 0x0e, 0x0a, 0x0c, 0x50, 0x65, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x22, 0x38, 0x0a, 0x0d, 0x50, 0x65, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x27, 0x0a, 0x05, 0x70, 0x65, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
 	0x32, 0x11, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x49,
-	0x6e, 0x66, 0x6f, 0x52, 0x08, 0x70, 0x65, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x47, 0x0a,
-	0x12, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x31, 0x0a, 0x08, 0x70, 0x65, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e,
-	0x50, 0x65, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x70, 0x65,
-	0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x12, 0x0a, 0x10, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
-	0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x2f, 0x0a, 0x15, 0x44, 0x69,
-	0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x70, 0x65, 0x65, 0x72, 0x49, 0x44, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x65, 0x65, 0x72, 0x49, 0x44, 0x22, 0x15, 0x0a, 0x13, 0x44,
-	0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x70,
-	0x6c, 0x79, 0x22, 0x2e, 0x0a, 0x14, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e,
-	0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x70, 0x65,
-	0x65, 0x72, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x65, 0x65, 0x72,
-	0x49, 0x44, 0x22, 0x52, 0x0a, 0x12, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e,
-	0x65, 0x73, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x3c, 0x0a, 0x0d, 0x63, 0x6f, 0x6e, 0x6e,
-	0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32,
-	0x16, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
-	0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x0d, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74,
-	0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x2a, 0x6b, 0x0a, 0x0d, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
-	0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x12, 0x10, 0x0a, 0x0c, 0x4e, 0x6f, 0x74, 0x43, 0x6f,
-	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x10, 0x00, 0x12, 0x0d, 0x0a, 0x09, 0x43, 0x6f, 0x6e,
-	0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x10, 0x01, 0x12, 0x0e, 0x0a, 0x0a, 0x43, 0x61, 0x6e, 0x43,
-	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x10, 0x02, 0x12, 0x11, 0x0a, 0x0d, 0x43, 0x61, 0x6e, 0x6e,
-	0x6f, 0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x10, 0x03, 0x12, 0x0b, 0x0a, 0x07, 0x55,
-	0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x10, 0x04, 0x12, 0x09, 0x0a, 0x05, 0x45, 0x72, 0x72, 0x6f,
-	0x72, 0x10, 0x05, 0x32, 0xac, 0x03, 0x0a, 0x03, 0x52, 0x50, 0x43, 0x12, 0x44, 0x0a, 0x0a, 0x4c,
-	0x69, 0x73, 0x74, 0x65, 0x6e, 0x41, 0x64, 0x64, 0x72, 0x12, 0x1a, 0x2e, 0x6e, 0x65, 0x74, 0x2e,
-	0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x41, 0x64, 0x64, 0x72, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e,
-	0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x41, 0x64, 0x64, 0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22,
-	0x00, 0x12, 0x35, 0x0a, 0x05, 0x50, 0x65, 0x65, 0x72, 0x73, 0x12, 0x15, 0x2e, 0x6e, 0x65, 0x74,
-	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x13, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72,
-	0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x12, 0x3e, 0x0a, 0x08, 0x46, 0x69, 0x6e, 0x64,
-	0x50, 0x65, 0x65, 0x72, 0x12, 0x18, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x46,
-	0x69, 0x6e, 0x64, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16,
-	0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x46, 0x69, 0x6e, 0x64, 0x50, 0x65, 0x65,
-	0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22, 0x00, 0x12, 0x47, 0x0a, 0x0b, 0x43, 0x6f, 0x6e, 0x6e,
+	0x6e, 0x66, 0x6f, 0x52, 0x05, 0x70, 0x65, 0x65, 0x72, 0x73, 0x22, 0x2a, 0x0a, 0x0f, 0x46, 0x69,
+	0x6e, 0x64, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a,
+	0x07, 0x70, 0x65, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06,
+	0x70, 0x65, 0x65, 0x72, 0x49, 0x64, 0x22, 0x42, 0x0a, 0x10, 0x46, 0x69, 0x6e, 0x64, 0x50, 0x65,
+	0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2e, 0x0a, 0x09, 0x70, 0x65,
+	0x65, 0x72, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e,
+	0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f,
+	0x52, 0x08, 0x70, 0x65, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x48, 0x0a, 0x12, 0x43, 0x6f,
+	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x32, 0x0a, 0x09, 0x70, 0x65, 0x65, 0x72, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65,
+	0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x70, 0x65, 0x65, 0x72,
+	0x49, 0x6e, 0x66, 0x6f, 0x22, 0x15, 0x0a, 0x13, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50,
+	0x65, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x30, 0x0a, 0x15, 0x44,
+	0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x70, 0x65, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x65, 0x65, 0x72, 0x49, 0x64, 0x22, 0x18, 0x0a,
+	0x16, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2f, 0x0a, 0x14, 0x43, 0x6f, 0x6e, 0x6e, 0x65,
+	0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x17, 0x0a, 0x07, 0x70, 0x65, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x06, 0x70, 0x65, 0x65, 0x72, 0x49, 0x64, 0x22, 0x55, 0x0a, 0x15, 0x43, 0x6f, 0x6e, 0x6e,
+	0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x3c, 0x0a, 0x0d, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65,
+	0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x16, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73,
+	0x52, 0x0d, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x2a,
+	0xe1, 0x01, 0x0a, 0x0d, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73,
+	0x73, 0x12, 0x1d, 0x0a, 0x19, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x4e, 0x45,
+	0x53, 0x53, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00,
+	0x12, 0x1f, 0x0a, 0x1b, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x4e, 0x45, 0x53,
+	0x53, 0x5f, 0x4e, 0x4f, 0x54, 0x5f, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x10,
+	0x01, 0x12, 0x1b, 0x0a, 0x17, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x4e, 0x45,
+	0x53, 0x53, 0x5f, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x10, 0x02, 0x12, 0x1d,
+	0x0a, 0x19, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x4e, 0x45, 0x53, 0x53, 0x5f,
+	0x43, 0x41, 0x4e, 0x5f, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x10, 0x03, 0x12, 0x20, 0x0a,
+	0x1c, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x4e, 0x45, 0x53, 0x53, 0x5f, 0x43,
+	0x41, 0x4e, 0x4e, 0x4f, 0x54, 0x5f, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x10, 0x04, 0x12,
+	0x19, 0x0a, 0x15, 0x43, 0x4f, 0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x4e, 0x45, 0x53, 0x53,
+	0x5f, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x05, 0x12, 0x17, 0x0a, 0x13, 0x43, 0x4f,
+	0x4e, 0x4e, 0x45, 0x43, 0x54, 0x45, 0x44, 0x4e, 0x45, 0x53, 0x53, 0x5f, 0x45, 0x52, 0x52, 0x4f,
+	0x52, 0x10, 0x06, 0x32, 0xc5, 0x03, 0x0a, 0x0a, 0x52, 0x50, 0x43, 0x53, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x12, 0x47, 0x0a, 0x0a, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x41, 0x64, 0x64, 0x72,
+	0x12, 0x1a, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x65,
+	0x6e, 0x41, 0x64, 0x64, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x6e,
+	0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x41, 0x64, 0x64,
+	0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x38, 0x0a, 0x05, 0x50,
+	0x65, 0x65, 0x72, 0x73, 0x12, 0x15, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50,
+	0x65, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x6e, 0x65,
+	0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x41, 0x0a, 0x08, 0x46, 0x69, 0x6e, 0x64, 0x50, 0x65, 0x65,
+	0x72, 0x12, 0x18, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x46, 0x69, 0x6e, 0x64,
+	0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x6e, 0x65,
+	0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x46, 0x69, 0x6e, 0x64, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4a, 0x0a, 0x0b, 0x43, 0x6f, 0x6e, 0x6e,
 	0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x12, 0x1b, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70,
 	0x63, 0x2e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43,
-	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x22,
-	0x00, 0x12, 0x50, 0x0a, 0x0e, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50,
-	0x65, 0x65, 0x72, 0x12, 0x1e, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44, 0x69,
-	0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44, 0x69,
-	0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x70, 0x6c,
-	0x79, 0x22, 0x00, 0x12, 0x4d, 0x0a, 0x0d, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64,
-	0x6e, 0x65, 0x73, 0x73, 0x12, 0x1d, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43,
-	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x6f,
-	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79,
-	0x22, 0x00, 0x42, 0x09, 0x5a, 0x07, 0x6e, 0x65, 0x74, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43,
+	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x53, 0x0a, 0x0e, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65,
+	0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x12, 0x1e, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x6e, 0x65, 0x74, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x50, 0x65, 0x65, 0x72, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x50, 0x0a, 0x0d, 0x43, 0x6f, 0x6e,
+	0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73, 0x73, 0x12, 0x1d, 0x2e, 0x6e, 0x65, 0x74,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65,
+	0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x6e, 0x65, 0x74, 0x2e,
+	0x72, 0x70, 0x63, 0x2e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x6e, 0x65, 0x73,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x09, 0x5a, 0x07, 0x6e,
+	0x65, 0x74, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -897,43 +910,43 @@ func file_net_rpc_rpc_proto_rawDescGZIP() []byte {
 var file_net_rpc_rpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_net_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_net_rpc_rpc_proto_goTypes = []interface{}{
-	(Connectedness)(0),            // 0: net.rpc.Connectedness
-	(*PeerAddrInfo)(nil),          // 1: net.rpc.PeerAddrInfo
-	(*Location)(nil),              // 2: net.rpc.Location
-	(*PeerInfo)(nil),              // 3: net.rpc.PeerInfo
-	(*ListenAddrRequest)(nil),     // 4: net.rpc.ListenAddrRequest
-	(*ListenAddrReply)(nil),       // 5: net.rpc.ListenAddrReply
-	(*PeersRequest)(nil),          // 6: net.rpc.PeersRequest
-	(*PeersReply)(nil),            // 7: net.rpc.PeersReply
-	(*FindPeerRequest)(nil),       // 8: net.rpc.FindPeerRequest
-	(*FindPeerReply)(nil),         // 9: net.rpc.FindPeerReply
-	(*ConnectPeerRequest)(nil),    // 10: net.rpc.ConnectPeerRequest
-	(*ConnectPeerReply)(nil),      // 11: net.rpc.ConnectPeerReply
-	(*DisconnectPeerRequest)(nil), // 12: net.rpc.DisconnectPeerRequest
-	(*DisconnectPeerReply)(nil),   // 13: net.rpc.DisconnectPeerReply
-	(*ConnectednessRequest)(nil),  // 14: net.rpc.ConnectednessRequest
-	(*ConnectednessReply)(nil),    // 15: net.rpc.ConnectednessReply
+	(Connectedness)(0),             // 0: net.rpc.Connectedness
+	(*PeerAddrInfo)(nil),           // 1: net.rpc.PeerAddrInfo
+	(*Location)(nil),               // 2: net.rpc.Location
+	(*PeerInfo)(nil),               // 3: net.rpc.PeerInfo
+	(*ListenAddrRequest)(nil),      // 4: net.rpc.ListenAddrRequest
+	(*ListenAddrResponse)(nil),     // 5: net.rpc.ListenAddrResponse
+	(*PeersRequest)(nil),           // 6: net.rpc.PeersRequest
+	(*PeersResponse)(nil),          // 7: net.rpc.PeersResponse
+	(*FindPeerRequest)(nil),        // 8: net.rpc.FindPeerRequest
+	(*FindPeerResponse)(nil),       // 9: net.rpc.FindPeerResponse
+	(*ConnectPeerRequest)(nil),     // 10: net.rpc.ConnectPeerRequest
+	(*ConnectPeerResponse)(nil),    // 11: net.rpc.ConnectPeerResponse
+	(*DisconnectPeerRequest)(nil),  // 12: net.rpc.DisconnectPeerRequest
+	(*DisconnectPeerResponse)(nil), // 13: net.rpc.DisconnectPeerResponse
+	(*ConnectednessRequest)(nil),   // 14: net.rpc.ConnectednessRequest
+	(*ConnectednessResponse)(nil),  // 15: net.rpc.ConnectednessResponse
 }
 var file_net_rpc_rpc_proto_depIdxs = []int32{
-	1,  // 0: net.rpc.PeerInfo.addrInfo:type_name -> net.rpc.PeerAddrInfo
+	1,  // 0: net.rpc.PeerInfo.addr_info:type_name -> net.rpc.PeerAddrInfo
 	2,  // 1: net.rpc.PeerInfo.location:type_name -> net.rpc.Location
-	1,  // 2: net.rpc.ListenAddrReply.addrInfo:type_name -> net.rpc.PeerAddrInfo
-	3,  // 3: net.rpc.PeersReply.peers:type_name -> net.rpc.PeerInfo
-	3,  // 4: net.rpc.FindPeerReply.peerInfo:type_name -> net.rpc.PeerInfo
-	1,  // 5: net.rpc.ConnectPeerRequest.peerInfo:type_name -> net.rpc.PeerAddrInfo
-	0,  // 6: net.rpc.ConnectednessReply.connectedness:type_name -> net.rpc.Connectedness
-	4,  // 7: net.rpc.RPC.ListenAddr:input_type -> net.rpc.ListenAddrRequest
-	6,  // 8: net.rpc.RPC.Peers:input_type -> net.rpc.PeersRequest
-	8,  // 9: net.rpc.RPC.FindPeer:input_type -> net.rpc.FindPeerRequest
-	10, // 10: net.rpc.RPC.ConnectPeer:input_type -> net.rpc.ConnectPeerRequest
-	12, // 11: net.rpc.RPC.DisconnectPeer:input_type -> net.rpc.DisconnectPeerRequest
-	14, // 12: net.rpc.RPC.Connectedness:input_type -> net.rpc.ConnectednessRequest
-	5,  // 13: net.rpc.RPC.ListenAddr:output_type -> net.rpc.ListenAddrReply
-	7,  // 14: net.rpc.RPC.Peers:output_type -> net.rpc.PeersReply
-	9,  // 15: net.rpc.RPC.FindPeer:output_type -> net.rpc.FindPeerReply
-	11, // 16: net.rpc.RPC.ConnectPeer:output_type -> net.rpc.ConnectPeerReply
-	13, // 17: net.rpc.RPC.DisconnectPeer:output_type -> net.rpc.DisconnectPeerReply
-	15, // 18: net.rpc.RPC.Connectedness:output_type -> net.rpc.ConnectednessReply
+	1,  // 2: net.rpc.ListenAddrResponse.addr_info:type_name -> net.rpc.PeerAddrInfo
+	3,  // 3: net.rpc.PeersResponse.peers:type_name -> net.rpc.PeerInfo
+	3,  // 4: net.rpc.FindPeerResponse.peer_info:type_name -> net.rpc.PeerInfo
+	1,  // 5: net.rpc.ConnectPeerRequest.peer_info:type_name -> net.rpc.PeerAddrInfo
+	0,  // 6: net.rpc.ConnectednessResponse.connectedness:type_name -> net.rpc.Connectedness
+	4,  // 7: net.rpc.RPCService.ListenAddr:input_type -> net.rpc.ListenAddrRequest
+	6,  // 8: net.rpc.RPCService.Peers:input_type -> net.rpc.PeersRequest
+	8,  // 9: net.rpc.RPCService.FindPeer:input_type -> net.rpc.FindPeerRequest
+	10, // 10: net.rpc.RPCService.ConnectPeer:input_type -> net.rpc.ConnectPeerRequest
+	12, // 11: net.rpc.RPCService.DisconnectPeer:input_type -> net.rpc.DisconnectPeerRequest
+	14, // 12: net.rpc.RPCService.Connectedness:input_type -> net.rpc.ConnectednessRequest
+	5,  // 13: net.rpc.RPCService.ListenAddr:output_type -> net.rpc.ListenAddrResponse
+	7,  // 14: net.rpc.RPCService.Peers:output_type -> net.rpc.PeersResponse
+	9,  // 15: net.rpc.RPCService.FindPeer:output_type -> net.rpc.FindPeerResponse
+	11, // 16: net.rpc.RPCService.ConnectPeer:output_type -> net.rpc.ConnectPeerResponse
+	13, // 17: net.rpc.RPCService.DisconnectPeer:output_type -> net.rpc.DisconnectPeerResponse
+	15, // 18: net.rpc.RPCService.Connectedness:output_type -> net.rpc.ConnectednessResponse
 	13, // [13:19] is the sub-list for method output_type
 	7,  // [7:13] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
@@ -996,7 +1009,7 @@ func file_net_rpc_rpc_proto_init() {
 			}
 		}
 		file_net_rpc_rpc_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListenAddrReply); i {
+			switch v := v.(*ListenAddrResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1020,7 +1033,7 @@ func file_net_rpc_rpc_proto_init() {
 			}
 		}
 		file_net_rpc_rpc_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PeersReply); i {
+			switch v := v.(*PeersResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1044,7 +1057,7 @@ func file_net_rpc_rpc_proto_init() {
 			}
 		}
 		file_net_rpc_rpc_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FindPeerReply); i {
+			switch v := v.(*FindPeerResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1068,7 +1081,7 @@ func file_net_rpc_rpc_proto_init() {
 			}
 		}
 		file_net_rpc_rpc_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ConnectPeerReply); i {
+			switch v := v.(*ConnectPeerResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1092,7 +1105,7 @@ func file_net_rpc_rpc_proto_init() {
 			}
 		}
 		file_net_rpc_rpc_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DisconnectPeerReply); i {
+			switch v := v.(*DisconnectPeerResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1116,7 +1129,7 @@ func file_net_rpc_rpc_proto_init() {
 			}
 		}
 		file_net_rpc_rpc_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ConnectednessReply); i {
+			switch v := v.(*ConnectednessResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1157,252 +1170,252 @@ var _ grpc.ClientConnInterface
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
 
-// RPCClient is the client API for RPC service.
+// RPCServiceClient is the client API for RPCService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type RPCClient interface {
-	ListenAddr(ctx context.Context, in *ListenAddrRequest, opts ...grpc.CallOption) (*ListenAddrReply, error)
-	Peers(ctx context.Context, in *PeersRequest, opts ...grpc.CallOption) (*PeersReply, error)
-	FindPeer(ctx context.Context, in *FindPeerRequest, opts ...grpc.CallOption) (*FindPeerReply, error)
-	ConnectPeer(ctx context.Context, in *ConnectPeerRequest, opts ...grpc.CallOption) (*ConnectPeerReply, error)
-	DisconnectPeer(ctx context.Context, in *DisconnectPeerRequest, opts ...grpc.CallOption) (*DisconnectPeerReply, error)
-	Connectedness(ctx context.Context, in *ConnectednessRequest, opts ...grpc.CallOption) (*ConnectednessReply, error)
+type RPCServiceClient interface {
+	ListenAddr(ctx context.Context, in *ListenAddrRequest, opts ...grpc.CallOption) (*ListenAddrResponse, error)
+	Peers(ctx context.Context, in *PeersRequest, opts ...grpc.CallOption) (*PeersResponse, error)
+	FindPeer(ctx context.Context, in *FindPeerRequest, opts ...grpc.CallOption) (*FindPeerResponse, error)
+	ConnectPeer(ctx context.Context, in *ConnectPeerRequest, opts ...grpc.CallOption) (*ConnectPeerResponse, error)
+	DisconnectPeer(ctx context.Context, in *DisconnectPeerRequest, opts ...grpc.CallOption) (*DisconnectPeerResponse, error)
+	Connectedness(ctx context.Context, in *ConnectednessRequest, opts ...grpc.CallOption) (*ConnectednessResponse, error)
 }
 
-type rPCClient struct {
+type rPCServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewRPCClient(cc grpc.ClientConnInterface) RPCClient {
-	return &rPCClient{cc}
+func NewRPCServiceClient(cc grpc.ClientConnInterface) RPCServiceClient {
+	return &rPCServiceClient{cc}
 }
 
-func (c *rPCClient) ListenAddr(ctx context.Context, in *ListenAddrRequest, opts ...grpc.CallOption) (*ListenAddrReply, error) {
-	out := new(ListenAddrReply)
-	err := c.cc.Invoke(ctx, "/net.rpc.RPC/ListenAddr", in, out, opts...)
+func (c *rPCServiceClient) ListenAddr(ctx context.Context, in *ListenAddrRequest, opts ...grpc.CallOption) (*ListenAddrResponse, error) {
+	out := new(ListenAddrResponse)
+	err := c.cc.Invoke(ctx, "/net.rpc.RPCService/ListenAddr", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *rPCClient) Peers(ctx context.Context, in *PeersRequest, opts ...grpc.CallOption) (*PeersReply, error) {
-	out := new(PeersReply)
-	err := c.cc.Invoke(ctx, "/net.rpc.RPC/Peers", in, out, opts...)
+func (c *rPCServiceClient) Peers(ctx context.Context, in *PeersRequest, opts ...grpc.CallOption) (*PeersResponse, error) {
+	out := new(PeersResponse)
+	err := c.cc.Invoke(ctx, "/net.rpc.RPCService/Peers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *rPCClient) FindPeer(ctx context.Context, in *FindPeerRequest, opts ...grpc.CallOption) (*FindPeerReply, error) {
-	out := new(FindPeerReply)
-	err := c.cc.Invoke(ctx, "/net.rpc.RPC/FindPeer", in, out, opts...)
+func (c *rPCServiceClient) FindPeer(ctx context.Context, in *FindPeerRequest, opts ...grpc.CallOption) (*FindPeerResponse, error) {
+	out := new(FindPeerResponse)
+	err := c.cc.Invoke(ctx, "/net.rpc.RPCService/FindPeer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *rPCClient) ConnectPeer(ctx context.Context, in *ConnectPeerRequest, opts ...grpc.CallOption) (*ConnectPeerReply, error) {
-	out := new(ConnectPeerReply)
-	err := c.cc.Invoke(ctx, "/net.rpc.RPC/ConnectPeer", in, out, opts...)
+func (c *rPCServiceClient) ConnectPeer(ctx context.Context, in *ConnectPeerRequest, opts ...grpc.CallOption) (*ConnectPeerResponse, error) {
+	out := new(ConnectPeerResponse)
+	err := c.cc.Invoke(ctx, "/net.rpc.RPCService/ConnectPeer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *rPCClient) DisconnectPeer(ctx context.Context, in *DisconnectPeerRequest, opts ...grpc.CallOption) (*DisconnectPeerReply, error) {
-	out := new(DisconnectPeerReply)
-	err := c.cc.Invoke(ctx, "/net.rpc.RPC/DisconnectPeer", in, out, opts...)
+func (c *rPCServiceClient) DisconnectPeer(ctx context.Context, in *DisconnectPeerRequest, opts ...grpc.CallOption) (*DisconnectPeerResponse, error) {
+	out := new(DisconnectPeerResponse)
+	err := c.cc.Invoke(ctx, "/net.rpc.RPCService/DisconnectPeer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *rPCClient) Connectedness(ctx context.Context, in *ConnectednessRequest, opts ...grpc.CallOption) (*ConnectednessReply, error) {
-	out := new(ConnectednessReply)
-	err := c.cc.Invoke(ctx, "/net.rpc.RPC/Connectedness", in, out, opts...)
+func (c *rPCServiceClient) Connectedness(ctx context.Context, in *ConnectednessRequest, opts ...grpc.CallOption) (*ConnectednessResponse, error) {
+	out := new(ConnectednessResponse)
+	err := c.cc.Invoke(ctx, "/net.rpc.RPCService/Connectedness", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// RPCServer is the server API for RPC service.
-type RPCServer interface {
-	ListenAddr(context.Context, *ListenAddrRequest) (*ListenAddrReply, error)
-	Peers(context.Context, *PeersRequest) (*PeersReply, error)
-	FindPeer(context.Context, *FindPeerRequest) (*FindPeerReply, error)
-	ConnectPeer(context.Context, *ConnectPeerRequest) (*ConnectPeerReply, error)
-	DisconnectPeer(context.Context, *DisconnectPeerRequest) (*DisconnectPeerReply, error)
-	Connectedness(context.Context, *ConnectednessRequest) (*ConnectednessReply, error)
+// RPCServiceServer is the server API for RPCService service.
+type RPCServiceServer interface {
+	ListenAddr(context.Context, *ListenAddrRequest) (*ListenAddrResponse, error)
+	Peers(context.Context, *PeersRequest) (*PeersResponse, error)
+	FindPeer(context.Context, *FindPeerRequest) (*FindPeerResponse, error)
+	ConnectPeer(context.Context, *ConnectPeerRequest) (*ConnectPeerResponse, error)
+	DisconnectPeer(context.Context, *DisconnectPeerRequest) (*DisconnectPeerResponse, error)
+	Connectedness(context.Context, *ConnectednessRequest) (*ConnectednessResponse, error)
 }
 
-// UnimplementedRPCServer can be embedded to have forward compatible implementations.
-type UnimplementedRPCServer struct {
+// UnimplementedRPCServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedRPCServiceServer struct {
 }
 
-func (*UnimplementedRPCServer) ListenAddr(context.Context, *ListenAddrRequest) (*ListenAddrReply, error) {
+func (*UnimplementedRPCServiceServer) ListenAddr(context.Context, *ListenAddrRequest) (*ListenAddrResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListenAddr not implemented")
 }
-func (*UnimplementedRPCServer) Peers(context.Context, *PeersRequest) (*PeersReply, error) {
+func (*UnimplementedRPCServiceServer) Peers(context.Context, *PeersRequest) (*PeersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Peers not implemented")
 }
-func (*UnimplementedRPCServer) FindPeer(context.Context, *FindPeerRequest) (*FindPeerReply, error) {
+func (*UnimplementedRPCServiceServer) FindPeer(context.Context, *FindPeerRequest) (*FindPeerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindPeer not implemented")
 }
-func (*UnimplementedRPCServer) ConnectPeer(context.Context, *ConnectPeerRequest) (*ConnectPeerReply, error) {
+func (*UnimplementedRPCServiceServer) ConnectPeer(context.Context, *ConnectPeerRequest) (*ConnectPeerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConnectPeer not implemented")
 }
-func (*UnimplementedRPCServer) DisconnectPeer(context.Context, *DisconnectPeerRequest) (*DisconnectPeerReply, error) {
+func (*UnimplementedRPCServiceServer) DisconnectPeer(context.Context, *DisconnectPeerRequest) (*DisconnectPeerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DisconnectPeer not implemented")
 }
-func (*UnimplementedRPCServer) Connectedness(context.Context, *ConnectednessRequest) (*ConnectednessReply, error) {
+func (*UnimplementedRPCServiceServer) Connectedness(context.Context, *ConnectednessRequest) (*ConnectednessResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Connectedness not implemented")
 }
 
-func RegisterRPCServer(s *grpc.Server, srv RPCServer) {
-	s.RegisterService(&_RPC_serviceDesc, srv)
+func RegisterRPCServiceServer(s *grpc.Server, srv RPCServiceServer) {
+	s.RegisterService(&_RPCService_serviceDesc, srv)
 }
 
-func _RPC_ListenAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_ListenAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListenAddrRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).ListenAddr(ctx, in)
+		return srv.(RPCServiceServer).ListenAddr(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/net.rpc.RPC/ListenAddr",
+		FullMethod: "/net.rpc.RPCService/ListenAddr",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).ListenAddr(ctx, req.(*ListenAddrRequest))
+		return srv.(RPCServiceServer).ListenAddr(ctx, req.(*ListenAddrRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RPC_Peers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_Peers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PeersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).Peers(ctx, in)
+		return srv.(RPCServiceServer).Peers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/net.rpc.RPC/Peers",
+		FullMethod: "/net.rpc.RPCService/Peers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).Peers(ctx, req.(*PeersRequest))
+		return srv.(RPCServiceServer).Peers(ctx, req.(*PeersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RPC_FindPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_FindPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FindPeerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).FindPeer(ctx, in)
+		return srv.(RPCServiceServer).FindPeer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/net.rpc.RPC/FindPeer",
+		FullMethod: "/net.rpc.RPCService/FindPeer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).FindPeer(ctx, req.(*FindPeerRequest))
+		return srv.(RPCServiceServer).FindPeer(ctx, req.(*FindPeerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RPC_ConnectPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_ConnectPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConnectPeerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).ConnectPeer(ctx, in)
+		return srv.(RPCServiceServer).ConnectPeer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/net.rpc.RPC/ConnectPeer",
+		FullMethod: "/net.rpc.RPCService/ConnectPeer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).ConnectPeer(ctx, req.(*ConnectPeerRequest))
+		return srv.(RPCServiceServer).ConnectPeer(ctx, req.(*ConnectPeerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RPC_DisconnectPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_DisconnectPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DisconnectPeerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).DisconnectPeer(ctx, in)
+		return srv.(RPCServiceServer).DisconnectPeer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/net.rpc.RPC/DisconnectPeer",
+		FullMethod: "/net.rpc.RPCService/DisconnectPeer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).DisconnectPeer(ctx, req.(*DisconnectPeerRequest))
+		return srv.(RPCServiceServer).DisconnectPeer(ctx, req.(*DisconnectPeerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RPC_Connectedness_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RPCService_Connectedness_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConnectednessRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServer).Connectedness(ctx, in)
+		return srv.(RPCServiceServer).Connectedness(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/net.rpc.RPC/Connectedness",
+		FullMethod: "/net.rpc.RPCService/Connectedness",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServer).Connectedness(ctx, req.(*ConnectednessRequest))
+		return srv.(RPCServiceServer).Connectedness(ctx, req.(*ConnectednessRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _RPC_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "net.rpc.RPC",
-	HandlerType: (*RPCServer)(nil),
+var _RPCService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "net.rpc.RPCService",
+	HandlerType: (*RPCServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "ListenAddr",
-			Handler:    _RPC_ListenAddr_Handler,
+			Handler:    _RPCService_ListenAddr_Handler,
 		},
 		{
 			MethodName: "Peers",
-			Handler:    _RPC_Peers_Handler,
+			Handler:    _RPCService_Peers_Handler,
 		},
 		{
 			MethodName: "FindPeer",
-			Handler:    _RPC_FindPeer_Handler,
+			Handler:    _RPCService_FindPeer_Handler,
 		},
 		{
 			MethodName: "ConnectPeer",
-			Handler:    _RPC_ConnectPeer_Handler,
+			Handler:    _RPCService_ConnectPeer_Handler,
 		},
 		{
 			MethodName: "DisconnectPeer",
-			Handler:    _RPC_DisconnectPeer_Handler,
+			Handler:    _RPCService_DisconnectPeer_Handler,
 		},
 		{
 			MethodName: "Connectedness",
-			Handler:    _RPC_Connectedness_Handler,
+			Handler:    _RPCService_Connectedness_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

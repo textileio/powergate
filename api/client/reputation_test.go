@@ -35,7 +35,7 @@ func TestGetTopMiners(t *testing.T) {
 func setupReputation(t *testing.T) (*Reputation, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Reputation{client: rpc.NewRPCClient(conn)}, func() {
+	return &Reputation{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()
 		serverDone()
 	}

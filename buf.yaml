@@ -1,0 +1,13 @@
+build:
+  roots:
+    - .
+  excludes:
+    - buildtools
+lint:
+  use:
+    - DEFAULT
+  except:
+    - PACKAGE_VERSION_SUFFIX
+breaking:
+  use:
+    - FILE

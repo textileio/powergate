@@ -7,7 +7,7 @@ message NewAddressRequest {
     string type = 1;
 }
 
-message NewAddressReply {
+message NewAddressResponse {
     string address = 1;
 }
 
@@ -15,11 +15,11 @@ message WalletBalanceRequest {
 	string address = 1;
 }
 
-message WalletBalanceReply {
+message WalletBalanceResponse {
     uint64 balance = 1;
 }
 
-service RPC {
-    rpc NewAddress(NewAddressRequest) returns (NewAddressReply) {}
-    rpc WalletBalance(WalletBalanceRequest) returns (WalletBalanceReply) {}
+service RPCService {
+    rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
+    rpc WalletBalance(WalletBalanceRequest) returns (WalletBalanceResponse) {}
 }

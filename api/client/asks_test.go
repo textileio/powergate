@@ -32,7 +32,7 @@ func TestQuery(t *testing.T) {
 func setupAsks(t *testing.T) (*Asks, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Asks{client: rpc.NewRPCClient(conn)}, func() {
+	return &Asks{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()
 		serverDone()
 	}

@@ -9,7 +9,7 @@ message MinerScore {
 }
 
 message Index {
-    string tipSetKey = 1;
+    string tip_set_key = 1;
     map<string, Slashes> miners = 2;
 }
 
@@ -22,18 +22,18 @@ message AddSourceRequest {
     string maddr = 2;
 }
 
-message AddSourceReply {
+message AddSourceResponse {
 }
 
 message GetTopMinersRequest {
     int32 limit = 1;
 }
 
-message GetTopMinersReply {
-    repeated MinerScore topMiners = 1;
+message GetTopMinersResponse {
+    repeated MinerScore top_miners = 1;
 }
 
-service RPC {
-    rpc AddSource(AddSourceRequest) returns (AddSourceReply) {}
-    rpc GetTopMiners(GetTopMinersRequest) returns (GetTopMinersReply) {}
+service RPCService {
+    rpc AddSource(AddSourceRequest) returns (AddSourceResponse) {}
+    rpc GetTopMiners(GetTopMinersRequest) returns (GetTopMinersResponse) {}
 }

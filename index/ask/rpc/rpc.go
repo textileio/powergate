@@ -8,7 +8,7 @@ import (
 
 // RPC implements the gprc service
 type RPC struct {
-	UnimplementedRPCServer
+	UnimplementedRPCServiceServer
 
 	index *runner.Runner
 }
@@ -21,7 +21,7 @@ func New(ai *runner.Runner) *RPC {
 }
 
 // Get returns the current Ask Storage index.
-func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
+func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
 	index := s.index.Get()
 	storage := make(map[string]*StorageAsk, len(index.Storage))
 	for key, ask := range index.Storage {
@@ -38,11 +38,11 @@ func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetReply, error) {
 		StorageMedianPrice: index.StorageMedianPrice,
 		Storage:            storage,
 	}
-	return &GetReply{Index: pbIndex}, nil
+	return &GetResponse{Index: pbIndex}, nil
 }
 
 // Query executes a query on the current Ask Storage index.
-func (s *RPC) Query(ctx context.Context, req *QueryRequest) (*QueryReply, error) {
+func (s *RPC) Query(ctx context.Context, req *QueryRequest) (*QueryResponse, error) {
 	q := runner.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),
@@ -63,5 +63,5 @@ func (s *RPC) Query(ctx context.Context, req *QueryRequest) (*QueryReply, error)
 			Expiry:       ask.Expiry,
 		}
 	}
-	return &QueryReply{Asks: replyAsks}, nil
+	return &QueryResponse{Asks: replyAsks}, nil
 }

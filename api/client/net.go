@@ -12,7 +12,7 @@ import (
 
 // Net provides the Net API
 type Net struct {
-	client rpc.RPCClient
+	client rpc.RPCServiceClient
 }
 
 // ListenAddr returns listener address info for the local node
@@ -29,7 +29,7 @@ func (net *Net) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
 		}
 		addrs[i] = ma
 	}
-	id, err := peer.Decode(resp.AddrInfo.ID)
+	id, err := peer.Decode(resp.AddrInfo.Id)
 	if err != nil {
 		return peer.AddrInfo{}, err
 	}
@@ -58,7 +58,7 @@ func (net *Net) Peers(ctx context.Context) ([]n.PeerInfo, error) {
 
 // FindPeer finds a peer by peer id
 func (net *Net) FindPeer(ctx context.Context, peerID peer.ID) (n.PeerInfo, error) {
-	resp, err := net.client.FindPeer(ctx, &rpc.FindPeerRequest{PeerID: peerID.String()})
+	resp, err := net.client.FindPeer(ctx, &rpc.FindPeerRequest{PeerId: peerID.String()})
 	if err != nil {
 		return n.PeerInfo{}, err
 	}
@@ -72,7 +72,7 @@ func (net *Net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
 		addrs[i] = addr.String()
 	}
 	info := &rpc.PeerAddrInfo{
-		ID:    addrInfo.ID.String(),
+		Id:    addrInfo.ID.String(),
 		Addrs: addrs,
 	}
 	_, err := net.client.ConnectPeer(ctx, &rpc.ConnectPeerRequest{PeerInfo: info})
@@ -81,29 +81,29 @@ func (net *Net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
 
 // DisconnectPeer disconnects from a peer
 func (net *Net) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
-	_, err := net.client.DisconnectPeer(ctx, &rpc.DisconnectPeerRequest{PeerID: peerID.String()})
+	_, err := net.client.DisconnectPeer(ctx, &rpc.DisconnectPeerRequest{PeerId: peerID.String()})
 	return err
 }
 
 // Connectedness returns the connection status to a peer
 func (net *Net) Connectedness(ctx context.Context, peerID peer.ID) (n.Connectedness, error) {
-	resp, err := net.client.Connectedness(ctx, &rpc.ConnectednessRequest{PeerID: peerID.String()})
+	resp, err := net.client.Connectedness(ctx, &rpc.ConnectednessRequest{PeerId: peerID.String()})
 	if err != nil {
 		return n.Error, err
 	}
 	var con n.Connectedness
 	switch resp.Connectedness {
-	case rpc.Connectedness_CanConnect:
+	case rpc.Connectedness_CONNECTEDNESS_CAN_CONNECT:
 		con = n.CanConnect
-	case rpc.Connectedness_CannotConnect:
+	case rpc.Connectedness_CONNECTEDNESS_CANNOT_CONNECT:
 		con = n.CannotConnect
-	case rpc.Connectedness_Connected:
+	case rpc.Connectedness_CONNECTEDNESS_CONNECTED:
 		con = n.Connected
-	case rpc.Connectedness_NotConnected:
+	case rpc.Connectedness_CONNECTEDNESS_NOT_CONNECTED:
 		con = n.NotConnected
-	case rpc.Connectedness_Error:
+	case rpc.Connectedness_CONNECTEDNESS_ERROR:
 		con = n.Error
-	case rpc.Connectedness_Unknown:
+	case rpc.Connectedness_CONNECTEDNESS_UNKNOWN:
 		con = n.Unknown
 	default:
 		con = n.Unknown
@@ -120,7 +120,7 @@ func fromProtoPeerInfo(proto *rpc.PeerInfo) (n.PeerInfo, error) {
 		}
 		addrs[i] = ma
 	}
-	id, err := peer.Decode(proto.AddrInfo.ID)
+	id, err := peer.Decode(proto.AddrInfo.Id)
 	if err != nil {
 		return n.PeerInfo{}, err
 	}

@@ -4,7 +4,7 @@ package index.slashing.rpc;
 option go_package = "index/slashing/rpc";
 
 message Index {
-    string tipSetKey = 1;
+    string tip_set_key = 1;
     map<string, Slashes> miners = 2;
 }
 
@@ -16,10 +16,10 @@ message Slashes {
 message GetRequest {
 }
 
-message GetReply {
+message GetResponse {
     Index index = 1;
 }
 
-service RPC {
-    rpc Get(GetRequest) returns (GetReply) {}
+service RPCService {
+    rpc Get(GetRequest) returns (GetResponse) {}
 }
