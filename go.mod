@@ -30,7 +30,7 @@ require (
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200512220018-7002cce28cb1
 	github.com/ipfs/go-log/v2 v2.1.1
-	github.com/ipfs/interface-go-ipfs-core v0.2.6
+	github.com/ipfs/interface-go-ipfs-core v0.3.0
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/libp2p/go-libp2p v0.9.2
 	github.com/libp2p/go-libp2p-core v0.5.6
