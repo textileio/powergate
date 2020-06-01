@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/ipfs/go-datastore"
@@ -46,6 +47,28 @@ func (d *TxMapDatastore) Query(q query.Query) (query.Results, error) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	return d.MapDatastore.Query(q)
+}
+
+func (d *TxMapDatastore) Clone() (*TxMapDatastore, error) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+
+	q := query.Query{}
+	res, err := d.MapDatastore.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("querying datastore: %s", err)
+	}
+	defer res.Close()
+
+	t2 := &TxMapDatastore{
+		MapDatastore: datastore.NewMapDatastore(),
+	}
+	for v := range res.Next() {
+		if err := t2.Put(datastore.NewKey(v.Key), v.Value); err != nil {
+			return nil, fmt.Errorf("copying datastore value: %s", err)
+		}
+	}
+	return t2, nil
 }
 
 // NewTransaction creates a transaction A read-only transaction should be

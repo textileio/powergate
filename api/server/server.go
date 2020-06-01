@@ -184,7 +184,10 @@ func NewServer(conf Config) (*Server, error) {
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
 	cs := filcold.New(ms, dm, ipfs, chain, l)
 	hs := coreipfs.New(ipfs, l)
-	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
+	if err != nil {
+		return nil, fmt.Errorf("creating scheduler: %s", err)
+	}
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {

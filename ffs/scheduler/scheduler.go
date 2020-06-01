@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -50,8 +51,11 @@ type Scheduler struct {
 
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
-func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.ColdStorage) *Scheduler {
-	js := jstore.New(txndstr.Wrap(ds, "jstore"))
+func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.ColdStorage) (*Scheduler, error) {
+	js, err := jstore.New(txndstr.Wrap(ds, "jstore"))
+	if err != nil {
+		return nil, fmt.Errorf("loading scheduler jobstore: %s", err)
+	}
 	as := astore.New(txndstr.Wrap(ds, "astore"))
 	cis := cistore.New(txndstr.Wrap(ds, "cistore"))
 	ctx, cancel := context.WithCancel(context.Background())
@@ -70,7 +74,7 @@ func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.C
 		finished: make(chan struct{}),
 	}
 	go sch.run()
-	return sch
+	return sch, nil
 }
 
 // PushConfig queues the specified CidConfig to be executed as a new Job. It returns
@@ -211,6 +215,10 @@ func (s *Scheduler) Close() error {
 
 func (s *Scheduler) run() {
 	defer close(s.finished)
+	if err := s.resumeStartedDeals(); err != nil {
+		log.Errorf("resuming started deals: %s", err)
+		return
+	}
 	for {
 		select {
 		case <-s.ctx.Done():
@@ -229,6 +237,32 @@ func (s *Scheduler) run() {
 			log.Debug("running queued job done")
 		}
 	}
+}
+
+func (s *Scheduler) resumeStartedDeals() error {
+	ejids := s.js.GetExecutingJobs()
+	// No need for rate limit since "Executing" # of jobs are already rate limited on creation.
+	var wg sync.WaitGroup
+	for _, jid := range ejids {
+		if s.ctx.Err() != nil {
+			break
+		}
+		j, err := s.js.Get(jid)
+		if err != nil {
+			return fmt.Errorf("getting resumed queued job: %s", err)
+		}
+		wg.Add(1)
+		go func(j ffs.Job) {
+			defer wg.Done()
+			// We re-execute the pipeline as if was dequeued.
+			// Both hot and cold storage can detect resumed job execution.
+			if err := s.executeQueuedJob(j); err != nil {
+				log.Errorf("error executing job %s: %s", j.ID, err)
+			}
+		}(j)
+	}
+	wg.Wait()
+	return nil
 }
 
 func (s *Scheduler) execRepairCron(ctx context.Context) {
@@ -487,27 +521,51 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		return curr.Cold, nil, nil
 	}
 
-	if isCurrentRepFactorEnough(cfg.Filecoin.RepFactor, curr) {
+	sds, err := s.js.GetStartedDeals(curr.Cid)
+	if err != nil {
+		return ffs.ColdInfo{}, nil, fmt.Errorf("checking for started deals: %s", err)
+	}
+	var allErrors []ffs.DealError
+	if len(sds) > 0 {
+		s.l.Log(ctx, curr.Cid, "Resuming %d dettached executing deals...", len(sds))
+		fsg, failedDeals, err := s.cs.WaitForDeals(ctx, curr.Cid, sds)
+		if err != nil {
+			return ffs.ColdInfo{}, nil, fmt.Errorf("finish tracking reattached deals: %s", err)
+		}
+		s.l.Log(ctx, curr.Cid, "A total of %d resumed deals finished successfully", len(fsg))
+		allErrors = append(allErrors, failedDeals...)
+		// Append the resumed and confirmed deals to the current active proposals
+		curr.Cold.Filecoin.Proposals = append(fsg, curr.Cold.Filecoin.Proposals...)
+	}
+
+	if cfg.Filecoin.RepFactor-len(curr.Cold.Filecoin.Proposals) <= 0 {
 		s.l.Log(ctx, curr.Cid, "The current replication factor is equal or higher than desired, avoiding making new deals.")
-		log.Infof("replication well enough, avoid making new deals")
 		return curr.Cold, nil, nil
 	}
 
 	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
 	s.l.Log(ctx, curr.Cid, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
-	fi, errors, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
+	startedProposals, rejectedProposals, size, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
 	if err != nil {
-		return ffs.ColdInfo{}, errors, err
+		return ffs.ColdInfo{}, rejectedProposals, err
 	}
-	fi.Proposals = append(fi.Proposals, curr.Cold.Filecoin.Proposals...)
-	return ffs.ColdInfo{
-		Filecoin: fi,
-	}, errors, nil
-}
+	if err := s.js.AddStartedDeals(curr.Cid, startedProposals); err != nil {
+		return ffs.ColdInfo{}, rejectedProposals, err
+	}
+	okDeals, failedDeals, err := s.cs.WaitForDeals(ctx, curr.Cid, startedProposals)
+	allErrors = append(rejectedProposals, failedDeals...)
+	if err != nil {
+		return ffs.ColdInfo{}, allErrors, fmt.Errorf("watching deals unfold: %s", err)
+	}
+	if err := s.js.RemoveStartedDeals(curr.Cid); err != nil {
+		return ffs.ColdInfo{}, allErrors, fmt.Errorf("removing temporal started deals storage: %s", err)
+	}
 
-func isCurrentRepFactorEnough(desiredRepFactor int, curr ffs.CidInfo) bool {
-	return desiredRepFactor-len(curr.Cold.Filecoin.Proposals) <= 0
-
+	return ffs.ColdInfo{Filecoin: ffs.FilInfo{
+		DataCid:   curr.Cid,
+		Size:      size,
+		Proposals: append(okDeals, curr.Cold.Filecoin.Proposals...), // Append to any existing other proposals
+	}}, allErrors, nil
 }
 
 func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {
