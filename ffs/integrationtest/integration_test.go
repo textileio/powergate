@@ -774,7 +774,7 @@ func TestRenew(t *testing.T) {
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
-	renewThreshold := 50
+	renewThreshold := 2550
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
@@ -807,7 +807,7 @@ Loop:
 		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
-		require.Equal(t, config.Cold.Filecoin.DealMinDuration, newDeal.Duration)
+		require.Greater(t, newDeal.Duration, config.Cold.Filecoin.DealMinDuration)
 		break Loop
 	}
 }
@@ -821,7 +821,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
-	renewThreshold := 10
+	renewThreshold := 2550
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
@@ -861,7 +861,7 @@ Loop:
 		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
-		require.Equal(t, config.Cold.Filecoin.DealMinDuration, newDeal.Duration)
+		require.Greater(t, newDeal.Duration, config.Cold.Filecoin.DealMinDuration)
 		break Loop
 	}
 }
