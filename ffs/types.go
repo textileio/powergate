@@ -423,8 +423,8 @@ type LogEntry struct {
 type PaychDir int
 
 const (
-	// PaychDirUndef is an undefined direction
-	PaychDirUndef PaychDir = iota
+	// PaychDirUnspecified is an undefined direction
+	PaychDirUnspecified PaychDir = iota
 	// PaychDirInbound is an inbound direction
 	PaychDirInbound
 	// PaychDirOutbound is an outbound direction

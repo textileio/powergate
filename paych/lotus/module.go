@@ -1,4 +1,4 @@
-package paych
+package lotus
 
 import (
 	"context"
@@ -70,7 +70,7 @@ func (m *Module) List(ctx context.Context, addrs ...address.Address) ([]ffs.Payc
 			var dir ffs.PaychDir
 			switch result.status.Direction {
 			case api.PCHUndef:
-				dir = ffs.PaychDirUndef
+				dir = ffs.PaychDirUnspecified
 			case api.PCHInbound:
 				dir = ffs.PaychDirInbound
 			case api.PCHOutbound:
@@ -94,6 +94,7 @@ func (m *Module) List(ctx context.Context, addrs ...address.Address) ([]ffs.Payc
 
 // Create creates a new payment channel
 func (m *Module) Create(ctx context.Context, from address.Address, to address.Address, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
+	return ffs.PaychInfo{}, cid.Undef, fmt.Errorf("unimplemeted for now, blocked by lotus issue #1611")
 	a := types.NewInt(amount)
 	info, err := m.api.PaychGet(ctx, from, to, a)
 	if err != nil {
@@ -110,12 +111,43 @@ func (m *Module) Create(ctx context.Context, from address.Address, to address.Ad
 
 // Redeem redeems a payment channel
 func (m *Module) Redeem(ctx context.Context, ch address.Address) error {
-	return nil
-}
+	vouchers, err := m.api.PaychVoucherList(ctx, ch)
+	if err != nil {
+		return err
+	}
 
-// CreateVoucher creates a pay channel voucher
-func (m *Module) CreateVoucher(ctx context.Context, addr address.Address, amt uint64, opts ...ffs.CreateVoucherOption) (*paych.SignedVoucher, error) {
-	return nil, nil
+	var best *paych.SignedVoucher
+	for _, v := range vouchers {
+		spendable, err := m.api.PaychVoucherCheckSpendable(ctx, ch, v, nil, nil)
+		if err != nil {
+			return err
+		}
+		if spendable {
+			if best == nil || v.Amount.GreaterThan(best.Amount) {
+				best = v
+			}
+		}
+	}
+
+	if best == nil {
+		return fmt.Errorf("No spendable vouchers for that channel")
+	}
+
+	mcid, err := m.api.PaychVoucherSubmit(ctx, ch, best)
+	if err != nil {
+		return err
+	}
+
+	mwait, err := m.api.StateWaitMsg(ctx, mcid)
+	if err != nil {
+		return err
+	}
+
+	if mwait.Receipt.ExitCode != 0 {
+		return fmt.Errorf("submit voucher message execution failed (exit code %d)", mwait.Receipt.ExitCode)
+	}
+
+	return nil
 }
 
 type statusResult struct {
