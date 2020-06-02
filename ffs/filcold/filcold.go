@@ -107,7 +107,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		if p.Renewed {
 			continue
 		}
-		expiry := p.ActivationEpoch + p.Duration
+		expiry := int64(p.StartEpoch) + p.Duration
 		renewalHeight := expiry - int64(cfg.Renew.Threshold)
 		if uint64(renewalHeight) <= height {
 			renewable = append(renewable, p)
@@ -234,6 +234,7 @@ func (fc *FilCold) WaitForDeals(ctx context.Context, c cid.Cid, proposals []cid.
 				Duration:        int64(di.Duration),
 				Miner:           di.Miner,
 				ActivationEpoch: di.ActivationEpoch,
+				StartEpoch:      di.StartEpoch,
 				EpochPrice:      di.PricePerEpoch,
 			}
 			delete(notDone, di.ProposalCid)

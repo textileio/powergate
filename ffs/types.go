@@ -391,6 +391,7 @@ type FilStorage struct {
 	Renewed         bool
 	Duration        int64
 	ActivationEpoch int64
+	StartEpoch      uint64
 	Miner           string
 	EpochPrice      uint64
 }

@@ -253,6 +253,7 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 					continue
 				}
 				newState.ActivationEpoch = int64(ocd.State.SectorStartEpoch)
+				newState.StartEpoch = uint64(ocd.Proposal.StartEpoch)
 			}
 			select {
 			case <-ctx.Done():

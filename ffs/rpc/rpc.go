@@ -677,6 +677,7 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 			Renewed:         p.Renewed,
 			Duration:        p.Duration,
 			ActivationEpoch: p.ActivationEpoch,
+			StartEpoch:      p.StartEpoch,
 			Miner:           p.Miner,
 			EpochPrice:      p.EpochPrice,
 		}

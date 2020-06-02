@@ -71,8 +71,9 @@ message FilStorage {
    bool renewed = 2;
    int64 duration = 3;
    int64 activation_epoch = 4;
-   string miner = 5;
-   uint64 epoch_price = 6;
+   uint64 start_epoch = 5;
+   string miner = 6;
+   uint64 epoch_price = 7;
 }
 
 message FilInfo {
