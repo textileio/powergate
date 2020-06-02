@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/filecoin-project/go-address"
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 )
@@ -433,7 +432,7 @@ const (
 
 // PaychInfo holds information about a payment channel
 type PaychInfo struct {
-	CtlAddr   address.Address
-	Addr      address.Address
+	CtlAddr   string
+	Addr      string
 	Direction PaychDir
 }

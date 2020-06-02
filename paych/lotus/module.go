@@ -21,17 +21,17 @@ type Module struct {
 var _ ffs.PaychManager = (*Module)(nil)
 
 // New creates a new paych module
-func New(api *apistruct.FullNodeStruct) (*Module, error) {
+func New(api *apistruct.FullNodeStruct) *Module {
 	return &Module{
 		api: api,
-	}, nil
+	}
 }
 
 // List lists all payment channels involving the specified addresses
-func (m *Module) List(ctx context.Context, addrs ...address.Address) ([]ffs.PaychInfo, error) {
+func (m *Module) List(ctx context.Context, addrs ...string) ([]ffs.PaychInfo, error) {
 	filter := make(map[string]struct{}, len(addrs))
 	for _, addr := range addrs {
-		filter[addr.String()] = struct{}{}
+		filter[addr] = struct{}{}
 	}
 
 	allAddrs, err := m.api.PaychList(ctx)
@@ -80,8 +80,8 @@ func (m *Module) List(ctx context.Context, addrs ...address.Address) ([]ffs.Payc
 			}
 
 			info := ffs.PaychInfo{
-				CtlAddr:   result.status.ControlAddr,
-				Addr:      result.addr,
+				CtlAddr:   result.status.ControlAddr.String(),
+				Addr:      result.addr.String(),
 				Direction: dir,
 			}
 
@@ -93,32 +93,44 @@ func (m *Module) List(ctx context.Context, addrs ...address.Address) ([]ffs.Payc
 }
 
 // Create creates a new payment channel
-func (m *Module) Create(ctx context.Context, from address.Address, to address.Address, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
-	return ffs.PaychInfo{}, cid.Undef, fmt.Errorf("unimplemeted for now, blocked by lotus issue #1611")
+func (m *Module) Create(ctx context.Context, from string, to string, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
+	// return ffs.PaychInfo{}, cid.Undef, fmt.Errorf("unimplemeted for now, blocked by lotus issue #1611")
+	fAddr, err := address.NewFromString(from)
+	if err != nil {
+		return ffs.PaychInfo{}, cid.Undef, err
+	}
+	tAddr, err := address.NewFromString(from)
+	if err != nil {
+		return ffs.PaychInfo{}, cid.Undef, err
+	}
 	a := types.NewInt(amount)
-	info, err := m.api.PaychGet(ctx, from, to, a)
+	info, err := m.api.PaychGet(ctx, fAddr, tAddr, a)
 	if err != nil {
 		return ffs.PaychInfo{}, cid.Undef, err
 	}
 	// ToDo: verify these addresses and direction make sense
 	res := ffs.PaychInfo{
 		CtlAddr:   from,
-		Addr:      info.Channel,
+		Addr:      info.Channel.String(),
 		Direction: ffs.PaychDirOutbound,
 	}
 	return res, info.ChannelMessage, nil
 }
 
 // Redeem redeems a payment channel
-func (m *Module) Redeem(ctx context.Context, ch address.Address) error {
-	vouchers, err := m.api.PaychVoucherList(ctx, ch)
+func (m *Module) Redeem(ctx context.Context, ch string) error {
+	chAddr, err := address.NewFromString(ch)
+	if err != nil {
+		return err
+	}
+	vouchers, err := m.api.PaychVoucherList(ctx, chAddr)
 	if err != nil {
 		return err
 	}
 
 	var best *paych.SignedVoucher
 	for _, v := range vouchers {
-		spendable, err := m.api.PaychVoucherCheckSpendable(ctx, ch, v, nil, nil)
+		spendable, err := m.api.PaychVoucherCheckSpendable(ctx, chAddr, v, nil, nil)
 		if err != nil {
 			return err
 		}
@@ -133,7 +145,7 @@ func (m *Module) Redeem(ctx context.Context, ch address.Address) error {
 		return fmt.Errorf("No spendable vouchers for that channel")
 	}
 
-	mcid, err := m.api.PaychVoucherSubmit(ctx, ch, best)
+	mcid, err := m.api.PaychVoucherSubmit(ctx, chAddr, best)
 	if err != nil {
 		return err
 	}

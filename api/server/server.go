@@ -44,6 +44,7 @@ import (
 	pgnet "github.com/textileio/powergate/net"
 	pgnetlotus "github.com/textileio/powergate/net/lotus"
 	pgnetRpc "github.com/textileio/powergate/net/rpc"
+	paychLotus "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/reputation"
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -169,6 +170,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
+	pm := paychLotus.New(c)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
 	nm := pgnetlotus.New(c, ip2l)
 	hm := health.New(nm)
@@ -186,7 +188,7 @@ func NewServer(conf Config) (*Server, error) {
 	hs := coreipfs.New(ipfs, l)
 	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
 
-	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
+	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, pm, sched)
 	if err != nil {
 		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}

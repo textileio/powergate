@@ -31,6 +31,7 @@ import (
 	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
+	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -1299,7 +1300,9 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 	wm, err := wallet.New(lotusClient, masterAddr, *big.NewInt(iWalletBal))
 	require.Nil(t, err)
 
-	manager, err := manager.New(ds, wm, sched)
+	pm := paych.New(lotusClient)
+
+	manager, err := manager.New(ds, wm, pm, sched)
 	require.NoError(t, err)
 	err = manager.SetDefaultConfig(ffs.DefaultConfig{
 		Hot: ffs.HotConfig{

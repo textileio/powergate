@@ -129,6 +129,18 @@ message DealError {
    string message = 3;
 }
 
+enum Direction {
+   DIRECTION_UNSPECIFIED = 0;
+   DIRECTION_INBOUND = 1;
+   DIRECTION_OUTBOUND = 2;
+ }
+ 
+ message PaychInfo {
+   string ctl_addr = 1;
+   string addr = 2;
+   Direction direction = 3;
+ }
+
 // request/reply messages
 // -------------------------------------
 
@@ -300,6 +312,31 @@ message AddToHotResponse {
    string cid = 1;
 }
 
+message ListPayChannelsRequest {
+}
+ 
+ message ListPayChannelsResponse {
+   repeated PaychInfo pay_channels = 1;
+ }
+ 
+ message CreatePayChannelRequest {
+   string from = 1;
+   string to = 2;
+   uint64 amount = 3;
+ }
+ 
+ message CreatePayChannelResponse {
+   PaychInfo pay_channel = 1;
+   string channel_message_cid = 2;
+ }
+ 
+ message RedeemPayChannelRequest {
+   string pay_channel_addr = 1;
+ }
+ 
+ message RedeemPayChannelResponse {
+ }
+
 message ShowAllRequest {
 }
 
@@ -331,6 +368,9 @@ service RPCService {
    rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
    rpc Close(CloseRequest) returns (CloseResponse) {}
    rpc AddToHot(stream AddToHotRequest) returns (AddToHotResponse) {}
+   rpc ListPayChannels(ListPayChannelsRequest) returns (ListPayChannelsResponse) {}
+   rpc CreatePayChannel(CreatePayChannelRequest) returns (CreatePayChannelResponse) {}
+   rpc RedeemPayChannel(RedeemPayChannelRequest) returns (RedeemPayChannelResponse) {}
 
    // UI support
    rpc ShowAll(ShowAllRequest) returns (ShowAllResponse) {}

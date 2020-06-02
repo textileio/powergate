@@ -5,8 +5,6 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/specs-actors/actors/builtin/paych"
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 )
@@ -38,13 +36,11 @@ func WithCreateVoucherLane(lane uint64) CreateVoucherOption {
 // PaychManager provides access to payment channels
 type PaychManager interface {
 	// List lists all payment channels involving the specified addresses
-	List(ctx context.Context, addrs ...address.Address) ([]PaychInfo, error)
+	List(ctx context.Context, addrs ...string) ([]PaychInfo, error)
 	// Create creates a new payment channel
-	Create(ctx context.Context, from address.Address, to address.Address, amount uint64) (PaychInfo, cid.Cid, error)
+	Create(ctx context.Context, from string, to string, amount uint64) (PaychInfo, cid.Cid, error)
 	// Redeem redeems a payment channel
-	Redeem(ctx context.Context, ch address.Address) error
-	// CreateVoucer creates a payment channel voucher
-	CreateVoucher(ctx context.Context, addr address.Address, amt uint64, opts ...CreateVoucherOption) (*paych.SignedVoucher, error)
+	Redeem(ctx context.Context, ch string) error
 }
 
 // HotStorage is a fast storage layer for Cid data.
