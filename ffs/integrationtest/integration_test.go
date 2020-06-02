@@ -65,9 +65,9 @@ func TestSetDefaultConfig(t *testing.T) {
 		Cold: ffs.ColdConfig{
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
-				DealDuration: 22333,
-				RepFactor:    23,
-				Addr:         "123456",
+				DealMinDuration: 22333,
+				RepFactor:       23,
+				Addr:            "123456",
 			},
 		},
 	}
@@ -807,7 +807,7 @@ Loop:
 		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
-		require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)
+		require.Equal(t, config.Cold.Filecoin.DealMinDuration, newDeal.Duration)
 		break Loop
 	}
 }
@@ -861,7 +861,7 @@ Loop:
 		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
-		require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)
+		require.Equal(t, config.Cold.Filecoin.DealMinDuration, newDeal.Duration)
 		break Loop
 	}
 }
@@ -1346,9 +1346,9 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 		Cold: ffs.ColdConfig{
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
-				ExcludedMiners: nil,
-				DealDuration:   1000,
-				RepFactor:      1,
+				ExcludedMiners:  nil,
+				DealMinDuration: 1000,
+				RepFactor:       1,
 			},
 		},
 	})

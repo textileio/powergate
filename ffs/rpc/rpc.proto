@@ -29,7 +29,7 @@ message FilRenew {
 
 message FilConfig {
    int64 rep_factor = 1;
-   int64 deal_duration = 2;
+   int64 deal_min_duration = 2;
    repeated string excluded_miners = 3;
    repeated string trusted_miners = 4;
    repeated string country_codes = 5;

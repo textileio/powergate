@@ -26,7 +26,7 @@ type WatchEvent struct {
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs
-func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, duration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
+func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, minDuration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
 	stream, err := d.client.Store(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -42,7 +42,7 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 	storeParams := &rpc.StoreParams{
 		Address:     addr,
 		DealConfigs: reqDealConfigs,
-		Duration:    duration,
+		MinDuration: minDuration,
 	}
 	innerReq := &rpc.StoreRequest_StoreParams{StoreParams: storeParams}
 
@@ -133,7 +133,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				PieceCID:      cid,
 				Size:          event.GetDealInfo().GetSize(),
 				PricePerEpoch: event.GetDealInfo().GetPricePerEpoch(),
-				Duration:      event.GetDealInfo().GetDuration(),
+				Duration:      event.GetDealInfo().GetMinDuration(),
 			}
 			channel <- WatchEvent{Deal: deal}
 		}

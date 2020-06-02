@@ -583,11 +583,11 @@ func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
 	return &ColdConfig{
 		Enabled: config.Enabled,
 		Filecoin: &FilConfig{
-			RepFactor:      int64(config.Filecoin.RepFactor),
-			DealDuration:   int64(config.Filecoin.DealDuration),
-			ExcludedMiners: config.Filecoin.ExcludedMiners,
-			TrustedMiners:  config.Filecoin.TrustedMiners,
-			CountryCodes:   config.Filecoin.CountryCodes,
+			RepFactor:       int64(config.Filecoin.RepFactor),
+			DealMinDuration: int64(config.Filecoin.DealMinDuration),
+			ExcludedMiners:  config.Filecoin.ExcludedMiners,
+			TrustedMiners:   config.Filecoin.TrustedMiners,
+			CountryCodes:    config.Filecoin.CountryCodes,
 			Renew: &FilRenew{
 				Enabled:   config.Filecoin.Renew.Enabled,
 				Threshold: int64(config.Filecoin.Renew.Threshold),
@@ -631,13 +631,13 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 		res.Enabled = config.Enabled
 		if config.Filecoin != nil {
 			filecoin := ffs.FilConfig{
-				RepFactor:      int(config.Filecoin.RepFactor),
-				DealDuration:   config.Filecoin.DealDuration,
-				ExcludedMiners: config.Filecoin.ExcludedMiners,
-				CountryCodes:   config.Filecoin.CountryCodes,
-				TrustedMiners:  config.Filecoin.TrustedMiners,
-				Addr:           config.Filecoin.Addr,
-				MaxPrice:       config.Filecoin.MaxPrice,
+				RepFactor:       int(config.Filecoin.RepFactor),
+				DealMinDuration: config.Filecoin.DealMinDuration,
+				ExcludedMiners:  config.Filecoin.ExcludedMiners,
+				CountryCodes:    config.Filecoin.CountryCodes,
+				TrustedMiners:   config.Filecoin.TrustedMiners,
+				Addr:            config.Filecoin.Addr,
+				MaxPrice:        config.Filecoin.MaxPrice,
 			}
 			if config.Filecoin.Renew != nil {
 				renew := ffs.FilRenew{

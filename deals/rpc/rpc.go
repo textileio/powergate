@@ -49,7 +49,7 @@ func store(ctx context.Context, dealsModule *deals.Module, storeParams *StorePar
 		ch <- storeResult{Err: err}
 		return
 	}
-	sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), dcid, uint64(size), dealConfigs, storeParams.GetDuration())
+	sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), dcid, uint64(size), dealConfigs, storeParams.GetMinDuration())
 	if err != nil {
 		ch <- storeResult{Err: err}
 		return
@@ -147,7 +147,7 @@ func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 			PieceCid:      update.PieceCID.Bytes(),
 			Size:          update.Size,
 			PricePerEpoch: update.PricePerEpoch,
-			Duration:      update.Duration,
+			MinDuration:   update.Duration,
 		}
 		if err := srv.Send(&WatchResponse{DealInfo: dealInfo}); err != nil {
 			log.Errorf("sending response: %v", err)

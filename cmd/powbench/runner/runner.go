@@ -130,13 +130,13 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		Cold: ffs.ColdConfig{
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
-				RepFactor:      1,
-				DealDuration:   1000,
-				Addr:           addr,
-				CountryCodes:   nil,
-				ExcludedMiners: nil,
-				TrustedMiners:  []string{minerAddr},
-				Renew:          ffs.FilRenew{},
+				RepFactor:       1,
+				DealMinDuration: 1000,
+				Addr:            addr,
+				CountryCodes:    nil,
+				ExcludedMiners:  nil,
+				TrustedMiners:   []string{minerAddr},
+				Renew:           ffs.FilRenew{},
 			},
 		},
 	}

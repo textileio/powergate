@@ -170,7 +170,7 @@ func (c CidConfig) WithColdFilRepFactor(repFactor int) CidConfig {
 
 // WithColdFilDealDuration defines the duration used for deals for Filecoin storage.
 func (c CidConfig) WithColdFilDealDuration(duration int64) CidConfig {
-	c.Cold.Filecoin.DealDuration = duration
+	c.Cold.Filecoin.DealMinDuration = duration
 	return c
 }
 
@@ -297,8 +297,8 @@ type FilConfig struct {
 	// with different miners to store the data. While making deals
 	// the other attributes of FilConfig are considered for miner selection.
 	RepFactor int
-	// DealDuration indicates the duration to be used when making new deals.
-	DealDuration int64
+	// DealMinDuration indicates the duration to be used when making new deals.
+	DealMinDuration int64
 	// ExcludedMiners is a set of miner addresses won't be ever be selected
 	// when making new deals, even if they comply to other filters.
 	ExcludedMiners []string
@@ -321,8 +321,8 @@ func (fc *FilConfig) Validate() error {
 	if fc.RepFactor <= 0 {
 		return fmt.Errorf("replication factor should be greater than zero, got %d", fc.RepFactor)
 	}
-	if fc.DealDuration <= 0 {
-		return fmt.Errorf("deal duration should be greater than zero, got %d", fc.DealDuration)
+	if fc.DealMinDuration <= 0 {
+		return fmt.Errorf("deal duration should be greater than zero, got %d", fc.DealMinDuration)
 	}
 	if err := fc.Renew.Validate(); err != nil {
 		return fmt.Errorf("invalid renew config: %s", err)

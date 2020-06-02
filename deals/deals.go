@@ -90,7 +90,7 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 // is automatically calculated considering each miner epoch price and data size.
 // The data of dataCid should be already imported to the Filecoin Client or should be
 // accessible to it. (e.g: is integrated with an IPFS node).
-func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size uint64, dcfgs []StorageDealConfig, duration uint64) ([]StoreResult, error) {
+func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size uint64, dcfgs []StorageDealConfig, minDuration uint64) ([]StoreResult, error) {
 	gbSize := float64(size) / float64(1<<30)
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
@@ -110,7 +110,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size 
 			Data: &storagemarket.DataRef{
 				Root: dataCid,
 			},
-			MinBlocksDuration: duration,
+			MinBlocksDuration: minDuration,
 			EpochPrice:        types.NewInt(uint64(math.Ceil(2 * gbSize * float64(c.EpochPrice)))),
 			Miner:             maddr,
 			Wallet:            addr,

@@ -36,7 +36,7 @@ var storeCmd = &cobra.Command{
 		defer cancel()
 
 		addr := viper.GetString("address")
-		duration := viper.GetUint64("duration")
+		minDuration := viper.GetUint64("minDuration")
 		path := viper.GetString("file")
 		miners := viper.GetStringSlice("miners")
 		prices := viper.GetIntSlice("prices")
@@ -48,8 +48,8 @@ var storeCmd = &cobra.Command{
 			Fatal(errors.New("store command needs a wallet address"))
 		}
 
-		if duration == 0 {
-			Fatal(errors.New("store command duration should be > 0"))
+		if minDuration == 0 {
+			Fatal(errors.New("store command minimum duration should be > 0"))
 		}
 
 		file, err := os.Open(path)
@@ -78,7 +78,7 @@ var storeCmd = &cobra.Command{
 
 		s := spin.New("%s Initiating specified storage deals...")
 		s.Start()
-		success, failed, err := fcClient.Deals.Store(ctx, addr, file, dealConfigs, duration)
+		success, failed, err := fcClient.Deals.Store(ctx, addr, file, dealConfigs, minDuration)
 		s.Stop()
 		checkErr(err)
 
