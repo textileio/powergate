@@ -340,7 +340,7 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 				close(ch)
 				break
 			}
-			dealErrors, err := protoToDealError(reply.Job.DealErrors)
+			dealErrors, err := fromRPCDealErrors(reply.Job.DealErrors)
 			if err != nil {
 				ch <- JobEvent{Err: err}
 				close(ch)
@@ -536,6 +536,44 @@ func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	return &cid, nil
 }
 
+// ListPayChannels returns a list of payment channels
+func (f *FFS) ListPayChannels(ctx context.Context) ([]ffs.PaychInfo, error) {
+	resp, err := f.client.ListPayChannels(ctx, &rpc.ListPayChannelsRequest{})
+	if err != nil {
+		return []ffs.PaychInfo{}, err
+	}
+	infos := make([]ffs.PaychInfo, len(resp.PayChannels))
+	for i, info := range resp.PayChannels {
+		infos[i] = fromRPCPaychInfo(info)
+	}
+	return infos, nil
+}
+
+// CreatePayChannel creates a new payment channel
+func (f *FFS) CreatePayChannel(ctx context.Context, from string, to string, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
+	req := &rpc.CreatePayChannelRequest{
+		From:   from,
+		To:     to,
+		Amount: amount,
+	}
+	resp, err := f.client.CreatePayChannel(ctx, req)
+	if err != nil {
+		return ffs.PaychInfo{}, cid.Undef, err
+	}
+	messageCid, err := cid.Decode(resp.ChannelMessageCid)
+	if err != nil {
+		return ffs.PaychInfo{}, cid.Undef, err
+	}
+	return fromRPCPaychInfo(resp.PayChannel), messageCid, nil
+}
+
+// RedeemPayChannel redeems a payment channel
+func (f *FFS) RedeemPayChannel(ctx context.Context, addr string) error {
+	req := &rpc.RedeemPayChannelRequest{PayChannelAddr: addr}
+	_, err := f.client.RedeemPayChannel(ctx, req)
+	return err
+}
+
 func toRPCHotConfig(config ffs.HotConfig) *rpc.HotConfig {
 	return &rpc.HotConfig{
 		Enabled:       config.Enabled,
@@ -564,7 +602,7 @@ func toRPCColdConfig(config ffs.ColdConfig) *rpc.ColdConfig {
 	}
 }
 
-func protoToDealError(des []*rpc.DealError) ([]ffs.DealError, error) {
+func fromRPCDealErrors(des []*rpc.DealError) ([]ffs.DealError, error) {
 	res := make([]ffs.DealError, len(des))
 	for i, de := range des {
 		var propCid cid.Cid
@@ -582,4 +620,21 @@ func protoToDealError(des []*rpc.DealError) ([]ffs.DealError, error) {
 		}
 	}
 	return res, nil
+}
+
+func fromRPCPaychInfo(info *rpc.PaychInfo) ffs.PaychInfo {
+	var direction ffs.PaychDir
+	switch info.Direction {
+	case rpc.Direction_DIRECTION_INBOUND:
+		direction = ffs.PaychDirInbound
+	case rpc.Direction_DIRECTION_OUTBOUND:
+		direction = ffs.PaychDirOutbound
+	default:
+		direction = ffs.PaychDirUnspecified
+	}
+	return ffs.PaychInfo{
+		CtlAddr:   info.CtlAddr,
+		Addr:      info.Addr,
+		Direction: direction,
+	}
 }
