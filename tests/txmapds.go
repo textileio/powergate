@@ -49,6 +49,7 @@ func (d *TxMapDatastore) Query(q query.Query) (query.Results, error) {
 	return d.MapDatastore.Query(q)
 }
 
+// Clone returns a cloned datastore.
 func (d *TxMapDatastore) Clone() (*TxMapDatastore, error) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
@@ -58,7 +59,7 @@ func (d *TxMapDatastore) Clone() (*TxMapDatastore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying datastore: %s", err)
 	}
-	defer res.Close()
+	defer func() { _ = res.Close() }()
 
 	t2 := &TxMapDatastore{
 		MapDatastore: datastore.NewMapDatastore(),

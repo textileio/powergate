@@ -123,6 +123,7 @@ func (s *Store) Enqueue(j ffs.Job) error {
 	return nil
 }
 
+// GetExecutingJobs returns the JobIDs of all Jobs in Executing status.
 func (s *Store) GetExecutingJobs() []ffs.JobID {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -202,6 +203,8 @@ func (s *Store) Watch(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) erro
 	return nil
 }
 
+// StartedDeals describe deals that are currently waiting to have a
+// final status.
 type StartedDeals struct {
 	Cid          cid.Cid
 	ProposalCids []cid.Cid

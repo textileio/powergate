@@ -1266,6 +1266,7 @@ func TestResumeScheduler(t *testing.T) {
 	closeManager()
 
 	manager, closeManager = newFFSManager(t, ds2, client, addr, ms, ipfs)
+	defer closeManager()
 	fapi, err = manager.GetByAuthToken(auth) // Get same FFS instance again
 	require.NoError(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)

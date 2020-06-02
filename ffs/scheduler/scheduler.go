@@ -549,11 +549,12 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	if err != nil {
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
+	allErrors = append(allErrors, rejectedProposals...)
 	if err := s.js.AddStartedDeals(curr.Cid, startedProposals); err != nil {
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
 	okDeals, failedDeals, err := s.cs.WaitForDeals(ctx, curr.Cid, startedProposals)
-	allErrors = append(rejectedProposals, failedDeals...)
+	allErrors = append(allErrors, failedDeals...)
 	if err != nil {
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("watching deals unfold: %s", err)
 	}

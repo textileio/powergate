@@ -206,6 +206,8 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 	return okDeals, failedDeals, nil
 }
 
+// WaitForDeals blocks waiting for all the provided proposals to reach a final status.
+// It returns the ones that finished successfully and the other deal errors that happened on failed ones.
 func (fc *FilCold) WaitForDeals(ctx context.Context, c cid.Cid, proposals []cid.Cid) ([]ffs.FilStorage, []ffs.DealError, error) {
 	var errors []ffs.DealError
 	notDone := make(map[cid.Cid]struct{})
