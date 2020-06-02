@@ -54,7 +54,8 @@ import (
 )
 
 const (
-	datastoreFolderName = "datastore"
+	datastoreFolderName    = "datastore"
+	lotusConnectionRetries = 10
 )
 
 var (
@@ -109,7 +110,7 @@ type Config struct {
 func NewServer(conf Config) (*Server, error) {
 	var err error
 	var masterAddr address.Address
-	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
+	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
 	if err != nil {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
