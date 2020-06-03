@@ -31,7 +31,7 @@ services:
       - textile-fc-lotus:/root/lotus
   
   lotus:
-    image: textile/lotus:75041b9
+    image: textile/lotus:06670f4
     volumes:
       - textile-fc-lotus:/data
     environment:

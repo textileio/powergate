@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	batchSize = 20
+	batchSize = 50
 )
 
 var (
@@ -100,7 +100,7 @@ func (s *Index) Listen() <-chan struct{} {
 	return s.signaler.Listen()
 }
 
-// Unregister frees a channel from the signaler hub
+// Unregister frees a channel from the signaler hub.
 func (s *Index) Unregister(c chan struct{}) {
 	s.signaler.Unregister(c)
 }
@@ -119,11 +119,11 @@ func (s *Index) Close() error {
 	return nil
 }
 
-// start is a long running job that keeps the index up to date with chain updates
+// start is a long running job that keeps the index up to date with chain updates.
 func (s *Index) start() {
 	defer close(s.finished)
 	if err := s.updateIndex(); err != nil {
-		log.Errorf("error on first updating faults history: %s", err)
+		log.Errorf("initial updating faults index: %s", err)
 	}
 	for {
 		select {
@@ -132,14 +132,14 @@ func (s *Index) start() {
 			return
 		case <-time.After(util.AvgBlockTime):
 			if err := s.updateIndex(); err != nil {
-				log.Errorf("error when updating faults history: %s", err)
+				log.Errorf("updating faults history: %s", err)
 				continue
 			}
 		}
 	}
 }
 
-// updateIndex updates current index with a new discovered chain head.
+// updateIndex updates current index.
 func (s *Index) updateIndex() error {
 	log.Info("updating faults index...")
 	heaviest, err := s.api.ChainHead(s.ctx)
