@@ -66,9 +66,9 @@ func TestSetDefaultConfig(t *testing.T) {
 		Cold: ffs.ColdConfig{
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
-				DealDuration: 22333,
-				RepFactor:    23,
-				Addr:         "123456",
+				DealMinDuration: 22333,
+				RepFactor:       23,
+				Addr:            "123456",
 			},
 		},
 	}
@@ -421,7 +421,7 @@ func TestDurationConfig(t *testing.T) {
 	cinfo, err := fapi.Show(cid)
 	require.Nil(t, err)
 	p := cinfo.Cold.Filecoin.Proposals[0]
-	require.Equal(t, duration, p.Duration)
+	require.Greater(t, p.Duration, duration)
 	require.Greater(t, p.ActivationEpoch, int64(0))
 }
 
@@ -775,7 +775,7 @@ func TestRenew(t *testing.T) {
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
-	renewThreshold := 50
+	renewThreshold := 12600
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
@@ -808,7 +808,7 @@ Loop:
 		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
-		require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)
+		require.Greater(t, newDeal.Duration, config.Cold.Filecoin.DealMinDuration)
 		break Loop
 	}
 }
@@ -822,7 +822,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
 
-	renewThreshold := 10
+	renewThreshold := 12600
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
 	jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 	require.Nil(t, err)
@@ -862,7 +862,7 @@ Loop:
 		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
-		require.Equal(t, config.Cold.Filecoin.DealDuration, newDeal.Duration)
+		require.Greater(t, newDeal.Duration, config.Cold.Filecoin.DealMinDuration)
 		break Loop
 	}
 }
@@ -1243,6 +1243,40 @@ func TestLogHistory(t *testing.T) {
 	require.Greater(t, len(lgs), 3) // Ask to have more than 3 log messages.
 }
 
+func TestResumeScheduler(t *testing.T) {
+	t.Parallel()
+
+	ds := tests.NewTxMapDatastore()
+	ipfs, ipfsMAddr := createIPFS(t)
+	addr, client, ms := newDevnet(t, 1, ipfsMAddr)
+	manager, closeManager := newFFSManager(t, ds, client, addr, ms, ipfs)
+	_, auth, err := manager.Create(context.Background())
+	require.NoError(t, err)
+	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
+	fapi, err := manager.GetByAuthToken(auth)
+	require.NoError(t, err)
+
+	r := rand.New(rand.NewSource(22))
+	c, _ := addRandomFile(t, r, ipfs)
+	jid, err := fapi.PushConfig(c)
+	require.Nil(t, err)
+
+	time.Sleep(time.Second * 3)
+	ds2, err := ds.Clone()
+	require.NoError(t, err)
+	closeManager()
+
+	manager, closeManager = newFFSManager(t, ds2, client, addr, ms, ipfs)
+	defer closeManager()
+	fapi, err = manager.GetByAuthToken(auth) // Get same FFS instance again
+	require.NoError(t, err)
+	requireJobState(t, fapi, jid, ffs.Success)
+
+	sh, err := fapi.Show(c)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(sh.Cold.Filecoin.Proposals)) // Check only one deal still exits.
+}
+
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := createIPFS(t)
@@ -1295,7 +1329,8 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
 	cl := filcold.New(ms, dm, ipfsClient, fchain, l)
 	hl := coreipfs.New(ipfsClient, l)
-	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
+	require.NoError(t, err)
 
 	wm, err := wallet.New(lotusClient, masterAddr, *big.NewInt(iWalletBal))
 	require.Nil(t, err)
@@ -1315,9 +1350,9 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 		Cold: ffs.ColdConfig{
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
-				ExcludedMiners: nil,
-				DealDuration:   1000,
-				RepFactor:      1,
+				ExcludedMiners:  nil,
+				DealMinDuration: 1000,
+				RepFactor:       1,
 			},
 		},
 	})

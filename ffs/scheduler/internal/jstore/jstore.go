@@ -19,15 +19,19 @@ var (
 
 	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("job not found")
+
+	dsBaseJob          = datastore.NewKey("job")
+	dsBaseStartedDeals = datastore.NewKey("starteddeals")
 )
 
 // Store is a Datastore implementation of JobStore, which saves
 // state of scheduler Jobs.
 type Store struct {
-	lock       sync.Mutex
-	ds         datastore.Datastore
-	watchers   []watcher
-	inProgress map[cid.Cid]struct{}
+	lock     sync.Mutex
+	ds       datastore.Datastore
+	watchers []watcher
+
+	executingCids map[cid.Cid]ffs.JobID
 }
 
 type watcher struct {
@@ -36,11 +40,15 @@ type watcher struct {
 }
 
 // New returns a new JobStore backed by the Datastore.
-func New(ds datastore.Datastore) *Store {
-	return &Store{
-		ds:         ds,
-		inProgress: make(map[cid.Cid]struct{}),
+func New(ds datastore.Datastore) (*Store, error) {
+	s := &Store{
+		ds:            ds,
+		executingCids: make(map[cid.Cid]ffs.JobID),
 	}
+	if err := s.loadExecutingJobs(); err != nil {
+		return nil, fmt.Errorf("reloading priori executing jobs: %s", err)
+	}
+	return s, nil
 }
 
 // Finalize sets a Job status to a final state, i.e. Success or Failed,
@@ -68,7 +76,7 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 
 // Dequeue dequeues a Job which doesn't have have another Executing Job
 // for the same Cid. Saying it differently, it's safe to execute. The returned
-// job Status is automatically changed to Queued. If no jobs are available to dequeue
+// job Status is automatically changed to Executing. If no jobs are available to dequeue
 // it returns a nil *ffs.Job and no-error.
 func (s *Store) Dequeue() (*ffs.Job, error) {
 	s.lock.Lock()
@@ -88,7 +96,7 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return nil, fmt.Errorf("unmarshalling job: %s", err)
 		}
-		_, ok := s.inProgress[j.Cid]
+		_, ok := s.executingCids[j.Cid]
 		if j.Status == ffs.Queued && !ok {
 			j.Status = ffs.Executing
 			if err := s.put(j); err != nil {
@@ -113,6 +121,20 @@ func (s *Store) Enqueue(j ffs.Job) error {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
 	return nil
+}
+
+// GetExecutingJobs returns the JobIDs of all Jobs in Executing status.
+func (s *Store) GetExecutingJobs() []ffs.JobID {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	res := make([]ffs.JobID, len(s.executingCids))
+	var i int
+	for _, jid := range s.executingCids {
+		res[i] = jid
+		i++
+	}
+	return res
+
 }
 
 func (s *Store) cancelQueued(c cid.Cid) error {
@@ -181,6 +203,59 @@ func (s *Store) Watch(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) erro
 	return nil
 }
 
+// StartedDeals describe deals that are currently waiting to have a
+// final status.
+type StartedDeals struct {
+	Cid          cid.Cid
+	ProposalCids []cid.Cid
+}
+
+// AddStartedDeals is a temporal storage solution of deals that are started
+// are being watched. It serves as a recovery point to reattach to fired
+// deals when the scheduler was abruptly interrupted.
+func (s *Store) AddStartedDeals(c cid.Cid, proposals []cid.Cid) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	sd := StartedDeals{Cid: c, ProposalCids: proposals}
+	buf, err := json.Marshal(sd)
+	if err != nil {
+		return fmt.Errorf("marshaling started deals: %s", err)
+	}
+	if err := s.ds.Put(makeStartedDealsKey(c), buf); err != nil {
+		return fmt.Errorf("saving started deals to datastore: %s", err)
+	}
+	return nil
+}
+
+// RemoveStartedDeals removes all started deals from Cid.
+func (s *Store) RemoveStartedDeals(c cid.Cid) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	if err := s.ds.Delete(makeStartedDealsKey(c)); err != nil {
+		return fmt.Errorf("deleting started deals from datastore: %s", err)
+	}
+	return nil
+}
+
+// GetStartedDeals gets all stored started deals from Cid. If no started
+// deals are present, an empty slice is returned.
+func (s *Store) GetStartedDeals(c cid.Cid) ([]cid.Cid, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	var sd StartedDeals
+	b, err := s.ds.Get(makeStartedDealsKey(c))
+	if err == datastore.ErrNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getting started deals from datastore: %s", err)
+	}
+	if err := json.Unmarshal(b, &sd); err != nil {
+		return nil, fmt.Errorf("unmarshaling started deals from datastore: %s", err)
+	}
+	return sd.ProposalCids, nil
+}
+
 // Close closes the Store, unregistering any subscribed watchers.
 func (s *Store) Close() error {
 	s.lock.Lock()
@@ -201,9 +276,9 @@ func (s *Store) put(j ffs.Job) error {
 	}
 	s.notifyWatchers(j)
 	if j.Status == ffs.Executing {
-		s.inProgress[j.Cid] = struct{}{}
+		s.executingCids[j.Cid] = j.ID
 	} else if j.Status == ffs.Failed || j.Status == ffs.Success {
-		delete(s.inProgress, j.Cid)
+		delete(s.executingCids, j.Cid)
 	}
 	return nil
 }
@@ -237,6 +312,35 @@ func (s *Store) notifyWatchers(j ffs.Job) {
 	}
 }
 
+func (s *Store) loadExecutingJobs() error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	q := query.Query{Prefix: ""}
+	res, err := s.ds.Query(q)
+	if err != nil {
+		return fmt.Errorf("querying executing jobs in datastore: %s", err)
+	}
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
+	for r := range res.Next() {
+		var j ffs.Job
+		if err := json.Unmarshal(r.Value, &j); err != nil {
+			return fmt.Errorf("unmarshalling job: %s", err)
+		}
+		if j.Status == ffs.Executing {
+			s.executingCids[j.Cid] = j.ID
+		}
+	}
+	return nil
+}
+
+func makeStartedDealsKey(c cid.Cid) datastore.Key {
+	return dsBaseStartedDeals.ChildString(c.String())
+}
+
 func makeKey(jid ffs.JobID) datastore.Key {
-	return datastore.NewKey(jid.String())
+	return dsBaseJob.ChildString(jid.String())
 }

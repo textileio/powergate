@@ -37,8 +37,8 @@ var (
 		Cold: ffs.ColdConfig{
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
-				RepFactor:    1,
-				DealDuration: 1000,
+				RepFactor:       1,
+				DealMinDuration: 1000,
 			},
 		},
 	}

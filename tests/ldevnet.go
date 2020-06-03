@@ -29,7 +29,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockerte
 		devnetEnv("IPFSADDR", ipfsMaddr),
 	}
 	repository := "textile/lotus-devnet"
-	tag := "sha-77f20c7"
+	tag := "sha-f8988b8"
 	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: envs, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))
@@ -71,7 +71,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockerte
 // CreateLocalDevnetWithIPFS creates a local devnet connected to an IPFS node.
 func CreateLocalDevnetWithIPFS(t *testing.T, numMiners int, ipfsMaddr string) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
 	lotusDevnet := LaunchDevnetDocker(t, numMiners, ipfsMaddr)
-	c, cls, err := lotus.New(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "")
+	c, cls, err := lotus.New(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "", 1)
 	if err != nil {
 		panic(err)
 	}

@@ -2,6 +2,7 @@ package lotus
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -21,7 +22,7 @@ var (
 )
 
 // New creates a new client to Lotus API
-func New(maddr ma.Multiaddr, authToken string) (*apistruct.FullNodeStruct, func(), error) {
+func New(maddr ma.Multiaddr, authToken string, connRetries int) (*apistruct.FullNodeStruct, func(), error) {
 	addr, err := util.TCPAddrFromMultiAddr(maddr)
 	if err != nil {
 		return nil, nil, err
@@ -29,18 +30,27 @@ func New(maddr ma.Multiaddr, authToken string) (*apistruct.FullNodeStruct, func(
 	headers := http.Header{
 		"Authorization": []string{"Bearer " + authToken},
 	}
+
 	var api apistruct.FullNodeStruct
-	closer, err := jsonrpc.NewMergeClient("ws://"+addr+"/rpc/v0", "Filecoin",
-		[]interface{}{
-			&api.Internal,
-			&api.CommonStruct.Internal,
-		}, headers)
+	var closer jsonrpc.ClientCloser
+	for i := 0; i < connRetries; i++ {
+		closer, err = jsonrpc.NewMergeClient("ws://"+addr+"/rpc/v0", "Filecoin",
+			[]interface{}{
+				&api.Internal,
+				&api.CommonStruct.Internal,
+			}, headers)
+		if err == nil {
+			break
+		}
+		log.Warnf("failed to connect to Lotus client %s, retrying...", err)
+		time.Sleep(time.Second * 5)
+	}
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("couldn't connect to Lotus API: %s", err)
 	}
 
 	if err := view.Register(vHeight); err != nil {
-		log.Fatalf("Failed to register views: %v", err)
+		log.Fatalf("register metrics views: %v", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
