@@ -36,6 +36,9 @@ services:
       - textile-fc-lotus:/data
     environment:
       - LOTUS_API_LISTENADDRESS=/ip4/0.0.0.0/tcp/1234/http
+      - LOTUS_CLIENT_USEIPFS=true
+      - LOTUS_CLIENT_IPFSUSEFORRETRIEVAL=true
+      - LOTUS_CLIENT_IPFSMADDR=/dns4/ipfs/tcp/5001
     ports:
       - 1234:1234
       - 5678:5678
