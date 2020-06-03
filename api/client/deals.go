@@ -126,14 +126,18 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				break
 			}
 			deal := deals.DealInfo{
-				ProposalCid:   proposalCid,
-				StateID:       event.GetDealInfo().GetStateId(),
-				StateName:     event.GetDealInfo().GetStateName(),
-				Miner:         event.GetDealInfo().GetMiner(),
-				PieceCID:      cid,
-				Size:          event.GetDealInfo().GetSize(),
-				PricePerEpoch: event.GetDealInfo().GetPricePerEpoch(),
-				Duration:      event.GetDealInfo().GetMinDuration(),
+				ProposalCid:     proposalCid,
+				StateID:         event.GetDealInfo().GetStateId(),
+				StateName:       event.GetDealInfo().GetStateName(),
+				Miner:           event.GetDealInfo().GetMiner(),
+				PieceCID:        cid,
+				Size:            event.GetDealInfo().GetSize(),
+				PricePerEpoch:   event.GetDealInfo().GetPricePerEpoch(),
+				StartEpoch:      event.GetDealInfo().GetStartEpoch(),
+				Duration:        event.GetDealInfo().GetDuration(),
+				DealID:          event.GetDealInfo().GetDealId(),
+				ActivationEpoch: event.GetDealInfo().GetActivationEpoch(),
+				Message:         event.GetDealInfo().GetMsg(),
 			}
 			channel <- WatchEvent{Deal: deal}
 		}

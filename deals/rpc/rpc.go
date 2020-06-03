@@ -147,7 +147,7 @@ func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 			PieceCid:      update.PieceCID.Bytes(),
 			Size:          update.Size,
 			PricePerEpoch: update.PricePerEpoch,
-			MinDuration:   update.Duration,
+			Duration:      update.Duration,
 		}
 		if err := srv.Send(&WatchResponse{DealInfo: dealInfo}); err != nil {
 			log.Errorf("sending response: %v", err)
