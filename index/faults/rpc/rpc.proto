@@ -1,14 +1,14 @@
 syntax = "proto3";
-package index.slashing.rpc;
+package index.faults.rpc;
 
-option go_package = "index/slashing/rpc";
+option go_package = "index/faults/rpc";
 
 message Index {
     string tipsetkey = 1;
-    map<string, Slashes> miners = 2;
+    map<string, Faults> miners = 2;
 }
 
-message Slashes {
+message Faults {
     repeated uint64 epochs = 1;
 }
 

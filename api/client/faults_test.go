@@ -3,12 +3,12 @@ package client
 import (
 	"testing"
 
-	"github.com/textileio/powergate/index/slashing/rpc"
+	"github.com/textileio/powergate/index/faults/rpc"
 )
 
-func TestGetSlashing(t *testing.T) {
+func TestGetFaults(t *testing.T) {
 	skipIfShort(t)
-	s, done := setupSlashing(t)
+	s, done := setupFaults(t)
 	defer done()
 
 	_, err := s.Get(ctx)
@@ -17,10 +17,10 @@ func TestGetSlashing(t *testing.T) {
 	}
 }
 
-func setupSlashing(t *testing.T) (*Slashing, func()) {
+func setupFaults(t *testing.T) (*Faults, func()) {
 	serverDone := setupServer(t)
 	conn, done := setupConnection(t)
-	return &Slashing{client: rpc.NewRPCServiceClient(conn)}, func() {
+	return &Faults{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()
 		serverDone()
 	}

@@ -64,19 +64,19 @@ func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 	}
 
 	power := map[string]miner.Power{
-		"miner1": miner.Power{
+		"miner1": {
 			Power:    88,
 			Relative: 0.5,
 		},
-		"miner2": miner.Power{
+		"miner2": {
 			Power:    46,
 			Relative: 0.34,
 		},
-		"miner3": miner.Power{
+		"miner3": {
 			Power:    3,
 			Relative: 0.84,
 		},
-		"miner4": miner.Power{
+		"miner4": {
 			Power:    234,
 			Relative: 0.14,
 		},

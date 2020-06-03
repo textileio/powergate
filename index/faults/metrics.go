@@ -1,4 +1,4 @@
-package slashing
+package faults
 
 import (
 	"go.opencensus.io/stats"

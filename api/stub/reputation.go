@@ -22,19 +22,19 @@ func (r *Reputation) AddSource(ctx context.Context, id string, maddr ma.Multiadd
 func (r *Reputation) GetTopMiners(ctx context.Context, limit int) ([]reputation.MinerScore, error) {
 	time.Sleep(time.Second * 3)
 	topMiners := []reputation.MinerScore{
-		reputation.MinerScore{
+		{
 			Addr:  "miner1",
 			Score: 91,
 		},
-		reputation.MinerScore{
+		{
 			Addr:  "miner2",
 			Score: 45,
 		},
-		reputation.MinerScore{
+		{
 			Addr:  "miner3",
 			Score: 23,
 		},
-		reputation.MinerScore{
+		{
 			Addr:  "miner4",
 			Score: 9,
 		},

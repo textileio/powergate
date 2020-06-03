@@ -1,4 +1,4 @@
-package slashing
+package faults
 
 import (
 	"context"
@@ -29,10 +29,10 @@ var (
 	// chain reorgs
 	hOffset = abi.ChainEpoch(5)
 
-	log = logging.Logger("index-slashing")
+	log = logging.Logger("index-faults")
 )
 
-// Index builds and provides slashing history of miners
+// Index builds and provides faults history of miners
 type Index struct {
 	api      *apistruct.FullNodeStruct
 	store    *chainstore.Store
@@ -48,7 +48,7 @@ type Index struct {
 	closed   bool
 }
 
-// New returns a new SlashingIndex. It will load previous state from ds, and
+// New returns a new FaultIndex. It will load previous state from ds, and
 // immediately start getting in sync with new on-chain.
 func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, error) {
 	cs := chainsync.New(api)
@@ -63,7 +63,7 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, erro
 		store:    store,
 		signaler: signaler.New(),
 		index: IndexSnapshot{
-			Miners: make(map[string]Slashes),
+			Miners: make(map[string]Faults),
 		},
 		ctx:      ctx,
 		cancel:   cancel,
@@ -82,12 +82,12 @@ func (s *Index) Get() IndexSnapshot {
 	defer s.lock.Unlock()
 	ii := IndexSnapshot{
 		TipSetKey: s.index.TipSetKey,
-		Miners:    make(map[string]Slashes, len(s.index.Miners)),
+		Miners:    make(map[string]Faults, len(s.index.Miners)),
 	}
 	for addr, v := range s.index.Miners {
 		history := make([]uint64, len(v.Epochs))
 		copy(history, v.Epochs)
-		ii.Miners[addr] = Slashes{
+		ii.Miners[addr] = Faults{
 			Epochs: history,
 		}
 	}
@@ -105,7 +105,7 @@ func (s *Index) Unregister(c chan struct{}) {
 	s.signaler.Unregister(c)
 }
 
-// Close closes the SlashindIndex
+// Close closes the FaultIndex.
 func (s *Index) Close() error {
 	log.Info("Closing")
 	s.clsLock.Lock()
@@ -123,16 +123,16 @@ func (s *Index) Close() error {
 func (s *Index) start() {
 	defer close(s.finished)
 	if err := s.updateIndex(); err != nil {
-		log.Errorf("error on first updating slashing history: %s", err)
+		log.Errorf("error on first updating faults history: %s", err)
 	}
 	for {
 		select {
 		case <-s.ctx.Done():
-			log.Info("graceful shutdown of background slashing updater")
+			log.Info("graceful shutdown of background faults updater")
 			return
 		case <-time.After(util.AvgBlockTime):
 			if err := s.updateIndex(); err != nil {
-				log.Errorf("error when updating slashing history: %s", err)
+				log.Errorf("error when updating faults history: %s", err)
 				continue
 			}
 		}
@@ -141,7 +141,7 @@ func (s *Index) start() {
 
 // updateIndex updates current index with a new discovered chain head.
 func (s *Index) updateIndex() error {
-	log.Info("updating slashing index...")
+	log.Info("updating faults index...")
 	heaviest, err := s.api.ChainHead(s.ctx)
 	if err != nil {
 		return fmt.Errorf("getting chain head: %s", err)
@@ -160,7 +160,7 @@ func (s *Index) updateIndex() error {
 		return fmt.Errorf("load tipset state: %s", err)
 	}
 	if index.Miners == nil {
-		index.Miners = make(map[string]Slashes)
+		index.Miners = make(map[string]Faults)
 	}
 	_, path, err := chainsync.ResolveBase(s.ctx, s.api, ts, newtsk)
 	if err != nil {
@@ -191,7 +191,7 @@ func (s *Index) updateIndex() error {
 	stats.Record(mctx, mRefreshProgress.M(1))
 
 	s.signaler.Signal()
-	log.Info("slashing index updated")
+	log.Info("faults index updated")
 
 	return nil
 }
