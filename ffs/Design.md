@@ -76,10 +76,10 @@ The _ColdStorage_ relies on a _MinerSelector_ interface to query the universe of
 
 Powergate has the _Reputation Module_ which leverages built indexes about miners data to provide a universe of available miners soreted by a chosen criteria. In a full run of FFS, the _ColdStorage_ is connected to a _MinerSelector_ with the _Reputation Module_ implementation. However, for integration tests a _FixedMiners_ miner selector is used to bound the universe of available miners for deals to desired values.
 
-The _MinerSelector_ API already provides enough filtering configuration to force using or excluding particular miners. In general, other implementations than the default one should be used if the universe of available miners wants to be completely controled by design, and not by available miners on the connected Filecoin network.
+The _MinerSelector_ API already provides enough filtering configuration to force using or excluding particular miners. In general, other implementations than the default one should be used if the universe of available miners wants to be completely controlled by design, and not by available miners on the connected Filecoin network.
 
 ### Cid Configuration
-In the current document we've refered to _CidConfigs_ as a central concept in the FFS module. A _CidConfig_ indicates the desired storing state of a _Cid_ scoped in a _API_. Refer to the [Go docs](https://pkg.go.dev/github.com/textileio/powergate/ffs@v0.0.1-beta.6?tab=doc#CidConfig) to understand its rich configuration.
+In the current document we've referred to _CidConfigs_ as a central concept in the FFS module. A _CidConfig_ indicates the desired storing state of a _Cid_ scoped in a _API_. Refer to the [Go docs](https://pkg.go.dev/github.com/textileio/powergate/ffs@v0.0.1-beta.6?tab=doc#CidConfig) to understand its rich configuration.
 
 
 #### _API_ _Get(...)_ operation
