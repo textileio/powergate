@@ -430,6 +430,13 @@ const (
 	PaychDirOutbound
 )
 
+// PaychDirStr maps PaychDirs to describing string.
+var PaychDirStr = map[PaychDir]string{
+	PaychDirUnspecified: "Unspecified",
+	PaychDirInbound:     "Inbound",
+	PaychDirOutbound:    "Outbound",
+}
+
 // PaychInfo holds information about a payment channel
 type PaychInfo struct {
 	CtlAddr   string

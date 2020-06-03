@@ -7,7 +7,6 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/apistruct"
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/specs-actors/actors/builtin/paych"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
@@ -94,27 +93,27 @@ func (m *Module) List(ctx context.Context, addrs ...string) ([]ffs.PaychInfo, er
 
 // Create creates a new payment channel
 func (m *Module) Create(ctx context.Context, from string, to string, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
-	// return ffs.PaychInfo{}, cid.Undef, fmt.Errorf("unimplemeted for now, blocked by lotus issue #1611")
-	fAddr, err := address.NewFromString(from)
-	if err != nil {
-		return ffs.PaychInfo{}, cid.Undef, err
-	}
-	tAddr, err := address.NewFromString(from)
-	if err != nil {
-		return ffs.PaychInfo{}, cid.Undef, err
-	}
-	a := types.NewInt(amount)
-	info, err := m.api.PaychGet(ctx, fAddr, tAddr, a)
-	if err != nil {
-		return ffs.PaychInfo{}, cid.Undef, err
-	}
-	// ToDo: verify these addresses and direction make sense
-	res := ffs.PaychInfo{
-		CtlAddr:   from,
-		Addr:      info.Channel.String(),
-		Direction: ffs.PaychDirOutbound,
-	}
-	return res, info.ChannelMessage, nil
+	return ffs.PaychInfo{}, cid.Undef, fmt.Errorf("unimplemeted for now, blocked by lotus issue #1611")
+	// fAddr, err := address.NewFromString(from)
+	// if err != nil {
+	// 	return ffs.PaychInfo{}, cid.Undef, err
+	// }
+	// tAddr, err := address.NewFromString(from)
+	// if err != nil {
+	// 	return ffs.PaychInfo{}, cid.Undef, err
+	// }
+	// a := types.NewInt(amount)
+	// info, err := m.api.PaychGet(ctx, fAddr, tAddr, a)
+	// if err != nil {
+	// 	return ffs.PaychInfo{}, cid.Undef, err
+	// }
+	// // ToDo: verify these addresses and direction make sense
+	// res := ffs.PaychInfo{
+	// 	CtlAddr:   from,
+	// 	Addr:      info.Channel.String(),
+	// 	Direction: ffs.PaychDirOutbound,
+	// }
+	// return res, info.ChannelMessage, nil
 }
 
 // Redeem redeems a payment channel
