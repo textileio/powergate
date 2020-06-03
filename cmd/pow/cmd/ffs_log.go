@@ -37,7 +37,7 @@ var ffsLogCmd = &cobra.Command{
 		cid, err := cid.Parse(args[0])
 		checkErr(err)
 
-		var opts []client.WatchLogsOption
+		opts := []client.WatchLogsOption{client.WithHistory(true)}
 		jid := viper.GetString("jid")
 		if jid != "" {
 			opts = append(opts, client.WithJidFilter(ffs.JobID(jid)))
