@@ -4,10 +4,10 @@
 
 This document presents the general design of the `ffs` package of `powergate`.
 
-**Disclaimer**: This's ongoing work, so some design, interface definition, etc. might change soon as implementation continues. 
+**Disclaimer**: This's ongoing work so the design will continue to change.
 
 The following picture presents principal packages and interfaces that are part of the design:
-![FFS Design](https://user-images.githubusercontent.com/6136245/79258737-fbd21c80-7e61-11ea-9616-3521f543184f.png)
+![FFS Design](https://user-images.githubusercontent.com/6136245/83649396-847d5700-a58d-11ea-8d93-5ea20ca1bda7.png)
 
 
 The picture has an advanced scenario where different _API_ instances are wired to different _Scheduler_ instances. Component names prefixed with * don't exist but are mentioned as possible implementations of existing interfaces.
@@ -16,9 +16,9 @@ The central idea about the design is that an _API_ defines the desired storing s
 
 When a new or updated _CidConfig_ is pushed in an _API_, it delegates this work to the _Scheduler_. The _Scheduler_ will execute whatever work is necessary to comply with the new/updated Cid configuration.
 
-From the _Scheduler_ point of view, this work is considered a _Job_ created by _API_. The job refers to doing the necessary work to enforce the new _CidConfig_. The _API_ can watch for this _Job_ state changes to see if the task of pushing a new _CidConfig_ is queued, in progress, executing, executed successfully, or failed. The _Scheduler_ also provides a human-friendly log stream of work being done for a _Cid_.
+From the _Scheduler_ point of view, this work is considered a _Job_ created by _API_. The job refers to doing the necessary work to enforce the new _CidConfig_. The _API_ can watch for this _Job_ state changes to see if the task of pushing a new _CidConfig_ is queued, executing, finished successfully, failed, or canceled. The _Scheduler_ also provides a human-friendly log stream of work being done for a _Cid_.
 
-Apart from executing _API_ triggered work, like pushing a new _CidConfig_, the _Scheduler_ also does some background jobs related to deals-renewal for Cids, which have this feature enabled in their _CidConfig_. Similarly, it has background jobs for repair actions.
+The _Scheduler_ also executes proactive actions for prior pushed _CidConfigs_ which enabled the _renew_ or _repair_ feature. Finally, the _Scheduler_ is designed to resume any kind of interrupted job executions.
 
 ## Components
 The following sections give a more detailed description of each component and interface in the diagram.
@@ -28,229 +28,59 @@ This component is responsible for creating _API_ instances. When a new _API_ ins
 
 The mapping between _auth-tokens_ and _API_ is controlled by an _Auth_ component. Further features such as token invalidation, finer-grained access control per action, or multiple auth token support will live in this module.
 
-Every _API_ instance needs a dedicated Filecoin address that will be used to pay for actions done on the network. _Manager_ delegates wallet related activities to _WalletManager_, such as: creating new addresses for new _API_ instances, sending funds to those addresses, getting the balance.
+Since _API_ might store data in the Filecoin network, they're asigned a newly created Filecoin address which will be controlled by the underlying Filecoin client used in the _ColdStorage_. The process of creating and assigning this new wallet account is done automatically by _Manager_, using a subcomponent _WalletManager_.
+
+_Manager_ enables being configured to auto-fund newly created wallet addresses, so new created _API_ can have funds to execute actions in the Filecoin network. This feature can be optionally enabled. If enabled, a _masterAddress_ and _initialFunds_ will be configured which indicates from which Filecoin Client wallet address funds will be sent and the amount of the transfer.
+
 
 ### API
 _API_ is a concrete instance of FFS to be used by a client.
 It owns the following information:
-- A Filecoin address.
+- At least one Filecoin address. Later the client can opt to create more address and indicate which to use when making action.
 - _CidConfigs_ describing the desired state for Cids to be stored in Hot and Cold storage.
 - A default _CidConfig_ to be used unless an explicit _CidConfig_ is given.
 
-It has APIs to create/update _CidConfigs_, get its address information such as balance, watch for _Job_ state changes or human-friendly Log outputs about work done by the _Scheduler_. Refer to the _CidConfig_ section to understand more about this important structure.
+The instance provides apis to:
+- Get and Set the default _CidConfig_ used to store new data.
+- Get summary information about all the _Cid_ stored in this instance.
+- Manage Filecoin wallet addresses under its control.
+- Sending FIL transactions from owned Filecoin wallet addresses.
+- Create, replace and remove _CidConfig_ which indicates which cids to store in the instance.
+- Provide detailed information about a particular stored Cid.
+- Get information about status of executing _Jobs_ corresponding to the FFS instance.
+- Human-friendly log streams about events happening for a _Cid_, from storage, renewals, repair and anything related to actions being done for it.
 
 ### Scheduler
 
-The main goal of this component is to do whatever its possible to reach a desired storing state for a _Cid_.
+In a nutshell, the _Scheduler_ is the component responsible for orchestrating the Hot and Cold storage to enforce indicated _CidConfigs_ by connected _API_.
 
-Its interface for _API_ is defined by the interface:
-```go
-// Scheduler enforces a CidConfig orchestrating Hot and Cold storages.
-type Scheduler interface {
-	// PushConfig push a new or modified configuration for a Cid. It returns
-	// the JobID which tracks the current state of execution of that task.
-	PushConfig(APIID, string, CidConfig) (JobID, error)
-
-	// PushReplace push a new or modified configuration for a Cid, replacing
-	// an existing one. The replaced Cid will be unstored from the Hot Storage.
-	// Also it will be untracked (refer to Untrack() to understand implications)
-	PushReplace(APIID, string, CidConfig, cid.Cid) (JobID, error)
-
-	// GetCidInfo returns the current Cid storing state. This state may be different
-	// from CidConfig which is the *desired* state.
-	GetCidInfo(cid.Cid) (CidInfo, error)
-
-	// GetCidFromHot returns an Reader with the Cid data. If the data isn't in the Hot
-	// Storage, it errors with ErrHotStorageDisabled.
-	GetCidFromHot(context.Context, cid.Cid) (io.Reader, error)
-
-	// GetJob gets the a Job.
-	GetJob(JobID) (Job, error)
-
-	// WatchJobs is a blocking method that sends to a channel state updates
-	// for all Jobs created by an Instance. The ctx should be canceled when
-	// to stop receiving updates.
-	WatchJobs(context.Context, chan<- Job, APIID) error
-
-	// WatchLogs writes new log entries from Cid related executions.
-	// This is a blocking operation that should be canceled by canceling the
-	// provided context.
-	WatchLogs(context.Context, chan<- LogEntry) error
-
-	//Untrack marks a Cid to be untracked for any background processes such as
-	// deal renewal, or repairing.
-	Untrack(cid.Cid) error
-}
-```
+Refer to the [Go docs](https://pkg.go.dev/github.com/textileio/powergate/ffs/scheduler?tab=doc) to see its exported API.
 
 ### Responsibilities
-When a new/updated _CidConfig_ is pushed by an _API_, the _Scheduler_ bounds the work of enforcing that state in a _Job_.
-This _Job_ has a lifecycle: Queued, Executing, Success, Canceled, or Failed.
+When a new _CidConfig_ is pushed by an _API_, the _Scheduler_ is responsible for orchestrating whatever actions are necessary to enforce it with the Hot and Col storage.
 
+Every new _CidConfig_, being the first or newer version for a Cid, is encapsulated in a _Job_. A _Job_ is the unit of work which the _Scheduler_ executes. _Jobs_ have different status: _Queued_, _Executing_, _Done_, _Failed_, and _Canceled_.
+
+Apart from executing _Jobs_, the _Scheduler_ has background processes to keep enforcing configuration features that requires tracking. For example, if a _CidConfig_ has renewal or repair enabled, the _Scheduler_ is responsible for do necessary work as expected.
 Apart from _Jobs_, the _Scheduler_ has background tasks that monitor deal renewals or repair operations.
 
-In summary, the _Scheduler_ is concerned about enforcing a _CidConfig_ for a Cid. It does this by inspecting the current state of the Cid in both storages, deciding on which is the necessary actions to make in both layers, and using the Hot and Cold storage APIs to execute that necessary work. 
+In summary, _APIs_ delegates *the desired state for a Cid* and the _Scheduler_ is responsible for *ensuring that state is true* by orchestrating the Hot and Cold storage.
 
 #### Hot and Cold storage abstraction
-The _Scheduler_ is abstracted from particular implementations of the _Hot Storage_ and _Cold Storage_.
-It relies on the following interfaces:
+The _Scheduler_ interacts with abstractions for the Hot and Cold storage.
+Refer to the Go docs of the [HotStorage](https://pkg.go.dev/github.com/textileio/powergate@v0.0.1-beta.6/ffs?tab=doc#HotStorage) and [ColdStorage](https://pkg.go.dev/github.com/textileio/powergate@v0.0.1-beta.6/ffs?tab=doc#ColdStorage) to understand their APIs.
 
-```go
-// HotStorage is a fast storage layer for Cid data.
-type HotStorage interface {
-	// Add adds io.Reader data ephemerally (not pinned).
-	Add(context.Context, io.Reader) (cid.Cid, error)
+It can be noticed that the _ColdStorage_ interface is quite biased towards using a _Filecoin client_ in the implementation, but this enables to include also other tiered cold storages if wanted if deal creation or retrieval may be wanted. Refer to the diagram at the top of this document to understand possible configurations.
 
-	// Remove removes a stored Cid.
-	Remove(context.Context, cid.Cid) error
+The _ColdStorage_ relies on a _MinerSelector_ interface to query the universe of available miners to make new deals. Refer to the [Go doc](https://pkg.go.dev/github.com/textileio/powergate/ffs@v0.0.1-beta.6?tab=doc#MinerSelector) to understand its API.
 
-	// Get retrieves a stored Cid data.
-	Get(context.Context, cid.Cid) (io.Reader, error)
+Powergate has the _Reputation Module_ which leverages built indexes about miners data to provide a universe of available miners soreted by a chosen criteria. In a full run of FFS, the _ColdStorage_ is connected to a _MinerSelector_ with the _Reputation Module_ implementation. However, for integration tests a _FixedMiners_ miner selector is used to bound the universe of available miners for deals to desired values.
 
-	// Store stores a Cid. If the data wasn't previously Added,
-	// depending on the implementation it may use internal mechanisms
-	// for pulling the data, e.g: IPFS network
-	Store(context.Context, cid.Cid) (int, error)
-
-	// Replace replaces a stored Cid with a new one. It's mostly
-	// thought for mutating data doing this efficiently.
-	Replace(context.Context, cid.Cid, cid.Cid) (int, error)
-
-	// Put adds a raw block.
-	Put(context.Context, blocks.Block) error
-
-	// IsStore returns true if the Cid is stored, or false
-	// otherwise.
-	IsStored(context.Context, cid.Cid) (bool, error)
-}
-
-// ColdStorage is slow/cheap storage for Cid data. It has
-// native support for Filecoin storage.
-type ColdStorage interface {
-	// Store stores a Cid using the provided configuration and
-	// account address. It returns a slice of deal errors happened
-	// during execution.
-	Store(context.Context, cid.Cid, FilConfig) (FilInfo, []DealError, error)
-
-	// Fetch fetches the cid data in the underlying storage.
-	Fetch(context.Context, cid.Cid, car.Store, string) error
-
-	// EnsureRenewals executes renewal logic for a Cid under a particular
-	// configuration. It returns a slice of deal errors happened during execution.
-	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig) (FilInfo, []DealError, error)
-
-	// IsFIlDealActive returns true if the proposal Cid is active on chain;
-	// returns false otherwise.
-	IsFilDealActive(context.Context, cid.Cid) (bool, error)
-}
-```
-
-#### MinerSelector abstraction
-It also relies on a _MinerSelector_ interfaces which implement a particular strategy to fetch the most desirable N miners needed for making deals in the _Cold Storage_:
-```go
-// MinerSelector returns miner addresses and ask storage information using a
-// desired strategy.
-type MinerSelector interface {
-	// GetMiners returns a specified amount of miners that satisfy
-	// provided filters.
-	GetMiners(int, MinerSelectorFilter) ([]MinerProposal, error)
-}
-```
-Particular implementations of _MinerSelector_ include:
-- _FixedMiners_: which always returns a particular fixed list of miner addresses.
-- _ReputationSorted_: which returns the miner addresses using a reputation system built on top of miner information.
-
-
-#### Configuration scenarios
-Looking at diagram in the _Overview_ section  we can see some different Hot and Cold storages:
-
-In the first dotted box, a _Scheduler_ uses an _IPFS Node_ as the _HotStorage_ using the _CoreIPFS_ adapter as the interface implementation, which uses the _http api_ client to talk with the _IPFS node_. It also uses the _ColdFil_ adapter as the _ColdStorage_ implementation, which uses the _DealModule_ to make deals with a _Lotus instance_. It uses a _ReputationSorted_ implementation of _MinerSelector_ to fetch the best miners from a miner's reputation system.
-
-In the second dotted box, shows another possible configuration in which uses an _IPFS Cluster_ with a _HotIpfsCluster_ adapter of _HotStorage_; or even a more advanced _HotStorage_ called _HotS3IpfsCluster_ which saves _Cid_ into _IPFS Cluster_ and some _AWS S3_ instance. The _MinerSelector_ implementation for the _ColdStorage_ is _FixedMiners_ which always returns a configured fixed list of miners to make deals with.
-
-
+The _MinerSelector_ API already provides enough filtering configuration to force using or excluding particular miners. In general, other implementations than the default one should be used if the universe of available miners wants to be completely controled by design, and not by available miners on the connected Filecoin network.
 
 ### Cid Configuration
-Cid configurations are a central part of FFS mechanics. An _API_ defines the desired state of the Cid in the Hot and Cold storage. Currently, it has the following structure:
-```go
-// CidConfig has a Cid desired storing configuration for a Cid in
-// Hot and Cold storage.
-type CidConfig struct {
-    // Cid is the Cid of the stored data.
-    Cid cid.Cid
-    // Hot has desired storing configuration in Hot Storage.
-    Hot HotConfig
-    // Cold has desired storing configuration in the Cold Storage.
-    Cold ColdConfig
-}
+In the current document we've refered to _CidConfigs_ as a central concept in the FFS module. A _CidConfig_ indicates the desired storing state of a _Cid_ scoped in a _API_. Refer to the [Go docs](https://pkg.go.dev/github.com/textileio/powergate/ffs@v0.0.1-beta.6?tab=doc#CidConfig) to understand its rich configuration.
 
-// HotConfig is the desired storage of a Cid in a Hot Storage.
-type HotConfig struct {
-    // Enable indicates if Cid data is stored. If true, it will consider
-    // further configurations to execute actions.
-    Enabled bool
-    // AllowUnfreeze indicates that if data isn't available in the Hot Storage,
-    // it's allowed to be feeded by Cold Storage if available.
-    AllowUnfreeze bool
-    // Ipfs contains configuration related to storing Cid data in a IPFS node.
-    Ipfs IpfsConfig
-}
-
-// IpfsConfig is the desired storage of a Cid in IPFS.
-type IpfsConfig struct {
-    // AddTimeout is an upper bound on adding data to IPFS node from
-    // the network before failing.
-    AddTimeout int
-}
-
-// ColdConfig is the desired state of a Cid in a cold layer.
-type ColdConfig struct {
-    // Enabled indicates that data will be saved in Cold storage.
-    // If is switched from false->true, it will consider the other attributes
-    // as the desired state of the data in this Storage.
-    Enabled bool
-    // Filecoin describes the desired Filecoin configuration for a Cid in the
-    // Filecoin network.
-    Filecoin FilConfig
-}
-
-// FilConfig is the desired state of a Cid in the Filecoin network.
-type FilConfig struct {
-	// RepFactor indicates the desired amount of active deals
-	// with different miners to store the data. While making deals
-	// the other attributes of FilConfig are considered for miner selection.
-	RepFactor int
-	// DealDuration indicates the duration to be used when making new deals.
-	DealDuration int64
-	// ExcludedMiners is a set of miner addresses won't be ever be selected
-	// when making new deals, even if they comply to other filters.
-	ExcludedMiners []string
-	// TrustedMiners is a set of miner addresses which will be forcibly used
-	// when making new deals. An empty/nil list disables this feature.
-	TrustedMiners []string
-	// CountryCodes indicates that new deals should select miners on specific
-	// countries.
-	CountryCodes []string
-	// Renew indicates deal-renewal configuration.
-	Renew FilRenew
-	// Addr is the wallet address used to store the data in filecoin
-	Addr string
-}
-
-// FilRenew contains renew configuration for a Cid Cold Storage deals.
-type FilRenew struct {
-    // Enabled indicates that deal-renewal is enabled for this Cid.
-    Enabled bool
-    // Threshold indicates how many epochs before expiring should trigger
-    // deal renewal. e.g: 100 epoch before expiring.
-    Threshold int
-}
-```
-
-Each attribute has a description of its goal.
-
-Both the Hot and Cold configurations have an `Enable` flag to enable/disable the Cid data storage in each of them.
-If a client only wants to save data in the Cold storage, it can set `HotConfig.Enabled: false` and `ColdConfig.Enabled: true`. The same applies inversely.
 
 #### _API_ _Get(...)_ operation
 One important point is that `Get` operations in _API_ can only retrieve data from the Hot Storage (via `GetCidFromHot` in the _Scheduler_).
