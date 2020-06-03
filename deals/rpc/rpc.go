@@ -49,7 +49,7 @@ func store(ctx context.Context, dealsModule *deals.Module, storeParams *StorePar
 		ch <- storeResult{Err: err}
 		return
 	}
-	sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), dcid, uint64(size), dealConfigs, storeParams.GetDuration())
+	sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), dcid, uint64(size), dealConfigs, storeParams.GetMinDuration())
 	if err != nil {
 		ch <- storeResult{Err: err}
 		return

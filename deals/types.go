@@ -31,6 +31,7 @@ type DealInfo struct {
 	Size     uint64
 
 	PricePerEpoch uint64
+	StartEpoch    uint64
 	Duration      uint64
 
 	DealID          uint64

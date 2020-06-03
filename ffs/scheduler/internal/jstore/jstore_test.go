@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-cid"
+	"github.com/multiformats/go-multihash"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/tests"
@@ -63,7 +64,7 @@ func TestDequeue(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, jq)
 
-		errors := []ffs.DealError{ffs.DealError{ProposalCid: cid.Undef, Miner: "t0100", Message: "abcd"}}
+		errors := []ffs.DealError{{ProposalCid: cid.Undef, Miner: "t0100", Message: "abcd"}}
 		err = s.Finalize(j1.ID, ffs.Success, nil, errors)
 		require.Nil(t, err)
 		// Dequeue now returns a new job since the Executing one
@@ -97,6 +98,39 @@ func TestCancelation(t *testing.T) {
 	require.Equal(t, ffs.Queued, j2Queued.Status)
 }
 
+func TestStartedDeals(t *testing.T) {
+	t.Parallel()
+	s := create(t)
+
+	b, _ := multihash.Encode([]byte("data"), multihash.SHA1)
+	cidData := cid.NewCidV1(1, b)
+
+	fds, err := s.GetStartedDeals(cidData)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(fds))
+
+	b, _ = multihash.Encode([]byte("prop1"), multihash.SHA1)
+	cidProp1 := cid.NewCidV1(1, b)
+	b, _ = multihash.Encode([]byte("prop2"), multihash.SHA1)
+	cidProp2 := cid.NewCidV1(1, b)
+
+	startedDeals := []cid.Cid{cidProp1, cidProp2}
+	err = s.AddStartedDeals(cidData, startedDeals)
+	require.NoError(t, err)
+
+	fds, err = s.GetStartedDeals(cidData)
+	require.NoError(t, err)
+	require.Equal(t, startedDeals, fds)
+
+	err = s.RemoveStartedDeals(cidData)
+	require.NoError(t, err)
+
+	fds, err = s.GetStartedDeals(cidData)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(fds))
+
+}
+
 func createJob() ffs.Job {
 	c, err := cid.Decode("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u")
 	if err != nil {
@@ -111,6 +145,7 @@ func createJob() ffs.Job {
 
 func create(t *testing.T) *Store {
 	ds := tests.NewTxMapDatastore()
-	return New(ds)
+	store, _ := New(ds)
+	return store
 
 }

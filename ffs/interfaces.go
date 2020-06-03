@@ -58,9 +58,14 @@ type DealError struct {
 // native support for Filecoin storage.
 type ColdStorage interface {
 	// Store stores a Cid using the provided configuration and
-	// account address. It returns a slice of deal errors happened
-	// during execution.
-	Store(context.Context, cid.Cid, FilConfig) (FilInfo, []DealError, error)
+	// account address. It returns a slice of accepted proposed deals,
+	// a slice of rejected proposal deals, and the size of the data.
+	Store(context.Context, cid.Cid, FilConfig) ([]cid.Cid, []DealError, uint64, error)
+
+	// WaitForDeals block until all provided Deal Proposals reach a
+	// final state, and return the success result plus failed deals
+	// that didn't reach success final status.
+	WaitForDeals(context.Context, cid.Cid, []cid.Cid) ([]FilStorage, []DealError, error)
 
 	// Fetch fetches the cid data in the underlying storage.
 	Fetch(context.Context, cid.Cid, string) error

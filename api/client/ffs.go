@@ -155,11 +155,11 @@ func (f *FFS) DefaultConfig(ctx context.Context) (ffs.DefaultConfig, error) {
 		Cold: ffs.ColdConfig{
 			Enabled: resp.DefaultConfig.Cold.Enabled,
 			Filecoin: ffs.FilConfig{
-				RepFactor:      int(resp.DefaultConfig.Cold.Filecoin.RepFactor),
-				DealDuration:   resp.DefaultConfig.Cold.Filecoin.DealDuration,
-				ExcludedMiners: resp.DefaultConfig.Cold.Filecoin.ExcludedMiners,
-				CountryCodes:   resp.DefaultConfig.Cold.Filecoin.CountryCodes,
-				TrustedMiners:  resp.DefaultConfig.Cold.Filecoin.TrustedMiners,
+				RepFactor:       int(resp.DefaultConfig.Cold.Filecoin.RepFactor),
+				DealMinDuration: resp.DefaultConfig.Cold.Filecoin.DealMinDuration,
+				ExcludedMiners:  resp.DefaultConfig.Cold.Filecoin.ExcludedMiners,
+				CountryCodes:    resp.DefaultConfig.Cold.Filecoin.CountryCodes,
+				TrustedMiners:   resp.DefaultConfig.Cold.Filecoin.TrustedMiners,
 				Renew: ffs.FilRenew{
 					Enabled:   resp.DefaultConfig.Cold.Filecoin.Renew.Enabled,
 					Threshold: int(resp.DefaultConfig.Cold.Filecoin.Renew.Threshold),
@@ -205,11 +205,11 @@ func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig
 		Cold: ffs.ColdConfig{
 			Enabled: res.Config.Cold.Enabled,
 			Filecoin: ffs.FilConfig{
-				RepFactor:      int(res.Config.Cold.Filecoin.RepFactor),
-				Addr:           res.Config.Cold.Filecoin.Addr,
-				CountryCodes:   res.Config.Cold.Filecoin.CountryCodes,
-				DealDuration:   res.Config.Cold.Filecoin.DealDuration,
-				ExcludedMiners: res.Config.Cold.Filecoin.ExcludedMiners,
+				RepFactor:       int(res.Config.Cold.Filecoin.RepFactor),
+				Addr:            res.Config.Cold.Filecoin.Addr,
+				CountryCodes:    res.Config.Cold.Filecoin.CountryCodes,
+				DealMinDuration: res.Config.Cold.Filecoin.DealMinDuration,
+				ExcludedMiners:  res.Config.Cold.Filecoin.ExcludedMiners,
 				Renew: ffs.FilRenew{
 					Enabled:   res.Config.Cold.Filecoin.Renew.Enabled,
 					Threshold: int(res.Config.Cold.Filecoin.Renew.Threshold),
@@ -287,11 +287,11 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 			Cold: ffs.ColdConfig{
 				Enabled: res.Info.DefaultConfig.Cold.Enabled,
 				Filecoin: ffs.FilConfig{
-					RepFactor:      int(res.Info.DefaultConfig.Cold.Filecoin.RepFactor),
-					DealDuration:   res.Info.DefaultConfig.Cold.Filecoin.DealDuration,
-					ExcludedMiners: res.Info.DefaultConfig.Cold.Filecoin.ExcludedMiners,
-					TrustedMiners:  res.Info.DefaultConfig.Cold.Filecoin.TrustedMiners,
-					CountryCodes:   res.Info.DefaultConfig.Cold.Filecoin.CountryCodes,
+					RepFactor:       int(res.Info.DefaultConfig.Cold.Filecoin.RepFactor),
+					DealMinDuration: res.Info.DefaultConfig.Cold.Filecoin.DealMinDuration,
+					ExcludedMiners:  res.Info.DefaultConfig.Cold.Filecoin.ExcludedMiners,
+					TrustedMiners:   res.Info.DefaultConfig.Cold.Filecoin.TrustedMiners,
+					CountryCodes:    res.Info.DefaultConfig.Cold.Filecoin.CountryCodes,
 					Renew: ffs.FilRenew{
 						Enabled:   res.Info.DefaultConfig.Cold.Filecoin.Renew.Enabled,
 						Threshold: int(res.Info.DefaultConfig.Cold.Filecoin.Renew.Threshold),
@@ -550,11 +550,11 @@ func toRPCColdConfig(config ffs.ColdConfig) *rpc.ColdConfig {
 	return &rpc.ColdConfig{
 		Enabled: config.Enabled,
 		Filecoin: &rpc.FilConfig{
-			RepFactor:      int64(config.Filecoin.RepFactor),
-			DealDuration:   int64(config.Filecoin.DealDuration),
-			ExcludedMiners: config.Filecoin.ExcludedMiners,
-			TrustedMiners:  config.Filecoin.TrustedMiners,
-			CountryCodes:   config.Filecoin.CountryCodes,
+			RepFactor:       int64(config.Filecoin.RepFactor),
+			DealMinDuration: int64(config.Filecoin.DealMinDuration),
+			ExcludedMiners:  config.Filecoin.ExcludedMiners,
+			TrustedMiners:   config.Filecoin.TrustedMiners,
+			CountryCodes:    config.Filecoin.CountryCodes,
 			Renew: &rpc.FilRenew{
 				Enabled:   config.Filecoin.Renew.Enabled,
 				Threshold: int64(config.Filecoin.Renew.Threshold),

@@ -18,13 +18,18 @@ message DealInfo {
 	uint64 size = 6;
 
 	uint64 price_per_epoch = 7;
-	uint64 duration = 8;
+	uint64 start_epoch = 8;
+	uint64 duration = 9;
+
+	uint64 deal_id = 10;
+	int64 activation_epoch = 11;
+	string msg = 12;
 }
 
 message StoreParams {
     string address = 1;
     repeated DealConfig deal_configs = 2;
-    uint64 duration = 3;
+    uint64 min_duration = 3;
 }
 
 message StoreRequest {

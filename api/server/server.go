@@ -54,7 +54,8 @@ import (
 )
 
 const (
-	datastoreFolderName = "datastore"
+	datastoreFolderName    = "datastore"
+	lotusConnectionRetries = 10
 )
 
 var (
@@ -109,7 +110,7 @@ type Config struct {
 func NewServer(conf Config) (*Server, error) {
 	var err error
 	var masterAddr address.Address
-	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken)
+	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
 	if err != nil {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
@@ -184,7 +185,10 @@ func NewServer(conf Config) (*Server, error) {
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
 	cs := filcold.New(ms, dm, ipfs, chain, l)
 	hs := coreipfs.New(ipfs, l)
-	sched := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
+	if err != nil {
+		return nil, fmt.Errorf("creating scheduler: %s", err)
+	}
 
 	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, sched)
 	if err != nil {
