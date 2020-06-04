@@ -39,11 +39,13 @@ func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
 		}
 	}
 
-	pbPower := make(map[string]*Power, len(index.Chain.Power))
-	for key, power := range index.Chain.Power {
-		pbPower[key] = &Power{
-			Power:    power.Power,
-			Relative: float32(power.Relative),
+	pbPower := make(map[string]*OnChainData, len(index.OnChain.Miners))
+	for key, miner := range index.OnChain.Miners {
+		pbPower[key] = &OnChainData{
+			Power:         miner.Power,
+			RelativePower: float32(miner.RelativePower),
+			SectorSize:    miner.SectorSize,
+			ActiveDeals:   miner.ActiveDeals,
 		}
 	}
 
@@ -53,9 +55,9 @@ func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
 		Info:    info,
 	}
 
-	chain := &ChainIndex{
-		LastUpdated: index.Chain.LastUpdated,
-		Power:       pbPower,
+	chain := &OnChainIndex{
+		LastUpdated: index.OnChain.LastUpdated,
+		Miners:      pbPower,
 	}
 
 	pbIndex := &Index{

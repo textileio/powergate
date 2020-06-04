@@ -6,20 +6,21 @@ import (
 
 // IndexSnapshot contains on-chain and off-chain information about miners
 type IndexSnapshot struct {
-	Meta  MetaIndex
-	Chain ChainIndex
+	Meta    MetaIndex
+	OnChain ChainIndex
 }
 
 // ChainIndex contains on-chain information about miners
 type ChainIndex struct {
 	LastUpdated int64
-	Power       map[string]Power
+	Miners      map[string]OnChainData
 }
 
-// Power contains power information of a miner
-type Power struct {
-	Power    uint64
-	Relative float64
+type OnChainData struct {
+	Power         uint64
+	RelativePower float64
+	SectorSize    uint64
+	ActiveDeals   uint64
 }
 
 // MetaIndex contains off-chain information about miners

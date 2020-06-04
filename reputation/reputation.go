@@ -204,7 +204,7 @@ func (rm *Module) indexBuilder() {
 		askIndex := rm.aIndex
 		rm.lockIndex.Unlock()
 
-		scores := make([]MinerScore, 0, len(minerIndex.Chain.Power))
+		scores := make([]MinerScore, 0, len(minerIndex.OnChain.Miners))
 		for addr := range askIndex.Storage {
 			score := calculateScore(addr, minerIndex, faultsIndex, askIndex, sources)
 			scores = append(scores, score)
@@ -223,8 +223,8 @@ func (rm *Module) indexBuilder() {
 
 // calculateScore calculates the score for a miner
 func calculateScore(addr string, mi miner.IndexSnapshot, si faults.IndexSnapshot, ai ask.Index, ss []source.Source) MinerScore {
-	power := mi.Chain.Power[addr]
-	powerScore := power.Relative
+	miner := mi.OnChain.Miners[addr]
+	powerScore := miner.RelativePower
 
 	var faultsScore float64
 	if faults, ok := si.Miners[addr]; ok {
