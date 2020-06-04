@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	batchSize = 50
+	batchSize = 2000
 )
 
 var (
@@ -196,6 +196,8 @@ func (s *Index) updateIndex() error {
 		for _, f := range faults {
 			currFaults := index.Miners[f.Miner.String()]
 			currFaults.Epochs = append(currFaults.Epochs, int64(f.Epoch))
+			index.Miners[f.Miner.String()] = currFaults
+
 		}
 
 		// Persist partial progress in each finished section-path.

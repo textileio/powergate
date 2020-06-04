@@ -16,7 +16,6 @@ import (
 	"github.com/textileio/powergate/index/faults"
 	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/reputation/internal/source"
-	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -179,12 +178,6 @@ func (rm *Module) subscribeIndexes() {
 		case <-subAi:
 			rm.lockIndex.Lock()
 			rm.aIndex = rm.ai.Get()
-		// (jsign): This shouldn't be needed.
-		case <-time.After(util.AvgBlockTime):
-			rm.lockIndex.Lock()
-			rm.aIndex = rm.ai.Get()
-			rm.fIndex = rm.fi.Get()
-			rm.mIndex = rm.mi.Get()
 		}
 		rm.lockIndex.Unlock()
 		select {
@@ -215,7 +208,6 @@ func (rm *Module) indexBuilder() {
 		for addr := range askIndex.Storage {
 			score := calculateScore(addr, minerIndex, faultsIndex, askIndex, sources)
 			scores = append(scores, score)
-			log.Info("building score for %s is %v", addr, score.Score)
 		}
 		sort.Slice(scores, func(i, j int) bool {
 			return scores[i].Score > scores[j].Score
@@ -225,7 +217,7 @@ func (rm *Module) indexBuilder() {
 		rm.scores = scores
 		rm.lockScores.Unlock()
 
-		log.Infof("index rebuilt int %dms", time.Since(start).Milliseconds())
+		log.Infof("built scores for %d miners in %dms", len(scores), time.Since(start).Milliseconds())
 	}
 }
 

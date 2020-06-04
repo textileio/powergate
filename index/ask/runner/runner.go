@@ -22,10 +22,9 @@ import (
 )
 
 var (
-	qaRatelim = 20
-	qaTimeout = time.Second * 10
-	// (jsign): Make a wiser decision.
-	qaRefreshInterval = util.AvgBlockTime
+	qaRatelim         = 50
+	qaTimeout         = time.Second * 20
+	qaRefreshInterval = 10 * util.AvgBlockTime
 
 	log = logging.Logger("index-ask")
 )
@@ -152,7 +151,7 @@ func (ai *Runner) Close() error {
 func (ai *Runner) start() {
 	defer close(ai.finished)
 	if err := ai.update(); err != nil {
-		log.Errorf("error when updating miners asks: %s", err)
+		log.Errorf("updating miners asks: %s", err)
 	}
 	for {
 		select {
@@ -161,7 +160,7 @@ func (ai *Runner) start() {
 			return
 		case <-time.After(qaRefreshInterval):
 			if err := ai.update(); err != nil {
-				log.Errorf("error when updating miners asks: %s", err)
+				log.Errorf("updating miners asks: %s", err)
 			}
 		}
 	}
