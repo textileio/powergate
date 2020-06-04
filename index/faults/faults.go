@@ -242,20 +242,3 @@ func (s *Index) loadFromDS() error {
 	s.index = index
 	return nil
 }
-
-func areConsecutiveEpochs(pts, ts *types.TipSet) bool {
-	if pts.Height() >= ts.Height() {
-		return false
-	}
-	cidsP := pts.Cids()
-	cidsC := ts.Blocks()[0].Parents
-	if len(cidsP) != len(cidsC) {
-		return false
-	}
-	for i, c := range cidsP {
-		if !c.Equals(cidsC[i]) {
-			return false
-		}
-	}
-	return true
-}

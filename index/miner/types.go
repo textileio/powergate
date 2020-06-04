@@ -16,6 +16,7 @@ type ChainIndex struct {
 	Miners      map[string]OnChainData
 }
 
+// OnChainData contains on-chain data about a miner.
 type OnChainData struct {
 	Power         uint64
 	RelativePower float64
