@@ -40,18 +40,18 @@ func TestFullRefresh(t *testing.T) {
 	}
 
 	index := mi.Get()
-	if index.Chain.LastUpdated == 0 || len(index.Chain.Power) != len(miners) {
-		t.Fatalf("miner info state is invalid: %d %d", index.Chain.LastUpdated, len(index.Chain.Power))
+	if index.OnChain.LastUpdated == 0 || len(index.OnChain.Miners) != len(miners) {
+		t.Fatalf("miner info state is invalid: %d %d", index.OnChain.LastUpdated, len(index.OnChain.Miners))
 	}
 	if index.Meta.Online != uint32(len(miners)) || index.Meta.Offline > 0 {
 		t.Fatalf("meta index has wrong information")
 	}
 	for _, m := range miners {
-		chainInfo, ok := index.Chain.Power[m.String()]
+		chainInfo, ok := index.OnChain.Miners[m.String()]
 		if !ok {
 			t.Fatalf("on-chain power info for miner %s is missing", m.String())
 		}
-		if chainInfo.Power == 0 || chainInfo.Relative == 0 {
+		if chainInfo.Power == 0 || chainInfo.RelativePower == 0 {
 			t.Fatalf("invalid values for miner %s power: %v", m.String(), chainInfo)
 		}
 

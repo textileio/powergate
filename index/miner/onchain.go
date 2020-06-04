@@ -46,8 +46,8 @@ func (mi *Index) updateOnChainIndex() error {
 	if err != nil {
 		return fmt.Errorf("error getting last saved from store: %s", err)
 	}
-	if chainIndex.Power == nil {
-		chainIndex.Power = make(map[string]Power)
+	if chainIndex.Miners == nil {
+		chainIndex.Miners = make(map[string]OnChainData)
 	}
 	hdiff := int64(new.Height()) - chainIndex.LastUpdated
 	if hdiff == 0 {
@@ -73,7 +73,7 @@ func (mi *Index) updateOnChainIndex() error {
 	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
 
 	mi.lock.Lock()
-	mi.index.Chain = chainIndex
+	mi.index.OnChain = chainIndex
 	mi.lock.Unlock()
 
 	if err := mi.store.Save(mi.ctx, new.Key(), chainIndex); err != nil {
@@ -135,13 +135,13 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 		rl <- struct{}{}
 		go func(addr address.Address) {
 			defer func() { <-rl }()
-			pw, err := getPower(ctx, api, addr)
+			ocd, err := getOnChainData(ctx, api, addr)
 			if err != nil {
-				log.Debug("error getting power: %s", err)
+				log.Debug("getting power: %s", err)
 				return
 			}
 			l.Lock()
-			chainIndex.Power[addr.String()] = pw
+			chainIndex.Miners[addr.String()] = ocd
 			l.Unlock()
 		}(a)
 		stats.Record(context.Background(), mOnChainRefreshProgress.M(float64(i)/float64(len(addrs))))
@@ -149,6 +149,7 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 	for i := 0; i < maxParallelism; i++ {
 		rl <- struct{}{}
 	}
+
 	stats.Record(context.Background(), mOnChainRefreshProgress.M(1))
 
 	select {
@@ -159,16 +160,33 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 	return nil
 }
 
-// getPower returns current on-chain power information for a miner
-func getPower(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (Power, error) {
+func getOnChainData(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (OnChainData, error) {
+	// Power of miner.
 	mp, err := c.StateMinerPower(ctx, addr, types.EmptyTSK)
 	if err != nil {
-		return Power{}, err
+		return OnChainData{}, fmt.Errorf("getting miner power: %s", err)
 	}
 	p := mp.MinerPower.RawBytePower.Uint64()
-	tp := mp.TotalPower
-	return Power{
-		Power:    p,
-		Relative: float64(p) / float64(tp.RawBytePower.Uint64()),
+
+	// Sector size
+	info, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
+	if err != nil {
+		return OnChainData{}, fmt.Errorf("getting sector size: %s", err)
+	}
+
+	// Active deals
+	sectors, err := c.StateMinerSectors(ctx, addr, nil, false, types.EmptyTSK)
+	if err != nil {
+		return OnChainData{}, fmt.Errorf("getting sectors: %s", err)
+	}
+	var activeDeals uint64
+	for _, s := range sectors {
+		activeDeals += uint64(len(s.Info.Info.DealIDs))
+	}
+	return OnChainData{
+		Power:         p,
+		RelativePower: float64(p) / float64(mp.TotalPower.RawBytePower.Uint64()),
+		SectorSize:    uint64(info.SectorSize),
+		ActiveDeals:   activeDeals,
 	}, nil
 }

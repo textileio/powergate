@@ -16,14 +16,15 @@ import (
 	"github.com/textileio/powergate/index/ask/internal/metrics"
 	"github.com/textileio/powergate/index/ask/internal/store"
 	"github.com/textileio/powergate/signaler"
+	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
 var (
-	qaRatelim         = 20
-	qaTimeout         = time.Second * 10
-	qaRefreshInterval = 20 * time.Minute
+	qaRatelim         = 50
+	qaTimeout         = time.Second * 20
+	qaRefreshInterval = 10 * util.AvgBlockTime
 
 	log = logging.Logger("index-ask")
 )
@@ -150,7 +151,7 @@ func (ai *Runner) Close() error {
 func (ai *Runner) start() {
 	defer close(ai.finished)
 	if err := ai.update(); err != nil {
-		log.Errorf("error when updating miners asks: %s", err)
+		log.Errorf("updating miners asks: %s", err)
 	}
 	for {
 		select {
@@ -159,7 +160,7 @@ func (ai *Runner) start() {
 			return
 		case <-time.After(qaRefreshInterval):
 			if err := ai.update(); err != nil {
-				log.Errorf("error when updating miners asks: %s", err)
+				log.Errorf("updating miners asks: %s", err)
 			}
 		}
 	}

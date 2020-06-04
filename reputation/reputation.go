@@ -13,8 +13,8 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/index/ask"
 	askRunner "github.com/textileio/powergate/index/ask/runner"
+	"github.com/textileio/powergate/index/faults"
 	"github.com/textileio/powergate/index/miner"
-	"github.com/textileio/powergate/index/slashing"
 	"github.com/textileio/powergate/reputation/internal/source"
 )
 
@@ -30,12 +30,12 @@ type Module struct {
 	sources *source.Store
 
 	mi *miner.Index
-	si *slashing.Index
+	fi *faults.Index
 	ai *askRunner.Runner
 
 	lockIndex sync.Mutex
 	mIndex    miner.IndexSnapshot
-	sIndex    slashing.IndexSnapshot
+	fIndex    faults.IndexSnapshot
 	aIndex    ask.Index
 
 	lockScores sync.Mutex
@@ -54,12 +54,12 @@ type MinerScore struct {
 }
 
 // New returns a new reputation Module
-func New(ds datastore.TxnDatastore, mi *miner.Index, si *slashing.Index, ai *askRunner.Runner) *Module {
+func New(ds datastore.TxnDatastore, mi *miner.Index, si *faults.Index, ai *askRunner.Runner) *Module {
 	ctx, cancel := context.WithCancel(context.Background())
 	rm := &Module{
 		ds: ds,
 		mi: mi,
-		si: si,
+		fi: si,
 		ai: ai,
 
 		rebuild:  make(chan struct{}, 1),
@@ -70,8 +70,8 @@ func New(ds datastore.TxnDatastore, mi *miner.Index, si *slashing.Index, ai *ask
 	}
 
 	go rm.updateSources()
-	go rm.subscribeIndexes()
 	go rm.indexBuilder()
+	go rm.subscribeIndexes()
 
 	return rm
 }
@@ -161,7 +161,7 @@ func (rm *Module) Close() error {
 func (rm *Module) subscribeIndexes() {
 	defer close(rm.finished)
 	subMi := rm.mi.Listen()
-	subSi := rm.si.Listen()
+	subSi := rm.fi.Listen()
 	subAi := rm.ai.Listen()
 
 	for {
@@ -174,7 +174,7 @@ func (rm *Module) subscribeIndexes() {
 			rm.mIndex = rm.mi.Get()
 		case <-subSi:
 			rm.lockIndex.Lock()
-			rm.sIndex = rm.si.Get()
+			rm.fIndex = rm.fi.Get()
 		case <-subAi:
 			rm.lockIndex.Lock()
 			rm.aIndex = rm.ai.Get()
@@ -190,7 +190,7 @@ func (rm *Module) subscribeIndexes() {
 // indexBuilder regenerates score information from all known sources
 func (rm *Module) indexBuilder() {
 	for range rm.rebuild {
-		log.Debug("rebuilding index")
+		log.Info("rebuilding index")
 		start := time.Now()
 
 		sources, err := rm.sources.GetAll()
@@ -200,13 +200,13 @@ func (rm *Module) indexBuilder() {
 		}
 		rm.lockIndex.Lock()
 		minerIndex := rm.mIndex
-		slashIndex := rm.sIndex
+		faultsIndex := rm.fIndex
 		askIndex := rm.aIndex
 		rm.lockIndex.Unlock()
 
-		scores := make([]MinerScore, 0, len(minerIndex.Chain.Power))
+		scores := make([]MinerScore, 0, len(minerIndex.OnChain.Miners))
 		for addr := range askIndex.Storage {
-			score := calculateScore(addr, minerIndex, slashIndex, askIndex, sources)
+			score := calculateScore(addr, minerIndex, faultsIndex, askIndex, sources)
 			scores = append(scores, score)
 		}
 		sort.Slice(scores, func(i, j int) bool {
@@ -217,18 +217,18 @@ func (rm *Module) indexBuilder() {
 		rm.scores = scores
 		rm.lockScores.Unlock()
 
-		log.Debugf("index rebuilt int %dms", time.Since(start).Milliseconds())
+		log.Infof("built scores for %d miners in %dms", len(scores), time.Since(start).Milliseconds())
 	}
 }
 
 // calculateScore calculates the score for a miner
-func calculateScore(addr string, mi miner.IndexSnapshot, si slashing.IndexSnapshot, ai ask.Index, ss []source.Source) MinerScore {
-	power := mi.Chain.Power[addr]
-	powerScore := power.Relative
+func calculateScore(addr string, mi miner.IndexSnapshot, si faults.IndexSnapshot, ai ask.Index, ss []source.Source) MinerScore {
+	miner := mi.OnChain.Miners[addr]
+	powerScore := miner.RelativePower
 
-	var slashScore float64
-	if slashes, ok := si.Miners[addr]; ok {
-		slashScore = 1 / math.Pow(2, float64(len(slashes.Epochs)))
+	var faultsScore float64
+	if faults, ok := si.Miners[addr]; ok {
+		faultsScore = 1 / math.Pow(2, float64(len(faults.Epochs)))
 	}
 
 	var externalScore float64
@@ -245,7 +245,7 @@ func calculateScore(addr string, mi miner.IndexSnapshot, si slashing.IndexSnapsh
 		askScore = 1
 	}
 
-	score := 50*slashScore + 20*powerScore + 20*externalScore + 10*askScore
+	score := 50*faultsScore + 20*powerScore + 20*externalScore + 10*askScore
 	return MinerScore{
 		Addr:  addr,
 		Score: int(score),

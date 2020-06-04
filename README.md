@@ -38,7 +38,7 @@ The _Miners index_ provides processed data regarding registered miners (on-chain
 
 The _Ask index_ provides a fast-retrieval up to date snapshot of miner's asking prices for data storage.
 
-The _Slashing index_ provides history data about miners faults while proving their storage on-chain. 
+The _Faults index_ provides history data about miners faults while proving their storage on-chain. 
 
 Built on top of the previous indexes, a _Reputation_ module constructs a weighted-scoring system that allows to sort miners considering multiple on-chain and off-chain data, such as: compared price to the median of the market, low storage-fault history, power on network, and external sources (soon!).
 
@@ -73,7 +73,7 @@ Available Commands:
   miners      Provides commands to view miners data
   net         Provides commands related to peers and network
   reputation  Provides commands to view miner reputation data
-  slashing    Provides commands to view slashing data
+  faults      Provides commands to view faults data
   wallet      Provides commands about filecoin wallets
 
 Flags:

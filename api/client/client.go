@@ -8,8 +8,8 @@ import (
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
+	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
-	slashingRpc "github.com/textileio/powergate/index/slashing/rpc"
 	netRpc "github.com/textileio/powergate/net/rpc"
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	"github.com/textileio/powergate/util"
@@ -21,7 +21,7 @@ import (
 type Client struct {
 	Asks       *Asks
 	Miners     *Miners
-	Slashing   *Slashing
+	Faults     *Faults
 	Deals      *Deals
 	Wallet     *Wallet
 	Reputation *Reputation
@@ -69,7 +69,7 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 	client := &Client{
 		Asks:       &Asks{client: askRpc.NewRPCServiceClient(conn)},
 		Miners:     &Miners{client: minerRpc.NewRPCServiceClient(conn)},
-		Slashing:   &Slashing{client: slashingRpc.NewRPCServiceClient(conn)},
+		Faults:     &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
 		Deals:      &Deals{client: dealsRpc.NewRPCServiceClient(conn)},
 		Wallet:     &Wallet{client: walletRpc.NewRPCServiceClient(conn)},
 		Reputation: &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},

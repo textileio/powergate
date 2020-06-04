@@ -40,22 +40,24 @@ func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 		Info:    info,
 	}
 
-	power := make(map[string]miner.Power, len(reply.GetIndex().GetChain().GetPower()))
-	for key, val := range reply.GetIndex().GetChain().GetPower() {
-		power[key] = miner.Power{
-			Power:    val.GetPower(),
-			Relative: float64(val.GetRelative()),
+	miners := make(map[string]miner.OnChainData, len(reply.GetIndex().GetChain().GetMiners()))
+	for key, val := range reply.GetIndex().GetChain().GetMiners() {
+		miners[key] = miner.OnChainData{
+			Power:         val.GetPower(),
+			RelativePower: float64(val.GetRelativePower()),
+			SectorSize:    uint64(val.GetSectorSize()),
+			ActiveDeals:   uint64(val.GetActiveDeals()),
 		}
 	}
 
 	chainIndex := miner.ChainIndex{
 		LastUpdated: reply.GetIndex().GetChain().GetLastUpdated(),
-		Power:       power,
+		Miners:      miners,
 	}
 
 	index := &miner.IndexSnapshot{
-		Meta:  metaIndex,
-		Chain: chainIndex,
+		Meta:    metaIndex,
+		OnChain: chainIndex,
 	}
 
 	return index, nil

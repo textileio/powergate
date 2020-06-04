@@ -56,28 +56,28 @@ func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 func (a *Asks) Query(ctx context.Context, query runner.Query) ([]ask.StorageAsk, error) {
 	time.Sleep(time.Second * 3)
 	var asks = []ask.StorageAsk{
-		ask.StorageAsk{
+		{
 			Miner:        "miner1",
 			Price:        1245,
 			MinPieceSize: 1024,
 			Timestamp:    1,
 			Expiry:       100,
 		},
-		ask.StorageAsk{
+		{
 			Miner:        "miner2",
 			Price:        3420,
 			MinPieceSize: 2048,
 			Timestamp:    2,
 			Expiry:       200,
 		},
-		ask.StorageAsk{
+		{
 			Miner:        "miner3",
 			Price:        1245,
 			MinPieceSize: 1024,
 			Timestamp:    3,
 			Expiry:       100,
 		},
-		ask.StorageAsk{
+		{
 			Miner:        "miner4",
 			Price:        1245,
 			MinPieceSize: 1024,

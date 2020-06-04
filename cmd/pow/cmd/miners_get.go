@@ -57,22 +57,24 @@ var getMinersCmd = &cobra.Command{
 		Message("%v", aurora.Blue("Miner on chain data:").Bold())
 		cmd.Println()
 
-		chainData := make([][]string, len(index.Chain.Power))
+		chainData := make([][]string, len(index.OnChain.Miners))
 		i = 0
-		for id, power := range index.Chain.Power {
+		for id, minerData := range index.OnChain.Miners {
 			chainData[i] = []string{
 				id,
-				strconv.Itoa(int(power.Power)),
-				strconv.Itoa(int(power.Relative)),
+				strconv.Itoa(int(minerData.Power)),
+				strconv.Itoa(int(minerData.RelativePower)),
+				strconv.Itoa(int(minerData.SectorSize)),
+				strconv.Itoa(int(minerData.ActiveDeals)),
 			}
 			i++
 		}
 
-		RenderTable(os.Stdout, []string{"miner", "power", "relative"}, chainData)
+		RenderTable(os.Stdout, []string{"miner", "power", "relativePower", "sectorSize", "activeDeals"}, chainData)
 
-		lastUpdated := time.Unix(int64(index.Chain.LastUpdated), 0).Format("01/02/06 15:04 MST")
+		lastUpdated := time.Unix(int64(index.OnChain.LastUpdated), 0).Format("01/02/06 15:04 MST")
 
-		Message("Found on chain data for %d miners", aurora.White(len(index.Chain.Power)).Bold())
+		Message("Found on chain data for %d miners", aurora.White(len(index.OnChain.Miners)).Bold())
 		Message("Chain data last updated %v", aurora.White(lastUpdated).Bold())
 	},
 }
