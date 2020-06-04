@@ -44,7 +44,6 @@ type Index struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	finished chan struct{}
-	clsLock  sync.Mutex
 	closed   bool
 }
 
@@ -108,8 +107,8 @@ func (s *Index) Unregister(c chan struct{}) {
 // Close closes the FaultIndex.
 func (s *Index) Close() error {
 	log.Info("Closing")
-	s.clsLock.Lock()
-	defer s.clsLock.Unlock()
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	if s.closed {
 		return nil
 	}

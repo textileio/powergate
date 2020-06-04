@@ -16,6 +16,7 @@ import (
 	"github.com/textileio/powergate/index/faults"
 	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/reputation/internal/source"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -70,8 +71,8 @@ func New(ds datastore.TxnDatastore, mi *miner.Index, si *faults.Index, ai *askRu
 	}
 
 	go rm.updateSources()
-	go rm.subscribeIndexes()
 	go rm.indexBuilder()
+	go rm.subscribeIndexes()
 
 	return rm
 }
@@ -178,6 +179,12 @@ func (rm *Module) subscribeIndexes() {
 		case <-subAi:
 			rm.lockIndex.Lock()
 			rm.aIndex = rm.ai.Get()
+		// (jsign): This shouldn't be needed.
+		case <-time.After(util.AvgBlockTime):
+			rm.lockIndex.Lock()
+			rm.aIndex = rm.ai.Get()
+			rm.fIndex = rm.fi.Get()
+			rm.mIndex = rm.mi.Get()
 		}
 		rm.lockIndex.Unlock()
 		select {
@@ -190,7 +197,7 @@ func (rm *Module) subscribeIndexes() {
 // indexBuilder regenerates score information from all known sources
 func (rm *Module) indexBuilder() {
 	for range rm.rebuild {
-		log.Debug("rebuilding index")
+		log.Info("rebuilding index")
 		start := time.Now()
 
 		sources, err := rm.sources.GetAll()
@@ -208,6 +215,7 @@ func (rm *Module) indexBuilder() {
 		for addr := range askIndex.Storage {
 			score := calculateScore(addr, minerIndex, faultsIndex, askIndex, sources)
 			scores = append(scores, score)
+			log.Info("building score for %s is %v", addr, score.Score)
 		}
 		sort.Slice(scores, func(i, j int) bool {
 			return scores[i].Score > scores[j].Score
@@ -217,7 +225,7 @@ func (rm *Module) indexBuilder() {
 		rm.scores = scores
 		rm.lockScores.Unlock()
 
-		log.Debugf("index rebuilt int %dms", time.Since(start).Milliseconds())
+		log.Infof("index rebuilt int %dms", time.Since(start).Milliseconds())
 	}
 }
 

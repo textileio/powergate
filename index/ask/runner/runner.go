@@ -16,14 +16,16 @@ import (
 	"github.com/textileio/powergate/index/ask/internal/metrics"
 	"github.com/textileio/powergate/index/ask/internal/store"
 	"github.com/textileio/powergate/signaler"
+	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
 var (
-	qaRatelim         = 20
-	qaTimeout         = time.Second * 10
-	qaRefreshInterval = 20 * time.Minute
+	qaRatelim = 20
+	qaTimeout = time.Second * 10
+	// (jsign): Make a wiser decision.
+	qaRefreshInterval = util.AvgBlockTime
 
 	log = logging.Logger("index-ask")
 )
