@@ -27,7 +27,7 @@ var (
 	// hOffset is the # of tipsets from the heaviest chain to
 	// consider for index updating; this to reduce sensibility to
 	// chain reorgs
-	hOffset = abi.ChainEpoch(5)
+	hOffset = abi.ChainEpoch(20)
 
 	log = logging.Logger("index-faults")
 )
@@ -84,7 +84,7 @@ func (s *Index) Get() IndexSnapshot {
 		Miners:    make(map[string]Faults, len(s.index.Miners)),
 	}
 	for addr, v := range s.index.Miners {
-		history := make([]uint64, len(v.Epochs))
+		history := make([]int64, len(v.Epochs))
 		copy(history, v.Epochs)
 		ii.Miners[addr] = Faults{
 			Epochs: history,
@@ -141,30 +141,41 @@ func (s *Index) start() {
 // updateIndex updates current index.
 func (s *Index) updateIndex() error {
 	log.Info("updating faults index...")
-	heaviest, err := s.api.ChainHead(s.ctx)
+
+	chainHead, err := s.api.ChainHead(s.ctx)
 	if err != nil {
 		return fmt.Errorf("getting chain head: %s", err)
 	}
-	if heaviest.Height()-hOffset <= 0 {
+	// If the chain is very young, wait a bit for start building the index.
+	if chainHead.Height()-hOffset <= 0 {
 		return nil
 	}
-	new, err := s.api.ChainGetTipSetByHeight(s.ctx, heaviest.Height()-hOffset, heaviest.Key())
+
+	// Get the tipset hOffset before current head as the target tipset
+	// to let the index be built.
+	targetTs, err := s.api.ChainGetTipSetByHeight(s.ctx, chainHead.Height()-hOffset, chainHead.Key())
 	if err != nil {
-		return fmt.Errorf("get tipset by height: %s", err)
+		return fmt.Errorf("getting offseted tipset from head: %s", err)
 	}
-	newtsk := types.NewTipSetKey(new.Cids()...)
+
 	var index IndexSnapshot
-	ts, err := s.store.LoadAndPrune(s.ctx, newtsk, &index)
+	// Load the last saved index snapshot which is a child of the target TipSet.
+	// Might not be s.index because of reorgs.
+	indexTs, err := s.store.LoadAndPrune(s.ctx, targetTs.Key(), &index)
 	if err != nil {
 		return fmt.Errorf("load tipset state: %s", err)
 	}
 	if index.Miners == nil {
 		index.Miners = make(map[string]Faults)
 	}
-	_, path, err := chainsync.ResolveBase(s.ctx, s.api, ts, newtsk)
+
+	// Get the tipset path between the indexTs and the targetTs, so to
+	// calculate the faults that happened between last saved index and target.
+	_, path, err := chainsync.ResolveBase(s.ctx, s.api, indexTs, targetTs.Key())
 	if err != nil {
 		return fmt.Errorf("resolving base path: %s", err)
 	}
+
 	mctx := context.Background()
 	start := time.Now()
 	for i := 0; i < len(path); i += batchSize {
@@ -172,107 +183,51 @@ func (s *Index) updateIndex() error {
 		if j > len(path) {
 			j = len(path)
 		}
-		if err := updateFromPath(s.ctx, s.api, &index, path[i:j]); err != nil {
-			return fmt.Errorf("getting update from path section: %s", err)
+
+		// Get section head and length, and get all faults happened
+		// in this section and include it into the updating index.
+		sectionLength := abi.ChainEpoch(j - i)
+		sectionHeadTs := path[j-1].Key()
+		faults, err := s.api.StateAllMinerFaults(s.ctx, sectionLength, sectionHeadTs)
+		if err != nil {
+			return fmt.Errorf("getting faults from path section: %s", err)
 		}
+		index.TipSetKey = sectionHeadTs.String()
+		for _, f := range faults {
+			currFaults := index.Miners[f.Miner.String()]
+			currFaults.Epochs = append(currFaults.Epochs, int64(f.Epoch))
+		}
+
+		// Persist partial progress in each finished section-path.
 		if err := s.store.Save(s.ctx, types.NewTipSetKey(path[j-1].Cids()...), index); err != nil {
 			return fmt.Errorf("saving new index state: %s", err)
 		}
 		log.Infof("processed from %d to %d", path[i].Height(), path[j-1].Height())
+
+		// Already make available this section-path proccessed information for external
+		// use.
 		s.lock.Lock()
-		s.index = index
+		s.index = IndexSnapshot{
+			TipSetKey: index.TipSetKey,
+			Miners:    make(map[string]Faults, len(index.Miners)),
+		}
+		for k, v := range index.Miners {
+			s.index.Miners[k] = v
+		}
 		s.lock.Unlock()
+
+		// Signal external actors that updated index information is available.
+		s.signaler.Signal()
+
 		stats.Record(mctx, mRefreshProgress.M(float64(i)/float64(len(path))))
 	}
 
 	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
-	stats.Record(mctx, mUpdatedHeight.M(int64(new.Height())))
+	stats.Record(mctx, mUpdatedHeight.M(int64(targetTs.Height())))
 	stats.Record(mctx, mRefreshProgress.M(1))
-
-	s.signaler.Signal()
 	log.Info("faults index updated")
 
 	return nil
-}
-
-// updateFromPath updates a saved index state walking a chain path. The path
-// usually should be the next epoch from index up to the current head TipSet.
-func updateFromPath(ctx context.Context, api *apistruct.FullNodeStruct, index *IndexSnapshot, path []*types.TipSet) error {
-	for i := 1; i < len(path); i++ {
-		patch, err := epochPatch(ctx, api, path[i-1], path[i])
-		if err != nil {
-			return err
-		}
-		for addr := range patch {
-			info := index.Miners[addr]
-			if len(info.Epochs) > 0 && info.Epochs[len(info.Epochs)-1] == patch[addr] {
-				continue
-			}
-			info.Epochs = append(info.Epochs, patch[addr])
-			index.Miners[addr] = info
-		}
-	}
-	index.TipSetKey = types.NewTipSetKey(path[len(path)-1].Cids()...).String()
-
-	return nil
-}
-
-// epochPatch returns a map of slashedAt values for miners that changed between
-// two consecutive epochs.
-func epochPatch(ctx context.Context, c *apistruct.FullNodeStruct, pts *types.TipSet, ts *types.TipSet) (map[string]uint64, error) {
-	if !areConsecutiveEpochs(pts, ts) {
-		return nil, fmt.Errorf("epoch patch can only be called between parent-child tipsets")
-	}
-
-	chg, err := c.StateChangedActors(ctx, pts.Blocks()[0].ParentStateRoot, ts.Blocks()[0].ParentStateRoot)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := make(map[string]uint64)
-	var lock sync.Mutex
-	var wg sync.WaitGroup
-	wg.Add(len(chg))
-	for addr := range chg {
-		go func(addr string) {
-			defer wg.Done()
-			actor := chg[addr]
-			as, err := c.StateReadState(ctx, &actor, ts.Key())
-			if err != nil {
-				log.Debugf("error when reading state of %s at height %d: %s", addr, pts.Height, err)
-				return
-			}
-			mas, ok := as.State.(map[string]interface{})
-			if !ok {
-				log.Debugf("read state should be a map interface result: %#v", as.State)
-			}
-			iSlashedAt, ok := mas["SlashedAt"]
-			if !ok {
-				log.Debugf("reading state of %s didn't have slashedAt attr", addr)
-				return
-			}
-			fSlashedAt, ok := iSlashedAt.(float64)
-			if !ok {
-				log.Debugf("casting slashedAt %v from %s at %d failed", iSlashedAt, addr, pts.Height)
-				return
-			}
-			slashedAt := uint64(fSlashedAt)
-			if slashedAt != 0 {
-				lock.Lock()
-				ret[addr] = (slashedAt)
-				lock.Unlock()
-			}
-		}(addr)
-	}
-	wg.Wait()
-
-	select {
-	case <-ctx.Done():
-		return nil, fmt.Errorf("canceled by context")
-	default:
-	}
-
-	return ret, nil
 }
 
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed

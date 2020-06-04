@@ -15,10 +15,10 @@ type Faults struct {
 func (s *Faults) Get(ctx context.Context) (*faults.IndexSnapshot, error) {
 	time.Sleep(time.Second * 3)
 	miners := map[string]faults.Faults{
-		"miner1": {Epochs: []uint64{123, 234, 345, 456}},
-		"miner2": {Epochs: []uint64{123, 234, 345, 456}},
-		"miner3": {Epochs: []uint64{123, 234, 345, 456}},
-		"miner4": {Epochs: []uint64{123, 234, 345, 456}},
+		"miner1": {Epochs: []int64{123, 234, 345, 456}},
+		"miner2": {Epochs: []int64{123, 234, 345, 456}},
+		"miner3": {Epochs: []int64{123, 234, 345, 456}},
+		"miner4": {Epochs: []int64{123, 234, 345, 456}},
 	}
 
 	index := &faults.IndexSnapshot{

@@ -9,7 +9,7 @@ message Index {
 }
 
 message Faults {
-    repeated uint64 epochs = 1;
+    repeated int64 epochs = 1;
 }
 
 

@@ -8,5 +8,5 @@ type IndexSnapshot struct {
 
 // Faults contains epochs where a fault was detected for a miner.
 type Faults struct {
-	Epochs []uint64
+	Epochs []int64
 }
