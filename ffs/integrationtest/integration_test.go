@@ -470,7 +470,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	ipfs, ipfsAddr := createIPFS(t)
 	countries := []string{"China", "Uruguay"}
 	numMiners := len(countries)
-	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr)
+	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
 		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
@@ -507,7 +507,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 func TestFilecoinMaxPriceFilter(t *testing.T) {
 	t.Parallel()
 	ipfs, ipfsMAddr := createIPFS(t)
-	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, 1, ipfsMAddr)
+	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, 1, ipfsMAddr, false)
 	miner := fixed.Miner{Addr: "t01000", EpochPrice: 500000000}
 	ms := fixed.New([]fixed.Miner{miner})
 	ds := tests.NewTxMapDatastore()
@@ -1305,7 +1305,7 @@ func createIPFS(t *testing.T) (*httpapi.HttpApi, string) {
 }
 
 func newDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
-	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr)
+	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
 		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
