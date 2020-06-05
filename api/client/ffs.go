@@ -607,7 +607,7 @@ func fromRPCDealErrors(des []*rpc.DealError) ([]ffs.DealError, error) {
 	res := make([]ffs.DealError, len(des))
 	for i, de := range des {
 		var propCid cid.Cid
-		if de.ProposalCid != "" {
+		if de.ProposalCid != "" && de.ProposalCid != "b" {
 			var err error
 			propCid, err = cid.Decode(de.ProposalCid)
 			if err != nil {
