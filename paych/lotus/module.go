@@ -133,10 +133,8 @@ func (m *Module) Redeem(ctx context.Context, ch string) error {
 		if err != nil {
 			return err
 		}
-		if spendable {
-			if best == nil || v.Amount.GreaterThan(best.Amount) {
-				best = v
-			}
+		if spendable && (best == nil || v.Amount.GreaterThan(best.Amount)) {
+			best = v
 		}
 	}
 

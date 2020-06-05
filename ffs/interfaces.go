@@ -19,20 +19,6 @@ type WalletManager interface {
 	SendFil(context.Context, string, string, *big.Int) error
 }
 
-type createVoucherConfig struct {
-	lane uint64
-}
-
-// CreateVoucherOption modifies a createVoucherCOnfig
-type CreateVoucherOption func(*createVoucherConfig)
-
-// WithCreateVoucherLane allows you to specify a non-0 lane
-func WithCreateVoucherLane(lane uint64) CreateVoucherOption {
-	return func(conf *createVoucherConfig) {
-		conf.lane = lane
-	}
-}
-
 // PaychManager provides access to payment channels
 type PaychManager interface {
 	// List lists all payment channels involving the specified addresses

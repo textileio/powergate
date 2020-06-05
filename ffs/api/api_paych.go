@@ -38,7 +38,7 @@ func (i *API) RedeemPayChannel(ctx context.Context, addr string) error {
 	}
 	managed := false
 	for _, channel := range channels {
-		if i.isManagedAddress(channel.CtlAddr) {
+		if channel.Addr == addr {
 			managed = true
 			break
 		}
