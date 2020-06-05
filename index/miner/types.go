@@ -4,13 +4,13 @@ import (
 	"time"
 )
 
-// IndexSnapshot contains on-chain and off-chain information about miners
+// IndexSnapshot contains on-chain and off-chain information about miners.
 type IndexSnapshot struct {
 	Meta    MetaIndex
 	OnChain ChainIndex
 }
 
-// ChainIndex contains on-chain information about miners
+// ChainIndex contains on-chain information about miners.
 type ChainIndex struct {
 	LastUpdated int64
 	Miners      map[string]OnChainData
@@ -24,14 +24,14 @@ type OnChainData struct {
 	ActiveDeals   uint64
 }
 
-// MetaIndex contains off-chain information about miners
+// MetaIndex contains off-chain information about miners.
 type MetaIndex struct {
 	Online  uint32
 	Offline uint32
 	Info    map[string]Meta
 }
 
-// Meta contains off-chain information of a miner
+// Meta contains off-chain information of a miner.
 type Meta struct {
 	LastUpdated time.Time
 	UserAgent   string
@@ -39,7 +39,7 @@ type Meta struct {
 	Online      bool
 }
 
-// Location contains geeoinformation
+// Location contains geeoinformation.
 type Location struct {
 	Country   string
 	Longitude float32

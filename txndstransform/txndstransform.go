@@ -8,7 +8,7 @@ import (
 	dsq "github.com/ipfs/go-datastore/query"
 )
 
-// Wrap wraps a TxDatastore with a namespace prefix
+// Wrap wraps a TxDatastore with a namespace prefix.
 func Wrap(child ds.TxnDatastore, prefix string) *Datastore {
 	parts := strings.Split(prefix, "/")
 	prefixKey := ds.NewKey("/")
@@ -24,7 +24,7 @@ func Wrap(child ds.TxnDatastore, prefix string) *Datastore {
 	return nds
 }
 
-// Datastore keeps a KeyTransform function
+// Datastore keeps a KeyTransform function.
 type Datastore struct {
 	child ds.TxnDatastore
 	kt.KeyTransform
@@ -36,7 +36,7 @@ type txn struct {
 	ds *Datastore
 }
 
-// NewTransaction returns a transaction wrapped by the selected namespace prefix
+// NewTransaction returns a transaction wrapped by the selected namespace prefix.
 func (d *Datastore) NewTransaction(readOnly bool) (ds.Txn, error) {
 	t, err := d.child.NewTransaction(readOnly)
 	if err != nil {
@@ -59,7 +59,7 @@ func (t *txn) Put(key ds.Key, value []byte) (err error) {
 	return t.Txn.Put(t.ds.ConvertKey(key), value)
 }
 
-// Delete removes the value for given key
+// Delete removes the value for given key.
 func (t *txn) Delete(key ds.Key) (err error) {
 	return t.Txn.Delete(t.ds.ConvertKey(key))
 }
@@ -111,7 +111,6 @@ func (t *txn) Query(q dsq.Query) (dsq.Results, error) {
 // Split the query into a child query and a naive query. That way, we can make
 // the child datastore do as much work as possible.
 func (t *txn) prepareQuery(q dsq.Query) (naive, child dsq.Query) {
-
 	// First, put everything in the child query. Then, start taking things
 	// out.
 	child = q

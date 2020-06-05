@@ -8,7 +8,7 @@ import (
 	"github.com/ipfs/go-datastore/query"
 )
 
-// TxMapDatastore is a in-memory datastore that satisfies TxnDatastore
+// TxMapDatastore is a in-memory datastore that satisfies TxnDatastore.
 type TxMapDatastore struct {
 	*datastore.MapDatastore
 	lock sync.RWMutex
@@ -86,7 +86,7 @@ type op struct {
 }
 
 // SimpleTx implements the transaction interface for datastores who do
-// not have any sort of underlying transactional support
+// not have any sort of underlying transactional support.
 type SimpleTx struct {
 	ops    map[datastore.Key]op
 	lock   sync.RWMutex

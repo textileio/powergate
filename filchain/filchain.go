@@ -12,12 +12,12 @@ type FilChain struct {
 	api API
 }
 
-// API interacts with a Lotus full-node
+// API interacts with a Lotus full-node.
 type API interface {
 	ChainHead(ctx context.Context) (*types.TipSet, error)
 }
 
-// New creates a new deal module
+// New creates a new deal module.
 func New(api API) *FilChain {
 	return &FilChain{
 		api: api,

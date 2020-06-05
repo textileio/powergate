@@ -17,7 +17,7 @@ var (
 	ErrNotFound = errors.New("cid info not found")
 )
 
-// Store is an Datastore implementation of CidInfoStore
+// Store is an Datastore implementation of CidInfoStore.
 type Store struct {
 	ds datastore.Datastore
 }
@@ -29,7 +29,7 @@ func New(ds datastore.Datastore) *Store {
 	}
 }
 
-// Get  gets the current stored state of a Cid
+// Get  gets the current stored state of a Cid.
 func (s *Store) Get(c cid.Cid) (ffs.CidInfo, error) {
 	var ci ffs.CidInfo
 	buf, err := s.ds.Get(makeKey(c))
@@ -45,7 +45,7 @@ func (s *Store) Get(c cid.Cid) (ffs.CidInfo, error) {
 	return ci, nil
 }
 
-// Put saves a new storing state for a Cid
+// Put saves a new storing state for a Cid.
 func (s *Store) Put(ci ffs.CidInfo) error {
 	if !ci.Cid.Defined() {
 		return fmt.Errorf("cid can't be undefined")

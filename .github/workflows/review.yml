@@ -10,7 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: actions-contrib/golangci-lint@v1
+      - uses: golangci/golangci-lint-action@v1
+        with:
+          version: v1.27
   spell-check:
      name: spell-check
      runs-on: ubuntu-latest

@@ -17,7 +17,7 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
-// LaunchDevnetDocker launches the devnet docker image
+// LaunchDevnetDocker launches the devnet docker image.
 func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockertest.Resource {
 	pool, err := dockertest.NewPool("")
 	if err != nil {

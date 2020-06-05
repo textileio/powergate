@@ -6,14 +6,14 @@ import (
 	"github.com/textileio/powergate/index/ask/runner"
 )
 
-// RPC implements the gprc service
+// RPC implements the gprc service.
 type RPC struct {
 	UnimplementedRPCServiceServer
 
 	index *runner.Runner
 }
 
-// New creates a new rpc service
+// New creates a new rpc service.
 func New(ai *runner.Runner) *RPC {
 	return &RPC{
 		index: ai,

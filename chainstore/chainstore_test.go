@@ -169,7 +169,6 @@ func TestLoadSavedState(t *testing.T) {
 	if *bts != savedTipset || v.Tipset != savedTipset.String() || v.Nested.Pos != generateTotal-offset {
 		t.Fatalf("returned state is wrong")
 	}
-
 }
 
 type mockTipsetOrderer struct {

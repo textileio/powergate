@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/index/ask"
 	"github.com/textileio/powergate/tests"
 )
@@ -25,7 +26,7 @@ func TestFreshBuild(t *testing.T) {
 	dnet, _, miners := tests.CreateLocalDevnet(t, 1)
 
 	index, _, err := generateIndex(ctx, dnet)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	// We should have storage info about every miner in devnet
 	for _, m := range miners {
@@ -84,12 +85,5 @@ func TestQueryAsk(t *testing.T) {
 				t.Fatalf("expected %v, got %v", tt.expect, got)
 			}
 		})
-	}
-}
-
-func checkErr(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
 	}
 }

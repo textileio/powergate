@@ -19,7 +19,7 @@ type Config struct {
 	DefaultConfig ffs.DefaultConfig
 }
 
-// AddrInfo provides information about a wallet address
+// AddrInfo provides information about a wallet address.
 type AddrInfo struct {
 	Name string
 	Addr string
@@ -40,7 +40,7 @@ type BalanceInfo struct {
 	Balance uint64
 }
 
-// NewAddressConfig contains options for creating a new wallet address
+// NewAddressConfig contains options for creating a new wallet address.
 type NewAddressConfig struct {
 	makeDefault bool
 	addressType string

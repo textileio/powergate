@@ -12,7 +12,7 @@ type Faults struct {
 	client rpc.RPCServiceClient
 }
 
-// Get returns the current index of miner faults data
+// Get returns the current index of miner faults data.
 func (s *Faults) Get(ctx context.Context) (*faults.IndexSnapshot, error) {
 	reply, err := s.client.Get(ctx, &rpc.GetRequest{})
 	if err != nil {

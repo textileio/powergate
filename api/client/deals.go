@@ -13,19 +13,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Deals provides an API for managing deals and storing data
+// Deals provides an API for managing deals and storing data.
 type Deals struct {
 	client rpc.RPCServiceClient
 }
 
-// WatchEvent is used to send data or error values for Watch
+// WatchEvent is used to send data or error values for Watch.
 type WatchEvent struct {
 	Deal deals.DealInfo
 	Err  error
 }
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
-// by dealConfigs for duration epochs
+// by dealConfigs for duration epochs.
 func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, minDuration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
 	stream, err := d.client.Store(ctx)
 	if err != nil {
@@ -93,7 +93,7 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 	return cids, failedDeals, nil
 }
 
-// Watch returnas a channel with state changes of indicated proposals
+// Watch returns a channel with state changes of indicated proposals.
 func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEvent, error) {
 	channel := make(chan WatchEvent)
 	proposalStrings := make([]string, len(proposals))
@@ -145,7 +145,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 	return channel, nil
 }
 
-// Retrieve is used to fetch data from filecoin
+// Retrieve is used to fetch data from filecoin.
 func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Reader, error) {
 	req := &rpc.RetrieveRequest{
 		Address: waddr,

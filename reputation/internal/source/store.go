@@ -20,19 +20,19 @@ var (
 	baseKey = datastore.NewKey("/reputation/store")
 )
 
-// Store contains Sources information
+// Store contains Sources information.
 type Store struct {
 	ds datastore.TxnDatastore
 }
 
-// NewStore returns a new SourceStore
+// NewStore returns a new SourceStore.
 func NewStore(ds datastore.TxnDatastore) *Store {
 	return &Store{
 		ds: ds,
 	}
 }
 
-// Add adds a new Source to the store
+// Add adds a new Source to the store.
 func (ss *Store) Add(s Source) error {
 	txn, err := ss.ds.NewTransaction(false)
 	if err != nil {
@@ -51,7 +51,7 @@ func (ss *Store) Add(s Source) error {
 	return ss.put(txn, s)
 }
 
-// Update updates a Source
+// Update updates a Source.
 func (ss *Store) Update(s Source) error {
 	txn, err := ss.ds.NewTransaction(false)
 	if err != nil {
@@ -68,7 +68,7 @@ func (ss *Store) Update(s Source) error {
 	return ss.put(txn, s)
 }
 
-// GetAll returns all Sources
+// GetAll returns all Sources.
 func (ss *Store) GetAll() ([]Source, error) {
 	txn, err := ss.ds.NewTransaction(true)
 	if err != nil {
@@ -105,7 +105,6 @@ func (ss *Store) put(txn datastore.Txn, s Source) error {
 		return err
 	}
 	return txn.Commit()
-
 }
 
 func genKey(id string) datastore.Key {

@@ -63,7 +63,7 @@ var (
 	log = logging.Logger("server")
 )
 
-// Server represents the configured lotus client and filecoin grpc server
+// Server represents the configured lotus client and filecoin grpc server.
 type Server struct {
 	ds datastore.TxnDatastore
 
@@ -350,7 +350,7 @@ func startIndexHTTPServer(s *Server) *http.Server {
 	return srv
 }
 
-// Close shuts down the server
+// Close shuts down the server.
 func (s *Server) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

@@ -18,7 +18,7 @@ type Module struct {
 	masterAddr address.Address
 }
 
-// New creates a new wallet module
+// New creates a new wallet module.
 func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int) (*Module, error) {
 	m := &Module{
 		api:        api,
@@ -28,7 +28,7 @@ func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int) (*Mo
 	return m, nil
 }
 
-// NewAddress creates a new address
+// NewAddress creates a new address.
 func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	var ty crypto.SigType
 	if typ == "bls" {
@@ -75,7 +75,7 @@ func (m *Module) Balance(ctx context.Context, addr string) (uint64, error) {
 	return b.Uint64(), nil
 }
 
-// SendFil sends fil from one address to another
+// SendFil sends fil from one address to another.
 func (m *Module) SendFil(ctx context.Context, from string, to string, amount *big.Int) error {
 	f, err := address.NewFromString(from)
 	if err != nil {

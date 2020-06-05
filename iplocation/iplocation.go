@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	//ErrCantResolve indicates that geoinformation couldn't be resolved for a host
+	// ErrCantResolve indicates that geoinformation couldn't be resolved for a host.
 	ErrCantResolve = errors.New("can't resolve multiaddr location information")
 )
 
-// Location contains geoinformation
+// Location contains geoinformation.
 type Location struct {
 	Country   string
 	Latitude  float32
@@ -19,7 +19,7 @@ type Location struct {
 }
 
 // LocationResolver resolver gets location information from a set of multiaddresses of
-// a single host
+// a single host.
 type LocationResolver interface {
 	Resolve(mas []multiaddr.Multiaddr) (Location, error)
 }

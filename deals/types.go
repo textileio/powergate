@@ -6,7 +6,7 @@ import (
 	"github.com/ipfs/go-cid"
 )
 
-// StorageDealConfig contains information about a storage proposal for a miner
+// StorageDealConfig contains information about a storage proposal for a miner.
 type StorageDealConfig struct {
 	Miner      string
 	EpochPrice uint64
@@ -20,7 +20,7 @@ type StoreResult struct {
 	Message     string
 }
 
-// DealInfo contains information about a proposal storage deal
+// DealInfo contains information about a proposal storage deal.
 type DealInfo struct {
 	ProposalCid cid.Cid
 	StateID     uint64

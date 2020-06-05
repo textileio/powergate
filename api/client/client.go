@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Client provides the client api
+// Client provides the client api.
 type Client struct {
 	Asks       *Asks
 	Miners     *Miners
@@ -33,30 +33,30 @@ type Client struct {
 
 type ctxKey string
 
-// AuthKey is the key that should be used to set the auth token in a Context
+// AuthKey is the key that should be used to set the auth token in a Context.
 const AuthKey = ctxKey("ffstoken")
 
-// TokenAuth provides token based auth
+// TokenAuth provides token based auth.
 type TokenAuth struct {
 	secure bool
 }
 
-// GetRequestMetadata returns request metadata that includes the auth token
+// GetRequestMetadata returns request metadata that includes the auth token.
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
 	md := map[string]string{}
-	token, ok := ctx.Value(ctxKey(AuthKey)).(string)
+	token, ok := ctx.Value(AuthKey).(string)
 	if ok && token != "" {
 		md["X-ffs-Token"] = token
 	}
 	return md, nil
 }
 
-// RequireTransportSecurity specifies if the connection should be secure
+// RequireTransportSecurity specifies if the connection should be secure.
 func (t TokenAuth) RequireTransportSecurity() bool {
 	return t.secure
 }
 
-// NewClient creates a client
+// NewClient creates a client.
 func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error) {
 	addr, err := util.TCPAddrFromMultiAddr(ma)
 	if err != nil {
@@ -81,7 +81,7 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 	return client, nil
 }
 
-// Close closes the client's grpc connection and cancels any active requests
+// Close closes the client's grpc connection and cancels any active requests.
 func (c *Client) Close() error {
 	return c.conn.Close()
 }

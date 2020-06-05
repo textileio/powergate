@@ -4,7 +4,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Client provides the client api
+// Client provides the client api.
 type Client struct {
 	Asks       *Asks
 	Miners     *Miners
@@ -14,7 +14,7 @@ type Client struct {
 	Reputation *Reputation
 }
 
-// NewClient starts the client
+// NewClient starts the client.
 func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 	client := &Client{
 		Asks:       &Asks{},
@@ -27,7 +27,7 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 	return client, nil
 }
 
-// Close closes the client's grpc connection and cancels any active requests
+// Close closes the client's grpc connection and cancels any active requests.
 func (c *Client) Close() error {
 	return nil
 }

@@ -95,7 +95,6 @@ func (s *Store) Remove(c cid.Cid) error {
 		}
 	}
 	return ErrNotFound
-
 }
 
 // GetRenewable returns all Actions that have CidConfigs that have the Renew flag enabled
@@ -144,7 +143,6 @@ func (s *Store) query(selector func(Action) bool) ([]Action, error) {
 		}
 	}
 	return as, nil
-
 }
 
 func makeKey(jid ffs.JobID) datastore.Key {

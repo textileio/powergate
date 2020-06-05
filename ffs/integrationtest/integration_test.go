@@ -595,7 +595,6 @@ func TestFilecoinEnableConfig(t *testing.T) {
 					requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 				}
 			}
-
 		})
 	}
 }
@@ -689,7 +688,6 @@ func TestEnabledConfigChange(t *testing.T) {
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
 		requireFilStored(ctx, t, client, cid)
-
 	})
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()

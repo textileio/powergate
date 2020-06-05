@@ -7,21 +7,21 @@ import (
 	"github.com/textileio/powergate/reputation"
 )
 
-// RPC implements the gprc service
+// RPC implements the gprc service.
 type RPC struct {
 	UnimplementedRPCServiceServer
 
 	module *reputation.Module
 }
 
-// New creates a new rpc service
+// New creates a new rpc service.
 func New(m *reputation.Module) *RPC {
 	return &RPC{
 		module: m,
 	}
 }
 
-// AddSource calls Module.AddSource
+// AddSource calls Module.AddSource.
 func (s *RPC) AddSource(ctx context.Context, req *AddSourceRequest) (*AddSourceResponse, error) {
 	maddr, err := ma.NewMultiaddr(req.GetMaddr())
 	if err != nil {
@@ -33,7 +33,7 @@ func (s *RPC) AddSource(ctx context.Context, req *AddSourceRequest) (*AddSourceR
 	return &AddSourceResponse{}, nil
 }
 
-// GetTopMiners calls Module.GetTopMiners
+// GetTopMiners calls Module.GetTopMiners.
 func (s *RPC) GetTopMiners(ctx context.Context, req *GetTopMinersRequest) (*GetTopMinersResponse, error) {
 	minerScores, err := s.module.GetTopMiners(int(req.GetLimit()))
 	if err != nil {

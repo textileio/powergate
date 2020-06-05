@@ -85,7 +85,6 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 			if err := run(ctx, c, i, ts.RandSeed+i, ts.SampleSize, addr, ts.MinerAddr); err != nil {
 				chErr <- fmt.Errorf("failed run %d: %s", i, err)
 			}
-
 		}(i)
 	}
 	for i := 0; i < ts.MaxParallel; i++ {
@@ -166,7 +165,6 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		if s.Job.Status == ffs.Success {
 			return nil
 		}
-
 	}
 	return fmt.Errorf("unexpected Job status watcher")
 }

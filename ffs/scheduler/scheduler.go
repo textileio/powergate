@@ -137,7 +137,6 @@ func (s *Scheduler) push(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.
 
 	s.l.Log(ctx, cfg.Cid, "Configuration saved successfully")
 	return jid, nil
-
 }
 
 // Untrack untracks a Cid for renewal and repair background crons.
@@ -256,9 +255,7 @@ func (s *Scheduler) resumeStartedDeals() error {
 			defer wg.Done()
 			// We re-execute the pipeline as if was dequeued.
 			// Both hot and cold storage can detect resumed job execution.
-			if err := s.executeQueuedJob(j); err != nil {
-				log.Errorf("error executing job %s: %s", j.ID, err)
-			}
+			s.executeQueuedJob(j)
 		}(j)
 	}
 	wg.Wait()
@@ -348,9 +345,7 @@ func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 		}
 		rateLim <- struct{}{}
 		go func(j ffs.Job) {
-			if err := s.executeQueuedJob(j); err != nil {
-				log.Errorf("error executing job %s: %s", j.ID, err)
-			}
+			s.executeQueuedJob(j)
 			<-rateLim
 		}(*j)
 	}
@@ -359,11 +354,11 @@ func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 	}
 }
 
-func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
+func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 	a, err := s.as.Get(j.ID)
 	if err != nil {
 		log.Errorf("getting push config action data from store: %s", err)
-		return nil
+		return
 	}
 
 	ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
@@ -375,7 +370,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 			log.Errorf("changing job to failed: %s", err)
 		}
 		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
-		return nil
+		return
 	}
 	if err := s.cis.Put(info); err != nil {
 		log.Errorf("saving cid info to store: %s", err)
@@ -384,7 +379,6 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) error {
 		log.Errorf("changing job to success: %s", err)
 	}
 	s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)
-	return nil
 }
 
 func (s *Scheduler) execute(ctx context.Context, a astore.Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
@@ -483,7 +477,7 @@ func (s *Scheduler) getRefreshedInfo(ctx context.Context, c cid.Cid) (ffs.CidInf
 		return ffs.CidInfo{}, fmt.Errorf("getting refreshed hot info: %s", err)
 	}
 
-	ci.Cold, err = s.getRefreshedColdInfo(ctx, c, ci.Cold)
+	ci.Cold, err = s.getRefreshedColdInfo(ctx, ci.Cold)
 	if err != nil {
 		return ffs.CidInfo{}, fmt.Errorf("getting refreshed cold info: %s", err)
 	}
@@ -500,7 +494,7 @@ func (s *Scheduler) getRefreshedHotInfo(ctx context.Context, c cid.Cid, curr ffs
 	return curr, nil
 }
 
-func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, c cid.Cid, curr ffs.ColdInfo) (ffs.ColdInfo, error) {
+func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, curr ffs.ColdInfo) (ffs.ColdInfo, error) {
 	activeDeals := make([]ffs.FilStorage, 0, len(curr.Filecoin.Proposals))
 	for _, fp := range curr.Filecoin.Proposals {
 		active, err := s.cs.IsFilDealActive(ctx, fp.ProposalCid)

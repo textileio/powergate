@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -13,28 +14,28 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// FFS provides the API to create and interact with an FFS instance
+// FFS provides the API to create and interact with an FFS instance.
 type FFS struct {
 	client rpc.RPCServiceClient
 }
 
-// JobEvent represents an event for Watching a job
+// JobEvent represents an event for Watching a job.
 type JobEvent struct {
 	Job ffs.Job
 	Err error
 }
 
-// NewAddressOption is a function that changes a NewAddressConfig
+// NewAddressOption is a function that changes a NewAddressConfig.
 type NewAddressOption func(r *rpc.NewAddrRequest)
 
-// WithMakeDefault specifies if the new address should become the default
+// WithMakeDefault specifies if the new address should become the default.
 func WithMakeDefault(makeDefault bool) NewAddressOption {
 	return func(r *rpc.NewAddrRequest) {
 		r.MakeDefault = makeDefault
 	}
 }
 
-// WithAddressType specifies the type of address to create
+// WithAddressType specifies the type of address to create.
 func WithAddressType(addressType string) NewAddressOption {
 	return func(r *rpc.NewAddrRequest) {
 		r.AddressType = addressType
@@ -84,13 +85,13 @@ func WithHistory(enabled bool) WatchLogsOption {
 	}
 }
 
-// LogEvent represents an event for watching cid logs
+// LogEvent represents an event for watching cid logs.
 type LogEvent struct {
 	LogEntry ffs.LogEntry
 	Err      error
 }
 
-// Create creates a new FFS instance, returning the instance ID and auth token
+// Create creates a new FFS instance, returning the instance ID and auth token.
 func (f *FFS) Create(ctx context.Context) (string, string, error) {
 	r, err := f.client.Create(ctx, &rpc.CreateRequest{})
 	if err != nil {
@@ -112,7 +113,7 @@ func (f *FFS) ListAPI(ctx context.Context) ([]ffs.APIID, error) {
 	return res, nil
 }
 
-// ID returns the FFS instance ID
+// ID returns the FFS instance ID.
 func (f *FFS) ID(ctx context.Context) (ffs.APIID, error) {
 	resp, err := f.client.ID(ctx, &rpc.IDRequest{})
 	if err != nil {
@@ -121,7 +122,7 @@ func (f *FFS) ID(ctx context.Context) (ffs.APIID, error) {
 	return ffs.APIID(resp.Id), nil
 }
 
-// Addrs returns a list of addresses managed by the FFS instance
+// Addrs returns a list of addresses managed by the FFS instance.
 func (f *FFS) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 	resp, err := f.client.Addrs(ctx, &rpc.AddrsRequest{})
 	if err != nil {
@@ -138,7 +139,7 @@ func (f *FFS) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 	return addrs, nil
 }
 
-// DefaultConfig returns the default storage config
+// DefaultConfig returns the default storage config.
 func (f *FFS) DefaultConfig(ctx context.Context) (ffs.DefaultConfig, error) {
 	resp, err := f.client.DefaultConfig(ctx, &rpc.DefaultConfigRequest{})
 	if err != nil {
@@ -172,7 +173,7 @@ func (f *FFS) DefaultConfig(ctx context.Context) (ffs.DefaultConfig, error) {
 	}, nil
 }
 
-// NewAddr created a new wallet address managed by the FFS instance
+// NewAddr created a new wallet address managed by the FFS instance.
 func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (string, error) {
 	r := &rpc.NewAddrRequest{Name: name}
 	for _, opt := range options {
@@ -182,7 +183,7 @@ func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	return resp.Addr, err
 }
 
-// GetDefaultCidConfig returns a CidConfig built from the default storage config and prepped for the provided cid
+// GetDefaultCidConfig returns a CidConfig built from the default storage config and prepped for the provided cid.
 func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig, error) {
 	res, err := f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: c.String()})
 	if err != nil {
@@ -221,12 +222,12 @@ func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig
 	}, nil
 }
 
-// GetCidConfig gets the current config for a cid
+// GetCidConfig gets the current config for a cid.
 func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigResponse, error) {
 	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: c.String()})
 }
 
-// SetDefaultConfig sets the default storage config
+// SetDefaultConfig sets the default storage config.
 func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.DefaultConfig) error {
 	req := &rpc.SetDefaultConfigRequest{
 		Config: &rpc.DefaultConfig{
@@ -239,14 +240,14 @@ func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.DefaultConfig) er
 	return err
 }
 
-// Show returns information about the current storage state of a cid
+// Show returns information about the current storage state of a cid.
 func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowResponse, error) {
 	return f.client.Show(ctx, &rpc.ShowRequest{
 		Cid: c.String(),
 	})
 }
 
-// Info returns information about the FFS instance
+// Info returns information about the FFS instance.
 func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 	res, err := f.client.Info(ctx, &rpc.InfoRequest{})
 	if err != nil {
@@ -385,7 +386,7 @@ func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, e
 	return ffs.JobID(resp.JobId), nil
 }
 
-// PushConfig push a new configuration for the Cid in the Hot and Cold layers
+// PushConfig push a new configuration for the Cid in the Hot and Cold layers.
 func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
 	req := &rpc.PushConfigRequest{Cid: c.String()}
 	for _, opt := range opts {
@@ -482,7 +483,7 @@ func (f *FFS) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts
 	return nil
 }
 
-// SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously
+// SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously.
 func (f *FFS) SendFil(ctx context.Context, from string, to string, amount int64) error {
 	req := &rpc.SendFilRequest{
 		From:   from,
@@ -493,13 +494,13 @@ func (f *FFS) SendFil(ctx context.Context, from string, to string, amount int64)
 	return err
 }
 
-// Close terminates the running FFS instance
+// Close terminates the running FFS instance.
 func (f *FFS) Close(ctx context.Context) error {
 	_, err := f.client.Close(ctx, &rpc.CloseRequest{})
 	return err
 }
 
-// AddToHot allows you to add data to the Hot layer in preparation for pushing a cid config
+// AddToHot allows you to add data to the Hot layer in preparation for pushing a cid config.
 func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	stream, err := f.client.AddToHot(ctx)
 	if err != nil {
@@ -589,7 +590,7 @@ func toRPCColdConfig(config ffs.ColdConfig) *rpc.ColdConfig {
 		Enabled: config.Enabled,
 		Filecoin: &rpc.FilConfig{
 			RepFactor:       int64(config.Filecoin.RepFactor),
-			DealMinDuration: int64(config.Filecoin.DealMinDuration),
+			DealMinDuration: config.Filecoin.DealMinDuration,
 			ExcludedMiners:  config.Filecoin.ExcludedMiners,
 			TrustedMiners:   config.Filecoin.TrustedMiners,
 			CountryCodes:    config.Filecoin.CountryCodes,
@@ -610,7 +611,7 @@ func fromRPCDealErrors(des []*rpc.DealError) ([]ffs.DealError, error) {
 			var err error
 			propCid, err = cid.Decode(de.ProposalCid)
 			if err != nil {
-				propCid = cid.Undef
+				return nil, fmt.Errorf("proposal cid is invalid")
 			}
 		}
 		res[i] = ffs.DealError{

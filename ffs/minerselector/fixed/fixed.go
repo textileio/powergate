@@ -48,7 +48,6 @@ func (fms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Min
 				})
 				break
 			}
-
 		}
 		if len(res) == n {
 			return res, nil

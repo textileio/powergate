@@ -11,30 +11,30 @@ import (
 
 var _ miner.P2PHost = (*P2pHostMock)(nil)
 
-// P2pHostMock provides a mock P2PHost
+// P2pHostMock provides a mock P2PHost.
 type P2pHostMock struct{}
 
-// Addrs implements Addrs
+// Addrs implements Addrs.
 func (hm *P2pHostMock) Addrs(id peer.ID) []multiaddr.Multiaddr {
 	return nil
 }
 
-// GetAgentVersion implements GetAgentVersion
+// GetAgentVersion implements GetAgentVersion.
 func (hm *P2pHostMock) GetAgentVersion(id peer.ID) string {
 	return "fakeAgentVersion"
 }
 
-// Ping implements Ping
+// Ping implements Ping.
 func (hm *P2pHostMock) Ping(ctx context.Context, pid peer.ID) bool {
 	return true
 }
 
 var _ iplocation.LocationResolver = (*LrMock)(nil)
 
-// LrMock provides a mock LocationResolver
+// LrMock provides a mock LocationResolver.
 type LrMock struct{}
 
-// Resolve implements Resolve
+// Resolve implements Resolve.
 func (lr *LrMock) Resolve(mas []multiaddr.Multiaddr) (iplocation.Location, error) {
 	return iplocation.Location{
 		Country:   "USA",

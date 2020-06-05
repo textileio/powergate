@@ -15,7 +15,7 @@ var (
 	AvgBlockTime = time.Second * 30
 )
 
-// TCPAddrFromMultiAddr converts a multiaddress to a string representation of a tcp address
+// TCPAddrFromMultiAddr converts a multiaddress to a string representation of a tcp address.
 func TCPAddrFromMultiAddr(maddr ma.Multiaddr) (addr string, err error) {
 	if maddr == nil {
 		err = fmt.Errorf("invalid address")

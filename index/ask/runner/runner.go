@@ -29,7 +29,7 @@ var (
 	log = logging.Logger("index-ask")
 )
 
-// Runner contains cached information about markets
+// Runner contains cached information about markets.
 type Runner struct {
 	api      *apistruct.FullNodeStruct
 	store    *store.Store
@@ -46,7 +46,7 @@ type Runner struct {
 	closed   bool
 }
 
-// Query specifies filtering and paging data to retrieve active Asks
+// Query specifies filtering and paging data to retrieve active Asks.
 type Query struct {
 	MaxPrice  uint64
 	PieceSize uint64
@@ -81,7 +81,7 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, err
 	return ai, nil
 }
 
-// Get returns a copy of the current index data
+// Get returns a copy of the current index data.
 func (ai *Runner) Get() ask.Index {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
@@ -96,7 +96,7 @@ func (ai *Runner) Get() ask.Index {
 	return index
 }
 
-// Query executes a query to retrieve active Asks
+// Query executes a query to retrieve active Asks.
 func (ai *Runner) Query(q Query) ([]ask.StorageAsk, error) {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
@@ -127,12 +127,12 @@ func (ai *Runner) Listen() <-chan struct{} {
 	return ai.signaler.Listen()
 }
 
-// Unregister unregisters a channel signaler from the signaler hub
+// Unregister unregisters a channel signaler from the signaler hub.
 func (ai *Runner) Unregister(c chan struct{}) {
 	ai.signaler.Unregister(c)
 }
 
-// Close closes the AskIndex
+// Close closes the AskIndex.
 func (ai *Runner) Close() error {
 	log.Info("Closing")
 	ai.clsLock.Lock()
@@ -147,7 +147,7 @@ func (ai *Runner) Close() error {
 	return nil
 }
 
-// start is a long running job that updates asks information in the market
+// start is a long running job that updates asks information in the market.
 func (ai *Runner) start() {
 	defer close(ai.finished)
 	if err := ai.update(); err != nil {
@@ -188,7 +188,7 @@ func (ai *Runner) update() error {
 	return nil
 }
 
-// generateIndex returns a fresh index
+// generateIndex returns a fresh index.
 func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Index, []*ask.StorageAsk, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {

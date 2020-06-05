@@ -11,7 +11,7 @@ import (
 )
 
 // PushConfig push a new configuration for the Cid in the Hot and
-// Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig
+// Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig.
 func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()

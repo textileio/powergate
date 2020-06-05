@@ -15,12 +15,12 @@ const (
 	// hcCurrent = "current"
 )
 
-// ChainSync provides methods to resolve chain syncing situations
+// ChainSync provides methods to resolve chain syncing situations.
 type ChainSync struct {
 	api *apistruct.FullNodeStruct
 }
 
-// New returns a new ChainSync
+// New returns a new ChainSync.
 func New(api *apistruct.FullNodeStruct) *ChainSync {
 	return &ChainSync{
 		api: api,

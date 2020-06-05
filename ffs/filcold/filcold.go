@@ -65,7 +65,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		TrustedMiners:  cfg.TrustedMiners,
 		MaxPrice:       cfg.MaxPrice,
 	}
-	cfgs, err := makeDealConfigs(ctx, fc.ms, cfg.RepFactor, f)
+	cfgs, err := makeDealConfigs(fc.ms, cfg.RepFactor, f)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("making deal configs: %s", err)
 	}
@@ -93,7 +93,6 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 		return false, fmt.Errorf("getting deal state for %s: %s", proposalCid, err)
 	}
 	return !slashed && status == storagemarket.StorageDealActive, nil
-
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
@@ -152,7 +151,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 		TrustedMiners: []string{p.Miner},
 		MaxPrice:      fcfg.MaxPrice,
 	}
-	dealConfig, err := makeDealConfigs(ctx, fc.ms, 1, f)
+	dealConfig, err := makeDealConfigs(fc.ms, 1, f)
 	if err != nil {
 		return ffs.FilStorage{}, nil, fmt.Errorf("making new deal config: %s", err)
 	}
@@ -272,7 +271,7 @@ func (fc *FilCold) getCidSize(ctx context.Context, c cid.Cid) (uint64, error) {
 	return uint64(s.CumulativeSize), nil
 }
 
-func makeDealConfigs(ctx context.Context, ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {
+func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {
 	mps, err := ms.GetMiners(cntMiners, f)
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from minerselector: %s", err)

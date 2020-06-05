@@ -9,12 +9,12 @@ import (
 	"github.com/textileio/powergate/index/ask/runner"
 )
 
-// Asks provides an API for viewing asks data
+// Asks provides an API for viewing asks data.
 type Asks struct {
 	client rpc.RPCServiceClient
 }
 
-// Get returns the current index of available asks
+// Get returns the current index of available asks.
 func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 	reply, err := a.client.Get(ctx, &rpc.GetRequest{})
 	if err != nil {
@@ -32,7 +32,7 @@ func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 	}, nil
 }
 
-// Query executes a query to retrieve active Asks
+// Query executes a query to retrieve active Asks.
 func (a *Asks) Query(ctx context.Context, query runner.Query) ([]ask.StorageAsk, error) {
 	q := &rpc.Query{
 		MaxPrice:  query.MaxPrice,
