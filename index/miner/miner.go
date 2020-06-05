@@ -102,16 +102,16 @@ func (mi *Index) Get() IndexSnapshot {
 			Offline: mi.index.Meta.Offline,
 			Info:    make(map[string]Meta, len(mi.index.Meta.Info)),
 		},
-		Chain: ChainIndex{
-			LastUpdated: mi.index.Chain.LastUpdated,
-			Power:       make(map[string]Power, len(mi.index.Chain.Power)),
+		OnChain: ChainIndex{
+			LastUpdated: mi.index.OnChain.LastUpdated,
+			Miners:      make(map[string]OnChainData, len(mi.index.OnChain.Miners)),
 		},
 	}
 	for addr, v := range mi.index.Meta.Info {
 		ii.Meta.Info[addr] = v
 	}
-	for addr, v := range mi.index.Chain.Power {
-		ii.Chain.Power[addr] = v
+	for addr, v := range mi.index.OnChain.Miners {
+		ii.OnChain.Miners[addr] = v
 	}
 	return ii
 }
@@ -184,8 +184,8 @@ func (mi *Index) start() {
 // since its only called from New().
 func (mi *Index) loadFromDS() error {
 	mi.index = IndexSnapshot{
-		Meta:  MetaIndex{Info: make(map[string]Meta)},
-		Chain: ChainIndex{Power: make(map[string]Power)},
+		Meta:    MetaIndex{Info: make(map[string]Meta)},
+		OnChain: ChainIndex{Miners: make(map[string]OnChainData)},
 	}
 	buf, err := mi.ds.Get(dsKeyMetaIndex)
 	if err != nil && err != datastore.ErrNotFound {
@@ -203,7 +203,7 @@ func (mi *Index) loadFromDS() error {
 	if _, err := mi.store.GetLastCheckpoint(&chainIndex); err != nil {
 		return err
 	}
-	mi.index.Chain = chainIndex
+	mi.index.OnChain = chainIndex
 
 	return nil
 }

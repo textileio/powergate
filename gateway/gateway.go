@@ -17,8 +17,8 @@ import (
 	"github.com/rs/cors"
 	gincors "github.com/rs/cors/wrapper/gin"
 	askRunner "github.com/textileio/powergate/index/ask/runner"
+	"github.com/textileio/powergate/index/faults"
 	"github.com/textileio/powergate/index/miner"
-	"github.com/textileio/powergate/index/slashing"
 	"github.com/textileio/powergate/reputation"
 )
 
@@ -48,7 +48,7 @@ type Gateway struct {
 	server           *http.Server
 	askIndex         *askRunner.Runner
 	minerIndex       *miner.Index
-	slashingIndex    *slashing.Index
+	faultsIndex      *faults.Index
 	reputationModule *reputation.Module
 }
 
@@ -57,14 +57,14 @@ func NewGateway(
 	addr string,
 	askIndex *askRunner.Runner,
 	minerIndex *miner.Index,
-	slashingIndex *slashing.Index,
+	faultsIndex *faults.Index,
 	reputationModule *reputation.Module,
 ) *Gateway {
 	return &Gateway{
 		addr:             addr,
 		askIndex:         askIndex,
 		minerIndex:       minerIndex,
-		slashingIndex:    slashingIndex,
+		faultsIndex:      faultsIndex,
 		reputationModule: reputationModule,
 	}
 }
@@ -89,7 +89,7 @@ func (g *Gateway) Start() {
 
 	router.GET("/asks", g.asksHandler)
 	router.GET("/miners", g.minersHandler)
-	router.GET("/slashing", g.slashingHandler)
+	router.GET("/faults", g.faultsHandler)
 	router.GET("/reputation", g.reputationHandler)
 
 	router.GET("/", func(c *gin.Context) {
@@ -192,15 +192,17 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 		i++
 	}
 
-	chainSubtitle := fmt.Sprintf("Last updated %v", timeToString(uint64ToTime(index.Chain.LastUpdated)))
-	chainHeaders := []string{"Miner", "Power", "Relative"}
-	chainRows := make([][]interface{}, len(index.Chain.Power))
+	chainSubtitle := fmt.Sprintf("Last updated %v", timeToString(uint64ToTime(index.OnChain.LastUpdated)))
+	chainHeaders := []string{"Miner", "Power", "RelativePower", "SectorSize", "ActiveDeals"}
+	chainRows := make([][]interface{}, len(index.OnChain.Miners))
 	i = 0
-	for id, power := range index.Chain.Power {
+	for id, onchainData := range index.OnChain.Miners {
 		chainRows[i] = []interface{}{
 			id,
-			power.Power,
-			power.Relative,
+			onchainData.Power,
+			onchainData.RelativePower,
+			onchainData.SectorSize,
+			onchainData.ActiveDeals,
 		}
 		i++
 	}
@@ -222,20 +224,20 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 	})
 }
 
-func (g *Gateway) slashingHandler(c *gin.Context) {
+func (g *Gateway) faultsHandler(c *gin.Context) {
 	menuItems := makeMenuItems(2)
 
-	index := g.slashingIndex.Get()
+	index := g.faultsIndex.Get()
 
 	subtitle := fmt.Sprintf("Current tip set key: %v", index.TipSetKey)
 
-	headers := []string{"Miner", "Slashed Epochs"}
+	headers := []string{"Miner", "Faults Epochs"}
 
 	rows := make([][]interface{}, len(index.Miners))
 	i := 0
-	for id, slashes := range index.Miners {
-		epochs := make([]string, len(slashes.Epochs))
-		for j, epoch := range slashes.Epochs {
+	for id, faults := range index.Miners {
+		epochs := make([]string, len(faults.Epochs))
+		for j, epoch := range faults.Epochs {
 			epochs[j] = string(epoch)
 		}
 		rows[i] = []interface{}{
@@ -245,9 +247,9 @@ func (g *Gateway) slashingHandler(c *gin.Context) {
 		i++
 	}
 
-	c.HTML(http.StatusOK, "/public/html/slashing.gohtml", gin.H{
+	c.HTML(http.StatusOK, "/public/html/faults.gohtml", gin.H{
 		"MenuItems": menuItems,
-		"Title":     "Miner Slashes",
+		"Title":     "Miner Faults",
 		"Subtitle":  subtitle,
 		"Headers":   headers,
 		"Rows":      rows,
@@ -308,8 +310,8 @@ func makeMenuItems(selectedIndex int) []menuItem {
 			Selected: false,
 		},
 		{
-			Name:     "Slashing",
-			Path:     "slashing",
+			Name:     "Faults",
+			Path:     "faults",
 			Selected: false,
 		},
 		{

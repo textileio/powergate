@@ -1,4 +1,4 @@
-package slashing
+package faults
 
 import (
 	"os"
@@ -26,7 +26,7 @@ func TestFreshIndex(t *testing.T) {
 	sh, err := New(tests.NewTxMapDatastore(), client)
 	require.NoError(t, err)
 
-	// Wait for some rounds of slashing updating
+	// Wait for some rounds of faults updating
 	for i := 0; i < 10; i++ {
 		select {
 		case <-time.After(time.Second):

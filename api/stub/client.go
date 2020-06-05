@@ -8,7 +8,7 @@ import (
 type Client struct {
 	Asks       *Asks
 	Miners     *Miners
-	Slashing   *Slashing
+	Faults     *Faults
 	Deals      *Deals
 	Wallet     *Wallet
 	Reputation *Reputation
@@ -19,7 +19,7 @@ func NewClient(target string, opts ...grpc.DialOption) (*Client, error) {
 	client := &Client{
 		Asks:       &Asks{},
 		Miners:     &Miners{},
-		Slashing:   &Slashing{},
+		Faults:     &Faults{},
 		Deals:      &Deals{},
 		Wallet:     &Wallet{},
 		Reputation: &Reputation{},

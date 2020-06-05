@@ -63,33 +63,41 @@ func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 		Info:    info,
 	}
 
-	power := map[string]miner.Power{
-		"miner1": miner.Power{
-			Power:    88,
-			Relative: 0.5,
+	miners := map[string]miner.OnChainData{
+		"miner1": {
+			Power:         88,
+			RelativePower: 0.5,
+			SectorSize:    512,
+			ActiveDeals:   10,
 		},
-		"miner2": miner.Power{
-			Power:    46,
-			Relative: 0.34,
+		"miner2": {
+			Power:         46,
+			RelativePower: 0.34,
+			SectorSize:    512,
+			ActiveDeals:   12,
 		},
-		"miner3": miner.Power{
-			Power:    3,
-			Relative: 0.84,
+		"miner3": {
+			Power:         3,
+			RelativePower: 0.84,
+			SectorSize:    1024,
+			ActiveDeals:   1,
 		},
-		"miner4": miner.Power{
-			Power:    234,
-			Relative: 0.14,
+		"miner4": {
+			Power:         234,
+			RelativePower: 0.14,
+			SectorSize:    512,
+			ActiveDeals:   3,
 		},
 	}
 
 	chainIndex := miner.ChainIndex{
 		LastUpdated: 2134567,
-		Power:       power,
+		Miners:      miners,
 	}
 
 	index := &miner.IndexSnapshot{
-		Meta:  metaIndex,
-		Chain: chainIndex,
+		Meta:    metaIndex,
+		OnChain: chainIndex,
 	}
 
 	return index, nil

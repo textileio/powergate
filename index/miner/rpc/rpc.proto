@@ -5,17 +5,19 @@ option go_package = "index/miner/rpc";
 
 message Index {
     MetaIndex meta = 1;
-    ChainIndex chain = 2;
+    OnChainIndex chain = 2;
 }
 
-message ChainIndex {
+message OnChainIndex {
     int64 last_updated = 1;
-    map<string, Power> power = 2;
+    map<string, OnChainData> miners = 2;
 }
 
-message Power {
+message OnChainData {
     uint64 power = 1;
-    float relative = 2;
+    float relative_power = 2;
+    uint64 sector_size = 3;
+    uint64 active_deals = 4;
 }
 
 message MetaIndex {

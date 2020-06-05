@@ -35,10 +35,10 @@ import (
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	ask "github.com/textileio/powergate/index/ask/runner"
+	"github.com/textileio/powergate/index/faults"
+	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	"github.com/textileio/powergate/index/miner"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
-	"github.com/textileio/powergate/index/slashing"
-	slashingRpc "github.com/textileio/powergate/index/slashing/rpc"
 	"github.com/textileio/powergate/iplocation/ip2location"
 	"github.com/textileio/powergate/lotus"
 	pgnet "github.com/textileio/powergate/net"
@@ -70,7 +70,7 @@ type Server struct {
 	ip2l *ip2location.IP2Location
 	ai   *ask.Runner
 	mi   *miner.Index
-	si   *slashing.Index
+	fi   *faults.Index
 	dm   *deals.Module
 	wm   *wallet.Module
 	rm   *reputation.Module
@@ -159,9 +159,9 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
-	si, err := slashing.New(txndstr.Wrap(ds, "index/slashing"), c)
+	si, err := faults.New(txndstr.Wrap(ds, "index/faults"), c)
 	if err != nil {
-		return nil, fmt.Errorf("creating slashing index: %s", err)
+		return nil, fmt.Errorf("creating faults index: %s", err)
 	}
 	dm, err := deals.New(c, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
@@ -209,7 +209,7 @@ func NewServer(conf Config) (*Server, error) {
 
 		ai: ai,
 		mi: mi,
-		si: si,
+		fi: si,
 		dm: dm,
 		wm: wm,
 		rm: rm,
@@ -271,7 +271,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	reputationService := reputationRpc.New(s.rm)
 	askService := askRpc.New(s.ai)
 	minerService := minerRpc.New(s.mi)
-	slashingService := slashingRpc.New(s.si)
+	faultsService := faultsRpc.New(s.fi)
 	ffsService := ffsRpc.New(s.ffsManager, s.hs)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
@@ -290,7 +290,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		reputationRpc.RegisterRPCServiceServer(server, reputationService)
 		askRpc.RegisterRPCServiceServer(server, askService)
 		minerRpc.RegisterRPCServiceServer(server, minerService)
-		slashingRpc.RegisterRPCServiceServer(server, slashingService)
+		faultsRpc.RegisterRPCServiceServer(server, faultsService)
 		ffsRpc.RegisterRPCServiceServer(server, ffsService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
@@ -329,8 +329,8 @@ func startIndexHTTPServer(s *Server) *http.Server {
 			log.Errorf("writing response body: %s", err)
 		}
 	})
-	mux.HandleFunc("/index/slashing", func(w http.ResponseWriter, r *http.Request) {
-		index := s.si.Get()
+	mux.HandleFunc("/index/faults", func(w http.ResponseWriter, r *http.Request) {
+		index := s.fi.Get()
 		buf, err := json.MarshalIndent(index, "", "  ")
 		if err != nil {
 			http.Error(w, "Error", http.StatusInternalServerError)
@@ -393,8 +393,8 @@ func (s *Server) Close() {
 	if err := s.mi.Close(); err != nil {
 		log.Errorf("closing miner index: %s", err)
 	}
-	if err := s.si.Close(); err != nil {
-		log.Errorf("closing slashing index: %s", err)
+	if err := s.fi.Close(); err != nil {
+		log.Errorf("closing faults index: %s", err)
 	}
 	if err := s.ds.Close(); err != nil {
 		log.Errorf("closing datastore: %s", err)

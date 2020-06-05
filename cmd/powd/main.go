@@ -169,7 +169,7 @@ func setupLogging() error {
 		// Indexes & Reputation
 		"index-miner",
 		"index-ask",
-		"index-slashing",
+		"index-faults",
 		"reputation",
 		"reputation-source-store",
 		"chainstore",

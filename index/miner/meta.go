@@ -44,9 +44,9 @@ func (mi *Index) metaWorker() {
 			// ToDo: coud have smarter ways of electing which addrs to refresh, and then
 			// doing a merge. Will depend if this too slow, but might not be the case
 			mi.lock.Lock()
-			addrs := make([]string, 0, len(mi.index.Chain.Power))
-			for addr, power := range mi.index.Chain.Power {
-				if power.Power > 0 {
+			addrs := make([]string, 0, len(mi.index.OnChain.Miners))
+			for addr, miner := range mi.index.OnChain.Miners {
+				if miner.Power > 0 {
 					addrs = append(addrs, addr)
 				}
 			}
