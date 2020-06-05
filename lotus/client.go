@@ -21,7 +21,7 @@ var (
 	log                     = logging.Logger("deals")
 )
 
-// New creates a new client to Lotus API
+// New creates a new client to Lotus API.
 func New(maddr ma.Multiaddr, authToken string, connRetries int) (*apistruct.FullNodeStruct, func(), error) {
 	addr, err := util.TCPAddrFromMultiAddr(maddr)
 	if err != nil {
@@ -60,7 +60,6 @@ func New(maddr ma.Multiaddr, authToken string, connRetries int) (*apistruct.Full
 		cancel()
 		closer()
 	}, nil
-
 }
 
 func monitorLotusSync(ctx context.Context, c *apistruct.FullNodeStruct) {

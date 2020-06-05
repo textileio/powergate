@@ -202,7 +202,7 @@ func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket
 	return di.State, md.State.SlashEpoch != -1, nil
 }
 
-// Watch returns a channel with state changes of indicated proposals
+// Watch returns a channel with state changes of indicated proposals.
 func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInfo, error) {
 	if len(proposals) == 0 {
 		return nil, fmt.Errorf("proposals list can't be empty")
@@ -249,8 +249,7 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 			if dinfo.State == storagemarket.StorageDealActive {
 				ocd, err := client.StateMarketStorageDeal(ctx, dinfo.DealID, types.EmptyTSK)
 				if err != nil {
-					log.Errorf("getting on-chain deal info: %s", err)
-					continue
+					return fmt.Errorf("getting on-chain deal info: %s", err)
 				}
 				newState.ActivationEpoch = int64(ocd.State.SectorStartEpoch)
 				newState.StartEpoch = uint64(ocd.Proposal.StartEpoch)

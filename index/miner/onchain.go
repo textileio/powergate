@@ -20,12 +20,12 @@ const (
 	fullThreshold = 100
 	// hOffset is the # of tipsets from the heaviest chain to
 	// consider for index updating; this to reduce sensibility to
-	// chain reorgs
+	// chain reorgs.
 	hOffset = 5
 )
 
 // updateOnChainIndex updates on-chain index information in the direction of heaviest tipset
-// with some height offset to reduce sensibility to reorgs
+// with some height offset to reduce sensibility to reorgs.
 func (mi *Index) updateOnChainIndex() error {
 	log.Info("updating on-chain index...")
 	heaviest, err := mi.api.ChainHead(mi.ctx)
@@ -62,7 +62,6 @@ func (mi *Index) updateOnChainIndex() error {
 		if err := fullRefresh(mi.ctx, mi.api, &chainIndex); err != nil {
 			return fmt.Errorf("error doing full refresh: %s", err)
 		}
-
 	} else {
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "delta"))
 		if err := deltaRefresh(mi.ctx, mi.api, &chainIndex, *ts, new); err != nil {
@@ -70,7 +69,7 @@ func (mi *Index) updateOnChainIndex() error {
 		}
 	}
 	chainIndex.LastUpdated = int64(new.Height())
-	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
+	stats.Record(mctx, mRefreshDuration.M(time.Since(start).Milliseconds()))
 
 	mi.lock.Lock()
 	mi.index.OnChain = chainIndex
@@ -80,7 +79,7 @@ func (mi *Index) updateOnChainIndex() error {
 		return fmt.Errorf("error when saving state to store: %s", err)
 	}
 	mi.signaler.Signal()
-	stats.Record(context.Background(), mUpdatedHeight.M(int64(chainIndex.LastUpdated)))
+	stats.Record(context.Background(), mUpdatedHeight.M(chainIndex.LastUpdated))
 
 	return nil
 }

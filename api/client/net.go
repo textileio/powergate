@@ -10,12 +10,12 @@ import (
 	"github.com/textileio/powergate/net/rpc"
 )
 
-// Net provides the Net API
+// Net provides the Net API.
 type Net struct {
 	client rpc.RPCServiceClient
 }
 
-// ListenAddr returns listener address info for the local node
+// ListenAddr returns listener address info for the local node.
 func (net *Net) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
 	resp, err := net.client.ListenAddr(ctx, &rpc.ListenAddrRequest{})
 	if err != nil {
@@ -39,7 +39,7 @@ func (net *Net) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
 	}, nil
 }
 
-// Peers returns a list of peers
+// Peers returns a list of peers.
 func (net *Net) Peers(ctx context.Context) ([]n.PeerInfo, error) {
 	resp, err := net.client.Peers(ctx, &rpc.PeersRequest{})
 	if err != nil {
@@ -56,7 +56,7 @@ func (net *Net) Peers(ctx context.Context) ([]n.PeerInfo, error) {
 	return peerInfos, nil
 }
 
-// FindPeer finds a peer by peer id
+// FindPeer finds a peer by peer id.
 func (net *Net) FindPeer(ctx context.Context, peerID peer.ID) (n.PeerInfo, error) {
 	resp, err := net.client.FindPeer(ctx, &rpc.FindPeerRequest{PeerId: peerID.String()})
 	if err != nil {
@@ -65,7 +65,7 @@ func (net *Net) FindPeer(ctx context.Context, peerID peer.ID) (n.PeerInfo, error
 	return fromProtoPeerInfo(resp.PeerInfo)
 }
 
-// ConnectPeer connects to a peer
+// ConnectPeer connects to a peer.
 func (net *Net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
 	addrs := make([]string, len(addrInfo.Addrs))
 	for i, addr := range addrInfo.Addrs {
@@ -79,13 +79,13 @@ func (net *Net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
 	return err
 }
 
-// DisconnectPeer disconnects from a peer
+// DisconnectPeer disconnects from a peer.
 func (net *Net) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
 	_, err := net.client.DisconnectPeer(ctx, &rpc.DisconnectPeerRequest{PeerId: peerID.String()})
 	return err
 }
 
-// Connectedness returns the connection status to a peer
+// Connectedness returns the connection status to a peer.
 func (net *Net) Connectedness(ctx context.Context, peerID peer.ID) (n.Connectedness, error) {
 	resp, err := net.client.Connectedness(ctx, &rpc.ConnectednessRequest{PeerId: peerID.String()})
 	if err != nil {

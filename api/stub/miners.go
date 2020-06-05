@@ -7,11 +7,11 @@ import (
 	"github.com/textileio/powergate/index/miner"
 )
 
-// Miners provides an API for viewing miner data
+// Miners provides an API for viewing miner data.
 type Miners struct {
 }
 
-// Get returns the current index of available asks
+// Get returns the current index of available asks.
 func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 	time.Sleep(time.Second * 3)
 	info := map[string]miner.Meta{

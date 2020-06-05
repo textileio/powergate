@@ -24,7 +24,7 @@ var (
 )
 
 // Module consolidates different sources of information to create a
-// reputation rank of FC miners
+// reputation rank of FC miners.
 type Module struct {
 	ds      datastore.TxnDatastore
 	sources *source.Store
@@ -47,13 +47,13 @@ type Module struct {
 	finished chan struct{}
 }
 
-// MinerScore contains a score for a miner
+// MinerScore contains a score for a miner.
 type MinerScore struct {
 	Addr  string
 	Score int
 }
 
-// New returns a new reputation Module
+// New returns a new reputation Module.
 func New(ds datastore.TxnDatastore, mi *miner.Index, si *faults.Index, ai *askRunner.Runner) *Module {
 	ctx, cancel := context.WithCancel(context.Background())
 	rm := &Module{
@@ -76,7 +76,7 @@ func New(ds datastore.TxnDatastore, mi *miner.Index, si *faults.Index, ai *askRu
 	return rm
 }
 
-// AddSource adds a new external Source to be considered for reputation generation
+// AddSource adds a new external Source to be considered for reputation generation.
 func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 	return rm.sources.Add(source.Source{ID: id, Maddr: maddr})
 }
@@ -86,6 +86,7 @@ func (rm *Module) AddSource(id string, maddr ma.Multiaddr) error {
 func (rm *Module) QueryMiners(excludedMiners []string, countryCodes []string, trustedMiners []string) ([]MinerScore, error) {
 	rm.lockScores.Lock()
 	defer rm.lockScores.Unlock()
+
 	var mr []MinerScore
 	pmr := make(map[string]struct{})
 	for _, tm := range trustedMiners {
@@ -133,7 +134,7 @@ func (rm *Module) QueryMiners(excludedMiners []string, countryCodes []string, tr
 	return mr, nil
 }
 
-// GetTopMiners gets the top n miners with best score
+// GetTopMiners gets the top n miners with best score.
 func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
 	if n < 1 {
 		return nil, fmt.Errorf("the number of miners should be greater than zero")
@@ -150,14 +151,14 @@ func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
 	return mr, nil
 }
 
-// Close closes the reputation Module
+// Close closes the reputation Module.
 func (rm *Module) Close() error {
 	rm.cancel()
 	<-rm.finished
 	return nil
 }
 
-// subscribeIndexes listen to all sources changes to trigger score regeneration
+// subscribeIndexes listen to all sources changes to trigger score regeneration.
 func (rm *Module) subscribeIndexes() {
 	defer close(rm.finished)
 	subMi := rm.mi.Listen()
@@ -187,7 +188,7 @@ func (rm *Module) subscribeIndexes() {
 	}
 }
 
-// indexBuilder regenerates score information from all known sources
+// indexBuilder regenerates score information from all known sources.
 func (rm *Module) indexBuilder() {
 	for range rm.rebuild {
 		log.Info("rebuilding index")
@@ -221,7 +222,7 @@ func (rm *Module) indexBuilder() {
 	}
 }
 
-// calculateScore calculates the score for a miner
+// calculateScore calculates the score for a miner.
 func calculateScore(addr string, mi miner.IndexSnapshot, si faults.IndexSnapshot, ai ask.Index, ss []source.Source) MinerScore {
 	miner := mi.OnChain.Miners[addr]
 	powerScore := miner.RelativePower

@@ -8,11 +8,11 @@ import (
 	"github.com/textileio/powergate/index/ask/runner"
 )
 
-// Asks stub
+// Asks stub.
 type Asks struct {
 }
 
-// Get returns the current index of available asks
+// Get returns the current index of available asks.
 func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 	time.Sleep(time.Second * 3)
 	storage := map[string]ask.StorageAsk{
@@ -52,7 +52,7 @@ func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 	}, nil
 }
 
-// Query executes a query to retrieve active Asks
+// Query executes a query to retrieve active Asks.
 func (a *Asks) Query(ctx context.Context, query runner.Query) ([]ask.StorageAsk, error) {
 	time.Sleep(time.Second * 3)
 	var asks = []ask.StorageAsk{

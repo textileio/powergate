@@ -183,13 +183,13 @@ func (c CidConfig) WithColdFilRenew(enabled bool, threshold int) CidConfig {
 }
 
 // WithColdMaxPrice specifies the max price that should be considered for
-// deal asks even when all other filers match
+// deal asks even when all other filers match.
 func (c CidConfig) WithColdMaxPrice(maxPrice uint64) CidConfig {
 	c.Cold.Filecoin.MaxPrice = maxPrice
 	return c
 }
 
-// WithColdAddr specifies the wallet address that should be used for transactions
+// WithColdAddr specifies the wallet address that should be used for transactions.
 func (c CidConfig) WithColdAddr(addr string) CidConfig {
 	c.Cold.Filecoin.Addr = addr
 	return c
@@ -419,15 +419,15 @@ type LogEntry struct {
 	Msg       string
 }
 
-// PaychDir specifies the direction of a payment channel
+// PaychDir specifies the direction of a payment channel.
 type PaychDir int
 
 const (
-	// PaychDirUnspecified is an undefined direction
+	// PaychDirUnspecified is an undefined direction.
 	PaychDirUnspecified PaychDir = iota
-	// PaychDirInbound is an inbound direction
+	// PaychDirInbound is an inbound direction.
 	PaychDirInbound
-	// PaychDirOutbound is an outbound direction
+	// PaychDirOutbound is an outbound direction.
 	PaychDirOutbound
 )
 
@@ -438,7 +438,7 @@ var PaychDirStr = map[PaychDir]string{
 	PaychDirOutbound:    "Outbound",
 }
 
-// PaychInfo holds information about a payment channel
+// PaychInfo holds information about a payment channel.
 type PaychInfo struct {
 	CtlAddr   string
 	Addr      string

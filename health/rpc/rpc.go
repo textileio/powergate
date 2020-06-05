@@ -6,19 +6,19 @@ import (
 	"github.com/textileio/powergate/health"
 )
 
-// RPC implements the rpc service
+// RPC implements the rpc service.
 type RPC struct {
 	UnimplementedRPCServiceServer
 
 	module *health.Module
 }
 
-// New creates a new rpc service
+// New creates a new rpc service.
 func New(m *health.Module) *RPC {
 	return &RPC{module: m}
 }
 
-// Check calls module.Check
+// Check calls module.Check.
 func (a *RPC) Check(ctx context.Context, req *CheckRequest) (*CheckResponse, error) {
 	status, messages, err := a.module.Check(ctx)
 	if err != nil {

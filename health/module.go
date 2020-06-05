@@ -12,17 +12,17 @@ type Module struct {
 	net net.Module
 }
 
-// Status represents the node's health status
+// Status represents the node's health status.
 type Status int
 
 const (
-	// Unspecified is an unknown or empty status
+	// Unspecified is an unknown or empty status.
 	Unspecified Status = iota
 	// Ok specifies the node is healthy
 	Ok
-	// Degraded specifies there are problems with the node health
+	// Degraded specifies there are problems with the node health.
 	Degraded
-	// Error specifies there was an error when determining node health
+	// Error specifies there was an error when determining node health.
 	Error
 )
 
@@ -38,7 +38,7 @@ func (s Status) String() string {
 	return names[s]
 }
 
-// New creates a new net module
+// New creates a new net module.
 func New(net net.Module) *Module {
 	m := &Module{
 		net: net,
@@ -46,7 +46,7 @@ func New(net net.Module) *Module {
 	return m
 }
 
-// Check reutuns the current health status and any messages related to the status
+// Check returns the current health status and any messages related to the status.
 func (m *Module) Check(ctx context.Context) (status Status, messages []string, err error) {
 	peers, err := m.net.Peers(ctx)
 	if err != nil {

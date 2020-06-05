@@ -6,21 +6,21 @@ import (
 	"github.com/textileio/powergate/index/faults"
 )
 
-// RPC implements the gprc service
+// RPC implements the gprc service.
 type RPC struct {
 	UnimplementedRPCServiceServer
 
 	index *faults.Index
 }
 
-// New creates a new rpc service
+// New creates a new rpc service.
 func New(fi *faults.Index) *RPC {
 	return &RPC{
 		index: fi,
 	}
 }
 
-// Get calls faults index Get
+// Get calls faults index Get.
 func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
 	index := s.index.Get()
 

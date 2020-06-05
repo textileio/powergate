@@ -14,7 +14,7 @@ import (
 
 var log = logging.Logger("deals-rpc")
 
-// RPC implements the gprc service
+// RPC implements the gprc service.
 type RPC struct {
 	UnimplementedRPCServiceServer
 
@@ -28,7 +28,7 @@ type storeResult struct {
 	Err          error
 }
 
-// New creates a new rpc service
+// New creates a new rpc service.
 func New(dm *deals.Module) *RPC {
 	return &RPC{
 		Module: dm,
@@ -66,7 +66,7 @@ func store(ctx context.Context, dealsModule *deals.Module, storeParams *StorePar
 	ch <- storeResult{DataCid: dcid, ProposalCids: pcids, FailedDeals: failedDeals}
 }
 
-// Store calls deals.Store
+// Store calls deals.Store.
 func (s *RPC) Store(srv RPCService_StoreServer) error {
 	req, err := srv.Recv()
 	if err != nil {
@@ -123,7 +123,7 @@ func (s *RPC) Store(srv RPCService_StoreServer) error {
 	return srv.SendAndClose(&StoreResponse{DataCid: storeResult.DataCid.String(), ProposalCids: replyCids, FailedDeals: replyFailedDeals})
 }
 
-// Watch calls deals.Watch
+// Watch calls deals.Watch.
 func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 	proposals := make([]cid.Cid, len(req.GetProposals()))
 	for i, proposal := range req.GetProposals() {
@@ -157,7 +157,7 @@ func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 	return nil
 }
 
-// Retrieve calls deals.Retreive
+// Retrieve calls deals.Retreive.
 func (s *RPC) Retrieve(req *RetrieveRequest, srv RPCService_RetrieveServer) error {
 	cid, err := cid.Parse(req.GetCid())
 	if err != nil {

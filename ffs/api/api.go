@@ -113,7 +113,7 @@ func (i *API) ID() ffs.APIID {
 	return i.cfg.ID
 }
 
-// DefaultConfig returns the DefaultConfig
+// DefaultConfig returns the DefaultConfig.
 func (i *API) DefaultConfig() ffs.DefaultConfig {
 	return i.cfg.DefaultConfig
 }

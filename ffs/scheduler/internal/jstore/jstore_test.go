@@ -128,7 +128,6 @@ func TestStartedDeals(t *testing.T) {
 	fds, err = s.GetStartedDeals(cidData)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(fds))
-
 }
 
 func createJob() ffs.Job {
@@ -145,7 +144,7 @@ func createJob() ffs.Job {
 
 func create(t *testing.T) *Store {
 	ds := tests.NewTxMapDatastore()
-	store, _ := New(ds)
+	store, err := New(ds)
+	require.NoError(t, err)
 	return store
-
 }

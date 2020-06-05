@@ -37,7 +37,7 @@ type P2PHost interface {
 	GetAgentVersion(pid peer.ID) string
 }
 
-// Index builds and provides information about FC miners
+// Index builds and provides information about FC miners.
 type Index struct {
 	api      *apistruct.FullNodeStruct
 	ds       datastore.TxnDatastore
@@ -92,7 +92,7 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr
 	return mi, nil
 }
 
-// Get returns a copy of the current index information
+// Get returns a copy of the current index information.
 func (mi *Index) Get() IndexSnapshot {
 	mi.lock.Lock()
 	defer mi.lock.Unlock()
@@ -122,12 +122,12 @@ func (mi *Index) Listen() <-chan struct{} {
 	return mi.signaler.Listen()
 }
 
-// Unregister unregisters a channel signaler from the signaler hub
+// Unregister unregisters a channel signaler from the signaler hub.
 func (mi *Index) Unregister(c chan struct{}) {
 	mi.signaler.Unregister(c)
 }
 
-// Close closes a MinerIndex
+// Close closes a MinerIndex.
 func (mi *Index) Close() error {
 	log.Info("Closing")
 	mi.clsLock.Lock()

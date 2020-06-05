@@ -11,7 +11,7 @@ import (
 	"github.com/textileio/powergate/deals"
 )
 
-// Deals provides an API for managing deals and storing data
+// Deals provides an API for managing deals and storing data.
 type Deals struct {
 }
 
@@ -39,7 +39,7 @@ func init() {
 }
 
 // Store creates a proposal deal for data using wallet addr to all miners indicated
-// by dealConfigs for duration epochs
+// by dealConfigs for duration epochs.
 func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, duration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
 	time.Sleep(time.Second * 3)
 	success := []cid.Cid{}
@@ -54,7 +54,7 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 	return success, failed, nil
 }
 
-// Watch returnas a channel with state changes of indicated proposals
+// Watch returnas a channel with state changes of indicated proposals.
 func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan client.WatchEvent, error) {
 	ch := make(chan client.WatchEvent)
 	go driveChannel(ch, proposals)
@@ -76,7 +76,7 @@ func driveChannel(ch chan client.WatchEvent, proposals []cid.Cid) {
 	close(ch)
 }
 
-// Retrieve is used to fetch data from filecoin
+// Retrieve is used to fetch data from filecoin.
 func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Reader, error) {
 	time.Sleep(time.Second * 3)
 	return strings.NewReader("hello there"), nil

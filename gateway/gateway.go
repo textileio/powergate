@@ -284,7 +284,7 @@ func (g *Gateway) reputationHandler(c *gin.Context) {
 }
 
 func uint64ToTime(value int64) time.Time {
-	return time.Unix(int64(value), 0)
+	return time.Unix(value, 0)
 }
 
 func timeToString(t time.Time) string {

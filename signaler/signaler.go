@@ -10,18 +10,18 @@ var (
 	log = logging.Logger("broadcaster")
 )
 
-// Signaler allows subscribing to a singnaling hub
+// Signaler allows subscribing to a singnaling hub.
 type Signaler struct {
 	lock      sync.Mutex
 	listeners []chan struct{}
 }
 
-// New returns a new Signaler
+// New returns a new Signaler.
 func New() *Signaler {
 	return &Signaler{}
 }
 
-// Listen returns a new channel signaler
+// Listen returns a new channel signaler.
 func (s *Signaler) Listen() <-chan struct{} {
 	c := make(chan struct{}, 1)
 	s.lock.Lock()
@@ -30,7 +30,7 @@ func (s *Signaler) Listen() <-chan struct{} {
 	return c
 }
 
-// Unregister unregisters a channel signaler from the hub
+// Unregister unregisters a channel signaler from the hub.
 func (s *Signaler) Unregister(c chan struct{}) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -48,7 +48,7 @@ func (s *Signaler) Unregister(c chan struct{}) {
 	}
 }
 
-// Signal triggers a new notification to all listeners
+// Signal triggers a new notification to all listeners.
 func (s *Signaler) Signal() {
 	s.lock.Lock()
 	defer s.lock.Unlock()

@@ -55,17 +55,17 @@ func (pc PushConfig) Validate() error {
 	return nil
 }
 
-// NewAddressOption is a function that changes a NewAddressConfig
+// NewAddressOption is a function that changes a NewAddressConfig.
 type NewAddressOption func(config *NewAddressConfig)
 
-// WithMakeDefault specifies if the new address should become the default
+// WithMakeDefault specifies if the new address should become the default.
 func WithMakeDefault(makeDefault bool) NewAddressOption {
 	return func(c *NewAddressConfig) {
 		c.makeDefault = makeDefault
 	}
 }
 
-// WithAddressType specifies the type of address to create
+// WithAddressType specifies the type of address to create.
 func WithAddressType(addressType string) NewAddressOption {
 	return func(c *NewAddressConfig) {
 		c.addressType = addressType

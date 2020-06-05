@@ -25,7 +25,7 @@ var (
 	dsNsID   = datastore.NewKey("/id")
 )
 
-// TipsetOrderer resolves ordering information between TipSets
+// TipsetOrderer resolves ordering information between TipSets.
 type TipsetOrderer interface {
 	Precedes(ctx context.Context, from, to types.TipSetKey) (bool, error)
 }
@@ -35,7 +35,7 @@ type checkpoint struct {
 	ts types.TipSetKey
 }
 
-// Store allows to save snapshoted state
+// Store allows to save snapshoted state.
 type Store struct {
 	fr TipsetOrderer
 
@@ -45,7 +45,7 @@ type Store struct {
 	lastID      uint64
 }
 
-// New returns a new Store
+// New returns a new Store.
 func New(ds datastore.TxnDatastore, fr TipsetOrderer) (*Store, error) {
 	s := &Store{
 		ds: ds,
@@ -211,7 +211,7 @@ func (s *Store) loadCheckpoints() error {
 	}
 	lst := make([]checkpoint, len(es))
 	for i, e := range es {
-		ts, err := types.TipSetKeyFromBytes([]byte(e.Value))
+		ts, err := types.TipSetKeyFromBytes(e.Value)
 		if err != nil {
 			return err
 		}

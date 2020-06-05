@@ -21,7 +21,7 @@ func (i *API) Addrs() []AddrInfo {
 	return addrs
 }
 
-// NewAddr creates a new address managed by the FFS instance
+// NewAddr creates a new address managed by the FFS instance.
 func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (string, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -64,7 +64,7 @@ func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	return addr, nil
 }
 
-// SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously
+// SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously.
 func (i *API) SendFil(ctx context.Context, from string, to string, amount *big.Int) error {
 	if !i.isManagedAddress(from) {
 		return fmt.Errorf("%v is not managed by ffs instance", from)

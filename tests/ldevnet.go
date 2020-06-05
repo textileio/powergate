@@ -17,8 +17,8 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
-// LaunchDevnetDocker launches the devnet docker image
-func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockertest.Resource {
+// LaunchDevnetDocker launches the devnet docker image.
+func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolumes bool) *dockertest.Resource {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		panic(fmt.Sprintf("couldn't create ipfs-pool: %s", err))
@@ -28,9 +28,14 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockerte
 		devnetEnv("SPEED", "500"),
 		devnetEnv("IPFSADDR", ipfsMaddr),
 	}
+	var mounts []string
+	if mountVolumes {
+		mounts = append(mounts, "/tmp/powergate:/tmp/powergate")
+	}
+
 	repository := "textile/lotus-devnet"
 	tag := "sha-f8988b8"
-	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: envs, Mounts: []string{"/tmp/powergate:/tmp/powergate"}})
+	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: envs, Mounts: mounts})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))
 	}
@@ -69,8 +74,8 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string) *dockerte
 }
 
 // CreateLocalDevnetWithIPFS creates a local devnet connected to an IPFS node.
-func CreateLocalDevnetWithIPFS(t *testing.T, numMiners int, ipfsMaddr string) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
-	lotusDevnet := LaunchDevnetDocker(t, numMiners, ipfsMaddr)
+func CreateLocalDevnetWithIPFS(t *testing.T, numMiners int, ipfsMaddr string, mountVolumes bool) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
+	lotusDevnet := LaunchDevnetDocker(t, numMiners, ipfsMaddr, mountVolumes)
 	c, cls, err := lotus.New(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "", 1)
 	if err != nil {
 		panic(err)
@@ -93,7 +98,7 @@ func CreateLocalDevnetWithIPFS(t *testing.T, numMiners int, ipfsMaddr string) (*
 // CreateLocalDevnet returns an API client that targets a local devnet with numMiners number
 // of miners. Refer to http://github.com/textileio/local-devnet for more information.
 func CreateLocalDevnet(t *testing.T, numMiners int) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
-	return CreateLocalDevnetWithIPFS(t, numMiners, "")
+	return CreateLocalDevnetWithIPFS(t, numMiners, "", true)
 }
 
 func devnetEnv(name string, value interface{}) string {

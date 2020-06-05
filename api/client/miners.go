@@ -8,12 +8,12 @@ import (
 	"github.com/textileio/powergate/index/miner/rpc"
 )
 
-// Miners provides an API for viewing miner data
+// Miners provides an API for viewing miner data.
 type Miners struct {
 	client rpc.RPCServiceClient
 }
 
-// Get returns the current index of available asks
+// Get returns the current index of available asks.
 func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 	reply, err := a.client.Get(ctx, &rpc.GetRequest{})
 	if err != nil {
@@ -45,8 +45,8 @@ func (a *Miners) Get(ctx context.Context) (*miner.IndexSnapshot, error) {
 		miners[key] = miner.OnChainData{
 			Power:         val.GetPower(),
 			RelativePower: float64(val.GetRelativePower()),
-			SectorSize:    uint64(val.GetSectorSize()),
-			ActiveDeals:   uint64(val.GetActiveDeals()),
+			SectorSize:    val.GetSectorSize(),
+			ActiveDeals:   val.GetActiveDeals(),
 		}
 	}
 

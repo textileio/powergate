@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	// ErrNotFound indicates that the auth-token isn't registered
+	// ErrNotFound indicates that the auth-token isn't registered.
 	ErrNotFound = errors.New("auth token not found")
 
 	log = logging.Logger("ffs-auth")
@@ -32,14 +32,14 @@ type entry struct {
 	// This can be extended to have permissions
 }
 
-// New returns a new Auth
+// New returns a new Auth.
 func New(store ds.Datastore) *Auth {
 	return &Auth{
 		ds: store,
 	}
 }
 
-// Generate generates a new returned auth-token mapped to the iid
+// Generate generates a new returned auth-token mapped to the iid.
 func (r *Auth) Generate(iid ffs.APIID) (string, error) {
 	log.Infof("generating auth-token for instance %s", iid)
 	r.lock.Lock()

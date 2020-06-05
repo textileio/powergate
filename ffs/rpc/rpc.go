@@ -30,7 +30,7 @@ type RPC struct {
 	hot ffs.HotStorage
 }
 
-// New creates a new rpc service
+// New creates a new rpc service.
 func New(m *manager.Manager, hot ffs.HotStorage) *RPC {
 	return &RPC{
 		m:   m,
@@ -67,7 +67,7 @@ func (s *RPC) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIRespons
 	}, nil
 }
 
-// ID returns the API instance id
+// ID returns the API instance id.
 func (s *RPC) ID(ctx context.Context, req *IDRequest) (*IDResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -77,7 +77,7 @@ func (s *RPC) ID(ctx context.Context, req *IDRequest) (*IDResponse, error) {
 	return &IDResponse{Id: id.String()}, nil
 }
 
-// Addrs calls ffs.Addrs
+// Addrs calls ffs.Addrs.
 func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -95,7 +95,7 @@ func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsResponse, err
 	return &AddrsResponse{Addrs: res}, nil
 }
 
-// DefaultConfig calls ffs.DefaultConfig
+// DefaultConfig calls ffs.DefaultConfig.
 func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -111,7 +111,7 @@ func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*De
 	}, nil
 }
 
-// NewAddr calls ffs.NewAddr
+// NewAddr calls ffs.NewAddr.
 func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -133,7 +133,7 @@ func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrRespons
 	return &NewAddrResponse{Addr: addr}, nil
 }
 
-// GetDefaultCidConfig returns the default cid config prepped for the provided cid
+// GetDefaultCidConfig returns the default cid config prepped for the provided cid.
 func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -154,7 +154,7 @@ func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigR
 	}, nil
 }
 
-// GetCidConfig returns the cid config for the provided cid
+// GetCidConfig returns the cid config for the provided cid.
 func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -178,7 +178,7 @@ func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetC
 	}, nil
 }
 
-// SetDefaultConfig sets a new config to be used by default
+// SetDefaultConfig sets a new config to be used by default.
 func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest) (*SetDefaultConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -259,7 +259,7 @@ func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoResponse, error)
 	return reply, nil
 }
 
-// WatchJobs calls API.WatchJobs
+// WatchJobs calls API.WatchJobs.
 func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPCService_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
@@ -354,7 +354,7 @@ func (s *RPC) WatchLogs(req *WatchLogsRequest, srv RPCService_WatchLogsServer) e
 	return nil
 }
 
-// Replace calls ffs.Replace
+// Replace calls ffs.Replace.
 func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -378,7 +378,7 @@ func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceRespons
 	return &ReplaceResponse{JobId: jid.String()}, nil
 }
 
-// PushConfig applies the provided cid config
+// PushConfig applies the provided cid config.
 func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -420,7 +420,7 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 	}, nil
 }
 
-// Remove calls ffs.Remove
+// Remove calls ffs.Remove.
 func (s *RPC) Remove(ctx context.Context, req *RemoveRequest) (*RemoveResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -469,7 +469,7 @@ func (s *RPC) Get(req *GetRequest, srv RPCService_GetServer) error {
 	}
 }
 
-// SendFil sends fil from a managed address to any other address
+// SendFil sends fil from a managed address to any other address.
 func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -481,7 +481,7 @@ func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilRespons
 	return &SendFilResponse{}, nil
 }
 
-// Close calls API.Close
+// Close calls API.Close.
 func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -493,7 +493,7 @@ func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseResponse, err
 	return &CloseResponse{}, nil
 }
 
-// AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig
+// AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig.
 func (s *RPC) AddToHot(srv RPCService_AddToHotServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
@@ -517,7 +517,7 @@ func (s *RPC) AddToHot(srv RPCService_AddToHotServer) error {
 	return srv.SendAndClose(&AddToHotResponse{Cid: c.String()})
 }
 
-// ListPayChannels lists all pay channels
+// ListPayChannels lists all pay channels.
 func (s *RPC) ListPayChannels(ctx context.Context, req *ListPayChannelsRequest) (*ListPayChannelsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -534,7 +534,7 @@ func (s *RPC) ListPayChannels(ctx context.Context, req *ListPayChannelsRequest) 
 	return &ListPayChannelsResponse{PayChannels: respInfos}, nil
 }
 
-// CreatePayChannel creates a payment channel
+// CreatePayChannel creates a payment channel.
 func (s *RPC) CreatePayChannel(ctx context.Context, req *CreatePayChannelRequest) (*CreatePayChannelResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -551,7 +551,7 @@ func (s *RPC) CreatePayChannel(ctx context.Context, req *CreatePayChannelRequest
 	}, nil
 }
 
-// RedeemPayChannel redeems a payment channel
+// RedeemPayChannel redeems a payment channel.
 func (s *RPC) RedeemPayChannel(ctx context.Context, req *RedeemPayChannelRequest) (*RedeemPayChannelResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -563,7 +563,7 @@ func (s *RPC) RedeemPayChannel(ctx context.Context, req *RedeemPayChannelRequest
 	return &RedeemPayChannelResponse{}, nil
 }
 
-// ShowAll returns a list of CidInfo for all data stored in the FFS instance
+// ShowAll returns a list of CidInfo for all data stored in the FFS instance.
 func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
@@ -630,7 +630,7 @@ func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
 		Enabled: config.Enabled,
 		Filecoin: &FilConfig{
 			RepFactor:       int64(config.Filecoin.RepFactor),
-			DealMinDuration: int64(config.Filecoin.DealMinDuration),
+			DealMinDuration: config.Filecoin.DealMinDuration,
 			ExcludedMiners:  config.Filecoin.ExcludedMiners,
 			TrustedMiners:   config.Filecoin.TrustedMiners,
 			CountryCodes:    config.Filecoin.CountryCodes,

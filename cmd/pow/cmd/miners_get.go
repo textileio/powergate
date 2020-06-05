@@ -72,7 +72,7 @@ var getMinersCmd = &cobra.Command{
 
 		RenderTable(os.Stdout, []string{"miner", "power", "relativePower", "sectorSize", "activeDeals"}, chainData)
 
-		lastUpdated := time.Unix(int64(index.OnChain.LastUpdated), 0).Format("01/02/06 15:04 MST")
+		lastUpdated := time.Unix(index.OnChain.LastUpdated, 0).Format("01/02/06 15:04 MST")
 
 		Message("Found on chain data for %d miners", aurora.White(len(index.OnChain.Miners)).Bold())
 		Message("Chain data last updated %v", aurora.White(lastUpdated).Bold())

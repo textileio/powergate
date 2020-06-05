@@ -34,8 +34,8 @@ func setupServer(t *testing.T) func() {
 	ipfsAddrStr := "/ip4/127.0.0.1/tcp/" + dipfs.GetPort("5001/tcp")
 	ipfsAddr := util.MustParseAddr(ipfsAddrStr)
 
-	ddevnet := tests.LaunchDevnetDocker(t, 1, ipfsAddrStr)
-	devnetAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ddevnet.GetPort("7777/tcp"))
+	devnet := tests.LaunchDevnetDocker(t, 1, ipfsAddrStr, false)
+	devnetAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + devnet.GetPort("7777/tcp"))
 
 	grpcMaddr := util.MustParseAddr(grpcHostAddress)
 	conf := server.Config{

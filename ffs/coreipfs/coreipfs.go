@@ -33,7 +33,7 @@ type CoreIpfs struct {
 
 var _ ffs.HotStorage = (*CoreIpfs)(nil)
 
-// New returns a new CoreIpfs instance
+// New returns a new CoreIpfs instance.
 func New(ipfs iface.CoreAPI, l ffs.CidLogger) *CoreIpfs {
 	return &CoreIpfs{
 		ipfs: ipfs,

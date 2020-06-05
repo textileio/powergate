@@ -12,21 +12,21 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
-// Module provides access to the paych api
+// Module provides access to the paych api.
 type Module struct {
 	api *apistruct.FullNodeStruct
 }
 
 var _ ffs.PaychManager = (*Module)(nil)
 
-// New creates a new paych module
+// New creates a new paych module.
 func New(api *apistruct.FullNodeStruct) *Module {
 	return &Module{
 		api: api,
 	}
 }
 
-// List lists all payment channels involving the specified addresses
+// List lists all payment channels involving the specified addresses.
 func (m *Module) List(ctx context.Context, addrs ...string) ([]ffs.PaychInfo, error) {
 	filter := make(map[string]struct{}, len(addrs))
 	for _, addr := range addrs {
@@ -91,7 +91,7 @@ func (m *Module) List(ctx context.Context, addrs ...string) ([]ffs.PaychInfo, er
 	return final, nil
 }
 
-// Create creates a new payment channel
+// Create creates a new payment channel.
 func (m *Module) Create(ctx context.Context, from string, to string, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
 	return ffs.PaychInfo{}, cid.Undef, fmt.Errorf("unimplemeted for now, blocked by lotus issue #1611")
 	// fAddr, err := address.NewFromString(from)
@@ -116,7 +116,7 @@ func (m *Module) Create(ctx context.Context, from string, to string, amount uint
 	// return res, info.ChannelMessage, nil
 }
 
-// Redeem redeems a payment channel
+// Redeem redeems a payment channel.
 func (m *Module) Redeem(ctx context.Context, ch string) error {
 	chAddr, err := address.NewFromString(ch)
 	if err != nil {

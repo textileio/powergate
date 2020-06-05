@@ -26,13 +26,13 @@ const (
 var (
 	// hOffset is the # of tipsets from the heaviest chain to
 	// consider for index updating; this to reduce sensibility to
-	// chain reorgs
+	// chain reorgs.
 	hOffset = abi.ChainEpoch(20)
 
 	log = logging.Logger("index-faults")
 )
 
-// Index builds and provides faults history of miners
+// Index builds and provides faults history of miners.
 type Index struct {
 	api      *apistruct.FullNodeStruct
 	store    *chainstore.Store
@@ -75,7 +75,7 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, erro
 	return s, nil
 }
 
-// Get returns a copy of the current index information
+// Get returns a copy of the current index information.
 func (s *Index) Get() IndexSnapshot {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -197,7 +197,6 @@ func (s *Index) updateIndex() error {
 			currFaults := index.Miners[f.Miner.String()]
 			currFaults.Epochs = append(currFaults.Epochs, int64(f.Epoch))
 			index.Miners[f.Miner.String()] = currFaults
-
 		}
 
 		// Persist partial progress in each finished section-path.
@@ -224,7 +223,7 @@ func (s *Index) updateIndex() error {
 		stats.Record(mctx, mRefreshProgress.M(float64(i)/float64(len(path))))
 	}
 
-	stats.Record(mctx, mRefreshDuration.M(int64(time.Since(start).Milliseconds())))
+	stats.Record(mctx, mRefreshDuration.M(time.Since(start).Milliseconds()))
 	stats.Record(mctx, mUpdatedHeight.M(int64(targetTs.Height())))
 	stats.Record(mctx, mRefreshProgress.M(1))
 	log.Info("faults index updated")

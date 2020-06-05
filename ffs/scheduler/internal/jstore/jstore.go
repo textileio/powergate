@@ -134,7 +134,6 @@ func (s *Store) GetExecutingJobs() []ffs.JobID {
 		i++
 	}
 	return res
-
 }
 
 func (s *Store) cancelQueued(c cid.Cid) error {

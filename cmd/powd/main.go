@@ -211,7 +211,7 @@ func setupLogging() error {
 
 func getRepoPath(devnet bool) (string, error) {
 	if devnet {
-		repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
+		repoPath, err := ioutil.TempDir("", ".powergate-*")
 		if err != nil {
 			return "", fmt.Errorf("generating temp for repo folder: %s", err)
 		}

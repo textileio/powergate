@@ -26,7 +26,7 @@ var (
 	dsKeyMetaIndex = dsBase.ChildString("meta")
 )
 
-// metaWorker makes a pass on refreshing metadata information about known miners
+// metaWorker makes a pass on refreshing metadata information about known miners.
 func (mi *Index) metaWorker() {
 	defer func() { mi.finished <- struct{}{} }()
 	mi.chMeta <- struct{}{}
@@ -51,11 +51,7 @@ func (mi *Index) metaWorker() {
 				}
 			}
 			mi.lock.Unlock()
-			newIndex, err := updateMetaIndex(mi.ctx, mi.api, mi.h, mi.lr, addrs)
-			if err != nil {
-				log.Errorf("error when updating meta index: %s", err)
-				break
-			}
+			newIndex := updateMetaIndex(mi.ctx, mi.api, mi.h, mi.lr, addrs)
 			if err := mi.persistMetaIndex(newIndex); err != nil {
 				log.Errorf("error when persisting meta index: %s", err)
 			}
@@ -70,7 +66,7 @@ func (mi *Index) metaWorker() {
 
 // updateMetaIndex generates a new index that contains fresh metadata information
 // of addrs miners.
-func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, addrs []string) (MetaIndex, error) {
+func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, addrs []string) MetaIndex {
 	index := MetaIndex{
 		Info: make(map[string]Meta),
 	}
@@ -109,7 +105,7 @@ func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHo
 	ctx, _ = tag.New(context.Background(), tag.Insert(metricOnline, "offline"))
 	stats.Record(ctx, mMetaPingCount.M(int64(index.Offline)))
 
-	return index, nil
+	return index
 }
 
 func merge(old Meta, upt Meta) Meta {
@@ -128,7 +124,7 @@ func merge(old Meta, upt Meta) Meta {
 	return upt
 }
 
-// getMeta returns fresh metadata information about a miner
+// getMeta returns fresh metadata information about a miner.
 func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, straddr string) (Meta, error) {
 	si := Meta{
 		LastUpdated: time.Now(),
@@ -166,7 +162,7 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 	return si, nil
 }
 
-// persisteMetaIndex saves to datastore a new MetaIndex
+// persisteMetaIndex saves to datastore a new MetaIndex.
 func (mi *Index) persistMetaIndex(index MetaIndex) error {
 	buf, err := json.Marshal(index)
 	if err != nil {

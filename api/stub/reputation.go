@@ -8,17 +8,17 @@ import (
 	"github.com/textileio/powergate/reputation"
 )
 
-// Reputation provides an API for viewing reputation data
+// Reputation provides an API for viewing reputation data.
 type Reputation struct {
 }
 
-// AddSource adds a new external Source to be considered for reputation generation
+// AddSource adds a new external Source to be considered for reputation generation.
 func (r *Reputation) AddSource(ctx context.Context, id string, maddr ma.Multiaddr) error {
 	time.Sleep(time.Second * 3)
 	return nil
 }
 
-// GetTopMiners gets the top n miners with best score
+// GetTopMiners gets the top n miners with best score.
 func (r *Reputation) GetTopMiners(ctx context.Context, limit int) ([]reputation.MinerScore, error) {
 	time.Sleep(time.Second * 3)
 	topMiners := []reputation.MinerScore{

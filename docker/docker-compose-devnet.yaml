@@ -1,10 +1,7 @@
 version: '3.7'
 
-volumes:
-   pow-devnet-shared:
-
 services:
-  
+
   powergate:
     build:
       context: ../
@@ -22,8 +19,6 @@ services:
       - POWD_DEVNET=true
       - POWD_LOTUSHOST=/dns4/lotus/tcp/7777
       - POWD_IPFSAPIADDR=/dns4/ipfs/tcp/5001
-    volumes:
-      - pow-devnet-shared:/tmp/powergate
     restart: unless-stopped
 
   ipfs:
@@ -39,5 +34,3 @@ services:
       - TEXLOTUSDEVNET_SPEED=1500
       - TEXLOTUSDEVNET_BIGSECTORS=true
       - TEXLOTUSDEVNET_IPFSADDR=/dns4/ipfs/tcp/5001
-    volumes:
-     - pow-devnet-shared:/tmp/powergate
