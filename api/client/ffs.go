@@ -537,7 +537,7 @@ func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	return &cid, nil
 }
 
-// ListPayChannels returns a list of payment channels
+// ListPayChannels returns a list of payment channels.
 func (f *FFS) ListPayChannels(ctx context.Context) ([]ffs.PaychInfo, error) {
 	resp, err := f.client.ListPayChannels(ctx, &rpc.ListPayChannelsRequest{})
 	if err != nil {
@@ -550,7 +550,7 @@ func (f *FFS) ListPayChannels(ctx context.Context) ([]ffs.PaychInfo, error) {
 	return infos, nil
 }
 
-// CreatePayChannel creates a new payment channel
+// CreatePayChannel creates a new payment channel.
 func (f *FFS) CreatePayChannel(ctx context.Context, from string, to string, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
 	req := &rpc.CreatePayChannelRequest{
 		From:   from,
@@ -568,7 +568,7 @@ func (f *FFS) CreatePayChannel(ctx context.Context, from string, to string, amou
 	return fromRPCPaychInfo(resp.PayChannel), messageCid, nil
 }
 
-// RedeemPayChannel redeems a payment channel
+// RedeemPayChannel redeems a payment channel.
 func (f *FFS) RedeemPayChannel(ctx context.Context, addr string) error {
 	req := &rpc.RedeemPayChannelRequest{PayChannelAddr: addr}
 	_, err := f.client.RedeemPayChannel(ctx, req)

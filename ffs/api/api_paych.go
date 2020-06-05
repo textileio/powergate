@@ -8,7 +8,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
-// ListPayChannels lists all payment channels associated with this FFS
+// ListPayChannels lists all payment channels associated with this FFS.
 func (i *API) ListPayChannels(ctx context.Context) ([]ffs.PaychInfo, error) {
 	addrInfos := i.Addrs()
 	addrs := make([]string, len(addrInfos))
@@ -22,7 +22,7 @@ func (i *API) ListPayChannels(ctx context.Context) ([]ffs.PaychInfo, error) {
 	return res, nil
 }
 
-// CreatePayChannel creates a new payment channel
+// CreatePayChannel creates a new payment channel.
 func (i *API) CreatePayChannel(ctx context.Context, from string, to string, amount uint64) (ffs.PaychInfo, cid.Cid, error) {
 	if !i.isManagedAddress(from) {
 		return ffs.PaychInfo{}, cid.Undef, fmt.Errorf("%v is not managed by ffs instance", from)
@@ -30,7 +30,7 @@ func (i *API) CreatePayChannel(ctx context.Context, from string, to string, amou
 	return i.pm.Create(ctx, from, to, amount)
 }
 
-// RedeemPayChannel redeems a payment channel
+// RedeemPayChannel redeems a payment channel.
 func (i *API) RedeemPayChannel(ctx context.Context, addr string) error {
 	channels, err := i.ListPayChannels(ctx)
 	if err != nil {

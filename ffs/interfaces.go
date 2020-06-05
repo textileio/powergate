@@ -15,17 +15,17 @@ type WalletManager interface {
 	NewAddress(context.Context, string) (string, error)
 	// Balance returns the current balance for an address.
 	Balance(context.Context, string) (uint64, error)
-	// SendFil sends fil from one address to another
+	// SendFil sends fil from one address to another.
 	SendFil(context.Context, string, string, *big.Int) error
 }
 
-// PaychManager provides access to payment channels
+// PaychManager provides access to payment channels.
 type PaychManager interface {
-	// List lists all payment channels involving the specified addresses
+	// List lists all payment channels involving the specified addresses.
 	List(ctx context.Context, addrs ...string) ([]PaychInfo, error)
-	// Create creates a new payment channel
+	// Create creates a new payment channel.
 	Create(ctx context.Context, from string, to string, amount uint64) (PaychInfo, cid.Cid, error)
-	// Redeem redeems a payment channel
+	// Redeem redeems a payment channel.
 	Redeem(ctx context.Context, ch string) error
 }
 

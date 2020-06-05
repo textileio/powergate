@@ -419,15 +419,15 @@ type LogEntry struct {
 	Msg       string
 }
 
-// PaychDir specifies the direction of a payment channel
+// PaychDir specifies the direction of a payment channel.
 type PaychDir int
 
 const (
-	// PaychDirUnspecified is an undefined direction
+	// PaychDirUnspecified is an undefined direction.
 	PaychDirUnspecified PaychDir = iota
-	// PaychDirInbound is an inbound direction
+	// PaychDirInbound is an inbound direction.
 	PaychDirInbound
-	// PaychDirOutbound is an outbound direction
+	// PaychDirOutbound is an outbound direction.
 	PaychDirOutbound
 )
 
@@ -438,7 +438,7 @@ var PaychDirStr = map[PaychDir]string{
 	PaychDirOutbound:    "Outbound",
 }
 
-// PaychInfo holds information about a payment channel
+// PaychInfo holds information about a payment channel.
 type PaychInfo struct {
 	CtlAddr   string
 	Addr      string
