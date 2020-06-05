@@ -647,8 +647,12 @@ func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
 func toRPCDealErrors(des []ffs.DealError) []*DealError {
 	ret := make([]*DealError, len(des))
 	for i, de := range des {
+		var strProposalCid string
+		if de.ProposalCid.Defined() {
+			strProposalCid = de.ProposalCid.String()
+		}
 		ret[i] = &DealError{
-			ProposalCid: de.ProposalCid.String(),
+			ProposalCid: strProposalCid,
 			Miner:       de.Miner,
 			Message:     de.Message,
 		}
@@ -718,8 +722,12 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 		},
 	}
 	for i, p := range info.Cold.Filecoin.Proposals {
+		var strProposalCid string
+		if p.ProposalCid.Defined() {
+			strProposalCid = p.ProposalCid.String()
+		}
 		cidInfo.Cold.Filecoin.Proposals[i] = &FilStorage{
-			ProposalCid:     p.ProposalCid.String(),
+			ProposalCid:     strProposalCid,
 			Renewed:         p.Renewed,
 			Duration:        p.Duration,
 			ActivationEpoch: p.ActivationEpoch,

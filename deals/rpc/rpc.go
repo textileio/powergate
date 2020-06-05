@@ -139,8 +139,12 @@ func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 	}
 
 	for update := range ch {
+		var strProposalCid string
+		if update.ProposalCid.Defined() {
+			strProposalCid = update.ProposalCid.String()
+		}
 		dealInfo := &DealInfo{
-			ProposalCid:   update.ProposalCid.String(),
+			ProposalCid:   strProposalCid,
 			StateId:       update.StateID,
 			StateName:     update.StateName,
 			Miner:         update.Miner,
