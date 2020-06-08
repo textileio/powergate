@@ -147,7 +147,7 @@ func (m *Module) Redeem(ctx context.Context, ch string) error {
 		return err
 	}
 
-	mwait, err := m.api.StateWaitMsg(ctx, mcid)
+	mwait, err := m.api.StateWaitMsg(ctx, mcid, 3)
 	if err != nil {
 		return err
 	}

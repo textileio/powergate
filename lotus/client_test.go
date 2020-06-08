@@ -13,6 +13,7 @@ import (
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/tests"
 )
@@ -136,7 +137,7 @@ func TestGetPeerID(t *testing.T) {
 
 	mi, err := client.StateMinerInfo(context.Background(), miners[0], types.EmptyTSK)
 	checkErr(t, err)
-	checkErr(t, mi.PeerId.Validate())
+	checkErr(t, peer.ID(mi.PeerId).Validate())
 }
 
 func checkErr(t *testing.T, err error) {

@@ -10,6 +10,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
@@ -139,16 +140,16 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 	}
 	ctx, cancel := context.WithTimeout(ctx, pingTimeout)
 	defer cancel()
-	if alive := h.Ping(ctx, mi.PeerId); !alive {
+	if alive := h.Ping(ctx, peer.ID(mi.PeerId)); !alive {
 		return si, fmt.Errorf("peer didn't pong")
 	}
 	si.Online = true
 
-	if av := h.GetAgentVersion(mi.PeerId); av != "" {
+	if av := h.GetAgentVersion(peer.ID(mi.PeerId)); av != "" {
 		si.UserAgent = av
 	}
 
-	addrs := h.Addrs(mi.PeerId)
+	addrs := h.Addrs(peer.ID(mi.PeerId))
 	if len(addrs) == 0 {
 		return si, nil
 	}
