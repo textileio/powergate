@@ -75,12 +75,12 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		return nil, nil, 0, fmt.Errorf("making deal configs: %s", err)
 	}
 
-	fc.l.Log(ctx, c, "Estimating Piece size...")
-	size, err := fc.estimatePieceSize(ctx, c)
+	fc.l.Log(ctx, c, "Calculating piece size...")
+	size, err := fc.calculatePieceSize(ctx, c)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
-	fc.l.Log(ctx, c, "Estimated piece size is %d bytes", size)
+	fc.l.Log(ctx, c, "Estimated piece size is %d bytes.", size)
 
 	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, size, cfgs, cfg)
 	if err != nil {
@@ -277,7 +277,7 @@ func (fc *FilCold) WaitForDeals(ctx context.Context, c cid.Cid, proposals []cid.
 // when making the deal. This calculation should consider the unique node sizes of the DAG, and
 // padding. It's important to not underestimate the size since that would lead to deal rejection
 // since the miner won't accept the further calculated PricePerEpoch.
-func (fc *FilCold) estimatePieceSize(ctx context.Context, c cid.Cid) (uint64, error) {
+func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (uint64, error) {
 	// Get unique nodes.
 	seen := cid.NewSet()
 	if err := dag.Walk(ctx, fc.getLinks, c, seen.Visit); err != nil {
