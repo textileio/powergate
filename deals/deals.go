@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +16,8 @@ import (
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/filecoin-project/specs-actors/actors/abi"
+	"github.com/filecoin-project/specs-actors/actors/abi/big"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/util"
@@ -87,11 +88,10 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 }
 
 // Store create Deal Proposals with all miners indicated in dcfgs. The epoch price
-// is automatically calculated considering each miner epoch price and data size.
+// is automatically calculated considering each miner epoch price and piece size.
 // The data of dataCid should be already imported to the Filecoin Client or should be
 // accessible to it. (e.g: is integrated with an IPFS node).
-func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size uint64, dcfgs []StorageDealConfig, minDuration uint64) ([]StoreResult, error) {
-	gbSize := float64(size) / float64(1<<30)
+func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, pieceSize uint64, dcfgs []StorageDealConfig, minDuration uint64) ([]StoreResult, error) {
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, size 
 				Root: dataCid,
 			},
 			MinBlocksDuration: minDuration,
-			EpochPrice:        types.NewInt(uint64(math.Ceil(2 * gbSize * float64(c.EpochPrice)))),
+			EpochPrice:        big.Div(big.Mul(big.NewIntUnsigned(c.EpochPrice), big.NewIntUnsigned(pieceSize)), abi.NewTokenAmount(1<<30)),
 			Miner:             maddr,
 			Wallet:            addr,
 		}

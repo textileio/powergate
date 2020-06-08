@@ -98,14 +98,14 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 			EpochPrice: 500000000,
 		}
 	}
-	dataCid, _, err := m.Import(ctx, bytes.NewReader(data), false)
+	dataCid, size, err := m.Import(ctx, bytes.NewReader(data), false)
 	if err != nil {
 		return cid.Undef, err
 	}
 	if !dataCid.Defined() {
 		return cid.Undef, fmt.Errorf("data cid is undefined")
 	}
-	srs, err := m.Store(ctx, addr.String(), dataCid, uint64(len(data)), cfgs, 1000)
+	srs, err := m.Store(ctx, addr.String(), dataCid, 2*uint64(size), cfgs, 1000)
 	if err != nil {
 		return cid.Undef, fmt.Errorf("error when calling Store(): %s", err)
 	}
