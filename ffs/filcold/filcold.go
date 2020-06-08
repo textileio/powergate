@@ -80,7 +80,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
-	fc.l.Log(ctx, c, "Estimated piece size is %d", size)
+	fc.l.Log(ctx, c, "Estimated piece size is %d bytes", size)
 
 	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, size, cfgs, cfg)
 	if err != nil {
