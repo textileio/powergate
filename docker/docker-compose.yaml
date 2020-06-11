@@ -31,7 +31,7 @@ services:
       - powergate-lotus:/root/lotus
   
   lotus:
-    image: textile/lotus:96a5e57
+    image: textile/lotus:e473f62
     volumes:
       - powergate-lotus:/data
     environment:
