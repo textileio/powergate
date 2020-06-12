@@ -45,7 +45,7 @@ Built on top of the previous indexes, a _Reputation_ module constructs a weighte
 ###  ⚡ FFS
 This module provides a multitiered file storage API built on Filecoin and IPFS. Storing data on IPFS and Filecoin is as easy as expressing your desired configuration for storing a Cid.
 
-Want to know more about this Powergate module? Check out our presentation and demo at the _IPFS Pinning Summit_:
+Want to know more about this Powergate module? Check out the [FFS design document](https://github.com/textileio/powergate/blob/master/ffs/Design.md) and our presentation and demo at the _IPFS Pinning Summit_:
 [![Video](https://img.youtube.com/vi/aiOTSkz_6aY/0.jpg)](https://youtu.be/aiOTSkz_6aY)
 
 ### 💫 API + CLI
@@ -54,8 +54,15 @@ Powergate expose modules functionalities through gRPC endpoints.
 You can explore our `.proto` files to generate your clients, or take advange of a ready-to-use Powergate Go and [JS client](https://github.com/textileio/js-powergate-client). 🙌
 
 We have a CLI that supports most of Powergate features.
+
+To build and install the CLI, run:
 ```bash
 $ make build-pow
+```
+
+Then run `pow` with the `--help` flag to see the available commands:
+
+```
 $ pow --help
 A client for storage and retreival of powergate data
 
