@@ -22,7 +22,7 @@ type MaxMind struct {
 }
 
 func New(db string) (*MaxMind, error) {
-	r, err := geoip2.Open("GeoIP2-City.mmdb")
+	r, err := geoip2.Open(db)
 	if err != nil {
 		return nil, fmt.Errorf("opening geolite2 database: %s", err)
 	}
