@@ -10,7 +10,6 @@ services:
   powergate:
     build:
       context: ../
-      dockerfile: cmd/powd/Dockerfile
     ports:
       - 8889:8889
       - 8888:8888

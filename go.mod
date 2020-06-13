@@ -57,5 +57,4 @@ require (
 	go.opencensus.io v0.22.3
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.24.0
-	gopkg.in/src-d/go-log.v1 v1.0.1
 )

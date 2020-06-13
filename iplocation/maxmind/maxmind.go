@@ -5,11 +5,15 @@ import (
 	"net"
 	"sync"
 
+	logger "github.com/ipfs/go-log/v2"
 	"github.com/multiformats/go-multiaddr"
 	geoip2 "github.com/oschwald/geoip2-golang"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/util"
-	"gopkg.in/src-d/go-log.v1"
+)
+
+var (
+	log = logger.Logger("maxmind")
 )
 
 type MaxMind struct {
