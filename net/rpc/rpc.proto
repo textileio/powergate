@@ -10,8 +10,8 @@ message PeerAddrInfo {
 
 message Location {
     string country = 1;
-    float latitude = 2;
-    float longitude = 3;
+    double latitude = 2;
+    double longitude = 3;
 }
 
 message PeerInfo {

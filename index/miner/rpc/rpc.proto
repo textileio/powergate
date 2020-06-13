@@ -35,8 +35,8 @@ message Meta {
 
 message Location {
     string country = 1;
-    float longitude = 2;
-    float latitude = 3;
+    double longitude = 2;
+    double latitude = 3;
 }
 
 message GetRequest {

@@ -14,8 +14,8 @@ var (
 // Location contains geoinformation.
 type Location struct {
 	Country   string
-	Latitude  float32
-	Longitude float32
+	Latitude  float64
+	Longitude float64
 }
 
 // LocationResolver resolver gets location information from a set of multiaddresses of

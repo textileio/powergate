@@ -42,6 +42,6 @@ type Meta struct {
 // Location contains geeoinformation.
 type Location struct {
 	Country   string
-	Longitude float32
-	Latitude  float32
+	Longitude float64
+	Latitude  float64
 }
