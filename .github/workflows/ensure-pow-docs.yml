@@ -1,0 +1,19 @@
+name: Ensure pow docs
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  ensure-pow-docs:
+    name: Ensure pow docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: Generate docs
+        run: make docs-pow
+      - name: Ensure no changes
+        run: git diff-index --quiet HEAD

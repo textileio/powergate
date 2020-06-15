@@ -16,6 +16,10 @@ build-powbench:
 	$(BUILD_FLAGS) go install ./cmd/powbench
 .PHONY: build-powbench
 
+docs-pow:
+	go run ./cmd/pow/main.go docs ./cli-docs/pow
+.PHONY: docs-pow
+
 test:
 	go test -short -parallel 4 -race -timeout 30m ./... 
 .PHONY: test
