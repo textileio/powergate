@@ -33,18 +33,19 @@ func (mm *MaxMind) Resolve(mas []multiaddr.Multiaddr) (iplocation.Location, erro
 	for _, ma := range mas {
 		ipport, err := util.TCPAddrFromMultiAddr(ma)
 		if err != nil {
-			log.Debugf("error transforming %s to tcp addr: %s", ma, err)
+			log.Debugf("transforming %s to tcp addr: %s", ma, err)
 			continue
 		}
 		strIP, _, err := net.SplitHostPort(ipport)
 		if err != nil {
-			log.Debugf("error parsing ip/port from %s: %s", ipport, err)
+			log.Debugf("parsing ip/port from %s: %s", ipport, err)
 			continue
 		}
 		ip := net.ParseIP(strIP)
 		city, err := mm.db.City(ip)
 		if err != nil {
-			log.Debugf("getting city from %s: %s", ipport, err)
+			log.Debugf("querying maxmind db for %s: %s", ipport, err)
+			continue
 		}
 		if city.Country.IsoCode != "" || (city.Location.Latitude != 0 && city.Location.Longitude != 0) {
 			return iplocation.Location{
@@ -53,7 +54,7 @@ func (mm *MaxMind) Resolve(mas []multiaddr.Multiaddr) (iplocation.Location, erro
 				Longitude: city.Location.Longitude,
 			}, nil
 		}
-		log.Debugf("no info for tcp addr %s", ip)
+		log.Debugf("no info for addr %s", ip)
 	}
 	return iplocation.Location{}, iplocation.ErrCantResolve
 

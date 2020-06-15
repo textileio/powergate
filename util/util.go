@@ -53,7 +53,7 @@ func getIPFromMaddr(maddr ma.Multiaddr) (string, error) {
 		return ip, nil
 	}
 	if ip, err := maddr.ValueForProtocol(ma.P_IP6); err == nil {
-		return ip, nil
+		return fmt.Sprintf("[%s]", ip), nil
 	}
 	return "", fmt.Errorf("no ip in multiaddr")
 }
