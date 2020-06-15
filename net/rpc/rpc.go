@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	context "context"
+	"context"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	ma "github.com/multiformats/go-multiaddr"
@@ -89,17 +89,22 @@ func (a *RPC) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerResp
 		addrs[i] = addr.String()
 	}
 
+	var l *Location
+	if peerInfo.Location != nil {
+		l = &Location{
+			Country:   peerInfo.Location.Country,
+			Latitude:  peerInfo.Location.Latitude,
+			Longitude: peerInfo.Location.Longitude,
+		}
+	}
+
 	return &FindPeerResponse{
 		PeerInfo: &PeerInfo{
 			AddrInfo: &PeerAddrInfo{
 				Id:    peerInfo.AddrInfo.ID.String(),
 				Addrs: addrs,
 			},
-			Location: &Location{
-				Country:   peerInfo.Location.Country,
-				Latitude:  peerInfo.Location.Latitude,
-				Longitude: peerInfo.Location.Longitude,
-			},
+			Location: l,
 		},
 	}, nil
 }
