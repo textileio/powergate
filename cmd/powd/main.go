@@ -174,7 +174,7 @@ func setupLogging() error {
 		"reputation-source-store",
 		"chainstore",
 		"fchost",
-		"ip2location",
+		"maxmind",
 
 		// Deals Module
 		"deals",

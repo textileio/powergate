@@ -16,35 +16,46 @@ var (
 )
 
 // TCPAddrFromMultiAddr converts a multiaddress to a string representation of a tcp address.
-func TCPAddrFromMultiAddr(maddr ma.Multiaddr) (addr string, err error) {
+func TCPAddrFromMultiAddr(maddr ma.Multiaddr) (string, error) {
 	if maddr == nil {
-		err = fmt.Errorf("invalid address")
-		return
+		return "", fmt.Errorf("invalid address")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+
+	var ip string
 	if _, err := maddr.ValueForProtocol(ma.P_DNS4); err == nil {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
 		maddrs, err := dns.Resolve(ctx, maddr)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("resolving dns: %s", err)
 		}
 		for _, m := range maddrs {
-			if _, err := m.ValueForProtocol(ma.P_IP4); err == nil {
-				maddr = m
+			if ip, err = getIPFromMaddr(m); err == nil {
 				break
 			}
 		}
+	} else {
+		ip, err = getIPFromMaddr(maddr)
+		if err != nil {
+			return "", fmt.Errorf("getting ip from maddr: %s", err)
+		}
 	}
 
-	ip4, err := maddr.ValueForProtocol(ma.P_IP4)
-	if err != nil {
-		return
-	}
 	tcp, err := maddr.ValueForProtocol(ma.P_TCP)
 	if err != nil {
-		return
+		return "", fmt.Errorf("getting port from maddr: %s", err)
 	}
-	return fmt.Sprintf("%s:%s", ip4, tcp), nil
+	return fmt.Sprintf("%s:%s", ip, tcp), nil
+}
+
+func getIPFromMaddr(maddr ma.Multiaddr) (string, error) {
+	if ip, err := maddr.ValueForProtocol(ma.P_IP4); err == nil {
+		return ip, nil
+	}
+	if ip, err := maddr.ValueForProtocol(ma.P_IP6); err == nil {
+		return fmt.Sprintf("[%s]", ip), nil
+	}
+	return "", fmt.Errorf("no ip in multiaddr")
 }
 
 // MustParseAddr returns a parsed Multiaddr, or panics if invalid.

@@ -39,7 +39,7 @@ import (
 	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	"github.com/textileio/powergate/index/miner"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
-	"github.com/textileio/powergate/iplocation/ip2location"
+	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
 	pgnet "github.com/textileio/powergate/net"
 	pgnetlotus "github.com/textileio/powergate/net/lotus"
@@ -67,15 +67,15 @@ var (
 type Server struct {
 	ds datastore.TxnDatastore
 
-	ip2l *ip2location.IP2Location
-	ai   *ask.Runner
-	mi   *miner.Index
-	fi   *faults.Index
-	dm   *deals.Module
-	wm   *wallet.Module
-	rm   *reputation.Module
-	nm   pgnet.Module
-	hm   *health.Module
+	mm *maxmind.MaxMind
+	ai *ask.Runner
+	mi *miner.Index
+	fi *faults.Index
+	dm *deals.Module
+	wm *wallet.Module
+	rm *reputation.Module
+	nm pgnet.Module
+	hm *health.Module
 
 	ffsManager *manager.Manager
 	sched      *scheduler.Scheduler
@@ -105,6 +105,7 @@ type Config struct {
 	GrpcWebProxyAddress string
 	RepoPath            string
 	GatewayHostAddr     string
+	MaxMindDBFolder     string
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -150,12 +151,15 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("opening datastore on repo: %s", err)
 	}
 
-	ip2l := ip2location.New([]string{"./ip2location-ip4.bin"})
+	mm, err := maxmind.New(filepath.Join(conf.MaxMindDBFolder, "./GeoLite2-City.mmdb"))
+	if err != nil {
+		return nil, fmt.Errorf("opening maxmind database: %s", err)
+	}
 	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), c)
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := miner.New(txndstr.Wrap(ds, "index/miner"), c, fchost, ip2l)
+	mi, err := miner.New(txndstr.Wrap(ds, "index/miner"), c, fchost, mm)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
@@ -173,7 +177,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	pm := paychLotus.New(c)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
-	nm := pgnetlotus.New(c, ip2l)
+	nm := pgnetlotus.New(c, mm)
 	hm := health.New(nm)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
@@ -205,7 +209,7 @@ func NewServer(conf Config) (*Server, error) {
 	s := &Server{
 		ds: ds,
 
-		ip2l: ip2l,
+		mm: mm,
 
 		ai: ai,
 		mi: mi,
@@ -403,5 +407,7 @@ func (s *Server) Close() {
 		log.Errorf("closing gateway: %s", err)
 	}
 	s.closeLotus()
-	s.ip2l.Close()
+	if err := s.mm.Close(); err != nil {
+		log.Errorf("closing maxmind: %s", err)
+	}
 }

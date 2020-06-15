@@ -35,7 +35,9 @@ func TestFindPeer(t *testing.T) {
 	require.Nil(t, err)
 	require.NotEmpty(t, peer.AddrInfo.ID)
 	require.NotEmpty(t, peer.AddrInfo.Addrs)
-	require.NotEmpty(t, peer.Location.Country)
+	// The addrs of peers are in localhost, so
+	// no location information will be available.
+	require.Nil(t, peer.Location)
 }
 
 func TestDisconnectConnect(t *testing.T) {
