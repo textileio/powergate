@@ -57,6 +57,6 @@ func TestResolve(t *testing.T) {
 func setup(t *testing.T) *MaxMind {
 	mm, err := New("GeoLite2-City.mmdb")
 	require.NoError(t, err)
-	t.Cleanup(func() { mm.Close() })
+	t.Cleanup(func() { _ = mm.Close() })
 	return mm
 }

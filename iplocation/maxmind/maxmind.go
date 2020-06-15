@@ -16,11 +16,13 @@ var (
 	log = logger.Logger("maxmind")
 )
 
+// MaxMind is an iplocation resolver using the MaxMind database.
 type MaxMind struct {
 	lock sync.Mutex
 	db   *geoip2.Reader
 }
 
+// New returns a new MaxMind iplocation resolver.
 func New(db string) (*MaxMind, error) {
 	r, err := geoip2.Open(db)
 	if err != nil {
@@ -29,6 +31,7 @@ func New(db string) (*MaxMind, error) {
 	return &MaxMind{db: r}, nil
 }
 
+// Resolve returns Location information from multiaddrs.
 func (mm *MaxMind) Resolve(mas []multiaddr.Multiaddr) (iplocation.Location, error) {
 	for _, ma := range mas {
 		ipport, err := util.TCPAddrFromMultiAddr(ma)
@@ -57,9 +60,9 @@ func (mm *MaxMind) Resolve(mas []multiaddr.Multiaddr) (iplocation.Location, erro
 		log.Debugf("no info for addr %s", ip)
 	}
 	return iplocation.Location{}, iplocation.ErrCantResolve
-
 }
 
+// Close closes the iplocation resolver.
 func (mm *MaxMind) Close() error {
 	mm.lock.Lock()
 	defer mm.lock.Unlock()
