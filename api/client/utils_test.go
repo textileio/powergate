@@ -50,6 +50,7 @@ func setupServer(t *testing.T) func() {
 		GrpcWebProxyAddress: grpcWebProxyAddress,
 		RepoPath:            repoPath,
 		GatewayHostAddr:     gatewayHostAddr,
+		MaxMindDBFolder:     "../../iplocation/maxmind",
 	}
 	server, err := server.NewServer(conf)
 	checkErr(t, err)

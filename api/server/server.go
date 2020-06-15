@@ -105,6 +105,7 @@ type Config struct {
 	GrpcWebProxyAddress string
 	RepoPath            string
 	GatewayHostAddr     string
+	MaxMindDBFolder     string
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -150,7 +151,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("opening datastore on repo: %s", err)
 	}
 
-	mm, err := maxmind.New("./GeoLite2-City.mmdb")
+	mm, err := maxmind.New(filepath.Join(conf.MaxMindDBFolder, "GeoLite2-City.mmdb"))
 	if err != nil {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
 	}
