@@ -1,4 +1,4 @@
-name: Ensure Docs
+name: ensure docs
 on:
   push:
     branches:
@@ -8,16 +8,16 @@ on:
       - master
 jobs:
   ensure-pow-docs:
-    name: Ensure pow docs
+    name: pow
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: check out code
         uses: actions/checkout@v1
-      - name: Generate docs
+      - name: generate docs
         run: make docs-pow
-      - name: Check if there are changes
+      - name: detect changes
         id: changes
         uses: UnicornGlobal/has-changes-action@v1.0.11
-      - name: Process changes
+      - name: check changes
         if: steps.changes.outputs.changed == 1
         run: exit 1
