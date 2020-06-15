@@ -151,7 +151,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("opening datastore on repo: %s", err)
 	}
 
-	mm, err := maxmind.New(filepath.Join(conf.MaxMindDBFolder, "GeoLite2-City.mmdb"))
+	mm, err := maxmind.New(filepath.Join(conf.MaxMindDBFolder, "./GeoLite2-City.mmdb"))
 	if err != nil {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
 	}
