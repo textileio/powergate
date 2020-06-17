@@ -35,14 +35,6 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestClientVersion(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
-
-	if _, err := client.Version(context.Background()); err != nil {
-		t.Fatalf("error when getting client version: %s", err)
-	}
-}
-
 func TestClientImport(t *testing.T) {
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
 
@@ -110,22 +102,6 @@ func TestChainGetTipset(t *testing.T) {
 	checkErr(t, err)
 	if len(pts.Cids()) == 0 || len(pts.Blocks()) == 0 || pts.Height() != ts.Height()-1 {
 		t.Fatalf("invalid tipset")
-	}
-}
-
-func TestStateReadState(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
-	addrs, err := client.StateListMiners(context.Background(), types.EmptyTSK)
-	checkErr(t, err)
-
-	for _, a := range addrs {
-		actor, err := client.StateGetActor(context.Background(), a, types.EmptyTSK)
-		checkErr(t, err)
-		s, err := client.StateReadState(context.Background(), actor, types.EmptyTSK)
-		checkErr(t, err)
-		if s.State == nil {
-			t.Fatalf("state of actor %s can't be nil", a)
-		}
 	}
 }
 
