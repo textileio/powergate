@@ -61,7 +61,7 @@ To build and install the CLI, run:
 $ make build-pow
 ```
 
-Then run `pow` with the `--help` flag to see the available commands:
+You can read the [generated CLI docs](https://github.com/textileio/powergate/blob/master/cli-docs/pow/pow.md) in this repo, or run `pow` with the `--help` flag to see the available commands:
 
 ```
 $ pow --help
