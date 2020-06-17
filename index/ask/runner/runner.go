@@ -12,7 +12,6 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/textileio/powergate/index/ask"
 	"github.com/textileio/powergate/index/ask/internal/metrics"
 	"github.com/textileio/powergate/index/ask/internal/store"
@@ -262,7 +261,7 @@ func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr
 		return ask.StorageAsk{}, false, fmt.Errorf("getting miner %s info: %s", addr, err)
 	}
 
-	sask, err := api.ClientQueryAsk(ctx, peer.ID(mi.PeerId), addr)
+	sask, err := api.ClientQueryAsk(ctx, mi.PeerId, addr)
 	if err != nil {
 		return ask.StorageAsk{}, false, nil
 	}
