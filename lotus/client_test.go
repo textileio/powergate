@@ -13,7 +13,6 @@ import (
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/tests"
 )
@@ -33,14 +32,6 @@ func TestMain(m *testing.M) {
 	}
 	logging.SetAllLoggers(logging.LevelError)
 	os.Exit(m.Run())
-}
-
-func TestClientVersion(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
-
-	if _, err := client.Version(context.Background()); err != nil {
-		t.Fatalf("error when getting client version: %s", err)
-	}
 }
 
 func TestClientImport(t *testing.T) {
@@ -113,22 +104,6 @@ func TestChainGetTipset(t *testing.T) {
 	}
 }
 
-func TestStateReadState(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
-	addrs, err := client.StateListMiners(context.Background(), types.EmptyTSK)
-	checkErr(t, err)
-
-	for _, a := range addrs {
-		actor, err := client.StateGetActor(context.Background(), a, types.EmptyTSK)
-		checkErr(t, err)
-		s, err := client.StateReadState(context.Background(), actor, types.EmptyTSK)
-		checkErr(t, err)
-		if s.State == nil {
-			t.Fatalf("state of actor %s can't be nil", a)
-		}
-	}
-}
-
 func TestGetPeerID(t *testing.T) {
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
 
@@ -137,7 +112,7 @@ func TestGetPeerID(t *testing.T) {
 
 	mi, err := client.StateMinerInfo(context.Background(), miners[0], types.EmptyTSK)
 	checkErr(t, err)
-	checkErr(t, peer.ID(mi.PeerId).Validate())
+	checkErr(t, mi.PeerId.Validate())
 }
 
 func checkErr(t *testing.T, err error) {

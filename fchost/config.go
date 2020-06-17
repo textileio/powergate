@@ -9,12 +9,12 @@ import (
 
 var (
 	addrs = []string{
-		"/dns4/t01000.miner.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWLVgeFhXA7ztuSS1uvk4NVzZwRZLxg8PBy1mJuHfc8J6E",
-		"/ip4/34.217.110.132/tcp/1347/p2p/12D3KooWLVgeFhXA7ztuSS1uvk4NVzZwRZLxg8PBy1mJuHfc8J6E",
-		"/dns4/peer0.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWBkXWpT1hLHXz7VzR8ZHCJ42P6c9Nb9532ATSguBpLTKJ",
-		"/ip4/54.187.182.170/tcp/1347/p2p/12D3KooWBkXWpT1hLHXz7VzR8ZHCJ42P6c9Nb9532ATSguBpLTKJ",
-		"/dns4/peer1.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWJk5hQHNdCsidtX4jhKQMBXKJdo2kjhrNHUZBPmCZKwKt",
-		"/ip4/52.24.84.39/tcp/1347/p2p/12D3KooWJk5hQHNdCsidtX4jhKQMBXKJdo2kjhrNHUZBPmCZKwKt",
+		"/dns4/t01000.miner.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWGn5vqmazSwXBQnPAcQiFyXDvpngTaFu5y9EYD9XCiRXn",
+		"/ip4/34.217.110.132/tcp/1347/p2p/12D3KooWGn5vqmazSwXBQnPAcQiFyXDvpngTaFu5y9EYD9XCiRXn",
+		"/dns4/peer0.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWBoh25ZEWSwrbmQXANX4BH4ZczEaePFh6nNTbVQfRdfZ8",
+		"/ip4/54.187.182.170/tcp/1347/p2p/12D3KooWBoh25ZEWSwrbmQXANX4BH4ZczEaePFh6nNTbVQfRdfZ8",
+		"/dns4/peer1.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWLdj4UyD2ucKMbXV4hKZw13r9zQMLkYucVDxubt8S6XJ8",
+		"/ip4/52.24.84.39/tcp/1347/p2p/12D3KooWLdj4UyD2ucKMbXV4hKZw13r9zQMLkYucVDxubt8S6XJ8",
 	}
 )
 
