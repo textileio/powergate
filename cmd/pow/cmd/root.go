@@ -24,9 +24,10 @@ var (
 	cmdTimeout = time.Second * 10
 
 	rootCmd = &cobra.Command{
-		Use:   "pow",
-		Short: "A client for storage and retreival of powergate data",
-		Long:  `A client for storage and retreival of powergate data`,
+		Use:               "pow",
+		Short:             "A client for storage and retreival of powergate data",
+		Long:              `A client for storage and retreival of powergate data`,
+		DisableAutoGenTag: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			err := viper.BindPFlag("serverAddress", cmd.Root().PersistentFlags().Lookup("serverAddress"))
 			checkErr(err)
