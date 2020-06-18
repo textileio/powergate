@@ -21,4 +21,5 @@ buildtools/protoc
 buildtools/protoc-gen-go
 
 myfile
+myfile2
 tags
