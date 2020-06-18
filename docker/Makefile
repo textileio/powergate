@@ -10,3 +10,7 @@ up: down
 devnet: 
 	docker-compose -p devnet -f docker-compose-devnet.yaml up --build -V
 .PHONY: devnet
+
+devnet-small: 
+	BIGSECTORS=false docker-compose -p devnet -f docker-compose-devnet.yaml up --build -V
+.PHONY: devnet-small

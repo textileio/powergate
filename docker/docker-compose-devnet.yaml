@@ -26,10 +26,10 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:sha-72026a2
+    image: textile/lotus-devnet:sha-ff3d28e
     ports:
       - 7777:7777
     environment:
       - TEXLOTUSDEVNET_SPEED=1500
-      - TEXLOTUSDEVNET_BIGSECTORS=true
+      - TEXLOTUSDEVNET_BIGSECTORS=${BIGSECTORS}
       - TEXLOTUSDEVNET_IPFSADDR=/dns4/ipfs/tcp/5001

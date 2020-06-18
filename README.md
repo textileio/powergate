@@ -155,12 +155,16 @@ make devnet
 ```
 This will build Powergate `powd`, a Lotus devnet, a IPFS node and wire them correctly to be ready to use.
 
+**Note**: There also exists a `make devnet-small` command that will create the Lotus devent using 2Kib sectors. This may be more appropriate for certain development or testing scenarios.
+
 Here is a full example of using the devnet run:
 Terminal 1:
 ```bash
 cd docker
 make devnet
 ```
+
+
 Wait for seeing logs about the height of the chain increase in a regular cadence.
 
 Terminal 2:
