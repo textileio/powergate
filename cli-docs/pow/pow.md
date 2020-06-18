@@ -19,7 +19,6 @@ A client for storage and retreival of powergate data
 * [pow asks](pow_asks.md)	 - Provides commands to view asks data
 * [pow deal](pow_deal.md)	 - Interactive storage deal
 * [pow deals](pow_deals.md)	 - Provides commands to manage storage deals
-* [pow docs](pow_docs.md)	 - Generate markdown docs for pow command
 * [pow faults](pow_faults.md)	 - Provides commands to view faults data
 * [pow ffs](pow_ffs.md)	 - Provides commands to manage ffs
 * [pow health](pow_health.md)	 - Display the node health status
