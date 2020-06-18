@@ -27,6 +27,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 		devnetEnv("NUMMINERS", strconv.Itoa(numMiners)),
 		devnetEnv("SPEED", "500"),
 		devnetEnv("IPFSADDR", ipfsMaddr),
+		devnetEnv("BIGSECTORS", false),
 	}
 	var mounts []string
 	if mountVolumes {
