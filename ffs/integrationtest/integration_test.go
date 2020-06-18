@@ -1294,8 +1294,15 @@ func TestParallelExecution(t *testing.T) {
 		// being batched in the same scheduler run.
 		time.Sleep(time.Millisecond * 100)
 	}
+	// Check that all jobs should be immediately in the Executing status, since
+	// the default max parallel runs is 50. So all should get in.
 	for i := 0; i < len(jids); i++ {
 		requireJobState(t, fapi, jids[i], ffs.Executing)
+	}
+
+	// Now just check that all of them finish successfully.
+	for i := 0; i < len(jids); i++ {
+		requireJobState(t, fapi, jids[i], ffs.Success)
 		requireCidConfig(t, fapi, cids[i], nil)
 	}
 }
