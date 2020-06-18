@@ -12,10 +12,11 @@ func init() {
 }
 
 var docsCmd = &cobra.Command{
-	Use:   "docs [outdir]",
-	Short: "Generate markdown docs for pow command",
-	Long:  `Generate markdown docs for pow command`,
-	Args:  cobra.ExactArgs(1),
+	Use:    "docs [outdir]",
+	Short:  "Generate markdown docs for pow command",
+	Long:   `Generate markdown docs for pow command`,
+	Hidden: true,
+	Args:   cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		dir := args[0]
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
