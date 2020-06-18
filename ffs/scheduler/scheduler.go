@@ -280,6 +280,7 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 
 func (s *Scheduler) scheduleRepairJob(ctx context.Context, a astore.Action) error {
 	s.l.Log(ctx, a.Cfg.Cid, "Scheduling deal repair...")
+	a.Cfg.Repairable = false
 	jid, err := s.push(a.APIID, a.Cfg, cid.Undef)
 	if err != nil {
 		return fmt.Errorf("scheduling repair job: %s", err)
