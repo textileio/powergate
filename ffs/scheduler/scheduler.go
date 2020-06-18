@@ -332,7 +332,6 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a astore.Action) error 
 func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 	var err error
 	var j *ffs.Job
-	fmt.Print(1)
 
 forLoop:
 	for {

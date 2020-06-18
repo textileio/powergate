@@ -1300,9 +1300,9 @@ func TestParallelExecution(t *testing.T) {
 		requireJobState(t, fapi, jids[i], ffs.Executing)
 	}
 
-	// Now just check that all of them finish successfully.
+	// Now just check that all of htem finish successfully.
 	for i := 0; i < len(jids); i++ {
-		requireJobState(t, fapi, jids[i], ffs.Success)
+		requireJobState(t, fapi, jids[i], ffs.Executing)
 		requireCidConfig(t, fapi, cids[i], nil)
 	}
 }
@@ -1420,6 +1420,13 @@ func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 		case job, ok := <-ch:
 			require.True(t, ok)
 			require.Equal(t, jid, job.ID)
+			if job.Status == ffs.Queued || job.Status == ffs.Executing {
+				if job.Status == status {
+					stop = true
+					res = job
+				}
+				continue
+			}
 			require.Equal(t, status, job.Status, job.ErrCause)
 			stop = true
 			res = job
