@@ -1275,6 +1275,31 @@ func TestResumeScheduler(t *testing.T) {
 	require.Equal(t, 1, len(sh.Cold.Filecoin.Proposals)) // Check only one deal still exits.
 }
 
+func TestParallelExecution(t *testing.T) {
+	t.Parallel()
+	ipfs, _, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	r := rand.New(rand.NewSource(22))
+	n := 3
+	cids := make([]cid.Cid, n)
+	jids := make([]ffs.JobID, n)
+	for i := 0; i < n; i++ {
+		cid, _ := addRandomFile(t, r, ipfs)
+		jid, err := fapi.PushConfig(cid)
+		require.Nil(t, err)
+		cids[i] = cid
+		jids[i] = jid
+		// Add some sleep time to avoid all of them
+		// being batched in the same scheduler run.
+		time.Sleep(time.Millisecond * 100)
+	}
+	for i := 0; i < len(jids); i++ {
+		requireJobState(t, fapi, jids[i], ffs.Executing)
+		requireCidConfig(t, fapi, cids[i], nil)
+	}
+}
+
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := createIPFS(t)
@@ -1388,9 +1413,6 @@ func requireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 		case job, ok := <-ch:
 			require.True(t, ok)
 			require.Equal(t, jid, job.ID)
-			if job.Status == ffs.Queued || job.Status == ffs.Executing {
-				continue
-			}
 			require.Equal(t, status, job.Status, job.ErrCause)
 			stop = true
 			res = job

@@ -262,6 +262,9 @@ func (fc *FilCold) WaitForDeals(ctx context.Context, c cid.Cid, proposals []cid.
 	}
 
 	if len(activeProposals) == 0 {
+		if ctx.Err() != nil {
+			return nil, errors, fmt.Errorf("all accepted proposals were untracked due to cancellation")
+		}
 		return nil, errors, fmt.Errorf("all accepted proposals failed before becoming active")
 	}
 	res := make([]ffs.FilStorage, 0, len(activeProposals))

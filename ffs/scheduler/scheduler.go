@@ -42,7 +42,8 @@ type Scheduler struct {
 	cis *cistore.Store
 	l   ffs.CidLogger
 
-	queuedWork chan struct{}
+	rateLim            chan struct{}
+	evaluateQueuedWork chan struct{}
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -67,7 +68,8 @@ func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.C
 		cis: cis,
 		l:   l,
 
-		queuedWork: make(chan struct{}, 1),
+		rateLim:            make(chan struct{}, maxParallelExecutions),
+		evaluateQueuedWork: make(chan struct{}, 1),
 
 		ctx:      ctx,
 		cancel:   cancel,
@@ -131,7 +133,7 @@ func (s *Scheduler) push(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.
 		}
 	}
 	select {
-	case s.queuedWork <- struct{}{}:
+	case s.evaluateQueuedWork <- struct{}{}:
 	default:
 	}
 
@@ -230,10 +232,10 @@ func (s *Scheduler) run() {
 			log.Debug("running repair checks...")
 			s.execRepairCron(s.ctx)
 			log.Debug("repair cron done")
-		case <-s.queuedWork:
-			log.Debug("running queued Job...")
+		case <-s.evaluateQueuedWork:
+			log.Debug("evaluating Job queue execution...")
 			s.executeQueuedJobs(s.ctx)
-			log.Debug("running queued job done")
+			log.Debug("evaluation Job queue execution...")
 		}
 	}
 }
@@ -330,27 +332,44 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a astore.Action) error 
 func (s *Scheduler) executeQueuedJobs(ctx context.Context) {
 	var err error
 	var j *ffs.Job
-	rateLim := make(chan struct{}, maxParallelExecutions)
+	fmt.Print(1)
+
+forLoop:
 	for {
-		if ctx.Err() != nil {
-			break
+		select {
+		case <-ctx.Done():
+			break forLoop
+		case s.rateLim <- struct{}{}:
+			// We have a slot, try pushing queued things.
+		default:
+			// If the execution pipeline is full, we can't
+			// add new things as Executing.
+			break forLoop
 		}
+
 		j, err = s.js.Dequeue()
 		if err != nil {
 			log.Errorf("getting queued jobs: %s", err)
+			<-s.rateLim
 			return
 		}
 		if j == nil {
+			// Make the slot available again.
+			<-s.rateLim
 			break
 		}
-		rateLim <- struct{}{}
 		go func(j ffs.Job) {
 			s.executeQueuedJob(j)
-			<-rateLim
+			<-s.rateLim
+
+			// Signal that there's a new open slot, and
+			// that other blocked Jobs with the same Cid
+			// can be executed.
+			select {
+			case s.evaluateQueuedWork <- struct{}{}:
+			default:
+			}
 		}(*j)
-	}
-	for i := 0; i < maxParallelExecutions; i++ {
-		rateLim <- struct{}{}
 	}
 }
 
