@@ -25,11 +25,13 @@ jobs:
       - name: Remove sed backups
         run: rm -rf docker/*.bak
       - name: Create archive
-        run: zip -r docker.zip docker
+        run: |
+          mv docker powergate-docker
+          zip -r powergate-docker.zip powergate-docker
       - name: Upload artifacts to release
         uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'docker.zip'
+          files: 'powergate-docker.zip'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   publish_grpc_lib:
     name: Publish JS gRPC bindings
