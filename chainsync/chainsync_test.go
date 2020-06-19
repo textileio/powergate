@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
@@ -17,6 +18,7 @@ func TestMain(m *testing.M) {
 
 func TestPrecede(t *testing.T) {
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	time.Sleep(time.Second * 5) // Give time for at least 1 block to be mined.
 	ctx := context.Background()
 
 	h, err := client.ChainHead(ctx)
