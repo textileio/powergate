@@ -30,7 +30,7 @@ services:
       - powergate-lotus:/root/lotus
   
   lotus:
-    image: textile/lotus:ffa7be8
+    image: textile/lotus:v0.4.0
     volumes:
       - powergate-lotus:/data
     environment:
