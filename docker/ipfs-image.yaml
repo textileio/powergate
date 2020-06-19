@@ -4,4 +4,3 @@ services:
 
   ipfs:
     image: ipfs/go-ipfs:v0.5.1
-    

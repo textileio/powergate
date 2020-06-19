@@ -5,4 +5,3 @@ services:
   powergate:
     build:
       context: ../
-      
