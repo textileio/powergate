@@ -9,12 +9,18 @@ import (
 
 var (
 	addrs = []string{
-		"/dns4/t01000.miner.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWGn5vqmazSwXBQnPAcQiFyXDvpngTaFu5y9EYD9XCiRXn",
-		"/ip4/34.217.110.132/tcp/1347/p2p/12D3KooWGn5vqmazSwXBQnPAcQiFyXDvpngTaFu5y9EYD9XCiRXn",
-		"/dns4/peer0.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWBoh25ZEWSwrbmQXANX4BH4ZczEaePFh6nNTbVQfRdfZ8",
-		"/ip4/54.187.182.170/tcp/1347/p2p/12D3KooWBoh25ZEWSwrbmQXANX4BH4ZczEaePFh6nNTbVQfRdfZ8",
-		"/dns4/peer1.interopnet.kittyhawk.wtf/tcp/1347/p2p/12D3KooWLdj4UyD2ucKMbXV4hKZw13r9zQMLkYucVDxubt8S6XJ8",
-		"/ip4/52.24.84.39/tcp/1347/p2p/12D3KooWLdj4UyD2ucKMbXV4hKZw13r9zQMLkYucVDxubt8S6XJ8",
+		"/dns4/bootstrap-0-sin.fil-test.net/tcp/1347/p2p/12D3KooWPdUquftaQvoQEtEdsRBAhwD6jopbF2oweVTzR59VbHEd",
+		"/ip4/86.109.15.57/tcp/1347/p2p/12D3KooWPdUquftaQvoQEtEdsRBAhwD6jopbF2oweVTzR59VbHEd",
+		"/dns4/bootstrap-0-dfw.fil-test.net/tcp/1347/p2p/12D3KooWQSCkHCzosEyrh8FgYfLejKgEPM5VB6qWzZE3yDAuXn8d",
+		"/ip4/139.178.84.45/tcp/1347/p2p/12D3KooWQSCkHCzosEyrh8FgYfLejKgEPM5VB6qWzZE3yDAuXn8d",
+		"/dns4/bootstrap-0-fra.fil-test.net/tcp/1347/p2p/12D3KooWEXN2eQmoyqnNjde9PBAQfQLHN67jcEdWU6JougWrgXJK",
+		"/ip4/136.144.49.17/tcp/1347/p2p/12D3KooWEXN2eQmoyqnNjde9PBAQfQLHN67jcEdWU6JougWrgXJK",
+		"/dns4/bootstrap-1-sin.fil-test.net/tcp/1347/p2p/12D3KooWLmJkZd33mJhjg5RrpJ6NFep9SNLXWc4uVngV4TXKwzYw",
+		"/ip4/86.109.15.123/tcp/1347/p2p/12D3KooWLmJkZd33mJhjg5RrpJ6NFep9SNLXWc4uVngV4TXKwzYw",
+		"/dns4/bootstrap-1-dfw.fil-test.net/tcp/1347/p2p/12D3KooWGXLHjiz6pTRu7x2pkgTVCoxcCiVxcNLpMnWcJ3JiNEy5",
+		"/ip4/139.178.86.3/tcp/1347/p2p/12D3KooWGXLHjiz6pTRu7x2pkgTVCoxcCiVxcNLpMnWcJ3JiNEy5",
+		"/dns4/bootstrap-1-fra.fil-test.net/tcp/1347/p2p/12D3KooW9szZmKttS9A1FafH3Zc2pxKwwmvCWCGKkRP4KmbhhC4R",
+		"/ip4/136.144.49.131/tcp/1347/p2p/12D3KooW9szZmKttS9A1FafH3Zc2pxKwwmvCWCGKkRP4KmbhhC4R",
 	}
 )
 

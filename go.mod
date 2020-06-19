@@ -12,8 +12,8 @@ require (
 	github.com/filecoin-project/go-fil-markets v0.3.0
 	github.com/filecoin-project/go-jsonrpc v0.1.1-0.20200602181149-522144ab4e24
 	github.com/filecoin-project/go-padreader v0.0.0-20200210211231-548257017ca6
-	github.com/filecoin-project/lotus v0.3.3-0.20200616212844-bead3bf41295
-	github.com/filecoin-project/specs-actors v0.6.1
+	github.com/filecoin-project/lotus v0.4.0
+	github.com/filecoin-project/specs-actors v0.6.2-0.20200617175406-de392ca14121
 	github.com/gin-contrib/location v0.0.1
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
