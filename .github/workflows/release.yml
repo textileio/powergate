@@ -1,9 +1,34 @@
-name: Publish JS gRPC bindings
+name: Release
 on:
   release:
-    types: [published]
+    types: [created]
 jobs:
-
+  publish_docker:
+    name: Publish Docker Compose Setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: Get latest tag
+        id: latesttag
+        uses: "WyriHaximus/github-action-get-previous-tag@master"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Update powergate image version
+        run: sed -i.bak 's/latest/${{steps.latesttag.outputs.tag}}/g' docker/powergate-image.yaml
+      - name: Update Makefile
+        run: sed -i.bak 's/powergate-build-context/powergate-image/g' docker/Makefile
+      - name: Remove sed backups
+        run: rm -rf docker/*.bak
+      - name: Create archive
+        run: |
+          mv docker powergate-docker
+          zip -r powergate-docker.zip powergate-docker
+      - name: Upload artifacts to release
+        uses: AButler/upload-release-assets@v2.0
+        with:
+          files: 'powergate-docker.zip'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
   publish_grpc_lib:
     name: Publish JS gRPC bindings
     runs-on: ubuntu-latest

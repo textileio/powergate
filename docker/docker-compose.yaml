@@ -8,8 +8,6 @@ volumes:
 services:
   
   powergate:
-    build:
-      context: ../
     ports:
       - 8889:8889
       - 8888:8888
@@ -44,7 +42,6 @@ services:
     restart: unless-stopped
 
   ipfs:
-    image: ipfs/go-ipfs:v0.5.1
     ports:
       - 5001:5001
     volumes:

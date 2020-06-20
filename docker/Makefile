@@ -1,16 +1,28 @@
 down:
-	docker-compose down
-	docker-compose -p devnet down
+	docker-compose \
+		-f docker-compose.yaml \
+		-f ipfs-image.yaml \
+		-f powergate-build-context.yaml \
+		down
+	docker-compose -p devnet \
+		-f docker-compose-devnet.yaml \
+		-f ipfs-image.yaml \
+		-f powergate-build-context.yaml \
+		down
 .PHONY: down
 
 up: down
-	docker-compose up --build 
+	docker-compose \
+		-f docker-compose.yaml \
+		-f ipfs-image.yaml \
+		-f powergate-build-context.yaml \
+		up --build 
 .PHONY: up
 
 devnet: 
-	docker-compose -p devnet -f docker-compose-devnet.yaml up --build -V
+	docker-compose -p devnet \
+		-f docker-compose-devnet.yaml \
+		-f ipfs-image.yaml \
+		-f powergate-build-context.yaml \
+		up --build -V
 .PHONY: devnet
-
-devnet-small: 
-	BIGSECTORS=false docker-compose -p devnet -f docker-compose-devnet.yaml up --build -V
-.PHONY: devnet-small
