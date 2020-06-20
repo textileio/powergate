@@ -22,12 +22,12 @@ jobs:
         run: rm -rf docker/*.bak
       - name: Create archive
         run: |
-          mv docker powergate-docker
-          zip -r powergate-docker.zip powergate-docker
+          mv docker powergate-docker-${{steps.latesttag.outputs.tag}}
+          zip -r powergate-docker-${{steps.latesttag.outputs.tag}}.zip powergate-docker-${{steps.latesttag.outputs.tag}}
       - name: Upload artifacts to release
         uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'powergate-docker.zip'
+          files: 'powergate-docker-${{steps.latesttag.outputs.tag}}.zip'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   publish_grpc_lib:
     name: Publish JS gRPC bindings
