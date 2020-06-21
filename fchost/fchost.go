@@ -35,7 +35,7 @@ func New(bootstrap bool) (*FilecoinHost, error) {
 		return nil, err
 	}
 
-	dht, err := dht.New(ctx, h, dht.ProtocolPrefix("/fil/kad/interop"))
+	dht, err := dht.New(ctx, h, dht.ProtocolPrefix("/fil/kad/testnet"))
 	if err != nil {
 		return nil, err
 	}
