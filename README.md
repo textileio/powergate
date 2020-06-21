@@ -26,7 +26,7 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 ## Design
 
-Powergate is composed of different modules which can be used independently, and compose toegheter to provide other higher-level modules.
+Powergate is composed of different modules which can be used independently, and compose together to provide other higher-level modules.
 
 ### 📢 Deals module
 The Deals module provides a lower layer of abstraction to a Filecoin client node. It provides simple APIs to store, watch, and retrieve data in the Filecoin network. Currently, it interacts with the Lotus client but we have plans to support other Filecoin clients.
