@@ -86,9 +86,6 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("starting deals: %s", err)
 	}
-	if len(okDeals) == 0 {
-		return nil, failedStartingDeals, 0, fmt.Errorf("all proposed deals where rejected")
-	}
 	return okDeals, failedStartingDeals, size, nil
 }
 
@@ -227,7 +224,7 @@ func (fc *FilCold) WaitForDeals(ctx context.Context, c cid.Cid, proposals []cid.
 	defer cancel()
 	chDi, err := fc.dm.Watch(ctx, proposals)
 	if err != nil {
-		return nil, errors, err
+		return nil, errors, fmt.Errorf("watching proposals in deals module: %s", err)
 	}
 
 	activeProposals := make(map[cid.Cid]*ffs.FilStorage)
@@ -260,12 +257,8 @@ func (fc *FilCold) WaitForDeals(ctx context.Context, c cid.Cid, proposals []cid.
 			break
 		}
 	}
-
-	if len(activeProposals) == 0 {
-		if ctx.Err() != nil {
-			return nil, errors, fmt.Errorf("all accepted proposals were untracked due to cancellation")
-		}
-		return nil, errors, fmt.Errorf("all accepted proposals failed before becoming active")
+	if ctx.Err() != nil {
+		return nil, errors, fmt.Errorf("all accepted proposals were untracked due to cancellation")
 	}
 	res := make([]ffs.FilStorage, 0, len(activeProposals))
 	for _, v := range activeProposals {
