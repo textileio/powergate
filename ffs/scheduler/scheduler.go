@@ -556,6 +556,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		return curr.Cold, nil, nil
 	}
 
+	// Propose deals
 	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
 	s.l.Log(ctx, curr.Cid, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
 	startedProposals, rejectedProposals, size, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
@@ -563,18 +564,27 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
 	allErrors = append(allErrors, rejectedProposals...)
+	if len(startedProposals) == 0 {
+		return ffs.ColdInfo{}, allErrors, fmt.Errorf("all proposals were rejected")
+	}
+
+	// Track all deals that weren't rejected
 	if err := s.js.AddStartedDeals(curr.Cid, startedProposals); err != nil {
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
 	okDeals, failedDeals, err := s.cs.WaitForDeals(ctx, curr.Cid, startedProposals)
-	allErrors = append(allErrors, failedDeals...)
 	if err != nil {
-		return ffs.ColdInfo{}, allErrors, fmt.Errorf("watching deals unfold: %s", err)
+		return ffs.ColdInfo{}, nil, fmt.Errorf("watching deals unfold: %s", err)
 	}
+	allErrors = append(allErrors, failedDeals...)
 	if err := s.js.RemoveStartedDeals(curr.Cid); err != nil {
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("removing temporal started deals storage: %s", err)
 	}
+	if len(failedDeals) == len(startedProposals) {
+		return ffs.ColdInfo{}, allErrors, fmt.Errorf("all started deals failed")
+	}
 
+	// At least 1 of the proposal deals reached a successfull final status.
 	return ffs.ColdInfo{Filecoin: ffs.FilInfo{
 		DataCid:   curr.Cid,
 		Size:      size,

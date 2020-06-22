@@ -86,9 +86,6 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("starting deals: %s", err)
 	}
-	if len(okDeals) == 0 {
-		return nil, failedStartingDeals, 0, fmt.Errorf("all proposed deals where rejected")
-	}
 	return okDeals, failedStartingDeals, size, nil
 }
 
