@@ -561,6 +561,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	s.l.Log(ctx, curr.Cid, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
 	startedProposals, rejectedProposals, size, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
 	if err != nil {
+		s.l.Log(ctx, curr.Cid, "Starting deals failed, with cause: %s", err)
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
 	allErrors = append(allErrors, rejectedProposals...)

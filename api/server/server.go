@@ -144,6 +144,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating repo folder: %s", err)
 	}
 
+	log.Info("Opening badger database...")
 	opts := &badger.DefaultOptions
 	opts.NumVersionsToKeep = 0
 	ds, err := badger.NewDatastore(path, opts)
@@ -151,6 +152,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("opening datastore on repo: %s", err)
 	}
 
+	log.Info("Wiring internal components...")
 	mm, err := maxmind.New(filepath.Join(conf.MaxMindDBFolder, "./GeoLite2-City.mmdb"))
 	if err != nil {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
@@ -201,6 +203,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}
 
+	log.Info("Starting gRPC, gateway and index HTTP servers...")
 	grpcServer, grpcWebProxy := createGRPCServer(conf.GrpcServerOpts, conf.GrpcWebProxyAddress)
 
 	gateway := gateway.NewGateway(conf.GatewayHostAddr, ai, mi, si, rm)
@@ -236,6 +239,8 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	s.indexServer = startIndexHTTPServer(s)
+
+	log.Info("Starting finished, serving requests")
 
 	return s, nil
 }
