@@ -584,7 +584,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("all started deals failed")
 	}
 
-	// At least 1 of the proposal deals reached a successfull final status.
+	// At least 1 of the proposal deals reached a successful final status.
 	return ffs.ColdInfo{Filecoin: ffs.FilInfo{
 		DataCid:   curr.Cid,
 		Size:      size,
