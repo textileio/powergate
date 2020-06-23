@@ -124,7 +124,7 @@ func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, e
 	if err := ci.ipfs.Pin().Update(ctx, p1, p2); err != nil {
 		return 0, fmt.Errorf("updating pin %s to %s: %s", c1, c2, err)
 	}
-	stat, err := ci.ipfs.Block().Stat(ctx, p2)
+	stat, err := ci.ipfs.Object().Stat(ctx, p2)
 	if err != nil {
 		return 0, fmt.Errorf("getting stats of cid %s: %s", c2, err)
 	}
@@ -133,7 +133,7 @@ func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, e
 	ci.pinset[c2] = struct{}{}
 	ci.lock.Unlock()
 
-	return stat.Size(), nil
+	return stat.CumulativeSize, nil
 }
 
 func (ci *CoreIpfs) ensurePinsetCache(ctx context.Context) error {
