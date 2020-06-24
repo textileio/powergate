@@ -183,6 +183,10 @@ func (ai *Runner) update() error {
 	ai.orderedAsks = cache
 	ai.lock.Unlock()
 
+	if err := ai.store.Save(newIndex); err != nil {
+		return fmt.Errorf("persisting ask index: %s", err)
+	}
+
 	stats.Record(context.Background(), metrics.MFullRefreshDuration.M(time.Since(startTime).Milliseconds()))
 	ai.signaler.Signal()
 
