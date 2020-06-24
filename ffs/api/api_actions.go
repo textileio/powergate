@@ -146,7 +146,7 @@ func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
 // with that JobID, it won't fail.
 func (i *API) Cancel(jid ffs.JobID) error {
 	if err := i.sched.Cancel(jid); err != nil {
-		return fmt.Errorf("cancelling job %s: %s", jid, err)
+		return fmt.Errorf("canceling job %s: %s", jid, err)
 	}
 	return nil
 }
