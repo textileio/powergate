@@ -1327,7 +1327,7 @@ func TestJobCancellation(t *testing.T) {
 	// finished _fast_.
 	before := time.Now()
 	requireJobState(t, fapi, jid, ffs.Canceled)
-	require.True(t, time.Now().Sub(before) < time.Second)
+	require.True(t, time.Since(before) < time.Second)
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
