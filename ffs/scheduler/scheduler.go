@@ -620,6 +620,7 @@ func (s *Scheduler) waitForDeals(c cid.Cid, startedProposals []cid.Cid) ([]ffs.F
 			lock.Unlock()
 		}()
 	}
+	wg.Wait()
 	return okDeals, failedDeals
 }
 
