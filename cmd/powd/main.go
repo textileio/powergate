@@ -181,6 +181,9 @@ func setupLogging() error {
 		// Deals Module
 		"deals",
 
+		// Wallet Module
+		"wallet",
+
 		// FFS
 		"ffs-scheduler",
 		"ffs-manager",

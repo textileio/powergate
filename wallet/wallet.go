@@ -13,6 +13,11 @@ import (
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/specs-actors/actors/crypto"
+	logger "github.com/ipfs/go-log/v2"
+)
+
+var (
+	log = logger.Logger("wallet")
 )
 
 // Module exposes the filecoin wallet api.
@@ -36,9 +41,11 @@ func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, auto
 		if err != nil {
 			return nil, fmt.Errorf("creating and funding master addr: %s", err)
 		}
+		log.Info("Auto-created master wallet addr: %s", newMasterAddr)
 		if err := m.FundFromFaucet(ctx, newMasterAddr); err != nil {
 			return nil, fmt.Errorf("funding new master addr: %s", err)
 		}
+		log.Info("Autocreated master wallet addr funded successfully")
 		maddr, _ = address.NewFromString(newMasterAddr)
 		m = &Module{
 			api:        api,
