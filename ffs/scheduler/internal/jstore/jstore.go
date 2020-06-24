@@ -60,8 +60,13 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 	if err != nil {
 		return err
 	}
-	if st != ffs.Success && st != ffs.Failed {
-		return fmt.Errorf("new state should be final")
+	switch st {
+	case ffs.Success, ffs.Failed, ffs.Canceled:
+		// Success: Job executed within expected behavior.
+		// Failed: Job executed with expected failure scenario.
+		// Canceled: Job was canceled by the client.
+	default:
+		return fmt.Errorf("can't finalize job with status %s", ffs.JobStatusStr[st])
 	}
 	j.Status = st
 	if jobError != nil {
