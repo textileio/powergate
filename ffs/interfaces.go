@@ -76,9 +76,10 @@ type ColdStorage interface {
 	// a slice of rejected proposal deals, and the size of the data.
 	Store(context.Context, cid.Cid, FilConfig) ([]cid.Cid, []DealError, uint64, error)
 
-	// WaitForDeals block until all provided Deal Proposals reach a
-	// final state, and return the success result plus failed deals
-	// that didn't reach success final status.
+	// WaitForDeal blocks the provided Deal Proposal reach a
+	// final state. If the deal finishes successfully it returns a FilStorage
+	// result. If the deal finished with error, it returns a ffs.DealError
+	// error result, so it should be considered in error handling.
 	WaitForDeal(context.Context, cid.Cid, cid.Cid) (FilStorage, error)
 
 	// Fetch fetches the cid data in the underlying storage.

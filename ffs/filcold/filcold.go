@@ -63,7 +63,7 @@ func (fc *FilCold) Fetch(ctx context.Context, dataCid cid.Cid, waddr string) err
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation. It returns a slice of ProposalCids that were correctly
 // started, and a slice of with Proposal Cids rejected. Returned proposed deals can be tracked
-// with the WaitForDeals API.
+// with the WaitForDeal API.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, uint64, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
@@ -217,8 +217,10 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 	return okDeals, failedDeals, nil
 }
 
-// WaitForDeals blocks waiting for all the provided proposals to reach a final status.
-// It returns the ones that finished successfully and the other deal errors that happened on failed ones.
+// WaitForDeal blocks the provided Deal Proposal reaches a final state.
+// If the deal finishes successfully it returns a FilStorage result.
+// If the deal finished with error, it returns a ffs.DealError error
+// result, so it should be considered in error handling.
 func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid) (ffs.FilStorage, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

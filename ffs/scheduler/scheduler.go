@@ -609,7 +609,6 @@ func (s *Scheduler) waitForDeals(c cid.Cid, startedProposals []cid.Cid) ([]ffs.F
 						ProposalCid: pc,
 						Message:     fmt.Sprintf("waiting for deal finality: %s", err),
 					}
-
 				}
 				lock.Lock()
 				failedDeals = append(failedDeals, dealError)
