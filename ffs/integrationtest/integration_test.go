@@ -1362,7 +1362,7 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
 	require.NoError(t, err)
 
-	wm, err := wallet.New(lotusClient, masterAddr, *big.NewInt(iWalletBal))
+	wm, err := wallet.New(lotusClient, masterAddr, *big.NewInt(iWalletBal), false)
 	require.Nil(t, err)
 
 	pm := paych.New(lotusClient)
