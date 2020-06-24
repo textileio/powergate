@@ -64,6 +64,7 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, err
 	if err != nil {
 		return nil, fmt.Errorf("loading from store: %s", err)
 	}
+	log.Infof("loaded persisted index with %d entries", len(idx.Storage))
 	ctx, cancel := context.WithCancel(context.Background())
 	ai := &Runner{
 		signaler: signaler.New(),
@@ -176,6 +177,10 @@ func (ai *Runner) update() error {
 	newIndex, cache, err := generateIndex(ai.ctx, ai.api)
 	if err != nil {
 		return fmt.Errorf("generating index: %s", err)
+	}
+	if len(cache) == 0 {
+		log.Warnf("ignoring asks save since size is 0")
+		return nil
 	}
 
 	ai.lock.Lock()
