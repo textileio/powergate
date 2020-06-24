@@ -134,7 +134,8 @@ func (ai *Runner) Unregister(c chan struct{}) {
 
 // Close closes the AskIndex.
 func (ai *Runner) Close() error {
-	log.Info("Closing")
+	log.Info("closing...")
+	defer log.Info("closed")
 	ai.clsLock.Lock()
 	defer ai.clsLock.Unlock()
 	if ai.closed {

@@ -388,7 +388,6 @@ func (s *Server) Close() {
 	}
 	log.Info("gRPC endpoints closed")
 
-	log.Info("closing internal modules...")
 	if err := s.ffsManager.Close(); err != nil {
 		log.Errorf("closing ffs manager: %s", err)
 	}
@@ -410,7 +409,6 @@ func (s *Server) Close() {
 	if err := s.fi.Close(); err != nil {
 		log.Errorf("closing faults index: %s", err)
 	}
-	log.Info("internal modules closed")
 
 	log.Info("closing datastore...")
 	if err := s.ds.Close(); err != nil {

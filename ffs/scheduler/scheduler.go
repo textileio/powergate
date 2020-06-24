@@ -206,6 +206,8 @@ func (s *Scheduler) GetLogs(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, err
 
 // Close terminates the scheduler.
 func (s *Scheduler) Close() error {
+	log.Info("closing...")
+	defer log.Info("closed")
 	s.cancel()
 	<-s.finished
 	if err := s.js.Close(); err != nil {

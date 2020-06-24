@@ -153,6 +153,8 @@ func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
 
 // Close closes the reputation Module.
 func (rm *Module) Close() error {
+	log.Info("closing...")
+	defer log.Info("closed")
 	rm.cancel()
 	<-rm.finished
 	return nil

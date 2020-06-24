@@ -106,7 +106,8 @@ func (s *Index) Unregister(c chan struct{}) {
 
 // Close closes the FaultIndex.
 func (s *Index) Close() error {
-	log.Info("Closing")
+	log.Info("closing...")
+	defer log.Info("closed")
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if s.closed {
