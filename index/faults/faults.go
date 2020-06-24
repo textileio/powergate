@@ -44,7 +44,6 @@ type Index struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	finished chan struct{}
-	closed   bool
 }
 
 // New returns a new FaultIndex. It will load previous state from ds, and
@@ -108,14 +107,8 @@ func (s *Index) Unregister(c chan struct{}) {
 func (s *Index) Close() error {
 	log.Info("closing...")
 	defer log.Info("closed")
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	if s.closed {
-		return nil
-	}
 	s.cancel()
 	<-s.finished
-	s.closed = true
 	return nil
 }
 
