@@ -41,7 +41,7 @@ func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, auto
 		if err != nil {
 			return nil, fmt.Errorf("creating and funding master addr: %s", err)
 		}
-		log.Info("Auto-created master wallet addr: %s", newMasterAddr)
+		log.Infof("Auto-created master wallet addr: %s", newMasterAddr)
 		if err := m.FundFromFaucet(ctx, newMasterAddr); err != nil {
 			return nil, fmt.Errorf("funding new master addr: %s", err)
 		}
