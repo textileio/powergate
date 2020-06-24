@@ -368,6 +368,7 @@ func (s *Server) Close() {
 		log.Errorf("shutting down index server: %s", err)
 	}
 
+	log.Info("closing gRPC endpoints...")
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	if err := s.grpcWebProxy.Shutdown(ctx); err != nil {
@@ -385,6 +386,9 @@ func (s *Server) Close() {
 	case <-stopped:
 		t.Stop()
 	}
+	log.Info("gRPC endpoints closed")
+
+	log.Info("closing internal modules...")
 	if err := s.ffsManager.Close(); err != nil {
 		log.Errorf("closing ffs manager: %s", err)
 	}
@@ -406,9 +410,14 @@ func (s *Server) Close() {
 	if err := s.fi.Close(); err != nil {
 		log.Errorf("closing faults index: %s", err)
 	}
+	log.Info("internal modules closed")
+
+	log.Info("closing datastore...")
 	if err := s.ds.Close(); err != nil {
 		log.Errorf("closing datastore: %s", err)
 	}
+	log.Info("datastore closed")
+
 	if err := s.gateway.Stop(); err != nil {
 		log.Errorf("closing gateway: %s", err)
 	}
