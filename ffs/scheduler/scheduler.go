@@ -543,14 +543,11 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	var allErrors []ffs.DealError
 	if len(sds) > 0 {
 		s.l.Log(ctx, curr.Cid, "Resuming %d dettached executing deals...", len(sds))
-		fsg, failedDeals, err := s.cs.WaitForDeals(ctx, curr.Cid, sds)
-		if err != nil {
-			return ffs.ColdInfo{}, nil, fmt.Errorf("finish tracking reattached deals: %s", err)
-		}
-		s.l.Log(ctx, curr.Cid, "A total of %d resumed deals finished successfully", len(fsg))
-		allErrors = append(allErrors, failedDeals...)
+		okResumedDeals, failedResumedDeals := s.waitForDeals(curr.Cid, sds)
+		s.l.Log(ctx, curr.Cid, "A total of %d resumed deals finished successfully", len(okResumedDeals))
+		allErrors = append(allErrors, failedResumedDeals...)
 		// Append the resumed and confirmed deals to the current active proposals
-		curr.Cold.Filecoin.Proposals = append(fsg, curr.Cold.Filecoin.Proposals...)
+		curr.Cold.Filecoin.Proposals = append(okResumedDeals, curr.Cold.Filecoin.Proposals...)
 	}
 
 	if cfg.Filecoin.RepFactor-len(curr.Cold.Filecoin.Proposals) <= 0 {
@@ -575,10 +572,8 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	if err := s.js.AddStartedDeals(curr.Cid, startedProposals); err != nil {
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
-	okDeals, failedDeals, err := s.cs.WaitForDeals(ctx, curr.Cid, startedProposals)
-	if err != nil {
-		return ffs.ColdInfo{}, nil, fmt.Errorf("watching deals unfold: %s", err)
-	}
+
+	okDeals, failedDeals := s.waitForDeals(curr.Cid, startedProposals)
 	allErrors = append(allErrors, failedDeals...)
 	if err := s.js.RemoveStartedDeals(curr.Cid); err != nil {
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("removing temporal started deals storage: %s", err)
@@ -593,6 +588,39 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		Size:      size,
 		Proposals: append(okDeals, curr.Cold.Filecoin.Proposals...), // Append to any existing other proposals
 	}}, allErrors, nil
+}
+
+func (s *Scheduler) waitForDeals(c cid.Cid, startedProposals []cid.Cid) ([]ffs.FilStorage, []ffs.DealError) {
+	s.l.Log(s.ctx, c, "Watching deals unfold...")
+	var failedDeals []ffs.DealError
+	var okDeals []ffs.FilStorage
+	var wg sync.WaitGroup
+	var lock sync.Mutex
+	wg.Add(len(startedProposals))
+	for _, pc := range startedProposals {
+		pc := pc
+		go func() {
+			defer wg.Done()
+			res, err := s.cs.WaitForDeal(s.ctx, c, pc)
+			var dealError ffs.DealError
+			if err != nil {
+				if !errors.As(err, &dealError) {
+					dealError = ffs.DealError{
+						ProposalCid: pc,
+						Message:     fmt.Sprintf("waiting for deal finality: %s", err),
+					}
+
+				}
+				lock.Lock()
+				failedDeals = append(failedDeals, dealError)
+				lock.Unlock()
+			}
+			lock.Lock()
+			okDeals = append(okDeals, res)
+			lock.Unlock()
+		}()
+	}
+	return okDeals, failedDeals
 }
 
 func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {
