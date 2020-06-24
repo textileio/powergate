@@ -126,6 +126,7 @@ You can run the `-h` flag to see the configurable flags:
 ```bash
 $ powd -h
 Usage of ./powd:
+      --autocreatemasteraddr      Automatically creates & funds a master address if none is provided.
       --debug                     Enable debug log level in all loggers.
       --devnet                    Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.
       --gatewayhostaddr string    Gateway host listening address (default "0.0.0.0:7000")

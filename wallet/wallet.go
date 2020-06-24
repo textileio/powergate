@@ -138,8 +138,8 @@ func (m *Module) FundFromFaucet(ctx context.Context, addr string) error {
 	if err != nil {
 		return fmt.Errorf("calling the fountain: %s", err)
 	}
-	defer r.Body.Close()
-	io.Copy(ioutil.Discard, r.Body)
+	defer func() { _ = r.Body.Close() }()
+	_, _ = io.Copy(ioutil.Discard, r.Body)
 	if r.StatusCode != http.StatusOK {
 		return fmt.Errorf("fountain request not OK: %s", r.Status)
 	}

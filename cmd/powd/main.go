@@ -263,7 +263,7 @@ func setupFlags() error {
 	pflag.String("lotustoken", "", "Lotus API authorization token. This flag or --lotustoken file are mandatory.")
 	pflag.String("lotustokenfile", "", "Path of a file that contains the Lotus API authorization token.")
 	pflag.String("lotusmasteraddr", "", "Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)")
-	pflag.Bool("autocreatemasteraddr", false, "Automatically creates a master address if none is provided")
+	pflag.Bool("autocreatemasteraddr", false, "Automatically creates & funds a master address if none is provided")
 	pflag.String("repopath", "~/.powergate", "Path of the repository where Powergate state will be saved.")
 	pflag.Bool("devnet", false, "Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "IPFS API endpoint multiaddress. (Optional, only needed if FFS is used)")
