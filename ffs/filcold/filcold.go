@@ -171,7 +171,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("executing renewed deal: %s", err)
 	}
-	if len(okDeals) != 1 {
+	if len(okDeals) == 0 {
 		if len(failedStartedDeals) != 1 {
 			return ffs.FilStorage{}, fmt.Errorf("failed started deals must be of size 1, this should never happen")
 		}
