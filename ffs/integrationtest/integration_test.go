@@ -1320,7 +1320,7 @@ func TestJobCancellation(t *testing.T) {
 	requireJobState(t, fapi, jid, ffs.Executing)
 	time.Sleep(time.Second * 2)
 
-	err = fapi.Cancel(jid)
+	err = fapi.CancelJob(jid)
 	require.NoError(t, err)
 
 	// Assert that the Job status is Canceled, *and* was

@@ -426,7 +426,8 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
 	info, dealErrors, err := s.execute(ctx, a, j)
 
-	// Fatal job execution?
+	// Something bad-enough happened to make Job
+	// execution fail.
 	if err != nil {
 		log.Errorf("executing job %s: %s", j.ID, err)
 		if err := s.js.Finalize(j.ID, ffs.Failed, err, dealErrors); err != nil {
