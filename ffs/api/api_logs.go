@@ -34,7 +34,7 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 		}
 	}
 
-	ichan := make(chan ffs.LogEntry)
+	ichan := make(chan ffs.LogEntry, cap(ch))
 	go func() {
 		err = i.sched.WatchLogs(ctx, ichan)
 		close(ichan)
