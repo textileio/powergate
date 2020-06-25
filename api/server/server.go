@@ -93,19 +93,20 @@ type Server struct {
 
 // Config specifies server settings.
 type Config struct {
-	WalletInitialFunds  big.Int
-	IpfsAPIAddr         ma.Multiaddr
-	LotusAddress        ma.Multiaddr
-	LotusAuthToken      string
-	LotusMasterAddr     string
-	Devnet              bool
-	GrpcHostNetwork     string
-	GrpcHostAddress     ma.Multiaddr
-	GrpcServerOpts      []grpc.ServerOption
-	GrpcWebProxyAddress string
-	RepoPath            string
-	GatewayHostAddr     string
-	MaxMindDBFolder     string
+	WalletInitialFunds   big.Int
+	IpfsAPIAddr          ma.Multiaddr
+	LotusAddress         ma.Multiaddr
+	LotusAuthToken       string
+	LotusMasterAddr      string
+	AutocreateMasterAddr bool
+	Devnet               bool
+	GrpcHostNetwork      string
+	GrpcHostAddress      ma.Multiaddr
+	GrpcServerOpts       []grpc.ServerOption
+	GrpcWebProxyAddress  string
+	RepoPath             string
+	GatewayHostAddr      string
+	MaxMindDBFolder      string
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -146,7 +147,6 @@ func NewServer(conf Config) (*Server, error) {
 
 	log.Info("Opening badger database...")
 	opts := &badger.DefaultOptions
-	opts.NumVersionsToKeep = 0
 	ds, err := badger.NewDatastore(path, opts)
 	if err != nil {
 		return nil, fmt.Errorf("opening datastore on repo: %s", err)
@@ -173,7 +173,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
-	wm, err := wallet.New(c, masterAddr, conf.WalletInitialFunds)
+	wm, err := wallet.New(c, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr)
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
@@ -367,6 +367,7 @@ func (s *Server) Close() {
 		log.Errorf("shutting down index server: %s", err)
 	}
 
+	log.Info("closing gRPC endpoints...")
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	if err := s.grpcWebProxy.Shutdown(ctx); err != nil {
@@ -384,6 +385,8 @@ func (s *Server) Close() {
 	case <-stopped:
 		t.Stop()
 	}
+	log.Info("gRPC endpoints closed")
+
 	if err := s.ffsManager.Close(); err != nil {
 		log.Errorf("closing ffs manager: %s", err)
 	}
@@ -405,9 +408,13 @@ func (s *Server) Close() {
 	if err := s.fi.Close(); err != nil {
 		log.Errorf("closing faults index: %s", err)
 	}
+
+	log.Info("closing datastore...")
 	if err := s.ds.Close(); err != nil {
 		log.Errorf("closing datastore: %s", err)
 	}
+	log.Info("datastore closed")
+
 	if err := s.gateway.Stop(); err != nil {
 		log.Errorf("closing gateway: %s", err)
 	}

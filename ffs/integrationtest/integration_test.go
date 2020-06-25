@@ -1300,11 +1300,34 @@ func TestParallelExecution(t *testing.T) {
 		requireJobState(t, fapi, jids[i], ffs.Executing)
 	}
 
-	// Now just check that all of htem finish successfully.
+	// Now just check that all of them finish successfully.
 	for i := 0; i < len(jids); i++ {
 		requireJobState(t, fapi, jids[i], ffs.Executing)
 		requireCidConfig(t, fapi, cids[i], nil)
 	}
+}
+
+func TestJobCancellation(t *testing.T) {
+	t.Parallel()
+
+	r := rand.New(rand.NewSource(22))
+	ipfsAPI, _, fapi, cls := newAPI(t, 1)
+	defer cls()
+
+	cid, _ := addRandomFile(t, r, ipfsAPI)
+	jid, err := fapi.PushConfig(cid)
+	require.Nil(t, err)
+	requireJobState(t, fapi, jid, ffs.Executing)
+	time.Sleep(time.Second * 2)
+
+	err = fapi.CancelJob(jid)
+	require.NoError(t, err)
+
+	// Assert that the Job status is Canceled, *and* was
+	// finished _fast_.
+	before := time.Now()
+	requireJobState(t, fapi, jid, ffs.Canceled)
+	require.True(t, time.Since(before) < time.Second)
 }
 
 func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
@@ -1362,7 +1385,7 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
 	require.NoError(t, err)
 
-	wm, err := wallet.New(lotusClient, masterAddr, *big.NewInt(iWalletBal))
+	wm, err := wallet.New(lotusClient, masterAddr, *big.NewInt(iWalletBal), false)
 	require.Nil(t, err)
 
 	pm := paych.New(lotusClient)

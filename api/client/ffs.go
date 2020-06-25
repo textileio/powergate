@@ -308,6 +308,13 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 	}, nil
 }
 
+// CancelJob signals that the executing Job with JobID jid should be
+// canceled.
+func (f *FFS) CancelJob(ctx context.Context, jid ffs.JobID) error {
+	_, err := f.client.CancelJob(ctx, &rpc.CancelJobRequest{Jid: jid.String()})
+	return err
+}
+
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
 // events, the provided ctx should be canceled. If an error occurs, it will be returned

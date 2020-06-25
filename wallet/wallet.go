@@ -3,12 +3,21 @@ package wallet
 import (
 	"context"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"math/big"
+	"net/http"
+	"time"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/specs-actors/actors/crypto"
+	logger "github.com/ipfs/go-log/v2"
+)
+
+var (
+	log = logger.Logger("wallet")
 )
 
 // Module exposes the filecoin wallet api.
@@ -19,12 +28,32 @@ type Module struct {
 }
 
 // New creates a new wallet module.
-func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int) (*Module, error) {
+func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, autocreate bool) (*Module, error) {
 	m := &Module{
 		api:        api,
 		iAmount:    &iam,
 		masterAddr: maddr,
 	}
+	if maddr == address.Undef && autocreate {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+		newMasterAddr, err := m.NewAddress(ctx, "bls")
+		if err != nil {
+			return nil, fmt.Errorf("creating and funding master addr: %s", err)
+		}
+		log.Infof("Auto-created master wallet addr: %s", newMasterAddr)
+		if err := m.FundFromFaucet(ctx, newMasterAddr); err != nil {
+			return nil, fmt.Errorf("funding new master addr: %s", err)
+		}
+		log.Info("Autocreated master wallet addr funded successfully")
+		maddr, _ = address.NewFromString(newMasterAddr)
+		m = &Module{
+			api:        api,
+			iAmount:    &iam,
+			masterAddr: maddr,
+		}
+	}
+
 	return m, nil
 }
 
@@ -94,4 +123,25 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 	}
 	_, err = m.api.MpoolPushMessage(ctx, msg)
 	return err
+}
+
+// FundFromFaucet make a faucet call to fund the provided wallet address.
+func (m *Module) FundFromFaucet(ctx context.Context, addr string) error {
+	req, err := http.NewRequest("GET", "https://faucet.testnet.filecoin.io/send", nil)
+	if err != nil {
+		return fmt.Errorf("parsing fountain url: %s", err)
+	}
+	q := req.URL.Query()
+	q.Add("address", addr)
+	req.URL.RawQuery = q.Encode()
+	r, err := http.Get(req.URL.String())
+	if err != nil {
+		return fmt.Errorf("calling the fountain: %s", err)
+	}
+	defer func() { _ = r.Body.Close() }()
+	_, _ = io.Copy(ioutil.Discard, r.Body)
+	if r.StatusCode != http.StatusOK {
+		return fmt.Errorf("fountain request not OK: %s", r.Status)
+	}
+	return nil
 }
