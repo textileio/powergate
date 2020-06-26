@@ -142,6 +142,15 @@ func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
 	return inf, nil
 }
 
+// CancelJob cancels an executing Job. If no Job is executing
+// with that JobID, it won't fail.
+func (i *API) CancelJob(jid ffs.JobID) error {
+	if err := i.sched.Cancel(jid); err != nil {
+		return fmt.Errorf("canceling job %s: %s", jid, err)
+	}
+	return nil
+}
+
 func (i *API) ensureValidColdCfg(cfg ffs.ColdConfig) error {
 	if cfg.Enabled && !i.isManagedAddress(cfg.Filecoin.Addr) {
 		return fmt.Errorf("%v is not managed by ffs instance", cfg.Filecoin.Addr)

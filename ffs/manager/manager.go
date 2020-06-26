@@ -158,6 +158,8 @@ func (m *Manager) GetDefaultConfig() ffs.DefaultConfig {
 
 // Close closes a Manager and consequently all loaded instances.
 func (m *Manager) Close() error {
+	log.Info("closing...")
+	defer log.Info("closed")
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	if m.closed {

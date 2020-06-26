@@ -144,14 +144,19 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 				finished[d] = struct{}{}
 				continue
 			}
-			if di.State != storagemarket.StorageDealUnknown &&
-				di.State != storagemarket.StorageDealProposalAccepted &&
-				di.State != storagemarket.StorageDealStaged &&
-				di.State != storagemarket.StorageDealValidating &&
-				di.State != storagemarket.StorageDealClientFunding &&
-				di.State != storagemarket.StorageDealPublish &&
-				di.State != storagemarket.StorageDealPublishing &&
-				di.State != storagemarket.StorageDealSealing {
+			switch di.State {
+			case
+				storagemarket.StorageDealUnknown,
+				storagemarket.StorageDealWaitingForDataRequest,
+				storagemarket.StorageDealProposalAccepted,
+				storagemarket.StorageDealStaged,
+				storagemarket.StorageDealValidating,
+				storagemarket.StorageDealClientFunding,
+				storagemarket.StorageDealPublish,
+				storagemarket.StorageDealPublishing,
+				storagemarket.StorageDealSealing:
+			default:
+
 				return fmt.Errorf("unexpected deal state: %s", storagemarket.DealStates[di.State])
 			}
 		}

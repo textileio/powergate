@@ -129,7 +129,8 @@ func (mi *Index) Unregister(c chan struct{}) {
 
 // Close closes a MinerIndex.
 func (mi *Index) Close() error {
-	log.Info("Closing")
+	log.Info("closing...")
+	defer log.Info("closed")
 	mi.clsLock.Lock()
 	defer mi.clsLock.Unlock()
 	if mi.closed {

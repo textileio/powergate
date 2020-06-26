@@ -153,6 +153,8 @@ func (cl *CidLogger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
 
 // Close closes and cancels all watchers that might be active.
 func (cl *CidLogger) Close() error {
+	log.Info("closing...")
+	defer log.Info("closed")
 	cl.lock.Lock()
 	defer cl.lock.Unlock()
 

@@ -45,6 +45,9 @@ type Scheduler struct {
 	rateLim            chan struct{}
 	evaluateQueuedWork chan struct{}
 
+	cancelLock  sync.Mutex
+	cancelChans map[ffs.JobID]chan struct{}
+
 	ctx      context.Context
 	cancel   context.CancelFunc
 	finished chan struct{}
@@ -70,6 +73,7 @@ func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.C
 
 		rateLim:            make(chan struct{}, maxParallelExecutions),
 		evaluateQueuedWork: make(chan struct{}, 1),
+		cancelChans:        make(map[ffs.JobID]chan struct{}),
 
 		ctx:      ctx,
 		cancel:   cancel,
@@ -204,8 +208,24 @@ func (s *Scheduler) GetLogs(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, err
 	return lgs, nil
 }
 
+// Cancel cancels an executing Job.
+func (s *Scheduler) Cancel(jid ffs.JobID) error {
+	s.cancelLock.Lock()
+	defer s.cancelLock.Unlock()
+	cancelChan, ok := s.cancelChans[jid]
+	if !ok {
+		return nil
+	}
+	// The main scheduler loop is responsible for
+	// deleting cancelChan from the map.
+	close(cancelChan)
+	return nil
+}
+
 // Close terminates the scheduler.
 func (s *Scheduler) Close() error {
+	log.Info("closing...")
+	defer log.Info("closed")
 	s.cancel()
 	<-s.finished
 	if err := s.js.Close(); err != nil {
@@ -360,6 +380,7 @@ forLoop:
 		}
 		go func(j ffs.Job) {
 			s.executeQueuedJob(j)
+
 			<-s.rateLim
 
 			// Signal that there's a new open slot, and
@@ -374,15 +395,39 @@ forLoop:
 }
 
 func (s *Scheduler) executeQueuedJob(j ffs.Job) {
+	cancelChan := make(chan struct{})
+	// Create chan to allow Job cancellation.
+	s.cancelLock.Lock()
+	s.cancelChans[j.ID] = cancelChan
+	s.cancelLock.Unlock()
+	defer func() {
+		s.cancelLock.Lock()
+		delete(s.cancelChans, j.ID)
+		s.cancelLock.Unlock()
+	}()
+
+	// Get
 	a, err := s.as.Get(j.ID)
 	if err != nil {
 		log.Errorf("getting push config action data from store: %s", err)
 		return
 	}
 
-	ctx := context.WithValue(s.ctx, ffs.CtxKeyJid, j.ID)
+	ctx, cancel := context.WithCancel(context.WithValue(context.Background(), ffs.CtxKeyJid, j.ID))
+	defer cancel()
+	go func() {
+		// If the user called Cancel to cancel Job execution,
+		// we cancel the context to finish.
+		<-cancelChan
+		cancel()
+	}()
+
+	// Execute
 	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
 	info, dealErrors, err := s.execute(ctx, a, j)
+
+	// Something bad-enough happened to make Job
+	// execution fail.
 	if err != nil {
 		log.Errorf("executing job %s: %s", j.ID, err)
 		if err := s.js.Finalize(j.ID, ffs.Failed, err, dealErrors); err != nil {
@@ -391,15 +436,30 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
 		return
 	}
+	// Save whatever stored information was completely/partially
+	// done in execution.
 	if err := s.cis.Put(info); err != nil {
 		log.Errorf("saving cid info to store: %s", err)
 	}
-	if err := s.js.Finalize(j.ID, ffs.Success, nil, dealErrors); err != nil {
+
+	finalStatus := ffs.Success
+	// Detect if user-cancelation was triggered
+	select {
+	case <-cancelChan:
+		finalStatus = ffs.Canceled
+	default:
+	}
+
+	// Finalize Job, saving any deals errors happened during execution.
+	if err := s.js.Finalize(j.ID, finalStatus, nil, dealErrors); err != nil {
 		log.Errorf("changing job to success: %s", err)
 	}
-	s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished successfully.", j.ID)
+	s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished with status %s.", j.ID, ffs.JobStatusStr[finalStatus])
 }
 
+// execute executes a Job. If an error is returned, it means that the Job
+// should be considered failed. If error is nil, it still can return []ffs.DealError
+// since some deals failing isn't necessarily a fatal Job config execution.
 func (s *Scheduler) execute(ctx context.Context, a astore.Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
 	if err != nil {
@@ -541,14 +601,11 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	var allErrors []ffs.DealError
 	if len(sds) > 0 {
 		s.l.Log(ctx, curr.Cid, "Resuming %d dettached executing deals...", len(sds))
-		fsg, failedDeals, err := s.cs.WaitForDeals(ctx, curr.Cid, sds)
-		if err != nil {
-			return ffs.ColdInfo{}, nil, fmt.Errorf("finish tracking reattached deals: %s", err)
-		}
-		s.l.Log(ctx, curr.Cid, "A total of %d resumed deals finished successfully", len(fsg))
-		allErrors = append(allErrors, failedDeals...)
+		okResumedDeals, failedResumedDeals := s.waitForDeals(ctx, curr.Cid, sds)
+		s.l.Log(ctx, curr.Cid, "A total of %d resumed deals finished successfully", len(okResumedDeals))
+		allErrors = append(allErrors, failedResumedDeals...)
 		// Append the resumed and confirmed deals to the current active proposals
-		curr.Cold.Filecoin.Proposals = append(fsg, curr.Cold.Filecoin.Proposals...)
+		curr.Cold.Filecoin.Proposals = append(okResumedDeals, curr.Cold.Filecoin.Proposals...)
 	}
 
 	if cfg.Filecoin.RepFactor-len(curr.Cold.Filecoin.Proposals) <= 0 {
@@ -573,24 +630,64 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	if err := s.js.AddStartedDeals(curr.Cid, startedProposals); err != nil {
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
-	okDeals, failedDeals, err := s.cs.WaitForDeals(ctx, curr.Cid, startedProposals)
-	if err != nil {
-		return ffs.ColdInfo{}, nil, fmt.Errorf("watching deals unfold: %s", err)
-	}
+
+	okDeals, failedDeals := s.waitForDeals(ctx, curr.Cid, startedProposals)
 	allErrors = append(allErrors, failedDeals...)
 	if err := s.js.RemoveStartedDeals(curr.Cid); err != nil {
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("removing temporal started deals storage: %s", err)
 	}
-	if len(failedDeals) == len(startedProposals) {
+
+	// If the Job wasn't canceled, and not even one deal finished succcessfully,
+	// consider this Job execution a failure.
+	if ctx.Err() == nil && len(failedDeals) == len(startedProposals) {
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("all started deals failed")
 	}
 
 	// At least 1 of the proposal deals reached a successful final status.
-	return ffs.ColdInfo{Filecoin: ffs.FilInfo{
-		DataCid:   curr.Cid,
-		Size:      size,
-		Proposals: append(okDeals, curr.Cold.Filecoin.Proposals...), // Append to any existing other proposals
-	}}, allErrors, nil
+	return ffs.ColdInfo{
+		Enabled: true,
+		Filecoin: ffs.FilInfo{
+			DataCid:   curr.Cid,
+			Size:      size,
+			Proposals: append(okDeals, curr.Cold.Filecoin.Proposals...), // Append to any existing other proposals
+		},
+	}, allErrors, nil
+}
+
+func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposals []cid.Cid) ([]ffs.FilStorage, []ffs.DealError) {
+	s.l.Log(ctx, c, "Watching deals unfold...")
+
+	var failedDeals []ffs.DealError
+	var okDeals []ffs.FilStorage
+	var wg sync.WaitGroup
+	var lock sync.Mutex
+	wg.Add(len(startedProposals))
+	for _, pc := range startedProposals {
+		pc := pc
+		go func() {
+			defer wg.Done()
+
+			res, err := s.cs.WaitForDeal(ctx, c, pc)
+			var dealError ffs.DealError
+			if err != nil {
+				if !errors.As(err, &dealError) {
+					dealError = ffs.DealError{
+						ProposalCid: pc,
+						Message:     fmt.Sprintf("waiting for deal finality: %s", err),
+					}
+				}
+				lock.Lock()
+				failedDeals = append(failedDeals, dealError)
+				lock.Unlock()
+				return
+			}
+			lock.Lock()
+			okDeals = append(okDeals, res)
+			lock.Unlock()
+		}()
+	}
+	wg.Wait()
+	return okDeals, failedDeals
 }
 
 func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {

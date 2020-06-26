@@ -78,12 +78,13 @@ message FilStorage {
 
 message FilInfo {
    string data_cid = 1;
-   int64 size = 2;
+   uint64 size = 2;
    repeated FilStorage proposals = 3;
 }
 
 message ColdInfo {
-   FilInfo filecoin = 1;
+   bool enabled = 1;
+   FilInfo filecoin = 2;
 }
 
 message CidInfo {
@@ -229,6 +230,13 @@ message InfoResponse {
    InstanceInfo info = 1;
 }
 
+message CancelJobRequest {
+   string jid = 1;
+}
+
+message CancelJobResponse {
+}
+
 message WatchJobsRequest {
    repeated string jids = 1;
 }
@@ -360,6 +368,7 @@ service RPCService {
    rpc SetDefaultConfig(SetDefaultConfigRequest) returns (SetDefaultConfigResponse) {}
    rpc Show(ShowRequest) returns (ShowResponse) {}
    rpc Info(InfoRequest) returns (InfoResponse) {}
+   rpc CancelJob(CancelJobRequest) returns (CancelJobResponse) {}
    rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsResponse) {}
    rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
    rpc Replace(ReplaceRequest) returns (ReplaceResponse) {}

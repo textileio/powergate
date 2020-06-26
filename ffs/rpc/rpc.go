@@ -259,6 +259,19 @@ func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoResponse, error)
 	return reply, nil
 }
 
+// CancelJob calls API.CancelJob.
+func (s *RPC) CancelJob(ctx context.Context, req *CancelJobRequest) (*CancelJobResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	jid := ffs.JobID(req.Jid)
+	if err := i.CancelJob(jid); err != nil {
+		return &CancelJobResponse{}, err
+	}
+	return &CancelJobResponse{}, nil
+}
+
 // WatchJobs calls API.WatchJobs.
 func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPCService_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
@@ -715,8 +728,10 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 			},
 		},
 		Cold: &ColdInfo{
+			Enabled: info.Cold.Enabled,
 			Filecoin: &FilInfo{
 				DataCid:   info.Cold.Filecoin.DataCid.String(),
+				Size:      info.Cold.Filecoin.Size,
 				Proposals: make([]*FilStorage, len(info.Cold.Filecoin.Proposals)),
 			},
 		},

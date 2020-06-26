@@ -128,7 +128,7 @@ func TestDefaultConfig(t *testing.T) {
 
 func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	client, addr, _ := tests.CreateLocalDevnet(t, 1)
-	wm, err := wallet.New(client, addr, *big.NewInt(4000000000))
+	wm, err := wallet.New(client, addr, *big.NewInt(4000000000), false)
 	require.Nil(t, err)
 	pm := paych.New(client)
 	m, err := New(ds, wm, pm, nil)

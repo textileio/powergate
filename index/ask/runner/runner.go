@@ -64,6 +64,7 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, err
 	if err != nil {
 		return nil, fmt.Errorf("loading from store: %s", err)
 	}
+	log.Infof("loaded persisted index with %d entries", len(idx.Storage))
 	ctx, cancel := context.WithCancel(context.Background())
 	ai := &Runner{
 		signaler: signaler.New(),
@@ -134,7 +135,8 @@ func (ai *Runner) Unregister(c chan struct{}) {
 
 // Close closes the AskIndex.
 func (ai *Runner) Close() error {
-	log.Info("Closing")
+	log.Info("closing...")
+	defer log.Info("closed")
 	ai.clsLock.Lock()
 	defer ai.clsLock.Unlock()
 	if ai.closed {
@@ -176,11 +178,19 @@ func (ai *Runner) update() error {
 	if err != nil {
 		return fmt.Errorf("generating index: %s", err)
 	}
+	if len(cache) == 0 {
+		log.Warnf("ignoring asks save since size is 0")
+		return nil
+	}
 
 	ai.lock.Lock()
 	ai.index = newIndex
 	ai.orderedAsks = cache
 	ai.lock.Unlock()
+
+	if err := ai.store.Save(newIndex); err != nil {
+		return fmt.Errorf("persisting ask index: %s", err)
+	}
 
 	stats.Record(context.Background(), metrics.MFullRefreshDuration.M(time.Since(startTime).Milliseconds()))
 	ai.signaler.Signal()

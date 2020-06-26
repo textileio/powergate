@@ -64,6 +64,10 @@ type DealError struct {
 	Message     string
 }
 
+func (de DealError) Error() string {
+	return de.Message
+}
+
 // ColdStorage is slow/cheap storage for Cid data. It has
 // native support for Filecoin storage.
 type ColdStorage interface {
@@ -72,10 +76,11 @@ type ColdStorage interface {
 	// a slice of rejected proposal deals, and the size of the data.
 	Store(context.Context, cid.Cid, FilConfig) ([]cid.Cid, []DealError, uint64, error)
 
-	// WaitForDeals block until all provided Deal Proposals reach a
-	// final state, and return the success result plus failed deals
-	// that didn't reach success final status.
-	WaitForDeals(context.Context, cid.Cid, []cid.Cid) ([]FilStorage, []DealError, error)
+	// WaitForDeal blocks the provided Deal Proposal reach a
+	// final state. If the deal finishes successfully it returns a FilStorage
+	// result. If the deal finished with error, it returns a ffs.DealError
+	// error result, so it should be considered in error handling.
+	WaitForDeal(context.Context, cid.Cid, cid.Cid) (FilStorage, error)
 
 	// Fetch fetches the cid data in the underlying storage.
 	Fetch(context.Context, cid.Cid, string) error

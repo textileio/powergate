@@ -54,13 +54,17 @@ type MinerScore struct {
 }
 
 // New returns a new reputation Module.
-func New(ds datastore.TxnDatastore, mi *miner.Index, si *faults.Index, ai *askRunner.Runner) *Module {
+func New(ds datastore.TxnDatastore, mi *miner.Index, fi *faults.Index, ai *askRunner.Runner) *Module {
 	ctx, cancel := context.WithCancel(context.Background())
 	rm := &Module{
 		ds: ds,
 		mi: mi,
-		fi: si,
+		fi: fi,
 		ai: ai,
+
+		mIndex: mi.Get(),
+		fIndex: fi.Get(),
+		aIndex: ai.Get(),
 
 		rebuild:  make(chan struct{}, 1),
 		ctx:      ctx,
@@ -153,6 +157,8 @@ func (rm *Module) GetTopMiners(n int) ([]MinerScore, error) {
 
 // Close closes the reputation Module.
 func (rm *Module) Close() error {
+	log.Info("closing...")
+	defer log.Info("closed")
 	rm.cancel()
 	<-rm.finished
 	return nil
@@ -196,7 +202,7 @@ func (rm *Module) indexBuilder() {
 
 		sources, err := rm.sources.GetAll()
 		if err != nil {
-			log.Errorf("error when getting sources: %s", err)
+			log.Errorf("getting sources: %s", err)
 			return
 		}
 		rm.lockIndex.Lock()
@@ -205,7 +211,7 @@ func (rm *Module) indexBuilder() {
 		askIndex := rm.aIndex
 		rm.lockIndex.Unlock()
 
-		scores := make([]MinerScore, 0, len(minerIndex.OnChain.Miners))
+		scores := make([]MinerScore, 0, len(askIndex.Storage))
 		for addr := range askIndex.Storage {
 			score := calculateScore(addr, minerIndex, faultsIndex, askIndex, sources)
 			scores = append(scores, score)
@@ -246,7 +252,7 @@ func calculateScore(addr string, mi miner.IndexSnapshot, si faults.IndexSnapshot
 		askScore = 1
 	}
 
-	score := 50*faultsScore + 20*powerScore + 20*externalScore + 10*askScore
+	score := 50*faultsScore + 20*powerScore + 20*externalScore + 10*askScore + 1000*float64(miner.ActiveDeals)
 	return MinerScore{
 		Addr:  addr,
 		Score: int(score),
