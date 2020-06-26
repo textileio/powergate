@@ -728,8 +728,10 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 			},
 		},
 		Cold: &ColdInfo{
+			Enabled: info.Cold.Enabled,
 			Filecoin: &FilInfo{
 				DataCid:   info.Cold.Filecoin.DataCid.String(),
+				Size:      info.Cold.Filecoin.Size,
 				Proposals: make([]*FilStorage, len(info.Cold.Filecoin.Proposals)),
 			},
 		},

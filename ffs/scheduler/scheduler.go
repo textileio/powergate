@@ -644,11 +644,14 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	}
 
 	// At least 1 of the proposal deals reached a successful final status.
-	return ffs.ColdInfo{Filecoin: ffs.FilInfo{
-		DataCid:   curr.Cid,
-		Size:      size,
-		Proposals: append(okDeals, curr.Cold.Filecoin.Proposals...), // Append to any existing other proposals
-	}}, allErrors, nil
+	return ffs.ColdInfo{
+		Enabled: true,
+		Filecoin: ffs.FilInfo{
+			DataCid:   curr.Cid,
+			Size:      size,
+			Proposals: append(okDeals, curr.Cold.Filecoin.Proposals...), // Append to any existing other proposals
+		},
+	}, allErrors, nil
 }
 
 func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposals []cid.Cid) ([]ffs.FilStorage, []ffs.DealError) {
@@ -676,6 +679,7 @@ func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposal
 				lock.Lock()
 				failedDeals = append(failedDeals, dealError)
 				lock.Unlock()
+				return
 			}
 			lock.Lock()
 			okDeals = append(okDeals, res)
