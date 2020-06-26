@@ -233,6 +233,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
+// Close closes the deals Module.
 func (m *Module) Close() error {
 	return m.store.close()
 }
@@ -244,7 +245,7 @@ func (m *Module) initPendingDeals() {
 		return
 	}
 	for _, pd := range pendingDeals {
-		remaining := time.Unix(pd.Time, 0).Add(dealTimeout).Sub(time.Now())
+		remaining := time.Until(time.Unix(pd.Time, 0).Add(dealTimeout))
 		if remaining <= 0 {
 			go m.finalizePendingDeal(pd)
 		} else {

@@ -39,14 +39,14 @@ type DealInfo struct {
 	Message         string
 }
 
-// PendingDeal contains information about a deal that is pending completion
+// PendingDeal contains information about a deal that is pending completion.
 type PendingDeal struct {
 	ProposalCid cid.Cid
 	From        string
 	Time        int64
 }
 
-// DealRecord contains information a complete deal
+// DealRecord contains information a complete deal.
 type DealRecord struct {
 	From     string
 	DealInfo DealInfo
