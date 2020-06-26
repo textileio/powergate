@@ -42,7 +42,7 @@ func TestStore(t *testing.T) {
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			client, _, _ := tests.CreateLocalDevnet(t, nm)
-			m, err := New(client, WithImportPath(filepath.Join(tmpDir, "imports")))
+			m, err := New(tests.NewTxMapDatastore(), client, WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
 			_, err = storeMultiMiner(m, client, nm, randomBytes(600))
 			checkErr(t, err)
@@ -55,7 +55,7 @@ func TestRetrieve(t *testing.T) {
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			client, addr, _ := tests.CreateLocalDevnet(t, nm)
-			m, err := New(client, WithImportPath(filepath.Join(tmpDir, "imports")))
+			m, err := New(tests.NewTxMapDatastore(), client, WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
 
 			dcid, err := storeMultiMiner(m, client, nm, data)

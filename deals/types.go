@@ -39,6 +39,20 @@ type DealInfo struct {
 	Message         string
 }
 
+// PendingDeal contains information about a deal that is pending completion
+type PendingDeal struct {
+	ProposalCid cid.Cid
+	From        string
+	Time        int64
+}
+
+// DealRecord contains information a complete deal
+type DealRecord struct {
+	From     string
+	DealInfo DealInfo
+	Time     int64
+}
+
 // Config contains configuration for storing deals.
 type Config struct {
 	ImportPath string

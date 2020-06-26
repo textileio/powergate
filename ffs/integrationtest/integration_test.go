@@ -1352,7 +1352,7 @@ func newDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *
 }
 
 func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistruct.FullNodeStruct, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
-	dm, err := deals.New(lotusClient)
+	dm, err := deals.New(txndstr.Wrap(ds, "deals"), lotusClient)
 	require.Nil(t, err)
 
 	fchain := filchain.New(lotusClient)
