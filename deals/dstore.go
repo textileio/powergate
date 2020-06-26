@@ -120,7 +120,15 @@ func (s *store) getDealRecords() ([]DealRecord, error) {
 		}
 		ret = append(ret, dealRecord)
 	}
-	sort.Slice(ret, func(i, j int) bool { return ret[i].Time < ret[j].Time })
+	sort.Slice(ret, func(i, j int) bool {
+		if ret[i].DealInfo.ActivationEpoch < ret[j].DealInfo.ActivationEpoch {
+			return true
+		}
+		if ret[i].DealInfo.ActivationEpoch > ret[j].DealInfo.ActivationEpoch {
+			return false
+		}
+		return ret[i].Time < ret[j].Time
+	})
 	return ret, nil
 }
 
