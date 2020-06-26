@@ -233,6 +233,10 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
+func (m *Module) Close() error {
+	return m.store.close()
+}
+
 func (m *Module) initPendingDeals() {
 	pendingDeals, err := m.store.getPendingDeals()
 	if err != nil {
