@@ -252,7 +252,7 @@ func calculateScore(addr string, mi miner.IndexSnapshot, si faults.IndexSnapshot
 		askScore = 1
 	}
 
-	score := 50*faultsScore + 20*powerScore + 20*externalScore + 10*askScore
+	score := 50*faultsScore + 20*powerScore + 20*externalScore + 10*askScore + 1000*miner.ActiveDeals
 	return MinerScore{
 		Addr:  addr,
 		Score: int(score),

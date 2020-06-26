@@ -78,12 +78,13 @@ message FilStorage {
 
 message FilInfo {
    string data_cid = 1;
-   int64 size = 2;
+   uint64 size = 2;
    repeated FilStorage proposals = 3;
 }
 
 message ColdInfo {
-   FilInfo filecoin = 1;
+   bool enabled = 1;
+   FilInfo filecoin = 2;
 }
 
 message CidInfo {
