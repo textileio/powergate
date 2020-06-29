@@ -21,7 +21,6 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
-	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 )
 
@@ -60,7 +59,7 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, opts ...Optio
 	m := &Module{
 		api:   api,
 		cfg:   &cfg,
-		store: newStore(txndstr.Wrap(ds, "dstore")),
+		store: newStore(ds),
 	}
 	m.initPendingDeals()
 	return m, nil
