@@ -18,6 +18,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/util"
 )
 
 const (
@@ -44,8 +45,23 @@ func TestStore(t *testing.T) {
 			client, _, _ := tests.CreateLocalDevnet(t, nm)
 			m, err := New(tests.NewTxMapDatastore(), client, WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
-			_, err = storeMultiMiner(m, client, nm, randomBytes(600))
+			_, pcids, err := storeMultiMiner(m, client, nm, randomBytes(600))
 			checkErr(t, err)
+			pending, err := m.PendingDealRecords()
+			require.Nil(t, err)
+			require.Len(t, pending, nm)
+			final, err := m.DealRecords()
+			require.Nil(t, err)
+			require.Empty(t, final)
+			err = waitForDealComplete(client, pcids)
+			checkErr(t, err)
+			time.Sleep(util.AvgBlockTime)
+			pending, err = m.PendingDealRecords()
+			require.Nil(t, err)
+			require.Empty(t, pending)
+			final, err = m.DealRecords()
+			require.Nil(t, err)
+			require.Len(t, final, nm)
 		})
 	}
 }
@@ -58,7 +74,9 @@ func TestRetrieve(t *testing.T) {
 			m, err := New(tests.NewTxMapDatastore(), client, WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
 
-			dcid, err := storeMultiMiner(m, client, nm, data)
+			dcid, pcids, err := storeMultiMiner(m, client, nm, data)
+			checkErr(t, err)
+			err = waitForDealComplete(client, pcids)
 			checkErr(t, err)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 			defer cancel()
@@ -73,22 +91,25 @@ func TestRetrieve(t *testing.T) {
 			if !bytes.Equal(data, rdata) {
 				t.Fatal("retrieved data doesn't match with stored data")
 			}
+			retrievals, err := m.RetrievalRecords()
+			require.Nil(t, err)
+			require.Len(t, retrievals, 1)
 		})
 	}
 }
 
-func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int, data []byte) (cid.Cid, error) {
+func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int, data []byte) (cid.Cid, []cid.Cid, error) {
 	ctx := context.Background()
 	miners, err := client.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
-		return cid.Undef, err
+		return cid.Undef, nil, err
 	}
 	if len(miners) != numMiners {
-		return cid.Undef, fmt.Errorf("unexpected number of miners in the network")
+		return cid.Undef, nil, fmt.Errorf("unexpected number of miners in the network")
 	}
 	addr, err := client.WalletDefaultAddress(ctx)
 	if err != nil {
-		return cid.Undef, err
+		return cid.Undef, nil, err
 	}
 
 	cfgs := make([]StorageDealConfig, numMiners)
@@ -100,30 +121,27 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	}
 	dataCid, size, err := m.Import(ctx, bytes.NewReader(data), false)
 	if err != nil {
-		return cid.Undef, err
+		return cid.Undef, nil, err
 	}
 	if !dataCid.Defined() {
-		return cid.Undef, fmt.Errorf("data cid is undefined")
+		return cid.Undef, nil, fmt.Errorf("data cid is undefined")
 	}
 	srs, err := m.Store(ctx, addr.String(), dataCid, 2*uint64(size), cfgs, 1000)
 	if err != nil {
-		return cid.Undef, fmt.Errorf("error when calling Store(): %s", err)
+		return cid.Undef, nil, fmt.Errorf("error when calling Store(): %s", err)
 	}
 
 	var pcids []cid.Cid
 	for _, r := range srs {
 		if !r.Success {
-			return cid.Undef, fmt.Errorf("%v deal configurations failed", r)
+			return cid.Undef, nil, fmt.Errorf("%v deal configurations failed", r)
 		}
 		pcids = append(pcids, r.ProposalCid)
 	}
 	if len(srs) != len(cfgs) {
-		return cid.Undef, fmt.Errorf("some deal cids are missing, got %d, expected %d", len(srs), len(cfgs))
+		return cid.Undef, nil, fmt.Errorf("some deal cids are missing, got %d, expected %d", len(srs), len(cfgs))
 	}
-	if err := waitForDealComplete(client, pcids); err != nil {
-		return cid.Undef, fmt.Errorf("error waiting for deal to complete: %s", err)
-	}
-	return dataCid, nil
+	return dataCid, pcids, nil
 }
 
 func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) error {

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -233,6 +234,47 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
+// DealRecords returns a list of all finalized storage deals.
+func (m *Module) DealRecords() ([]DealRecord, error) {
+	return m.store.getDealRecords()
+}
+
+// PendingDealRecords returns a list of all pending storage deals.
+func (m *Module) PendingDealRecords() ([]DealRecord, error) {
+	return m.store.getPendingDeals()
+}
+
+// AllDealRecords returns a list of all finalized and pending deals.
+func (m *Module) AllDealRecords() ([]DealRecord, error) {
+	ret, err := m.store.getDealRecords()
+	if err != nil {
+		return nil, err
+	}
+	pending, err := m.store.getPendingDeals()
+	if err != nil {
+		return nil, err
+	}
+	ret = append(ret, pending...)
+	sort.Slice(ret, func(i, j int) bool {
+		if ret[i].Pending || ret[j].Pending {
+			return ret[i].Time < ret[j].Time
+		}
+		if ret[i].DealInfo.ActivationEpoch < ret[j].DealInfo.ActivationEpoch {
+			return true
+		}
+		if ret[i].DealInfo.ActivationEpoch > ret[j].DealInfo.ActivationEpoch {
+			return false
+		}
+		return ret[i].Time < ret[j].Time
+	})
+	return ret, nil
+}
+
+// RetrievalRecords returns a list of all retrievals.
+func (m *Module) RetrievalRecords() ([]RetrievalRecord, error) {
+	return m.store.getRetrievalRecords()
+}
+
 // Close closes the deals Module.
 func (m *Module) Close() error {
 	return m.store.close()
@@ -328,7 +370,14 @@ func (m *Module) eventuallyFinalizeDeal(dr DealRecord, timeout time.Duration) {
 				log.Errorf("deleting pending deal: %v", err)
 			}
 			return
-		case info := <-updates:
+		case info, ok := <-updates:
+			if !ok {
+				log.Errorf("updates channel unexpectedly closed for proposal cid: %s", dr.DealInfo.ProposalCid.String(), err)
+				if err := m.store.deletePendingDeal(dr.DealInfo.ProposalCid); err != nil {
+					log.Errorf("deleting pending deal: %v", err)
+				}
+				return
+			}
 			if info.StateID == storagemarket.StorageDealActive {
 				record := DealRecord{
 					From:     dr.From,
