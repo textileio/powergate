@@ -1,12 +1,12 @@
 package deals
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 	"sync"
-	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -14,8 +14,9 @@ import (
 )
 
 var (
-	dsBasePending = datastore.NewKey("pending")
-	dsBaseFinal   = datastore.NewKey("final")
+	dsBaseStoragePending = datastore.NewKey("storage-pending")
+	dsBaseStorageFinal   = datastore.NewKey("storage-final")
+	dsBaseRetrieval      = datastore.NewKey("retrieval")
 
 	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("cid info not found")
@@ -57,7 +58,7 @@ func (s *store) deletePendingDeal(proposalCid cid.Cid) error {
 func (s *store) getPendingDeals() ([]DealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	q := query.Query{Prefix: dsBasePending.String()}
+	q := query.Query{Prefix: dsBaseStoragePending.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("executing query: %s", err)
@@ -100,8 +101,7 @@ func (s *store) putDealRecord(dr DealRecord) error {
 func (s *store) getDealRecords() ([]DealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	time.Now().UnixNano()
-	q := query.Query{Prefix: dsBaseFinal.String()}
+	q := query.Query{Prefix: dsBaseStorageFinal.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("executing query: %s", err)
@@ -132,6 +132,47 @@ func (s *store) getDealRecords() ([]DealRecord, error) {
 	return ret, nil
 }
 
+func (s *store) putRetrievalRecord(rr RetrievalRecord) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	buf, err := json.Marshal(rr)
+	if err != nil {
+		return fmt.Errorf("marshaling RetrievalRecord: %s", err)
+	}
+	if err := s.ds.Put(makeRetrievalRecordKey(rr), buf); err != nil {
+		return fmt.Errorf("put RetrievalRecord: %s", err)
+	}
+	return nil
+}
+
+func (s *store) getRetrievalRecords() ([]RetrievalRecord, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	q := query.Query{Prefix: dsBaseRetrieval.String()}
+	res, err := s.ds.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("executing query: %s", err)
+	}
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
+
+	var ret []RetrievalRecord
+	for r := range res.Next() {
+		var rr RetrievalRecord
+		if err := json.Unmarshal(r.Value, &rr); err != nil {
+			return nil, fmt.Errorf("unmarshaling query result: %s", err)
+		}
+		ret = append(ret, rr)
+	}
+	sort.Slice(ret, func(i, j int) bool {
+		return ret[i].Time < ret[j].Time
+	})
+	return ret, nil
+}
+
 func (s *store) close() error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -140,9 +181,15 @@ func (s *store) close() error {
 }
 
 func makePendingDealKey(c cid.Cid) datastore.Key {
-	return dsBasePending.ChildString(c.String())
+	return dsBaseStoragePending.ChildString(c.String())
 }
 
 func makeDealRecordKey(c cid.Cid) datastore.Key {
-	return dsBaseFinal.ChildString(c.String())
+	return dsBaseStorageFinal.ChildString(c.String())
+}
+
+func makeRetrievalRecordKey(rr RetrievalRecord) datastore.Key {
+	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.From, rr.RetrievalInfo.Miner, rr.RetrievalInfo.PieceCID.String())
+	sum := md5.Sum([]byte(str))
+	return dsBaseRetrieval.ChildString(string(sum[:]))
 }

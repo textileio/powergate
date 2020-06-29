@@ -186,6 +186,7 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 			log.Infof("error fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
+		m.recordRetrieval(waddr, o)
 		return nil
 	}
 	return fmt.Errorf("couldn't retrieve data from any miners, last miner err: %s", err)
@@ -351,6 +352,25 @@ func (m *Module) eventuallyFinalizeDeal(dr DealRecord, timeout time.Duration) {
 				return
 			}
 		}
+	}
+}
+
+func (m *Module) recordRetrieval(from string, offer api.QueryOffer) {
+	rr := RetrievalRecord{
+		From: from,
+		Time: time.Now().Unix(),
+		RetrievalInfo: RetrievalInfo{
+			PieceCID:                offer.Root,
+			Size:                    offer.Size,
+			MinPrice:                offer.MinPrice.Uint64(),
+			Miner:                   offer.Miner.String(),
+			MinerPeerID:             offer.MinerPeerID.String(),
+			PaymentInterval:         offer.PaymentInterval,
+			PaymentIntervalIncrease: offer.PaymentIntervalIncrease,
+		},
+	}
+	if err := m.store.putRetrievalRecord(rr); err != nil {
+		log.Errorf("storing retrieval: %v", err)
 	}
 }
 

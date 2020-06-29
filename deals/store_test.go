@@ -130,3 +130,41 @@ func TestGetDealRecords(t *testing.T) {
 	require.Equal(t, res[1].From, "b")
 	require.Equal(t, res[2].From, "c")
 }
+
+func TestPutRetrievalRecords(t *testing.T) {
+	s := newStore(tests.NewTxMapDatastore())
+	now := time.Now().Unix()
+	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	require.Nil(t, err)
+	rr := RetrievalRecord{Time: now, From: "from", RetrievalInfo: RetrievalInfo{PieceCID: c1, Miner: "miner"}}
+	err = s.putRetrievalRecord(rr)
+	require.Nil(t, err)
+}
+
+func TestGetRetrievalDeals(t *testing.T) {
+	s := newStore(tests.NewTxMapDatastore())
+	now := time.Now().Unix()
+
+	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	require.Nil(t, err)
+	rr := RetrievalRecord{Time: now, From: "from", RetrievalInfo: RetrievalInfo{PieceCID: c1, Miner: "miner"}}
+	err = s.putRetrievalRecord(rr)
+	require.Nil(t, err)
+
+	require.Nil(t, err)
+	rr = RetrievalRecord{Time: now + 1, From: "from", RetrievalInfo: RetrievalInfo{PieceCID: c1, Miner: "miner"}}
+	err = s.putRetrievalRecord(rr)
+	require.Nil(t, err)
+
+	require.Nil(t, err)
+	rr = RetrievalRecord{Time: now + 2, From: "from", RetrievalInfo: RetrievalInfo{PieceCID: c1, Miner: "miner"}}
+	err = s.putRetrievalRecord(rr)
+	require.Nil(t, err)
+
+	res, err := s.getRetrievalRecords()
+	require.Nil(t, err)
+	require.Len(t, res, 3)
+	require.Equal(t, res[0].Time, now)
+	require.Equal(t, res[1].Time, now+1)
+	require.Equal(t, res[2].Time, now+2)
+}
