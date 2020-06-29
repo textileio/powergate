@@ -135,7 +135,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 			ProposalCid: *p,
 			Success:     true,
 		}
-		m.recordDeal(waddr, *p)
+		m.recordDeal(params, *p)
 	}
 	return res, nil
 }
@@ -183,7 +183,7 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 	}
 	for _, o := range offers {
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
-			log.Infof("fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
+			log.Infof("error fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
 		return nil
@@ -243,99 +243,109 @@ func (m *Module) initPendingDeals() {
 		log.Errorf("getting pending deals: %v", err)
 		return
 	}
-	for _, pd := range pendingDeals {
-		remaining := time.Until(time.Unix(pd.Time, 0).Add(dealTimeout))
+	for _, dr := range pendingDeals {
+		remaining := time.Until(time.Unix(dr.Time, 0).Add(dealTimeout))
 		if remaining <= 0 {
-			go m.finalizePendingDeal(pd)
+			go m.finalizePendingDeal(dr)
 		} else {
-			go m.eventuallyStoreDeal(pd.From, pd.ProposalCid, remaining)
+			go m.eventuallyFinalizeDeal(dr, remaining)
 		}
 	}
 }
 
-func (m *Module) recordDeal(from string, proposalCid cid.Cid) {
-	pd := PendingDeal{
-		ProposalCid: proposalCid,
-		From:        from,
-		Time:        time.Now().Unix(),
+func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
+	di := DealInfo{
+		PieceCID:      params.Data.Root,
+		Duration:      params.MinBlocksDuration,
+		PricePerEpoch: params.EpochPrice.Uint64(),
+		Miner:         params.Miner.String(),
+		ProposalCid:   proposalCid,
 	}
-	log.Infof("storing pending deal info proposal cid: %s", proposalCid.String())
-	if err := m.store.putPendingDeal(pd); err != nil {
+	record := DealRecord{
+		From:     params.Wallet.String(),
+		Time:     time.Now().Unix(),
+		DealInfo: di,
+		Pending:  true,
+	}
+	log.Infof("storing pending deal record for proposal cid: %s", proposalCid.String())
+	if err := m.store.putPendingDeal(record); err != nil {
 		log.Errorf("storing pending deal: %v", err)
 		return
 	}
-	go m.eventuallyStoreDeal(from, proposalCid, dealTimeout)
+	go m.eventuallyFinalizeDeal(record, dealTimeout)
 }
 
-func (m *Module) finalizePendingDeal(pd PendingDeal) {
+func (m *Module) finalizePendingDeal(dr DealRecord) {
 	deletePending := func() {
-		if err := m.store.deletePendingDeal(pd.ProposalCid); err != nil {
-			log.Errorf("deleting pending deal for proposal cid %s: %v", pd.ProposalCid.String(), err)
+		if err := m.store.deletePendingDeal(dr.DealInfo.ProposalCid); err != nil {
+			log.Errorf("deleting pending deal for proposal cid %s: %v", dr.DealInfo.ProposalCid.String(), err)
 		}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	info, err := m.api.ClientGetDealInfo(ctx, pd.ProposalCid)
+	info, err := m.api.ClientGetDealInfo(ctx, dr.DealInfo.ProposalCid)
 	if err != nil {
 		log.Errorf("getting deal info: %v", err)
 		deletePending()
 		return
 	}
 	if info.State != storagemarket.StorageDealActive {
-		log.Infof("pending deal for proposal cid %s isn't active yet, deleting pending deal", pd.ProposalCid.String())
+		log.Infof("pending deal for proposal cid %s isn't active yet, deleting pending deal", dr.DealInfo.ProposalCid.String())
 		deletePending()
 	} else {
 		di, err := fromLotusDealInfo(ctx, m.api, info)
 		if err != nil {
-			log.Errorf("converting proposal cid %s from lotus deal info: %v", pd.ProposalCid.String(), err)
+			log.Errorf("converting proposal cid %s from lotus deal info: %v", dr.DealInfo.ProposalCid.String(), err)
 			deletePending()
 			return
 		}
 		record := DealRecord{
-			From:     pd.From,
+			From:     dr.From,
 			Time:     time.Now().Unix(), // Note: This can be much later in time than the deal actually became active on chain
 			DealInfo: di,
+			Pending:  false,
 		}
 		if err := m.store.putDealRecord(record); err != nil {
-			log.Errorf("storing propoosal cid %s deal record: %v", pd.ProposalCid.String(), err)
+			log.Errorf("storing propoosal cid %s deal record: %v", dr.DealInfo.ProposalCid.String(), err)
 		}
 	}
 }
 
-func (m *Module) eventuallyStoreDeal(from string, proposalCid cid.Cid, timeout time.Duration) {
+func (m *Module) eventuallyFinalizeDeal(dr DealRecord, timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	updates, err := m.Watch(ctx, []cid.Cid{proposalCid})
+	updates, err := m.Watch(ctx, []cid.Cid{dr.DealInfo.ProposalCid})
 	if err != nil {
-		log.Errorf("watching proposal cid %s: %v", proposalCid.String(), err)
+		log.Errorf("watching proposal cid %s: %v", dr.DealInfo.ProposalCid.String(), err)
 		return
 	}
 	for {
 		select {
 		case <-ctx.Done():
-			log.Infof("watching proposal cid %s timed out, deleting pending deal", proposalCid.String())
-			if err := m.store.deletePendingDeal(proposalCid); err != nil {
+			log.Infof("watching proposal cid %s timed out, deleting pending deal", dr.DealInfo.ProposalCid.String())
+			if err := m.store.deletePendingDeal(dr.DealInfo.ProposalCid); err != nil {
 				log.Errorf("deleting pending deal: %v", err)
 			}
 			return
 		case info := <-updates:
 			if info.StateID == storagemarket.StorageDealActive {
 				record := DealRecord{
-					From:     from,
+					From:     dr.From,
 					Time:     time.Now().Unix(),
 					DealInfo: info,
+					Pending:  false,
 				}
-				log.Infof("proposal cid %s is active, storing deal record", proposalCid.String())
+				log.Infof("proposal cid %s is active, storing deal record", info.ProposalCid.String())
 				if err := m.store.putDealRecord(record); err != nil {
-					log.Errorf("storing propoosal cid %s deal record: %v", proposalCid.String(), err)
+					log.Errorf("storing propoosal cid %s deal record: %v", info.ProposalCid.String(), err)
 				}
 				return
 			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||
 				info.StateID == storagemarket.StorageDealProposalRejected ||
 				info.StateID == storagemarket.StorageDealFailing ||
 				info.StateID == storagemarket.StorageDealNotFound {
-				log.Infof("proposal cid %s failed with state %s, deleting pending deal", proposalCid.String(), storagemarket.DealStates[info.StateID])
-				if err := m.store.deletePendingDeal(proposalCid); err != nil {
+				log.Infof("proposal cid %s failed with state %s, deleting pending deal", info.ProposalCid.String(), storagemarket.DealStates[info.StateID])
+				if err := m.store.deletePendingDeal(info.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
 				}
 				return

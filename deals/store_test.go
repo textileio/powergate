@@ -9,22 +9,22 @@ import (
 	"github.com/textileio/powergate/tests"
 )
 
-func TestPutPendingDeak(t *testing.T) {
+func TestPutPendingDeal(t *testing.T) {
 	s := newStore(tests.NewTxMapDatastore())
 
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
-	err = s.putPendingDeal(PendingDeal{From: "a", ProposalCid: c1, Time: time.Now().Unix()})
+	err = s.putPendingDeal(DealRecord{From: "a", Time: time.Now().Unix(), Pending: true, DealInfo: DealInfo{ProposalCid: c1}})
 	require.Nil(t, err)
 
 	c2, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
 	require.Nil(t, err)
-	err = s.putPendingDeal(PendingDeal{From: "b", ProposalCid: c2, Time: time.Now().Unix()})
+	err = s.putPendingDeal(DealRecord{From: "b", Time: time.Now().Unix(), Pending: true, DealInfo: DealInfo{ProposalCid: c2}})
 	require.Nil(t, err)
 
 	c3, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
 	require.Nil(t, err)
-	err = s.putPendingDeal(PendingDeal{From: "c", ProposalCid: c3, Time: time.Now().Unix()})
+	err = s.putPendingDeal(DealRecord{From: "c", Time: time.Now().Unix(), Pending: true, DealInfo: DealInfo{ProposalCid: c3}})
 	require.Nil(t, err)
 }
 
@@ -35,17 +35,17 @@ func TestGetPendingDeals(t *testing.T) {
 
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
-	err = s.putPendingDeal(PendingDeal{From: "a", ProposalCid: c1, Time: now})
+	err = s.putPendingDeal(DealRecord{From: "a", Time: now, Pending: true, DealInfo: DealInfo{ProposalCid: c1}})
 	require.Nil(t, err)
 
 	c2, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
 	require.Nil(t, err)
-	err = s.putPendingDeal(PendingDeal{From: "b", ProposalCid: c2, Time: now + 1})
+	err = s.putPendingDeal(DealRecord{From: "b", Time: now + 1, Pending: true, DealInfo: DealInfo{ProposalCid: c2}})
 	require.Nil(t, err)
 
 	c3, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
 	require.Nil(t, err)
-	err = s.putPendingDeal(PendingDeal{From: "c", ProposalCid: c3, Time: now + 2})
+	err = s.putPendingDeal(DealRecord{From: "c", Time: now + 3, Pending: true, DealInfo: DealInfo{ProposalCid: c3}})
 	require.Nil(t, err)
 
 	res, err := s.getPendingDeals()
@@ -61,15 +61,15 @@ func TestDeletePendingDeal(t *testing.T) {
 
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
-	pd := PendingDeal{From: "a", ProposalCid: c1}
-	err = s.putPendingDeal(pd)
+	dr := DealRecord{From: "a", Time: time.Now().Unix(), Pending: true, DealInfo: DealInfo{ProposalCid: c1}}
+	err = s.putPendingDeal(dr)
 	require.Nil(t, err)
 
 	res, err := s.getPendingDeals()
 	require.Nil(t, err)
 	require.Len(t, res, 1)
 
-	err = s.deletePendingDeal(pd.ProposalCid)
+	err = s.deletePendingDeal(dr.DealInfo.ProposalCid)
 	require.Nil(t, err)
 
 	res, err = s.getPendingDeals()
@@ -82,21 +82,15 @@ func TestPutDealRecord(t *testing.T) {
 
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
-	pd := PendingDeal{From: "a", ProposalCid: c1}
-	err = s.putPendingDeal(pd)
+	pdr := DealRecord{From: "a", Time: time.Now().Unix(), Pending: true, DealInfo: DealInfo{ProposalCid: c1}}
+	err = s.putPendingDeal(pdr)
 	require.Nil(t, err)
 
 	res, err := s.getPendingDeals()
 	require.Nil(t, err)
 	require.Len(t, res, 1)
 
-	dr := DealRecord{
-		From: "a",
-		DealInfo: DealInfo{
-			ProposalCid: c1,
-		},
-		Time: time.Now().Unix(),
-	}
+	dr := DealRecord{From: "a", Time: time.Now().Unix(), Pending: false, DealInfo: DealInfo{ProposalCid: c1}}
 
 	err = s.putDealRecord(dr)
 	require.Nil(t, err)
@@ -113,37 +107,19 @@ func TestGetDealRecords(t *testing.T) {
 
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
-	dr1 := DealRecord{
-		From: "a",
-		DealInfo: DealInfo{
-			ProposalCid: c1,
-		},
-		Time: now,
-	}
+	dr1 := DealRecord{From: "a", Time: now, Pending: false, DealInfo: DealInfo{ProposalCid: c1}}
 	err = s.putDealRecord(dr1)
 	require.Nil(t, err)
 
 	c2, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
 	require.Nil(t, err)
-	dr2 := DealRecord{
-		From: "b",
-		DealInfo: DealInfo{
-			ProposalCid: c2,
-		},
-		Time: now + 1,
-	}
+	dr2 := DealRecord{From: "b", Time: now + 1, Pending: false, DealInfo: DealInfo{ProposalCid: c2}}
 	err = s.putDealRecord(dr2)
 	require.Nil(t, err)
 
 	c3, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
 	require.Nil(t, err)
-	dr3 := DealRecord{
-		From: "c",
-		DealInfo: DealInfo{
-			ProposalCid: c3,
-		},
-		Time: now + 2,
-	}
+	dr3 := DealRecord{From: "c", Time: now + 2, Pending: false, DealInfo: DealInfo{ProposalCid: c3}}
 	err = s.putDealRecord(dr3)
 	require.Nil(t, err)
 

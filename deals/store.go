@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	dsBaseDeal    = datastore.NewKey("deal")
 	dsBasePending = datastore.NewKey("pending")
+	dsBaseFinal   = datastore.NewKey("final")
 
 	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("cid info not found")
@@ -32,14 +32,14 @@ func newStore(ds datastore.Datastore) *store {
 	}
 }
 
-func (s *store) putPendingDeal(pd PendingDeal) error {
+func (s *store) putPendingDeal(dr DealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	buf, err := json.Marshal(pd)
+	buf, err := json.Marshal(dr)
 	if err != nil {
 		return fmt.Errorf("marshaling PendingDeal: %s", err)
 	}
-	if err := s.ds.Put(makePendingDealKey(pd.ProposalCid), buf); err != nil {
+	if err := s.ds.Put(makePendingDealKey(dr.DealInfo.ProposalCid), buf); err != nil {
 		return fmt.Errorf("put PendingDeal: %s", err)
 	}
 	return nil
@@ -54,7 +54,7 @@ func (s *store) deletePendingDeal(proposalCid cid.Cid) error {
 	return nil
 }
 
-func (s *store) getPendingDeals() ([]PendingDeal, error) {
+func (s *store) getPendingDeals() ([]DealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBasePending.String()}
@@ -68,13 +68,13 @@ func (s *store) getPendingDeals() ([]PendingDeal, error) {
 		}
 	}()
 
-	var ret []PendingDeal
+	var ret []DealRecord
 	for r := range res.Next() {
-		var pendingDeal PendingDeal
-		if err := json.Unmarshal(r.Value, &pendingDeal); err != nil {
+		var dr DealRecord
+		if err := json.Unmarshal(r.Value, &dr); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
 		}
-		ret = append(ret, pendingDeal)
+		ret = append(ret, dr)
 	}
 	sort.Slice(ret, func(i, j int) bool { return ret[i].Time < ret[j].Time })
 	return ret, nil
@@ -101,7 +101,7 @@ func (s *store) getDealRecords() ([]DealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	time.Now().UnixNano()
-	q := query.Query{Prefix: dsBaseDeal.String()}
+	q := query.Query{Prefix: dsBaseFinal.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("executing query: %s", err)
@@ -144,5 +144,5 @@ func makePendingDealKey(c cid.Cid) datastore.Key {
 }
 
 func makeDealRecordKey(c cid.Cid) datastore.Key {
-	return dsBaseDeal.ChildString(c.String())
+	return dsBaseFinal.ChildString(c.String())
 }
