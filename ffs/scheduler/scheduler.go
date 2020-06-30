@@ -493,7 +493,7 @@ func (s *Scheduler) execute(ctx context.Context, a astore.Action, job ffs.Job) (
 
 func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string, replaceCid cid.Cid) (ffs.HotInfo, error) {
 	if cfg.Enabled == curr.Hot.Enabled {
-		s.l.Log(ctx, curr.Cid, "Current Cid state is healthy in Hot-Storage.")
+		s.l.Log(ctx, curr.Cid, "No actions needed in Hot Storage.")
 		return curr.Hot, nil
 	}
 
@@ -501,7 +501,7 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 		if err := s.hs.Remove(ctx, curr.Cid); err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("removing from hot storage: %s", err)
 		}
-		s.l.Log(ctx, curr.Cid, "Cid successfully removed from Hot-Storage.")
+		s.l.Log(ctx, curr.Cid, "Cid successfully removed from Hot Storage.")
 		return ffs.HotInfo{Enabled: false}, nil
 	}
 
