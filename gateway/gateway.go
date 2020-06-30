@@ -194,16 +194,19 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 
 	chainSubtitle := fmt.Sprintf("Last updated %v", timeToString(uint64ToTime(index.OnChain.LastUpdated)))
 	chainHeaders := []string{"Miner", "Power", "RelativePower", "SectorSize", "ActiveDeals"}
-	chainRows := make([][]interface{}, len(index.OnChain.Miners))
+	var chainRows [][]interface{}
 	i = 0
 	for id, onchainData := range index.OnChain.Miners {
-		chainRows[i] = []interface{}{
+		if onchainData.Power == 0 {
+			continue
+		}
+		chainRows = append(chainRows, []interface{}{
 			id,
 			onchainData.Power,
 			onchainData.RelativePower,
 			onchainData.SectorSize,
 			onchainData.ActiveDeals,
-		}
+		})
 		i++
 	}
 
