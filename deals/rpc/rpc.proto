@@ -22,7 +22,7 @@ message DealInfo {
 }
 
 message DealRecord {
-    string from = 1;
+    string addr = 1;
     int64 time = 2;
     bool pending = 3;
     DealInfo deal_info = 4;
@@ -39,7 +39,7 @@ message RetrievalInfo {
 }
 
 message RetrievalRecord {
-	string from = 1;
+	string addr = 1;
     int64 time = 2;
     RetrievalInfo retrieval_info = 3;
 }

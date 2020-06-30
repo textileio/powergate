@@ -305,7 +305,7 @@ func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 		ProposalCid:   proposalCid,
 	}
 	record := DealRecord{
-		From:     params.Wallet.String(),
+		Addr:     params.Wallet.String(),
 		Time:     time.Now().Unix(),
 		DealInfo: di,
 		Pending:  true,
@@ -343,7 +343,7 @@ func (m *Module) finalizePendingDeal(dr DealRecord) {
 			return
 		}
 		record := DealRecord{
-			From:     dr.From,
+			Addr:     dr.Addr,
 			Time:     time.Now().Unix(), // Note: This can be much later in time than the deal actually became active on chain
 			DealInfo: di,
 			Pending:  false,
@@ -380,7 +380,7 @@ func (m *Module) eventuallyFinalizeDeal(dr DealRecord, timeout time.Duration) {
 			}
 			if info.StateID == storagemarket.StorageDealActive {
 				record := DealRecord{
-					From:     dr.From,
+					Addr:     dr.Addr,
 					Time:     time.Now().Unix(),
 					DealInfo: info,
 					Pending:  false,
@@ -404,9 +404,9 @@ func (m *Module) eventuallyFinalizeDeal(dr DealRecord, timeout time.Duration) {
 	}
 }
 
-func (m *Module) recordRetrieval(from string, offer api.QueryOffer) {
+func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
 	rr := RetrievalRecord{
-		From: from,
+		Addr: addr,
 		Time: time.Now().Unix(),
 		RetrievalInfo: RetrievalInfo{
 			PieceCID:                offer.Root,

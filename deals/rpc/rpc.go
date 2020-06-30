@@ -229,7 +229,7 @@ func (s *RPC) RetrievalRecords(ctx context.Context, req *RetrievalRecordsRequest
 	ret := make([]*RetrievalRecord, len(records))
 	for i, r := range records {
 		ret[i] = &RetrievalRecord{
-			From: r.From,
+			Addr: r.Addr,
 			Time: r.Time,
 			RetrievalInfo: &RetrievalInfo{
 				PieceCid:                r.RetrievalInfo.PieceCID.String(),
@@ -249,7 +249,7 @@ func toRPCDealRecords(records []deals.DealRecord) []*DealRecord {
 	ret := make([]*DealRecord, len(records))
 	for i, r := range records {
 		ret[i] = &DealRecord{
-			From:    r.From,
+			Addr:    r.Addr,
 			Time:    r.Time,
 			Pending: r.Pending,
 			DealInfo: &DealInfo{

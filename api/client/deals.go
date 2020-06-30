@@ -227,7 +227,7 @@ func (d *Deals) RetrievalRecords(ctx context.Context) ([]deals.RetrievalRecord, 
 	ret := make([]deals.RetrievalRecord, len(res.Records))
 	for i, rpcRecord := range res.Records {
 		record := deals.RetrievalRecord{
-			From: rpcRecord.From,
+			Addr: rpcRecord.Addr,
 			Time: rpcRecord.Time,
 		}
 		if rpcRecord.RetrievalInfo != nil {
@@ -254,7 +254,7 @@ func fromRPCDealRecords(records []*rpc.DealRecord) ([]deals.DealRecord, error) {
 	ret := make([]deals.DealRecord, len(records))
 	for i, rpcRecord := range records {
 		record := deals.DealRecord{
-			From:    rpcRecord.From,
+			Addr:    rpcRecord.Addr,
 			Time:    rpcRecord.Time,
 			Pending: rpcRecord.Pending,
 		}

@@ -41,7 +41,7 @@ type DealInfo struct {
 
 // DealRecord represents a storage deal log record.
 type DealRecord struct {
-	From     string
+	Addr     string
 	DealInfo DealInfo
 	Time     int64
 	Pending  bool
@@ -60,7 +60,7 @@ type RetrievalInfo struct {
 
 // RetrievalRecord represents a retrieval deal log record.
 type RetrievalRecord struct {
-	From          string
+	Addr          string
 	RetrievalInfo RetrievalInfo
 	Time          int64
 }
