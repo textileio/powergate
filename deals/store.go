@@ -81,7 +81,7 @@ func (s *store) getPendingDeals() ([]DealRecord, error) {
 	return ret, nil
 }
 
-func (s *store) putDealRecord(dr DealRecord) error {
+func (s *store) putFinalDeal(dr DealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	err := s.ds.Delete(makePendingDealKey(dr.DealInfo.ProposalCid))
@@ -92,13 +92,13 @@ func (s *store) putDealRecord(dr DealRecord) error {
 	if err != nil {
 		return fmt.Errorf("marshaling DealRecord: %s", err)
 	}
-	if err := s.ds.Put(makeDealRecordKey(dr.DealInfo.ProposalCid), buf); err != nil {
+	if err := s.ds.Put(makeFinalDealKey(dr.DealInfo.ProposalCid), buf); err != nil {
 		return fmt.Errorf("put DealRecord: %s", err)
 	}
 	return nil
 }
 
-func (s *store) getDealRecords() ([]DealRecord, error) {
+func (s *store) getFinalDeals() ([]DealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseStorageFinal.String()}
@@ -132,20 +132,20 @@ func (s *store) getDealRecords() ([]DealRecord, error) {
 	return ret, nil
 }
 
-func (s *store) putRetrievalRecord(rr RetrievalRecord) error {
+func (s *store) putRetrieval(rr RetrievalRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	buf, err := json.Marshal(rr)
 	if err != nil {
 		return fmt.Errorf("marshaling RetrievalRecord: %s", err)
 	}
-	if err := s.ds.Put(makeRetrievalRecordKey(rr), buf); err != nil {
+	if err := s.ds.Put(makeRetrievalKey(rr), buf); err != nil {
 		return fmt.Errorf("put RetrievalRecord: %s", err)
 	}
 	return nil
 }
 
-func (s *store) getRetrievalRecords() ([]RetrievalRecord, error) {
+func (s *store) getRetrievals() ([]RetrievalRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseRetrieval.String()}
@@ -184,11 +184,11 @@ func makePendingDealKey(c cid.Cid) datastore.Key {
 	return dsBaseStoragePending.ChildString(c.String())
 }
 
-func makeDealRecordKey(c cid.Cid) datastore.Key {
+func makeFinalDealKey(c cid.Cid) datastore.Key {
 	return dsBaseStorageFinal.ChildString(c.String())
 }
 
-func makeRetrievalRecordKey(rr RetrievalRecord) datastore.Key {
+func makeRetrievalKey(rr RetrievalRecord) datastore.Key {
 	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.From, rr.RetrievalInfo.Miner, rr.RetrievalInfo.PieceCID.String())
 	sum := md5.Sum([]byte(str))
 	return dsBaseRetrieval.ChildString(string(sum[:]))

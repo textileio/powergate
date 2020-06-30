@@ -234,9 +234,9 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 	return ch, nil
 }
 
-// DealRecords returns a list of all finalized storage deals.
-func (m *Module) DealRecords() ([]DealRecord, error) {
-	return m.store.getDealRecords()
+// FinalDealRecords returns a list of all finalized storage deals.
+func (m *Module) FinalDealRecords() ([]DealRecord, error) {
+	return m.store.getFinalDeals()
 }
 
 // PendingDealRecords returns a list of all pending storage deals.
@@ -246,7 +246,7 @@ func (m *Module) PendingDealRecords() ([]DealRecord, error) {
 
 // AllDealRecords returns a list of all finalized and pending deals.
 func (m *Module) AllDealRecords() ([]DealRecord, error) {
-	ret, err := m.store.getDealRecords()
+	ret, err := m.store.getFinalDeals()
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (m *Module) AllDealRecords() ([]DealRecord, error) {
 
 // RetrievalRecords returns a list of all retrievals.
 func (m *Module) RetrievalRecords() ([]RetrievalRecord, error) {
-	return m.store.getRetrievalRecords()
+	return m.store.getRetrievals()
 }
 
 // Close closes the deals Module.
@@ -348,7 +348,7 @@ func (m *Module) finalizePendingDeal(dr DealRecord) {
 			DealInfo: di,
 			Pending:  false,
 		}
-		if err := m.store.putDealRecord(record); err != nil {
+		if err := m.store.putFinalDeal(record); err != nil {
 			log.Errorf("storing propoosal cid %s deal record: %v", dr.DealInfo.ProposalCid.String(), err)
 		}
 	}
@@ -386,7 +386,7 @@ func (m *Module) eventuallyFinalizeDeal(dr DealRecord, timeout time.Duration) {
 					Pending:  false,
 				}
 				log.Infof("proposal cid %s is active, storing deal record", info.ProposalCid.String())
-				if err := m.store.putDealRecord(record); err != nil {
+				if err := m.store.putFinalDeal(record); err != nil {
 					log.Errorf("storing propoosal cid %s deal record: %v", info.ProposalCid.String(), err)
 				}
 				return
@@ -418,7 +418,7 @@ func (m *Module) recordRetrieval(from string, offer api.QueryOffer) {
 			PaymentIntervalIncrease: offer.PaymentIntervalIncrease,
 		},
 	}
-	if err := m.store.putRetrievalRecord(rr); err != nil {
+	if err := m.store.putRetrieval(rr); err != nil {
 		log.Errorf("storing retrieval: %v", err)
 	}
 }

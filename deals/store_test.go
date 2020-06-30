@@ -92,7 +92,7 @@ func TestPutDealRecord(t *testing.T) {
 
 	dr := DealRecord{From: "a", Time: time.Now().Unix(), Pending: false, DealInfo: DealInfo{ProposalCid: c1}}
 
-	err = s.putDealRecord(dr)
+	err = s.putFinalDeal(dr)
 	require.Nil(t, err)
 
 	res, err = s.getPendingDeals()
@@ -108,22 +108,22 @@ func TestGetDealRecords(t *testing.T) {
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	dr1 := DealRecord{From: "a", Time: now, Pending: false, DealInfo: DealInfo{ProposalCid: c1}}
-	err = s.putDealRecord(dr1)
+	err = s.putFinalDeal(dr1)
 	require.Nil(t, err)
 
 	c2, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
 	require.Nil(t, err)
 	dr2 := DealRecord{From: "b", Time: now + 1, Pending: false, DealInfo: DealInfo{ProposalCid: c2}}
-	err = s.putDealRecord(dr2)
+	err = s.putFinalDeal(dr2)
 	require.Nil(t, err)
 
 	c3, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
 	require.Nil(t, err)
 	dr3 := DealRecord{From: "c", Time: now + 2, Pending: false, DealInfo: DealInfo{ProposalCid: c3}}
-	err = s.putDealRecord(dr3)
+	err = s.putFinalDeal(dr3)
 	require.Nil(t, err)
 
-	res, err := s.getDealRecords()
+	res, err := s.getFinalDeals()
 	require.Nil(t, err)
 	require.Len(t, res, 3)
 	require.Equal(t, res[0].From, "a")
@@ -137,7 +137,7 @@ func TestPutRetrievalRecords(t *testing.T) {
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	rr := RetrievalRecord{Time: now, From: "from", RetrievalInfo: RetrievalInfo{PieceCID: c1, Miner: "miner"}}
-	err = s.putRetrievalRecord(rr)
+	err = s.putRetrieval(rr)
 	require.Nil(t, err)
 }
 
@@ -148,20 +148,20 @@ func TestGetRetrievalDeals(t *testing.T) {
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	rr := RetrievalRecord{Time: now, From: "from", RetrievalInfo: RetrievalInfo{PieceCID: c1, Miner: "miner"}}
-	err = s.putRetrievalRecord(rr)
+	err = s.putRetrieval(rr)
 	require.Nil(t, err)
 
 	require.Nil(t, err)
 	rr = RetrievalRecord{Time: now + 1, From: "from", RetrievalInfo: RetrievalInfo{PieceCID: c1, Miner: "miner"}}
-	err = s.putRetrievalRecord(rr)
+	err = s.putRetrieval(rr)
 	require.Nil(t, err)
 
 	require.Nil(t, err)
 	rr = RetrievalRecord{Time: now + 2, From: "from", RetrievalInfo: RetrievalInfo{PieceCID: c1, Miner: "miner"}}
-	err = s.putRetrievalRecord(rr)
+	err = s.putRetrieval(rr)
 	require.Nil(t, err)
 
-	res, err := s.getRetrievalRecords()
+	res, err := s.getRetrievals()
 	require.Nil(t, err)
 	require.Len(t, res, 3)
 	require.Equal(t, res[0].Time, now)
