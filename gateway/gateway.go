@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -241,7 +242,7 @@ func (g *Gateway) faultsHandler(c *gin.Context) {
 	for id, faults := range index.Miners {
 		epochs := make([]string, len(faults.Epochs))
 		for j, epoch := range faults.Epochs {
-			epochs[j] = string(epoch)
+			epochs[j] = strconv.FormatInt(epoch, 10)
 		}
 		rows[i] = []interface{}{
 			id,
