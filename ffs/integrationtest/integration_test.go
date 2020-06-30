@@ -1308,8 +1308,6 @@ func TestParallelExecution(t *testing.T) {
 }
 
 func TestJobCancellation(t *testing.T) {
-	t.Parallel()
-
 	r := rand.New(rand.NewSource(22))
 	ipfsAPI, _, fapi, cls := newAPI(t, 1)
 	defer cls()
