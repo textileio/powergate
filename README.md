@@ -14,6 +14,7 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 ## Table of Contents
 
+-   [Prerequisites](#prerequisites)
 -   [Design](#design)
 -   [Installation](#installation)
 -   [Devnet mode](#devnet-mode)
@@ -23,6 +24,10 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 -   [Contributing](#contributing)
 -   [Changelog](#changelog)
 -   [License](#license)
+
+## Prerequisites
+
+To build from source, you need to have Go 1.14 installed.
 
 ## Design
 
@@ -60,6 +65,7 @@ To build and install the CLI, run:
 ```bash
 $ make build-pow
 ```
+The binary will be placed automatically in `$GOPATH/bin` which in general is in `$PATH`, so you can immediately run `pow` in your terminal.
 
 You can read the [generated CLI docs](https://github.com/textileio/powergate/blob/master/cli-docs/pow/pow.md) in this repo, or run `pow` with the `--help` flag to see the available commands:
 
