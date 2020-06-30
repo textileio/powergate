@@ -178,3 +178,111 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 
 	return reader, nil
 }
+
+// FinalDealRecords returns a list of all finalized storage deals.
+func (d *Deals) FinalDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+	res, err := d.client.FinalDealRecords(ctx, &rpc.FinalDealRecordsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	ret, err := fromRPCDealRecords(res.Records)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+// PendingDealRecords returns a list of all pending storage deals.
+func (d *Deals) PendingDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+	res, err := d.client.PendingDealRecords(ctx, &rpc.PendingDealRecordsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	ret, err := fromRPCDealRecords(res.Records)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+// AllDealRecords returns a list of all finalized and pending deals.
+func (d *Deals) AllDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+	res, err := d.client.AllDealRecords(ctx, &rpc.AllDealRecordsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	ret, err := fromRPCDealRecords(res.Records)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+// RetrievalRecords returns a list of all retrievals.
+func (d *Deals) RetrievalRecords(ctx context.Context) ([]deals.RetrievalRecord, error) {
+	res, err := d.client.RetrievalRecords(ctx, &rpc.RetrievalRecordsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]deals.RetrievalRecord, len(res.Records))
+	for i, rpcRecord := range res.Records {
+		record := deals.RetrievalRecord{
+			From: rpcRecord.From,
+			Time: rpcRecord.Time,
+		}
+		if rpcRecord.RetrievalInfo != nil {
+			pieceCid, err := cid.Decode(rpcRecord.RetrievalInfo.PieceCid)
+			if err != nil {
+				return nil, err
+			}
+			record.RetrievalInfo = deals.RetrievalInfo{
+				PieceCID:                pieceCid,
+				Size:                    rpcRecord.RetrievalInfo.Size,
+				MinPrice:                rpcRecord.RetrievalInfo.MinPrice,
+				PaymentInterval:         rpcRecord.RetrievalInfo.PaymentInterval,
+				PaymentIntervalIncrease: rpcRecord.RetrievalInfo.PaymentIntervalIncrease,
+				Miner:                   rpcRecord.RetrievalInfo.Miner,
+				MinerPeerID:             rpcRecord.RetrievalInfo.MinerPeerId,
+			}
+		}
+		ret[i] = record
+	}
+	return ret, nil
+}
+
+func fromRPCDealRecords(records []*rpc.DealRecord) ([]deals.DealRecord, error) {
+	ret := make([]deals.DealRecord, len(records))
+	for i, rpcRecord := range records {
+		record := deals.DealRecord{
+			From:    rpcRecord.From,
+			Time:    rpcRecord.Time,
+			Pending: rpcRecord.Pending,
+		}
+		if rpcRecord.DealInfo != nil {
+			proposalCid, err := cid.Decode(rpcRecord.DealInfo.ProposalCid)
+			if err != nil {
+				return nil, err
+			}
+			pieceCid, err := cid.Decode(rpcRecord.DealInfo.PieceCid)
+			if err != nil {
+				return nil, err
+			}
+			record.DealInfo = deals.DealInfo{
+				ProposalCid:     proposalCid,
+				StateID:         rpcRecord.DealInfo.StateId,
+				StateName:       rpcRecord.DealInfo.StateName,
+				Miner:           rpcRecord.DealInfo.Miner,
+				PieceCID:        pieceCid,
+				Size:            rpcRecord.DealInfo.Size,
+				PricePerEpoch:   rpcRecord.DealInfo.PricePerEpoch,
+				StartEpoch:      rpcRecord.DealInfo.StartEpoch,
+				Duration:        rpcRecord.DealInfo.Duration,
+				DealID:          rpcRecord.DealInfo.DealId,
+				ActivationEpoch: rpcRecord.DealInfo.ActivationEpoch,
+				Message:         rpcRecord.DealInfo.Msg,
+			}
+		}
+		ret[i] = record
+	}
+	return ret, nil
+}
