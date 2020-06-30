@@ -3,18 +3,13 @@ package deals.rpc;
 
 option go_package = "deals/rpc";
 
-message DealConfig {
-	string miner = 1;
-	uint64 epoch_price = 2;
-}
-
 message DealInfo {
 	string proposal_cid = 1;
 	uint64 state_id = 2;
 	string state_name = 3;
 	string miner = 4;
 
-	bytes piece_cid = 5;
+	string piece_cid = 5;
 	uint64 size = 6;
 
 	uint64 price_per_epoch = 7;
@@ -24,6 +19,34 @@ message DealInfo {
 	uint64 deal_id = 10;
 	int64 activation_epoch = 11;
 	string msg = 12;
+}
+
+message DealRecord {
+    string from = 1;
+    int64 time = 2;
+    bool pending = 3;
+    DealInfo deal_info = 4;
+}
+
+message RetrievalInfo {
+	string piece_cid = 1;
+	uint64 size = 2;
+	uint64 min_price = 3;
+	uint64 payment_interval = 4;
+	uint64 payment_interval_increase = 5;
+	string miner = 6;
+	string miner_peer_id = 7;
+}
+
+message RetrievalRecord {
+	string from = 1;
+    int64 time = 2;
+    RetrievalInfo retrieval_info = 3;
+}
+
+message DealConfig {
+	string miner = 1;
+	uint64 epoch_price = 2;
 }
 
 message StoreParams {
@@ -62,8 +85,40 @@ message RetrieveResponse {
     bytes chunk = 1;
 }
 
+message FinalDealRecordsRequest {
+}
+
+message FinalDealRecordsResponse {
+    repeated DealRecord records = 1;
+}
+
+message PendingDealRecordsRequest {
+}
+
+message PendingDealRecordsResponse {
+    repeated DealRecord records = 1;
+}
+
+message AllDealRecordsRequest {
+}
+
+message AllDealRecordsResponse {
+    repeated DealRecord records = 1;
+}
+
+message RetrievalRecordsRequest {
+}
+
+message RetrievalRecordsResponse {
+    repeated RetrievalRecord records = 1;
+}
+
 service RPCService {
     rpc Store(stream StoreRequest) returns (StoreResponse) {}
     rpc Watch(WatchRequest) returns (stream WatchResponse) {}
     rpc Retrieve(RetrieveRequest) returns (stream RetrieveResponse) {}
+    rpc FinalDealRecords(FinalDealRecordsRequest) returns (FinalDealRecordsResponse) {}
+    rpc PendingDealRecords(PendingDealRecordsRequest) returns (PendingDealRecordsResponse) {}
+    rpc AllDealRecords(AllDealRecordsRequest) returns (AllDealRecordsResponse) {}
+    rpc RetrievalRecords(RetrievalRecordsRequest) returns (RetrievalRecordsResponse) {}
 }

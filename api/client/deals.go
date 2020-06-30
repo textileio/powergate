@@ -120,7 +120,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				channel <- WatchEvent{Err: err}
 				break
 			}
-			cid, err := cid.Cast(event.GetDealInfo().GetPieceCid())
+			cid, err := cid.Decode(event.GetDealInfo().GetPieceCid())
 			if err != nil {
 				channel <- WatchEvent{Err: err}
 				break
