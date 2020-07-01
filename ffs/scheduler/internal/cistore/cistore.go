@@ -11,8 +11,6 @@ import (
 )
 
 var (
-	dsBase = datastore.NewKey("cistore")
-
 	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("cid info not found")
 )
@@ -61,5 +59,5 @@ func (s *Store) Put(ci ffs.CidInfo) error {
 }
 
 func makeKey(c cid.Cid) datastore.Key {
-	return dsBase.ChildString(c.String())
+	return datastore.NewKey(c.String())
 }
