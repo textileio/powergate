@@ -18,7 +18,7 @@ import (
 
 var (
 	lotusSyncStatusInterval = time.Second * 10
-	log                     = logging.Logger("deals")
+	log                     = logging.Logger("lotus-client")
 )
 
 // New creates a new client to Lotus API.

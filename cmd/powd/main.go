@@ -178,6 +178,9 @@ func setupLogging() error {
 		"fchost",
 		"maxmind",
 
+		// Lotus client
+		"lotus-client",
+
 		// Deals Module
 		"deals",
 

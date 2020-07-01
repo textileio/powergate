@@ -131,11 +131,6 @@ func (s *Scheduler) push(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.
 		return ffs.EmptyJobID, fmt.Errorf("saving new config in store: %s", err)
 	}
 
-	if oldCid.Defined() {
-		if err := s.Untrack(oldCid); err != nil {
-			return ffs.EmptyJobID, fmt.Errorf("untracking replaced cid: %s", err)
-		}
-	}
 	select {
 	case s.evaluateQueuedWork <- struct{}{}:
 	default:
@@ -262,8 +257,8 @@ func (s *Scheduler) run() {
 
 func (s *Scheduler) resumeStartedDeals() error {
 	ejids := s.js.GetExecutingJobs()
-	// No need for rate limit since "Executing" # of jobs are already rate limited on creation.
-	var wg sync.WaitGroup
+	// No need for rate limit since the number of "Executing"
+	// jobs is always rate-limited on creation.
 	for _, jid := range ejids {
 		if s.ctx.Err() != nil {
 			break
@@ -272,15 +267,13 @@ func (s *Scheduler) resumeStartedDeals() error {
 		if err != nil {
 			return fmt.Errorf("getting resumed queued job: %s", err)
 		}
-		wg.Add(1)
 		go func(j ffs.Job) {
-			defer wg.Done()
+			log.Infof("resuming job %s with cid %s", j.ID, j.Cid)
 			// We re-execute the pipeline as if was dequeued.
 			// Both hot and cold storage can detect resumed job execution.
 			s.executeQueuedJob(j)
 		}(j)
 	}
-	wg.Wait()
 	return nil
 }
 
@@ -406,13 +399,6 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 		s.cancelLock.Unlock()
 	}()
 
-	// Get
-	a, err := s.as.Get(j.ID)
-	if err != nil {
-		log.Errorf("getting push config action data from store: %s", err)
-		return
-	}
-
 	ctx, cancel := context.WithCancel(context.WithValue(context.Background(), ffs.CtxKeyJid, j.ID))
 	defer cancel()
 	go func() {
@@ -421,6 +407,17 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 		<-cancelChan
 		cancel()
 	}()
+
+	// Get
+	a, err := s.as.Get(j.ID)
+	if err != nil {
+		log.Errorf("getting push config action data from store: %s", err)
+		if err := s.js.Finalize(j.ID, ffs.Failed, err, nil); err != nil {
+			log.Errorf("changing job to failed: %s", err)
+		}
+		s.l.Log(ctx, a.Cfg.Cid, "Job %s couldn't start: %s.", j.ID, err)
+		return
+	}
 
 	// Execute
 	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
@@ -433,7 +430,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 		if err := s.js.Finalize(j.ID, ffs.Failed, err, dealErrors); err != nil {
 			log.Errorf("changing job to failed: %s", err)
 		}
-		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed.", j.ID)
+		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed: %s", j.ID, err)
 		return
 	}
 	// Save whatever stored information was completely/partially
@@ -464,6 +461,12 @@ func (s *Scheduler) execute(ctx context.Context, a astore.Action, job ffs.Job) (
 	ci, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)
+	}
+
+	if a.ReplacedCid.Defined() {
+		if err := s.Untrack(a.ReplacedCid); err != nil && err != astore.ErrNotFound {
+			return ffs.CidInfo{}, nil, fmt.Errorf("untracking replaced cid: %s", err)
+		}
 	}
 
 	s.l.Log(ctx, a.Cfg.Cid, "Ensuring Hot-Storage satisfies the configuration...")
