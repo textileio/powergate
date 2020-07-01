@@ -3,7 +3,7 @@ module github.com/textileio/powergate
 go 1.14
 
 require (
-	contrib.go.opencensus.io/exporter/prometheus v0.1.0
+	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/AlecAivazis/survey/v2 v2.0.7
 	github.com/caarlos0/spin v1.1.0
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
