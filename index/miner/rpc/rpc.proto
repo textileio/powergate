@@ -1,7 +1,7 @@
 syntax = "proto3";
 package index.miner.rpc;
 
-option go_package = "index/miner/rpc";
+option go_package = "github.com/textileio/powergate/index/miner/rpc";
 
 message Index {
     MetaIndex meta = 1;

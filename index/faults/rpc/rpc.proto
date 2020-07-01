@@ -1,7 +1,7 @@
 syntax = "proto3";
 package index.faults.rpc;
 
-option go_package = "index/faults/rpc";
+option go_package = "github.com/textileio/powergate/index/faults/rpc";
 
 message Index {
     string tipsetkey = 1;
