@@ -235,24 +235,35 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan DealInf
 }
 
 // FinalDealRecords returns a list of all finalized storage deals.
+// Records are sorted ascending by activation epoch then timestamp.
 func (m *Module) FinalDealRecords() ([]DealRecord, error) {
-	return m.store.getFinalDeals()
+	ret, err := m.store.getFinalDeals()
+	if err != nil {
+		return nil, fmt.Errorf("getting final deals: %v", err)
+	}
+	return ret, nil
 }
 
 // PendingDealRecords returns a list of all pending storage deals.
+// Records are sorted ascending by timestamp.
 func (m *Module) PendingDealRecords() ([]DealRecord, error) {
-	return m.store.getPendingDeals()
+	ret, err := m.store.getPendingDeals()
+	if err != nil {
+		return nil, fmt.Errorf("getting pending deals: %v", err)
+	}
+	return ret, nil
 }
 
 // AllDealRecords returns a list of all finalized and pending deals.
+// Records are sorted ascending by activation epoch, if available, then timestamp.
 func (m *Module) AllDealRecords() ([]DealRecord, error) {
 	ret, err := m.store.getFinalDeals()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getting final deals: %v", err)
 	}
 	pending, err := m.store.getPendingDeals()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getting pending deals: %v", err)
 	}
 	ret = append(ret, pending...)
 	sort.Slice(ret, func(i, j int) bool {
@@ -271,13 +282,13 @@ func (m *Module) AllDealRecords() ([]DealRecord, error) {
 }
 
 // RetrievalRecords returns a list of all retrievals.
+// Records are sorted ascending by timestamp.
 func (m *Module) RetrievalRecords() ([]RetrievalRecord, error) {
-	return m.store.getRetrievals()
-}
-
-// Close closes the deals Module.
-func (m *Module) Close() error {
-	return m.store.close()
+	ret, err := m.store.getRetrievals()
+	if err != nil {
+		return nil, fmt.Errorf("getting retrievals: %v", err)
+	}
+	return ret, nil
 }
 
 func (m *Module) initPendingDeals() {
@@ -349,7 +360,7 @@ func (m *Module) finalizePendingDeal(dr DealRecord) {
 			Pending:  false,
 		}
 		if err := m.store.putFinalDeal(record); err != nil {
-			log.Errorf("storing propoosal cid %s deal record: %v", dr.DealInfo.ProposalCid.String(), err)
+			log.Errorf("storing proposal cid %s deal record: %v", dr.DealInfo.ProposalCid.String(), err)
 		}
 	}
 }
@@ -387,7 +398,7 @@ func (m *Module) eventuallyFinalizeDeal(dr DealRecord, timeout time.Duration) {
 				}
 				log.Infof("proposal cid %s is active, storing deal record", info.ProposalCid.String())
 				if err := m.store.putFinalDeal(record); err != nil {
-					log.Errorf("storing propoosal cid %s deal record: %v", info.ProposalCid.String(), err)
+					log.Errorf("storing proposal cid %s deal record: %v", info.ProposalCid.String(), err)
 				}
 				return
 			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||

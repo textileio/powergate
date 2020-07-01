@@ -408,9 +408,6 @@ func (s *Server) Close() {
 	if err := s.fi.Close(); err != nil {
 		log.Errorf("closing faults index: %s", err)
 	}
-	if err := s.dm.Close(); err != nil {
-		log.Errorf("closing deals module: %s", err)
-	}
 
 	log.Info("closing datastore...")
 	if err := s.ds.Close(); err != nil {

@@ -26,6 +26,7 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	util.AvgBlockTime = time.Second
 	if err := os.RemoveAll(tmpDir); err != nil {
 		panic(err)
 	}

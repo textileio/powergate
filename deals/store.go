@@ -173,13 +173,6 @@ func (s *store) getRetrievals() ([]RetrievalRecord, error) {
 	return ret, nil
 }
 
-func (s *store) close() error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	err := s.ds.Close()
-	return err
-}
-
 func makePendingDealKey(c cid.Cid) datastore.Key {
 	return dsBaseStoragePending.ChildString(c.String())
 }
