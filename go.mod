@@ -24,7 +24,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/improbable-eng/grpc-web v0.12.0
 	github.com/ipfs/go-block-format v0.0.2
-	github.com/ipfs/go-cid v0.0.6-0.20200501230655-7c82f3b81c00
+	github.com/ipfs/go-cid v0.0.6
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ds-badger2 v0.1.0
 	github.com/ipfs/go-ipfs-files v0.0.8
@@ -35,8 +35,8 @@ require (
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/ipld/go-car v0.1.1-0.20200526133713-1c7508d55aae
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
-	github.com/libp2p/go-libp2p v0.9.4
-	github.com/libp2p/go-libp2p-core v0.5.7
+	github.com/libp2p/go-libp2p v0.10.0
+	github.com/libp2p/go-libp2p-core v0.6.0
 	github.com/libp2p/go-libp2p-kad-dht v0.8.1
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/manifoldco/promptui v0.7.0
@@ -53,7 +53,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
-	github.com/stretchr/testify v1.6.0
+	github.com/stretchr/testify v1.6.1
 	go.opencensus.io v0.22.3
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.24.0
