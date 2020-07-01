@@ -275,6 +275,8 @@ github.com/filecoin-project/go-fil-commcid v0.0.0-20200208005934-2b8bd03caca5 h1
 github.com/filecoin-project/go-fil-commcid v0.0.0-20200208005934-2b8bd03caca5/go.mod h1:JbkIgFF/Z9BDlvrJO1FuKkaWsH673/UdFaiVS6uIHlA=
 github.com/filecoin-project/go-fil-markets v0.3.0 h1:7iCGiuTSia4f4DmOn3s96NWUwMNSOI0ZHel/XgeApAQ=
 github.com/filecoin-project/go-fil-markets v0.3.0/go.mod h1:UXsXi43AyUQ5ieb4yIaLgk4PVt7TAbl1UCccuNw+7ds=
+github.com/filecoin-project/go-fil-markets v0.3.2 h1:fvNgdTTIVtckBu61wxbKYSMJzedoFFIKYJagiCDFCiM=
+github.com/filecoin-project/go-fil-markets v0.3.2/go.mod h1:e/IofcotbwH7ftgeK+TjjdjFsrCDWrh5vvnr7k1OSH8=
 github.com/filecoin-project/go-jsonrpc v0.1.1-0.20200602181149-522144ab4e24 h1:Jc7vkplmZYVuaEcSXGHDwefvZIdoyyaoGDLqSr8Svms=
 github.com/filecoin-project/go-jsonrpc v0.1.1-0.20200602181149-522144ab4e24/go.mod h1:j6zV//WXIIY5kky873Q3iIKt/ViOE8rcijovmpxrXzM=
 github.com/filecoin-project/go-padreader v0.0.0-20200210211231-548257017ca6 h1:92PET+sx1Hb4W/8CgFwGuxaKbttwY+UNspYZTvXY0vs=
@@ -288,6 +290,7 @@ github.com/filecoin-project/go-statemachine v0.0.0-20200226041606-2074af6d51d9 h
 github.com/filecoin-project/go-statemachine v0.0.0-20200226041606-2074af6d51d9/go.mod h1:FGwQgZAt2Gh5mjlwJUlVB62JeYdo+if0xWxSEfBD9ig=
 github.com/filecoin-project/go-statemachine v0.0.0-20200612181802-4eb3d0c68eba h1:GEWb/6KQyNZt4jm8fgVcIFPH0ElAGXfHM59ZSiqPTvY=
 github.com/filecoin-project/go-statemachine v0.0.0-20200612181802-4eb3d0c68eba/go.mod h1:FGwQgZAt2Gh5mjlwJUlVB62JeYdo+if0xWxSEfBD9ig=
+github.com/filecoin-project/go-statemachine v0.0.0-20200619205156-c7bf525c06ef/go.mod h1:FGwQgZAt2Gh5mjlwJUlVB62JeYdo+if0xWxSEfBD9ig=
 github.com/filecoin-project/go-statestore v0.1.0 h1:t56reH59843TwXHkMcwyuayStBIiWBRilQjQ+5IiwdQ=
 github.com/filecoin-project/go-statestore v0.1.0/go.mod h1:LFc9hD+fRxPqiHiaqUEZOinUJB4WARkRfNl10O7kTnI=
 github.com/filecoin-project/go-storedcounter v0.0.0-20200421200003-1c99c62e8a5b h1:fkRZSPrYpk42PV3/lIXiL0LHetxde7vyYYvSsttQtfg=
