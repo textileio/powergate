@@ -20,7 +20,7 @@ type StoreResult struct {
 	Message     string
 }
 
-// DealInfo contains information about a proposal storage deal.
+// DealInfo contains information about a proposed storage deal.
 type DealInfo struct {
 	ProposalCid cid.Cid
 	StateID     uint64
@@ -37,6 +37,32 @@ type DealInfo struct {
 	DealID          uint64
 	ActivationEpoch int64
 	Message         string
+}
+
+// DealRecord represents a storage deal log record.
+type DealRecord struct {
+	Addr     string
+	DealInfo DealInfo
+	Time     int64
+	Pending  bool
+}
+
+// RetrievalInfo contains information about a retrieval deal.
+type RetrievalInfo struct {
+	PieceCID                cid.Cid
+	Size                    uint64
+	MinPrice                uint64
+	PaymentInterval         uint64
+	PaymentIntervalIncrease uint64
+	Miner                   string
+	MinerPeerID             string
+}
+
+// RetrievalRecord represents a retrieval deal log record.
+type RetrievalRecord struct {
+	Addr          string
+	RetrievalInfo RetrievalInfo
+	Time          int64
 }
 
 // Config contains configuration for storing deals.

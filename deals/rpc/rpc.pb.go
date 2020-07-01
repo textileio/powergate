@@ -29,61 +29,6 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
-type DealConfig struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Miner      string `protobuf:"bytes,1,opt,name=miner,proto3" json:"miner,omitempty"`
-	EpochPrice uint64 `protobuf:"varint,2,opt,name=epoch_price,json=epochPrice,proto3" json:"epoch_price,omitempty"`
-}
-
-func (x *DealConfig) Reset() {
-	*x = DealConfig{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *DealConfig) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DealConfig) ProtoMessage() {}
-
-func (x *DealConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DealConfig.ProtoReflect.Descriptor instead.
-func (*DealConfig) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *DealConfig) GetMiner() string {
-	if x != nil {
-		return x.Miner
-	}
-	return ""
-}
-
-func (x *DealConfig) GetEpochPrice() uint64 {
-	if x != nil {
-		return x.EpochPrice
-	}
-	return 0
-}
-
 type DealInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -93,7 +38,7 @@ type DealInfo struct {
 	StateId         uint64 `protobuf:"varint,2,opt,name=state_id,json=stateId,proto3" json:"state_id,omitempty"`
 	StateName       string `protobuf:"bytes,3,opt,name=state_name,json=stateName,proto3" json:"state_name,omitempty"`
 	Miner           string `protobuf:"bytes,4,opt,name=miner,proto3" json:"miner,omitempty"`
-	PieceCid        []byte `protobuf:"bytes,5,opt,name=piece_cid,json=pieceCid,proto3" json:"piece_cid,omitempty"`
+	PieceCid        string `protobuf:"bytes,5,opt,name=piece_cid,json=pieceCid,proto3" json:"piece_cid,omitempty"`
 	Size            uint64 `protobuf:"varint,6,opt,name=size,proto3" json:"size,omitempty"`
 	PricePerEpoch   uint64 `protobuf:"varint,7,opt,name=price_per_epoch,json=pricePerEpoch,proto3" json:"price_per_epoch,omitempty"`
 	StartEpoch      uint64 `protobuf:"varint,8,opt,name=start_epoch,json=startEpoch,proto3" json:"start_epoch,omitempty"`
@@ -106,7 +51,7 @@ type DealInfo struct {
 func (x *DealInfo) Reset() {
 	*x = DealInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[1]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -119,7 +64,7 @@ func (x *DealInfo) String() string {
 func (*DealInfo) ProtoMessage() {}
 
 func (x *DealInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[1]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -132,7 +77,7 @@ func (x *DealInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DealInfo.ProtoReflect.Descriptor instead.
 func (*DealInfo) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{1}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *DealInfo) GetProposalCid() string {
@@ -163,11 +108,11 @@ func (x *DealInfo) GetMiner() string {
 	return ""
 }
 
-func (x *DealInfo) GetPieceCid() []byte {
+func (x *DealInfo) GetPieceCid() string {
 	if x != nil {
 		return x.PieceCid
 	}
-	return nil
+	return ""
 }
 
 func (x *DealInfo) GetSize() uint64 {
@@ -219,6 +164,290 @@ func (x *DealInfo) GetMsg() string {
 	return ""
 }
 
+type DealRecord struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Addr     string    `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	Time     int64     `protobuf:"varint,2,opt,name=time,proto3" json:"time,omitempty"`
+	Pending  bool      `protobuf:"varint,3,opt,name=pending,proto3" json:"pending,omitempty"`
+	DealInfo *DealInfo `protobuf:"bytes,4,opt,name=deal_info,json=dealInfo,proto3" json:"deal_info,omitempty"`
+}
+
+func (x *DealRecord) Reset() {
+	*x = DealRecord{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DealRecord) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DealRecord) ProtoMessage() {}
+
+func (x *DealRecord) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DealRecord.ProtoReflect.Descriptor instead.
+func (*DealRecord) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *DealRecord) GetAddr() string {
+	if x != nil {
+		return x.Addr
+	}
+	return ""
+}
+
+func (x *DealRecord) GetTime() int64 {
+	if x != nil {
+		return x.Time
+	}
+	return 0
+}
+
+func (x *DealRecord) GetPending() bool {
+	if x != nil {
+		return x.Pending
+	}
+	return false
+}
+
+func (x *DealRecord) GetDealInfo() *DealInfo {
+	if x != nil {
+		return x.DealInfo
+	}
+	return nil
+}
+
+type RetrievalInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PieceCid                string `protobuf:"bytes,1,opt,name=piece_cid,json=pieceCid,proto3" json:"piece_cid,omitempty"`
+	Size                    uint64 `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	MinPrice                uint64 `protobuf:"varint,3,opt,name=min_price,json=minPrice,proto3" json:"min_price,omitempty"`
+	PaymentInterval         uint64 `protobuf:"varint,4,opt,name=payment_interval,json=paymentInterval,proto3" json:"payment_interval,omitempty"`
+	PaymentIntervalIncrease uint64 `protobuf:"varint,5,opt,name=payment_interval_increase,json=paymentIntervalIncrease,proto3" json:"payment_interval_increase,omitempty"`
+	Miner                   string `protobuf:"bytes,6,opt,name=miner,proto3" json:"miner,omitempty"`
+	MinerPeerId             string `protobuf:"bytes,7,opt,name=miner_peer_id,json=minerPeerId,proto3" json:"miner_peer_id,omitempty"`
+}
+
+func (x *RetrievalInfo) Reset() {
+	*x = RetrievalInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RetrievalInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RetrievalInfo) ProtoMessage() {}
+
+func (x *RetrievalInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RetrievalInfo.ProtoReflect.Descriptor instead.
+func (*RetrievalInfo) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RetrievalInfo) GetPieceCid() string {
+	if x != nil {
+		return x.PieceCid
+	}
+	return ""
+}
+
+func (x *RetrievalInfo) GetSize() uint64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *RetrievalInfo) GetMinPrice() uint64 {
+	if x != nil {
+		return x.MinPrice
+	}
+	return 0
+}
+
+func (x *RetrievalInfo) GetPaymentInterval() uint64 {
+	if x != nil {
+		return x.PaymentInterval
+	}
+	return 0
+}
+
+func (x *RetrievalInfo) GetPaymentIntervalIncrease() uint64 {
+	if x != nil {
+		return x.PaymentIntervalIncrease
+	}
+	return 0
+}
+
+func (x *RetrievalInfo) GetMiner() string {
+	if x != nil {
+		return x.Miner
+	}
+	return ""
+}
+
+func (x *RetrievalInfo) GetMinerPeerId() string {
+	if x != nil {
+		return x.MinerPeerId
+	}
+	return ""
+}
+
+type RetrievalRecord struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Addr          string         `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	Time          int64          `protobuf:"varint,2,opt,name=time,proto3" json:"time,omitempty"`
+	RetrievalInfo *RetrievalInfo `protobuf:"bytes,3,opt,name=retrieval_info,json=retrievalInfo,proto3" json:"retrieval_info,omitempty"`
+}
+
+func (x *RetrievalRecord) Reset() {
+	*x = RetrievalRecord{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RetrievalRecord) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RetrievalRecord) ProtoMessage() {}
+
+func (x *RetrievalRecord) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RetrievalRecord.ProtoReflect.Descriptor instead.
+func (*RetrievalRecord) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RetrievalRecord) GetAddr() string {
+	if x != nil {
+		return x.Addr
+	}
+	return ""
+}
+
+func (x *RetrievalRecord) GetTime() int64 {
+	if x != nil {
+		return x.Time
+	}
+	return 0
+}
+
+func (x *RetrievalRecord) GetRetrievalInfo() *RetrievalInfo {
+	if x != nil {
+		return x.RetrievalInfo
+	}
+	return nil
+}
+
+type DealConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Miner      string `protobuf:"bytes,1,opt,name=miner,proto3" json:"miner,omitempty"`
+	EpochPrice uint64 `protobuf:"varint,2,opt,name=epoch_price,json=epochPrice,proto3" json:"epoch_price,omitempty"`
+}
+
+func (x *DealConfig) Reset() {
+	*x = DealConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DealConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DealConfig) ProtoMessage() {}
+
+func (x *DealConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DealConfig.ProtoReflect.Descriptor instead.
+func (*DealConfig) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *DealConfig) GetMiner() string {
+	if x != nil {
+		return x.Miner
+	}
+	return ""
+}
+
+func (x *DealConfig) GetEpochPrice() uint64 {
+	if x != nil {
+		return x.EpochPrice
+	}
+	return 0
+}
+
 type StoreParams struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -232,7 +461,7 @@ type StoreParams struct {
 func (x *StoreParams) Reset() {
 	*x = StoreParams{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[2]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -245,7 +474,7 @@ func (x *StoreParams) String() string {
 func (*StoreParams) ProtoMessage() {}
 
 func (x *StoreParams) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[2]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -258,7 +487,7 @@ func (x *StoreParams) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoreParams.ProtoReflect.Descriptor instead.
 func (*StoreParams) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{2}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *StoreParams) GetAddress() string {
@@ -296,7 +525,7 @@ type StoreRequest struct {
 func (x *StoreRequest) Reset() {
 	*x = StoreRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[3]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -309,7 +538,7 @@ func (x *StoreRequest) String() string {
 func (*StoreRequest) ProtoMessage() {}
 
 func (x *StoreRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[3]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -322,7 +551,7 @@ func (x *StoreRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoreRequest.ProtoReflect.Descriptor instead.
 func (*StoreRequest) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{3}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{6}
 }
 
 func (m *StoreRequest) GetPayload() isStoreRequest_Payload {
@@ -375,7 +604,7 @@ type StoreResponse struct {
 func (x *StoreResponse) Reset() {
 	*x = StoreResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[4]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -388,7 +617,7 @@ func (x *StoreResponse) String() string {
 func (*StoreResponse) ProtoMessage() {}
 
 func (x *StoreResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[4]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -401,7 +630,7 @@ func (x *StoreResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoreResponse.ProtoReflect.Descriptor instead.
 func (*StoreResponse) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{4}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *StoreResponse) GetDataCid() string {
@@ -436,7 +665,7 @@ type WatchRequest struct {
 func (x *WatchRequest) Reset() {
 	*x = WatchRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[5]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -449,7 +678,7 @@ func (x *WatchRequest) String() string {
 func (*WatchRequest) ProtoMessage() {}
 
 func (x *WatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[5]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -462,7 +691,7 @@ func (x *WatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchRequest.ProtoReflect.Descriptor instead.
 func (*WatchRequest) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{5}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *WatchRequest) GetProposals() []string {
@@ -483,7 +712,7 @@ type WatchResponse struct {
 func (x *WatchResponse) Reset() {
 	*x = WatchResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[6]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -496,7 +725,7 @@ func (x *WatchResponse) String() string {
 func (*WatchResponse) ProtoMessage() {}
 
 func (x *WatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[6]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -509,7 +738,7 @@ func (x *WatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchResponse.ProtoReflect.Descriptor instead.
 func (*WatchResponse) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{6}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WatchResponse) GetDealInfo() *DealInfo {
@@ -531,7 +760,7 @@ type RetrieveRequest struct {
 func (x *RetrieveRequest) Reset() {
 	*x = RetrieveRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[7]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -544,7 +773,7 @@ func (x *RetrieveRequest) String() string {
 func (*RetrieveRequest) ProtoMessage() {}
 
 func (x *RetrieveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[7]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -557,7 +786,7 @@ func (x *RetrieveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetrieveRequest.ProtoReflect.Descriptor instead.
 func (*RetrieveRequest) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{7}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *RetrieveRequest) GetAddress() string {
@@ -585,7 +814,7 @@ type RetrieveResponse struct {
 func (x *RetrieveResponse) Reset() {
 	*x = RetrieveResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[8]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -598,7 +827,7 @@ func (x *RetrieveResponse) String() string {
 func (*RetrieveResponse) ProtoMessage() {}
 
 func (x *RetrieveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[8]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -611,7 +840,7 @@ func (x *RetrieveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetrieveResponse.ProtoReflect.Descriptor instead.
 func (*RetrieveResponse) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{8}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *RetrieveResponse) GetChunk() []byte {
@@ -621,39 +850,411 @@ func (x *RetrieveResponse) GetChunk() []byte {
 	return nil
 }
 
+type FinalDealRecordsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *FinalDealRecordsRequest) Reset() {
+	*x = FinalDealRecordsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *FinalDealRecordsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinalDealRecordsRequest) ProtoMessage() {}
+
+func (x *FinalDealRecordsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinalDealRecordsRequest.ProtoReflect.Descriptor instead.
+func (*FinalDealRecordsRequest) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{12}
+}
+
+type FinalDealRecordsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Records []*DealRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records,omitempty"`
+}
+
+func (x *FinalDealRecordsResponse) Reset() {
+	*x = FinalDealRecordsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *FinalDealRecordsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinalDealRecordsResponse) ProtoMessage() {}
+
+func (x *FinalDealRecordsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinalDealRecordsResponse.ProtoReflect.Descriptor instead.
+func (*FinalDealRecordsResponse) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *FinalDealRecordsResponse) GetRecords() []*DealRecord {
+	if x != nil {
+		return x.Records
+	}
+	return nil
+}
+
+type PendingDealRecordsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *PendingDealRecordsRequest) Reset() {
+	*x = PendingDealRecordsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PendingDealRecordsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PendingDealRecordsRequest) ProtoMessage() {}
+
+func (x *PendingDealRecordsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PendingDealRecordsRequest.ProtoReflect.Descriptor instead.
+func (*PendingDealRecordsRequest) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{14}
+}
+
+type PendingDealRecordsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Records []*DealRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records,omitempty"`
+}
+
+func (x *PendingDealRecordsResponse) Reset() {
+	*x = PendingDealRecordsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PendingDealRecordsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PendingDealRecordsResponse) ProtoMessage() {}
+
+func (x *PendingDealRecordsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PendingDealRecordsResponse.ProtoReflect.Descriptor instead.
+func (*PendingDealRecordsResponse) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *PendingDealRecordsResponse) GetRecords() []*DealRecord {
+	if x != nil {
+		return x.Records
+	}
+	return nil
+}
+
+type AllDealRecordsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *AllDealRecordsRequest) Reset() {
+	*x = AllDealRecordsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AllDealRecordsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AllDealRecordsRequest) ProtoMessage() {}
+
+func (x *AllDealRecordsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AllDealRecordsRequest.ProtoReflect.Descriptor instead.
+func (*AllDealRecordsRequest) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{16}
+}
+
+type AllDealRecordsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Records []*DealRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records,omitempty"`
+}
+
+func (x *AllDealRecordsResponse) Reset() {
+	*x = AllDealRecordsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AllDealRecordsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AllDealRecordsResponse) ProtoMessage() {}
+
+func (x *AllDealRecordsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AllDealRecordsResponse.ProtoReflect.Descriptor instead.
+func (*AllDealRecordsResponse) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *AllDealRecordsResponse) GetRecords() []*DealRecord {
+	if x != nil {
+		return x.Records
+	}
+	return nil
+}
+
+type RetrievalRecordsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *RetrievalRecordsRequest) Reset() {
+	*x = RetrievalRecordsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RetrievalRecordsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RetrievalRecordsRequest) ProtoMessage() {}
+
+func (x *RetrievalRecordsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RetrievalRecordsRequest.ProtoReflect.Descriptor instead.
+func (*RetrievalRecordsRequest) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{18}
+}
+
+type RetrievalRecordsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Records []*RetrievalRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records,omitempty"`
+}
+
+func (x *RetrievalRecordsResponse) Reset() {
+	*x = RetrievalRecordsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RetrievalRecordsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RetrievalRecordsResponse) ProtoMessage() {}
+
+func (x *RetrievalRecordsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RetrievalRecordsResponse.ProtoReflect.Descriptor instead.
+func (*RetrievalRecordsResponse) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *RetrievalRecordsResponse) GetRecords() []*RetrievalRecord {
+	if x != nil {
+		return x.Records
+	}
+	return nil
+}
+
 var File_deals_rpc_rpc_proto protoreflect.FileDescriptor
 
 var file_deals_rpc_rpc_proto_rawDesc = []byte{
 	0x0a, 0x13, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2f, 0x72, 0x70, 0x63, 0x2f, 0x72, 0x70, 0x63, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x09, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63,
-	0x22, 0x43, 0x0a, 0x0a, 0x44, 0x65, 0x61, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x14,
-	0x0a, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6d,
-	0x69, 0x6e, 0x65, 0x72, 0x12, 0x1f, 0x0a, 0x0b, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x5f, 0x70, 0x72,
-	0x69, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0a, 0x65, 0x70, 0x6f, 0x63, 0x68,
-	0x50, 0x72, 0x69, 0x63, 0x65, 0x22, 0xe9, 0x02, 0x0a, 0x08, 0x44, 0x65, 0x61, 0x6c, 0x49, 0x6e,
-	0x66, 0x6f, 0x12, 0x21, 0x0a, 0x0c, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x5f, 0x63,
-	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73,
-	0x61, 0x6c, 0x43, 0x69, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x69,
-	0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x07, 0x73, 0x74, 0x61, 0x74, 0x65, 0x49, 0x64,
-	0x12, 0x1d, 0x0a, 0x0a, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x74, 0x61, 0x74, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12,
-	0x14, 0x0a, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
-	0x6d, 0x69, 0x6e, 0x65, 0x72, 0x12, 0x1b, 0x0a, 0x09, 0x70, 0x69, 0x65, 0x63, 0x65, 0x5f, 0x63,
-	0x69, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x08, 0x70, 0x69, 0x65, 0x63, 0x65, 0x43,
-	0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x04,
-	0x52, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x12, 0x26, 0x0a, 0x0f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x5f,
-	0x70, 0x65, 0x72, 0x5f, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x07, 0x20, 0x01, 0x28, 0x04, 0x52,
-	0x0d, 0x70, 0x72, 0x69, 0x63, 0x65, 0x50, 0x65, 0x72, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x1f,
-	0x0a, 0x0b, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x08, 0x20,
-	0x01, 0x28, 0x04, 0x52, 0x0a, 0x73, 0x74, 0x61, 0x72, 0x74, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x12,
-	0x1a, 0x0a, 0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x09, 0x20, 0x01, 0x28,
-	0x04, 0x52, 0x08, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x64,
-	0x65, 0x61, 0x6c, 0x5f, 0x69, 0x64, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x64, 0x65,
-	0x61, 0x6c, 0x49, 0x64, 0x12, 0x29, 0x0a, 0x10, 0x61, 0x63, 0x74, 0x69, 0x76, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x5f, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0f,
-	0x61, 0x63, 0x74, 0x69, 0x76, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x12,
-	0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73,
-	0x67, 0x22, 0x84, 0x01, 0x0a, 0x0b, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d,
+	0x22, 0xe9, 0x02, 0x0a, 0x08, 0x44, 0x65, 0x61, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x21, 0x0a,
+	0x0c, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x5f, 0x63, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0b, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x43, 0x69, 0x64,
+	0x12, 0x19, 0x0a, 0x08, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x04, 0x52, 0x07, 0x73, 0x74, 0x61, 0x74, 0x65, 0x49, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x73,
+	0x74, 0x61, 0x74, 0x65, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x09, 0x73, 0x74, 0x61, 0x74, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x69,
+	0x6e, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72,
+	0x12, 0x1b, 0x0a, 0x09, 0x70, 0x69, 0x65, 0x63, 0x65, 0x5f, 0x63, 0x69, 0x64, 0x18, 0x05, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x69, 0x65, 0x63, 0x65, 0x43, 0x69, 0x64, 0x12, 0x12, 0x0a,
+	0x04, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x73, 0x69, 0x7a,
+	0x65, 0x12, 0x26, 0x0a, 0x0f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x5f, 0x70, 0x65, 0x72, 0x5f, 0x65,
+	0x70, 0x6f, 0x63, 0x68, 0x18, 0x07, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0d, 0x70, 0x72, 0x69, 0x63,
+	0x65, 0x50, 0x65, 0x72, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x1f, 0x0a, 0x0b, 0x73, 0x74, 0x61,
+	0x72, 0x74, 0x5f, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x08, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0a,
+	0x73, 0x74, 0x61, 0x72, 0x74, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x64, 0x75,
+	0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x09, 0x20, 0x01, 0x28, 0x04, 0x52, 0x08, 0x64, 0x75,
+	0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x64, 0x65, 0x61, 0x6c, 0x5f, 0x69,
+	0x64, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x64, 0x65, 0x61, 0x6c, 0x49, 0x64, 0x12,
+	0x29, 0x0a, 0x10, 0x61, 0x63, 0x74, 0x69, 0x76, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x65, 0x70,
+	0x6f, 0x63, 0x68, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0f, 0x61, 0x63, 0x74, 0x69, 0x76,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73,
+	0x67, 0x18, 0x0c, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x22, 0x80, 0x01, 0x0a,
+	0x0a, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x61,
+	0x64, 0x64, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x61, 0x64, 0x64, 0x72, 0x12,
+	0x12, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74,
+	0x69, 0x6d, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x70, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x70, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x12, 0x30, 0x0a,
+	0x09, 0x64, 0x65, 0x61, 0x6c, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x13, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44, 0x65, 0x61,
+	0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x64, 0x65, 0x61, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x22,
+	0xfe, 0x01, 0x0a, 0x0d, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x49, 0x6e, 0x66,
+	0x6f, 0x12, 0x1b, 0x0a, 0x09, 0x70, 0x69, 0x65, 0x63, 0x65, 0x5f, 0x63, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x69, 0x65, 0x63, 0x65, 0x43, 0x69, 0x64, 0x12, 0x12,
+	0x0a, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x73, 0x69,
+	0x7a, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x6d, 0x69, 0x6e, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x08, 0x6d, 0x69, 0x6e, 0x50, 0x72, 0x69, 0x63, 0x65, 0x12,
+	0x29, 0x0a, 0x10, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x6e, 0x74, 0x65, 0x72,
+	0x76, 0x61, 0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0f, 0x70, 0x61, 0x79, 0x6d, 0x65,
+	0x6e, 0x74, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x12, 0x3a, 0x0a, 0x19, 0x70, 0x61,
+	0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x5f, 0x69,
+	0x6e, 0x63, 0x72, 0x65, 0x61, 0x73, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x17, 0x70,
+	0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x49, 0x6e,
+	0x63, 0x72, 0x65, 0x61, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x18,
+	0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x12, 0x22, 0x0a, 0x0d,
+	0x6d, 0x69, 0x6e, 0x65, 0x72, 0x5f, 0x70, 0x65, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x07, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0b, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x50, 0x65, 0x65, 0x72, 0x49, 0x64,
+	0x22, 0x7a, 0x0a, 0x0f, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x52, 0x65, 0x63,
+	0x6f, 0x72, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x61, 0x64, 0x64, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x61, 0x64, 0x64, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x12, 0x3f, 0x0a, 0x0e, 0x72,
+	0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0d, 0x72,
+	0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x43, 0x0a, 0x0a,
+	0x44, 0x65, 0x61, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x69,
+	0x6e, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72,
+	0x12, 0x1f, 0x0a, 0x0b, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0a, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x50, 0x72, 0x69, 0x63,
+	0x65, 0x22, 0x84, 0x01, 0x0a, 0x0b, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d,
 	0x73, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x09, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x38, 0x0a, 0x0c, 0x64,
 	0x65, 0x61, 0x6c, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28,
@@ -690,22 +1291,72 @@ var file_deals_rpc_rpc_proto_rawDesc = []byte{
 	0x73, 0x73, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x03, 0x63, 0x69, 0x64, 0x22, 0x28, 0x0a, 0x10, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65,
 	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x68, 0x75, 0x6e,
-	0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x32, 0xd5,
-	0x01, 0x0a, 0x0a, 0x52, 0x50, 0x43, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3e, 0x0a,
-	0x05, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x12, 0x17, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
-	0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x12, 0x3e, 0x0a,
-	0x05, 0x57, 0x61, 0x74, 0x63, 0x68, 0x12, 0x17, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
-	0x70, 0x63, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x57, 0x61, 0x74, 0x63,
-	0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x47, 0x0a,
-	0x08, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x12, 0x1a, 0x2e, 0x64, 0x65, 0x61, 0x6c,
-	0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70,
-	0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x42, 0x0b, 0x5a, 0x09, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2f,
-	0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x22, 0x19,
+	0x0a, 0x17, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72,
+	0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x4b, 0x0a, 0x18, 0x46, 0x69, 0x6e,
+	0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a, 0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52, 0x07, 0x72,
+	0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x22, 0x1b, 0x0a, 0x19, 0x50, 0x65, 0x6e, 0x64, 0x69, 0x6e,
+	0x67, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x22, 0x4d, 0x0a, 0x1a, 0x50, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x44, 0x65,
+	0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x2f, 0x0a, 0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x15, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44,
+	0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52, 0x07, 0x72, 0x65, 0x63, 0x6f, 0x72,
+	0x64, 0x73, 0x22, 0x17, 0x0a, 0x15, 0x41, 0x6c, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63,
+	0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x49, 0x0a, 0x16, 0x41,
+	0x6c, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a, 0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52, 0x07, 0x72,
+	0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x22, 0x19, 0x0a, 0x17, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65,
+	0x76, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x22, 0x50, 0x0a, 0x18, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x52, 0x65,
+	0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x34, 0x0a,
+	0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a,
+	0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69,
+	0x65, 0x76, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52, 0x07, 0x72, 0x65, 0x63, 0x6f,
+	0x72, 0x64, 0x73, 0x32, 0xd1, 0x04, 0x0a, 0x0a, 0x52, 0x50, 0x43, 0x53, 0x65, 0x72, 0x76, 0x69,
+	0x63, 0x65, 0x12, 0x3e, 0x0a, 0x05, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x12, 0x17, 0x2e, 0x64, 0x65,
+	0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x28, 0x01, 0x12, 0x3e, 0x0a, 0x05, 0x57, 0x61, 0x74, 0x63, 0x68, 0x12, 0x17, 0x2e, 0x64, 0x65,
+	0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x30, 0x01, 0x12, 0x47, 0x0a, 0x08, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x12, 0x1a,
+	0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69,
+	0x65, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x64, 0x65, 0x61,
+	0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x5d, 0x0a, 0x10, 0x46,
+	0x69, 0x6e, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x12,
+	0x22, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x46, 0x69, 0x6e, 0x61,
+	0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x46, 0x69, 0x6e, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x63, 0x0a, 0x12, 0x50, 0x65,
+	0x6e, 0x64, 0x69, 0x6e, 0x67, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73,
+	0x12, 0x24, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x50, 0x65, 0x6e,
+	0x64, 0x69, 0x6e, 0x67, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x50, 0x65, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65,
+	0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x57, 0x0a, 0x0e, 0x41, 0x6c, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64,
+	0x73, 0x12, 0x20, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x6c,
+	0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x41, 0x6c, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5d, 0x0a, 0x10, 0x52, 0x65, 0x74, 0x72,
+	0x69, 0x65, 0x76, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x22, 0x2e, 0x64,
+	0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76,
+	0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x23, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74,
+	0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x0b, 0x5a, 0x09, 0x64, 0x65, 0x61, 0x6c, 0x73,
+	0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -720,34 +1371,59 @@ func file_deals_rpc_rpc_proto_rawDescGZIP() []byte {
 	return file_deals_rpc_rpc_proto_rawDescData
 }
 
-var file_deals_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_deals_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_deals_rpc_rpc_proto_goTypes = []interface{}{
-	(*DealConfig)(nil),       // 0: deals.rpc.DealConfig
-	(*DealInfo)(nil),         // 1: deals.rpc.DealInfo
-	(*StoreParams)(nil),      // 2: deals.rpc.StoreParams
-	(*StoreRequest)(nil),     // 3: deals.rpc.StoreRequest
-	(*StoreResponse)(nil),    // 4: deals.rpc.StoreResponse
-	(*WatchRequest)(nil),     // 5: deals.rpc.WatchRequest
-	(*WatchResponse)(nil),    // 6: deals.rpc.WatchResponse
-	(*RetrieveRequest)(nil),  // 7: deals.rpc.RetrieveRequest
-	(*RetrieveResponse)(nil), // 8: deals.rpc.RetrieveResponse
+	(*DealInfo)(nil),                   // 0: deals.rpc.DealInfo
+	(*DealRecord)(nil),                 // 1: deals.rpc.DealRecord
+	(*RetrievalInfo)(nil),              // 2: deals.rpc.RetrievalInfo
+	(*RetrievalRecord)(nil),            // 3: deals.rpc.RetrievalRecord
+	(*DealConfig)(nil),                 // 4: deals.rpc.DealConfig
+	(*StoreParams)(nil),                // 5: deals.rpc.StoreParams
+	(*StoreRequest)(nil),               // 6: deals.rpc.StoreRequest
+	(*StoreResponse)(nil),              // 7: deals.rpc.StoreResponse
+	(*WatchRequest)(nil),               // 8: deals.rpc.WatchRequest
+	(*WatchResponse)(nil),              // 9: deals.rpc.WatchResponse
+	(*RetrieveRequest)(nil),            // 10: deals.rpc.RetrieveRequest
+	(*RetrieveResponse)(nil),           // 11: deals.rpc.RetrieveResponse
+	(*FinalDealRecordsRequest)(nil),    // 12: deals.rpc.FinalDealRecordsRequest
+	(*FinalDealRecordsResponse)(nil),   // 13: deals.rpc.FinalDealRecordsResponse
+	(*PendingDealRecordsRequest)(nil),  // 14: deals.rpc.PendingDealRecordsRequest
+	(*PendingDealRecordsResponse)(nil), // 15: deals.rpc.PendingDealRecordsResponse
+	(*AllDealRecordsRequest)(nil),      // 16: deals.rpc.AllDealRecordsRequest
+	(*AllDealRecordsResponse)(nil),     // 17: deals.rpc.AllDealRecordsResponse
+	(*RetrievalRecordsRequest)(nil),    // 18: deals.rpc.RetrievalRecordsRequest
+	(*RetrievalRecordsResponse)(nil),   // 19: deals.rpc.RetrievalRecordsResponse
 }
 var file_deals_rpc_rpc_proto_depIdxs = []int32{
-	0, // 0: deals.rpc.StoreParams.deal_configs:type_name -> deals.rpc.DealConfig
-	2, // 1: deals.rpc.StoreRequest.store_params:type_name -> deals.rpc.StoreParams
-	0, // 2: deals.rpc.StoreResponse.failed_deals:type_name -> deals.rpc.DealConfig
-	1, // 3: deals.rpc.WatchResponse.deal_info:type_name -> deals.rpc.DealInfo
-	3, // 4: deals.rpc.RPCService.Store:input_type -> deals.rpc.StoreRequest
-	5, // 5: deals.rpc.RPCService.Watch:input_type -> deals.rpc.WatchRequest
-	7, // 6: deals.rpc.RPCService.Retrieve:input_type -> deals.rpc.RetrieveRequest
-	4, // 7: deals.rpc.RPCService.Store:output_type -> deals.rpc.StoreResponse
-	6, // 8: deals.rpc.RPCService.Watch:output_type -> deals.rpc.WatchResponse
-	8, // 9: deals.rpc.RPCService.Retrieve:output_type -> deals.rpc.RetrieveResponse
-	7, // [7:10] is the sub-list for method output_type
-	4, // [4:7] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0,  // 0: deals.rpc.DealRecord.deal_info:type_name -> deals.rpc.DealInfo
+	2,  // 1: deals.rpc.RetrievalRecord.retrieval_info:type_name -> deals.rpc.RetrievalInfo
+	4,  // 2: deals.rpc.StoreParams.deal_configs:type_name -> deals.rpc.DealConfig
+	5,  // 3: deals.rpc.StoreRequest.store_params:type_name -> deals.rpc.StoreParams
+	4,  // 4: deals.rpc.StoreResponse.failed_deals:type_name -> deals.rpc.DealConfig
+	0,  // 5: deals.rpc.WatchResponse.deal_info:type_name -> deals.rpc.DealInfo
+	1,  // 6: deals.rpc.FinalDealRecordsResponse.records:type_name -> deals.rpc.DealRecord
+	1,  // 7: deals.rpc.PendingDealRecordsResponse.records:type_name -> deals.rpc.DealRecord
+	1,  // 8: deals.rpc.AllDealRecordsResponse.records:type_name -> deals.rpc.DealRecord
+	3,  // 9: deals.rpc.RetrievalRecordsResponse.records:type_name -> deals.rpc.RetrievalRecord
+	6,  // 10: deals.rpc.RPCService.Store:input_type -> deals.rpc.StoreRequest
+	8,  // 11: deals.rpc.RPCService.Watch:input_type -> deals.rpc.WatchRequest
+	10, // 12: deals.rpc.RPCService.Retrieve:input_type -> deals.rpc.RetrieveRequest
+	12, // 13: deals.rpc.RPCService.FinalDealRecords:input_type -> deals.rpc.FinalDealRecordsRequest
+	14, // 14: deals.rpc.RPCService.PendingDealRecords:input_type -> deals.rpc.PendingDealRecordsRequest
+	16, // 15: deals.rpc.RPCService.AllDealRecords:input_type -> deals.rpc.AllDealRecordsRequest
+	18, // 16: deals.rpc.RPCService.RetrievalRecords:input_type -> deals.rpc.RetrievalRecordsRequest
+	7,  // 17: deals.rpc.RPCService.Store:output_type -> deals.rpc.StoreResponse
+	9,  // 18: deals.rpc.RPCService.Watch:output_type -> deals.rpc.WatchResponse
+	11, // 19: deals.rpc.RPCService.Retrieve:output_type -> deals.rpc.RetrieveResponse
+	13, // 20: deals.rpc.RPCService.FinalDealRecords:output_type -> deals.rpc.FinalDealRecordsResponse
+	15, // 21: deals.rpc.RPCService.PendingDealRecords:output_type -> deals.rpc.PendingDealRecordsResponse
+	17, // 22: deals.rpc.RPCService.AllDealRecords:output_type -> deals.rpc.AllDealRecordsResponse
+	19, // 23: deals.rpc.RPCService.RetrievalRecords:output_type -> deals.rpc.RetrievalRecordsResponse
+	17, // [17:24] is the sub-list for method output_type
+	10, // [10:17] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_deals_rpc_rpc_proto_init() }
@@ -757,18 +1433,6 @@ func file_deals_rpc_rpc_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_deals_rpc_rpc_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DealConfig); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_deals_rpc_rpc_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DealInfo); i {
 			case 0:
 				return &v.state
@@ -780,8 +1444,20 @@ func file_deals_rpc_rpc_proto_init() {
 				return nil
 			}
 		}
+		file_deals_rpc_rpc_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DealRecord); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 		file_deals_rpc_rpc_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StoreParams); i {
+			switch v := v.(*RetrievalInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -793,7 +1469,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StoreRequest); i {
+			switch v := v.(*RetrievalRecord); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -805,7 +1481,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StoreResponse); i {
+			switch v := v.(*DealConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -817,7 +1493,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchRequest); i {
+			switch v := v.(*StoreParams); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -829,7 +1505,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchResponse); i {
+			switch v := v.(*StoreRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -841,7 +1517,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RetrieveRequest); i {
+			switch v := v.(*StoreResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -853,6 +1529,42 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WatchRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WatchResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RetrieveRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RetrieveResponse); i {
 			case 0:
 				return &v.state
@@ -864,8 +1576,104 @@ func file_deals_rpc_rpc_proto_init() {
 				return nil
 			}
 		}
+		file_deals_rpc_rpc_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FinalDealRecordsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FinalDealRecordsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PendingDealRecordsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PendingDealRecordsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AllDealRecordsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AllDealRecordsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RetrievalRecordsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RetrievalRecordsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
-	file_deals_rpc_rpc_proto_msgTypes[3].OneofWrappers = []interface{}{
+	file_deals_rpc_rpc_proto_msgTypes[6].OneofWrappers = []interface{}{
 		(*StoreRequest_StoreParams)(nil),
 		(*StoreRequest_Chunk)(nil),
 	}
@@ -875,7 +1683,7 @@ func file_deals_rpc_rpc_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_deals_rpc_rpc_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -904,6 +1712,10 @@ type RPCServiceClient interface {
 	Store(ctx context.Context, opts ...grpc.CallOption) (RPCService_StoreClient, error)
 	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (RPCService_WatchClient, error)
 	Retrieve(ctx context.Context, in *RetrieveRequest, opts ...grpc.CallOption) (RPCService_RetrieveClient, error)
+	FinalDealRecords(ctx context.Context, in *FinalDealRecordsRequest, opts ...grpc.CallOption) (*FinalDealRecordsResponse, error)
+	PendingDealRecords(ctx context.Context, in *PendingDealRecordsRequest, opts ...grpc.CallOption) (*PendingDealRecordsResponse, error)
+	AllDealRecords(ctx context.Context, in *AllDealRecordsRequest, opts ...grpc.CallOption) (*AllDealRecordsResponse, error)
+	RetrievalRecords(ctx context.Context, in *RetrievalRecordsRequest, opts ...grpc.CallOption) (*RetrievalRecordsResponse, error)
 }
 
 type rPCServiceClient struct {
@@ -1012,11 +1824,51 @@ func (x *rPCServiceRetrieveClient) Recv() (*RetrieveResponse, error) {
 	return m, nil
 }
 
+func (c *rPCServiceClient) FinalDealRecords(ctx context.Context, in *FinalDealRecordsRequest, opts ...grpc.CallOption) (*FinalDealRecordsResponse, error) {
+	out := new(FinalDealRecordsResponse)
+	err := c.cc.Invoke(ctx, "/deals.rpc.RPCService/FinalDealRecords", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rPCServiceClient) PendingDealRecords(ctx context.Context, in *PendingDealRecordsRequest, opts ...grpc.CallOption) (*PendingDealRecordsResponse, error) {
+	out := new(PendingDealRecordsResponse)
+	err := c.cc.Invoke(ctx, "/deals.rpc.RPCService/PendingDealRecords", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rPCServiceClient) AllDealRecords(ctx context.Context, in *AllDealRecordsRequest, opts ...grpc.CallOption) (*AllDealRecordsResponse, error) {
+	out := new(AllDealRecordsResponse)
+	err := c.cc.Invoke(ctx, "/deals.rpc.RPCService/AllDealRecords", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rPCServiceClient) RetrievalRecords(ctx context.Context, in *RetrievalRecordsRequest, opts ...grpc.CallOption) (*RetrievalRecordsResponse, error) {
+	out := new(RetrievalRecordsResponse)
+	err := c.cc.Invoke(ctx, "/deals.rpc.RPCService/RetrievalRecords", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RPCServiceServer is the server API for RPCService service.
 type RPCServiceServer interface {
 	Store(RPCService_StoreServer) error
 	Watch(*WatchRequest, RPCService_WatchServer) error
 	Retrieve(*RetrieveRequest, RPCService_RetrieveServer) error
+	FinalDealRecords(context.Context, *FinalDealRecordsRequest) (*FinalDealRecordsResponse, error)
+	PendingDealRecords(context.Context, *PendingDealRecordsRequest) (*PendingDealRecordsResponse, error)
+	AllDealRecords(context.Context, *AllDealRecordsRequest) (*AllDealRecordsResponse, error)
+	RetrievalRecords(context.Context, *RetrievalRecordsRequest) (*RetrievalRecordsResponse, error)
 }
 
 // UnimplementedRPCServiceServer can be embedded to have forward compatible implementations.
@@ -1031,6 +1883,18 @@ func (*UnimplementedRPCServiceServer) Watch(*WatchRequest, RPCService_WatchServe
 }
 func (*UnimplementedRPCServiceServer) Retrieve(*RetrieveRequest, RPCService_RetrieveServer) error {
 	return status.Errorf(codes.Unimplemented, "method Retrieve not implemented")
+}
+func (*UnimplementedRPCServiceServer) FinalDealRecords(context.Context, *FinalDealRecordsRequest) (*FinalDealRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FinalDealRecords not implemented")
+}
+func (*UnimplementedRPCServiceServer) PendingDealRecords(context.Context, *PendingDealRecordsRequest) (*PendingDealRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PendingDealRecords not implemented")
+}
+func (*UnimplementedRPCServiceServer) AllDealRecords(context.Context, *AllDealRecordsRequest) (*AllDealRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AllDealRecords not implemented")
+}
+func (*UnimplementedRPCServiceServer) RetrievalRecords(context.Context, *RetrievalRecordsRequest) (*RetrievalRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RetrievalRecords not implemented")
 }
 
 func RegisterRPCServiceServer(s *grpc.Server, srv RPCServiceServer) {
@@ -1105,10 +1969,99 @@ func (x *rPCServiceRetrieveServer) Send(m *RetrieveResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _RPCService_FinalDealRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FinalDealRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServiceServer).FinalDealRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/deals.rpc.RPCService/FinalDealRecords",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServiceServer).FinalDealRecords(ctx, req.(*FinalDealRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RPCService_PendingDealRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PendingDealRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServiceServer).PendingDealRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/deals.rpc.RPCService/PendingDealRecords",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServiceServer).PendingDealRecords(ctx, req.(*PendingDealRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RPCService_AllDealRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AllDealRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServiceServer).AllDealRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/deals.rpc.RPCService/AllDealRecords",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServiceServer).AllDealRecords(ctx, req.(*AllDealRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RPCService_RetrievalRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RetrievalRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServiceServer).RetrievalRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/deals.rpc.RPCService/RetrievalRecords",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServiceServer).RetrievalRecords(ctx, req.(*RetrievalRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _RPCService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "deals.rpc.RPCService",
 	HandlerType: (*RPCServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "FinalDealRecords",
+			Handler:    _RPCService_FinalDealRecords_Handler,
+		},
+		{
+			MethodName: "PendingDealRecords",
+			Handler:    _RPCService_PendingDealRecords_Handler,
+		},
+		{
+			MethodName: "AllDealRecords",
+			Handler:    _RPCService_AllDealRecords_Handler,
+		},
+		{
+			MethodName: "RetrievalRecords",
+			Handler:    _RPCService_RetrievalRecords_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Store",

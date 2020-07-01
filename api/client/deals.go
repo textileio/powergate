@@ -120,7 +120,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				channel <- WatchEvent{Err: err}
 				break
 			}
-			cid, err := cid.Cast(event.GetDealInfo().GetPieceCid())
+			cid, err := cid.Decode(event.GetDealInfo().GetPieceCid())
 			if err != nil {
 				channel <- WatchEvent{Err: err}
 				break
@@ -177,4 +177,118 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 	}()
 
 	return reader, nil
+}
+
+// FinalDealRecords returns a list of all finalized storage deals.
+// Records are sorted ascending by activation epoch then timestamp.
+func (d *Deals) FinalDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+	res, err := d.client.FinalDealRecords(ctx, &rpc.FinalDealRecordsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	ret, err := fromRPCDealRecords(res.Records)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+// PendingDealRecords returns a list of all pending storage deals.
+// Records are sorted ascending by timestamp.
+func (d *Deals) PendingDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+	res, err := d.client.PendingDealRecords(ctx, &rpc.PendingDealRecordsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	ret, err := fromRPCDealRecords(res.Records)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+// AllDealRecords returns a list of all finalized and pending deals.
+// Records are sorted ascending by activation epoch, if available, then timestamp.
+func (d *Deals) AllDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+	res, err := d.client.AllDealRecords(ctx, &rpc.AllDealRecordsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	ret, err := fromRPCDealRecords(res.Records)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+// RetrievalRecords returns a list of all retrievals.
+// Records are sorted ascending by timestamp.
+func (d *Deals) RetrievalRecords(ctx context.Context) ([]deals.RetrievalRecord, error) {
+	res, err := d.client.RetrievalRecords(ctx, &rpc.RetrievalRecordsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	var ret []deals.RetrievalRecord
+	for _, rpcRecord := range res.Records {
+		if rpcRecord.RetrievalInfo == nil {
+			continue
+		}
+		record := deals.RetrievalRecord{
+			Addr: rpcRecord.Addr,
+			Time: rpcRecord.Time,
+		}
+		pieceCid, err := cid.Decode(rpcRecord.RetrievalInfo.PieceCid)
+		if err != nil {
+			return nil, err
+		}
+		record.RetrievalInfo = deals.RetrievalInfo{
+			PieceCID:                pieceCid,
+			Size:                    rpcRecord.RetrievalInfo.Size,
+			MinPrice:                rpcRecord.RetrievalInfo.MinPrice,
+			PaymentInterval:         rpcRecord.RetrievalInfo.PaymentInterval,
+			PaymentIntervalIncrease: rpcRecord.RetrievalInfo.PaymentIntervalIncrease,
+			Miner:                   rpcRecord.RetrievalInfo.Miner,
+			MinerPeerID:             rpcRecord.RetrievalInfo.MinerPeerId,
+		}
+		ret = append(ret, record)
+	}
+	return ret, nil
+}
+
+func fromRPCDealRecords(records []*rpc.DealRecord) ([]deals.DealRecord, error) {
+	var ret []deals.DealRecord
+	for _, rpcRecord := range records {
+		if rpcRecord.DealInfo == nil {
+			continue
+		}
+		record := deals.DealRecord{
+			Addr:    rpcRecord.Addr,
+			Time:    rpcRecord.Time,
+			Pending: rpcRecord.Pending,
+		}
+		proposalCid, err := cid.Decode(rpcRecord.DealInfo.ProposalCid)
+		if err != nil {
+			return nil, err
+		}
+		pieceCid, err := cid.Decode(rpcRecord.DealInfo.PieceCid)
+		if err != nil {
+			return nil, err
+		}
+		record.DealInfo = deals.DealInfo{
+			ProposalCid:     proposalCid,
+			StateID:         rpcRecord.DealInfo.StateId,
+			StateName:       rpcRecord.DealInfo.StateName,
+			Miner:           rpcRecord.DealInfo.Miner,
+			PieceCID:        pieceCid,
+			Size:            rpcRecord.DealInfo.Size,
+			PricePerEpoch:   rpcRecord.DealInfo.PricePerEpoch,
+			StartEpoch:      rpcRecord.DealInfo.StartEpoch,
+			Duration:        rpcRecord.DealInfo.Duration,
+			DealID:          rpcRecord.DealInfo.DealId,
+			ActivationEpoch: rpcRecord.DealInfo.ActivationEpoch,
+			Message:         rpcRecord.DealInfo.Msg,
+		}
+		ret = append(ret, record)
+	}
+	return ret, nil
 }

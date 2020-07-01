@@ -148,7 +148,7 @@ func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 			StateId:       update.StateID,
 			StateName:     update.StateName,
 			Miner:         update.Miner,
-			PieceCid:      update.PieceCID.Bytes(),
+			PieceCid:      update.PieceCID.String(),
 			Size:          update.Size,
 			PricePerEpoch: update.PricePerEpoch,
 			Duration:      update.Duration,
@@ -191,4 +191,82 @@ func (s *RPC) Retrieve(req *RetrieveRequest, srv RPCService_RetrieveServer) erro
 			return nil
 		}
 	}
+}
+
+// FinalDealRecords calls deals.FinalDealRecords.
+func (s *RPC) FinalDealRecords(ctx context.Context, req *FinalDealRecordsRequest) (*FinalDealRecordsResponse, error) {
+	records, err := s.Module.FinalDealRecords()
+	if err != nil {
+		return nil, err
+	}
+	return &FinalDealRecordsResponse{Records: toRPCDealRecords(records)}, nil
+}
+
+// PendingDealRecords calls deals.PendingDealRecords.
+func (s *RPC) PendingDealRecords(ctx context.Context, req *PendingDealRecordsRequest) (*PendingDealRecordsResponse, error) {
+	records, err := s.Module.PendingDealRecords()
+	if err != nil {
+		return nil, err
+	}
+	return &PendingDealRecordsResponse{Records: toRPCDealRecords(records)}, nil
+}
+
+// AllDealRecords calls deals.AllDealRecords.
+func (s *RPC) AllDealRecords(ctx context.Context, req *AllDealRecordsRequest) (*AllDealRecordsResponse, error) {
+	records, err := s.Module.AllDealRecords()
+	if err != nil {
+		return nil, err
+	}
+	return &AllDealRecordsResponse{Records: toRPCDealRecords(records)}, nil
+}
+
+// RetrievalRecords calls deals.RetrievalRecords.
+func (s *RPC) RetrievalRecords(ctx context.Context, req *RetrievalRecordsRequest) (*RetrievalRecordsResponse, error) {
+	records, err := s.Module.RetrievalRecords()
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]*RetrievalRecord, len(records))
+	for i, r := range records {
+		ret[i] = &RetrievalRecord{
+			Addr: r.Addr,
+			Time: r.Time,
+			RetrievalInfo: &RetrievalInfo{
+				PieceCid:                r.RetrievalInfo.PieceCID.String(),
+				Size:                    r.RetrievalInfo.Size,
+				MinPrice:                r.RetrievalInfo.MinPrice,
+				PaymentInterval:         r.RetrievalInfo.PaymentInterval,
+				PaymentIntervalIncrease: r.RetrievalInfo.PaymentIntervalIncrease,
+				Miner:                   r.RetrievalInfo.Miner,
+				MinerPeerId:             r.RetrievalInfo.MinerPeerID,
+			},
+		}
+	}
+	return &RetrievalRecordsResponse{Records: ret}, nil
+}
+
+func toRPCDealRecords(records []deals.DealRecord) []*DealRecord {
+	ret := make([]*DealRecord, len(records))
+	for i, r := range records {
+		ret[i] = &DealRecord{
+			Addr:    r.Addr,
+			Time:    r.Time,
+			Pending: r.Pending,
+			DealInfo: &DealInfo{
+				ProposalCid:     r.DealInfo.ProposalCid.String(),
+				StateId:         r.DealInfo.StateID,
+				StateName:       r.DealInfo.StateName,
+				Miner:           r.DealInfo.Miner,
+				PieceCid:        r.DealInfo.PieceCID.String(),
+				Size:            r.DealInfo.Size,
+				PricePerEpoch:   r.DealInfo.PricePerEpoch,
+				StartEpoch:      r.DealInfo.StartEpoch,
+				Duration:        r.DealInfo.Duration,
+				DealId:          r.DealInfo.DealID,
+				ActivationEpoch: r.DealInfo.ActivationEpoch,
+				Msg:             r.DealInfo.Message,
+			},
+		}
+	}
+	return ret
 }
