@@ -14,7 +14,7 @@ require (
 	github.com/filecoin-project/go-padreader v0.0.0-20200210211231-548257017ca6
 	github.com/filecoin-project/lotus v0.4.0
 	github.com/filecoin-project/specs-actors v0.6.2-0.20200617175406-de392ca14121
-	github.com/gin-contrib/location v0.0.1
+	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/protobuf v1.4.2
