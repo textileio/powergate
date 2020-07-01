@@ -927,6 +927,8 @@ github.com/libp2p/go-libp2p-interface-pnet v0.0.1/go.mod h1:el9jHpQAXK5dnTpKA4yf
 github.com/libp2p/go-libp2p-kad-dht v0.2.1/go.mod h1:k7ONOlup7HKzQ68dE6lSnp07cdxdkmnRa+6B4Fh9/w0=
 github.com/libp2p/go-libp2p-kad-dht v0.8.1 h1:PS/mgLSzFqH5lS3PnnxcqsIrHy+qbQ5GkhzcrT12LyA=
 github.com/libp2p/go-libp2p-kad-dht v0.8.1/go.mod h1:u3rbYbp3CSraAHD5s81CJ3hHozKTud/UOXfAgh93Gek=
+github.com/libp2p/go-libp2p-kad-dht v0.8.2 h1:s7y38B+hdj1AkNR3PCTpvNqBsZHxOf7hoUy7+fNlSZQ=
+github.com/libp2p/go-libp2p-kad-dht v0.8.2/go.mod h1:u3rbYbp3CSraAHD5s81CJ3hHozKTud/UOXfAgh93Gek=
 github.com/libp2p/go-libp2p-kbucket v0.2.1/go.mod h1:/Rtu8tqbJ4WQ2KTCOMJhggMukOLNLNPY1EtEWWLxUvc=
 github.com/libp2p/go-libp2p-kbucket v0.4.2 h1:wg+VPpCtY61bCasGRexCuXOmEmdKjN+k1w+JtTwu9gA=
 github.com/libp2p/go-libp2p-kbucket v0.4.2/go.mod h1:7sCeZx2GkNK1S6lQnGUW5JYZCFPnXzAZCCBBS70lytY=
