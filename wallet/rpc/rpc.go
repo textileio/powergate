@@ -10,11 +10,11 @@ import (
 type RPC struct {
 	UnimplementedRPCServiceServer
 
-	Module *wallet.Module
+	Module wallet.Module
 }
 
 // New creates a new rpc service.
-func New(m *wallet.Module) *RPC {
+func New(m wallet.Module) *RPC {
 	return &RPC{Module: m}
 }
 
