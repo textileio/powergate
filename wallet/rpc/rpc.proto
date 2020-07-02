@@ -11,6 +11,14 @@ message NewAddressResponse {
     string address = 1;
 }
 
+message ListRequest {
+    string type = 1;
+}
+
+message ListResponse {
+    repeated string addresses = 1;
+}
+
 message WalletBalanceRequest {
 	string address = 1;
 }
@@ -21,5 +29,6 @@ message WalletBalanceResponse {
 
 service RPCService {
     rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
+    rpc List(ListRequest) returns (ListResponse) {}
     rpc WalletBalance(WalletBalanceRequest) returns (WalletBalanceResponse) {}
 }

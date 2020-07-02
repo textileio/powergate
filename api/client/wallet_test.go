@@ -21,6 +21,21 @@ func TestNewWallet(t *testing.T) {
 	}
 }
 
+func TestList(t *testing.T) {
+	skipIfShort(t)
+	w, done := setupWallet(t)
+	defer done()
+
+	var err error
+	addresses, err := w.List(ctx)
+	if err != nil {
+		t.Fatalf("failed to list addresses: %v", err)
+	}
+	if len(addresses) < 1 {
+		t.Fatal("received empty addresses list")
+	}
+}
+
 func TestWalletBalance(t *testing.T) {
 	skipIfShort(t)
 	w, done := setupWallet(t)

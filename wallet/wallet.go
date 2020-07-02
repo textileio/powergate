@@ -91,6 +91,19 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	return addr.String(), nil
 }
 
+// List returns all wallet addresses.
+func (m *Module) List(ctx context.Context) ([]string, error) {
+	addrs, err := m.api.WalletList(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting wallet addresses: %v", err)
+	}
+	ret := make([]string, len(addrs))
+	for i, addr := range addrs {
+		ret[i] = addr.String()
+	}
+	return ret, nil
+}
+
 // Balance returns the balance of the specified address.
 func (m *Module) Balance(ctx context.Context, addr string) (uint64, error) {
 	a, err := address.NewFromString(addr)
