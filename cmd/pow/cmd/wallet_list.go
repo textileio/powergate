@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
@@ -10,30 +11,32 @@ import (
 )
 
 func init() {
-	walletCmd.AddCommand(balanceCmd)
+	walletCmd.AddCommand(listCmd)
 }
 
-var balanceCmd = &cobra.Command{
-	Use:   "balance [address]",
-	Short: "Print the balance of the specified wallet address",
-	Long:  `Print the balance of the specified wallet address`,
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "Print all wallet addresses",
+	Long:  `Print all wallet addresses`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
 	},
-	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		addr := args[0]
-
-		s := spin.New(fmt.Sprintf("%s Checking balance for %s...", "%s", addr))
+		s := spin.New(fmt.Sprintf("%s Getting wallet addresses...", "%s"))
 		s.Start()
-		bal, err := fcClient.Wallet.WalletBalance(ctx, addr)
+		addrs, err := fcClient.Wallet.List(ctx)
 		s.Stop()
 		checkErr(err)
 
-		Success("Balance: %v", bal)
+		data := make([][]string, len(addrs))
+		for i, addr := range addrs {
+			data[i] = []string{addr}
+		}
+
+		RenderTable(os.Stdout, []string{"address"}, data)
 	},
 }

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -17,8 +16,6 @@ import (
 )
 
 var (
-	cfgFile string
-
 	fcClient *client.Client
 
 	cmdTimeout = time.Second * 10
@@ -66,29 +63,10 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.powergate.yaml)")
 	rootCmd.PersistentFlags().String("serverAddress", "/ip4/127.0.0.1/tcp/5002", "address of the powergate service api")
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		checkErr(err)
-
-		// Search config in home directory with name ".powergate" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".powergate")
-	}
-
 	viper.SetEnvPrefix("POW")
 	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }

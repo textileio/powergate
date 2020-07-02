@@ -1,19 +1,19 @@
-## pow net peers
+## pow wallet list
 
-Get the node peers
+Print all wallet addresses
 
 ### Synopsis
 
-Get the node peers
+Print all wallet addresses
 
 ```
-pow net peers [flags]
+pow wallet list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for peers
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands
@@ -24,5 +24,5 @@ pow net peers [flags]
 
 ### SEE ALSO
 
-* [pow net](pow_net.md)	 - Provides commands related to peers and network
+* [pow wallet](pow_wallet.md)	 - Provides commands about filecoin wallets
 

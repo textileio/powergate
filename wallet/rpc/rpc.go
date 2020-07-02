@@ -27,6 +27,15 @@ func (s *RPC) NewAddress(ctx context.Context, req *NewAddressRequest) (*NewAddre
 	return &NewAddressResponse{Address: res}, nil
 }
 
+// List returns all wallet addresses.
+func (s *RPC) List(ctx context.Context, req *ListRequest) (*ListResponse, error) {
+	res, err := s.Module.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &ListResponse{Addresses: res}, nil
+}
+
 // WalletBalance checks a wallet balance.
 func (s *RPC) WalletBalance(ctx context.Context, req *WalletBalanceRequest) (*WalletBalanceResponse, error) {
 	res, err := s.Module.Balance(ctx, req.GetAddress())
