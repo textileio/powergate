@@ -1,4 +1,4 @@
-package deals
+package module
 
 import (
 	"crypto/md5"
@@ -11,6 +11,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	"github.com/textileio/powergate/deals"
 )
 
 var (
@@ -33,7 +34,7 @@ func newStore(ds datastore.Datastore) *store {
 	}
 }
 
-func (s *store) putPendingDeal(dr DealRecord) error {
+func (s *store) putPendingDeal(dr deals.DealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	buf, err := json.Marshal(dr)
@@ -55,7 +56,7 @@ func (s *store) deletePendingDeal(proposalCid cid.Cid) error {
 	return nil
 }
 
-func (s *store) getPendingDeals() ([]DealRecord, error) {
+func (s *store) getPendingDeals() ([]deals.DealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseStoragePending.String()}
@@ -69,9 +70,9 @@ func (s *store) getPendingDeals() ([]DealRecord, error) {
 		}
 	}()
 
-	var ret []DealRecord
+	var ret []deals.DealRecord
 	for r := range res.Next() {
-		var dr DealRecord
+		var dr deals.DealRecord
 		if err := json.Unmarshal(r.Value, &dr); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
 		}
@@ -81,7 +82,7 @@ func (s *store) getPendingDeals() ([]DealRecord, error) {
 	return ret, nil
 }
 
-func (s *store) putFinalDeal(dr DealRecord) error {
+func (s *store) putFinalDeal(dr deals.DealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	err := s.ds.Delete(makePendingDealKey(dr.DealInfo.ProposalCid))
@@ -98,7 +99,7 @@ func (s *store) putFinalDeal(dr DealRecord) error {
 	return nil
 }
 
-func (s *store) getFinalDeals() ([]DealRecord, error) {
+func (s *store) getFinalDeals() ([]deals.DealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseStorageFinal.String()}
@@ -112,9 +113,9 @@ func (s *store) getFinalDeals() ([]DealRecord, error) {
 		}
 	}()
 
-	var ret []DealRecord
+	var ret []deals.DealRecord
 	for r := range res.Next() {
-		var dealRecord DealRecord
+		var dealRecord deals.DealRecord
 		if err := json.Unmarshal(r.Value, &dealRecord); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
 		}
@@ -132,7 +133,7 @@ func (s *store) getFinalDeals() ([]DealRecord, error) {
 	return ret, nil
 }
 
-func (s *store) putRetrieval(rr RetrievalRecord) error {
+func (s *store) putRetrieval(rr deals.RetrievalRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	buf, err := json.Marshal(rr)
@@ -145,7 +146,7 @@ func (s *store) putRetrieval(rr RetrievalRecord) error {
 	return nil
 }
 
-func (s *store) getRetrievals() ([]RetrievalRecord, error) {
+func (s *store) getRetrievals() ([]deals.RetrievalRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseRetrieval.String()}
@@ -159,9 +160,9 @@ func (s *store) getRetrievals() ([]RetrievalRecord, error) {
 		}
 	}()
 
-	var ret []RetrievalRecord
+	var ret []deals.RetrievalRecord
 	for r := range res.Next() {
-		var rr RetrievalRecord
+		var rr deals.RetrievalRecord
 		if err := json.Unmarshal(r.Value, &rr); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
 		}
@@ -181,7 +182,7 @@ func makeFinalDealKey(c cid.Cid) datastore.Key {
 	return dsBaseStorageFinal.ChildString(c.String())
 }
 
-func makeRetrievalKey(rr RetrievalRecord) datastore.Key {
+func makeRetrievalKey(rr deals.RetrievalRecord) datastore.Key {
 	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.Addr, rr.RetrievalInfo.Miner, rr.RetrievalInfo.PieceCID.String())
 	sum := md5.Sum([]byte(str))
 	return dsBaseRetrieval.ChildString(string(sum[:]))

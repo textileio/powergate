@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/deals"
-	askRunner "github.com/textileio/powergate/index/ask/runner"
+	"github.com/textileio/powergate/index/ask"
 )
 
 func init() {
@@ -67,7 +67,7 @@ var dealCmd = &cobra.Command{
 		file, err := os.Open(path)
 		checkErr(err)
 
-		q := askRunner.Query{
+		q := ask.Query{
 			MaxPrice:  mp,
 			PieceSize: ps,
 			Limit:     l,

@@ -1,4 +1,4 @@
-package faults
+package module
 
 import (
 	"os"

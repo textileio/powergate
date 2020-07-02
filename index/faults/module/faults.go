@@ -1,4 +1,4 @@
-package faults
+package module
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/chainstore"
 	"github.com/textileio/powergate/chainsync"
+	"github.com/textileio/powergate/index/faults"
 	"github.com/textileio/powergate/signaler"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -39,7 +40,7 @@ type Index struct {
 	signaler *signaler.Signaler
 
 	lock  sync.Mutex
-	index IndexSnapshot
+	index faults.IndexSnapshot
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -60,8 +61,8 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, erro
 		api:      api,
 		store:    store,
 		signaler: signaler.New(),
-		index: IndexSnapshot{
-			Miners: make(map[string]Faults),
+		index: faults.IndexSnapshot{
+			Miners: make(map[string]faults.Faults),
 		},
 		ctx:      ctx,
 		cancel:   cancel,
@@ -75,17 +76,17 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, erro
 }
 
 // Get returns a copy of the current index information.
-func (s *Index) Get() IndexSnapshot {
+func (s *Index) Get() faults.IndexSnapshot {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	ii := IndexSnapshot{
+	ii := faults.IndexSnapshot{
 		TipSetKey: s.index.TipSetKey,
-		Miners:    make(map[string]Faults, len(s.index.Miners)),
+		Miners:    make(map[string]faults.Faults, len(s.index.Miners)),
 	}
 	for addr, v := range s.index.Miners {
 		history := make([]int64, len(v.Epochs))
 		copy(history, v.Epochs)
-		ii.Miners[addr] = Faults{
+		ii.Miners[addr] = faults.Faults{
 			Epochs: history,
 		}
 	}
@@ -152,7 +153,7 @@ func (s *Index) updateIndex() error {
 		return fmt.Errorf("getting offseted tipset from head: %s", err)
 	}
 
-	var index IndexSnapshot
+	var index faults.IndexSnapshot
 	// Load the last saved index snapshot which is a child of the target TipSet.
 	// Might not be s.index because of reorgs.
 	indexTs, err := s.store.LoadAndPrune(s.ctx, targetTs.Key(), &index)
@@ -160,7 +161,7 @@ func (s *Index) updateIndex() error {
 		return fmt.Errorf("load tipset state: %s", err)
 	}
 	if index.Miners == nil {
-		index.Miners = make(map[string]Faults)
+		index.Miners = make(map[string]faults.Faults)
 	}
 
 	// Get the tipset path between the indexTs and the targetTs, so to
@@ -182,12 +183,12 @@ func (s *Index) updateIndex() error {
 		// in this section and include it into the updating index.
 		sectionLength := abi.ChainEpoch(j - i)
 		sectionHeadTs := path[j-1].Key()
-		faults, err := s.api.StateAllMinerFaults(s.ctx, sectionLength, sectionHeadTs)
+		fs, err := s.api.StateAllMinerFaults(s.ctx, sectionLength, sectionHeadTs)
 		if err != nil {
 			return fmt.Errorf("getting faults from path section: %s", err)
 		}
 		index.TipSetKey = sectionHeadTs.String()
-		for _, f := range faults {
+		for _, f := range fs {
 			currFaults := index.Miners[f.Miner.String()]
 			currFaults.Epochs = append(currFaults.Epochs, int64(f.Epoch))
 			index.Miners[f.Miner.String()] = currFaults
@@ -202,9 +203,9 @@ func (s *Index) updateIndex() error {
 		// Already make available this section-path proccessed information for external
 		// use.
 		s.lock.Lock()
-		s.index = IndexSnapshot{
+		s.index = faults.IndexSnapshot{
 			TipSetKey: index.TipSetKey,
-			Miners:    make(map[string]Faults, len(index.Miners)),
+			Miners:    make(map[string]faults.Faults, len(index.Miners)),
 		}
 		for k, v := range index.Miners {
 			s.index.Miners[k] = v
@@ -228,7 +229,7 @@ func (s *Index) updateIndex() error {
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed
 // since its only called from New().
 func (s *Index) loadFromDS() error {
-	var index IndexSnapshot
+	var index faults.IndexSnapshot
 	if _, err := s.store.GetLastCheckpoint(&index); err != nil {
 		return err
 	}

@@ -12,7 +12,6 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/index/ask"
-	askRunner "github.com/textileio/powergate/index/ask/runner"
 	"github.com/textileio/powergate/index/faults"
 	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/reputation/internal/source"
@@ -29,9 +28,9 @@ type Module struct {
 	ds      datastore.TxnDatastore
 	sources *source.Store
 
-	mi *miner.Index
-	fi *faults.Index
-	ai *askRunner.Runner
+	mi miner.Module
+	fi faults.Module
+	ai ask.Module
 
 	lockIndex sync.Mutex
 	mIndex    miner.IndexSnapshot
@@ -54,7 +53,7 @@ type MinerScore struct {
 }
 
 // New returns a new reputation Module.
-func New(ds datastore.TxnDatastore, mi *miner.Index, fi *faults.Index, ai *askRunner.Runner) *Module {
+func New(ds datastore.TxnDatastore, mi miner.Module, fi faults.Module, ai ask.Module) *Module {
 	ctx, cancel := context.WithCancel(context.Background())
 	rm := &Module{
 		ds: ds,

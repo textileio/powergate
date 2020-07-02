@@ -4,8 +4,8 @@ down:
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
 		down
-	docker-compose -p devnet \
-		-f docker-compose-devnet.yaml \
+	docker-compose -p localnet \
+		-f docker-compose-localnet.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
 		down
@@ -19,10 +19,10 @@ up: down
 		up --build 
 .PHONY: up
 
-devnet: 
-	docker-compose -p devnet \
-		-f docker-compose-devnet.yaml \
+localnet: 
+	docker-compose -p localnet \
+		-f docker-compose-localnet.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
 		up --build -V
-.PHONY: devnet
+.PHONY: localnet

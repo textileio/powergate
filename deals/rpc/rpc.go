@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/deals"
 
@@ -14,11 +15,25 @@ import (
 
 var log = logging.Logger("deals-rpc")
 
+// Module is an implementation of the Deals Module.
+type Module interface {
+	Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Cid, int64, error)
+	Store(ctx context.Context, waddr string, dataCid cid.Cid, pieceSize uint64, dcfgs []deals.StorageDealConfig, minDuration uint64) ([]deals.StoreResult, error)
+	Fetch(ctx context.Context, waddr string, cid cid.Cid) error
+	Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error)
+	GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error)
+	Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.DealInfo, error)
+	FinalDealRecords() ([]deals.DealRecord, error)
+	PendingDealRecords() ([]deals.DealRecord, error)
+	AllDealRecords() ([]deals.DealRecord, error)
+	RetrievalRecords() ([]deals.RetrievalRecord, error)
+}
+
 // RPC implements the gprc service.
 type RPC struct {
 	UnimplementedRPCServiceServer
 
-	Module *deals.Module
+	Module Module
 }
 
 type storeResult struct {
@@ -29,13 +44,13 @@ type storeResult struct {
 }
 
 // New creates a new rpc service.
-func New(dm *deals.Module) *RPC {
+func New(dm Module) *RPC {
 	return &RPC{
 		Module: dm,
 	}
 }
 
-func store(ctx context.Context, dealsModule *deals.Module, storeParams *StoreParams, r io.Reader, ch chan storeResult) {
+func store(ctx context.Context, dealsModule Module, storeParams *StoreParams, r io.Reader, ch chan storeResult) {
 	defer close(ch)
 	dealConfigs := make([]deals.StorageDealConfig, len(storeParams.GetDealConfigs()))
 	for i, dealConfig := range storeParams.GetDealConfigs() {
