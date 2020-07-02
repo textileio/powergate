@@ -19,6 +19,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
+	dealsModule "github.com/textileio/powergate/deals/module"
 	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	"github.com/textileio/powergate/fchost"
 	"github.com/textileio/powergate/ffs"
@@ -71,7 +72,7 @@ type Server struct {
 	ai *ask.Runner
 	mi *miner.Index
 	fi *faults.Index
-	dm *deals.Module
+	dm *dealsModule.Module
 	wm *wallet.Module
 	rm *reputation.Module
 	nm pgnet.Module
@@ -169,7 +170,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
 	}
-	dm, err := deals.New(txndstr.Wrap(ds, "deals"), c, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), c, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}

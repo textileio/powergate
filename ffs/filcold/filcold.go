@@ -16,6 +16,8 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/ipld/go-car"
 	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/deals/module"
+	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
 )
 
@@ -27,7 +29,7 @@ var (
 // It assumes the underlying Filecoin client has access to an IPFS node where data is stored.
 type FilCold struct {
 	ms    ffs.MinerSelector
-	dm    *deals.Module
+	dm    *dealsModule.Module
 	ipfs  iface.CoreAPI
 	chain FilChain
 	l     ffs.CidLogger
@@ -41,7 +43,7 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *deals.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.CidLogger) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.CidLogger) *FilCold {
 	return &FilCold{
 		ms:    ms,
 		dm:    dm,
@@ -93,7 +95,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 // IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
 func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bool, error) {
 	status, slashed, err := fc.dm.GetDealStatus(ctx, proposalCid)
-	if err == deals.ErrDealNotFound {
+	if err == module.ErrDealNotFound {
 		return false, nil
 	}
 	if err != nil {

@@ -1,4 +1,4 @@
-package deals
+package module
 
 import (
 	"bytes"
