@@ -1,7 +1,7 @@
 syntax = "proto3";
 package ffs.rpc;
 
-option go_package = "ffs/rpc";
+option go_package = "github.com/textileio/powergate/ffs/rpc";
 
 // model messages
 // ------------------------------------
@@ -131,6 +131,13 @@ message DealError {
    string message = 3;
 }
 
+message LogEntry {
+   string cid = 1;
+   string jid = 2;
+   int64 time = 3;
+   string msg = 4;
+}
+
 enum Direction {
    DIRECTION_UNSPECIFIED = 0;
    DIRECTION_INBOUND = 1;
@@ -253,13 +260,6 @@ message WatchLogsRequest {
 
 message WatchLogsResponse {
    LogEntry log_entry = 1;
-}
-
-message LogEntry {
-   string cid = 1;
-   string jid = 2;
-   int64 time = 3;
-   string msg = 4;
 }
 
 message ReplaceRequest {

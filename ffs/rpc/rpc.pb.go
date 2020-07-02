@@ -1334,6 +1334,77 @@ func (x *DealError) GetMessage() string {
 	return ""
 }
 
+type LogEntry struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Cid  string `protobuf:"bytes,1,opt,name=cid,proto3" json:"cid,omitempty"`
+	Jid  string `protobuf:"bytes,2,opt,name=jid,proto3" json:"jid,omitempty"`
+	Time int64  `protobuf:"varint,3,opt,name=time,proto3" json:"time,omitempty"`
+	Msg  string `protobuf:"bytes,4,opt,name=msg,proto3" json:"msg,omitempty"`
+}
+
+func (x *LogEntry) Reset() {
+	*x = LogEntry{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogEntry) ProtoMessage() {}
+
+func (x *LogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
+func (*LogEntry) Descriptor() ([]byte, []int) {
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *LogEntry) GetCid() string {
+	if x != nil {
+		return x.Cid
+	}
+	return ""
+}
+
+func (x *LogEntry) GetJid() string {
+	if x != nil {
+		return x.Jid
+	}
+	return ""
+}
+
+func (x *LogEntry) GetTime() int64 {
+	if x != nil {
+		return x.Time
+	}
+	return 0
+}
+
+func (x *LogEntry) GetMsg() string {
+	if x != nil {
+		return x.Msg
+	}
+	return ""
+}
+
 type PaychInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1347,7 +1418,7 @@ type PaychInfo struct {
 func (x *PaychInfo) Reset() {
 	*x = PaychInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[18]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1360,7 +1431,7 @@ func (x *PaychInfo) String() string {
 func (*PaychInfo) ProtoMessage() {}
 
 func (x *PaychInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[18]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1373,7 +1444,7 @@ func (x *PaychInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaychInfo.ProtoReflect.Descriptor instead.
 func (*PaychInfo) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{18}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *PaychInfo) GetCtlAddr() string {
@@ -1406,7 +1477,7 @@ type CreateRequest struct {
 func (x *CreateRequest) Reset() {
 	*x = CreateRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[19]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1419,7 +1490,7 @@ func (x *CreateRequest) String() string {
 func (*CreateRequest) ProtoMessage() {}
 
 func (x *CreateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[19]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1432,7 +1503,7 @@ func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRequest.ProtoReflect.Descriptor instead.
 func (*CreateRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{19}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{20}
 }
 
 type CreateResponse struct {
@@ -1447,7 +1518,7 @@ type CreateResponse struct {
 func (x *CreateResponse) Reset() {
 	*x = CreateResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[20]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1460,7 +1531,7 @@ func (x *CreateResponse) String() string {
 func (*CreateResponse) ProtoMessage() {}
 
 func (x *CreateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[20]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1473,7 +1544,7 @@ func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResponse.ProtoReflect.Descriptor instead.
 func (*CreateResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{20}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateResponse) GetId() string {
@@ -1499,7 +1570,7 @@ type ListAPIRequest struct {
 func (x *ListAPIRequest) Reset() {
 	*x = ListAPIRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[21]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1512,7 +1583,7 @@ func (x *ListAPIRequest) String() string {
 func (*ListAPIRequest) ProtoMessage() {}
 
 func (x *ListAPIRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[21]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1525,7 +1596,7 @@ func (x *ListAPIRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAPIRequest.ProtoReflect.Descriptor instead.
 func (*ListAPIRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{21}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{22}
 }
 
 type ListAPIResponse struct {
@@ -1539,7 +1610,7 @@ type ListAPIResponse struct {
 func (x *ListAPIResponse) Reset() {
 	*x = ListAPIResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[22]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1552,7 +1623,7 @@ func (x *ListAPIResponse) String() string {
 func (*ListAPIResponse) ProtoMessage() {}
 
 func (x *ListAPIResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[22]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1565,7 +1636,7 @@ func (x *ListAPIResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAPIResponse.ProtoReflect.Descriptor instead.
 func (*ListAPIResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{22}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListAPIResponse) GetInstances() []string {
@@ -1584,7 +1655,7 @@ type IDRequest struct {
 func (x *IDRequest) Reset() {
 	*x = IDRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[23]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1597,7 +1668,7 @@ func (x *IDRequest) String() string {
 func (*IDRequest) ProtoMessage() {}
 
 func (x *IDRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[23]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1610,7 +1681,7 @@ func (x *IDRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IDRequest.ProtoReflect.Descriptor instead.
 func (*IDRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{23}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{24}
 }
 
 type IDResponse struct {
@@ -1624,7 +1695,7 @@ type IDResponse struct {
 func (x *IDResponse) Reset() {
 	*x = IDResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[24]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1637,7 +1708,7 @@ func (x *IDResponse) String() string {
 func (*IDResponse) ProtoMessage() {}
 
 func (x *IDResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[24]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1650,7 +1721,7 @@ func (x *IDResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IDResponse.ProtoReflect.Descriptor instead.
 func (*IDResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{24}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *IDResponse) GetId() string {
@@ -1669,7 +1740,7 @@ type AddrsRequest struct {
 func (x *AddrsRequest) Reset() {
 	*x = AddrsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[25]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1682,7 +1753,7 @@ func (x *AddrsRequest) String() string {
 func (*AddrsRequest) ProtoMessage() {}
 
 func (x *AddrsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[25]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1695,7 +1766,7 @@ func (x *AddrsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddrsRequest.ProtoReflect.Descriptor instead.
 func (*AddrsRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{25}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{26}
 }
 
 type AddrsResponse struct {
@@ -1709,7 +1780,7 @@ type AddrsResponse struct {
 func (x *AddrsResponse) Reset() {
 	*x = AddrsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[26]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1722,7 +1793,7 @@ func (x *AddrsResponse) String() string {
 func (*AddrsResponse) ProtoMessage() {}
 
 func (x *AddrsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[26]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1735,7 +1806,7 @@ func (x *AddrsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddrsResponse.ProtoReflect.Descriptor instead.
 func (*AddrsResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{26}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *AddrsResponse) GetAddrs() []*AddrInfo {
@@ -1754,7 +1825,7 @@ type DefaultConfigRequest struct {
 func (x *DefaultConfigRequest) Reset() {
 	*x = DefaultConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[27]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1767,7 +1838,7 @@ func (x *DefaultConfigRequest) String() string {
 func (*DefaultConfigRequest) ProtoMessage() {}
 
 func (x *DefaultConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[27]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1780,7 +1851,7 @@ func (x *DefaultConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DefaultConfigRequest.ProtoReflect.Descriptor instead.
 func (*DefaultConfigRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{27}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{28}
 }
 
 type DefaultConfigResponse struct {
@@ -1794,7 +1865,7 @@ type DefaultConfigResponse struct {
 func (x *DefaultConfigResponse) Reset() {
 	*x = DefaultConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[28]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1807,7 +1878,7 @@ func (x *DefaultConfigResponse) String() string {
 func (*DefaultConfigResponse) ProtoMessage() {}
 
 func (x *DefaultConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[28]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1820,7 +1891,7 @@ func (x *DefaultConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DefaultConfigResponse.ProtoReflect.Descriptor instead.
 func (*DefaultConfigResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{28}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DefaultConfigResponse) GetDefaultConfig() *DefaultConfig {
@@ -1843,7 +1914,7 @@ type NewAddrRequest struct {
 func (x *NewAddrRequest) Reset() {
 	*x = NewAddrRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[29]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1856,7 +1927,7 @@ func (x *NewAddrRequest) String() string {
 func (*NewAddrRequest) ProtoMessage() {}
 
 func (x *NewAddrRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[29]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1869,7 +1940,7 @@ func (x *NewAddrRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NewAddrRequest.ProtoReflect.Descriptor instead.
 func (*NewAddrRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{29}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *NewAddrRequest) GetName() string {
@@ -1904,7 +1975,7 @@ type NewAddrResponse struct {
 func (x *NewAddrResponse) Reset() {
 	*x = NewAddrResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[30]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1917,7 +1988,7 @@ func (x *NewAddrResponse) String() string {
 func (*NewAddrResponse) ProtoMessage() {}
 
 func (x *NewAddrResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[30]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1930,7 +2001,7 @@ func (x *NewAddrResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NewAddrResponse.ProtoReflect.Descriptor instead.
 func (*NewAddrResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{30}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *NewAddrResponse) GetAddr() string {
@@ -1951,7 +2022,7 @@ type GetDefaultCidConfigRequest struct {
 func (x *GetDefaultCidConfigRequest) Reset() {
 	*x = GetDefaultCidConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[31]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1964,7 +2035,7 @@ func (x *GetDefaultCidConfigRequest) String() string {
 func (*GetDefaultCidConfigRequest) ProtoMessage() {}
 
 func (x *GetDefaultCidConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[31]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1977,7 +2048,7 @@ func (x *GetDefaultCidConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDefaultCidConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetDefaultCidConfigRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{31}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetDefaultCidConfigRequest) GetCid() string {
@@ -1998,7 +2069,7 @@ type GetDefaultCidConfigResponse struct {
 func (x *GetDefaultCidConfigResponse) Reset() {
 	*x = GetDefaultCidConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[32]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2011,7 +2082,7 @@ func (x *GetDefaultCidConfigResponse) String() string {
 func (*GetDefaultCidConfigResponse) ProtoMessage() {}
 
 func (x *GetDefaultCidConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[32]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2024,7 +2095,7 @@ func (x *GetDefaultCidConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDefaultCidConfigResponse.ProtoReflect.Descriptor instead.
 func (*GetDefaultCidConfigResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{32}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetDefaultCidConfigResponse) GetConfig() *CidConfig {
@@ -2045,7 +2116,7 @@ type GetCidConfigRequest struct {
 func (x *GetCidConfigRequest) Reset() {
 	*x = GetCidConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[33]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2058,7 +2129,7 @@ func (x *GetCidConfigRequest) String() string {
 func (*GetCidConfigRequest) ProtoMessage() {}
 
 func (x *GetCidConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[33]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2071,7 +2142,7 @@ func (x *GetCidConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCidConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetCidConfigRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{33}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetCidConfigRequest) GetCid() string {
@@ -2092,7 +2163,7 @@ type GetCidConfigResponse struct {
 func (x *GetCidConfigResponse) Reset() {
 	*x = GetCidConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[34]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2105,7 +2176,7 @@ func (x *GetCidConfigResponse) String() string {
 func (*GetCidConfigResponse) ProtoMessage() {}
 
 func (x *GetCidConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[34]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2118,7 +2189,7 @@ func (x *GetCidConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCidConfigResponse.ProtoReflect.Descriptor instead.
 func (*GetCidConfigResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{34}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetCidConfigResponse) GetConfig() *CidConfig {
@@ -2139,7 +2210,7 @@ type SetDefaultConfigRequest struct {
 func (x *SetDefaultConfigRequest) Reset() {
 	*x = SetDefaultConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[35]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2152,7 +2223,7 @@ func (x *SetDefaultConfigRequest) String() string {
 func (*SetDefaultConfigRequest) ProtoMessage() {}
 
 func (x *SetDefaultConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[35]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2165,7 +2236,7 @@ func (x *SetDefaultConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDefaultConfigRequest.ProtoReflect.Descriptor instead.
 func (*SetDefaultConfigRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{35}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *SetDefaultConfigRequest) GetConfig() *DefaultConfig {
@@ -2184,7 +2255,7 @@ type SetDefaultConfigResponse struct {
 func (x *SetDefaultConfigResponse) Reset() {
 	*x = SetDefaultConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[36]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2197,7 +2268,7 @@ func (x *SetDefaultConfigResponse) String() string {
 func (*SetDefaultConfigResponse) ProtoMessage() {}
 
 func (x *SetDefaultConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[36]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2210,7 +2281,7 @@ func (x *SetDefaultConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDefaultConfigResponse.ProtoReflect.Descriptor instead.
 func (*SetDefaultConfigResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{36}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{37}
 }
 
 type ShowRequest struct {
@@ -2224,7 +2295,7 @@ type ShowRequest struct {
 func (x *ShowRequest) Reset() {
 	*x = ShowRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[37]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2237,7 +2308,7 @@ func (x *ShowRequest) String() string {
 func (*ShowRequest) ProtoMessage() {}
 
 func (x *ShowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[37]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2250,7 +2321,7 @@ func (x *ShowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShowRequest.ProtoReflect.Descriptor instead.
 func (*ShowRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{37}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ShowRequest) GetCid() string {
@@ -2271,7 +2342,7 @@ type ShowResponse struct {
 func (x *ShowResponse) Reset() {
 	*x = ShowResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[38]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2284,7 +2355,7 @@ func (x *ShowResponse) String() string {
 func (*ShowResponse) ProtoMessage() {}
 
 func (x *ShowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[38]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2297,7 +2368,7 @@ func (x *ShowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShowResponse.ProtoReflect.Descriptor instead.
 func (*ShowResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{38}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ShowResponse) GetCidInfo() *CidInfo {
@@ -2316,7 +2387,7 @@ type InfoRequest struct {
 func (x *InfoRequest) Reset() {
 	*x = InfoRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[39]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2329,7 +2400,7 @@ func (x *InfoRequest) String() string {
 func (*InfoRequest) ProtoMessage() {}
 
 func (x *InfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[39]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2342,7 +2413,7 @@ func (x *InfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InfoRequest.ProtoReflect.Descriptor instead.
 func (*InfoRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{39}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{40}
 }
 
 type InfoResponse struct {
@@ -2356,7 +2427,7 @@ type InfoResponse struct {
 func (x *InfoResponse) Reset() {
 	*x = InfoResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[40]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2369,7 +2440,7 @@ func (x *InfoResponse) String() string {
 func (*InfoResponse) ProtoMessage() {}
 
 func (x *InfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[40]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2382,7 +2453,7 @@ func (x *InfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InfoResponse.ProtoReflect.Descriptor instead.
 func (*InfoResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{40}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *InfoResponse) GetInfo() *InstanceInfo {
@@ -2403,7 +2474,7 @@ type CancelJobRequest struct {
 func (x *CancelJobRequest) Reset() {
 	*x = CancelJobRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[41]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2416,7 +2487,7 @@ func (x *CancelJobRequest) String() string {
 func (*CancelJobRequest) ProtoMessage() {}
 
 func (x *CancelJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[41]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2429,7 +2500,7 @@ func (x *CancelJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelJobRequest.ProtoReflect.Descriptor instead.
 func (*CancelJobRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{41}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *CancelJobRequest) GetJid() string {
@@ -2448,7 +2519,7 @@ type CancelJobResponse struct {
 func (x *CancelJobResponse) Reset() {
 	*x = CancelJobResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[42]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2461,7 +2532,7 @@ func (x *CancelJobResponse) String() string {
 func (*CancelJobResponse) ProtoMessage() {}
 
 func (x *CancelJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[42]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2474,7 +2545,7 @@ func (x *CancelJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelJobResponse.ProtoReflect.Descriptor instead.
 func (*CancelJobResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{42}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{43}
 }
 
 type WatchJobsRequest struct {
@@ -2488,7 +2559,7 @@ type WatchJobsRequest struct {
 func (x *WatchJobsRequest) Reset() {
 	*x = WatchJobsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[43]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2501,7 +2572,7 @@ func (x *WatchJobsRequest) String() string {
 func (*WatchJobsRequest) ProtoMessage() {}
 
 func (x *WatchJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[43]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2514,7 +2585,7 @@ func (x *WatchJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchJobsRequest.ProtoReflect.Descriptor instead.
 func (*WatchJobsRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{43}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *WatchJobsRequest) GetJids() []string {
@@ -2535,7 +2606,7 @@ type WatchJobsResponse struct {
 func (x *WatchJobsResponse) Reset() {
 	*x = WatchJobsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[44]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2548,7 +2619,7 @@ func (x *WatchJobsResponse) String() string {
 func (*WatchJobsResponse) ProtoMessage() {}
 
 func (x *WatchJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[44]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2561,7 +2632,7 @@ func (x *WatchJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchJobsResponse.ProtoReflect.Descriptor instead.
 func (*WatchJobsResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{44}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *WatchJobsResponse) GetJob() *Job {
@@ -2584,7 +2655,7 @@ type WatchLogsRequest struct {
 func (x *WatchLogsRequest) Reset() {
 	*x = WatchLogsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[45]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2597,7 +2668,7 @@ func (x *WatchLogsRequest) String() string {
 func (*WatchLogsRequest) ProtoMessage() {}
 
 func (x *WatchLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[45]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2610,7 +2681,7 @@ func (x *WatchLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchLogsRequest.ProtoReflect.Descriptor instead.
 func (*WatchLogsRequest) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{45}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *WatchLogsRequest) GetCid() string {
@@ -2645,7 +2716,7 @@ type WatchLogsResponse struct {
 func (x *WatchLogsResponse) Reset() {
 	*x = WatchLogsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[46]
+		mi := &file_ffs_rpc_rpc_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2658,7 +2729,7 @@ func (x *WatchLogsResponse) String() string {
 func (*WatchLogsResponse) ProtoMessage() {}
 
 func (x *WatchLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[46]
+	mi := &file_ffs_rpc_rpc_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2671,7 +2742,7 @@ func (x *WatchLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchLogsResponse.ProtoReflect.Descriptor instead.
 func (*WatchLogsResponse) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{46}
+	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *WatchLogsResponse) GetLogEntry() *LogEntry {
@@ -2679,77 +2750,6 @@ func (x *WatchLogsResponse) GetLogEntry() *LogEntry {
 		return x.LogEntry
 	}
 	return nil
-}
-
-type LogEntry struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Cid  string `protobuf:"bytes,1,opt,name=cid,proto3" json:"cid,omitempty"`
-	Jid  string `protobuf:"bytes,2,opt,name=jid,proto3" json:"jid,omitempty"`
-	Time int64  `protobuf:"varint,3,opt,name=time,proto3" json:"time,omitempty"`
-	Msg  string `protobuf:"bytes,4,opt,name=msg,proto3" json:"msg,omitempty"`
-}
-
-func (x *LogEntry) Reset() {
-	*x = LogEntry{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_ffs_rpc_rpc_proto_msgTypes[47]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *LogEntry) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LogEntry) ProtoMessage() {}
-
-func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_ffs_rpc_rpc_proto_msgTypes[47]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
-func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{47}
-}
-
-func (x *LogEntry) GetCid() string {
-	if x != nil {
-		return x.Cid
-	}
-	return ""
-}
-
-func (x *LogEntry) GetJid() string {
-	if x != nil {
-		return x.Jid
-	}
-	return ""
-}
-
-func (x *LogEntry) GetTime() int64 {
-	if x != nil {
-		return x.Time
-	}
-	return 0
-}
-
-func (x *LogEntry) GetMsg() string {
-	if x != nil {
-		return x.Msg
-	}
-	return ""
 }
 
 type ReplaceRequest struct {
@@ -3946,102 +3946,102 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x6c, 0x43, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x18, 0x02, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65,
 	0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73,
-	0x73, 0x61, 0x67, 0x65, 0x22, 0x6c, 0x0a, 0x09, 0x50, 0x61, 0x79, 0x63, 0x68, 0x49, 0x6e, 0x66,
-	0x6f, 0x12, 0x19, 0x0a, 0x08, 0x63, 0x74, 0x6c, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x74, 0x6c, 0x41, 0x64, 0x64, 0x72, 0x12, 0x12, 0x0a, 0x04,
-	0x61, 0x64, 0x64, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x61, 0x64, 0x64, 0x72,
-	0x12, 0x30, 0x0a, 0x09, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x0e, 0x32, 0x12, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44, 0x69,
-	0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x09, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69,
-	0x6f, 0x6e, 0x22, 0x0f, 0x0a, 0x0d, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x22, 0x36, 0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x10, 0x0a, 0x0e, 0x4c,
-	0x69, 0x73, 0x74, 0x41, 0x50, 0x49, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x2f, 0x0a,
-	0x0f, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x50, 0x49, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x1c, 0x0a, 0x09, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x18, 0x01, 0x20,
-	0x03, 0x28, 0x09, 0x52, 0x09, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x22, 0x0b,
-	0x0a, 0x09, 0x49, 0x44, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x1c, 0x0a, 0x0a, 0x49,
-	0x44, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0x0e, 0x0a, 0x0c, 0x41, 0x64, 0x64,
-	0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x38, 0x0a, 0x0d, 0x41, 0x64, 0x64,
-	0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x05, 0x61, 0x64,
-	0x64, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x66, 0x66, 0x73, 0x2e,
-	0x72, 0x70, 0x63, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x05, 0x61, 0x64,
-	0x64, 0x72, 0x73, 0x22, 0x16, 0x0a, 0x14, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x56, 0x0a, 0x15, 0x44,
-	0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3d, 0x0a, 0x0e, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f,
-	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x66,
-	0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x52, 0x0d, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x22, 0x6a, 0x0a, 0x0e, 0x4e, 0x65, 0x77, 0x41, 0x64, 0x64, 0x72, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x21, 0x0a, 0x0c, 0x61, 0x64, 0x64,
-	0x72, 0x65, 0x73, 0x73, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x0b, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x54, 0x79, 0x70, 0x65, 0x12, 0x21, 0x0a, 0x0c,
-	0x6d, 0x61, 0x6b, 0x65, 0x5f, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x08, 0x52, 0x0b, 0x6d, 0x61, 0x6b, 0x65, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x22,
-	0x25, 0x0a, 0x0f, 0x4e, 0x65, 0x77, 0x41, 0x64, 0x64, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x61, 0x64, 0x64, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x04, 0x61, 0x64, 0x64, 0x72, 0x22, 0x2e, 0x0a, 0x1a, 0x47, 0x65, 0x74, 0x44, 0x65, 0x66,
-	0x61, 0x75, 0x6c, 0x74, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x22, 0x49, 0x0a, 0x1b, 0x47, 0x65, 0x74, 0x44, 0x65, 0x66,
-	0x61, 0x75, 0x6c, 0x74, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2a, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
-	0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x22, 0x27, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x22, 0x42, 0x0a, 0x14, 0x47, 0x65,
-	0x74, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x2a, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x12, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x69, 0x64,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x49,
-	0x0a, 0x17, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2e, 0x0a, 0x06, 0x63, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x66, 0x66, 0x73, 0x2e,
-	0x72, 0x70, 0x63, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x1a, 0x0a, 0x18, 0x53, 0x65, 0x74,
-	0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1f, 0x0a, 0x0b, 0x53, 0x68, 0x6f, 0x77, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x22, 0x3b, 0x0a, 0x0c, 0x53, 0x68, 0x6f, 0x77, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2b, 0x0a, 0x08, 0x63, 0x69, 0x64, 0x5f, 0x69, 0x6e,
-	0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72,
-	0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x07, 0x63, 0x69, 0x64, 0x49,
-	0x6e, 0x66, 0x6f, 0x22, 0x0d, 0x0a, 0x0b, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x22, 0x39, 0x0a, 0x0c, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x12, 0x29, 0x0a, 0x04, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x15, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x49, 0x6e, 0x73, 0x74, 0x61,
-	0x6e, 0x63, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x04, 0x69, 0x6e, 0x66, 0x6f, 0x22, 0x24, 0x0a,
-	0x10, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x10, 0x0a, 0x03, 0x6a, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
-	0x6a, 0x69, 0x64, 0x22, 0x13, 0x0a, 0x11, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x4a, 0x6f, 0x62,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x26, 0x0a, 0x10, 0x57, 0x61, 0x74, 0x63,
-	0x68, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04,
-	0x6a, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x6a, 0x69, 0x64, 0x73,
-	0x22, 0x33, 0x0a, 0x11, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4a, 0x6f, 0x62,
-	0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0x50, 0x0a, 0x10, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4c, 0x6f,
-	0x67, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x6a,
-	0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6a, 0x69, 0x64, 0x12, 0x18, 0x0a,
-	0x07, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07,
-	0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x22, 0x43, 0x0a, 0x11, 0x57, 0x61, 0x74, 0x63, 0x68,
-	0x4c, 0x6f, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2e, 0x0a, 0x09,
-	0x6c, 0x6f, 0x67, 0x5f, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x11, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x6f, 0x67, 0x45, 0x6e, 0x74,
-	0x72, 0x79, 0x52, 0x08, 0x6c, 0x6f, 0x67, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x22, 0x54, 0x0a, 0x08,
-	0x4c, 0x6f, 0x67, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x6a, 0x69,
-	0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6a, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04,
-	0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x74, 0x69, 0x6d, 0x65,
-	0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d,
-	0x73, 0x67, 0x22, 0x38, 0x0a, 0x0e, 0x52, 0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x52, 0x65, 0x71,
+	0x73, 0x61, 0x67, 0x65, 0x22, 0x54, 0x0a, 0x08, 0x4c, 0x6f, 0x67, 0x45, 0x6e, 0x74, 0x72, 0x79,
+	0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63,
+	0x69, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x6a, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x03, 0x6a, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x03, 0x52, 0x04, 0x74, 0x69, 0x6d, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18,
+	0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x22, 0x6c, 0x0a, 0x09, 0x50, 0x61,
+	0x79, 0x63, 0x68, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x19, 0x0a, 0x08, 0x63, 0x74, 0x6c, 0x5f, 0x61,
+	0x64, 0x64, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x63, 0x74, 0x6c, 0x41, 0x64,
+	0x64, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x61, 0x64, 0x64, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x61, 0x64, 0x64, 0x72, 0x12, 0x30, 0x0a, 0x09, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74,
+	0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x12, 0x2e, 0x66, 0x66, 0x73, 0x2e,
+	0x72, 0x70, 0x63, 0x2e, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x09, 0x64,
+	0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x0f, 0x0a, 0x0d, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x36, 0x0a, 0x0e, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x74,
+	0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65,
+	0x6e, 0x22, 0x10, 0x0a, 0x0e, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x50, 0x49, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x22, 0x2f, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x50, 0x49, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e,
+	0x63, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09, 0x69, 0x6e, 0x73, 0x74, 0x61,
+	0x6e, 0x63, 0x65, 0x73, 0x22, 0x0b, 0x0a, 0x09, 0x49, 0x44, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x22, 0x1c, 0x0a, 0x0a, 0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22,
+	0x0e, 0x0a, 0x0c, 0x41, 0x64, 0x64, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22,
+	0x38, 0x0a, 0x0d, 0x41, 0x64, 0x64, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x27, 0x0a, 0x05, 0x61, 0x64, 0x64, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x11, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x49, 0x6e,
+	0x66, 0x6f, 0x52, 0x05, 0x61, 0x64, 0x64, 0x72, 0x73, 0x22, 0x16, 0x0a, 0x14, 0x44, 0x65, 0x66,
+	0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x22, 0x56, 0x0a, 0x15, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3d, 0x0a, 0x0e, 0x64, 0x65,
+	0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x16, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44, 0x65, 0x66,
+	0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x0d, 0x64, 0x65, 0x66, 0x61,
+	0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x6a, 0x0a, 0x0e, 0x4e, 0x65, 0x77,
+	0x41, 0x64, 0x64, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12,
+	0x21, 0x0a, 0x0c, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x54, 0x79,
+	0x70, 0x65, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x61, 0x6b, 0x65, 0x5f, 0x64, 0x65, 0x66, 0x61, 0x75,
+	0x6c, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x6d, 0x61, 0x6b, 0x65, 0x44, 0x65,
+	0x66, 0x61, 0x75, 0x6c, 0x74, 0x22, 0x25, 0x0a, 0x0f, 0x4e, 0x65, 0x77, 0x41, 0x64, 0x64, 0x72,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x61, 0x64, 0x64, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x61, 0x64, 0x64, 0x72, 0x22, 0x2e, 0x0a, 0x1a,
+	0x47, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x22, 0x49, 0x0a, 0x1b,
+	0x47, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2a, 0x0a, 0x06, 0x63,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x66, 0x66,
+	0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52,
+	0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x27, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x43, 0x69,
+	0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10,
+	0x0a, 0x03, 0x63, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64,
+	0x22, 0x42, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2a, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x22, 0x49, 0x0a, 0x17, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75,
+	0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x2e, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x16, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c,
+	0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22,
+	0x1a, 0x0a, 0x18, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1f, 0x0a, 0x0b, 0x53,
+	0x68, 0x6f, 0x77, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x22, 0x3b, 0x0a, 0x0c,
+	0x53, 0x68, 0x6f, 0x77, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2b, 0x0a, 0x08,
+	0x63, 0x69, 0x64, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10,
+	0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f,
+	0x52, 0x07, 0x63, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x0d, 0x0a, 0x0b, 0x49, 0x6e, 0x66,
+	0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x39, 0x0a, 0x0c, 0x49, 0x6e, 0x66, 0x6f,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x29, 0x0a, 0x04, 0x69, 0x6e, 0x66, 0x6f,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x04, 0x69,
+	0x6e, 0x66, 0x6f, 0x22, 0x24, 0x0a, 0x10, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x4a, 0x6f, 0x62,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6a, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6a, 0x69, 0x64, 0x22, 0x13, 0x0a, 0x11, 0x43, 0x61, 0x6e,
+	0x63, 0x65, 0x6c, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x26,
+	0x0a, 0x10, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6a, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09,
+	0x52, 0x04, 0x6a, 0x69, 0x64, 0x73, 0x22, 0x33, 0x0a, 0x11, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4a,
+	0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x03, 0x6a,
+	0x6f, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0x50, 0x0a, 0x10, 0x57,
+	0x61, 0x74, 0x63, 0x68, 0x4c, 0x6f, 0x67, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69,
+	0x64, 0x12, 0x10, 0x0a, 0x03, 0x6a, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x6a, 0x69, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x68, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x22, 0x43, 0x0a,
+	0x11, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4c, 0x6f, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x2e, 0x0a, 0x09, 0x6c, 0x6f, 0x67, 0x5f, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x4c, 0x6f, 0x67, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x08, 0x6c, 0x6f, 0x67, 0x45, 0x6e, 0x74,
+	0x72, 0x79, 0x22, 0x38, 0x0a, 0x0e, 0x52, 0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x31, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x31, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x32,
 	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x32, 0x22, 0x28, 0x0a, 0x0f,
@@ -4241,8 +4241,10 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x68, 0x6f, 0x77, 0x41, 0x6c, 0x6c, 0x52, 0x65,
 	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
 	0x53, 0x68, 0x6f, 0x77, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x42, 0x09, 0x5a, 0x07, 0x66, 0x66, 0x73, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x00, 0x42, 0x28, 0x5a, 0x26, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
+	0x74, 0x65, 0x78, 0x74, 0x69, 0x6c, 0x65, 0x69, 0x6f, 0x2f, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
+	0x61, 0x74, 0x65, 0x2f, 0x66, 0x66, 0x73, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -4280,36 +4282,36 @@ var file_ffs_rpc_rpc_proto_goTypes = []interface{}{
 	(*InstanceInfo)(nil),                // 17: ffs.rpc.InstanceInfo
 	(*Job)(nil),                         // 18: ffs.rpc.Job
 	(*DealError)(nil),                   // 19: ffs.rpc.DealError
-	(*PaychInfo)(nil),                   // 20: ffs.rpc.PaychInfo
-	(*CreateRequest)(nil),               // 21: ffs.rpc.CreateRequest
-	(*CreateResponse)(nil),              // 22: ffs.rpc.CreateResponse
-	(*ListAPIRequest)(nil),              // 23: ffs.rpc.ListAPIRequest
-	(*ListAPIResponse)(nil),             // 24: ffs.rpc.ListAPIResponse
-	(*IDRequest)(nil),                   // 25: ffs.rpc.IDRequest
-	(*IDResponse)(nil),                  // 26: ffs.rpc.IDResponse
-	(*AddrsRequest)(nil),                // 27: ffs.rpc.AddrsRequest
-	(*AddrsResponse)(nil),               // 28: ffs.rpc.AddrsResponse
-	(*DefaultConfigRequest)(nil),        // 29: ffs.rpc.DefaultConfigRequest
-	(*DefaultConfigResponse)(nil),       // 30: ffs.rpc.DefaultConfigResponse
-	(*NewAddrRequest)(nil),              // 31: ffs.rpc.NewAddrRequest
-	(*NewAddrResponse)(nil),             // 32: ffs.rpc.NewAddrResponse
-	(*GetDefaultCidConfigRequest)(nil),  // 33: ffs.rpc.GetDefaultCidConfigRequest
-	(*GetDefaultCidConfigResponse)(nil), // 34: ffs.rpc.GetDefaultCidConfigResponse
-	(*GetCidConfigRequest)(nil),         // 35: ffs.rpc.GetCidConfigRequest
-	(*GetCidConfigResponse)(nil),        // 36: ffs.rpc.GetCidConfigResponse
-	(*SetDefaultConfigRequest)(nil),     // 37: ffs.rpc.SetDefaultConfigRequest
-	(*SetDefaultConfigResponse)(nil),    // 38: ffs.rpc.SetDefaultConfigResponse
-	(*ShowRequest)(nil),                 // 39: ffs.rpc.ShowRequest
-	(*ShowResponse)(nil),                // 40: ffs.rpc.ShowResponse
-	(*InfoRequest)(nil),                 // 41: ffs.rpc.InfoRequest
-	(*InfoResponse)(nil),                // 42: ffs.rpc.InfoResponse
-	(*CancelJobRequest)(nil),            // 43: ffs.rpc.CancelJobRequest
-	(*CancelJobResponse)(nil),           // 44: ffs.rpc.CancelJobResponse
-	(*WatchJobsRequest)(nil),            // 45: ffs.rpc.WatchJobsRequest
-	(*WatchJobsResponse)(nil),           // 46: ffs.rpc.WatchJobsResponse
-	(*WatchLogsRequest)(nil),            // 47: ffs.rpc.WatchLogsRequest
-	(*WatchLogsResponse)(nil),           // 48: ffs.rpc.WatchLogsResponse
-	(*LogEntry)(nil),                    // 49: ffs.rpc.LogEntry
+	(*LogEntry)(nil),                    // 20: ffs.rpc.LogEntry
+	(*PaychInfo)(nil),                   // 21: ffs.rpc.PaychInfo
+	(*CreateRequest)(nil),               // 22: ffs.rpc.CreateRequest
+	(*CreateResponse)(nil),              // 23: ffs.rpc.CreateResponse
+	(*ListAPIRequest)(nil),              // 24: ffs.rpc.ListAPIRequest
+	(*ListAPIResponse)(nil),             // 25: ffs.rpc.ListAPIResponse
+	(*IDRequest)(nil),                   // 26: ffs.rpc.IDRequest
+	(*IDResponse)(nil),                  // 27: ffs.rpc.IDResponse
+	(*AddrsRequest)(nil),                // 28: ffs.rpc.AddrsRequest
+	(*AddrsResponse)(nil),               // 29: ffs.rpc.AddrsResponse
+	(*DefaultConfigRequest)(nil),        // 30: ffs.rpc.DefaultConfigRequest
+	(*DefaultConfigResponse)(nil),       // 31: ffs.rpc.DefaultConfigResponse
+	(*NewAddrRequest)(nil),              // 32: ffs.rpc.NewAddrRequest
+	(*NewAddrResponse)(nil),             // 33: ffs.rpc.NewAddrResponse
+	(*GetDefaultCidConfigRequest)(nil),  // 34: ffs.rpc.GetDefaultCidConfigRequest
+	(*GetDefaultCidConfigResponse)(nil), // 35: ffs.rpc.GetDefaultCidConfigResponse
+	(*GetCidConfigRequest)(nil),         // 36: ffs.rpc.GetCidConfigRequest
+	(*GetCidConfigResponse)(nil),        // 37: ffs.rpc.GetCidConfigResponse
+	(*SetDefaultConfigRequest)(nil),     // 38: ffs.rpc.SetDefaultConfigRequest
+	(*SetDefaultConfigResponse)(nil),    // 39: ffs.rpc.SetDefaultConfigResponse
+	(*ShowRequest)(nil),                 // 40: ffs.rpc.ShowRequest
+	(*ShowResponse)(nil),                // 41: ffs.rpc.ShowResponse
+	(*InfoRequest)(nil),                 // 42: ffs.rpc.InfoRequest
+	(*InfoResponse)(nil),                // 43: ffs.rpc.InfoResponse
+	(*CancelJobRequest)(nil),            // 44: ffs.rpc.CancelJobRequest
+	(*CancelJobResponse)(nil),           // 45: ffs.rpc.CancelJobResponse
+	(*WatchJobsRequest)(nil),            // 46: ffs.rpc.WatchJobsRequest
+	(*WatchJobsResponse)(nil),           // 47: ffs.rpc.WatchJobsResponse
+	(*WatchLogsRequest)(nil),            // 48: ffs.rpc.WatchLogsRequest
+	(*WatchLogsResponse)(nil),           // 49: ffs.rpc.WatchLogsResponse
 	(*ReplaceRequest)(nil),              // 50: ffs.rpc.ReplaceRequest
 	(*ReplaceResponse)(nil),             // 51: ffs.rpc.ReplaceResponse
 	(*PushConfigRequest)(nil),           // 52: ffs.rpc.PushConfigRequest
@@ -4360,25 +4362,25 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	15, // 23: ffs.rpc.ShowResponse.cid_info:type_name -> ffs.rpc.CidInfo
 	17, // 24: ffs.rpc.InfoResponse.info:type_name -> ffs.rpc.InstanceInfo
 	18, // 25: ffs.rpc.WatchJobsResponse.job:type_name -> ffs.rpc.Job
-	49, // 26: ffs.rpc.WatchLogsResponse.log_entry:type_name -> ffs.rpc.LogEntry
+	20, // 26: ffs.rpc.WatchLogsResponse.log_entry:type_name -> ffs.rpc.LogEntry
 	8,  // 27: ffs.rpc.PushConfigRequest.config:type_name -> ffs.rpc.CidConfig
-	20, // 28: ffs.rpc.ListPayChannelsResponse.pay_channels:type_name -> ffs.rpc.PaychInfo
-	20, // 29: ffs.rpc.CreatePayChannelResponse.pay_channel:type_name -> ffs.rpc.PaychInfo
+	21, // 28: ffs.rpc.ListPayChannelsResponse.pay_channels:type_name -> ffs.rpc.PaychInfo
+	21, // 29: ffs.rpc.CreatePayChannelResponse.pay_channel:type_name -> ffs.rpc.PaychInfo
 	15, // 30: ffs.rpc.ShowAllResponse.cid_infos:type_name -> ffs.rpc.CidInfo
-	21, // 31: ffs.rpc.RPCService.Create:input_type -> ffs.rpc.CreateRequest
-	23, // 32: ffs.rpc.RPCService.ListAPI:input_type -> ffs.rpc.ListAPIRequest
-	25, // 33: ffs.rpc.RPCService.ID:input_type -> ffs.rpc.IDRequest
-	27, // 34: ffs.rpc.RPCService.Addrs:input_type -> ffs.rpc.AddrsRequest
-	29, // 35: ffs.rpc.RPCService.DefaultConfig:input_type -> ffs.rpc.DefaultConfigRequest
-	31, // 36: ffs.rpc.RPCService.NewAddr:input_type -> ffs.rpc.NewAddrRequest
-	33, // 37: ffs.rpc.RPCService.GetDefaultCidConfig:input_type -> ffs.rpc.GetDefaultCidConfigRequest
-	35, // 38: ffs.rpc.RPCService.GetCidConfig:input_type -> ffs.rpc.GetCidConfigRequest
-	37, // 39: ffs.rpc.RPCService.SetDefaultConfig:input_type -> ffs.rpc.SetDefaultConfigRequest
-	39, // 40: ffs.rpc.RPCService.Show:input_type -> ffs.rpc.ShowRequest
-	41, // 41: ffs.rpc.RPCService.Info:input_type -> ffs.rpc.InfoRequest
-	43, // 42: ffs.rpc.RPCService.CancelJob:input_type -> ffs.rpc.CancelJobRequest
-	45, // 43: ffs.rpc.RPCService.WatchJobs:input_type -> ffs.rpc.WatchJobsRequest
-	47, // 44: ffs.rpc.RPCService.WatchLogs:input_type -> ffs.rpc.WatchLogsRequest
+	22, // 31: ffs.rpc.RPCService.Create:input_type -> ffs.rpc.CreateRequest
+	24, // 32: ffs.rpc.RPCService.ListAPI:input_type -> ffs.rpc.ListAPIRequest
+	26, // 33: ffs.rpc.RPCService.ID:input_type -> ffs.rpc.IDRequest
+	28, // 34: ffs.rpc.RPCService.Addrs:input_type -> ffs.rpc.AddrsRequest
+	30, // 35: ffs.rpc.RPCService.DefaultConfig:input_type -> ffs.rpc.DefaultConfigRequest
+	32, // 36: ffs.rpc.RPCService.NewAddr:input_type -> ffs.rpc.NewAddrRequest
+	34, // 37: ffs.rpc.RPCService.GetDefaultCidConfig:input_type -> ffs.rpc.GetDefaultCidConfigRequest
+	36, // 38: ffs.rpc.RPCService.GetCidConfig:input_type -> ffs.rpc.GetCidConfigRequest
+	38, // 39: ffs.rpc.RPCService.SetDefaultConfig:input_type -> ffs.rpc.SetDefaultConfigRequest
+	40, // 40: ffs.rpc.RPCService.Show:input_type -> ffs.rpc.ShowRequest
+	42, // 41: ffs.rpc.RPCService.Info:input_type -> ffs.rpc.InfoRequest
+	44, // 42: ffs.rpc.RPCService.CancelJob:input_type -> ffs.rpc.CancelJobRequest
+	46, // 43: ffs.rpc.RPCService.WatchJobs:input_type -> ffs.rpc.WatchJobsRequest
+	48, // 44: ffs.rpc.RPCService.WatchLogs:input_type -> ffs.rpc.WatchLogsRequest
 	50, // 45: ffs.rpc.RPCService.Replace:input_type -> ffs.rpc.ReplaceRequest
 	52, // 46: ffs.rpc.RPCService.PushConfig:input_type -> ffs.rpc.PushConfigRequest
 	54, // 47: ffs.rpc.RPCService.Remove:input_type -> ffs.rpc.RemoveRequest
@@ -4390,20 +4392,20 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	66, // 53: ffs.rpc.RPCService.CreatePayChannel:input_type -> ffs.rpc.CreatePayChannelRequest
 	68, // 54: ffs.rpc.RPCService.RedeemPayChannel:input_type -> ffs.rpc.RedeemPayChannelRequest
 	70, // 55: ffs.rpc.RPCService.ShowAll:input_type -> ffs.rpc.ShowAllRequest
-	22, // 56: ffs.rpc.RPCService.Create:output_type -> ffs.rpc.CreateResponse
-	24, // 57: ffs.rpc.RPCService.ListAPI:output_type -> ffs.rpc.ListAPIResponse
-	26, // 58: ffs.rpc.RPCService.ID:output_type -> ffs.rpc.IDResponse
-	28, // 59: ffs.rpc.RPCService.Addrs:output_type -> ffs.rpc.AddrsResponse
-	30, // 60: ffs.rpc.RPCService.DefaultConfig:output_type -> ffs.rpc.DefaultConfigResponse
-	32, // 61: ffs.rpc.RPCService.NewAddr:output_type -> ffs.rpc.NewAddrResponse
-	34, // 62: ffs.rpc.RPCService.GetDefaultCidConfig:output_type -> ffs.rpc.GetDefaultCidConfigResponse
-	36, // 63: ffs.rpc.RPCService.GetCidConfig:output_type -> ffs.rpc.GetCidConfigResponse
-	38, // 64: ffs.rpc.RPCService.SetDefaultConfig:output_type -> ffs.rpc.SetDefaultConfigResponse
-	40, // 65: ffs.rpc.RPCService.Show:output_type -> ffs.rpc.ShowResponse
-	42, // 66: ffs.rpc.RPCService.Info:output_type -> ffs.rpc.InfoResponse
-	44, // 67: ffs.rpc.RPCService.CancelJob:output_type -> ffs.rpc.CancelJobResponse
-	46, // 68: ffs.rpc.RPCService.WatchJobs:output_type -> ffs.rpc.WatchJobsResponse
-	48, // 69: ffs.rpc.RPCService.WatchLogs:output_type -> ffs.rpc.WatchLogsResponse
+	23, // 56: ffs.rpc.RPCService.Create:output_type -> ffs.rpc.CreateResponse
+	25, // 57: ffs.rpc.RPCService.ListAPI:output_type -> ffs.rpc.ListAPIResponse
+	27, // 58: ffs.rpc.RPCService.ID:output_type -> ffs.rpc.IDResponse
+	29, // 59: ffs.rpc.RPCService.Addrs:output_type -> ffs.rpc.AddrsResponse
+	31, // 60: ffs.rpc.RPCService.DefaultConfig:output_type -> ffs.rpc.DefaultConfigResponse
+	33, // 61: ffs.rpc.RPCService.NewAddr:output_type -> ffs.rpc.NewAddrResponse
+	35, // 62: ffs.rpc.RPCService.GetDefaultCidConfig:output_type -> ffs.rpc.GetDefaultCidConfigResponse
+	37, // 63: ffs.rpc.RPCService.GetCidConfig:output_type -> ffs.rpc.GetCidConfigResponse
+	39, // 64: ffs.rpc.RPCService.SetDefaultConfig:output_type -> ffs.rpc.SetDefaultConfigResponse
+	41, // 65: ffs.rpc.RPCService.Show:output_type -> ffs.rpc.ShowResponse
+	43, // 66: ffs.rpc.RPCService.Info:output_type -> ffs.rpc.InfoResponse
+	45, // 67: ffs.rpc.RPCService.CancelJob:output_type -> ffs.rpc.CancelJobResponse
+	47, // 68: ffs.rpc.RPCService.WatchJobs:output_type -> ffs.rpc.WatchJobsResponse
+	49, // 69: ffs.rpc.RPCService.WatchLogs:output_type -> ffs.rpc.WatchLogsResponse
 	51, // 70: ffs.rpc.RPCService.Replace:output_type -> ffs.rpc.ReplaceResponse
 	53, // 71: ffs.rpc.RPCService.PushConfig:output_type -> ffs.rpc.PushConfigResponse
 	55, // 72: ffs.rpc.RPCService.Remove:output_type -> ffs.rpc.RemoveResponse
@@ -4645,7 +4647,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PaychInfo); i {
+			switch v := v.(*LogEntry); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4657,7 +4659,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateRequest); i {
+			switch v := v.(*PaychInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4669,7 +4671,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateResponse); i {
+			switch v := v.(*CreateRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4681,7 +4683,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListAPIRequest); i {
+			switch v := v.(*CreateResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4693,7 +4695,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListAPIResponse); i {
+			switch v := v.(*ListAPIRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4705,7 +4707,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IDRequest); i {
+			switch v := v.(*ListAPIResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4717,7 +4719,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IDResponse); i {
+			switch v := v.(*IDRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4729,7 +4731,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AddrsRequest); i {
+			switch v := v.(*IDResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4741,7 +4743,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AddrsResponse); i {
+			switch v := v.(*AddrsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4753,7 +4755,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DefaultConfigRequest); i {
+			switch v := v.(*AddrsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4765,7 +4767,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DefaultConfigResponse); i {
+			switch v := v.(*DefaultConfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4777,7 +4779,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NewAddrRequest); i {
+			switch v := v.(*DefaultConfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4789,7 +4791,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NewAddrResponse); i {
+			switch v := v.(*NewAddrRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4801,7 +4803,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetDefaultCidConfigRequest); i {
+			switch v := v.(*NewAddrResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4813,7 +4815,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetDefaultCidConfigResponse); i {
+			switch v := v.(*GetDefaultCidConfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4825,7 +4827,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetCidConfigRequest); i {
+			switch v := v.(*GetDefaultCidConfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4837,7 +4839,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetCidConfigResponse); i {
+			switch v := v.(*GetCidConfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4849,7 +4851,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetDefaultConfigRequest); i {
+			switch v := v.(*GetCidConfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4861,7 +4863,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetDefaultConfigResponse); i {
+			switch v := v.(*SetDefaultConfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4873,7 +4875,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ShowRequest); i {
+			switch v := v.(*SetDefaultConfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4885,7 +4887,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ShowResponse); i {
+			switch v := v.(*ShowRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4897,7 +4899,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*InfoRequest); i {
+			switch v := v.(*ShowResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4909,7 +4911,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*InfoResponse); i {
+			switch v := v.(*InfoRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4921,7 +4923,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CancelJobRequest); i {
+			switch v := v.(*InfoResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4933,7 +4935,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CancelJobResponse); i {
+			switch v := v.(*CancelJobRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4945,7 +4947,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchJobsRequest); i {
+			switch v := v.(*CancelJobResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4957,7 +4959,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchJobsResponse); i {
+			switch v := v.(*WatchJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4969,7 +4971,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchLogsRequest); i {
+			switch v := v.(*WatchJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4981,7 +4983,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchLogsResponse); i {
+			switch v := v.(*WatchLogsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4993,7 +4995,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LogEntry); i {
+			switch v := v.(*WatchLogsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
