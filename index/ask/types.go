@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Module provides infromation about storage asks.
+// Module provides information about storage asks.
 type Module interface {
 	Get() Index
 	Query(q Query) ([]StorageAsk, error)
