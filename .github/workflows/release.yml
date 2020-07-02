@@ -59,7 +59,7 @@ jobs:
       - name: Compile
         run: |
           export PATH=${PATH}:`go env GOPATH`/bin
-          gox -osarch="linux/amd64 linux/386 linux/arm darwin/amd64" -output="pow-{{.OS}}-{{.Arch}}" ./cmd/pow
+          gox -osarch="linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64" -output="pow-{{.OS}}-{{.Arch}}" ./cmd/pow
       - name: Collect artifacts
         run: |
           VERSION=${GITHUB_REF##*/}
