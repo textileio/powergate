@@ -6,7 +6,6 @@ import (
 
 	"github.com/textileio/powergate/index/ask"
 	"github.com/textileio/powergate/index/ask/rpc"
-	"github.com/textileio/powergate/index/ask/runner"
 )
 
 // Asks provides an API for viewing asks data.
@@ -33,7 +32,7 @@ func (a *Asks) Get(ctx context.Context) (*ask.Index, error) {
 }
 
 // Query executes a query to retrieve active Asks.
-func (a *Asks) Query(ctx context.Context, query runner.Query) ([]ask.StorageAsk, error) {
+func (a *Asks) Query(ctx context.Context, query ask.Query) ([]ask.StorageAsk, error) {
 	q := &rpc.Query{
 		MaxPrice:  query.MaxPrice,
 		PieceSize: query.PieceSize,

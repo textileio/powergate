@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+// Module provides infromation about storage asks.
+type Module interface {
+	Get() Index
+	Query(q Query) ([]StorageAsk, error)
+	Listen() <-chan struct{}
+	Unregister(c chan struct{})
+}
+
 // Index contains Ask information from markets.
 type Index struct {
 	LastUpdated        time.Time
@@ -18,4 +26,12 @@ type StorageAsk struct {
 	MinPieceSize uint64
 	Timestamp    int64
 	Expiry       int64
+}
+
+// Query specifies filtering and paging data to retrieve active Asks.
+type Query struct {
+	MaxPrice  uint64
+	PieceSize uint64
+	Limit     int
+	Offset    int
 }

@@ -63,14 +63,14 @@ func TestQueryAsk(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		q      Query
+		q      ask.Query
 		expect []ask.StorageAsk
 	}{
-		{name: "All", q: Query{}, expect: facr},
-		{name: "LeqPrice35", q: Query{MaxPrice: 35}, expect: []ask.StorageAsk{facr[0], facr[1]}},
-		{name: "LeqPrice50", q: Query{MaxPrice: 50}, expect: facr},
-		{name: "LeqPrice40Piece96", q: Query{MaxPrice: 35, PieceSize: 96}, expect: []ask.StorageAsk{facr[1]}},
-		{name: "AllLimit2Offset1", q: Query{Limit: 2, Offset: 1}, expect: []ask.StorageAsk{facr[1], facr[2]}},
+		{name: "All", q: ask.Query{}, expect: facr},
+		{name: "LeqPrice35", q: ask.Query{MaxPrice: 35}, expect: []ask.StorageAsk{facr[0], facr[1]}},
+		{name: "LeqPrice50", q: ask.Query{MaxPrice: 50}, expect: facr},
+		{name: "LeqPrice40Piece96", q: ask.Query{MaxPrice: 35, PieceSize: 96}, expect: []ask.StorageAsk{facr[1]}},
+		{name: "AllLimit2Offset1", q: ask.Query{Limit: 2, Offset: 1}, expect: []ask.StorageAsk{facr[1], facr[2]}},
 	}
 
 	for _, tt := range tests {

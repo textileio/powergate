@@ -46,14 +46,6 @@ type Runner struct {
 	closed   bool
 }
 
-// Query specifies filtering and paging data to retrieve active Asks.
-type Query struct {
-	MaxPrice  uint64
-	PieceSize uint64
-	Limit     int
-	Offset    int
-}
-
 // New returns a new ask index runner. It load a persisted ask index, and immediately starts building a new fresh one.
 func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, error) {
 	if err := metrics.Init(); err != nil {
@@ -98,7 +90,7 @@ func (ai *Runner) Get() ask.Index {
 }
 
 // Query executes a query to retrieve active Asks.
-func (ai *Runner) Query(q Query) ([]ask.StorageAsk, error) {
+func (ai *Runner) Query(q ask.Query) ([]ask.StorageAsk, error) {
 	ai.lock.Lock()
 	defer ai.lock.Unlock()
 	var res []ask.StorageAsk

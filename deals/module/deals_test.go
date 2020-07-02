@@ -17,6 +17,7 @@ import (
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -44,7 +45,7 @@ func TestStore(t *testing.T) {
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			client, _, _ := tests.CreateLocalDevnet(t, nm)
-			m, err := New(tests.NewTxMapDatastore(), client, WithImportPath(filepath.Join(tmpDir, "imports")))
+			m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
 			_, pcids, err := storeMultiMiner(m, client, nm, randomBytes(600))
 			checkErr(t, err)
@@ -72,7 +73,7 @@ func TestRetrieve(t *testing.T) {
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			client, addr, _ := tests.CreateLocalDevnet(t, nm)
-			m, err := New(tests.NewTxMapDatastore(), client, WithImportPath(filepath.Join(tmpDir, "imports")))
+			m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
 
 			dcid, pcids, err := storeMultiMiner(m, client, nm, data)
@@ -113,9 +114,9 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 		return cid.Undef, nil, err
 	}
 
-	cfgs := make([]StorageDealConfig, numMiners)
+	cfgs := make([]deals.StorageDealConfig, numMiners)
 	for i := 0; i < numMiners; i++ {
-		cfgs[i] = StorageDealConfig{
+		cfgs[i] = deals.StorageDealConfig{
 			Miner:      miners[i].String(),
 			EpochPrice: 500000000,
 		}

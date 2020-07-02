@@ -18,7 +18,7 @@ import (
 	"github.com/rs/cors"
 	gincors "github.com/rs/cors/wrapper/gin"
 	askRunner "github.com/textileio/powergate/index/ask/runner"
-	"github.com/textileio/powergate/index/faults"
+	faultsModule "github.com/textileio/powergate/index/faults/module"
 	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/reputation"
 )
@@ -49,7 +49,7 @@ type Gateway struct {
 	server           *http.Server
 	askIndex         *askRunner.Runner
 	minerIndex       *miner.Index
-	faultsIndex      *faults.Index
+	faultsIndex      *faultsModule.Index
 	reputationModule *reputation.Module
 }
 
@@ -58,7 +58,7 @@ func NewGateway(
 	addr string,
 	askIndex *askRunner.Runner,
 	minerIndex *miner.Index,
-	faultsIndex *faults.Index,
+	faultsIndex *faultsModule.Index,
 	reputationModule *reputation.Module,
 ) *Gateway {
 	return &Gateway{

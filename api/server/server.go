@@ -36,7 +36,7 @@ import (
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	ask "github.com/textileio/powergate/index/ask/runner"
-	"github.com/textileio/powergate/index/faults"
+	faultsModule "github.com/textileio/powergate/index/faults/module"
 	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	"github.com/textileio/powergate/index/miner"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
@@ -71,7 +71,7 @@ type Server struct {
 	mm *maxmind.MaxMind
 	ai *ask.Runner
 	mi *miner.Index
-	fi *faults.Index
+	fi *faultsModule.Index
 	dm *dealsModule.Module
 	wm *wallet.Module
 	rm *reputation.Module
@@ -166,7 +166,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
-	si, err := faults.New(txndstr.Wrap(ds, "index/faults"), c)
+	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), c)
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
 	}
