@@ -29,6 +29,68 @@ jobs:
         with:
           files: 'powergate-docker-${{steps.latesttag.outputs.tag}}.zip'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+  release-platform-builds:
+    name: Release Builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: Cache dependencies
+        id: cache-dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Get dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
+        run: |
+          export PATH=${PATH}:`go env GOPATH`/bin
+          go get -v -t -d ./...
+      - name: Install gox
+        run: |
+          export PATH=${PATH}:`go env GOPATH`/bin
+          go get github.com/mitchellh/gox  
+      - name: Compile
+        run: |
+          export PATH=${PATH}:`go env GOPATH`/bin
+          gox -osarch="linux/amd64 linux/386 linux/arm darwin/amd64" -output="pow-{{.OS}}-{{.Arch}}" ./cmd/pow
+      - name: Collect artifacts
+        run: |
+          VERSION=${GITHUB_REF##*/}
+          OUT=release/cli
+          mkdir -p ${OUT}
+          mkdir -p tmp
+          cp LICENSE tmp/
+          cp README.md tmp/
+          cp dist/install tmp/
+          cd tmp
+          declare -a arr=("darwin-amd64" "linux-amd64" "linux-386" "linux-arm")
+          for i in "${arr[@]}"
+          do
+              OSARCH=${i%.*}
+              EXT=$([[ "$i" = *.* ]] && echo ".${i##*.}" || echo '')
+              cp ../pow-${i} pow${EXT}
+              if [ "${EXT}" == ".exe" ]; then
+                  zip pow_${VERSION}_${OSARCH}.zip LICENSE README.md pow${EXT}
+                  mv pow_${VERSION}_${OSARCH}.zip ../${OUT}/
+              else
+                  tar -czvf pow_${VERSION}_${OSARCH}.tar.gz LICENSE README.md install pow
+                  mv pow_${VERSION}_${OSARCH}.tar.gz ../${OUT}/
+              fi
+          done
+          cd .. && rm -rf tmp
+          echo $(ls ./release/cli)
+      - name: Upload multiple assets to release
+        uses: AButler/upload-release-assets@v2.0
+        with:
+          files: 'release/cli/pow_*'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
   publish_grpc_lib:
     name: Publish JS gRPC bindings
     runs-on: ubuntu-latest
