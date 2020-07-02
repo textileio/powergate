@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/caarlos0/spin"
@@ -11,28 +10,23 @@ import (
 )
 
 func init() {
-	balanceCmd.Flags().StringP("address", "a", "", "wallet address to check the balance of")
-
 	walletCmd.AddCommand(balanceCmd)
 }
 
 var balanceCmd = &cobra.Command{
-	Use:   "balance",
+	Use:   "balance [address]",
 	Short: "Print the balance of the specified wallet address",
 	Long:  `Print the balance of the specified wallet address`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
 	},
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		addr := viper.GetString("address")
-
-		if len(addr) == 0 {
-			Fatal(errors.New("balance command needs a wallet address"))
-		}
+		addr := args[0]
 
 		s := spin.New(fmt.Sprintf("%s Checking balance for %s...", "%s", addr))
 		s.Start()

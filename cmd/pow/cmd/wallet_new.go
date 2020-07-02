@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
@@ -11,7 +10,6 @@ import (
 
 func init() {
 	newCmd.Flags().StringP("type", "t", "bls", "specifies the wallet type, either bls or secp256k1. Defaults to bls.")
-	newCmd.Flags().BoolP("switch", "s", false, "whether or not to switch to the newly created wallet")
 
 	walletCmd.AddCommand(newCmd)
 }
@@ -37,25 +35,5 @@ var newCmd = &cobra.Command{
 		checkErr(err)
 
 		Success("Wallet address: %v", address)
-
-		accounts := viper.GetStringSlice("wallets")
-		accounts = append(accounts, address)
-		viper.Set("wallets", accounts)
-
-		switchWallet, err := cmd.Flags().GetBool("switch")
-		checkErr(err)
-
-		if switchWallet {
-			viper.Set("address", address)
-		}
-
-		err = viper.WriteConfig()
-		checkErr(err)
-
-		message := "Wallet addresses list updated"
-		if switchWallet {
-			message = fmt.Sprintf("%v and default wallet address set to %v", message, address)
-		}
-		Success(message)
 	},
 }
