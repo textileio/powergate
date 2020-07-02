@@ -13,5 +13,7 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v1
+      - name: Compile CLI on Windows
+        run: GOOS=windows go build ./cmd/pow
       - name: Test
         run: make test

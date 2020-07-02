@@ -21,7 +21,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/deals"
+	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/cidlogger"
@@ -35,7 +35,7 @@ import (
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
-	"github.com/textileio/powergate/wallet"
+	walletModule "github.com/textileio/powergate/wallet/module"
 )
 
 const (
@@ -1373,7 +1373,7 @@ func newDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *
 }
 
 func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistruct.FullNodeStruct, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
-	dm, err := deals.New(txndstr.Wrap(ds, "deals"), lotusClient)
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), lotusClient)
 	require.Nil(t, err)
 
 	fchain := filchain.New(lotusClient)
@@ -1383,7 +1383,7 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
 	require.NoError(t, err)
 
-	wm, err := wallet.New(lotusClient, masterAddr, *big.NewInt(iWalletBal), false)
+	wm, err := walletModule.New(lotusClient, masterAddr, *big.NewInt(iWalletBal), false)
 	require.Nil(t, err)
 
 	pm := paych.New(lotusClient)

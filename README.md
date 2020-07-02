@@ -17,7 +17,7 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 -   [Prerequisites](#prerequisites)
 -   [Design](#design)
 -   [Installation](#installation)
--   [Devnet mode](#devnet-mode)
+-   [Localnet mode](#localnet-mode)
 -   [Production setup](#production-setup)
 -   [Tests](#tests)
 -   [Benchmark](#benchmark)
@@ -149,26 +149,26 @@ pflag: help requested
 ```
 We'll soon provide better information about Powergate configurations, stay tuned! 📻
 
-## Devnet mode
+## Localnet mode
 
-Having a fully synced Lotus node can take a considerable amount of time and effort to mantain. We have built [lotus-devnet](https://github.com/textileio/lotus-devnet) which runs a local devnet with a _sectorbuilder_ mock. This provides a fast way to spinup a devnet where the sealing process if mocked, but the rest of the node logic is the same as production The _devnet_ supports both 2Kib and 512Kib sectors, and the speed of block production is configurable. Refer to [lotus-devnet](https://github.com/textileio/lotus-devnet) readme for more information.
+Having a fully synced Lotus node can take a considerable amount of time and effort to mantain. We have built [lotus-devnet](https://github.com/textileio/lotus-devnet) which runs a local network with a _sectorbuilder_ mock. This provides a fast way to spinup a local network where the sealing process if mocked, but the rest of the node logic is the same as production The _localnet_ supports both 2Kib and 512Kib sectors, and the speed of block production is configurable. Refer to [lotus-devnet](https://github.com/textileio/lotus-devnet) readme for more information.
 
-If you're interested in running Powergate and experiment with the CLI, the fastest way is to replace the Lotus client dependency with a running devnet, which runs a local Lotus client connected to a network with local miners. 
+If you're interested in running Powergate and experiment with the CLI, the fastest way is to replace the Lotus client dependency with a running localnet, which runs a local Lotus client connected to a network with local miners. 
 
-A simple docker-compose setup is available that will run Powergate connected to a Lotus devnet with 512Mib sectors and allows to use the gRPC API or CLI without any extra config flags 🎊
+A simple docker-compose setup is available that will run Powergate connected to a Lotus local network with 512Mib sectors and allows to use the gRPC API or CLI without any extra config flags 🎊
 ```bash
 cd docker
-make devnet
+make localnet
 ```
-This will build Powergate `powd`, a Lotus devnet, a IPFS node and wire them correctly to be ready to use.
+This will build Powergate `powd`, a Lotus local network, a IPFS node and wire them correctly to be ready to use.
 
-**Note**: Running `BIGSECTORS=false make devnet` will create the Lotus devent using 2Kib sectors. This may be more appropriate for certain development or testing scenarios.
+**Note**: Running `BIGSECTORS=false make localnet` will create the Lotus devent using 2Kib sectors. This may be more appropriate for certain development or testing scenarios.
 
-Here is a full example of using the devnet run:
+Here is a full example of using the local network:
 Terminal 1:
 ```bash
 cd docker
-make devnet
+make localnet
 ```
 
 
@@ -190,7 +190,7 @@ make build
 > Success! Data written to myfile2
 ```
 
-In this example we created a random 700 bytes file for the test, but since the devnet supports 512Mib sectors you can store store bigger files.
+In this example we created a random 700 bytes file for the test, but since the localnet supports 512Mib sectors you can store store bigger files.
 
 ## Production setup
 

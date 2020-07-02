@@ -1,4 +1,4 @@
-package miner
+package module
 
 import (
 	"context"

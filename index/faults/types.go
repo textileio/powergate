@@ -10,3 +10,10 @@ type IndexSnapshot struct {
 type Faults struct {
 	Epochs []int64
 }
+
+// Module provides faults information about the Filecoin network.
+type Module interface {
+	Get() IndexSnapshot
+	Listen() <-chan struct{}
+	Unregister(c chan struct{})
+}

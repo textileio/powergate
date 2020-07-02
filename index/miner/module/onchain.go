@@ -1,4 +1,4 @@
-package miner
+package module
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/textileio/powergate/index/miner"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -40,14 +41,14 @@ func (mi *Index) updateOnChainIndex() error {
 		return err
 	}
 
-	var chainIndex ChainIndex
+	var chainIndex miner.ChainIndex
 	newtsk := new.Key()
 	ts, err := mi.store.LoadAndPrune(mi.ctx, newtsk, &chainIndex)
 	if err != nil {
 		return fmt.Errorf("error getting last saved from store: %s", err)
 	}
 	if chainIndex.Miners == nil {
-		chainIndex.Miners = make(map[string]OnChainData)
+		chainIndex.Miners = make(map[string]miner.OnChainData)
 	}
 	hdiff := int64(new.Height()) - chainIndex.LastUpdated
 	if hdiff == 0 {
@@ -86,7 +87,7 @@ func (mi *Index) updateOnChainIndex() error {
 
 // deltaRefresh updates chainIndex information between two TipSet that are on
 // the same chain.
-func deltaRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *ChainIndex, fromKey types.TipSetKey, to *types.TipSet) error {
+func deltaRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *miner.ChainIndex, fromKey types.TipSetKey, to *types.TipSet) error {
 	from, err := api.ChainGetTipSet(ctx, fromKey)
 	if err != nil {
 		return err
@@ -111,7 +112,7 @@ func deltaRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex
 
 // fullRefresh updates chainIndex for all miners information at the currently
 // heaviest tipset.
-func fullRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *ChainIndex) error {
+func fullRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *miner.ChainIndex) error {
 	ts, err := api.ChainHead(ctx)
 	if err != nil {
 		return err
@@ -127,7 +128,7 @@ func fullRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex 
 }
 
 // updateForAddrs updates chainIndex information for a particular set of addrs.
-func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *ChainIndex, addrs []address.Address) error {
+func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *miner.ChainIndex, addrs []address.Address) error {
 	var l sync.Mutex
 	rl := make(chan struct{}, maxParallelism)
 	for i, a := range addrs {
@@ -159,30 +160,30 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 	return nil
 }
 
-func getOnChainData(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (OnChainData, error) {
+func getOnChainData(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (miner.OnChainData, error) {
 	// Power of miner.
 	mp, err := c.StateMinerPower(ctx, addr, types.EmptyTSK)
 	if err != nil {
-		return OnChainData{}, fmt.Errorf("getting miner power: %s", err)
+		return miner.OnChainData{}, fmt.Errorf("getting miner power: %s", err)
 	}
 	p := mp.MinerPower.RawBytePower.Uint64()
 
 	// Sector size
 	info, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
 	if err != nil {
-		return OnChainData{}, fmt.Errorf("getting sector size: %s", err)
+		return miner.OnChainData{}, fmt.Errorf("getting sector size: %s", err)
 	}
 
 	// Active deals
 	sectors, err := c.StateMinerSectors(ctx, addr, nil, false, types.EmptyTSK)
 	if err != nil {
-		return OnChainData{}, fmt.Errorf("getting sectors: %s", err)
+		return miner.OnChainData{}, fmt.Errorf("getting sectors: %s", err)
 	}
 	var activeDeals uint64
 	for _, s := range sectors {
 		activeDeals += uint64(len(s.Info.Info.DealIDs))
 	}
-	return OnChainData{
+	return miner.OnChainData{
 		Power:         p,
 		RelativePower: float64(p) / float64(mp.TotalPower.RawBytePower.Uint64()),
 		SectorSize:    uint64(info.SectorSize),

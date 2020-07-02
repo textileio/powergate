@@ -45,3 +45,11 @@ type Location struct {
 	Longitude float64
 	Latitude  float64
 }
+
+// Module provides information about miners in the
+// Filecoin network.
+type Module interface {
+	Get() IndexSnapshot
+	Listen() <-chan struct{}
+	Unregister(c chan struct{})
+}

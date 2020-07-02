@@ -19,6 +19,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
+	dealsModule "github.com/textileio/powergate/deals/module"
 	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	"github.com/textileio/powergate/fchost"
 	"github.com/textileio/powergate/ffs"
@@ -35,9 +36,9 @@ import (
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	ask "github.com/textileio/powergate/index/ask/runner"
-	"github.com/textileio/powergate/index/faults"
+	faultsModule "github.com/textileio/powergate/index/faults/module"
 	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
-	"github.com/textileio/powergate/index/miner"
+	minerModule "github.com/textileio/powergate/index/miner/module"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
@@ -49,7 +50,7 @@ import (
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
-	"github.com/textileio/powergate/wallet"
+	walletModule "github.com/textileio/powergate/wallet/module"
 	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 )
@@ -69,10 +70,10 @@ type Server struct {
 
 	mm *maxmind.MaxMind
 	ai *ask.Runner
-	mi *miner.Index
-	fi *faults.Index
-	dm *deals.Module
-	wm *wallet.Module
+	mi *minerModule.Index
+	fi *faultsModule.Index
+	dm *dealsModule.Module
+	wm *walletModule.Module
 	rm *reputation.Module
 	nm pgnet.Module
 	hm *health.Module
@@ -161,19 +162,19 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := miner.New(txndstr.Wrap(ds, "index/miner"), c, fchost, mm)
+	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), c, fchost, mm)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
-	si, err := faults.New(txndstr.Wrap(ds, "index/faults"), c)
+	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), c)
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
 	}
-	dm, err := deals.New(txndstr.Wrap(ds, "deals"), c, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), c, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
-	wm, err := wallet.New(c, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr)
+	wm, err := walletModule.New(c, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr)
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}

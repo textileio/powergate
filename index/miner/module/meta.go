@@ -1,4 +1,4 @@
-package miner
+package module
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
@@ -66,9 +67,9 @@ func (mi *Index) metaWorker() {
 
 // updateMetaIndex generates a new index that contains fresh metadata information
 // of addrs miners.
-func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, addrs []string) MetaIndex {
-	index := MetaIndex{
-		Info: make(map[string]Meta),
+func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, addrs []string) miner.MetaIndex {
+	index := miner.MetaIndex{
+		Info: make(map[string]miner.Meta),
 	}
 	rl := make(chan struct{}, pingRateLim)
 	var lock sync.Mutex
@@ -108,7 +109,7 @@ func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHo
 	return index
 }
 
-func merge(old Meta, upt Meta) Meta {
+func merge(old miner.Meta, upt miner.Meta) miner.Meta {
 	if upt.Location.Country == "" {
 		upt.Location.Country = old.Location.Country
 	}
@@ -125,8 +126,8 @@ func merge(old Meta, upt Meta) Meta {
 }
 
 // getMeta returns fresh metadata information about a miner.
-func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, straddr string) (Meta, error) {
-	si := Meta{
+func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, straddr string) (miner.Meta, error) {
+	si := miner.Meta{
 		LastUpdated: time.Now(),
 	}
 	addr, err := address.NewFromString(straddr)
@@ -153,7 +154,7 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 		return si, nil
 	}
 	if l, err := lr.Resolve(addrs); err == nil {
-		si.Location = Location{
+		si.Location = miner.Location{
 			Country:   l.Country,
 			Latitude:  l.Latitude,
 			Longitude: l.Longitude,
@@ -163,7 +164,7 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 }
 
 // persisteMetaIndex saves to datastore a new MetaIndex.
-func (mi *Index) persistMetaIndex(index MetaIndex) error {
+func (mi *Index) persistMetaIndex(index miner.MetaIndex) error {
 	buf, err := json.Marshal(index)
 	if err != nil {
 		return err

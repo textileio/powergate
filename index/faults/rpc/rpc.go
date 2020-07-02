@@ -10,19 +10,19 @@ import (
 type RPC struct {
 	UnimplementedRPCServiceServer
 
-	index *faults.Index
+	module faults.Module
 }
 
 // New creates a new rpc service.
-func New(fi *faults.Index) *RPC {
+func New(fi faults.Module) *RPC {
 	return &RPC{
-		index: fi,
+		module: fi,
 	}
 }
 
 // Get calls faults index Get.
 func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
-	index := s.index.Get()
+	index := s.module.Get()
 
 	miners := make(map[string]*Faults, len(index.Miners))
 	for key, faults := range index.Miners {

@@ -10,7 +10,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	askRunner "github.com/textileio/powergate/index/ask/runner"
+	"github.com/textileio/powergate/index/ask"
 )
 
 func init() {
@@ -47,7 +47,7 @@ var queryCmd = &cobra.Command{
 			Fatal(errors.New("pieceSize must be > 0"))
 		}
 
-		q := askRunner.Query{
+		q := ask.Query{
 			MaxPrice:  mp,
 			PieceSize: ps,
 			Limit:     l,

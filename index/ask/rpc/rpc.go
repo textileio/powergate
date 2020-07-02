@@ -3,18 +3,18 @@ package rpc
 import (
 	"context"
 
-	"github.com/textileio/powergate/index/ask/runner"
+	"github.com/textileio/powergate/index/ask"
 )
 
 // RPC implements the gprc service.
 type RPC struct {
 	UnimplementedRPCServiceServer
 
-	index *runner.Runner
+	index ask.Module
 }
 
 // New creates a new rpc service.
-func New(ai *runner.Runner) *RPC {
+func New(ai ask.Module) *RPC {
 	return &RPC{
 		index: ai,
 	}
@@ -43,7 +43,7 @@ func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
 
 // Query executes a query on the current Ask Storage index.
 func (s *RPC) Query(ctx context.Context, req *QueryRequest) (*QueryResponse, error) {
-	q := runner.Query{
+	q := ask.Query{
 		MaxPrice:  req.GetQuery().GetMaxPrice(),
 		PieceSize: req.GetQuery().GetPieceSize(),
 		Limit:     int(req.GetQuery().GetLimit()),
