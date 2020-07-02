@@ -38,7 +38,7 @@ import (
 	ask "github.com/textileio/powergate/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/index/faults/module"
 	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
-	"github.com/textileio/powergate/index/miner"
+	minerModule "github.com/textileio/powergate/index/miner/module"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
@@ -70,7 +70,7 @@ type Server struct {
 
 	mm *maxmind.MaxMind
 	ai *ask.Runner
-	mi *miner.Index
+	mi *minerModule.Index
 	fi *faultsModule.Index
 	dm *dealsModule.Module
 	wm *wallet.Module
@@ -162,7 +162,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := miner.New(txndstr.Wrap(ds, "index/miner"), c, fchost, mm)
+	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), c, fchost, mm)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}

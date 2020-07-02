@@ -29,7 +29,7 @@ type Module struct {
 	ds      datastore.TxnDatastore
 	sources *source.Store
 
-	mi *miner.Index
+	mi miner.Module
 	fi faults.Module
 	ai ask.Module
 
@@ -54,7 +54,7 @@ type MinerScore struct {
 }
 
 // New returns a new reputation Module.
-func New(ds datastore.TxnDatastore, mi *miner.Index, fi faults.Module, ai *askRunner.Runner) *Module {
+func New(ds datastore.TxnDatastore, mi miner.Module, fi faults.Module, ai *askRunner.Runner) *Module {
 	ctx, cancel := context.WithCancel(context.Background())
 	rm := &Module{
 		ds: ds,

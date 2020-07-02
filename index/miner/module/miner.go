@@ -1,4 +1,4 @@
-package miner
+package module
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/chainstore"
 	"github.com/textileio/powergate/chainsync"
+	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/signaler"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -50,7 +51,7 @@ type Index struct {
 	metaTicker  *time.Ticker
 	minerTicker *time.Ticker
 	lock        sync.Mutex
-	index       IndexSnapshot
+	index       miner.IndexSnapshot
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -93,18 +94,18 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr
 }
 
 // Get returns a copy of the current index information.
-func (mi *Index) Get() IndexSnapshot {
+func (mi *Index) Get() miner.IndexSnapshot {
 	mi.lock.Lock()
 	defer mi.lock.Unlock()
-	ii := IndexSnapshot{
-		Meta: MetaIndex{
+	ii := miner.IndexSnapshot{
+		Meta: miner.MetaIndex{
 			Online:  mi.index.Meta.Online,
 			Offline: mi.index.Meta.Offline,
-			Info:    make(map[string]Meta, len(mi.index.Meta.Info)),
+			Info:    make(map[string]miner.Meta, len(mi.index.Meta.Info)),
 		},
-		OnChain: ChainIndex{
+		OnChain: miner.ChainIndex{
 			LastUpdated: mi.index.OnChain.LastUpdated,
-			Miners:      make(map[string]OnChainData, len(mi.index.OnChain.Miners)),
+			Miners:      make(map[string]miner.OnChainData, len(mi.index.OnChain.Miners)),
 		},
 	}
 	for addr, v := range mi.index.Meta.Info {
@@ -184,23 +185,23 @@ func (mi *Index) start() {
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed
 // since its only called from New().
 func (mi *Index) loadFromDS() error {
-	mi.index = IndexSnapshot{
-		Meta:    MetaIndex{Info: make(map[string]Meta)},
-		OnChain: ChainIndex{Miners: make(map[string]OnChainData)},
+	mi.index = miner.IndexSnapshot{
+		Meta:    miner.MetaIndex{Info: make(map[string]miner.Meta)},
+		OnChain: miner.ChainIndex{Miners: make(map[string]miner.OnChainData)},
 	}
 	buf, err := mi.ds.Get(dsKeyMetaIndex)
 	if err != nil && err != datastore.ErrNotFound {
 		return err
 	}
 	if err == nil {
-		var metaIndex MetaIndex
+		var metaIndex miner.MetaIndex
 		if err := json.Unmarshal(buf, &metaIndex); err != nil {
 			return err
 		}
 		mi.index.Meta = metaIndex
 	}
 
-	var chainIndex ChainIndex
+	var chainIndex miner.ChainIndex
 	if _, err := mi.store.GetLastCheckpoint(&chainIndex); err != nil {
 		return err
 	}
