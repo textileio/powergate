@@ -70,7 +70,7 @@ jobs:
           cp README.md tmp/
           cp dist/install tmp/
           cd tmp
-          declare -a arr=("darwin-amd64" "linux-amd64" "linux-386" "linux-arm")
+          declare -a arr=("darwin-amd64" "linux-amd64" "linux-386" "linux-arm" "windows/amd64")
           for i in "${arr[@]}"
           do
               OSARCH=${i%.*}
