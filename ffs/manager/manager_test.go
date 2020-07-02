@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
+	walletModule "github.com/textileio/powergate/wallet/module"
 )
 
 func TestMain(m *testing.M) {
