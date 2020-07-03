@@ -1379,7 +1379,8 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 	fchain := filchain.New(lotusClient)
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
 	cl := filcold.New(ms, dm, ipfsClient, fchain, l)
-	hl := coreipfs.New(ipfsClient, l)
+	hl, err := coreipfs.New(ipfsClient, l)
+	require.NoError(t, err)
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
 	require.NoError(t, err)
 
