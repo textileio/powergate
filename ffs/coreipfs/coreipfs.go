@@ -58,9 +58,6 @@ func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 
 // IsStored return if a particular Cid is stored.
 func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
-	if ci.pinset == nil {
-
-	}
 	_, ok := ci.pinset[c]
 	return ok, nil
 }
