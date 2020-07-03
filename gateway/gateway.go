@@ -215,7 +215,7 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 	sort.Slice(chainRows, func(i, j int) bool {
 		l := chainRows[i][0].(string)
 		r := chainRows[j][0].(string)
-		return index.OnChain.Miners[l].ActiveDeals >= index.OnChain.Miners[r]
+		return index.OnChain.Miners[l].ActiveDeals >= index.OnChain.Miners[r].ActiveDeals
 	})
 
 	c.HTML(http.StatusOK, "/public/html/miners.gohtml", gin.H{
