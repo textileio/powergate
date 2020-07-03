@@ -1,4 +1,4 @@
-name: ensure docs
+name: Ensure docs
 on:
   push:
     branches:

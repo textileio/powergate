@@ -33,6 +33,11 @@ To build from source, you need to have Go 1.14 or newer installed.
 
 Powergate is composed of different modules which can be used independently, and compose toegheter to provide other higher-level modules.
 
+Here's a high-level overview of the main components, and how Powergate interacts with IPFS and a Filecoin client:
+![Powergate Design](https://user-images.githubusercontent.com/6136245/86489747-a6f4c280-bd3b-11ea-81ca-ed6fba512bd7.png)
+
+Note in the diagram that the Lotus and Filecoin client node _doesn't need_ to be in the same host where Powergate is running. They can, but isn't necessary.
+
 ### 📢 Deals module
 The Deals module provides a lower layer of abstraction to a Filecoin client node. It provides simple APIs to store, watch, and retrieve data in the Filecoin network. Currently, it interacts with the Lotus client but we have plans to support other Filecoin clients.
 
