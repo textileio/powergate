@@ -1,13 +1,11 @@
 package coreipfs
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"sync"
 
-	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
 	logging "github.com/ipfs/go-log/v2"
@@ -39,15 +37,6 @@ func New(ipfs iface.CoreAPI, l ffs.CidLogger) *CoreIpfs {
 		ipfs: ipfs,
 		l:    l,
 	}
-}
-
-// Put saves a Block.
-func (ci *CoreIpfs) Put(ctx context.Context, b blocks.Block) error {
-	log.Debugf("putting block %s", b.Cid())
-	if _, err := ci.ipfs.Block().Put(ctx, bytes.NewReader(b.RawData())); err != nil {
-		return fmt.Errorf("adding block to ipfs node: %s", err)
-	}
-	return nil
 }
 
 // Remove removes a Cid from the Hot Storage.

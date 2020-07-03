@@ -5,7 +5,6 @@ import (
 	"io"
 	"math/big"
 
-	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 )
 
@@ -48,9 +47,6 @@ type HotStorage interface {
 	// Replace replaces a stored Cid with a new one. It's mostly
 	// thought for mutating data doing this efficiently.
 	Replace(context.Context, cid.Cid, cid.Cid) (int, error)
-
-	// Put adds a raw block.
-	Put(context.Context, blocks.Block) error
 
 	// IsStore returns true if the Cid is stored, or false
 	// otherwise.
