@@ -1,13 +1,12 @@
 package coreipfs
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"sync"
+	"time"
 
-	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
 	logging "github.com/ipfs/go-log/v2"
@@ -34,20 +33,17 @@ type CoreIpfs struct {
 var _ ffs.HotStorage = (*CoreIpfs)(nil)
 
 // New returns a new CoreIpfs instance.
-func New(ipfs iface.CoreAPI, l ffs.CidLogger) *CoreIpfs {
-	return &CoreIpfs{
+func New(ipfs iface.CoreAPI, l ffs.CidLogger) (*CoreIpfs, error) {
+	ci := &CoreIpfs{
 		ipfs: ipfs,
 		l:    l,
 	}
-}
-
-// Put saves a Block.
-func (ci *CoreIpfs) Put(ctx context.Context, b blocks.Block) error {
-	log.Debugf("putting block %s", b.Cid())
-	if _, err := ci.ipfs.Block().Put(ctx, bytes.NewReader(b.RawData())); err != nil {
-		return fmt.Errorf("adding block to ipfs node: %s", err)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	if err := ci.fillPinsetCache(ctx); err != nil {
+		return nil, err
 	}
-	return nil
+	return ci, nil
 }
 
 // Remove removes a Cid from the Hot Storage.
@@ -62,11 +58,6 @@ func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 
 // IsStored return if a particular Cid is stored.
 func (ci *CoreIpfs) IsStored(ctx context.Context, c cid.Cid) (bool, error) {
-	if ci.pinset == nil {
-		if err := ci.ensurePinsetCache(ctx); err != nil {
-			return false, err
-		}
-	}
 	_, ok := ci.pinset[c]
 	return ok, nil
 }
@@ -107,9 +98,6 @@ func (ci *CoreIpfs) Store(ctx context.Context, c cid.Cid) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("getting stats of cid %s: %s", c, err)
 	}
-	if err := ci.ensurePinsetCache(ctx); err != nil {
-		return 0, err
-	}
 	ci.lock.Lock()
 	ci.pinset[c] = struct{}{}
 	ci.lock.Unlock()
@@ -136,12 +124,9 @@ func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, e
 	return stat.CumulativeSize, nil
 }
 
-func (ci *CoreIpfs) ensurePinsetCache(ctx context.Context) error {
+func (ci *CoreIpfs) fillPinsetCache(ctx context.Context) error {
 	ci.lock.Lock()
 	defer ci.lock.Unlock()
-	if ci.pinset != nil {
-		return nil
-	}
 	pins, err := ci.ipfs.Pin().Ls(ctx)
 	if err != nil {
 		ci.lock.Unlock()

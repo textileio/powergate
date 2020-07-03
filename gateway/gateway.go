@@ -23,7 +23,7 @@ import (
 	"github.com/textileio/powergate/reputation"
 )
 
-const numTopMiners = 30
+const numTopMiners = 100
 
 var log = logger.Logger("gateway")
 
