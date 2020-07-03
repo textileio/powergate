@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -211,6 +212,12 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 		i++
 	}
 
+	sort.Slice(chainRows, func(i, j int) bool {
+		l := chainRows[i][0].(string)
+		r := chainRows[j][0].(string)
+		return index.OnChain.Miners[l].ActiveDeals >= index.OnChain.Miners[r].ActiveDeals
+	})
+
 	c.HTML(http.StatusOK, "/public/html/miners.gohtml", gin.H{
 		"MenuItems": menuItems,
 		"MetaData": gin.H{
@@ -250,6 +257,12 @@ func (g *Gateway) faultsHandler(c *gin.Context) {
 		}
 		i++
 	}
+
+	sort.Slice(rows, func(i, j int) bool {
+		l := rows[i][0].(string)
+		r := rows[j][0].(string)
+		return len(index.Miners[l].Epochs) >= len(index.Miners[r].Epochs)
+	})
 
 	c.HTML(http.StatusOK, "/public/html/faults.gohtml", gin.H{
 		"MenuItems": menuItems,
