@@ -20,7 +20,7 @@ type Deals struct {
 
 // WatchEvent is used to send data or error values for Watch.
 type WatchEvent struct {
-	Deal deals.DealInfo
+	Deal deals.StorageDealInfo
 	Err  error
 }
 
@@ -125,7 +125,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 				channel <- WatchEvent{Err: err}
 				break
 			}
-			deal := deals.DealInfo{
+			deal := deals.StorageDealInfo{
 				ProposalCid:     proposalCid,
 				StateID:         event.GetDealInfo().GetStateId(),
 				StateName:       event.GetDealInfo().GetStateName(),
@@ -181,7 +181,7 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 
 // FinalDealRecords returns a list of all finalized storage deals.
 // Records are sorted ascending by activation epoch then timestamp.
-func (d *Deals) FinalDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+func (d *Deals) FinalDealRecords(ctx context.Context) ([]deals.StorageDealRecord, error) {
 	res, err := d.client.FinalDealRecords(ctx, &rpc.FinalDealRecordsRequest{})
 	if err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func (d *Deals) FinalDealRecords(ctx context.Context) ([]deals.DealRecord, error
 
 // PendingDealRecords returns a list of all pending storage deals.
 // Records are sorted ascending by timestamp.
-func (d *Deals) PendingDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+func (d *Deals) PendingDealRecords(ctx context.Context) ([]deals.StorageDealRecord, error) {
 	res, err := d.client.PendingDealRecords(ctx, &rpc.PendingDealRecordsRequest{})
 	if err != nil {
 		return nil, err
@@ -209,7 +209,7 @@ func (d *Deals) PendingDealRecords(ctx context.Context) ([]deals.DealRecord, err
 
 // AllDealRecords returns a list of all finalized and pending deals.
 // Records are sorted ascending by activation epoch, if available, then timestamp.
-func (d *Deals) AllDealRecords(ctx context.Context) ([]deals.DealRecord, error) {
+func (d *Deals) AllDealRecords(ctx context.Context) ([]deals.StorageDealRecord, error) {
 	res, err := d.client.AllDealRecords(ctx, &rpc.AllDealRecordsRequest{})
 	if err != nil {
 		return nil, err
@@ -223,17 +223,17 @@ func (d *Deals) AllDealRecords(ctx context.Context) ([]deals.DealRecord, error) 
 
 // RetrievalRecords returns a list of all retrievals.
 // Records are sorted ascending by timestamp.
-func (d *Deals) RetrievalRecords(ctx context.Context) ([]deals.RetrievalRecord, error) {
+func (d *Deals) RetrievalRecords(ctx context.Context) ([]deals.RetrievalDealRecord, error) {
 	res, err := d.client.RetrievalRecords(ctx, &rpc.RetrievalRecordsRequest{})
 	if err != nil {
 		return nil, err
 	}
-	var ret []deals.RetrievalRecord
+	var ret []deals.RetrievalDealRecord
 	for _, rpcRecord := range res.Records {
 		if rpcRecord.RetrievalInfo == nil {
 			continue
 		}
-		record := deals.RetrievalRecord{
+		record := deals.RetrievalDealRecord{
 			Addr: rpcRecord.Addr,
 			Time: rpcRecord.Time,
 		}
@@ -241,7 +241,7 @@ func (d *Deals) RetrievalRecords(ctx context.Context) ([]deals.RetrievalRecord, 
 		if err != nil {
 			return nil, err
 		}
-		record.RetrievalInfo = deals.RetrievalInfo{
+		record.DealInfo = deals.RetrievalDealInfo{
 			PieceCID:                pieceCid,
 			Size:                    rpcRecord.RetrievalInfo.Size,
 			MinPrice:                rpcRecord.RetrievalInfo.MinPrice,
@@ -255,13 +255,13 @@ func (d *Deals) RetrievalRecords(ctx context.Context) ([]deals.RetrievalRecord, 
 	return ret, nil
 }
 
-func fromRPCDealRecords(records []*rpc.DealRecord) ([]deals.DealRecord, error) {
-	var ret []deals.DealRecord
+func fromRPCDealRecords(records []*rpc.DealRecord) ([]deals.StorageDealRecord, error) {
+	var ret []deals.StorageDealRecord
 	for _, rpcRecord := range records {
 		if rpcRecord.DealInfo == nil {
 			continue
 		}
-		record := deals.DealRecord{
+		record := deals.StorageDealRecord{
 			Addr:    rpcRecord.Addr,
 			Time:    rpcRecord.Time,
 			Pending: rpcRecord.Pending,
@@ -274,7 +274,7 @@ func fromRPCDealRecords(records []*rpc.DealRecord) ([]deals.DealRecord, error) {
 		if err != nil {
 			return nil, err
 		}
-		record.DealInfo = deals.DealInfo{
+		record.DealInfo = deals.StorageDealInfo{
 			ProposalCid:     proposalCid,
 			StateID:         rpcRecord.DealInfo.StateId,
 			StateName:       rpcRecord.DealInfo.StateName,

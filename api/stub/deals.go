@@ -66,7 +66,7 @@ func driveChannel(ch chan client.WatchEvent, proposals []cid.Cid) {
 		for _, proposal := range proposals {
 			time.Sleep(time.Millisecond * 1000)
 			ch <- client.WatchEvent{
-				Deal: deals.DealInfo{
+				Deal: deals.StorageDealInfo{
 					ProposalCid: proposal,
 					StateName:   dealState,
 				},

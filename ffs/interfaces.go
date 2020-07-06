@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/deals"
 )
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
@@ -16,6 +17,59 @@ type WalletManager interface {
 	Balance(context.Context, string) (uint64, error)
 	// SendFil sends fil from one address to another.
 	SendFil(context.Context, string, string, *big.Int) error
+}
+
+// ListConfig specifies the options for DealsManager.List.
+type ListConfig struct {
+	FromAddrs      []string
+	DataCids       []string
+	IncludePending bool
+	OnlyPending    bool
+	Ascending      bool
+}
+
+// ListOption updates a ListConfig.
+type ListOption func(*ListConfig)
+
+// WithFromAddrs sets FromAddrs.
+func WithFromAddrs(addrs ...string) ListOption {
+	return func(c *ListConfig) {
+		c.FromAddrs = addrs
+	}
+}
+
+// WithDataCids sets DataCids.
+func WithDataCids(cids ...string) ListOption {
+	return func(c *ListConfig) {
+		c.DataCids = cids
+	}
+}
+
+// WithInclidePending sets IncludePending.
+func WithInclidePending(includePending bool) ListOption {
+	return func(c *ListConfig) {
+		c.IncludePending = includePending
+	}
+}
+
+// WithOnlyPending sets OnlyPending.
+func WithOnlyPending(onlyPending bool) ListOption {
+	return func(c *ListConfig) {
+		c.OnlyPending = onlyPending
+	}
+}
+
+// WithAscending sets Ascending.
+func WithAscending(ascending bool) ListOption {
+	return func(c *ListConfig) {
+		c.Ascending = ascending
+	}
+}
+
+// DealsManager specifies the required deals api.
+type DealsManager interface {
+	ListStorageDealRecords(context.Context, ...ListOption) ([]deals.StorageDealRecord, error)
+	ListRetrievalDealRecords(context.Context, ...ListOption) ([]deals.RetrievalDealRecord, error)
 }
 
 // PaychManager provides access to payment channels.

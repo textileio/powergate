@@ -41,9 +41,9 @@ var retrievalCmd = &cobra.Command{
 				data[i] = []string{
 					t.Format("01/02/06 15:04 MST"),
 					r.Addr,
-					r.RetrievalInfo.Miner,
-					r.RetrievalInfo.PieceCID.String(),
-					strconv.Itoa(int(r.RetrievalInfo.Size)),
+					r.DealInfo.Miner,
+					r.DealInfo.PieceCID.String(),
+					strconv.Itoa(int(r.DealInfo.Size)),
 				}
 			}
 			RenderTable(os.Stdout, []string{"time", "addr", "miner", "piece cid", "size"}, data)

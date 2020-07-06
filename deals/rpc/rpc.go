@@ -9,6 +9,7 @@ import (
 	"github.com/textileio/powergate/deals"
 
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/powergate/ffs"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -22,11 +23,12 @@ type Module interface {
 	Fetch(ctx context.Context, waddr string, cid cid.Cid) error
 	Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error)
 	GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error)
-	Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.DealInfo, error)
-	FinalDealRecords() ([]deals.DealRecord, error)
-	PendingDealRecords() ([]deals.DealRecord, error)
-	AllDealRecords() ([]deals.DealRecord, error)
-	RetrievalRecords() ([]deals.RetrievalRecord, error)
+	Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.StorageDealInfo, error)
+	ListStorageDealRecords(ctx context.Context, opts ...ffs.ListOption) ([]deals.StorageDealRecord, error)
+	FinalDealRecords() ([]deals.StorageDealRecord, error)
+	PendingDealRecords() ([]deals.StorageDealRecord, error)
+	AllDealRecords() ([]deals.StorageDealRecord, error)
+	RetrievalRecords() ([]deals.RetrievalDealRecord, error)
 }
 
 // RPC implements the gprc service.
@@ -247,20 +249,20 @@ func (s *RPC) RetrievalRecords(ctx context.Context, req *RetrievalRecordsRequest
 			Addr: r.Addr,
 			Time: r.Time,
 			RetrievalInfo: &RetrievalInfo{
-				PieceCid:                r.RetrievalInfo.PieceCID.String(),
-				Size:                    r.RetrievalInfo.Size,
-				MinPrice:                r.RetrievalInfo.MinPrice,
-				PaymentInterval:         r.RetrievalInfo.PaymentInterval,
-				PaymentIntervalIncrease: r.RetrievalInfo.PaymentIntervalIncrease,
-				Miner:                   r.RetrievalInfo.Miner,
-				MinerPeerId:             r.RetrievalInfo.MinerPeerID,
+				PieceCid:                r.DealInfo.PieceCID.String(),
+				Size:                    r.DealInfo.Size,
+				MinPrice:                r.DealInfo.MinPrice,
+				PaymentInterval:         r.DealInfo.PaymentInterval,
+				PaymentIntervalIncrease: r.DealInfo.PaymentIntervalIncrease,
+				Miner:                   r.DealInfo.Miner,
+				MinerPeerId:             r.DealInfo.MinerPeerID,
 			},
 		}
 	}
 	return &RetrievalRecordsResponse{Records: ret}, nil
 }
 
-func toRPCDealRecords(records []deals.DealRecord) []*DealRecord {
+func toRPCDealRecords(records []deals.StorageDealRecord) []*DealRecord {
 	ret := make([]*DealRecord, len(records))
 	for i, r := range records {
 		ret[i] = &DealRecord{
