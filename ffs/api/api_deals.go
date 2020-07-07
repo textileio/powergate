@@ -16,7 +16,7 @@ func (i *API) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]dea
 	if err != nil {
 		return nil, fmt.Errorf("getting final addrs: %v", err)
 	}
-	recs, err := i.dm.ListStorageDealRecords(
+	recs, err := i.drm.ListStorageDealRecords(
 		deals.WithFromAddrs(finalAddrs...),
 		deals.WithAscending(c.Ascending),
 		deals.WithDataCids(c.DataCids...),
@@ -39,7 +39,7 @@ func (i *API) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]d
 	if err != nil {
 		return nil, fmt.Errorf("getting final addrs: %v", err)
 	}
-	recs, err := i.dm.ListRetrievalDealRecords(
+	recs, err := i.drm.ListRetrievalDealRecords(
 		deals.WithFromAddrs(finalAddrs...),
 		deals.WithAscending(c.Ascending),
 		deals.WithDataCids(c.DataCids...),
