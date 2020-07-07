@@ -18,7 +18,7 @@ func init() {
 	storeCmd.Flags().StringSliceP("miners", "m", []string{}, "miner ids of the deals to execute")
 	storeCmd.Flags().IntSliceP("prices", "p", []int{}, "prices of the deals to execute")
 	storeCmd.Flags().StringP("address", "a", "", "wallet address used to store the data")
-	storeCmd.Flags().Uint64P("duration", "d", 0, "duration to store the data for")
+	storeCmd.Flags().Uint64P("duration", "d", 0, "minimum duration to store the data for")
 
 	dealsCmd.AddCommand(storeCmd)
 }
@@ -36,7 +36,7 @@ var storeCmd = &cobra.Command{
 		defer cancel()
 
 		addr := viper.GetString("address")
-		minDuration := viper.GetUint64("minDuration")
+		minDuration := viper.GetUint64("duration")
 		path := viper.GetString("file")
 		miners := viper.GetStringSlice("miners")
 		prices := viper.GetIntSlice("prices")
@@ -49,7 +49,7 @@ var storeCmd = &cobra.Command{
 		}
 
 		if minDuration == 0 {
-			Fatal(errors.New("store command minimum duration should be > 0"))
+			Fatal(errors.New("store command duration should be > 0"))
 		}
 
 		file, err := os.Open(path)

@@ -22,11 +22,9 @@ type Module interface {
 	Fetch(ctx context.Context, waddr string, cid cid.Cid) error
 	Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error)
 	GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error)
-	Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.DealInfo, error)
-	FinalDealRecords() ([]deals.DealRecord, error)
-	PendingDealRecords() ([]deals.DealRecord, error)
-	AllDealRecords() ([]deals.DealRecord, error)
-	RetrievalRecords() ([]deals.RetrievalRecord, error)
+	Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.StorageDealInfo, error)
+	ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error)
+	ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error)
 }
 
 // RPC implements the gprc service.
@@ -158,7 +156,7 @@ func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 		if update.ProposalCid.Defined() {
 			strProposalCid = update.ProposalCid.String()
 		}
-		dealInfo := &DealInfo{
+		dealInfo := &StorageDealInfo{
 			ProposalCid:   strProposalCid,
 			StateId:       update.StateID,
 			StateName:     update.StateName,
@@ -208,66 +206,46 @@ func (s *RPC) Retrieve(req *RetrieveRequest, srv RPCService_RetrieveServer) erro
 	}
 }
 
-// FinalDealRecords calls deals.FinalDealRecords.
-func (s *RPC) FinalDealRecords(ctx context.Context, req *FinalDealRecordsRequest) (*FinalDealRecordsResponse, error) {
-	records, err := s.Module.FinalDealRecords()
+// ListStorageDealRecords calls deals.ListStorageDealRecords.
+func (s *RPC) ListStorageDealRecords(ctx context.Context, req *ListStorageDealRecordsRequest) (*ListStorageDealRecordsResponse, error) {
+	records, err := s.Module.ListStorageDealRecords(buildListDealRecordsOptions(req.Config)...)
 	if err != nil {
 		return nil, err
 	}
-	return &FinalDealRecordsResponse{Records: toRPCDealRecords(records)}, nil
+	return &ListStorageDealRecordsResponse{Records: toRPCStorageDealRecords(records)}, nil
 }
 
-// PendingDealRecords calls deals.PendingDealRecords.
-func (s *RPC) PendingDealRecords(ctx context.Context, req *PendingDealRecordsRequest) (*PendingDealRecordsResponse, error) {
-	records, err := s.Module.PendingDealRecords()
+// ListRetrievalDealRecords calls deals.ListRetrievalDealRecords.
+func (s *RPC) ListRetrievalDealRecords(ctx context.Context, req *ListRetrievalDealRecordsRequest) (*ListRetrievalDealRecordsResponse, error) {
+	records, err := s.Module.ListRetrievalDealRecords(buildListDealRecordsOptions(req.Config)...)
 	if err != nil {
 		return nil, err
 	}
-	return &PendingDealRecordsResponse{Records: toRPCDealRecords(records)}, nil
+	return &ListRetrievalDealRecordsResponse{Records: toRPCRetrievalDealRecords(records)}, nil
 }
 
-// AllDealRecords calls deals.AllDealRecords.
-func (s *RPC) AllDealRecords(ctx context.Context, req *AllDealRecordsRequest) (*AllDealRecordsResponse, error) {
-	records, err := s.Module.AllDealRecords()
-	if err != nil {
-		return nil, err
-	}
-	return &AllDealRecordsResponse{Records: toRPCDealRecords(records)}, nil
-}
-
-// RetrievalRecords calls deals.RetrievalRecords.
-func (s *RPC) RetrievalRecords(ctx context.Context, req *RetrievalRecordsRequest) (*RetrievalRecordsResponse, error) {
-	records, err := s.Module.RetrievalRecords()
-	if err != nil {
-		return nil, err
-	}
-	ret := make([]*RetrievalRecord, len(records))
-	for i, r := range records {
-		ret[i] = &RetrievalRecord{
-			Addr: r.Addr,
-			Time: r.Time,
-			RetrievalInfo: &RetrievalInfo{
-				PieceCid:                r.RetrievalInfo.PieceCID.String(),
-				Size:                    r.RetrievalInfo.Size,
-				MinPrice:                r.RetrievalInfo.MinPrice,
-				PaymentInterval:         r.RetrievalInfo.PaymentInterval,
-				PaymentIntervalIncrease: r.RetrievalInfo.PaymentIntervalIncrease,
-				Miner:                   r.RetrievalInfo.Miner,
-				MinerPeerId:             r.RetrievalInfo.MinerPeerID,
-			},
+func buildListDealRecordsOptions(conf *ListDealRecordsConfig) []deals.ListDealRecordsOption {
+	var opts []deals.ListDealRecordsOption
+	if conf != nil {
+		opts = []deals.ListDealRecordsOption{
+			deals.WithAscending(conf.Ascending),
+			deals.WithDataCids(conf.DataCids...),
+			deals.WithFromAddrs(conf.FromAddrs...),
+			deals.WithIncludePending(conf.IncludePending),
+			deals.WithIncludeFinal(conf.IncludeFinal),
 		}
 	}
-	return &RetrievalRecordsResponse{Records: ret}, nil
+	return opts
 }
 
-func toRPCDealRecords(records []deals.DealRecord) []*DealRecord {
-	ret := make([]*DealRecord, len(records))
+func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*StorageDealRecord {
+	ret := make([]*StorageDealRecord, len(records))
 	for i, r := range records {
-		ret[i] = &DealRecord{
+		ret[i] = &StorageDealRecord{
 			Addr:    r.Addr,
 			Time:    r.Time,
 			Pending: r.Pending,
-			DealInfo: &DealInfo{
+			DealInfo: &StorageDealInfo{
 				ProposalCid:     r.DealInfo.ProposalCid.String(),
 				StateId:         r.DealInfo.StateID,
 				StateName:       r.DealInfo.StateName,
@@ -280,6 +258,26 @@ func toRPCDealRecords(records []deals.DealRecord) []*DealRecord {
 				DealId:          r.DealInfo.DealID,
 				ActivationEpoch: r.DealInfo.ActivationEpoch,
 				Msg:             r.DealInfo.Message,
+			},
+		}
+	}
+	return ret
+}
+
+func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*RetrievalDealRecord {
+	ret := make([]*RetrievalDealRecord, len(records))
+	for i, r := range records {
+		ret[i] = &RetrievalDealRecord{
+			Addr: r.Addr,
+			Time: r.Time,
+			DealInfo: &RetrievalDealInfo{
+				PieceCid:                r.DealInfo.PieceCID.String(),
+				Size:                    r.DealInfo.Size,
+				MinPrice:                r.DealInfo.MinPrice,
+				PaymentInterval:         r.DealInfo.PaymentInterval,
+				PaymentIntervalIncrease: r.DealInfo.PaymentIntervalIncrease,
+				Miner:                   r.DealInfo.Miner,
+				MinerPeerId:             r.DealInfo.MinerPeerID,
 			},
 		}
 	}

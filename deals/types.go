@@ -1,8 +1,6 @@
 package deals
 
 import (
-	"os"
-
 	"github.com/ipfs/go-cid"
 )
 
@@ -20,8 +18,8 @@ type StoreResult struct {
 	Message     string
 }
 
-// DealInfo contains information about a proposed storage deal.
-type DealInfo struct {
+// StorageDealInfo contains information about a proposed storage deal.
+type StorageDealInfo struct {
 	ProposalCid cid.Cid
 	StateID     uint64
 	StateName   string
@@ -39,16 +37,16 @@ type DealInfo struct {
 	Message         string
 }
 
-// DealRecord represents a storage deal log record.
-type DealRecord struct {
+// StorageDealRecord represents a storage deal log record.
+type StorageDealRecord struct {
 	Addr     string
-	DealInfo DealInfo
+	DealInfo StorageDealInfo
 	Time     int64
 	Pending  bool
 }
 
-// RetrievalInfo contains information about a retrieval deal.
-type RetrievalInfo struct {
+// RetrievalDealInfo contains information about a retrieval deal.
+type RetrievalDealInfo struct {
 	PieceCID                cid.Cid
 	Size                    uint64
 	MinPrice                uint64
@@ -58,29 +56,9 @@ type RetrievalInfo struct {
 	MinerPeerID             string
 }
 
-// RetrievalRecord represents a retrieval deal log record.
-type RetrievalRecord struct {
-	Addr          string
-	RetrievalInfo RetrievalInfo
-	Time          int64
-}
-
-// Config contains configuration for storing deals.
-type Config struct {
-	ImportPath string
-}
-
-// Option sets values on a Config.
-type Option func(*Config) error
-
-// WithImportPath indicates the import path that will be used
-// to store data to later be imported to Lotus.
-func WithImportPath(path string) Option {
-	return func(c *Config) error {
-		if err := os.MkdirAll(path, 0700); err != nil {
-			return err
-		}
-		c.ImportPath = path
-		return nil
-	}
+// RetrievalDealRecord represents a retrieval deal log record.
+type RetrievalDealRecord struct {
+	Addr     string
+	DealInfo RetrievalDealInfo
+	Time     int64
 }

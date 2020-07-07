@@ -14,7 +14,7 @@ pow deals store [flags]
 
 ```
   -a, --address string   wallet address used to store the data
-  -d, --duration uint    duration to store the data for
+  -d, --duration uint    minimum duration to store the data for
   -f, --file string      Path to the file to store
   -h, --help             help for store
   -m, --miners strings   miner ids of the deals to execute

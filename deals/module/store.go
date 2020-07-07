@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sort"
 	"sync"
 
 	"github.com/ipfs/go-cid"
@@ -34,7 +33,7 @@ func newStore(ds datastore.Datastore) *store {
 	}
 }
 
-func (s *store) putPendingDeal(dr deals.DealRecord) error {
+func (s *store) putPendingDeal(dr deals.StorageDealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	buf, err := json.Marshal(dr)
@@ -56,7 +55,7 @@ func (s *store) deletePendingDeal(proposalCid cid.Cid) error {
 	return nil
 }
 
-func (s *store) getPendingDeals() ([]deals.DealRecord, error) {
+func (s *store) getPendingDeals() ([]deals.StorageDealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseStoragePending.String()}
@@ -70,19 +69,18 @@ func (s *store) getPendingDeals() ([]deals.DealRecord, error) {
 		}
 	}()
 
-	var ret []deals.DealRecord
+	var ret []deals.StorageDealRecord
 	for r := range res.Next() {
-		var dr deals.DealRecord
+		var dr deals.StorageDealRecord
 		if err := json.Unmarshal(r.Value, &dr); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
 		}
 		ret = append(ret, dr)
 	}
-	sort.Slice(ret, func(i, j int) bool { return ret[i].Time < ret[j].Time })
 	return ret, nil
 }
 
-func (s *store) putFinalDeal(dr deals.DealRecord) error {
+func (s *store) putFinalDeal(dr deals.StorageDealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	err := s.ds.Delete(makePendingDealKey(dr.DealInfo.ProposalCid))
@@ -99,7 +97,7 @@ func (s *store) putFinalDeal(dr deals.DealRecord) error {
 	return nil
 }
 
-func (s *store) getFinalDeals() ([]deals.DealRecord, error) {
+func (s *store) getFinalDeals() ([]deals.StorageDealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseStorageFinal.String()}
@@ -113,27 +111,18 @@ func (s *store) getFinalDeals() ([]deals.DealRecord, error) {
 		}
 	}()
 
-	var ret []deals.DealRecord
+	var ret []deals.StorageDealRecord
 	for r := range res.Next() {
-		var dealRecord deals.DealRecord
+		var dealRecord deals.StorageDealRecord
 		if err := json.Unmarshal(r.Value, &dealRecord); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
 		}
 		ret = append(ret, dealRecord)
 	}
-	sort.Slice(ret, func(i, j int) bool {
-		if ret[i].DealInfo.ActivationEpoch < ret[j].DealInfo.ActivationEpoch {
-			return true
-		}
-		if ret[i].DealInfo.ActivationEpoch > ret[j].DealInfo.ActivationEpoch {
-			return false
-		}
-		return ret[i].Time < ret[j].Time
-	})
 	return ret, nil
 }
 
-func (s *store) putRetrieval(rr deals.RetrievalRecord) error {
+func (s *store) putRetrieval(rr deals.RetrievalDealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	buf, err := json.Marshal(rr)
@@ -146,7 +135,7 @@ func (s *store) putRetrieval(rr deals.RetrievalRecord) error {
 	return nil
 }
 
-func (s *store) getRetrievals() ([]deals.RetrievalRecord, error) {
+func (s *store) getRetrievals() ([]deals.RetrievalDealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseRetrieval.String()}
@@ -160,17 +149,14 @@ func (s *store) getRetrievals() ([]deals.RetrievalRecord, error) {
 		}
 	}()
 
-	var ret []deals.RetrievalRecord
+	var ret []deals.RetrievalDealRecord
 	for r := range res.Next() {
-		var rr deals.RetrievalRecord
+		var rr deals.RetrievalDealRecord
 		if err := json.Unmarshal(r.Value, &rr); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
 		}
 		ret = append(ret, rr)
 	}
-	sort.Slice(ret, func(i, j int) bool {
-		return ret[i].Time < ret[j].Time
-	})
 	return ret, nil
 }
 
@@ -182,8 +168,8 @@ func makeFinalDealKey(c cid.Cid) datastore.Key {
 	return dsBaseStorageFinal.ChildString(c.String())
 }
 
-func makeRetrievalKey(rr deals.RetrievalRecord) datastore.Key {
-	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.Addr, rr.RetrievalInfo.Miner, rr.RetrievalInfo.PieceCID.String())
+func makeRetrievalKey(rr deals.RetrievalDealRecord) datastore.Key {
+	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.Addr, rr.DealInfo.Miner, rr.DealInfo.PieceCID.String())
 	sum := md5.Sum([]byte(str))
 	return dsBaseRetrieval.ChildString(string(sum[:]))
 }
