@@ -58,7 +58,7 @@ func WithIncludePending(includePending bool) ListDealRecordsOption {
 	}
 }
 
-// WithIncludeFinal specifies whether or not to include final deals in the results. Default is true.
+// WithIncludeFinal specifies whether or not to include final deals in the results. Default is false.
 // Ignored for ListRetrievalDealRecords.
 func WithIncludeFinal(includeFinal bool) ListDealRecordsOption {
 	return func(c *ListDealRecordsConfig) {

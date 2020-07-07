@@ -41,10 +41,6 @@ var (
 	ErrDealNotFound = errors.New("deal not found on-chain")
 
 	log = logging.Logger("deals")
-
-	defaultListDealRecordsConfig = deals.ListDealRecordsConfig{
-		IncludeFinal: true,
-	}
 )
 
 // Module exposes storage and monitoring from the market.
@@ -241,7 +237,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 
 // ListStorageDealRecords lists storage deals according to the provided options.
 func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
-	c := defaultListDealRecordsConfig
+	c := deals.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -304,7 +300,7 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 
 // ListRetrievalDealRecords returns a list of retrieval deals according to the provided options.
 func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
-	c := defaultListDealRecordsConfig
+	c := deals.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}

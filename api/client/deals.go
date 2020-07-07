@@ -33,7 +33,6 @@ type ListDealRecordsOption func(*rpc.ListDealRecordsConfig)
 func WithFromAddrs(addrs ...string) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.FromAddrs = addrs
-		c.HasFromAddrs = true
 	}
 }
 
@@ -42,7 +41,6 @@ func WithFromAddrs(addrs ...string) ListDealRecordsOption {
 func WithDataCids(cids ...string) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.DataCids = cids
-		c.HasDataCids = true
 	}
 }
 
@@ -51,16 +49,14 @@ func WithDataCids(cids ...string) ListDealRecordsOption {
 func WithIncludePending(includePending bool) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.IncludePending = includePending
-		c.HasIncludePending = true
 	}
 }
 
-// WithIncludeFinal specifies whether or not to include final deals in the results. Default is true.
+// WithIncludeFinal specifies whether or not to include final deals in the results. Default is false.
 // Ignored for ListRetrievalDealRecords.
 func WithIncludeFinal(includeFinal bool) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.IncludeFinal = includeFinal
-		c.HasIncludeFinal = true
 	}
 }
 
@@ -69,7 +65,6 @@ func WithIncludeFinal(includeFinal bool) ListDealRecordsOption {
 func WithAscending(ascending bool) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.Ascending = ascending
-		c.HasAscending = true
 	}
 }
 

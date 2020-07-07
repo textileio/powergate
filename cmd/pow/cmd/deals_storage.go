@@ -18,7 +18,7 @@ func init() {
 	storageCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids, treated as and AND operation if --addrs is also provided")
 	storageCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses, treated as and AND operation if --cids is also provided")
 	storageCmd.Flags().BoolP("include-pending", "p", false, "include pending deals")
-	storageCmd.Flags().BoolP("include-final", "f", true, "include final deals")
+	storageCmd.Flags().BoolP("include-final", "f", false, "include final deals")
 
 	dealsCmd.AddCommand(storageCmd)
 }

@@ -227,20 +227,12 @@ func (s *RPC) ListRetrievalDealRecords(ctx context.Context, req *ListRetrievalDe
 func buildListDealRecordsOptions(conf *ListDealRecordsConfig) []deals.ListDealRecordsOption {
 	var opts []deals.ListDealRecordsOption
 	if conf != nil {
-		if conf.HasAscending {
-			opts = append(opts, deals.WithAscending(conf.Ascending))
-		}
-		if conf.HasDataCids {
-			opts = append(opts, deals.WithDataCids(conf.DataCids...))
-		}
-		if conf.HasFromAddrs {
-			opts = append(opts, deals.WithFromAddrs(conf.FromAddrs...))
-		}
-		if conf.HasIncludeFinal {
-			opts = append(opts, deals.WithIncludeFinal(conf.IncludeFinal))
-		}
-		if conf.HasIncludePending {
-			opts = append(opts, deals.WithIncludePending(conf.IncludePending))
+		opts = []deals.ListDealRecordsOption{
+			deals.WithAscending(conf.Ascending),
+			deals.WithDataCids(conf.DataCids...),
+			deals.WithFromAddrs(conf.FromAddrs...),
+			deals.WithIncludePending(conf.IncludePending),
+			deals.WithIncludeFinal(conf.IncludeFinal),
 		}
 	}
 	return opts
