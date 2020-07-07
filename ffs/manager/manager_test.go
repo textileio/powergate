@@ -9,8 +9,10 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
+	dealsModule "github.com/textileio/powergate/deals/module"
 	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
+	txndstr "github.com/textileio/powergate/txndstransform"
 	walletModule "github.com/textileio/powergate/wallet/module"
 )
 
@@ -131,7 +133,9 @@ func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	wm, err := walletModule.New(client, addr, *big.NewInt(4000000000), false)
 	require.Nil(t, err)
 	pm := paych.New(client)
-	m, err := New(ds, wm, pm, nil)
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), client)
+	require.Nil(t, err)
+	m, err := New(ds, wm, pm, dm, nil)
 	require.Nil(t, err)
 	cls := func() {
 		require.Nil(t, m.Close())

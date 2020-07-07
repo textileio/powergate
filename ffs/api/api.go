@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/namespace"
 	logging "github.com/ipfs/go-log/v2"
+	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/scheduler"
 )
@@ -39,6 +40,7 @@ type API struct {
 	is *instanceStore
 	wm ffs.WalletManager
 	pm ffs.PaychManager
+	dm *dealsModule.Module
 
 	sched *scheduler.Scheduler
 
@@ -50,7 +52,7 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, dc ffs.DefaultConfig) (*API, error) {
+func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, dm *dealsModule.Module, dc ffs.DefaultConfig) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 
 	addr, err := wm.NewAddress(ctx, defaultAddressType)
@@ -77,7 +79,7 @@ func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *schedu
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	i := new(ctx, is, wm, pm, config, sch, cancel)
+	i := new(ctx, is, wm, pm, dm, config, sch, cancel)
 	if err := i.is.putConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.cfg.ID, err)
 	}
@@ -85,21 +87,22 @@ func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *schedu
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager) (*API, error) {
+func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, dm *dealsModule.Module) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 	c, err := is.getConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return new(ctx, is, wm, pm, c, sched, cancel), nil
+	return new(ctx, is, wm, pm, dm, c, sched, cancel), nil
 }
 
-func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, pm ffs.PaychManager, config Config, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
+func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, pm ffs.PaychManager, dm *dealsModule.Module, config Config, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:     is,
 		wm:     wm,
 		pm:     pm,
+		dm:     dm,
 		cfg:    config,
 		sched:  sch,
 		cancel: cancel,
