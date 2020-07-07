@@ -222,7 +222,7 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 	return reader, nil
 }
 
-// ListStorageDealRecords returns a list of all finalized storage deals
+// ListStorageDealRecords returns a list of storage deals
 // according to the provided options.
 func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
 	conf := &rpc.ListDealRecordsConfig{}

@@ -52,9 +52,6 @@ func TestGetPendingDeals(t *testing.T) {
 	res, err := s.getPendingDeals()
 	require.Nil(t, err)
 	require.Len(t, res, 3)
-	require.Equal(t, res[0].Addr, "a")
-	require.Equal(t, res[1].Addr, "b")
-	require.Equal(t, res[2].Addr, "c")
 }
 
 func TestDeletePendingDeal(t *testing.T) {
@@ -127,9 +124,6 @@ func TestGetDealRecords(t *testing.T) {
 	res, err := s.getFinalDeals()
 	require.Nil(t, err)
 	require.Len(t, res, 3)
-	require.Equal(t, res[0].Addr, "a")
-	require.Equal(t, res[1].Addr, "b")
-	require.Equal(t, res[2].Addr, "c")
 }
 
 func TestPutRetrievalRecords(t *testing.T) {
@@ -165,7 +159,4 @@ func TestGetRetrievalDeals(t *testing.T) {
 	res, err := s.getRetrievals()
 	require.Nil(t, err)
 	require.Len(t, res, 3)
-	require.Equal(t, res[0].Time, now)
-	require.Equal(t, res[1].Time, now+1)
-	require.Equal(t, res[2].Time, now+2)
 }
