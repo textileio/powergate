@@ -237,8 +237,8 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 }
 
 // ListStorageDealRecords lists storage deals according to the provided options.
-func (m *Module) ListStorageDealRecords(ctx context.Context, opts ...ffs.ListOption) ([]deals.StorageDealRecord, error) {
-	c := ffs.ListConfig{}
+func (m *Module) ListStorageDealRecords(opts ...ffs.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
+	c := ffs.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -278,7 +278,7 @@ func (m *Module) ListStorageDealRecords(ctx context.Context, opts ...ffs.ListOpt
 			_, inDataCidsFilter := dataCidsFilter[record.DealInfo.PieceCID.String()]
 			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
 			includeViaDataCids := len(dataCidsFilter) == 0 || inDataCidsFilter
-			if includeViaFromAddrs || includeViaDataCids {
+			if includeViaFromAddrs && includeViaDataCids {
 				filtered = append(filtered, record)
 			}
 		}
@@ -308,61 +308,53 @@ func (m *Module) ListStorageDealRecords(ctx context.Context, opts ...ffs.ListOpt
 	return filtered, nil
 }
 
-// FinalDealRecords returns a list of all finalized storage deals.
-// Records are sorted ascending by activation epoch then timestamp.
-func (m *Module) FinalDealRecords() ([]deals.StorageDealRecord, error) {
-	ret, err := m.store.getFinalDeals()
-	if err != nil {
-		return nil, fmt.Errorf("getting final deals: %v", err)
+// ListRetrievalDealRecords returns a list of retrieval deals
+// according to the provided options.
+func (m *Module) ListRetrievalDealRecords(opts ...ffs.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
+	c := ffs.ListDealRecordsConfig{}
+	for _, opt := range opts {
+		opt(&c)
 	}
-	return ret, nil
-}
-
-// PendingDealRecords returns a list of all pending storage deals.
-// Records are sorted ascending by timestamp.
-func (m *Module) PendingDealRecords() ([]deals.StorageDealRecord, error) {
-	ret, err := m.store.getPendingDeals()
-	if err != nil {
-		return nil, fmt.Errorf("getting pending deals: %v", err)
-	}
-	return ret, nil
-}
-
-// AllDealRecords returns a list of all finalized and pending deals.
-// Records are sorted ascending by activation epoch, if available, then timestamp.
-func (m *Module) AllDealRecords() ([]deals.StorageDealRecord, error) {
-	ret, err := m.store.getFinalDeals()
-	if err != nil {
-		return nil, fmt.Errorf("getting final deals: %v", err)
-	}
-	pending, err := m.store.getPendingDeals()
-	if err != nil {
-		return nil, fmt.Errorf("getting pending deals: %v", err)
-	}
-	ret = append(ret, pending...)
-	sort.Slice(ret, func(i, j int) bool {
-		if ret[i].Pending || ret[j].Pending {
-			return ret[i].Time < ret[j].Time
-		}
-		if ret[i].DealInfo.ActivationEpoch < ret[j].DealInfo.ActivationEpoch {
-			return true
-		}
-		if ret[i].DealInfo.ActivationEpoch > ret[j].DealInfo.ActivationEpoch {
-			return false
-		}
-		return ret[i].Time < ret[j].Time
-	})
-	return ret, nil
-}
-
-// RetrievalRecords returns a list of all retrievals.
-// Records are sorted ascending by timestamp.
-func (m *Module) RetrievalRecords() ([]deals.RetrievalDealRecord, error) {
 	ret, err := m.store.getRetrievals()
 	if err != nil {
 		return nil, fmt.Errorf("getting retrievals: %v", err)
 	}
-	return ret, nil
+
+	var filtered []deals.RetrievalDealRecord
+
+	if len(c.FromAddrs) > 0 || len(c.DataCids) > 0 {
+		var fromAddrsFilter map[string]struct{}
+		var dataCidsFilter map[string]struct{}
+		for _, addr := range c.FromAddrs {
+			fromAddrsFilter[addr] = struct{}{}
+		}
+		for _, cid := range c.DataCids {
+			dataCidsFilter[cid] = struct{}{}
+		}
+		for _, record := range ret {
+			_, inFromAddrsFilter := fromAddrsFilter[record.Addr]
+			_, inDataCidsFilter := dataCidsFilter[record.DealInfo.PieceCID.String()]
+			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
+			includeViaDataCids := len(dataCidsFilter) == 0 || inDataCidsFilter
+			if includeViaFromAddrs && includeViaDataCids {
+				filtered = append(filtered, record)
+			}
+		}
+	} else {
+		filtered = ret
+	}
+
+	sort.Slice(filtered, func(i, j int) bool {
+		l := filtered[j]
+		r := filtered[i]
+		if c.Ascending {
+			l = filtered[i]
+			r = filtered[j]
+		}
+		return l.Time < r.Time
+	})
+
+	return filtered, nil
 }
 
 func (m *Module) initPendingDeals() {

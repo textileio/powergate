@@ -18,6 +18,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -49,19 +50,19 @@ func TestStore(t *testing.T) {
 			checkErr(t, err)
 			_, pcids, err := storeMultiMiner(m, client, nm, randomBytes(600))
 			checkErr(t, err)
-			pending, err := m.PendingDealRecords()
+			pending, err := m.ListStorageDealRecords(ffs.WithOnlyPending(true))
 			require.Nil(t, err)
 			require.Len(t, pending, nm)
-			final, err := m.FinalDealRecords()
+			final, err := m.ListStorageDealRecords()
 			require.Nil(t, err)
 			require.Empty(t, final)
 			err = waitForDealComplete(client, pcids)
 			checkErr(t, err)
 			time.Sleep(util.AvgBlockTime)
-			pending, err = m.PendingDealRecords()
+			pending, err = m.ListStorageDealRecords(ffs.WithOnlyPending(true))
 			require.Nil(t, err)
 			require.Empty(t, pending)
-			final, err = m.FinalDealRecords()
+			final, err = m.ListStorageDealRecords()
 			require.Nil(t, err)
 			require.Len(t, final, nm)
 		})
@@ -93,7 +94,7 @@ func TestRetrieve(t *testing.T) {
 			if !bytes.Equal(data, rdata) {
 				t.Fatal("retrieved data doesn't match with stored data")
 			}
-			retrievals, err := m.RetrievalRecords()
+			retrievals, err := m.ListRetrievalDealRecords()
 			require.Nil(t, err)
 			require.Len(t, retrievals, 1)
 		})

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/filecoin-project/go-address"
@@ -24,12 +25,54 @@ type WatchEvent struct {
 	Err  error
 }
 
+// ListDealRecordsOption updates a ListDealRecordsConfig.
+type ListDealRecordsOption func(*rpc.ListDealRecordsConfig)
+
+// WithFromAddrs limits the results deals initated from the provided wallet addresses.
+func WithFromAddrs(addrs ...string) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.FromAddrs = addrs
+	}
+}
+
+// WithDataCids limits the results to deals for the provided data cids.
+func WithDataCids(cids ...string) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.DataCids = cids
+	}
+}
+
+// WithIncludePending specifies whether or not to include pending deals in the results.
+// Ignored for ListRetrievalDealRecords.
+func WithIncludePending(includePending bool) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.IncludePending = includePending
+	}
+}
+
+// WithOnlyPending specifies whether or not to only include pending deals in the results.
+func WithOnlyPending(onlyPending bool) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.OnlyPending = onlyPending
+	}
+}
+
+// WithAscending specifies to sort the results in ascending order.
+// Default is descending order.
+// If pending, records are sorted by timestamp, otherwise records
+// are sorted by activation epoch then timestamp.
+func WithAscending(ascending bool) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.Ascending = ascending
+	}
+}
+
 // Store creates a proposal deal for data using wallet addr to all miners indicated
 // by dealConfigs for duration epochs.
 func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, minDuration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
 	stream, err := d.client.Store(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("calling Store: %v", err)
 	}
 
 	reqDealConfigs := make([]*rpc.DealConfig, len(dealConfigs))
@@ -47,18 +90,18 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 	innerReq := &rpc.StoreRequest_StoreParams{StoreParams: storeParams}
 
 	if err = stream.Send(&rpc.StoreRequest{Payload: innerReq}); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("calling Send: %v", err)
 	}
 
 	buffer := make([]byte, 1024*32) // 32KB
 	for {
 		bytesRead, err := data.Read(buffer)
 		if err != nil && err != io.EOF {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("reading buffer: %v", err)
 		}
 		sendErr := stream.Send(&rpc.StoreRequest{Payload: &rpc.StoreRequest_Chunk{Chunk: buffer[:bytesRead]}})
 		if sendErr != nil {
-			return nil, nil, sendErr
+			return nil, nil, fmt.Errorf("calling Send: %v", err)
 		}
 		if err == io.EOF {
 			break
@@ -66,14 +109,14 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 	}
 	reply, err := stream.CloseAndRecv()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("calling CloseAndRecv: %v", err)
 	}
 
 	cids := make([]cid.Cid, len(reply.GetProposalCids()))
 	for i, replyCid := range reply.GetProposalCids() {
 		id, err := cid.Decode(replyCid)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("decoding cid: %v", err)
 		}
 		cids[i] = id
 	}
@@ -82,7 +125,7 @@ func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConf
 	for i, dealConfig := range reply.GetFailedDeals() {
 		addr, err := address.NewFromString(dealConfig.GetMiner())
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("decoding address: %v", err)
 		}
 		failedDeals[i] = deals.StorageDealConfig{
 			Miner:      addr.String(),
@@ -102,7 +145,7 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 	}
 	stream, err := d.client.Watch(ctx, &rpc.WatchRequest{Proposals: proposalStrings})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("calling Watch: %v", err)
 	}
 	go func() {
 		defer close(channel)
@@ -111,18 +154,18 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 			if err != nil {
 				stat := status.Convert(err)
 				if stat == nil || (stat.Code() != codes.Canceled) {
-					channel <- WatchEvent{Err: err}
+					channel <- WatchEvent{Err: fmt.Errorf("reveiving stream: %v", err)}
 				}
 				break
 			}
 			proposalCid, err := cid.Decode(event.GetDealInfo().GetProposalCid())
 			if err != nil {
-				channel <- WatchEvent{Err: err}
+				channel <- WatchEvent{Err: fmt.Errorf("decoding cid: %v", err)}
 				break
 			}
 			cid, err := cid.Decode(event.GetDealInfo().GetPieceCid())
 			if err != nil {
-				channel <- WatchEvent{Err: err}
+				channel <- WatchEvent{Err: fmt.Errorf("decoding cid: %v", err)}
 				break
 			}
 			deal := deals.StorageDealInfo{
@@ -153,7 +196,7 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 	}
 	stream, err := d.client.Retrieve(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("calling Retrieve: %v", err)
 	}
 
 	reader, writer := io.Pipe()
@@ -179,83 +222,43 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 	return reader, nil
 }
 
-// FinalDealRecords returns a list of all finalized storage deals.
-// Records are sorted ascending by activation epoch then timestamp.
-func (d *Deals) FinalDealRecords(ctx context.Context) ([]deals.StorageDealRecord, error) {
-	res, err := d.client.FinalDealRecords(ctx, &rpc.FinalDealRecordsRequest{})
-	if err != nil {
-		return nil, err
+// ListStorageDealRecords returns a list of all finalized storage deals
+// according to the provided options.
+func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
+	conf := &rpc.ListDealRecordsConfig{}
+	for _, opt := range opts {
+		opt(conf)
 	}
-	ret, err := fromRPCDealRecords(res.Records)
+	res, err := d.client.ListStorageDealRecords(ctx, &rpc.ListStorageDealRecordsRequest{Config: conf})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("calling ListStorageDealRecords: %v", err)
+	}
+	ret, err := fromRPCStorageDealRecords(res.Records)
+	if err != nil {
+		return nil, fmt.Errorf("processing response deal records: %v", err)
 	}
 	return ret, nil
 }
 
-// PendingDealRecords returns a list of all pending storage deals.
-// Records are sorted ascending by timestamp.
-func (d *Deals) PendingDealRecords(ctx context.Context) ([]deals.StorageDealRecord, error) {
-	res, err := d.client.PendingDealRecords(ctx, &rpc.PendingDealRecordsRequest{})
-	if err != nil {
-		return nil, err
+// ListRetrievalDealRecords returns a list of retrieval deals
+// according to the provided options.
+func (d *Deals) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
+	conf := &rpc.ListDealRecordsConfig{}
+	for _, opt := range opts {
+		opt(conf)
 	}
-	ret, err := fromRPCDealRecords(res.Records)
+	res, err := d.client.ListRetrievalDealRecords(ctx, &rpc.ListRetrievalDealRecordsRequest{Config: conf})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("calling ListRetrievalDealRecords: %v", err)
+	}
+	ret, err := fromRPCRetrievalDealRecords(res.Records)
+	if err != nil {
+		return nil, fmt.Errorf("processing response deal records: %v", err)
 	}
 	return ret, nil
 }
 
-// AllDealRecords returns a list of all finalized and pending deals.
-// Records are sorted ascending by activation epoch, if available, then timestamp.
-func (d *Deals) AllDealRecords(ctx context.Context) ([]deals.StorageDealRecord, error) {
-	res, err := d.client.AllDealRecords(ctx, &rpc.AllDealRecordsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	ret, err := fromRPCDealRecords(res.Records)
-	if err != nil {
-		return nil, err
-	}
-	return ret, nil
-}
-
-// RetrievalRecords returns a list of all retrievals.
-// Records are sorted ascending by timestamp.
-func (d *Deals) RetrievalRecords(ctx context.Context) ([]deals.RetrievalDealRecord, error) {
-	res, err := d.client.RetrievalRecords(ctx, &rpc.RetrievalRecordsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	var ret []deals.RetrievalDealRecord
-	for _, rpcRecord := range res.Records {
-		if rpcRecord.RetrievalInfo == nil {
-			continue
-		}
-		record := deals.RetrievalDealRecord{
-			Addr: rpcRecord.Addr,
-			Time: rpcRecord.Time,
-		}
-		pieceCid, err := cid.Decode(rpcRecord.RetrievalInfo.PieceCid)
-		if err != nil {
-			return nil, err
-		}
-		record.DealInfo = deals.RetrievalDealInfo{
-			PieceCID:                pieceCid,
-			Size:                    rpcRecord.RetrievalInfo.Size,
-			MinPrice:                rpcRecord.RetrievalInfo.MinPrice,
-			PaymentInterval:         rpcRecord.RetrievalInfo.PaymentInterval,
-			PaymentIntervalIncrease: rpcRecord.RetrievalInfo.PaymentIntervalIncrease,
-			Miner:                   rpcRecord.RetrievalInfo.Miner,
-			MinerPeerID:             rpcRecord.RetrievalInfo.MinerPeerId,
-		}
-		ret = append(ret, record)
-	}
-	return ret, nil
-}
-
-func fromRPCDealRecords(records []*rpc.DealRecord) ([]deals.StorageDealRecord, error) {
+func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.StorageDealRecord, error) {
 	var ret []deals.StorageDealRecord
 	for _, rpcRecord := range records {
 		if rpcRecord.DealInfo == nil {
@@ -287,6 +290,34 @@ func fromRPCDealRecords(records []*rpc.DealRecord) ([]deals.StorageDealRecord, e
 			DealID:          rpcRecord.DealInfo.DealId,
 			ActivationEpoch: rpcRecord.DealInfo.ActivationEpoch,
 			Message:         rpcRecord.DealInfo.Msg,
+		}
+		ret = append(ret, record)
+	}
+	return ret, nil
+}
+
+func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.RetrievalDealRecord, error) {
+	var ret []deals.RetrievalDealRecord
+	for _, rpcRecord := range records {
+		if rpcRecord.DealInfo == nil {
+			continue
+		}
+		record := deals.RetrievalDealRecord{
+			Addr: rpcRecord.Addr,
+			Time: rpcRecord.Time,
+		}
+		pieceCid, err := cid.Decode(rpcRecord.DealInfo.PieceCid)
+		if err != nil {
+			return nil, err
+		}
+		record.DealInfo = deals.RetrievalDealInfo{
+			PieceCID:                pieceCid,
+			Size:                    rpcRecord.DealInfo.Size,
+			MinPrice:                rpcRecord.DealInfo.MinPrice,
+			PaymentInterval:         rpcRecord.DealInfo.PaymentInterval,
+			PaymentIntervalIncrease: rpcRecord.DealInfo.PaymentIntervalIncrease,
+			Miner:                   rpcRecord.DealInfo.Miner,
+			MinerPeerID:             rpcRecord.DealInfo.MinerPeerId,
 		}
 		ret = append(ret, record)
 	}

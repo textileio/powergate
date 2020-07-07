@@ -3,7 +3,15 @@ package deals.rpc;
 
 option go_package = "github.com/textileio/powergate/deals/rpc";
 
-message DealInfo {
+message ListDealRecordsConfig {
+	repeated string from_addrs = 1;
+	repeated string data_cids = 2;
+	bool include_pending = 3;
+	bool only_pending = 4;
+	bool ascending = 5;
+}
+
+message StorageDealInfo {
 	string proposal_cid = 1;
 	uint64 state_id = 2;
 	string state_name = 3;
@@ -21,14 +29,14 @@ message DealInfo {
 	string msg = 12;
 }
 
-message DealRecord {
+message StorageDealRecord {
     string addr = 1;
     int64 time = 2;
     bool pending = 3;
-    DealInfo deal_info = 4;
+    StorageDealInfo deal_info = 4;
 }
 
-message RetrievalInfo {
+message RetrievalDealInfo {
 	string piece_cid = 1;
 	uint64 size = 2;
 	uint64 min_price = 3;
@@ -38,10 +46,10 @@ message RetrievalInfo {
 	string miner_peer_id = 7;
 }
 
-message RetrievalRecord {
+message RetrievalDealRecord {
 	string addr = 1;
     int64 time = 2;
-    RetrievalInfo retrieval_info = 3;
+    RetrievalDealInfo deal_info = 3;
 }
 
 message DealConfig {
@@ -73,7 +81,7 @@ message WatchRequest {
 }
 
 message WatchResponse {
-    DealInfo deal_info = 1;
+    StorageDealInfo deal_info = 1;
 }
 
 message RetrieveRequest {
@@ -85,40 +93,26 @@ message RetrieveResponse {
     bytes chunk = 1;
 }
 
-message FinalDealRecordsRequest {
+message ListStorageDealRecordsRequest {
+    ListDealRecordsConfig config = 1;
 }
 
-message FinalDealRecordsResponse {
-    repeated DealRecord records = 1;
+message ListStorageDealRecordsResponse {
+    repeated StorageDealRecord records = 1;
 }
 
-message PendingDealRecordsRequest {
+message ListRetrievalDealRecordsRequest {
+    ListDealRecordsConfig config = 1;
 }
 
-message PendingDealRecordsResponse {
-    repeated DealRecord records = 1;
-}
-
-message AllDealRecordsRequest {
-}
-
-message AllDealRecordsResponse {
-    repeated DealRecord records = 1;
-}
-
-message RetrievalRecordsRequest {
-}
-
-message RetrievalRecordsResponse {
-    repeated RetrievalRecord records = 1;
+message ListRetrievalDealRecordsResponse {
+    repeated RetrievalDealRecord records = 1;
 }
 
 service RPCService {
     rpc Store(stream StoreRequest) returns (StoreResponse) {}
     rpc Watch(WatchRequest) returns (stream WatchResponse) {}
     rpc Retrieve(RetrieveRequest) returns (stream RetrieveResponse) {}
-    rpc FinalDealRecords(FinalDealRecordsRequest) returns (FinalDealRecordsResponse) {}
-    rpc PendingDealRecords(PendingDealRecordsRequest) returns (PendingDealRecordsResponse) {}
-    rpc AllDealRecords(AllDealRecordsRequest) returns (AllDealRecordsResponse) {}
-    rpc RetrievalRecords(RetrievalRecordsRequest) returns (RetrievalRecordsResponse) {}
+    rpc ListStorageDealRecords(ListStorageDealRecordsRequest) returns (ListStorageDealRecordsResponse) {}
+    rpc ListRetrievalDealRecords(ListRetrievalDealRecordsRequest) returns (ListRetrievalDealRecordsResponse) {}
 }

@@ -10,14 +10,19 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/textileio/powergate/api/client"
 )
 
 func init() {
-	dealsCmd.AddCommand(retrievalCmd)
+	retrievalsCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is descending")
+	retrievalsCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids")
+	retrievalsCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses")
+
+	dealsCmd.AddCommand(retrievalsCmd)
 }
 
-var retrievalCmd = &cobra.Command{
-	Use:   "retrieval",
+var retrievalsCmd = &cobra.Command{
+	Use:   "retrievals",
 	Short: "List retrieval records",
 	Long:  `List retrieval records`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -28,9 +33,21 @@ var retrievalCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
+		var opts []client.ListDealRecordsOption
+
+		if viper.IsSet("ascending") {
+			opts = append(opts, client.WithAscending(viper.GetBool("ascending")))
+		}
+		if viper.IsSet("cids") {
+			opts = append(opts, client.WithDataCids(viper.GetStringSlice("cids")...))
+		}
+		if viper.IsSet("addrs") {
+			opts = append(opts, client.WithFromAddrs(viper.GetStringSlice("addrs")...))
+		}
+
 		s := spin.New("%s Getting retrieval records...")
 		s.Start()
-		res, err := fcClient.Deals.RetrievalRecords(ctx)
+		res, err := fcClient.Deals.ListRetrievalDealRecords(ctx, opts...)
 		s.Stop()
 		checkErr(err)
 

@@ -19,8 +19,8 @@ type WalletManager interface {
 	SendFil(context.Context, string, string, *big.Int) error
 }
 
-// ListConfig specifies the options for DealsManager.List.
-type ListConfig struct {
+// ListDealRecordsConfig specifies the options for DealsManager.List.
+type ListDealRecordsConfig struct {
 	FromAddrs      []string
 	DataCids       []string
 	IncludePending bool
@@ -28,48 +28,53 @@ type ListConfig struct {
 	Ascending      bool
 }
 
-// ListOption updates a ListConfig.
-type ListOption func(*ListConfig)
+// ListDealRecordsOption updates a ListDealRecordsConfig.
+type ListDealRecordsOption func(*ListDealRecordsConfig)
 
-// WithFromAddrs sets FromAddrs.
-func WithFromAddrs(addrs ...string) ListOption {
-	return func(c *ListConfig) {
+// WithFromAddrs limits the results deals initated from the provided wallet addresses.
+func WithFromAddrs(addrs ...string) ListDealRecordsOption {
+	return func(c *ListDealRecordsConfig) {
 		c.FromAddrs = addrs
 	}
 }
 
-// WithDataCids sets DataCids.
-func WithDataCids(cids ...string) ListOption {
-	return func(c *ListConfig) {
+// WithDataCids limits the results to deals for the provided data cids.
+func WithDataCids(cids ...string) ListDealRecordsOption {
+	return func(c *ListDealRecordsConfig) {
 		c.DataCids = cids
 	}
 }
 
-// WithInclidePending sets IncludePending.
-func WithInclidePending(includePending bool) ListOption {
-	return func(c *ListConfig) {
+// WithIncludePending specifies whether or not to include pending deals in the results.
+// Ignored for ListRetrievalDealRecords.
+func WithIncludePending(includePending bool) ListDealRecordsOption {
+	return func(c *ListDealRecordsConfig) {
 		c.IncludePending = includePending
 	}
 }
 
-// WithOnlyPending sets OnlyPending.
-func WithOnlyPending(onlyPending bool) ListOption {
-	return func(c *ListConfig) {
+// WithOnlyPending specifies whether or not to only include pending deals in the results.
+// Ignored for ListRetrievalDealRecords.
+func WithOnlyPending(onlyPending bool) ListDealRecordsOption {
+	return func(c *ListDealRecordsConfig) {
 		c.OnlyPending = onlyPending
 	}
 }
 
-// WithAscending sets Ascending.
-func WithAscending(ascending bool) ListOption {
-	return func(c *ListConfig) {
+// WithAscending specifies to sort the results in ascending order.
+// Default is descending order.
+// If pending, records are sorted by timestamp, otherwise records
+// are sorted by activation epoch then timestamp.
+func WithAscending(ascending bool) ListDealRecordsOption {
+	return func(c *ListDealRecordsConfig) {
 		c.Ascending = ascending
 	}
 }
 
 // DealsManager specifies the required deals api.
 type DealsManager interface {
-	ListStorageDealRecords(context.Context, ...ListOption) ([]deals.StorageDealRecord, error)
-	ListRetrievalDealRecords(context.Context, ...ListOption) ([]deals.RetrievalDealRecord, error)
+	ListStorageDealRecords(...ListDealRecordsOption) ([]deals.StorageDealRecord, error)
+	ListRetrievalDealRecords(...ListDealRecordsOption) ([]deals.RetrievalDealRecord, error)
 }
 
 // PaychManager provides access to payment channels.
