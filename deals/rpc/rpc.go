@@ -9,7 +9,6 @@ import (
 	"github.com/textileio/powergate/deals"
 
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/ffs"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -24,8 +23,8 @@ type Module interface {
 	Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error)
 	GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error)
 	Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.StorageDealInfo, error)
-	ListStorageDealRecords(opts ...ffs.ListDealRecordsOption) ([]deals.StorageDealRecord, error)
-	ListRetrievalDealRecords(opts ...ffs.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error)
+	ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error)
+	ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error)
 }
 
 // RPC implements the gprc service.
@@ -225,15 +224,15 @@ func (s *RPC) ListRetrievalDealRecords(ctx context.Context, req *ListRetrievalDe
 	return &ListRetrievalDealRecordsResponse{Records: toRPCRetrievalDealRecords(records)}, nil
 }
 
-func buildListDealRecordsOptions(conf *ListDealRecordsConfig) []ffs.ListDealRecordsOption {
-	var opts []ffs.ListDealRecordsOption
+func buildListDealRecordsOptions(conf *ListDealRecordsConfig) []deals.ListDealRecordsOption {
+	var opts []deals.ListDealRecordsOption
 	if conf != nil {
-		opts = []ffs.ListDealRecordsOption{
-			ffs.WithAscending(conf.Ascending),
-			ffs.WithDataCids(conf.DataCids...),
-			ffs.WithFromAddrs(conf.FromAddrs...),
-			ffs.WithIncludePending(conf.IncludePending),
-			ffs.WithOnlyPending(conf.OnlyPending),
+		opts = []deals.ListDealRecordsOption{
+			deals.WithAscending(conf.Ascending),
+			deals.WithDataCids(conf.DataCids...),
+			deals.WithFromAddrs(conf.FromAddrs...),
+			deals.WithIncludePending(conf.IncludePending),
+			deals.WithOnlyPending(conf.OnlyPending),
 		}
 	}
 	return opts

@@ -23,7 +23,6 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/deals"
-	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/util"
 )
 
@@ -237,8 +236,8 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 }
 
 // ListStorageDealRecords lists storage deals according to the provided options.
-func (m *Module) ListStorageDealRecords(opts ...ffs.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
-	c := ffs.ListDealRecordsConfig{}
+func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
+	c := deals.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -310,8 +309,8 @@ func (m *Module) ListStorageDealRecords(opts ...ffs.ListDealRecordsOption) ([]de
 
 // ListRetrievalDealRecords returns a list of retrieval deals
 // according to the provided options.
-func (m *Module) ListRetrievalDealRecords(opts ...ffs.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
-	c := ffs.ListDealRecordsConfig{}
+func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
+	c := deals.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
