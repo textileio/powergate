@@ -29,41 +29,47 @@ type WatchEvent struct {
 type ListDealRecordsOption func(*rpc.ListDealRecordsConfig)
 
 // WithFromAddrs limits the results deals initated from the provided wallet addresses.
+// If WithDataCids is also provided, this is an AND operation.
 func WithFromAddrs(addrs ...string) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.FromAddrs = addrs
+		c.HasFromAddrs = true
 	}
 }
 
 // WithDataCids limits the results to deals for the provided data cids.
+// If WithFromAddrs is also provided, this is an AND operation.
 func WithDataCids(cids ...string) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.DataCids = cids
+		c.HasDataCids = true
 	}
 }
 
-// WithIncludePending specifies whether or not to include pending deals in the results.
+// WithIncludePending specifies whether or not to include pending deals in the results. Default is false.
 // Ignored for ListRetrievalDealRecords.
 func WithIncludePending(includePending bool) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.IncludePending = includePending
+		c.HasIncludePending = true
 	}
 }
 
-// WithOnlyPending specifies whether or not to only include pending deals in the results.
-func WithOnlyPending(onlyPending bool) ListDealRecordsOption {
+// WithIncludeFinal specifies whether or not to include final deals in the results. Default is true.
+// Ignored for ListRetrievalDealRecords.
+func WithIncludeFinal(includeFinal bool) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
-		c.OnlyPending = onlyPending
+		c.IncludeFinal = includeFinal
+		c.HasIncludeFinal = true
 	}
 }
 
-// WithAscending specifies to sort the results in ascending order.
-// Default is descending order.
-// If pending, records are sorted by timestamp, otherwise records
-// are sorted by activation epoch then timestamp.
+// WithAscending specifies to sort the results in ascending order. Default is descending order.
+// Records are sorted by timestamp.
 func WithAscending(ascending bool) ListDealRecordsOption {
 	return func(c *rpc.ListDealRecordsConfig) {
 		c.Ascending = ascending
+		c.HasAscending = true
 	}
 }
 

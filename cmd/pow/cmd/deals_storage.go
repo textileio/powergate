@@ -14,11 +14,11 @@ import (
 )
 
 func init() {
-	storageCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is descending")
-	storageCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids")
-	storageCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses")
-	storageCmd.Flags().BoolP("include-pending", "i", false, "include pending deals")
-	storageCmd.Flags().BoolP("only-pending", "p", false, "return only pending deals")
+	storageCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is sort descending")
+	storageCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids, treated as and AND operation if --addrs is also provided")
+	storageCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses, treated as and AND operation if --cids is also provided")
+	storageCmd.Flags().BoolP("include-pending", "p", false, "include pending deals")
+	storageCmd.Flags().BoolP("include-final", "f", true, "include final deals")
 
 	dealsCmd.AddCommand(storageCmd)
 }
@@ -49,8 +49,8 @@ var storageCmd = &cobra.Command{
 		if viper.IsSet("include-pending") {
 			opts = append(opts, client.WithIncludePending(viper.GetBool("include-pending")))
 		}
-		if viper.IsSet("only-pending") {
-			opts = append(opts, client.WithOnlyPending(viper.GetBool("only-pending")))
+		if viper.IsSet("include-final") {
+			opts = append(opts, client.WithIncludeFinal(viper.GetBool("include-final")))
 		}
 
 		s := spin.New("%s Retrieving deal records...")

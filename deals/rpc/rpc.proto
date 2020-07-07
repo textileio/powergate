@@ -4,11 +4,16 @@ package deals.rpc;
 option go_package = "github.com/textileio/powergate/deals/rpc";
 
 message ListDealRecordsConfig {
-	repeated string from_addrs = 1;
-	repeated string data_cids = 2;
-	bool include_pending = 3;
-	bool only_pending = 4;
-	bool ascending = 5;
+    repeated string from_addrs = 1;
+    bool has_from_addrs = 2;
+    repeated string data_cids = 3;
+    bool has_data_cids = 4;
+    bool include_pending = 5;
+    bool has_include_pending = 6;
+    bool include_final = 7;
+    bool has_include_final = 8;
+    bool ascending = 9;
+    bool has_ascending = 10;
 }
 
 message StorageDealInfo {

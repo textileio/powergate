@@ -41,6 +41,10 @@ var (
 	ErrDealNotFound = errors.New("deal not found on-chain")
 
 	log = logging.Logger("deals")
+
+	defaultListDealRecordsConfig = deals.ListDealRecordsConfig{
+		IncludeFinal: true,
+	}
 )
 
 // Module exposes storage and monitoring from the market.
@@ -237,12 +241,12 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 
 // ListStorageDealRecords lists storage deals according to the provided options.
 func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
-	c := deals.ListDealRecordsConfig{}
+	c := defaultListDealRecordsConfig
 	for _, opt := range opts {
 		opt(&c)
 	}
 	var final []deals.StorageDealRecord
-	if !c.OnlyPending {
+	if c.IncludeFinal {
 		recs, err := m.store.getFinalDeals()
 		if err != nil {
 			return nil, fmt.Errorf("getting final deals: %v", err)
@@ -251,7 +255,7 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 	}
 
 	var pending []deals.StorageDealRecord
-	if c.IncludePending || c.OnlyPending {
+	if c.IncludePending {
 		recs, err := m.store.getPendingDeals()
 		if err != nil {
 			return nil, fmt.Errorf("getting pending deals: %v", err)
@@ -292,25 +296,15 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 			l = filtered[i]
 			r = filtered[j]
 		}
-		if l.Pending || r.Pending {
-			return l.Time < r.Time
-		}
-		if l.DealInfo.ActivationEpoch < r.DealInfo.ActivationEpoch {
-			return true
-		}
-		if l.DealInfo.ActivationEpoch > r.DealInfo.ActivationEpoch {
-			return false
-		}
 		return l.Time < r.Time
 	})
 
 	return filtered, nil
 }
 
-// ListRetrievalDealRecords returns a list of retrieval deals
-// according to the provided options.
+// ListRetrievalDealRecords returns a list of retrieval deals according to the provided options.
 func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
-	c := deals.ListDealRecordsConfig{}
+	c := defaultListDealRecordsConfig
 	for _, opt := range opts {
 		opt(&c)
 	}
