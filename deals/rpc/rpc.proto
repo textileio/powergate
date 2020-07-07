@@ -47,7 +47,7 @@ message RetrievalDealInfo {
 }
 
 message RetrievalDealRecord {
-	string addr = 1;
+    string addr = 1;
     int64 time = 2;
     RetrievalDealInfo deal_info = 3;
 }
