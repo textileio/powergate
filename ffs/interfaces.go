@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/deals"
 )
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
@@ -26,6 +27,12 @@ type PaychManager interface {
 	Create(ctx context.Context, from string, to string, amount uint64) (PaychInfo, cid.Cid, error)
 	// Redeem redeems a payment channel.
 	Redeem(ctx context.Context, ch string) error
+}
+
+// DealRecordsManager provides access to deal records.
+type DealRecordsManager interface {
+	ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error)
+	ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error)
 }
 
 // HotStorage is a fast storage layer for Cid data.

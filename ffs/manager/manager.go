@@ -10,7 +10,6 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/namespace"
 	logging "github.com/ipfs/go-log/v2"
-	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/auth"
@@ -50,7 +49,7 @@ var (
 type Manager struct {
 	wm    ffs.WalletManager
 	pm    ffs.PaychManager
-	dm    *dealsModule.Module
+	dm    ffs.DealRecordsManager
 	sched *scheduler.Scheduler
 
 	lock          sync.Mutex
@@ -63,7 +62,7 @@ type Manager struct {
 }
 
 // New returns a new Manager.
-func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, dm *dealsModule.Module, sched *scheduler.Scheduler) (*Manager, error) {
+func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, dm ffs.DealRecordsManager, sched *scheduler.Scheduler) (*Manager, error) {
 	cidConfig, err := loadDefaultCidConfig(ds)
 	if err != nil {
 		return nil, fmt.Errorf("loading default cidconfig: %s", err)
