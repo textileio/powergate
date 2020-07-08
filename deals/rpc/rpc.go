@@ -208,23 +208,24 @@ func (s *RPC) Retrieve(req *RetrieveRequest, srv RPCService_RetrieveServer) erro
 
 // ListStorageDealRecords calls deals.ListStorageDealRecords.
 func (s *RPC) ListStorageDealRecords(ctx context.Context, req *ListStorageDealRecordsRequest) (*ListStorageDealRecordsResponse, error) {
-	records, err := s.Module.ListStorageDealRecords(buildListDealRecordsOptions(req.Config)...)
+	records, err := s.Module.ListStorageDealRecords(BuildListDealRecordsOptions(req.Config)...)
 	if err != nil {
 		return nil, err
 	}
-	return &ListStorageDealRecordsResponse{Records: toRPCStorageDealRecords(records)}, nil
+	return &ListStorageDealRecordsResponse{Records: ToRPCStorageDealRecords(records)}, nil
 }
 
 // ListRetrievalDealRecords calls deals.ListRetrievalDealRecords.
 func (s *RPC) ListRetrievalDealRecords(ctx context.Context, req *ListRetrievalDealRecordsRequest) (*ListRetrievalDealRecordsResponse, error) {
-	records, err := s.Module.ListRetrievalDealRecords(buildListDealRecordsOptions(req.Config)...)
+	records, err := s.Module.ListRetrievalDealRecords(BuildListDealRecordsOptions(req.Config)...)
 	if err != nil {
 		return nil, err
 	}
-	return &ListRetrievalDealRecordsResponse{Records: toRPCRetrievalDealRecords(records)}, nil
+	return &ListRetrievalDealRecordsResponse{Records: ToRPCRetrievalDealRecords(records)}, nil
 }
 
-func buildListDealRecordsOptions(conf *ListDealRecordsConfig) []deals.ListDealRecordsOption {
+// BuildListDealRecordsOptions creates a ListDealRecordsOption from a ListDealRecordsConfig.
+func BuildListDealRecordsOptions(conf *ListDealRecordsConfig) []deals.ListDealRecordsOption {
 	var opts []deals.ListDealRecordsOption
 	if conf != nil {
 		opts = []deals.ListDealRecordsOption{
@@ -238,7 +239,8 @@ func buildListDealRecordsOptions(conf *ListDealRecordsConfig) []deals.ListDealRe
 	return opts
 }
 
-func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*StorageDealRecord {
+// ToRPCStorageDealRecords converts from Go to gRPC representations.
+func ToRPCStorageDealRecords(records []deals.StorageDealRecord) []*StorageDealRecord {
 	ret := make([]*StorageDealRecord, len(records))
 	for i, r := range records {
 		ret[i] = &StorageDealRecord{
@@ -264,7 +266,8 @@ func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*StorageDealRe
 	return ret
 }
 
-func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*RetrievalDealRecord {
+// ToRPCRetrievalDealRecords converts from Go to gRPC representations.
+func ToRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*RetrievalDealRecord {
 	ret := make([]*RetrievalDealRecord, len(records))
 	for i, r := range records {
 		ret[i] = &RetrievalDealRecord{
