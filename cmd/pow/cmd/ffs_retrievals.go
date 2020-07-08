@@ -14,17 +14,17 @@ import (
 )
 
 func init() {
-	retrievalsCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is descending")
-	retrievalsCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids")
-	retrievalsCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses")
+	ffsrRetrievalsCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is descending")
+	ffsrRetrievalsCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids")
+	ffsrRetrievalsCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses")
 
-	dealsCmd.AddCommand(retrievalsCmd)
+	ffsCmd.AddCommand(ffsrRetrievalsCmd)
 }
 
-var retrievalsCmd = &cobra.Command{
+var ffsrRetrievalsCmd = &cobra.Command{
 	Use:   "retrievals",
-	Short: "List retrieval deal records",
-	Long:  `List retrieval deal records`,
+	Short: "List retrieval deal records for an FFS instance",
+	Long:  `List retrieval deal records for an FFS instance`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -47,7 +47,7 @@ var retrievalsCmd = &cobra.Command{
 
 		s := spin.New("%s Getting retrieval records...")
 		s.Start()
-		res, err := fcClient.Deals.ListRetrievalDealRecords(ctx, opts...)
+		res, err := fcClient.FFS.ListRetrievalDealRecords(authCtx(ctx), opts...)
 		s.Stop()
 		checkErr(err)
 
