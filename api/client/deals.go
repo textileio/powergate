@@ -223,8 +223,7 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 	return reader, nil
 }
 
-// ListStorageDealRecords returns a list of storage deals
-// according to the provided options.
+// ListStorageDealRecords returns a list of storage deals according to the provided options.
 func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
 	conf := &rpc.ListDealRecordsConfig{}
 	for _, opt := range opts {
@@ -241,8 +240,7 @@ func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealReco
 	return ret, nil
 }
 
-// ListRetrievalDealRecords returns a list of retrieval deals
-// according to the provided options.
+// ListRetrievalDealRecords returns a list of retrieval deals according to the provided options.
 func (d *Deals) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
 	conf := &rpc.ListDealRecordsConfig{}
 	for _, opt := range opts {
@@ -265,7 +263,12 @@ func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.Storag
 		if rpcRecord.DealInfo == nil {
 			continue
 		}
+		rootCid, err := cid.Decode(rpcRecord.RootCid)
+		if err != nil {
+			return nil, err
+		}
 		record := deals.StorageDealRecord{
+			RootCid: rootCid,
 			Addr:    rpcRecord.Addr,
 			Time:    rpcRecord.Time,
 			Pending: rpcRecord.Pending,
@@ -307,12 +310,12 @@ func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.Re
 			Addr: rpcRecord.Addr,
 			Time: rpcRecord.Time,
 		}
-		pieceCid, err := cid.Decode(rpcRecord.DealInfo.PieceCid)
+		rootCid, err := cid.Decode(rpcRecord.DealInfo.RootCid)
 		if err != nil {
 			return nil, err
 		}
 		record.DealInfo = deals.RetrievalDealInfo{
-			PieceCID:                pieceCid,
+			RootCid:                 rootCid,
 			Size:                    rpcRecord.DealInfo.Size,
 			MinPrice:                rpcRecord.DealInfo.MinPrice,
 			PaymentInterval:         rpcRecord.DealInfo.PaymentInterval,

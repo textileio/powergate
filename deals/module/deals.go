@@ -264,8 +264,8 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 	var filtered []deals.StorageDealRecord
 
 	if len(c.FromAddrs) > 0 || len(c.DataCids) > 0 {
-		var fromAddrsFilter map[string]struct{}
-		var dataCidsFilter map[string]struct{}
+		fromAddrsFilter := make(map[string]struct{})
+		dataCidsFilter := make(map[string]struct{})
 		for _, addr := range c.FromAddrs {
 			fromAddrsFilter[addr] = struct{}{}
 		}
@@ -312,8 +312,8 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) (
 	var filtered []deals.RetrievalDealRecord
 
 	if len(c.FromAddrs) > 0 || len(c.DataCids) > 0 {
-		var fromAddrsFilter map[string]struct{}
-		var dataCidsFilter map[string]struct{}
+		fromAddrsFilter := make(map[string]struct{})
+		dataCidsFilter := make(map[string]struct{})
 		for _, addr := range c.FromAddrs {
 			fromAddrsFilter[addr] = struct{}{}
 		}
@@ -322,7 +322,7 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) (
 		}
 		for _, record := range ret {
 			_, inFromAddrsFilter := fromAddrsFilter[record.Addr]
-			_, inDataCidsFilter := dataCidsFilter[record.DealInfo.PieceCID.String()]
+			_, inDataCidsFilter := dataCidsFilter[record.DealInfo.RootCid.String()]
 			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
 			includeViaDataCids := len(dataCidsFilter) == 0 || inDataCidsFilter
 			if includeViaFromAddrs && includeViaDataCids {
@@ -364,13 +364,13 @@ func (m *Module) initPendingDeals() {
 
 func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 	di := deals.StorageDealInfo{
-		PieceCID:      params.Data.Root,
 		Duration:      params.MinBlocksDuration,
 		PricePerEpoch: params.EpochPrice.Uint64(),
 		Miner:         params.Miner.String(),
 		ProposalCid:   proposalCid,
 	}
 	record := deals.StorageDealRecord{
+		RootCid:  params.Data.Root,
 		Addr:     params.Wallet.String(),
 		Time:     time.Now().Unix(),
 		DealInfo: di,
@@ -409,6 +409,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 			return
 		}
 		record := deals.StorageDealRecord{
+			RootCid:  dr.RootCid,
 			Addr:     dr.Addr,
 			Time:     time.Now().Unix(), // Note: This can be much later in time than the deal actually became active on chain
 			DealInfo: di,
@@ -446,6 +447,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 			}
 			if info.StateID == storagemarket.StorageDealActive {
 				record := deals.StorageDealRecord{
+					RootCid:  dr.RootCid,
 					Addr:     dr.Addr,
 					Time:     time.Now().Unix(),
 					DealInfo: info,
@@ -475,7 +477,7 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
 		Addr: addr,
 		Time: time.Now().Unix(),
 		DealInfo: deals.RetrievalDealInfo{
-			PieceCID:                offer.Root,
+			RootCid:                 offer.Root,
 			Size:                    offer.Size,
 			MinPrice:                offer.MinPrice.Uint64(),
 			Miner:                   offer.Miner.String(),

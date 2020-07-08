@@ -30,14 +30,15 @@ message StorageDealInfo {
 }
 
 message StorageDealRecord {
-    string addr = 1;
-    int64 time = 2;
-    bool pending = 3;
-    StorageDealInfo deal_info = 4;
+    string root_cid = 1;
+    string addr = 2;
+    int64 time = 3;
+    bool pending = 4;
+    StorageDealInfo deal_info = 5;
 }
 
 message RetrievalDealInfo {
-	string piece_cid = 1;
+	string root_cid = 1;
 	uint64 size = 2;
 	uint64 min_price = 3;
 	uint64 payment_interval = 4;

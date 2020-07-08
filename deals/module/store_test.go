@@ -131,7 +131,7 @@ func TestPutRetrievalRecords(t *testing.T) {
 	now := time.Now().Unix()
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
-	rr := deals.RetrievalDealRecord{Time: now, Addr: "from", DealInfo: deals.RetrievalDealInfo{PieceCID: c1, Miner: "miner"}}
+	rr := deals.RetrievalDealRecord{Time: now, Addr: "from", DealInfo: deals.RetrievalDealInfo{RootCid: c1, Miner: "miner"}}
 	err = s.putRetrieval(rr)
 	require.Nil(t, err)
 }
@@ -142,17 +142,17 @@ func TestGetRetrievalDeals(t *testing.T) {
 
 	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
-	rr := deals.RetrievalDealRecord{Time: now, Addr: "from", DealInfo: deals.RetrievalDealInfo{PieceCID: c1, Miner: "miner"}}
+	rr := deals.RetrievalDealRecord{Time: now, Addr: "from", DealInfo: deals.RetrievalDealInfo{RootCid: c1, Miner: "miner"}}
 	err = s.putRetrieval(rr)
 	require.Nil(t, err)
 
 	require.Nil(t, err)
-	rr = deals.RetrievalDealRecord{Time: now + 1, Addr: "from", DealInfo: deals.RetrievalDealInfo{PieceCID: c1, Miner: "miner"}}
+	rr = deals.RetrievalDealRecord{Time: now + 1, Addr: "from", DealInfo: deals.RetrievalDealInfo{RootCid: c1, Miner: "miner"}}
 	err = s.putRetrieval(rr)
 	require.Nil(t, err)
 
 	require.Nil(t, err)
-	rr = deals.RetrievalDealRecord{Time: now + 2, Addr: "from", DealInfo: deals.RetrievalDealInfo{PieceCID: c1, Miner: "miner"}}
+	rr = deals.RetrievalDealRecord{Time: now + 2, Addr: "from", DealInfo: deals.RetrievalDealInfo{RootCid: c1, Miner: "miner"}}
 	err = s.putRetrieval(rr)
 	require.Nil(t, err)
 

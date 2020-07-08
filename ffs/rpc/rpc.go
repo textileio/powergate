@@ -10,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
+	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
@@ -574,6 +575,32 @@ func (s *RPC) RedeemPayChannel(ctx context.Context, req *RedeemPayChannelRequest
 		return nil, err
 	}
 	return &RedeemPayChannelResponse{}, nil
+}
+
+// ListStorageDealRecords calls ffs.ListStorageDealRecords.
+func (s *RPC) ListStorageDealRecords(ctx context.Context, req *ListStorageDealRecordsRequest) (*ListStorageDealRecordsResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	records, err := i.ListStorageDealRecords(dealsRpc.BuildListDealRecordsOptions(req.Config)...)
+	if err != nil {
+		return nil, err
+	}
+	return &ListStorageDealRecordsResponse{Records: dealsRpc.ToRPCStorageDealRecords(records)}, nil
+}
+
+// ListRetrievalDealRecords calls ffs.ListRetrievalDealRecords.
+func (s *RPC) ListRetrievalDealRecords(ctx context.Context, req *ListRetrievalDealRecordsRequest) (*ListRetrievalDealRecordsResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	records, err := i.ListRetrievalDealRecords(dealsRpc.BuildListDealRecordsOptions(req.Config)...)
+	if err != nil {
+		return nil, err
+	}
+	return &ListRetrievalDealRecordsResponse{Records: dealsRpc.ToRPCRetrievalDealRecords(records)}, nil
 }
 
 // ShowAll returns a list of CidInfo for all data stored in the FFS instance.

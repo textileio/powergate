@@ -3,6 +3,8 @@ package ffs.rpc;
 
 option go_package = "github.com/textileio/powergate/ffs/rpc";
 
+import "deals/rpc/rpc.proto";
+
 // model messages
 // ------------------------------------
 
@@ -346,6 +348,22 @@ message ListPayChannelsRequest {
  message RedeemPayChannelResponse {
  }
 
+ message ListStorageDealRecordsRequest {
+   deals.rpc.ListDealRecordsConfig config = 1;
+}
+
+message ListStorageDealRecordsResponse {
+   repeated deals.rpc.StorageDealRecord records = 1;
+}
+
+message ListRetrievalDealRecordsRequest {
+   deals.rpc.ListDealRecordsConfig config = 1;
+}
+
+message ListRetrievalDealRecordsResponse {
+   repeated deals.rpc.RetrievalDealRecord records = 1;
+}
+
 message ShowAllRequest {
 }
 
@@ -381,6 +399,8 @@ service RPCService {
    rpc ListPayChannels(ListPayChannelsRequest) returns (ListPayChannelsResponse) {}
    rpc CreatePayChannel(CreatePayChannelRequest) returns (CreatePayChannelResponse) {}
    rpc RedeemPayChannel(RedeemPayChannelRequest) returns (RedeemPayChannelResponse) {}
+   rpc ListStorageDealRecords(ListStorageDealRecordsRequest) returns (ListStorageDealRecordsResponse) {}
+   rpc ListRetrievalDealRecords(ListRetrievalDealRecordsRequest) returns (ListRetrievalDealRecordsResponse) {}
 
    // UI support
    rpc ShowAll(ShowAllRequest) returns (ShowAllResponse) {}

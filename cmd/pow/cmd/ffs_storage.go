@@ -14,19 +14,19 @@ import (
 )
 
 func init() {
-	storageCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is sort descending")
-	storageCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids, treated as and AND operation if --addrs is also provided")
-	storageCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses, treated as and AND operation if --cids is also provided")
-	storageCmd.Flags().BoolP("include-pending", "p", false, "include pending deals")
-	storageCmd.Flags().BoolP("include-final", "f", false, "include final deals")
+	ffsStorageCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is sort descending")
+	ffsStorageCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids, treated as and AND operation if --addrs is also provided")
+	ffsStorageCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses, treated as and AND operation if --cids is also provided")
+	ffsStorageCmd.Flags().BoolP("include-pending", "p", false, "include pending deals")
+	ffsStorageCmd.Flags().BoolP("include-final", "f", false, "include final deals")
 
-	dealsCmd.AddCommand(storageCmd)
+	ffsCmd.AddCommand(ffsStorageCmd)
 }
 
-var storageCmd = &cobra.Command{
+var ffsStorageCmd = &cobra.Command{
 	Use:   "storage",
-	Short: "List storage deal records",
-	Long:  `List storage deal records`,
+	Short: "List storage deal records for an FFS instance",
+	Long:  `List storage deal records for an FFS instance`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -55,7 +55,7 @@ var storageCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving deal records...")
 		s.Start()
-		res, err := fcClient.Deals.ListStorageDealRecords(ctx, opts...)
+		res, err := fcClient.FFS.ListStorageDealRecords(authCtx(ctx), opts...)
 		s.Stop()
 		checkErr(err)
 
@@ -75,12 +75,12 @@ var storageCmd = &cobra.Command{
 					r.DealInfo.Miner,
 					strconv.Itoa(int(r.DealInfo.DealID)),
 					strconv.Itoa(int(r.DealInfo.PricePerEpoch)),
-					r.RootCid.String(),
+					r.DealInfo.PieceCID.String(),
 					strconv.Itoa(int(r.DealInfo.Size)),
 					strconv.Itoa(int(r.DealInfo.Duration)),
 				}
 			}
-			RenderTable(os.Stdout, []string{"pending", "active epoch", "time", "addr", "miner", "deal id", "price/epoch", "root cid", "size", "duration"}, data)
+			RenderTable(os.Stdout, []string{"pending", "active epoch", "time", "addr", "miner", "deal id", "price/epoch", "piece cid", "size", "duration"}, data)
 		}
 		Message("Found %d storage deal records", aurora.White(len(res)).Bold())
 	},

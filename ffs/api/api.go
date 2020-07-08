@@ -36,9 +36,10 @@ var (
 // API is an Api instance, which owns a Lotus Address and allows to
 // Store and Retrieve Cids from Hot and Cold layers.
 type API struct {
-	is *instanceStore
-	wm ffs.WalletManager
-	pm ffs.PaychManager
+	is  *instanceStore
+	wm  ffs.WalletManager
+	pm  ffs.PaychManager
+	drm ffs.DealRecordsManager
 
 	sched *scheduler.Scheduler
 
@@ -50,7 +51,7 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, dc ffs.DefaultConfig) (*API, error) {
+func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.DefaultConfig) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 
 	addr, err := wm.NewAddress(ctx, defaultAddressType)
@@ -77,7 +78,7 @@ func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *schedu
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	i := new(ctx, is, wm, pm, config, sch, cancel)
+	i := new(ctx, is, wm, pm, drm, config, sch, cancel)
 	if err := i.is.putConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.cfg.ID, err)
 	}
@@ -85,21 +86,22 @@ func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *schedu
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager) (*API, error) {
+func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 	c, err := is.getConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return new(ctx, is, wm, pm, c, sched, cancel), nil
+	return new(ctx, is, wm, pm, drm, c, sched, cancel), nil
 }
 
-func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, pm ffs.PaychManager, config Config, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
+func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, config Config, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:     is,
 		wm:     wm,
 		pm:     pm,
+		drm:    drm,
 		cfg:    config,
 		sched:  sch,
 		cancel: cancel,

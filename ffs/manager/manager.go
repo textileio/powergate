@@ -49,6 +49,7 @@ var (
 type Manager struct {
 	wm    ffs.WalletManager
 	pm    ffs.PaychManager
+	drm   ffs.DealRecordsManager
 	sched *scheduler.Scheduler
 
 	lock          sync.Mutex
@@ -61,7 +62,7 @@ type Manager struct {
 }
 
 // New returns a new Manager.
-func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, sched *scheduler.Scheduler) (*Manager, error) {
+func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler) (*Manager, error) {
 	cidConfig, err := loadDefaultCidConfig(ds)
 	if err != nil {
 		return nil, fmt.Errorf("loading default cidconfig: %s", err)
@@ -71,6 +72,7 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, sche
 		ds:            ds,
 		wm:            wm,
 		pm:            pm,
+		drm:           drm,
 		sched:         sched,
 		instances:     make(map[ffs.APIID]*api.API),
 		defaultConfig: cidConfig,
@@ -84,7 +86,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 
 	log.Info("creating instance")
 	iid := ffs.NewAPIID()
-	fapi, err := api.New(ctx, namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.defaultConfig)
+	fapi, err := api.New(ctx, namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm, m.defaultConfig)
 	if err != nil {
 		return ffs.EmptyInstanceID, "", fmt.Errorf("creating new instance: %s", err)
 	}
@@ -136,7 +138,7 @@ func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 	i, ok := m.instances[iid]
 	if !ok {
 		log.Infof("loading uncached instance %s", iid)
-		i, err = api.Load(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm)
+		i, err = api.Load(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)
 		}

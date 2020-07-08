@@ -1,13 +1,13 @@
-## pow deals retrievals
+## pow ffs retrievals
 
-List retrieval deal records
+List retrieval deal records for an FFS instance
 
 ### Synopsis
 
-List retrieval deal records
+List retrieval deal records for an FFS instance
 
 ```
-pow deals retrievals [flags]
+pow ffs retrievals [flags]
 ```
 
 ### Options
@@ -27,5 +27,5 @@ pow deals retrievals [flags]
 
 ### SEE ALSO
 
-* [pow deals](pow_deals.md)	 - Provides commands to manage storage deals
+* [pow ffs](pow_ffs.md)	 - Provides commands to manage ffs
 
