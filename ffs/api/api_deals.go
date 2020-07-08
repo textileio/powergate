@@ -53,7 +53,7 @@ func (i *API) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]d
 func (i *API) finalAddresses(fromAddrs []string) ([]string, error) {
 	addrInfos := i.Addrs()
 	instanceAddrs := make([]string, len(addrInfos))
-	var instanceAddrsFilter map[string]struct{}
+	instanceAddrsFilter := make(map[string]struct{})
 	for i, addrInfo := range addrInfos {
 		instanceAddrs[i] = addrInfo.Addr
 		instanceAddrsFilter[addrInfo.Addr] = struct{}{}

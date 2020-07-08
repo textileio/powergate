@@ -274,7 +274,7 @@ func ToRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*Retrieval
 			Addr: r.Addr,
 			Time: r.Time,
 			DealInfo: &RetrievalDealInfo{
-				PieceCid:                r.DealInfo.PieceCID.String(),
+				RootCid:                 r.DealInfo.RootCid.String(),
 				Size:                    r.DealInfo.Size,
 				MinPrice:                r.DealInfo.MinPrice,
 				PaymentInterval:         r.DealInfo.PaymentInterval,

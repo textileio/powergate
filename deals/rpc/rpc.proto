@@ -37,7 +37,7 @@ message StorageDealRecord {
 }
 
 message RetrievalDealInfo {
-	string piece_cid = 1;
+	string root_cid = 1;
 	uint64 size = 2;
 	uint64 min_price = 3;
 	uint64 payment_interval = 4;

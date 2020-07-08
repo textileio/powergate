@@ -59,7 +59,7 @@ var retrievalsCmd = &cobra.Command{
 					t.Format("01/02/06 15:04 MST"),
 					r.Addr,
 					r.DealInfo.Miner,
-					r.DealInfo.PieceCID.String(),
+					r.DealInfo.RootCid.String(),
 					strconv.Itoa(int(r.DealInfo.Size)),
 				}
 			}

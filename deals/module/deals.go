@@ -264,8 +264,8 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 	var filtered []deals.StorageDealRecord
 
 	if len(c.FromAddrs) > 0 || len(c.DataCids) > 0 {
-		var fromAddrsFilter map[string]struct{}
-		var dataCidsFilter map[string]struct{}
+		fromAddrsFilter := make(map[string]struct{})
+		dataCidsFilter := make(map[string]struct{})
 		for _, addr := range c.FromAddrs {
 			fromAddrsFilter[addr] = struct{}{}
 		}
@@ -312,8 +312,8 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) (
 	var filtered []deals.RetrievalDealRecord
 
 	if len(c.FromAddrs) > 0 || len(c.DataCids) > 0 {
-		var fromAddrsFilter map[string]struct{}
-		var dataCidsFilter map[string]struct{}
+		fromAddrsFilter := make(map[string]struct{})
+		dataCidsFilter := make(map[string]struct{})
 		for _, addr := range c.FromAddrs {
 			fromAddrsFilter[addr] = struct{}{}
 		}
@@ -322,7 +322,7 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) (
 		}
 		for _, record := range ret {
 			_, inFromAddrsFilter := fromAddrsFilter[record.Addr]
-			_, inDataCidsFilter := dataCidsFilter[record.DealInfo.PieceCID.String()]
+			_, inDataCidsFilter := dataCidsFilter[record.DealInfo.RootCid.String()]
 			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
 			includeViaDataCids := len(dataCidsFilter) == 0 || inDataCidsFilter
 			if includeViaFromAddrs && includeViaDataCids {
@@ -475,7 +475,7 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
 		Addr: addr,
 		Time: time.Now().Unix(),
 		DealInfo: deals.RetrievalDealInfo{
-			PieceCID:                offer.Root,
+			RootCid:                 offer.Root,
 			Size:                    offer.Size,
 			MinPrice:                offer.MinPrice.Uint64(),
 			Miner:                   offer.Miner.String(),

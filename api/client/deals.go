@@ -307,12 +307,12 @@ func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.Re
 			Addr: rpcRecord.Addr,
 			Time: rpcRecord.Time,
 		}
-		pieceCid, err := cid.Decode(rpcRecord.DealInfo.PieceCid)
+		rootCid, err := cid.Decode(rpcRecord.DealInfo.RootCid)
 		if err != nil {
 			return nil, err
 		}
 		record.DealInfo = deals.RetrievalDealInfo{
-			PieceCID:                pieceCid,
+			RootCid:                 rootCid,
 			Size:                    rpcRecord.DealInfo.Size,
 			MinPrice:                rpcRecord.DealInfo.MinPrice,
 			PaymentInterval:         rpcRecord.DealInfo.PaymentInterval,

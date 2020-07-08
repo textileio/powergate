@@ -21,6 +21,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/stretchr/testify/require"
+	"github.com/textileio/powergate/deals"
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
@@ -140,6 +141,7 @@ func TestAdd(t *testing.T) {
 		requireCidConfig(t, fapi, cid, nil)
 		requireFilStored(ctx, t, client, cid)
 		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
+		requireStorageDealRecord(t, fapi, cid)
 	})
 
 	t.Run("WithCustomConfig", func(t *testing.T) {
@@ -152,6 +154,7 @@ func TestAdd(t *testing.T) {
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireCidConfig(t, fapi, cid, &config)
+		requireStorageDealRecord(t, fapi, cid)
 	})
 }
 
@@ -763,6 +766,7 @@ func TestUnfreeze(t *testing.T) {
 	fetched, err := ioutil.ReadAll(r)
 	require.Nil(t, err)
 	require.True(t, bytes.Equal(data, fetched))
+	requireRetrievalDealRecord(t, fapi, cid)
 }
 
 func TestRenew(t *testing.T) {
@@ -1466,6 +1470,22 @@ func requireCidConfig(t *testing.T, fapi *api.API, c cid.Cid, config *ffs.CidCon
 	currentConfig, err := fapi.GetCidConfig(c)
 	require.NoError(t, err)
 	require.Equal(t, *config, currentConfig)
+}
+
+func requireStorageDealRecord(t *testing.T, fapi *api.API, _ cid.Cid) {
+	time.Sleep(time.Second)
+	recs, err := fapi.ListStorageDealRecords(deals.WithIncludeFinal(true))
+	require.Nil(t, err)
+	require.Len(t, recs, 1)
+	// ToDo: this should be PayloadCid once we can get it
+	// require.Equal(t, c, recs[0].DealInfo.PieceCID)
+}
+
+func requireRetrievalDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {
+	recs, err := fapi.ListRetrievalDealRecords()
+	require.Nil(t, err)
+	require.Len(t, recs, 1)
+	require.Equal(t, c, recs[0].DealInfo.RootCid)
 }
 
 func randomBytes(r *rand.Rand, size int) []byte {
