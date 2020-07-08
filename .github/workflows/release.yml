@@ -89,7 +89,7 @@ jobs:
       - name: Upload multiple assets to release
         uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'release/cli/pow_*'
+          files: 'release/cli/pow_*;iplocation/maxmind/GeoLite2-City.mmdb'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   publish_grpc_lib:
     name: Publish JS gRPC bindings
