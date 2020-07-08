@@ -75,12 +75,12 @@ var storageCmd = &cobra.Command{
 					r.DealInfo.Miner,
 					strconv.Itoa(int(r.DealInfo.DealID)),
 					strconv.Itoa(int(r.DealInfo.PricePerEpoch)),
-					r.DealInfo.PieceCID.String(),
+					r.RootCid.String(),
 					strconv.Itoa(int(r.DealInfo.Size)),
 					strconv.Itoa(int(r.DealInfo.Duration)),
 				}
 			}
-			RenderTable(os.Stdout, []string{"pending", "active epoch", "time", "addr", "miner", "deal id", "price/epoch", "piece cid", "size", "duration"}, data)
+			RenderTable(os.Stdout, []string{"pending", "active epoch", "time", "addr", "miner", "deal id", "price/epoch", "root cid", "size", "duration"}, data)
 		}
 		Message("Found %d storage deal records", aurora.White(len(res)).Bold())
 	},
