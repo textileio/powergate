@@ -223,8 +223,7 @@ func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Rea
 	return reader, nil
 }
 
-// ListStorageDealRecords returns a list of storage deals
-// according to the provided options.
+// ListStorageDealRecords returns a list of storage deals according to the provided options.
 func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
 	conf := &rpc.ListDealRecordsConfig{}
 	for _, opt := range opts {
@@ -241,8 +240,7 @@ func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealReco
 	return ret, nil
 }
 
-// ListRetrievalDealRecords returns a list of retrieval deals
-// according to the provided options.
+// ListRetrievalDealRecords returns a list of retrieval deals according to the provided options.
 func (d *Deals) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
 	conf := &rpc.ListDealRecordsConfig{}
 	for _, opt := range opts {

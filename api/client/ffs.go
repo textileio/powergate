@@ -7,6 +7,8 @@ import (
 	"time"
 
 	cid "github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/deals"
+	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/rpc"
@@ -580,6 +582,40 @@ func (f *FFS) RedeemPayChannel(ctx context.Context, addr string) error {
 	req := &rpc.RedeemPayChannelRequest{PayChannelAddr: addr}
 	_, err := f.client.RedeemPayChannel(ctx, req)
 	return err
+}
+
+// ListStorageDealRecords returns a list of storage deals for the FFS instance according to the provided options.
+func (f *FFS) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
+	conf := &dealsRpc.ListDealRecordsConfig{}
+	for _, opt := range opts {
+		opt(conf)
+	}
+	res, err := f.client.ListStorageDealRecords(ctx, &rpc.ListStorageDealRecordsRequest{Config: conf})
+	if err != nil {
+		return nil, fmt.Errorf("calling ListStorageDealRecords: %v", err)
+	}
+	ret, err := fromRPCStorageDealRecords(res.Records)
+	if err != nil {
+		return nil, fmt.Errorf("processing response deal records: %v", err)
+	}
+	return ret, nil
+}
+
+// ListRetrievalDealRecords returns a list of retrieval deals for the FFS instance according to the provided options.
+func (f *FFS) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
+	conf := &dealsRpc.ListDealRecordsConfig{}
+	for _, opt := range opts {
+		opt(conf)
+	}
+	res, err := f.client.ListRetrievalDealRecords(ctx, &rpc.ListRetrievalDealRecordsRequest{Config: conf})
+	if err != nil {
+		return nil, fmt.Errorf("calling ListRetrievalDealRecords: %v", err)
+	}
+	ret, err := fromRPCRetrievalDealRecords(res.Records)
+	if err != nil {
+		return nil, fmt.Errorf("processing response deal records: %v", err)
+	}
+	return ret, nil
 }
 
 func toRPCHotConfig(config ffs.HotConfig) *rpc.HotConfig {
