@@ -125,13 +125,12 @@ func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, e
 }
 
 func (ci *CoreIpfs) fillPinsetCache(ctx context.Context) error {
-	ci.lock.Lock()
-	defer ci.lock.Unlock()
 	pins, err := ci.ipfs.Pin().Ls(ctx)
 	if err != nil {
-		ci.lock.Unlock()
 		return fmt.Errorf("getting pins from IPFS: %s", err)
 	}
+	ci.lock.Lock()
+	defer ci.lock.Unlock()
 	ci.pinset = make(map[cid.Cid]struct{}, len(pins))
 	for _, p := range pins {
 		ci.pinset[p.Path().Cid()] = struct{}{}
