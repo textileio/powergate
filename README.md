@@ -128,6 +128,10 @@ If that's the case, you can refer [here](https://docs.ipfs.io/guides/guides/inst
 
 Since FFS _HotStorage_ is pinning Cids in the IPFS node, Powergate should be the only party controlling the pinset of the node. Other systems can share the same IPFS node if can  **guarantee** not unpinning Cids pinned by Powergate FFS instances. 
 
+### Geolite database
+Powergate needs an offline geo-location database to resolve miners country using their IP address. The same folder in which `powd` is executing, should have the Geolite2 database file `GeoLite2-City.mmdb`.
+You can copy this file from the GitHub repo at `iplocation/maxmind/GeoLite2-City.mmdb`. If you run Powergate using Docker, this database is bundeled in the image so isn't necessary to have extra considerations.
+
 ### Server
 To build the Powergate server, run:
 ```bash
@@ -152,6 +156,7 @@ Usage of ./powd:
       --walletinitialfund int     FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set) (default 4000000000000000)
 pflag: help requested
 ```
+
 We'll soon provide better information about Powergate configurations, stay tuned! 📻
 
 ## Localnet mode
