@@ -263,7 +263,12 @@ func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.Storag
 		if rpcRecord.DealInfo == nil {
 			continue
 		}
+		rootCid, err := cid.Decode(rpcRecord.RootCid)
+		if err != nil {
+			return nil, err
+		}
 		record := deals.StorageDealRecord{
+			RootCid: rootCid,
 			Addr:    rpcRecord.Addr,
 			Time:    rpcRecord.Time,
 			Pending: rpcRecord.Pending,

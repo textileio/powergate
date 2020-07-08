@@ -1472,13 +1472,12 @@ func requireCidConfig(t *testing.T, fapi *api.API, c cid.Cid, config *ffs.CidCon
 	require.Equal(t, *config, currentConfig)
 }
 
-func requireStorageDealRecord(t *testing.T, fapi *api.API, _ cid.Cid) {
+func requireStorageDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {
 	time.Sleep(time.Second)
 	recs, err := fapi.ListStorageDealRecords(deals.WithIncludeFinal(true))
 	require.Nil(t, err)
 	require.Len(t, recs, 1)
-	// ToDo: this should be PayloadCid once we can get it
-	// require.Equal(t, c, recs[0].DealInfo.PieceCID)
+	require.Equal(t, c, recs[0].RootCid)
 }
 
 func requireRetrievalDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {

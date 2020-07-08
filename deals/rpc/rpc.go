@@ -244,6 +244,7 @@ func ToRPCStorageDealRecords(records []deals.StorageDealRecord) []*StorageDealRe
 	ret := make([]*StorageDealRecord, len(records))
 	for i, r := range records {
 		ret[i] = &StorageDealRecord{
+			RootCid: r.RootCid.String(),
 			Addr:    r.Addr,
 			Time:    r.Time,
 			Pending: r.Pending,

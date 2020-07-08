@@ -364,13 +364,13 @@ func (m *Module) initPendingDeals() {
 
 func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 	di := deals.StorageDealInfo{
-		PieceCID:      params.Data.Root,
 		Duration:      params.MinBlocksDuration,
 		PricePerEpoch: params.EpochPrice.Uint64(),
 		Miner:         params.Miner.String(),
 		ProposalCid:   proposalCid,
 	}
 	record := deals.StorageDealRecord{
+		RootCid:  params.Data.Root,
 		Addr:     params.Wallet.String(),
 		Time:     time.Now().Unix(),
 		DealInfo: di,
@@ -409,6 +409,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 			return
 		}
 		record := deals.StorageDealRecord{
+			RootCid:  dr.RootCid,
 			Addr:     dr.Addr,
 			Time:     time.Now().Unix(), // Note: This can be much later in time than the deal actually became active on chain
 			DealInfo: di,
@@ -446,6 +447,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 			}
 			if info.StateID == storagemarket.StorageDealActive {
 				record := deals.StorageDealRecord{
+					RootCid:  dr.RootCid,
 					Addr:     dr.Addr,
 					Time:     time.Now().Unix(),
 					DealInfo: info,
