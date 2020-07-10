@@ -16,8 +16,8 @@ func init() {
 
 var newCmd = &cobra.Command{
 	Use:   "new",
-	Short: "Create a new filecoin wallet with a single address",
-	Long:  `Create a new filecoin wallet with a single address`,
+	Short: "Create a new filecoin wallet address",
+	Long:  `Create a new filecoin wallet address`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		viper.SetDefault("wallets", []string{})
 	},
@@ -28,9 +28,9 @@ var newCmd = &cobra.Command{
 		typ, err := cmd.Flags().GetString("type")
 		checkErr(err)
 
-		s := spin.New("%s Creating new wallet...")
+		s := spin.New("%s Creating new wallet address...")
 		s.Start()
-		address, err := fcClient.Wallet.NewWallet(ctx, typ)
+		address, err := fcClient.Wallet.NewAddress(ctx, typ)
 		s.Stop()
 		checkErr(err)
 

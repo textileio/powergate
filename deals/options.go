@@ -34,7 +34,7 @@ type ListDealRecordsConfig struct {
 // ListDealRecordsOption updates a ListDealRecordsConfig.
 type ListDealRecordsOption func(*ListDealRecordsConfig)
 
-// WithFromAddrs limits the results deals initated from the provided wallet addresses.
+// WithFromAddrs limits the results deals initiated from the provided wallet addresses.
 // If WithDataCids is also provided, this is an AND operation.
 func WithFromAddrs(addrs ...string) ListDealRecordsOption {
 	return func(c *ListDealRecordsConfig) {
