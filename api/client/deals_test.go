@@ -15,7 +15,13 @@ func TestStore(t *testing.T) {
 	defer done()
 
 	r := strings.NewReader("store me")
-	_, _, err := d.Store(ctx, "an address", r, make([]deals.StorageDealConfig, 0), 1024)
+
+	cid, _, err := d.Import(ctx, r, false)
+	if err != nil {
+		t.Fatalf("failed to call Import: %v", err)
+	}
+
+	_, err = d.Store(ctx, "an address", cid, 1024, make([]deals.StorageDealConfig, 0), 1024)
 	if err != nil {
 		t.Fatalf("failed to call Store: %v", err)
 	}
@@ -39,7 +45,7 @@ func TestRetrieve(t *testing.T) {
 
 	cid, _ := cid.Parse("QmY7Yh4UquoXHLPFo2XbhXkhBvFoPwmQUSa92pxnxjQuPA")
 
-	_, err := d.Retrieve(ctx, "an address", cid)
+	_, err := d.Retrieve(ctx, "an address", cid, false)
 	if err != nil {
 		t.Fatalf("failed to call Retrieve: %v", err)
 	}

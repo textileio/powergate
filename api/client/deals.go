@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/deals/rpc"
@@ -68,73 +68,172 @@ func WithAscending(ascending bool) ListDealRecordsOption {
 	}
 }
 
-// Store creates a proposal deal for data using wallet addr to all miners indicated
-// by dealConfigs for duration epochs.
-func (d *Deals) Store(ctx context.Context, addr string, data io.Reader, dealConfigs []deals.StorageDealConfig, minDuration uint64) ([]cid.Cid, []deals.StorageDealConfig, error) {
-	stream, err := d.client.Store(ctx)
+// Import imports raw data in the Filecoin client. The isCAR flag indicates if the data
+// is already in CAR format, so it shouldn't be encoded into a UnixFS DAG in the Filecoin client.
+// It returns the imported data cid and the data size.
+func (d *Deals) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Cid, int64, error) {
+	stream, err := d.client.Import(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("calling Store: %v", err)
+		return cid.Undef, 0, fmt.Errorf("calling Import: %v", err)
 	}
 
-	reqDealConfigs := make([]*rpc.DealConfig, len(dealConfigs))
-	for i, dealConfig := range dealConfigs {
-		reqDealConfigs[i] = &rpc.DealConfig{
-			Miner:      dealConfig.Miner,
-			EpochPrice: dealConfig.EpochPrice,
-		}
+	importParams := &rpc.ImportParams{
+		IsCar: isCAR,
 	}
-	storeParams := &rpc.StoreParams{
-		Address:     addr,
-		DealConfigs: reqDealConfigs,
-		MinDuration: minDuration,
-	}
-	innerReq := &rpc.StoreRequest_StoreParams{StoreParams: storeParams}
+	innerReq := &rpc.ImportRequest_ImportParams{ImportParams: importParams}
 
-	if err = stream.Send(&rpc.StoreRequest{Payload: innerReq}); err != nil {
-		return nil, nil, fmt.Errorf("calling Send: %v", err)
+	if err = stream.Send(&rpc.ImportRequest{Payload: innerReq}); err != nil {
+		return cid.Undef, 0, fmt.Errorf("calling Send: %v", err)
 	}
 
 	buffer := make([]byte, 1024*32) // 32KB
 	for {
 		bytesRead, err := data.Read(buffer)
 		if err != nil && err != io.EOF {
-			return nil, nil, fmt.Errorf("reading buffer: %v", err)
+			return cid.Undef, 0, fmt.Errorf("reading buffer: %v", err)
 		}
-		sendErr := stream.Send(&rpc.StoreRequest{Payload: &rpc.StoreRequest_Chunk{Chunk: buffer[:bytesRead]}})
+		sendErr := stream.Send(&rpc.ImportRequest{Payload: &rpc.ImportRequest_Chunk{Chunk: buffer[:bytesRead]}})
 		if sendErr != nil {
-			return nil, nil, fmt.Errorf("calling Send: %v", err)
+			return cid.Undef, 0, fmt.Errorf("calling Send: %v", err)
 		}
 		if err == io.EOF {
 			break
 		}
 	}
-	reply, err := stream.CloseAndRecv()
+	res, err := stream.CloseAndRecv()
 	if err != nil {
-		return nil, nil, fmt.Errorf("calling CloseAndRecv: %v", err)
+		return cid.Undef, 0, fmt.Errorf("calling CloseAndRecv: %v", err)
 	}
 
-	cids := make([]cid.Cid, len(reply.GetProposalCids()))
-	for i, replyCid := range reply.GetProposalCids() {
-		id, err := cid.Decode(replyCid)
+	c, err := cid.Decode(res.DataCid)
+	if err != nil {
+		return cid.Undef, 0, fmt.Errorf("decoding cid: %v", err)
+	}
+
+	return c, res.Size, nil
+}
+
+// Store creates a proposal deal for data using wallet addr to all miners indicated
+// by dealConfigs for duration epochs.
+func (d *Deals) Store(ctx context.Context, waddr string, dataCid cid.Cid, pieceSize uint64, dcfgs []deals.StorageDealConfig, minDuration uint64) ([]deals.StoreResult, error) {
+	dealConfigs := make([]*rpc.StorageDealConfig, len(dcfgs))
+	for i, dealConfig := range dcfgs {
+		dealConfigs[i] = &rpc.StorageDealConfig{
+			EpochPrice: dealConfig.EpochPrice,
+			Miner:      dealConfig.Miner,
+		}
+	}
+	req := &rpc.StoreRequest{
+		Address:            waddr,
+		DataCid:            dataCid.String(),
+		PieceSize:          pieceSize,
+		StorageDealConfigs: dealConfigs,
+		MinDuration:        minDuration,
+	}
+	res, err := d.client.Store(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("calling Store: %v", err)
+	}
+	results := make([]deals.StoreResult, len(res.Results))
+	for i, result := range res.Results {
+		c, err := cid.Decode(result.ProposalCid)
 		if err != nil {
-			return nil, nil, fmt.Errorf("decoding cid: %v", err)
+			return nil, fmt.Errorf("decoding cid: %v", err)
 		}
-		cids[i] = id
-	}
-
-	failedDeals := make([]deals.StorageDealConfig, len(reply.GetFailedDeals()))
-	for i, dealConfig := range reply.GetFailedDeals() {
-		addr, err := address.NewFromString(dealConfig.GetMiner())
-		if err != nil {
-			return nil, nil, fmt.Errorf("decoding address: %v", err)
-		}
-		failedDeals[i] = deals.StorageDealConfig{
-			Miner:      addr.String(),
-			EpochPrice: dealConfig.GetEpochPrice(),
+		results[i] = deals.StoreResult{
+			ProposalCid: c,
+			Success:     result.Success,
+			Message:     result.Message,
+			Config: deals.StorageDealConfig{
+				Miner:      result.Config.Miner,
+				EpochPrice: result.Config.EpochPrice,
+			},
 		}
 	}
+	return results, nil
+}
 
-	return cids, failedDeals, nil
+// Fetch fetches deal data to the underlying blockstore of the Filecoin client.
+// This API is meant for clients that use external implementations of blockstores with
+// their own API, e.g: IPFS.
+func (d *Deals) Fetch(ctx context.Context, waddr string, cid cid.Cid) error {
+	req := &rpc.FetchRequest{
+		Address: waddr,
+		Cid:     cid.String(),
+	}
+	if _, err := d.client.Fetch(ctx, req); err != nil {
+		return fmt.Errorf("calling Fetch: %v", err)
+	}
+	return nil
+}
+
+// Retrieve is used to fetch data from filecoin.
+func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error) {
+	req := &rpc.RetrieveRequest{
+		Address:     waddr,
+		Cid:         cid.String(),
+		CarEncoding: CAREncoding,
+	}
+	stream, err := d.client.Retrieve(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("calling Retrieve: %v", err)
+	}
+
+	reader, writer := io.Pipe()
+
+	go func() {
+		for {
+			reply, err := stream.Recv()
+			if err == io.EOF {
+				_ = writer.Close()
+				break
+			} else if err != nil {
+				_ = writer.CloseWithError(err)
+				break
+			}
+			_, err = writer.Write(reply.GetChunk())
+			if err != nil {
+				_ = writer.CloseWithError(err)
+				break
+			}
+		}
+	}()
+
+	return reader, nil
+}
+
+// GetDealStatus returns the current status of the deal, and a flag indicating if the miner of the deal was slashed.
+// If the deal doesn't exist, *or has expired* it will return ErrDealNotFound. There's not actual way of distinguishing
+// both scenarios in Lotus.
+func (d *Deals) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error) {
+	res, err := d.client.GetDealStatus(ctx, &rpc.GetDealStatusRequest{ProposalCid: pcid.String()})
+	if err != nil {
+		return storagemarket.StorageDealUnknown, false, fmt.Errorf("calling GetDealStatus: %v", err)
+	}
+	var status storagemarket.StorageDealStatus
+	switch res.Status {
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_UNSPECIFIED:
+		status = storagemarket.StorageDealUnknown
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_NOT_FOUND:
+		status = storagemarket.StorageDealProposalNotFound
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_REJECTED:
+		status = storagemarket.StorageDealProposalRejected
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_ACCEPTED:
+		status = storagemarket.StorageDealProposalAccepted
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_STAGED:
+		status = storagemarket.StorageDealStaged
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_SEALING:
+		status = storagemarket.StorageDealSealing
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_ACTIVE:
+		status = storagemarket.StorageDealActive
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_FAILING:
+		status = storagemarket.StorageDealFailing
+	case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_NOT_FOUND:
+		status = storagemarket.StorageDealNotFound
+	default:
+		status = storagemarket.StorageDealUnknown
+	}
+	return status, res.Slashed, nil
 }
 
 // Watch returns a channel with state changes of indicated proposals.
@@ -187,40 +286,6 @@ func (d *Deals) Watch(ctx context.Context, proposals []cid.Cid) (<-chan WatchEve
 		}
 	}()
 	return channel, nil
-}
-
-// Retrieve is used to fetch data from filecoin.
-func (d *Deals) Retrieve(ctx context.Context, waddr string, cid cid.Cid) (io.Reader, error) {
-	req := &rpc.RetrieveRequest{
-		Address: waddr,
-		Cid:     cid.String(),
-	}
-	stream, err := d.client.Retrieve(ctx, req)
-	if err != nil {
-		return nil, fmt.Errorf("calling Retrieve: %v", err)
-	}
-
-	reader, writer := io.Pipe()
-
-	go func() {
-		for {
-			reply, err := stream.Recv()
-			if err == io.EOF {
-				_ = writer.Close()
-				break
-			} else if err != nil {
-				_ = writer.CloseWithError(err)
-				break
-			}
-			_, err = writer.Write(reply.GetChunk())
-			if err != nil {
-				_ = writer.CloseWithError(err)
-				break
-			}
-		}
-	}()
-
-	return reader, nil
 }
 
 // ListStorageDealRecords returns a list of storage deals according to the provided options.

@@ -29,6 +29,73 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
+type StorageDealStatus int32
+
+const (
+	StorageDealStatus_STORAGE_DEAL_STATUS_UNSPECIFIED        StorageDealStatus = 0
+	StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_NOT_FOUND StorageDealStatus = 1
+	StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_REJECTED  StorageDealStatus = 2
+	StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_ACCEPTED  StorageDealStatus = 3
+	StorageDealStatus_STORAGE_DEAL_STATUS_STAGED             StorageDealStatus = 4
+	StorageDealStatus_STORAGE_DEAL_STATUS_SEALING            StorageDealStatus = 5
+	StorageDealStatus_STORAGE_DEAL_STATUS_ACTIVE             StorageDealStatus = 6
+	StorageDealStatus_STORAGE_DEAL_STATUS_FAILING            StorageDealStatus = 7
+	StorageDealStatus_STORAGE_DEAL_STATUS_NOT_FOUND          StorageDealStatus = 8
+)
+
+// Enum value maps for StorageDealStatus.
+var (
+	StorageDealStatus_name = map[int32]string{
+		0: "STORAGE_DEAL_STATUS_UNSPECIFIED",
+		1: "STORAGE_DEAL_STATUS_PROPOSAL_NOT_FOUND",
+		2: "STORAGE_DEAL_STATUS_PROPOSAL_REJECTED",
+		3: "STORAGE_DEAL_STATUS_PROPOSAL_ACCEPTED",
+		4: "STORAGE_DEAL_STATUS_STAGED",
+		5: "STORAGE_DEAL_STATUS_SEALING",
+		6: "STORAGE_DEAL_STATUS_ACTIVE",
+		7: "STORAGE_DEAL_STATUS_FAILING",
+		8: "STORAGE_DEAL_STATUS_NOT_FOUND",
+	}
+	StorageDealStatus_value = map[string]int32{
+		"STORAGE_DEAL_STATUS_UNSPECIFIED":        0,
+		"STORAGE_DEAL_STATUS_PROPOSAL_NOT_FOUND": 1,
+		"STORAGE_DEAL_STATUS_PROPOSAL_REJECTED":  2,
+		"STORAGE_DEAL_STATUS_PROPOSAL_ACCEPTED":  3,
+		"STORAGE_DEAL_STATUS_STAGED":             4,
+		"STORAGE_DEAL_STATUS_SEALING":            5,
+		"STORAGE_DEAL_STATUS_ACTIVE":             6,
+		"STORAGE_DEAL_STATUS_FAILING":            7,
+		"STORAGE_DEAL_STATUS_NOT_FOUND":          8,
+	}
+)
+
+func (x StorageDealStatus) Enum() *StorageDealStatus {
+	p := new(StorageDealStatus)
+	*p = x
+	return p
+}
+
+func (x StorageDealStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (StorageDealStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_deals_rpc_rpc_proto_enumTypes[0].Descriptor()
+}
+
+func (StorageDealStatus) Type() protoreflect.EnumType {
+	return &file_deals_rpc_rpc_proto_enumTypes[0]
+}
+
+func (x StorageDealStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use StorageDealStatus.Descriptor instead.
+func (StorageDealStatus) EnumDescriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{0}
+}
+
 type ListDealRecordsConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -480,7 +547,7 @@ func (x *RetrievalDealRecord) GetDealInfo() *RetrievalDealInfo {
 	return nil
 }
 
-type DealConfig struct {
+type StorageDealConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -489,8 +556,8 @@ type DealConfig struct {
 	EpochPrice uint64 `protobuf:"varint,2,opt,name=epoch_price,json=epochPrice,proto3" json:"epoch_price,omitempty"`
 }
 
-func (x *DealConfig) Reset() {
-	*x = DealConfig{}
+func (x *StorageDealConfig) Reset() {
+	*x = StorageDealConfig{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_deals_rpc_rpc_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -498,13 +565,13 @@ func (x *DealConfig) Reset() {
 	}
 }
 
-func (x *DealConfig) String() string {
+func (x *StorageDealConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DealConfig) ProtoMessage() {}
+func (*StorageDealConfig) ProtoMessage() {}
 
-func (x *DealConfig) ProtoReflect() protoreflect.Message {
+func (x *StorageDealConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_deals_rpc_rpc_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -516,37 +583,38 @@ func (x *DealConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DealConfig.ProtoReflect.Descriptor instead.
-func (*DealConfig) Descriptor() ([]byte, []int) {
+// Deprecated: Use StorageDealConfig.ProtoReflect.Descriptor instead.
+func (*StorageDealConfig) Descriptor() ([]byte, []int) {
 	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *DealConfig) GetMiner() string {
+func (x *StorageDealConfig) GetMiner() string {
 	if x != nil {
 		return x.Miner
 	}
 	return ""
 }
 
-func (x *DealConfig) GetEpochPrice() uint64 {
+func (x *StorageDealConfig) GetEpochPrice() uint64 {
 	if x != nil {
 		return x.EpochPrice
 	}
 	return 0
 }
 
-type StoreParams struct {
+type StoreResult struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Address     string        `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	DealConfigs []*DealConfig `protobuf:"bytes,2,rep,name=deal_configs,json=dealConfigs,proto3" json:"deal_configs,omitempty"`
-	MinDuration uint64        `protobuf:"varint,3,opt,name=min_duration,json=minDuration,proto3" json:"min_duration,omitempty"`
+	ProposalCid string             `protobuf:"bytes,1,opt,name=proposal_cid,json=proposalCid,proto3" json:"proposal_cid,omitempty"`
+	Config      *StorageDealConfig `protobuf:"bytes,2,opt,name=config,proto3" json:"config,omitempty"`
+	Success     bool               `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	Message     string             `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
 }
 
-func (x *StoreParams) Reset() {
-	*x = StoreParams{}
+func (x *StoreResult) Reset() {
+	*x = StoreResult{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_deals_rpc_rpc_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -554,13 +622,13 @@ func (x *StoreParams) Reset() {
 	}
 }
 
-func (x *StoreParams) String() string {
+func (x *StoreResult) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StoreParams) ProtoMessage() {}
+func (*StoreResult) ProtoMessage() {}
 
-func (x *StoreParams) ProtoReflect() protoreflect.Message {
+func (x *StoreResult) ProtoReflect() protoreflect.Message {
 	mi := &file_deals_rpc_rpc_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -572,28 +640,217 @@ func (x *StoreParams) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StoreParams.ProtoReflect.Descriptor instead.
-func (*StoreParams) Descriptor() ([]byte, []int) {
+// Deprecated: Use StoreResult.ProtoReflect.Descriptor instead.
+func (*StoreResult) Descriptor() ([]byte, []int) {
 	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *StoreParams) GetAddress() string {
+func (x *StoreResult) GetProposalCid() string {
 	if x != nil {
-		return x.Address
+		return x.ProposalCid
 	}
 	return ""
 }
 
-func (x *StoreParams) GetDealConfigs() []*DealConfig {
+func (x *StoreResult) GetConfig() *StorageDealConfig {
 	if x != nil {
-		return x.DealConfigs
+		return x.Config
 	}
 	return nil
 }
 
-func (x *StoreParams) GetMinDuration() uint64 {
+func (x *StoreResult) GetSuccess() bool {
 	if x != nil {
-		return x.MinDuration
+		return x.Success
+	}
+	return false
+}
+
+func (x *StoreResult) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ImportParams struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	IsCar bool `protobuf:"varint,1,opt,name=is_car,json=isCar,proto3" json:"is_car,omitempty"`
+}
+
+func (x *ImportParams) Reset() {
+	*x = ImportParams{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ImportParams) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportParams) ProtoMessage() {}
+
+func (x *ImportParams) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportParams.ProtoReflect.Descriptor instead.
+func (*ImportParams) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ImportParams) GetIsCar() bool {
+	if x != nil {
+		return x.IsCar
+	}
+	return false
+}
+
+type ImportRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to Payload:
+	//	*ImportRequest_ImportParams
+	//	*ImportRequest_Chunk
+	Payload isImportRequest_Payload `protobuf_oneof:"payload"`
+}
+
+func (x *ImportRequest) Reset() {
+	*x = ImportRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ImportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportRequest) ProtoMessage() {}
+
+func (x *ImportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportRequest.ProtoReflect.Descriptor instead.
+func (*ImportRequest) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{8}
+}
+
+func (m *ImportRequest) GetPayload() isImportRequest_Payload {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (x *ImportRequest) GetImportParams() *ImportParams {
+	if x, ok := x.GetPayload().(*ImportRequest_ImportParams); ok {
+		return x.ImportParams
+	}
+	return nil
+}
+
+func (x *ImportRequest) GetChunk() []byte {
+	if x, ok := x.GetPayload().(*ImportRequest_Chunk); ok {
+		return x.Chunk
+	}
+	return nil
+}
+
+type isImportRequest_Payload interface {
+	isImportRequest_Payload()
+}
+
+type ImportRequest_ImportParams struct {
+	ImportParams *ImportParams `protobuf:"bytes,1,opt,name=import_params,json=importParams,proto3,oneof"`
+}
+
+type ImportRequest_Chunk struct {
+	Chunk []byte `protobuf:"bytes,2,opt,name=chunk,proto3,oneof"`
+}
+
+func (*ImportRequest_ImportParams) isImportRequest_Payload() {}
+
+func (*ImportRequest_Chunk) isImportRequest_Payload() {}
+
+type ImportResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	DataCid string `protobuf:"bytes,1,opt,name=data_cid,json=dataCid,proto3" json:"data_cid,omitempty"`
+	Size    int64  `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+}
+
+func (x *ImportResponse) Reset() {
+	*x = ImportResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ImportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportResponse) ProtoMessage() {}
+
+func (x *ImportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportResponse.ProtoReflect.Descriptor instead.
+func (*ImportResponse) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ImportResponse) GetDataCid() string {
+	if x != nil {
+		return x.DataCid
+	}
+	return ""
+}
+
+func (x *ImportResponse) GetSize() int64 {
+	if x != nil {
+		return x.Size
 	}
 	return 0
 }
@@ -603,16 +860,17 @@ type StoreRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// Types that are assignable to Payload:
-	//	*StoreRequest_StoreParams
-	//	*StoreRequest_Chunk
-	Payload isStoreRequest_Payload `protobuf_oneof:"payload"`
+	Address            string               `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	DataCid            string               `protobuf:"bytes,2,opt,name=data_cid,json=dataCid,proto3" json:"data_cid,omitempty"`
+	PieceSize          uint64               `protobuf:"varint,3,opt,name=piece_size,json=pieceSize,proto3" json:"piece_size,omitempty"`
+	StorageDealConfigs []*StorageDealConfig `protobuf:"bytes,4,rep,name=storage_deal_configs,json=storageDealConfigs,proto3" json:"storage_deal_configs,omitempty"`
+	MinDuration        uint64               `protobuf:"varint,5,opt,name=min_duration,json=minDuration,proto3" json:"min_duration,omitempty"`
 }
 
 func (x *StoreRequest) Reset() {
 	*x = StoreRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[7]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -625,7 +883,7 @@ func (x *StoreRequest) String() string {
 func (*StoreRequest) ProtoMessage() {}
 
 func (x *StoreRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[7]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -638,60 +896,56 @@ func (x *StoreRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoreRequest.ProtoReflect.Descriptor instead.
 func (*StoreRequest) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{7}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{10}
 }
 
-func (m *StoreRequest) GetPayload() isStoreRequest_Payload {
-	if m != nil {
-		return m.Payload
+func (x *StoreRequest) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *StoreRequest) GetDataCid() string {
+	if x != nil {
+		return x.DataCid
+	}
+	return ""
+}
+
+func (x *StoreRequest) GetPieceSize() uint64 {
+	if x != nil {
+		return x.PieceSize
+	}
+	return 0
+}
+
+func (x *StoreRequest) GetStorageDealConfigs() []*StorageDealConfig {
+	if x != nil {
+		return x.StorageDealConfigs
 	}
 	return nil
 }
 
-func (x *StoreRequest) GetStoreParams() *StoreParams {
-	if x, ok := x.GetPayload().(*StoreRequest_StoreParams); ok {
-		return x.StoreParams
+func (x *StoreRequest) GetMinDuration() uint64 {
+	if x != nil {
+		return x.MinDuration
 	}
-	return nil
+	return 0
 }
-
-func (x *StoreRequest) GetChunk() []byte {
-	if x, ok := x.GetPayload().(*StoreRequest_Chunk); ok {
-		return x.Chunk
-	}
-	return nil
-}
-
-type isStoreRequest_Payload interface {
-	isStoreRequest_Payload()
-}
-
-type StoreRequest_StoreParams struct {
-	StoreParams *StoreParams `protobuf:"bytes,1,opt,name=store_params,json=storeParams,proto3,oneof"`
-}
-
-type StoreRequest_Chunk struct {
-	Chunk []byte `protobuf:"bytes,2,opt,name=chunk,proto3,oneof"`
-}
-
-func (*StoreRequest_StoreParams) isStoreRequest_Payload() {}
-
-func (*StoreRequest_Chunk) isStoreRequest_Payload() {}
 
 type StoreResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DataCid      string        `protobuf:"bytes,1,opt,name=data_cid,json=dataCid,proto3" json:"data_cid,omitempty"`
-	ProposalCids []string      `protobuf:"bytes,2,rep,name=proposal_cids,json=proposalCids,proto3" json:"proposal_cids,omitempty"`
-	FailedDeals  []*DealConfig `protobuf:"bytes,3,rep,name=failed_deals,json=failedDeals,proto3" json:"failed_deals,omitempty"`
+	Results []*StoreResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
 }
 
 func (x *StoreResponse) Reset() {
 	*x = StoreResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[8]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -704,7 +958,7 @@ func (x *StoreResponse) String() string {
 func (*StoreResponse) ProtoMessage() {}
 
 func (x *StoreResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[8]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -717,28 +971,319 @@ func (x *StoreResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoreResponse.ProtoReflect.Descriptor instead.
 func (*StoreResponse) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{8}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *StoreResponse) GetDataCid() string {
+func (x *StoreResponse) GetResults() []*StoreResult {
 	if x != nil {
-		return x.DataCid
+		return x.Results
+	}
+	return nil
+}
+
+type FetchRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Cid     string `protobuf:"bytes,2,opt,name=cid,proto3" json:"cid,omitempty"`
+}
+
+func (x *FetchRequest) Reset() {
+	*x = FetchRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *FetchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FetchRequest) ProtoMessage() {}
+
+func (x *FetchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FetchRequest.ProtoReflect.Descriptor instead.
+func (*FetchRequest) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *FetchRequest) GetAddress() string {
+	if x != nil {
+		return x.Address
 	}
 	return ""
 }
 
-func (x *StoreResponse) GetProposalCids() []string {
+func (x *FetchRequest) GetCid() string {
 	if x != nil {
-		return x.ProposalCids
+		return x.Cid
+	}
+	return ""
+}
+
+type FetchResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *FetchResponse) Reset() {
+	*x = FetchResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *FetchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FetchResponse) ProtoMessage() {}
+
+func (x *FetchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FetchResponse.ProtoReflect.Descriptor instead.
+func (*FetchResponse) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{13}
+}
+
+type RetrieveRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Address     string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Cid         string `protobuf:"bytes,2,opt,name=cid,proto3" json:"cid,omitempty"`
+	CarEncoding bool   `protobuf:"varint,3,opt,name=car_encoding,json=carEncoding,proto3" json:"car_encoding,omitempty"`
+}
+
+func (x *RetrieveRequest) Reset() {
+	*x = RetrieveRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RetrieveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RetrieveRequest) ProtoMessage() {}
+
+func (x *RetrieveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RetrieveRequest.ProtoReflect.Descriptor instead.
+func (*RetrieveRequest) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *RetrieveRequest) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *RetrieveRequest) GetCid() string {
+	if x != nil {
+		return x.Cid
+	}
+	return ""
+}
+
+func (x *RetrieveRequest) GetCarEncoding() bool {
+	if x != nil {
+		return x.CarEncoding
+	}
+	return false
+}
+
+type RetrieveResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Chunk []byte `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
+}
+
+func (x *RetrieveResponse) Reset() {
+	*x = RetrieveResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RetrieveResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RetrieveResponse) ProtoMessage() {}
+
+func (x *RetrieveResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RetrieveResponse.ProtoReflect.Descriptor instead.
+func (*RetrieveResponse) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *RetrieveResponse) GetChunk() []byte {
+	if x != nil {
+		return x.Chunk
 	}
 	return nil
 }
 
-func (x *StoreResponse) GetFailedDeals() []*DealConfig {
-	if x != nil {
-		return x.FailedDeals
+type GetDealStatusRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ProposalCid string `protobuf:"bytes,1,opt,name=proposal_cid,json=proposalCid,proto3" json:"proposal_cid,omitempty"`
+}
+
+func (x *GetDealStatusRequest) Reset() {
+	*x = GetDealStatusRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
 	}
-	return nil
+}
+
+func (x *GetDealStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDealStatusRequest) ProtoMessage() {}
+
+func (x *GetDealStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDealStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetDealStatusRequest) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetDealStatusRequest) GetProposalCid() string {
+	if x != nil {
+		return x.ProposalCid
+	}
+	return ""
+}
+
+type GetDealStatusResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Status  StorageDealStatus `protobuf:"varint,1,opt,name=status,proto3,enum=deals.rpc.StorageDealStatus" json:"status,omitempty"`
+	Slashed bool              `protobuf:"varint,2,opt,name=slashed,proto3" json:"slashed,omitempty"`
+}
+
+func (x *GetDealStatusResponse) Reset() {
+	*x = GetDealStatusResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_deals_rpc_rpc_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetDealStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDealStatusResponse) ProtoMessage() {}
+
+func (x *GetDealStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_deals_rpc_rpc_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDealStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetDealStatusResponse) Descriptor() ([]byte, []int) {
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetDealStatusResponse) GetStatus() StorageDealStatus {
+	if x != nil {
+		return x.Status
+	}
+	return StorageDealStatus_STORAGE_DEAL_STATUS_UNSPECIFIED
+}
+
+func (x *GetDealStatusResponse) GetSlashed() bool {
+	if x != nil {
+		return x.Slashed
+	}
+	return false
 }
 
 type WatchRequest struct {
@@ -752,7 +1297,7 @@ type WatchRequest struct {
 func (x *WatchRequest) Reset() {
 	*x = WatchRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[9]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -765,7 +1310,7 @@ func (x *WatchRequest) String() string {
 func (*WatchRequest) ProtoMessage() {}
 
 func (x *WatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[9]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -778,7 +1323,7 @@ func (x *WatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchRequest.ProtoReflect.Descriptor instead.
 func (*WatchRequest) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{9}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *WatchRequest) GetProposals() []string {
@@ -799,7 +1344,7 @@ type WatchResponse struct {
 func (x *WatchResponse) Reset() {
 	*x = WatchResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[10]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -812,7 +1357,7 @@ func (x *WatchResponse) String() string {
 func (*WatchResponse) ProtoMessage() {}
 
 func (x *WatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[10]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -825,114 +1370,12 @@ func (x *WatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchResponse.ProtoReflect.Descriptor instead.
 func (*WatchResponse) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{10}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *WatchResponse) GetDealInfo() *StorageDealInfo {
 	if x != nil {
 		return x.DealInfo
-	}
-	return nil
-}
-
-type RetrieveRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	Cid     string `protobuf:"bytes,2,opt,name=cid,proto3" json:"cid,omitempty"`
-}
-
-func (x *RetrieveRequest) Reset() {
-	*x = RetrieveRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[11]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RetrieveRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RetrieveRequest) ProtoMessage() {}
-
-func (x *RetrieveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[11]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RetrieveRequest.ProtoReflect.Descriptor instead.
-func (*RetrieveRequest) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *RetrieveRequest) GetAddress() string {
-	if x != nil {
-		return x.Address
-	}
-	return ""
-}
-
-func (x *RetrieveRequest) GetCid() string {
-	if x != nil {
-		return x.Cid
-	}
-	return ""
-}
-
-type RetrieveResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Chunk []byte `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
-}
-
-func (x *RetrieveResponse) Reset() {
-	*x = RetrieveResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[12]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RetrieveResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RetrieveResponse) ProtoMessage() {}
-
-func (x *RetrieveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[12]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RetrieveResponse.ProtoReflect.Descriptor instead.
-func (*RetrieveResponse) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *RetrieveResponse) GetChunk() []byte {
-	if x != nil {
-		return x.Chunk
 	}
 	return nil
 }
@@ -948,7 +1391,7 @@ type ListStorageDealRecordsRequest struct {
 func (x *ListStorageDealRecordsRequest) Reset() {
 	*x = ListStorageDealRecordsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[13]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -961,7 +1404,7 @@ func (x *ListStorageDealRecordsRequest) String() string {
 func (*ListStorageDealRecordsRequest) ProtoMessage() {}
 
 func (x *ListStorageDealRecordsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[13]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +1417,7 @@ func (x *ListStorageDealRecordsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStorageDealRecordsRequest.ProtoReflect.Descriptor instead.
 func (*ListStorageDealRecordsRequest) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{13}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListStorageDealRecordsRequest) GetConfig() *ListDealRecordsConfig {
@@ -995,7 +1438,7 @@ type ListStorageDealRecordsResponse struct {
 func (x *ListStorageDealRecordsResponse) Reset() {
 	*x = ListStorageDealRecordsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[14]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1008,7 +1451,7 @@ func (x *ListStorageDealRecordsResponse) String() string {
 func (*ListStorageDealRecordsResponse) ProtoMessage() {}
 
 func (x *ListStorageDealRecordsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[14]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1021,7 +1464,7 @@ func (x *ListStorageDealRecordsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStorageDealRecordsResponse.ProtoReflect.Descriptor instead.
 func (*ListStorageDealRecordsResponse) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{14}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListStorageDealRecordsResponse) GetRecords() []*StorageDealRecord {
@@ -1042,7 +1485,7 @@ type ListRetrievalDealRecordsRequest struct {
 func (x *ListRetrievalDealRecordsRequest) Reset() {
 	*x = ListRetrievalDealRecordsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[15]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1055,7 +1498,7 @@ func (x *ListRetrievalDealRecordsRequest) String() string {
 func (*ListRetrievalDealRecordsRequest) ProtoMessage() {}
 
 func (x *ListRetrievalDealRecordsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[15]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1068,7 +1511,7 @@ func (x *ListRetrievalDealRecordsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRetrievalDealRecordsRequest.ProtoReflect.Descriptor instead.
 func (*ListRetrievalDealRecordsRequest) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{15}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListRetrievalDealRecordsRequest) GetConfig() *ListDealRecordsConfig {
@@ -1089,7 +1532,7 @@ type ListRetrievalDealRecordsResponse struct {
 func (x *ListRetrievalDealRecordsResponse) Reset() {
 	*x = ListRetrievalDealRecordsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_deals_rpc_rpc_proto_msgTypes[16]
+		mi := &file_deals_rpc_rpc_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1102,7 +1545,7 @@ func (x *ListRetrievalDealRecordsResponse) String() string {
 func (*ListRetrievalDealRecordsResponse) ProtoMessage() {}
 
 func (x *ListRetrievalDealRecordsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_deals_rpc_rpc_proto_msgTypes[16]
+	mi := &file_deals_rpc_rpc_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1115,7 +1558,7 @@ func (x *ListRetrievalDealRecordsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRetrievalDealRecordsResponse.ProtoReflect.Descriptor instead.
 func (*ListRetrievalDealRecordsResponse) Descriptor() ([]byte, []int) {
-	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{16}
+	return file_deals_rpc_rpc_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListRetrievalDealRecordsResponse) GetRecords() []*RetrievalDealRecord {
@@ -1199,104 +1642,174 @@ var file_deals_rpc_rpc_proto_rawDesc = []byte{
 	0x69, 0x6d, 0x65, 0x12, 0x39, 0x0a, 0x09, 0x64, 0x65, 0x61, 0x6c, 0x5f, 0x69, 0x6e, 0x66, 0x6f,
 	0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
 	0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c,
-	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x64, 0x65, 0x61, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x43,
-	0x0a, 0x0a, 0x44, 0x65, 0x61, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x14, 0x0a, 0x05,
-	0x6d, 0x69, 0x6e, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6d, 0x69, 0x6e,
-	0x65, 0x72, 0x12, 0x1f, 0x0a, 0x0b, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x5f, 0x70, 0x72, 0x69, 0x63,
-	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0a, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x50, 0x72,
-	0x69, 0x63, 0x65, 0x22, 0x84, 0x01, 0x0a, 0x0b, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x50, 0x61, 0x72,
-	0x61, 0x6d, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x38, 0x0a,
-	0x0c, 0x64, 0x65, 0x61, 0x6c, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x18, 0x02, 0x20,
-	0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
-	0x44, 0x65, 0x61, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x0b, 0x64, 0x65, 0x61, 0x6c,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x69, 0x6e, 0x5f, 0x64,
-	0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0b, 0x6d,
-	0x69, 0x6e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x6e, 0x0a, 0x0c, 0x53, 0x74,
-	0x6f, 0x72, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x3b, 0x0a, 0x0c, 0x73, 0x74,
-	0x6f, 0x72, 0x65, 0x5f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x16, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f,
-	0x72, 0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x48, 0x00, 0x52, 0x0b, 0x73, 0x74, 0x6f, 0x72,
-	0x65, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x16, 0x0a, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x48, 0x00, 0x52, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x42,
-	0x09, 0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x22, 0x89, 0x01, 0x0a, 0x0d, 0x53,
-	0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x19, 0x0a, 0x08,
-	0x64, 0x61, 0x74, 0x61, 0x5f, 0x63, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
-	0x64, 0x61, 0x74, 0x61, 0x43, 0x69, 0x64, 0x12, 0x23, 0x0a, 0x0d, 0x70, 0x72, 0x6f, 0x70, 0x6f,
-	0x73, 0x61, 0x6c, 0x5f, 0x63, 0x69, 0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0c,
-	0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x43, 0x69, 0x64, 0x73, 0x12, 0x38, 0x0a, 0x0c,
-	0x66, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x5f, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x18, 0x03, 0x20, 0x03,
-	0x28, 0x0b, 0x32, 0x15, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44,
-	0x65, 0x61, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x0b, 0x66, 0x61, 0x69, 0x6c, 0x65,
-	0x64, 0x44, 0x65, 0x61, 0x6c, 0x73, 0x22, 0x2c, 0x0a, 0x0c, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73,
-	0x61, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x70, 0x6f,
-	0x73, 0x61, 0x6c, 0x73, 0x22, 0x48, 0x0a, 0x0d, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x09, 0x64, 0x65, 0x61, 0x6c, 0x5f, 0x69, 0x6e,
-	0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73,
-	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c,
-	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x64, 0x65, 0x61, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x3d,
-	0x0a, 0x0f, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x10, 0x0a, 0x03, 0x63,
-	0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x22, 0x28, 0x0a,
+	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x64, 0x65, 0x61, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x4a,
+	0x0a, 0x11, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x12, 0x14, 0x0a, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x6d, 0x69, 0x6e, 0x65, 0x72, 0x12, 0x1f, 0x0a, 0x0b, 0x65, 0x70, 0x6f,
+	0x63, 0x68, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0a,
+	0x65, 0x70, 0x6f, 0x63, 0x68, 0x50, 0x72, 0x69, 0x63, 0x65, 0x22, 0x9a, 0x01, 0x0a, 0x0b, 0x53,
+	0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x12, 0x21, 0x0a, 0x0c, 0x70, 0x72,
+	0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x5f, 0x63, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0b, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x43, 0x69, 0x64, 0x12, 0x34, 0x0a,
+	0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e,
+	0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
+	0x65, 0x44, 0x65, 0x61, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x18, 0x0a,
+	0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x25, 0x0a, 0x0c, 0x49, 0x6d, 0x70, 0x6f, 0x72,
+	0x74, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x15, 0x0a, 0x06, 0x69, 0x73, 0x5f, 0x63, 0x61,
+	0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x69, 0x73, 0x43, 0x61, 0x72, 0x22, 0x72,
+	0x0a, 0x0d, 0x49, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x3e, 0x0a, 0x0d, 0x69, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x5f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x49, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x48,
+	0x00, 0x52, 0x0c, 0x69, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12,
+	0x16, 0x0a, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x48, 0x00,
+	0x52, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x42, 0x09, 0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f,
+	0x61, 0x64, 0x22, 0x3f, 0x0a, 0x0e, 0x49, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x19, 0x0a, 0x08, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x63, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x64, 0x61, 0x74, 0x61, 0x43, 0x69, 0x64, 0x12,
+	0x12, 0x0a, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x73,
+	0x69, 0x7a, 0x65, 0x22, 0xd5, 0x01, 0x0a, 0x0c, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x19,
+	0x0a, 0x08, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x63, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x07, 0x64, 0x61, 0x74, 0x61, 0x43, 0x69, 0x64, 0x12, 0x1d, 0x0a, 0x0a, 0x70, 0x69, 0x65,
+	0x63, 0x65, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x09, 0x70,
+	0x69, 0x65, 0x63, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x12, 0x4e, 0x0a, 0x14, 0x73, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x5f, 0x64, 0x65, 0x61, 0x6c, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73,
+	0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x52, 0x12, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61,
+	0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x69, 0x6e, 0x5f,
+	0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0b,
+	0x6d, 0x69, 0x6e, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x41, 0x0a, 0x0d, 0x53,
+	0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a, 0x07,
+	0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e,
+	0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x52,
+	0x65, 0x73, 0x75, 0x6c, 0x74, 0x52, 0x07, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x22, 0x3a,
+	0x0a, 0x0c, 0x46, 0x65, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18,
+	0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x22, 0x0f, 0x0a, 0x0d, 0x46, 0x65,
+	0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x60, 0x0a, 0x0f, 0x52,
+	0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18,
+	0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x12, 0x21, 0x0a, 0x0c, 0x63, 0x61,
+	0x72, 0x5f, 0x65, 0x6e, 0x63, 0x6f, 0x64, 0x69, 0x6e, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x0b, 0x63, 0x61, 0x72, 0x45, 0x6e, 0x63, 0x6f, 0x64, 0x69, 0x6e, 0x67, 0x22, 0x28, 0x0a,
 	0x10, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
 	0x65, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c,
-	0x52, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x22, 0x59, 0x0a, 0x1d, 0x4c, 0x69, 0x73, 0x74, 0x53,
-	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x38, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73,
-	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63,
-	0x6f, 0x72, 0x64, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x22, 0x58, 0x0a, 0x1e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x36, 0x0a, 0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x18,
-	0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70,
-	0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63,
-	0x6f, 0x72, 0x64, 0x52, 0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x22, 0x5b, 0x0a, 0x1f,
-	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61,
-	0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
-	0x38, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
-	0x20, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74,
-	0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x5c, 0x0a, 0x20, 0x4c, 0x69, 0x73,
-	0x74, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65,
-	0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x38, 0x0a,
-	0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1e,
-	0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69,
-	0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52, 0x07,
-	0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x32, 0xbd, 0x03, 0x0a, 0x0a, 0x52, 0x50, 0x43, 0x53,
-	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3e, 0x0a, 0x05, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x12,
-	0x17, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72,
-	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73,
-	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x12, 0x3e, 0x0a, 0x05, 0x57, 0x61, 0x74, 0x63, 0x68, 0x12,
-	0x17, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x57, 0x61, 0x74, 0x63,
-	0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73,
-	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x47, 0x0a, 0x08, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65,
-	0x76, 0x65, 0x12, 0x1a, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52,
-	0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b,
-	0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69,
-	0x65, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12,
-	0x6f, 0x0a, 0x16, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65,
-	0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x28, 0x2e, 0x64, 0x65, 0x61, 0x6c,
-	0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
-	0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52,
-	0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x75, 0x0a, 0x18, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61,
-	0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x2a, 0x2e, 0x64,
-	0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x74,
+	0x52, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x22, 0x39, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x44, 0x65,
+	0x61, 0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x21, 0x0a, 0x0c, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x5f, 0x63, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x43,
+	0x69, 0x64, 0x22, 0x67, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x44, 0x65, 0x61, 0x6c, 0x53, 0x74, 0x61,
+	0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x34, 0x0a, 0x06, 0x73,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1c, 0x2e, 0x64, 0x65,
+	0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44,
+	0x65, 0x61, 0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x07, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x65, 0x64, 0x22, 0x2c, 0x0a, 0x0c, 0x57,
+	0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x70,
+	0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09,
+	0x70, 0x72, 0x6f, 0x70, 0x6f, 0x73, 0x61, 0x6c, 0x73, 0x22, 0x48, 0x0a, 0x0d, 0x57, 0x61, 0x74,
+	0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x09, 0x64, 0x65,
+	0x61, 0x6c, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
+	0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
+	0x65, 0x44, 0x65, 0x61, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x08, 0x64, 0x65, 0x61, 0x6c, 0x49,
+	0x6e, 0x66, 0x6f, 0x22, 0x59, 0x0a, 0x1d, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61,
+	0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x38, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x58,
+	0x0a, 0x1e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61,
+	0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x36, 0x0a, 0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x1c, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52,
+	0x07, 0x72, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x22, 0x5b, 0x0a, 0x1f, 0x4c, 0x69, 0x73, 0x74,
+	0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63,
+	0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x38, 0x0a, 0x06, 0x63,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x64, 0x65,
+	0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x44, 0x65, 0x61, 0x6c,
+	0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x5c, 0x0a, 0x20, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x74,
 	0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73,
-	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76,
-	0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x2a, 0x5a, 0x28, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x65, 0x78, 0x74, 0x69, 0x6c, 0x65, 0x69, 0x6f, 0x2f,
-	0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2f, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2f,
-	0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x38, 0x0a, 0x07, 0x72, 0x65, 0x63,
+	0x6f, 0x72, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x64, 0x65, 0x61,
+	0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c,
+	0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52, 0x07, 0x72, 0x65, 0x63, 0x6f,
+	0x72, 0x64, 0x73, 0x2a, 0xdf, 0x02, 0x0a, 0x11, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44,
+	0x65, 0x61, 0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x23, 0x0a, 0x1f, 0x53, 0x54, 0x4f,
+	0x52, 0x41, 0x47, 0x45, 0x5f, 0x44, 0x45, 0x41, 0x4c, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53,
+	0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x2a,
+	0x0a, 0x26, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x44, 0x45, 0x41, 0x4c, 0x5f, 0x53,
+	0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x50, 0x52, 0x4f, 0x50, 0x4f, 0x53, 0x41, 0x4c, 0x5f, 0x4e,
+	0x4f, 0x54, 0x5f, 0x46, 0x4f, 0x55, 0x4e, 0x44, 0x10, 0x01, 0x12, 0x29, 0x0a, 0x25, 0x53, 0x54,
+	0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x44, 0x45, 0x41, 0x4c, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55,
+	0x53, 0x5f, 0x50, 0x52, 0x4f, 0x50, 0x4f, 0x53, 0x41, 0x4c, 0x5f, 0x52, 0x45, 0x4a, 0x45, 0x43,
+	0x54, 0x45, 0x44, 0x10, 0x02, 0x12, 0x29, 0x0a, 0x25, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45,
+	0x5f, 0x44, 0x45, 0x41, 0x4c, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x50, 0x52, 0x4f,
+	0x50, 0x4f, 0x53, 0x41, 0x4c, 0x5f, 0x41, 0x43, 0x43, 0x45, 0x50, 0x54, 0x45, 0x44, 0x10, 0x03,
+	0x12, 0x1e, 0x0a, 0x1a, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x44, 0x45, 0x41, 0x4c,
+	0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x53, 0x54, 0x41, 0x47, 0x45, 0x44, 0x10, 0x04,
+	0x12, 0x1f, 0x0a, 0x1b, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x44, 0x45, 0x41, 0x4c,
+	0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x53, 0x45, 0x41, 0x4c, 0x49, 0x4e, 0x47, 0x10,
+	0x05, 0x12, 0x1e, 0x0a, 0x1a, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x44, 0x45, 0x41,
+	0x4c, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x41, 0x43, 0x54, 0x49, 0x56, 0x45, 0x10,
+	0x06, 0x12, 0x1f, 0x0a, 0x1b, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x44, 0x45, 0x41,
+	0x4c, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x46, 0x41, 0x49, 0x4c, 0x49, 0x4e, 0x47,
+	0x10, 0x07, 0x12, 0x21, 0x0a, 0x1d, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x44, 0x45,
+	0x41, 0x4c, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x4e, 0x4f, 0x54, 0x5f, 0x46, 0x4f,
+	0x55, 0x4e, 0x44, 0x10, 0x08, 0x32, 0x92, 0x05, 0x0a, 0x0a, 0x52, 0x50, 0x43, 0x53, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x12, 0x41, 0x0a, 0x06, 0x49, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x18,
+	0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x49, 0x6d, 0x70, 0x6f, 0x72,
+	0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x49, 0x6d, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x12, 0x3c, 0x0a, 0x05, 0x53, 0x74, 0x6f, 0x72, 0x65,
+	0x12, 0x17, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f,
+	0x72, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c,
+	0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x3c, 0x0a, 0x05, 0x46, 0x65, 0x74, 0x63, 0x68, 0x12, 0x17,
+	0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x46, 0x65, 0x74, 0x63, 0x68,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e,
+	0x72, 0x70, 0x63, 0x2e, 0x46, 0x65, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x47, 0x0a, 0x08, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x12,
+	0x1a, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72,
+	0x69, 0x65, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e, 0x64, 0x65,
+	0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x54, 0x0a, 0x0d,
+	0x47, 0x65, 0x74, 0x44, 0x65, 0x61, 0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x1f, 0x2e,
+	0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x44, 0x65, 0x61,
+	0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20,
+	0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x44, 0x65,
+	0x61, 0x6c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x3e, 0x0a, 0x05, 0x57, 0x61, 0x74, 0x63, 0x68, 0x12, 0x17, 0x2e, 0x64, 0x65,
+	0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x30, 0x01, 0x12, 0x6f, 0x0a, 0x16, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
+	0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x28, 0x2e, 0x64,
+	0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f,
+	0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65,
+	0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x75, 0x0a, 0x18, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x74, 0x72, 0x69,
+	0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x12,
+	0x2a, 0x2e, 0x64, 0x65, 0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74,
+	0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63,
+	0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x64, 0x65,
+	0x61, 0x6c, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x74, 0x72,
+	0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x2a, 0x5a, 0x28, 0x67, 0x69,
+	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x65, 0x78, 0x74, 0x69, 0x6c, 0x65,
+	0x69, 0x6f, 0x2f, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2f, 0x64, 0x65, 0x61,
+	0x6c, 0x73, 0x2f, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1311,52 +1824,69 @@ func file_deals_rpc_rpc_proto_rawDescGZIP() []byte {
 	return file_deals_rpc_rpc_proto_rawDescData
 }
 
-var file_deals_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_deals_rpc_rpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_deals_rpc_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_deals_rpc_rpc_proto_goTypes = []interface{}{
-	(*ListDealRecordsConfig)(nil),            // 0: deals.rpc.ListDealRecordsConfig
-	(*StorageDealInfo)(nil),                  // 1: deals.rpc.StorageDealInfo
-	(*StorageDealRecord)(nil),                // 2: deals.rpc.StorageDealRecord
-	(*RetrievalDealInfo)(nil),                // 3: deals.rpc.RetrievalDealInfo
-	(*RetrievalDealRecord)(nil),              // 4: deals.rpc.RetrievalDealRecord
-	(*DealConfig)(nil),                       // 5: deals.rpc.DealConfig
-	(*StoreParams)(nil),                      // 6: deals.rpc.StoreParams
-	(*StoreRequest)(nil),                     // 7: deals.rpc.StoreRequest
-	(*StoreResponse)(nil),                    // 8: deals.rpc.StoreResponse
-	(*WatchRequest)(nil),                     // 9: deals.rpc.WatchRequest
-	(*WatchResponse)(nil),                    // 10: deals.rpc.WatchResponse
-	(*RetrieveRequest)(nil),                  // 11: deals.rpc.RetrieveRequest
-	(*RetrieveResponse)(nil),                 // 12: deals.rpc.RetrieveResponse
-	(*ListStorageDealRecordsRequest)(nil),    // 13: deals.rpc.ListStorageDealRecordsRequest
-	(*ListStorageDealRecordsResponse)(nil),   // 14: deals.rpc.ListStorageDealRecordsResponse
-	(*ListRetrievalDealRecordsRequest)(nil),  // 15: deals.rpc.ListRetrievalDealRecordsRequest
-	(*ListRetrievalDealRecordsResponse)(nil), // 16: deals.rpc.ListRetrievalDealRecordsResponse
+	(StorageDealStatus)(0),                   // 0: deals.rpc.StorageDealStatus
+	(*ListDealRecordsConfig)(nil),            // 1: deals.rpc.ListDealRecordsConfig
+	(*StorageDealInfo)(nil),                  // 2: deals.rpc.StorageDealInfo
+	(*StorageDealRecord)(nil),                // 3: deals.rpc.StorageDealRecord
+	(*RetrievalDealInfo)(nil),                // 4: deals.rpc.RetrievalDealInfo
+	(*RetrievalDealRecord)(nil),              // 5: deals.rpc.RetrievalDealRecord
+	(*StorageDealConfig)(nil),                // 6: deals.rpc.StorageDealConfig
+	(*StoreResult)(nil),                      // 7: deals.rpc.StoreResult
+	(*ImportParams)(nil),                     // 8: deals.rpc.ImportParams
+	(*ImportRequest)(nil),                    // 9: deals.rpc.ImportRequest
+	(*ImportResponse)(nil),                   // 10: deals.rpc.ImportResponse
+	(*StoreRequest)(nil),                     // 11: deals.rpc.StoreRequest
+	(*StoreResponse)(nil),                    // 12: deals.rpc.StoreResponse
+	(*FetchRequest)(nil),                     // 13: deals.rpc.FetchRequest
+	(*FetchResponse)(nil),                    // 14: deals.rpc.FetchResponse
+	(*RetrieveRequest)(nil),                  // 15: deals.rpc.RetrieveRequest
+	(*RetrieveResponse)(nil),                 // 16: deals.rpc.RetrieveResponse
+	(*GetDealStatusRequest)(nil),             // 17: deals.rpc.GetDealStatusRequest
+	(*GetDealStatusResponse)(nil),            // 18: deals.rpc.GetDealStatusResponse
+	(*WatchRequest)(nil),                     // 19: deals.rpc.WatchRequest
+	(*WatchResponse)(nil),                    // 20: deals.rpc.WatchResponse
+	(*ListStorageDealRecordsRequest)(nil),    // 21: deals.rpc.ListStorageDealRecordsRequest
+	(*ListStorageDealRecordsResponse)(nil),   // 22: deals.rpc.ListStorageDealRecordsResponse
+	(*ListRetrievalDealRecordsRequest)(nil),  // 23: deals.rpc.ListRetrievalDealRecordsRequest
+	(*ListRetrievalDealRecordsResponse)(nil), // 24: deals.rpc.ListRetrievalDealRecordsResponse
 }
 var file_deals_rpc_rpc_proto_depIdxs = []int32{
-	1,  // 0: deals.rpc.StorageDealRecord.deal_info:type_name -> deals.rpc.StorageDealInfo
-	3,  // 1: deals.rpc.RetrievalDealRecord.deal_info:type_name -> deals.rpc.RetrievalDealInfo
-	5,  // 2: deals.rpc.StoreParams.deal_configs:type_name -> deals.rpc.DealConfig
-	6,  // 3: deals.rpc.StoreRequest.store_params:type_name -> deals.rpc.StoreParams
-	5,  // 4: deals.rpc.StoreResponse.failed_deals:type_name -> deals.rpc.DealConfig
-	1,  // 5: deals.rpc.WatchResponse.deal_info:type_name -> deals.rpc.StorageDealInfo
-	0,  // 6: deals.rpc.ListStorageDealRecordsRequest.config:type_name -> deals.rpc.ListDealRecordsConfig
-	2,  // 7: deals.rpc.ListStorageDealRecordsResponse.records:type_name -> deals.rpc.StorageDealRecord
-	0,  // 8: deals.rpc.ListRetrievalDealRecordsRequest.config:type_name -> deals.rpc.ListDealRecordsConfig
-	4,  // 9: deals.rpc.ListRetrievalDealRecordsResponse.records:type_name -> deals.rpc.RetrievalDealRecord
-	7,  // 10: deals.rpc.RPCService.Store:input_type -> deals.rpc.StoreRequest
-	9,  // 11: deals.rpc.RPCService.Watch:input_type -> deals.rpc.WatchRequest
-	11, // 12: deals.rpc.RPCService.Retrieve:input_type -> deals.rpc.RetrieveRequest
-	13, // 13: deals.rpc.RPCService.ListStorageDealRecords:input_type -> deals.rpc.ListStorageDealRecordsRequest
-	15, // 14: deals.rpc.RPCService.ListRetrievalDealRecords:input_type -> deals.rpc.ListRetrievalDealRecordsRequest
-	8,  // 15: deals.rpc.RPCService.Store:output_type -> deals.rpc.StoreResponse
-	10, // 16: deals.rpc.RPCService.Watch:output_type -> deals.rpc.WatchResponse
-	12, // 17: deals.rpc.RPCService.Retrieve:output_type -> deals.rpc.RetrieveResponse
-	14, // 18: deals.rpc.RPCService.ListStorageDealRecords:output_type -> deals.rpc.ListStorageDealRecordsResponse
-	16, // 19: deals.rpc.RPCService.ListRetrievalDealRecords:output_type -> deals.rpc.ListRetrievalDealRecordsResponse
-	15, // [15:20] is the sub-list for method output_type
-	10, // [10:15] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	2,  // 0: deals.rpc.StorageDealRecord.deal_info:type_name -> deals.rpc.StorageDealInfo
+	4,  // 1: deals.rpc.RetrievalDealRecord.deal_info:type_name -> deals.rpc.RetrievalDealInfo
+	6,  // 2: deals.rpc.StoreResult.config:type_name -> deals.rpc.StorageDealConfig
+	8,  // 3: deals.rpc.ImportRequest.import_params:type_name -> deals.rpc.ImportParams
+	6,  // 4: deals.rpc.StoreRequest.storage_deal_configs:type_name -> deals.rpc.StorageDealConfig
+	7,  // 5: deals.rpc.StoreResponse.results:type_name -> deals.rpc.StoreResult
+	0,  // 6: deals.rpc.GetDealStatusResponse.status:type_name -> deals.rpc.StorageDealStatus
+	2,  // 7: deals.rpc.WatchResponse.deal_info:type_name -> deals.rpc.StorageDealInfo
+	1,  // 8: deals.rpc.ListStorageDealRecordsRequest.config:type_name -> deals.rpc.ListDealRecordsConfig
+	3,  // 9: deals.rpc.ListStorageDealRecordsResponse.records:type_name -> deals.rpc.StorageDealRecord
+	1,  // 10: deals.rpc.ListRetrievalDealRecordsRequest.config:type_name -> deals.rpc.ListDealRecordsConfig
+	5,  // 11: deals.rpc.ListRetrievalDealRecordsResponse.records:type_name -> deals.rpc.RetrievalDealRecord
+	9,  // 12: deals.rpc.RPCService.Import:input_type -> deals.rpc.ImportRequest
+	11, // 13: deals.rpc.RPCService.Store:input_type -> deals.rpc.StoreRequest
+	13, // 14: deals.rpc.RPCService.Fetch:input_type -> deals.rpc.FetchRequest
+	15, // 15: deals.rpc.RPCService.Retrieve:input_type -> deals.rpc.RetrieveRequest
+	17, // 16: deals.rpc.RPCService.GetDealStatus:input_type -> deals.rpc.GetDealStatusRequest
+	19, // 17: deals.rpc.RPCService.Watch:input_type -> deals.rpc.WatchRequest
+	21, // 18: deals.rpc.RPCService.ListStorageDealRecords:input_type -> deals.rpc.ListStorageDealRecordsRequest
+	23, // 19: deals.rpc.RPCService.ListRetrievalDealRecords:input_type -> deals.rpc.ListRetrievalDealRecordsRequest
+	10, // 20: deals.rpc.RPCService.Import:output_type -> deals.rpc.ImportResponse
+	12, // 21: deals.rpc.RPCService.Store:output_type -> deals.rpc.StoreResponse
+	14, // 22: deals.rpc.RPCService.Fetch:output_type -> deals.rpc.FetchResponse
+	16, // 23: deals.rpc.RPCService.Retrieve:output_type -> deals.rpc.RetrieveResponse
+	18, // 24: deals.rpc.RPCService.GetDealStatus:output_type -> deals.rpc.GetDealStatusResponse
+	20, // 25: deals.rpc.RPCService.Watch:output_type -> deals.rpc.WatchResponse
+	22, // 26: deals.rpc.RPCService.ListStorageDealRecords:output_type -> deals.rpc.ListStorageDealRecordsResponse
+	24, // 27: deals.rpc.RPCService.ListRetrievalDealRecords:output_type -> deals.rpc.ListRetrievalDealRecordsResponse
+	20, // [20:28] is the sub-list for method output_type
+	12, // [12:20] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_deals_rpc_rpc_proto_init() }
@@ -1426,7 +1956,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DealConfig); i {
+			switch v := v.(*StorageDealConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1438,7 +1968,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StoreParams); i {
+			switch v := v.(*StoreResult); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1450,7 +1980,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StoreRequest); i {
+			switch v := v.(*ImportParams); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1462,7 +1992,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StoreResponse); i {
+			switch v := v.(*ImportRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1474,7 +2004,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchRequest); i {
+			switch v := v.(*ImportResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1486,7 +2016,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchResponse); i {
+			switch v := v.(*StoreRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1498,7 +2028,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RetrieveRequest); i {
+			switch v := v.(*StoreResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1510,7 +2040,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RetrieveResponse); i {
+			switch v := v.(*FetchRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1522,7 +2052,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListStorageDealRecordsRequest); i {
+			switch v := v.(*FetchResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1534,7 +2064,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListStorageDealRecordsResponse); i {
+			switch v := v.(*RetrieveRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1546,7 +2076,7 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListRetrievalDealRecordsRequest); i {
+			switch v := v.(*RetrieveResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1558,6 +2088,90 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 		file_deals_rpc_rpc_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetDealStatusRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetDealStatusResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WatchRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*WatchResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListStorageDealRecordsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListStorageDealRecordsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListRetrievalDealRecordsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_deals_rpc_rpc_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRetrievalDealRecordsResponse); i {
 			case 0:
 				return &v.state
@@ -1570,22 +2184,23 @@ func file_deals_rpc_rpc_proto_init() {
 			}
 		}
 	}
-	file_deals_rpc_rpc_proto_msgTypes[7].OneofWrappers = []interface{}{
-		(*StoreRequest_StoreParams)(nil),
-		(*StoreRequest_Chunk)(nil),
+	file_deals_rpc_rpc_proto_msgTypes[8].OneofWrappers = []interface{}{
+		(*ImportRequest_ImportParams)(nil),
+		(*ImportRequest_Chunk)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_deals_rpc_rpc_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   17,
+			NumEnums:      1,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_deals_rpc_rpc_proto_goTypes,
 		DependencyIndexes: file_deals_rpc_rpc_proto_depIdxs,
+		EnumInfos:         file_deals_rpc_rpc_proto_enumTypes,
 		MessageInfos:      file_deals_rpc_rpc_proto_msgTypes,
 	}.Build()
 	File_deals_rpc_rpc_proto = out.File
@@ -1606,9 +2221,12 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type RPCServiceClient interface {
-	Store(ctx context.Context, opts ...grpc.CallOption) (RPCService_StoreClient, error)
-	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (RPCService_WatchClient, error)
+	Import(ctx context.Context, opts ...grpc.CallOption) (RPCService_ImportClient, error)
+	Store(ctx context.Context, in *StoreRequest, opts ...grpc.CallOption) (*StoreResponse, error)
+	Fetch(ctx context.Context, in *FetchRequest, opts ...grpc.CallOption) (*FetchResponse, error)
 	Retrieve(ctx context.Context, in *RetrieveRequest, opts ...grpc.CallOption) (RPCService_RetrieveClient, error)
+	GetDealStatus(ctx context.Context, in *GetDealStatusRequest, opts ...grpc.CallOption) (*GetDealStatusResponse, error)
+	Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (RPCService_WatchClient, error)
 	ListStorageDealRecords(ctx context.Context, in *ListStorageDealRecordsRequest, opts ...grpc.CallOption) (*ListStorageDealRecordsResponse, error)
 	ListRetrievalDealRecords(ctx context.Context, in *ListRetrievalDealRecordsRequest, opts ...grpc.CallOption) (*ListRetrievalDealRecordsResponse, error)
 }
@@ -1621,74 +2239,60 @@ func NewRPCServiceClient(cc grpc.ClientConnInterface) RPCServiceClient {
 	return &rPCServiceClient{cc}
 }
 
-func (c *rPCServiceClient) Store(ctx context.Context, opts ...grpc.CallOption) (RPCService_StoreClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_RPCService_serviceDesc.Streams[0], "/deals.rpc.RPCService/Store", opts...)
+func (c *rPCServiceClient) Import(ctx context.Context, opts ...grpc.CallOption) (RPCService_ImportClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_RPCService_serviceDesc.Streams[0], "/deals.rpc.RPCService/Import", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &rPCServiceStoreClient{stream}
+	x := &rPCServiceImportClient{stream}
 	return x, nil
 }
 
-type RPCService_StoreClient interface {
-	Send(*StoreRequest) error
-	CloseAndRecv() (*StoreResponse, error)
+type RPCService_ImportClient interface {
+	Send(*ImportRequest) error
+	CloseAndRecv() (*ImportResponse, error)
 	grpc.ClientStream
 }
 
-type rPCServiceStoreClient struct {
+type rPCServiceImportClient struct {
 	grpc.ClientStream
 }
 
-func (x *rPCServiceStoreClient) Send(m *StoreRequest) error {
+func (x *rPCServiceImportClient) Send(m *ImportRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *rPCServiceStoreClient) CloseAndRecv() (*StoreResponse, error) {
+func (x *rPCServiceImportClient) CloseAndRecv() (*ImportResponse, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(StoreResponse)
+	m := new(ImportResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *rPCServiceClient) Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (RPCService_WatchClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_RPCService_serviceDesc.Streams[1], "/deals.rpc.RPCService/Watch", opts...)
+func (c *rPCServiceClient) Store(ctx context.Context, in *StoreRequest, opts ...grpc.CallOption) (*StoreResponse, error) {
+	out := new(StoreResponse)
+	err := c.cc.Invoke(ctx, "/deals.rpc.RPCService/Store", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &rPCServiceWatchClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
+	return out, nil
 }
 
-type RPCService_WatchClient interface {
-	Recv() (*WatchResponse, error)
-	grpc.ClientStream
-}
-
-type rPCServiceWatchClient struct {
-	grpc.ClientStream
-}
-
-func (x *rPCServiceWatchClient) Recv() (*WatchResponse, error) {
-	m := new(WatchResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
+func (c *rPCServiceClient) Fetch(ctx context.Context, in *FetchRequest, opts ...grpc.CallOption) (*FetchResponse, error) {
+	out := new(FetchResponse)
+	err := c.cc.Invoke(ctx, "/deals.rpc.RPCService/Fetch", in, out, opts...)
+	if err != nil {
 		return nil, err
 	}
-	return m, nil
+	return out, nil
 }
 
 func (c *rPCServiceClient) Retrieve(ctx context.Context, in *RetrieveRequest, opts ...grpc.CallOption) (RPCService_RetrieveClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_RPCService_serviceDesc.Streams[2], "/deals.rpc.RPCService/Retrieve", opts...)
+	stream, err := c.cc.NewStream(ctx, &_RPCService_serviceDesc.Streams[1], "/deals.rpc.RPCService/Retrieve", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1719,6 +2323,47 @@ func (x *rPCServiceRetrieveClient) Recv() (*RetrieveResponse, error) {
 	return m, nil
 }
 
+func (c *rPCServiceClient) GetDealStatus(ctx context.Context, in *GetDealStatusRequest, opts ...grpc.CallOption) (*GetDealStatusResponse, error) {
+	out := new(GetDealStatusResponse)
+	err := c.cc.Invoke(ctx, "/deals.rpc.RPCService/GetDealStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rPCServiceClient) Watch(ctx context.Context, in *WatchRequest, opts ...grpc.CallOption) (RPCService_WatchClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_RPCService_serviceDesc.Streams[2], "/deals.rpc.RPCService/Watch", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &rPCServiceWatchClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type RPCService_WatchClient interface {
+	Recv() (*WatchResponse, error)
+	grpc.ClientStream
+}
+
+type rPCServiceWatchClient struct {
+	grpc.ClientStream
+}
+
+func (x *rPCServiceWatchClient) Recv() (*WatchResponse, error) {
+	m := new(WatchResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *rPCServiceClient) ListStorageDealRecords(ctx context.Context, in *ListStorageDealRecordsRequest, opts ...grpc.CallOption) (*ListStorageDealRecordsResponse, error) {
 	out := new(ListStorageDealRecordsResponse)
 	err := c.cc.Invoke(ctx, "/deals.rpc.RPCService/ListStorageDealRecords", in, out, opts...)
@@ -1739,9 +2384,12 @@ func (c *rPCServiceClient) ListRetrievalDealRecords(ctx context.Context, in *Lis
 
 // RPCServiceServer is the server API for RPCService service.
 type RPCServiceServer interface {
-	Store(RPCService_StoreServer) error
-	Watch(*WatchRequest, RPCService_WatchServer) error
+	Import(RPCService_ImportServer) error
+	Store(context.Context, *StoreRequest) (*StoreResponse, error)
+	Fetch(context.Context, *FetchRequest) (*FetchResponse, error)
 	Retrieve(*RetrieveRequest, RPCService_RetrieveServer) error
+	GetDealStatus(context.Context, *GetDealStatusRequest) (*GetDealStatusResponse, error)
+	Watch(*WatchRequest, RPCService_WatchServer) error
 	ListStorageDealRecords(context.Context, *ListStorageDealRecordsRequest) (*ListStorageDealRecordsResponse, error)
 	ListRetrievalDealRecords(context.Context, *ListRetrievalDealRecordsRequest) (*ListRetrievalDealRecordsResponse, error)
 }
@@ -1750,14 +2398,23 @@ type RPCServiceServer interface {
 type UnimplementedRPCServiceServer struct {
 }
 
-func (*UnimplementedRPCServiceServer) Store(RPCService_StoreServer) error {
-	return status.Errorf(codes.Unimplemented, "method Store not implemented")
+func (*UnimplementedRPCServiceServer) Import(RPCService_ImportServer) error {
+	return status.Errorf(codes.Unimplemented, "method Import not implemented")
 }
-func (*UnimplementedRPCServiceServer) Watch(*WatchRequest, RPCService_WatchServer) error {
-	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
+func (*UnimplementedRPCServiceServer) Store(context.Context, *StoreRequest) (*StoreResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Store not implemented")
+}
+func (*UnimplementedRPCServiceServer) Fetch(context.Context, *FetchRequest) (*FetchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Fetch not implemented")
 }
 func (*UnimplementedRPCServiceServer) Retrieve(*RetrieveRequest, RPCService_RetrieveServer) error {
 	return status.Errorf(codes.Unimplemented, "method Retrieve not implemented")
+}
+func (*UnimplementedRPCServiceServer) GetDealStatus(context.Context, *GetDealStatusRequest) (*GetDealStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDealStatus not implemented")
+}
+func (*UnimplementedRPCServiceServer) Watch(*WatchRequest, RPCService_WatchServer) error {
+	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
 }
 func (*UnimplementedRPCServiceServer) ListStorageDealRecords(context.Context, *ListStorageDealRecordsRequest) (*ListStorageDealRecordsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStorageDealRecords not implemented")
@@ -1770,51 +2427,66 @@ func RegisterRPCServiceServer(s *grpc.Server, srv RPCServiceServer) {
 	s.RegisterService(&_RPCService_serviceDesc, srv)
 }
 
-func _RPCService_Store_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(RPCServiceServer).Store(&rPCServiceStoreServer{stream})
+func _RPCService_Import_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(RPCServiceServer).Import(&rPCServiceImportServer{stream})
 }
 
-type RPCService_StoreServer interface {
-	SendAndClose(*StoreResponse) error
-	Recv() (*StoreRequest, error)
+type RPCService_ImportServer interface {
+	SendAndClose(*ImportResponse) error
+	Recv() (*ImportRequest, error)
 	grpc.ServerStream
 }
 
-type rPCServiceStoreServer struct {
+type rPCServiceImportServer struct {
 	grpc.ServerStream
 }
 
-func (x *rPCServiceStoreServer) SendAndClose(m *StoreResponse) error {
+func (x *rPCServiceImportServer) SendAndClose(m *ImportResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *rPCServiceStoreServer) Recv() (*StoreRequest, error) {
-	m := new(StoreRequest)
+func (x *rPCServiceImportServer) Recv() (*ImportRequest, error) {
+	m := new(ImportRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _RPCService_Watch_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(WatchRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _RPCService_Store_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(RPCServiceServer).Watch(m, &rPCServiceWatchServer{stream})
+	if interceptor == nil {
+		return srv.(RPCServiceServer).Store(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/deals.rpc.RPCService/Store",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServiceServer).Store(ctx, req.(*StoreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-type RPCService_WatchServer interface {
-	Send(*WatchResponse) error
-	grpc.ServerStream
-}
-
-type rPCServiceWatchServer struct {
-	grpc.ServerStream
-}
-
-func (x *rPCServiceWatchServer) Send(m *WatchResponse) error {
-	return x.ServerStream.SendMsg(m)
+func _RPCService_Fetch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FetchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServiceServer).Fetch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/deals.rpc.RPCService/Fetch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServiceServer).Fetch(ctx, req.(*FetchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _RPCService_Retrieve_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -1835,6 +2507,45 @@ type rPCServiceRetrieveServer struct {
 }
 
 func (x *rPCServiceRetrieveServer) Send(m *RetrieveResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _RPCService_GetDealStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDealStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RPCServiceServer).GetDealStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/deals.rpc.RPCService/GetDealStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RPCServiceServer).GetDealStatus(ctx, req.(*GetDealStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RPCService_Watch_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(RPCServiceServer).Watch(m, &rPCServiceWatchServer{stream})
+}
+
+type RPCService_WatchServer interface {
+	Send(*WatchResponse) error
+	grpc.ServerStream
+}
+
+type rPCServiceWatchServer struct {
+	grpc.ServerStream
+}
+
+func (x *rPCServiceWatchServer) Send(m *WatchResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1879,6 +2590,18 @@ var _RPCService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*RPCServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "Store",
+			Handler:    _RPCService_Store_Handler,
+		},
+		{
+			MethodName: "Fetch",
+			Handler:    _RPCService_Fetch_Handler,
+		},
+		{
+			MethodName: "GetDealStatus",
+			Handler:    _RPCService_GetDealStatus_Handler,
+		},
+		{
 			MethodName: "ListStorageDealRecords",
 			Handler:    _RPCService_ListStorageDealRecords_Handler,
 		},
@@ -1889,18 +2612,18 @@ var _RPCService_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Store",
-			Handler:       _RPCService_Store_Handler,
+			StreamName:    "Import",
+			Handler:       _RPCService_Import_Handler,
 			ClientStreams: true,
-		},
-		{
-			StreamName:    "Watch",
-			Handler:       _RPCService_Watch_Handler,
-			ServerStreams: true,
 		},
 		{
 			StreamName:    "Retrieve",
 			Handler:       _RPCService_Retrieve_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Watch",
+			Handler:       _RPCService_Watch_Handler,
 			ServerStreams: true,
 		},
 	},

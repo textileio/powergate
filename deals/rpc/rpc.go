@@ -34,11 +34,10 @@ type RPC struct {
 	Module Module
 }
 
-type storeResult struct {
-	DataCid      cid.Cid
-	ProposalCids []cid.Cid
-	FailedDeals  []deals.StorageDealConfig
-	Err          error
+type importResult struct {
+	DataCid cid.Cid
+	Size    int64
+	Err     error
 }
 
 // New creates a new rpc service.
@@ -48,55 +47,24 @@ func New(dm Module) *RPC {
 	}
 }
 
-func store(ctx context.Context, dealsModule Module, storeParams *StoreParams, r io.Reader, ch chan storeResult) {
-	defer close(ch)
-	dealConfigs := make([]deals.StorageDealConfig, len(storeParams.GetDealConfigs()))
-	for i, dealConfig := range storeParams.GetDealConfigs() {
-		dealConfigs[i] = deals.StorageDealConfig{
-			Miner:      dealConfig.GetMiner(),
-			EpochPrice: dealConfig.GetEpochPrice(),
-		}
-	}
-	dcid, size, err := dealsModule.Import(ctx, r, false)
-	if err != nil {
-		ch <- storeResult{Err: err}
-		return
-	}
-	sr, err := dealsModule.Store(ctx, storeParams.GetAddress(), dcid, uint64(size), dealConfigs, storeParams.GetMinDuration())
-	if err != nil {
-		ch <- storeResult{Err: err}
-		return
-	}
-	var failedDeals []deals.StorageDealConfig
-	var pcids []cid.Cid
-	for _, res := range sr {
-		if res.Success {
-			pcids = append(pcids, res.ProposalCid)
-		} else {
-			failedDeals = append(failedDeals, res.Config)
-		}
-	}
-	ch <- storeResult{DataCid: dcid, ProposalCids: pcids, FailedDeals: failedDeals}
-}
-
-// Store calls deals.Store.
-func (s *RPC) Store(srv RPCService_StoreServer) error {
+// Import calls deals.Import.
+func (s *RPC) Import(srv RPCService_ImportServer) error {
 	req, err := srv.Recv()
 	if err != nil {
 		return err
 	}
-	var storeParams *StoreParams
+	var importParams *ImportParams
 	switch payload := req.GetPayload().(type) {
-	case *StoreRequest_StoreParams:
-		storeParams = payload.StoreParams
+	case *ImportRequest_ImportParams:
+		importParams = payload.ImportParams
 	default:
-		return status.Errorf(codes.InvalidArgument, "expected StoreParams for StoreRequest.Payload but got %T", payload)
+		return status.Errorf(codes.InvalidArgument, "expected ImportParams for ImportRequest.Payload but got %T", payload)
 	}
 
 	reader, writer := io.Pipe()
 
-	storeChannel := make(chan storeResult)
-	go store(srv.Context(), s.Module, storeParams, reader, storeChannel)
+	importChannel := make(chan importResult)
+	go importData(srv.Context(), s.Module, importParams, reader, importChannel)
 
 	for {
 		req, err := srv.Recv()
@@ -108,32 +76,142 @@ func (s *RPC) Store(srv RPCService_StoreServer) error {
 			break
 		}
 		switch payload := req.GetPayload().(type) {
-		case *StoreRequest_Chunk:
+		case *ImportRequest_Chunk:
 			_, writeErr := writer.Write(payload.Chunk)
 			if writeErr != nil {
 				return writeErr
 			}
 		default:
-			return status.Errorf(codes.InvalidArgument, "expected Chunk for StoreRequest.Payload but got %T", payload)
+			return status.Errorf(codes.InvalidArgument, "expected Chunk for ImportRequest.Payload but got %T", payload)
 		}
 	}
 
-	storeResult := <-storeChannel
-	if storeResult.Err != nil {
-		return storeResult.Err
+	importResult := <-importChannel
+	if importResult.Err != nil {
+		return importResult.Err
 	}
 
-	replyCids := make([]string, len(storeResult.ProposalCids))
-	for i, cid := range storeResult.ProposalCids {
-		replyCids[i] = cid.String()
+	return srv.SendAndClose(&ImportResponse{DataCid: importResult.DataCid.String(), Size: importResult.Size})
+}
+
+func importData(ctx context.Context, dealsModule Module, importParams *ImportParams, r io.Reader, ch chan importResult) {
+	defer close(ch)
+	dcid, size, err := dealsModule.Import(ctx, r, importParams.IsCar)
+	if err != nil {
+		ch <- importResult{Err: err}
+		return
+	}
+	ch <- importResult{DataCid: dcid, Size: size}
+}
+
+// Store calls deals.Store.
+func (s *RPC) Store(ctx context.Context, req *StoreRequest) (*StoreResponse, error) {
+	c, err := cid.Decode(req.DataCid)
+	if err != nil {
+		return nil, err
+	}
+	dealConfigs := make([]deals.StorageDealConfig, len(req.StorageDealConfigs))
+	for i, dealConfig := range req.StorageDealConfigs {
+		dealConfigs[i] = deals.StorageDealConfig{
+			Miner:      dealConfig.Miner,
+			EpochPrice: dealConfig.EpochPrice,
+		}
+	}
+	results, err := s.Module.Store(ctx, req.Address, c, req.PieceSize, dealConfigs, req.MinDuration)
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]*StoreResult, len(results))
+	for i, result := range results {
+		ret[i] = &StoreResult{
+			ProposalCid: result.ProposalCid.String(),
+			Message:     result.Message,
+			Success:     result.Success,
+			Config: &StorageDealConfig{
+				Miner:      result.Config.Miner,
+				EpochPrice: result.Config.EpochPrice,
+			},
+		}
+	}
+	return &StoreResponse{Results: ret}, nil
+}
+
+// Fetch calls deals.Fetch.
+func (s *RPC) Fetch(ctx context.Context, req *FetchRequest) (*FetchResponse, error) {
+	c, err := cid.Decode(req.Cid)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.Module.Fetch(ctx, req.Address, c); err != nil {
+		return nil, err
+	}
+	return &FetchResponse{}, nil
+}
+
+// Retrieve calls deals.Retreive.
+func (s *RPC) Retrieve(req *RetrieveRequest, srv RPCService_RetrieveServer) error {
+	c, err := cid.Parse(req.GetCid())
+	if err != nil {
+		return err
 	}
 
-	replyFailedDeals := make([]*DealConfig, len(storeResult.FailedDeals))
-	for i, dealConfig := range storeResult.FailedDeals {
-		replyFailedDeals[i] = &DealConfig{Miner: dealConfig.Miner, EpochPrice: dealConfig.EpochPrice}
+	reader, err := s.Module.Retrieve(srv.Context(), req.GetAddress(), c, false)
+	if err != nil {
+		return err
 	}
+	defer func() {
+		if err := reader.Close(); err != nil {
+			log.Errorf("closing reader on Retrieve: %s", err)
+		}
+	}()
 
-	return srv.SendAndClose(&StoreResponse{DataCid: storeResult.DataCid.String(), ProposalCids: replyCids, FailedDeals: replyFailedDeals})
+	buffer := make([]byte, 1024*32) // 32KB
+	for {
+		bytesRead, err := reader.Read(buffer)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if sendErr := srv.Send(&RetrieveResponse{Chunk: buffer[:bytesRead]}); sendErr != nil {
+			return sendErr
+		}
+		if err == io.EOF {
+			return nil
+		}
+	}
+}
+
+// GetDealStatus calls deals.GetDealStatus.
+func (s *RPC) GetDealStatus(ctx context.Context, req *GetDealStatusRequest) (*GetDealStatusResponse, error) {
+	c, err := cid.Parse(req.ProposalCid)
+	if err != nil {
+		return nil, err
+	}
+	statusCode, slashed, err := s.Module.GetDealStatus(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+	var status StorageDealStatus
+	switch statusCode {
+	case storagemarket.StorageDealProposalNotFound:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_NOT_FOUND
+	case storagemarket.StorageDealProposalRejected:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_REJECTED
+	case storagemarket.StorageDealProposalAccepted:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_ACCEPTED
+	case storagemarket.StorageDealStaged:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_STAGED
+	case storagemarket.StorageDealSealing:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_SEALING
+	case storagemarket.StorageDealActive:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_ACTIVE
+	case storagemarket.StorageDealFailing:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_FAILING
+	case storagemarket.StorageDealNotFound:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_NOT_FOUND
+	default:
+		status = StorageDealStatus_STORAGE_DEAL_STATUS_UNSPECIFIED
+	}
+	return &GetDealStatusResponse{Status: status, Slashed: slashed}, nil
 }
 
 // Watch calls deals.Watch.
@@ -172,38 +250,6 @@ func (s *RPC) Watch(req *WatchRequest, srv RPCService_WatchServer) error {
 		}
 	}
 	return nil
-}
-
-// Retrieve calls deals.Retreive.
-func (s *RPC) Retrieve(req *RetrieveRequest, srv RPCService_RetrieveServer) error {
-	cid, err := cid.Parse(req.GetCid())
-	if err != nil {
-		return err
-	}
-
-	reader, err := s.Module.Retrieve(srv.Context(), req.GetAddress(), cid, false)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err := reader.Close(); err != nil {
-			log.Errorf("closing reader on Retrieve: %s", err)
-		}
-	}()
-
-	buffer := make([]byte, 1024*32) // 32KB
-	for {
-		bytesRead, err := reader.Read(buffer)
-		if err != nil && err != io.EOF {
-			return err
-		}
-		if sendErr := srv.Send(&RetrieveResponse{Chunk: buffer[:bytesRead]}); sendErr != nil {
-			return sendErr
-		}
-		if err == io.EOF {
-			return nil
-		}
-	}
 }
 
 // ListStorageDealRecords calls deals.ListStorageDealRecords.
