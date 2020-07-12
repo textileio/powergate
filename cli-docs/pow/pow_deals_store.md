@@ -14,11 +14,12 @@ pow deals store [flags]
 
 ```
   -a, --address string   wallet address used to store the data
+  -c, --cid string       Data cid to store
   -d, --duration uint    minimum duration to store the data for
-  -f, --file string      Path to the file to store
   -h, --help             help for store
   -m, --miners strings   miner ids of the deals to execute
   -p, --prices ints      prices of the deals to execute
+  -s, --size uint        The data piece size
 ```
 
 ### Options inherited from parent commands

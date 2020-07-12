@@ -17,6 +17,7 @@ build-powbench:
 .PHONY: build-powbench
 
 docs-pow:
+	rm -rf ./cli-docs/pow
 	go run ./cmd/pow/main.go docs ./cli-docs/pow
 .PHONY: docs-pow
 

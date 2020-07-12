@@ -1,20 +1,19 @@
-## pow wallet new
+## pow wallet send
 
-Create a new filecoin wallet address
+Send Fil from one address to another
 
 ### Synopsis
 
-Create a new filecoin wallet address
+Send Fil from one address to another
 
 ```
-pow wallet new [flags]
+pow wallet send [from address] [to address] [amount] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help          help for new
-  -t, --type string   specifies the wallet type, either bls or secp256k1. Defaults to bls. (default "bls")
+  -h, --help   help for send
 ```
 
 ### Options inherited from parent commands

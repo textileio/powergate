@@ -14,6 +14,7 @@ pow deals retrieve [flags]
 
 ```
   -a, --address string   wallet address to fund retrieval
+      --car              specifies whether or not the data is CAR encoded
   -c, --cid string       cid of the data to fetch
   -h, --help             help for retrieve
   -o, --out string       file path to write the data to
