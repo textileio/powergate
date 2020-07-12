@@ -20,7 +20,7 @@ message ListResponse {
 }
 
 message WalletBalanceRequest {
-	string address = 1;
+    string address = 1;
 }
 
 message WalletBalanceResponse {
