@@ -16,6 +16,7 @@ import (
 func init() {
 	retrieveCmd.Flags().StringP("address", "a", "", "wallet address to fund retrieval")
 	retrieveCmd.Flags().StringP("cid", "c", "", "cid of the data to fetch")
+	retrieveCmd.Flags().Bool("car", false, "specifies whether or not the data is CAR encoded")
 	retrieveCmd.Flags().StringP("out", "o", "", "file path to write the data to")
 
 	dealsCmd.AddCommand(retrieveCmd)
@@ -35,6 +36,7 @@ var retrieveCmd = &cobra.Command{
 
 		addr := viper.GetString("address")
 		cidString := viper.GetString("cid")
+		isCAR := viper.GetBool("car")
 		out := viper.GetString("out")
 
 		if addr == "" {
@@ -54,7 +56,7 @@ var retrieveCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving specified data...")
 		s.Start()
-		reader, err := fcClient.Deals.Retrieve(ctx, addr, cid)
+		reader, err := fcClient.Deals.Retrieve(ctx, addr, cid, isCAR)
 		checkErr(err)
 
 		dir := path.Dir(out)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/caarlos0/spin"
+	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/deals"
@@ -20,8 +21,9 @@ func init() {
 	dealCmd.Flags().StringP("address", "a", "", "wallet address used to store the data")
 	dealCmd.Flags().Uint64P("duration", "d", 0, "duration to store the data for")
 	dealCmd.Flags().StringP("file", "f", "", "path to the file to store")
-	dealCmd.Flags().Uint64P("maxPrice", "m", 0, "max price of the asks to query")
-	dealCmd.Flags().IntP("pieceSize", "p", 0, "piece size of the asks to query")
+	dealCmd.Flags().BoolP("car", "c", false, "specifies if the file is already CAR encoded")
+	dealCmd.Flags().Uint64P("max-price", "m", 0, "max price of the asks to query")
+	dealCmd.Flags().IntP("size", "s", 0, "piece size of the asks to query")
 	dealCmd.Flags().IntP("limit", "l", -1, "limit the number of asks results")
 	dealCmd.Flags().IntP("offset", "o", -1, "offset of asks results")
 
@@ -41,10 +43,11 @@ var dealCmd = &cobra.Command{
 		defer asksCancel()
 
 		addr := viper.GetString("address")
-		minDuration := viper.GetUint64("minDuration")
+		minDuration := viper.GetUint64("min-duration")
 		path := viper.GetString("file")
-		mp := viper.GetUint64("maxPrice")
-		ps := viper.GetUint64("pieceSize")
+		isCar := viper.GetBool("car")
+		mp := viper.GetUint64("max-price")
+		ps := viper.GetUint64("size")
 		l := viper.GetInt("limit")
 		o := viper.GetInt("offset")
 
@@ -57,11 +60,11 @@ var dealCmd = &cobra.Command{
 		}
 
 		if mp == 0 {
-			Fatal(errors.New("maxPrice must be > 0"))
+			Fatal(errors.New("max-price must be > 0"))
 		}
 
 		if ps == 0 {
-			Fatal(errors.New("pieceSize must be > 0"))
+			Fatal(errors.New("piece-size must be > 0"))
 		}
 
 		file, err := os.Open(path)
@@ -108,14 +111,34 @@ var dealCmd = &cobra.Command{
 			}
 		}
 
-		storeCtx, storeCancel := context.WithTimeout(context.Background(), cmdTimeout)
-		defer storeCancel()
+		importCtx, importCancel := context.WithTimeout(context.Background(), time.Minute*10)
+		defer importCancel()
+
+		s = spin.New("%s Importing data into the Filecoin client...")
+		s.Start()
+
+		c, size, err := fcClient.Deals.Import(importCtx, file, isCar)
+		s.Stop()
+		checkErr(err)
+		Message("Imported %v bytes", size)
 
 		s = spin.New("%s Initiating selected storage deals...")
 		s.Start()
-		succeeded, failed, err := fcClient.Deals.Store(storeCtx, addr, file, dealConfigs, minDuration)
+		storeCtx, storeCancel := context.WithTimeout(context.Background(), cmdTimeout)
+		defer storeCancel()
+		results, err := fcClient.Deals.Store(storeCtx, addr, c, uint64(size), dealConfigs, minDuration)
 		s.Stop()
 		checkErr(err)
+
+		var failed []deals.StorageDealConfig
+		var succeeded []cid.Cid
+		for _, result := range results {
+			if result.Success {
+				succeeded = append(succeeded, result.ProposalCid)
+			} else {
+				failed = append(failed, result.Config)
+			}
+		}
 
 		if len(failed) > 0 {
 			Message("Failed to initialize %v deals:", len(failed))

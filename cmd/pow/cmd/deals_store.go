@@ -8,13 +8,15 @@ import (
 	"strconv"
 
 	"github.com/caarlos0/spin"
+	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/deals"
 )
 
 func init() {
-	storeCmd.Flags().StringP("file", "f", "", "Path to the file to store")
+	storeCmd.Flags().StringP("cid", "c", "", "Data cid to store")
+	storeCmd.Flags().Uint64P("size", "s", 0, "The data piece size")
 	storeCmd.Flags().StringSliceP("miners", "m", []string{}, "miner ids of the deals to execute")
 	storeCmd.Flags().IntSliceP("prices", "p", []int{}, "prices of the deals to execute")
 	storeCmd.Flags().StringP("address", "a", "", "wallet address used to store the data")
@@ -35,14 +37,23 @@ var storeCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
+		cidString := viper.GetString("cid")
+		size := viper.GetUint64("size")
 		addr := viper.GetString("address")
 		minDuration := viper.GetUint64("duration")
-		path := viper.GetString("file")
 		miners := viper.GetStringSlice("miners")
 		prices := viper.GetIntSlice("prices")
 
 		lMiners := len(miners)
 		lPrices := len(prices)
+
+		if cidString == "" {
+			Fatal(errors.New("store command needs a data cid"))
+		}
+
+		if size == 0 {
+			Fatal(errors.New("store command needs a size"))
+		}
 
 		if addr == "" {
 			Fatal(errors.New("store command needs a wallet address"))
@@ -51,10 +62,6 @@ var storeCmd = &cobra.Command{
 		if minDuration == 0 {
 			Fatal(errors.New("store command duration should be > 0"))
 		}
-
-		file, err := os.Open(path)
-		checkErr(err)
-		defer func() { checkErr(file.Close()) }()
 
 		if lMiners == 0 {
 			Fatal(errors.New("you must supply at least one miner"))
@@ -76,15 +83,28 @@ var storeCmd = &cobra.Command{
 			}
 		}
 
+		c, err := cid.Decode(cidString)
+		checkErr(err)
+
 		s := spin.New("%s Initiating specified storage deals...")
 		s.Start()
-		success, failed, err := fcClient.Deals.Store(ctx, addr, file, dealConfigs, minDuration)
+		results, err := fcClient.Deals.Store(ctx, addr, c, size, dealConfigs, minDuration)
 		s.Stop()
 		checkErr(err)
 
-		if len(success) > 0 {
-			Success("Initiation of %v deals succeeded with cids:", len(success))
-			for _, cid := range success {
+		var failed []deals.StorageDealConfig
+		var succeeded []cid.Cid
+		for _, result := range results {
+			if result.Success {
+				succeeded = append(succeeded, result.ProposalCid)
+			} else {
+				failed = append(failed, result.Config)
+			}
+		}
+
+		if len(succeeded) > 0 {
+			Success("Initiation of %v deals succeeded with cids:", len(succeeded))
+			for _, cid := range succeeded {
 				Message(cid.String())
 			}
 		}
