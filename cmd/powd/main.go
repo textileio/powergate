@@ -108,6 +108,7 @@ func configFromFlags() (server.Config, error) {
 	autocreateMasterAddr := config.GetBool("autocreatemasteraddr")
 	grpcWebProxyAddr := config.GetString("grpcwebproxyaddr")
 	gatewayHostAddr := config.GetString("gatewayhostaddr")
+	maxminddbfolder := config.GetString("maxminddbfolder")
 
 	return server.Config{
 		WalletInitialFunds:   walletInitialFunds,
@@ -123,6 +124,7 @@ func configFromFlags() (server.Config, error) {
 		GrpcWebProxyAddress: grpcWebProxyAddr,
 		RepoPath:            repoPath,
 		GatewayHostAddr:     gatewayHostAddr,
+		MaxMindDBFolder:     maxminddbfolder,
 	}, nil
 }
 
@@ -272,6 +274,7 @@ func setupFlags() error {
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "IPFS API endpoint multiaddress. (Optional, only needed if FFS is used)")
 	pflag.Int64("walletinitialfund", 4000000000000000, "FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set)")
 	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "Gateway host listening address")
+	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb")
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")

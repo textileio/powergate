@@ -154,7 +154,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	log.Info("Wiring internal components...")
-	mm, err := maxmind.New(filepath.Join(conf.MaxMindDBFolder, "./GeoLite2-City.mmdb"))
+	mm, err := maxmind.New(filepath.Join(conf.MaxMindDBFolder, "GeoLite2-City.mmdb"))
 	if err != nil {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
 	}
