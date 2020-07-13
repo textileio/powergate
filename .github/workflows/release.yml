@@ -166,4 +166,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           python3 -m pip install --user --upgrade twine
-          python3 -m twine upload ./py-grpc/dist/*
+          cd ./py-grpc && python3 -m twine upload dist/*
