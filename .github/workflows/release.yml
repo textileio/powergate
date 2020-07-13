@@ -147,9 +147,7 @@ jobs:
         with:
           python-version: 3.7
       - name: Install protoc
-        uses: arduino/setup-protoc@master
-        with:
-          version: '3.11.2'
+        run: make install-protoc
       - name: Make version number
         id: makeversion
         uses: frabert/replace-string-action@v1.1
@@ -157,7 +155,7 @@ jobs:
           pattern: 'v'
           string: ${{steps.latesttag.outputs.tag}}
           replace-with: ''
-      - name: Generate JS gRPC bindings
+      - name: Generate Python gRPC bindings
         run: |
           ./scripts/gen-py-protos.sh  ${{steps.makeversion.outputs.replaced}} . ./py-grpc
       - name: Publish Python gRPC bindings
@@ -166,4 +164,5 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           python3 -m pip install --user --upgrade twine
-          cd ./py-grpc && python3 -m twine upload dist/*
+          python3 -m twine upload dist/*
+        working-directory: ./py-grpc
