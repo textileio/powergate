@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/multiformats/go-multiaddr"
-	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
@@ -22,7 +21,6 @@ type Client struct {
 	Asks       *Asks
 	Miners     *Miners
 	Faults     *Faults
-	Deals      *Deals
 	Wallet     *Wallet
 	Reputation *Reputation
 	FFS        *FFS
@@ -70,7 +68,6 @@ func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error)
 		Asks:       &Asks{client: askRpc.NewRPCServiceClient(conn)},
 		Miners:     &Miners{client: minerRpc.NewRPCServiceClient(conn)},
 		Faults:     &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
-		Deals:      &Deals{client: dealsRpc.NewRPCServiceClient(conn)},
 		Wallet:     &Wallet{client: walletRpc.NewRPCServiceClient(conn)},
 		Reputation: &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
 		FFS:        &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
