@@ -8,7 +8,6 @@ import (
 
 	cid "github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/deals"
-	dealsRpc "github.com/textileio/powergate/deals/rpc"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/rpc"
@@ -91,6 +90,49 @@ func WithHistory(enabled bool) WatchLogsOption {
 type LogEvent struct {
 	LogEntry ffs.LogEntry
 	Err      error
+}
+
+// ListDealRecordsOption updates a ListDealRecordsConfig.
+type ListDealRecordsOption func(*rpc.ListDealRecordsConfig)
+
+// WithFromAddrs limits the results deals initiated from the provided wallet addresses.
+// If WithDataCids is also provided, this is an AND operation.
+func WithFromAddrs(addrs ...string) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.FromAddrs = addrs
+	}
+}
+
+// WithDataCids limits the results to deals for the provided data cids.
+// If WithFromAddrs is also provided, this is an AND operation.
+func WithDataCids(cids ...string) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.DataCids = cids
+	}
+}
+
+// WithIncludePending specifies whether or not to include pending deals in the results. Default is false.
+// Ignored for ListRetrievalDealRecords.
+func WithIncludePending(includePending bool) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.IncludePending = includePending
+	}
+}
+
+// WithIncludeFinal specifies whether or not to include final deals in the results. Default is false.
+// Ignored for ListRetrievalDealRecords.
+func WithIncludeFinal(includeFinal bool) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.IncludeFinal = includeFinal
+	}
+}
+
+// WithAscending specifies to sort the results in ascending order. Default is descending order.
+// Records are sorted by timestamp.
+func WithAscending(ascending bool) ListDealRecordsOption {
+	return func(c *rpc.ListDealRecordsConfig) {
+		c.Ascending = ascending
+	}
 }
 
 // Create creates a new FFS instance, returning the instance ID and auth token.
@@ -586,7 +628,7 @@ func (f *FFS) RedeemPayChannel(ctx context.Context, addr string) error {
 
 // ListStorageDealRecords returns a list of storage deals for the FFS instance according to the provided options.
 func (f *FFS) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
-	conf := &dealsRpc.ListDealRecordsConfig{}
+	conf := &rpc.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(conf)
 	}
@@ -603,7 +645,7 @@ func (f *FFS) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecord
 
 // ListRetrievalDealRecords returns a list of retrieval deals for the FFS instance according to the provided options.
 func (f *FFS) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
-	conf := &dealsRpc.ListDealRecordsConfig{}
+	conf := &rpc.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(conf)
 	}
@@ -681,4 +723,75 @@ func fromRPCPaychInfo(info *rpc.PaychInfo) ffs.PaychInfo {
 		Addr:      info.Addr,
 		Direction: direction,
 	}
+}
+
+func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.StorageDealRecord, error) {
+	var ret []deals.StorageDealRecord
+	for _, rpcRecord := range records {
+		if rpcRecord.DealInfo == nil {
+			continue
+		}
+		rootCid, err := cid.Decode(rpcRecord.RootCid)
+		if err != nil {
+			return nil, err
+		}
+		record := deals.StorageDealRecord{
+			RootCid: rootCid,
+			Addr:    rpcRecord.Addr,
+			Time:    rpcRecord.Time,
+			Pending: rpcRecord.Pending,
+		}
+		proposalCid, err := cid.Decode(rpcRecord.DealInfo.ProposalCid)
+		if err != nil {
+			return nil, err
+		}
+		pieceCid, err := cid.Decode(rpcRecord.DealInfo.PieceCid)
+		if err != nil {
+			return nil, err
+		}
+		record.DealInfo = deals.StorageDealInfo{
+			ProposalCid:     proposalCid,
+			StateID:         rpcRecord.DealInfo.StateId,
+			StateName:       rpcRecord.DealInfo.StateName,
+			Miner:           rpcRecord.DealInfo.Miner,
+			PieceCID:        pieceCid,
+			Size:            rpcRecord.DealInfo.Size,
+			PricePerEpoch:   rpcRecord.DealInfo.PricePerEpoch,
+			StartEpoch:      rpcRecord.DealInfo.StartEpoch,
+			Duration:        rpcRecord.DealInfo.Duration,
+			DealID:          rpcRecord.DealInfo.DealId,
+			ActivationEpoch: rpcRecord.DealInfo.ActivationEpoch,
+			Message:         rpcRecord.DealInfo.Msg,
+		}
+		ret = append(ret, record)
+	}
+	return ret, nil
+}
+
+func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.RetrievalDealRecord, error) {
+	var ret []deals.RetrievalDealRecord
+	for _, rpcRecord := range records {
+		if rpcRecord.DealInfo == nil {
+			continue
+		}
+		record := deals.RetrievalDealRecord{
+			Addr: rpcRecord.Addr,
+			Time: rpcRecord.Time,
+		}
+		rootCid, err := cid.Decode(rpcRecord.DealInfo.RootCid)
+		if err != nil {
+			return nil, err
+		}
+		record.DealInfo = deals.RetrievalDealInfo{
+			RootCid:                 rootCid,
+			Size:                    rpcRecord.DealInfo.Size,
+			MinPrice:                rpcRecord.DealInfo.MinPrice,
+			PaymentInterval:         rpcRecord.DealInfo.PaymentInterval,
+			PaymentIntervalIncrease: rpcRecord.DealInfo.PaymentIntervalIncrease,
+			Miner:                   rpcRecord.DealInfo.Miner,
+			MinerPeerID:             rpcRecord.DealInfo.MinerPeerId,
+		}
+		ret = append(ret, record)
+	}
+	return ret, nil
 }

@@ -91,7 +91,7 @@ jobs:
         with:
           files: 'release/cli/pow_*;iplocation/maxmind/GeoLite2-City.mmdb'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-  publish_grpc_lib:
+  publish_js_grpc_lib:
     name: Publish JS gRPC bindings
     runs-on: ubuntu-latest
     steps:
@@ -131,3 +131,38 @@ jobs:
         run: |
           npm publish --access=public
         working-directory: ./js-grpc
+  publish_py_grpc_lib:
+    name: Publish Python gRPC bindings
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: Get latest tag
+        id: latesttag
+        uses: "WyriHaximus/github-action-get-previous-tag@master"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install protoc
+        run: make install-protoc
+      - name: Make version number
+        id: makeversion
+        uses: frabert/replace-string-action@v1.1
+        with:
+          pattern: 'v'
+          string: ${{steps.latesttag.outputs.tag}}
+          replace-with: ''
+      - name: Generate Python gRPC bindings
+        run: |
+          ./scripts/gen-py-protos.sh  ${{steps.makeversion.outputs.replaced}} . ./py-grpc
+      - name: Publish Python gRPC bindings
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          python3 -m pip install --user --upgrade twine
+          python3 -m twine upload dist/*
+        working-directory: ./py-grpc

@@ -30,7 +30,7 @@ var balanceCmd = &cobra.Command{
 
 		s := spin.New(fmt.Sprintf("%s Checking balance for %s...", "%s", addr))
 		s.Start()
-		bal, err := fcClient.Wallet.WalletBalance(ctx, addr)
+		bal, err := fcClient.Wallet.Balance(ctx, addr)
 		s.Stop()
 		checkErr(err)
 

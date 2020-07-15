@@ -12,7 +12,7 @@ func TestNewWallet(t *testing.T) {
 	defer done()
 
 	var err error
-	address, err := w.NewWallet(ctx, "bls")
+	address, err := w.NewAddress(ctx, "bls")
 	if err != nil {
 		t.Fatalf("failed to create new wallet: %v", err)
 	}
@@ -41,10 +41,10 @@ func TestWalletBalance(t *testing.T) {
 	w, done := setupWallet(t)
 	defer done()
 
-	address, err := w.NewWallet(ctx, "bls")
+	address, err := w.NewAddress(ctx, "bls")
 	checkErr(t, err)
 
-	bal, err := w.WalletBalance(ctx, address)
+	bal, err := w.Balance(ctx, address)
 	if err != nil {
 		t.Fatalf("failed to get wallet balance: %v", err)
 	}

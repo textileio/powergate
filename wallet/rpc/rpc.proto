@@ -19,16 +19,27 @@ message ListResponse {
     repeated string addresses = 1;
 }
 
-message WalletBalanceRequest {
+message BalanceRequest {
 	string address = 1;
 }
 
-message WalletBalanceResponse {
+message BalanceResponse {
     uint64 balance = 1;
+}
+
+message SendFilRequest {
+    string from = 1;
+    string to = 2;
+    int64 amount = 3;
+}
+
+message SendFilResponse {
+
 }
 
 service RPCService {
     rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
     rpc List(ListRequest) returns (ListResponse) {}
-    rpc WalletBalance(WalletBalanceRequest) returns (WalletBalanceResponse) {}
+    rpc Balance(BalanceRequest) returns (BalanceResponse) {}
+    rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
 }

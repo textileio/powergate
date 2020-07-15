@@ -129,7 +129,7 @@ If that's the case, you can refer [here](https://docs.ipfs.io/guides/guides/inst
 Since FFS _HotStorage_ is pinning Cids in the IPFS node, Powergate should be the only party controlling the pinset of the node. Other systems can share the same IPFS node if can  **guarantee** not unpinning Cids pinned by Powergate FFS instances. 
 
 ### Geolite database
-Powergate needs an offline geo-location database to resolve miners country using their IP address. The same folder in which `powd` is executing, should have the Geolite2 database file `GeoLite2-City.mmdb`.
+Powergate needs an offline geo-location database to resolve miners country using their IP address. The same folder in which `powd` is executing, should have the Geolite2 database file `GeoLite2-City.mmdb` or you can pass the `--maxminddbfolder` flag to `powd` to specify the path of the folder containing `GeoLite2-City.mmdb`.
 You can copy this file from the GitHub repo at `iplocation/maxmind/GeoLite2-City.mmdb`. If you run Powergate using Docker, this database is bundeled in the image so isn't necessary to have extra considerations.
 
 ### Server
@@ -141,7 +141,7 @@ You can run the `-h` flag to see the configurable flags:
 ```bash
 $ powd -h
 Usage of ./powd:
-      --autocreatemasteraddr      Automatically creates & funds a master address if none is provided.
+      --autocreatemasteraddr      Automatically creates & funds a master address if none is provided
       --debug                     Enable debug log level in all loggers.
       --devnet                    Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.
       --gatewayhostaddr string    Gateway host listening address (default "0.0.0.0:7000")
@@ -152,6 +152,7 @@ Usage of ./powd:
       --lotusmasteraddr string    Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)
       --lotustoken string         Lotus API authorization token. This flag or --lotustoken file are mandatory.
       --lotustokenfile string     Path of a file that contains the Lotus API authorization token.
+      --maxminddbfolder string    Path of the folder containing GeoLite2-City.mmdb (default ".")
       --repopath string           Path of the repository where Powergate state will be saved. (default "~/.powergate")
       --walletinitialfund int     FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set) (default 4000000000000000)
 pflag: help requested
