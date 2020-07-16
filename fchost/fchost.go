@@ -10,6 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	protocol "github.com/libp2p/go-libp2p-protocol"
 	routedhost "github.com/libp2p/go-libp2p/p2p/host/routed"
 	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
 	"github.com/multiformats/go-multiaddr"
@@ -35,7 +36,7 @@ func New(network string, bootstrap bool) (*FilecoinHost, error) {
 		return nil, err
 	}
 
-	dht, err := dht.New(ctx, h, dht.ProtocolPrefix("/fil/kad/testnet"))
+	dht, err := dht.New(ctx, h, dht.ProtocolPrefix(protocol.ID("/fil/kad/"+network)))
 	if err != nil {
 		return nil, err
 	}

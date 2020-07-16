@@ -109,7 +109,6 @@ func configFromFlags() (server.Config, error) {
 	grpcWebProxyAddr := config.GetString("grpcwebproxyaddr")
 	gatewayHostAddr := config.GetString("gatewayhostaddr")
 	maxminddbfolder := config.GetString("maxminddbfolder")
-	network := config.GetString("network")
 
 	return server.Config{
 		WalletInitialFunds:   walletInitialFunds,
@@ -126,7 +125,6 @@ func configFromFlags() (server.Config, error) {
 		RepoPath:            repoPath,
 		GatewayHostAddr:     gatewayHostAddr,
 		MaxMindDBFolder:     maxminddbfolder,
-		Network:             network,
 	}, nil
 }
 
@@ -277,7 +275,6 @@ func setupFlags() error {
 	pflag.Int64("walletinitialfund", 4000000000000000, "FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set)")
 	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "Gateway host listening address")
 	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb")
-	pflag.String("network", "testnet", "Network to connect to. (testnet, nerpa)")
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")

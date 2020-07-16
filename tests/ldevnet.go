@@ -35,7 +35,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 	}
 
 	repository := "textile/lotus-devnet"
-	tag := "jsign-nerpa"
+	tag := "nerpa-v7.7.0"
 	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: envs, Mounts: mounts})
 	if err != nil {
 		panic(fmt.Sprintf("couldn't run lotus-devnet container: %s", err))

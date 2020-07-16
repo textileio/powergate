@@ -11,7 +11,7 @@ import (
 
 var (
 	networkBootstrappers = map[string][]string{
-		"testnet": []string{
+		"testnet": {
 			"/dns4/bootstrap-0-sin.fil-test.net/tcp/1347/p2p/12D3KooWPdUquftaQvoQEtEdsRBAhwD6jopbF2oweVTzR59VbHEd",
 			"/ip4/86.109.15.57/tcp/1347/p2p/12D3KooWPdUquftaQvoQEtEdsRBAhwD6jopbF2oweVTzR59VbHEd",
 			"/dns4/bootstrap-0-dfw.fil-test.net/tcp/1347/p2p/12D3KooWQSCkHCzosEyrh8FgYfLejKgEPM5VB6qWzZE3yDAuXn8d",
@@ -25,7 +25,7 @@ var (
 			"/dns4/bootstrap-1-fra.fil-test.net/tcp/1347/p2p/12D3KooW9szZmKttS9A1FafH3Zc2pxKwwmvCWCGKkRP4KmbhhC4R",
 			"/ip4/136.144.49.131/tcp/1347/p2p/12D3KooW9szZmKttS9A1FafH3Zc2pxKwwmvCWCGKkRP4KmbhhC4R",
 		},
-		"nerpa": []string{
+		"nerpa": {
 			"/dns4/bootstrap-0.nerpa.fildev.network/tcp/1347/p2p/12D3KooWSTq4K1mTMoUSsDciFqxTwq3ZLu7T9scXiXZgM4tZdZi5",
 			"/dns4/bootstrap-1.nerpa.fildev.network/tcp/1347/p2p/12D3KooWPWo8JEoVmekqzvAh9gsiF6hrrDYvRpgsQjqLPV4AwvZA",
 			"/dns4/bootstrap-2.nerpa.fildev.network/tcp/1347/p2p/12D3KooWBMJQooyJVRdMEorxGozRdq5RLxjfHPmMrRnCcX34t7pK",
