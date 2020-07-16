@@ -139,6 +139,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 		}
 		m.recordDeal(params, *p)
 	}
+	fmt.Printf("Store: %s\n", dataCid)
 	return res, nil
 }
 
@@ -185,7 +186,7 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 	}
 	for _, o := range offers {
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
-			log.Infof("error fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
+			log.Infof("fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
 		m.recordRetrieval(waddr, o)

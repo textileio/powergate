@@ -49,7 +49,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 			panic(fmt.Sprintf("couldn't purge lotus-devnet from docker pool: %s", err))
 		}
 	})
-	debug := false
+	debug := true
 	if debug {
 		go func() {
 			opts := docker.LogsOptions{
