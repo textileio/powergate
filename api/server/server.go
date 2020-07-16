@@ -107,6 +107,7 @@ type Config struct {
 	RepoPath             string
 	GatewayHostAddr      string
 	MaxMindDBFolder      string
+	Network              string
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -130,7 +131,7 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	}
 
-	fchost, err := fchost.New(!conf.Devnet)
+	fchost, err := fchost.New(conf.Network, !conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating filecoin host: %s", err)
 	}

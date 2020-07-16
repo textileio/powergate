@@ -12,12 +12,13 @@ func TestPingBootstrapers(t *testing.T) {
 	// a lot and boostrap peers change very frequently.
 	// We can re-enable this when the network becomes stable again.
 	t.SkipNow()
-	h, err := New(false)
+	h, err := New("testnet", false)
 	require.NoError(t, err)
 	err = h.Bootstrap()
 	require.NoError(t, err)
 
-	bsPeers := getBootstrapPeers()
+	bsPeers, err := getBootstrapPeers("testnet")
+	require.NoError(t, err)
 	for _, addr := range bsPeers {
 		pong := h.Ping(context.Background(), addr.ID)
 		if pong {

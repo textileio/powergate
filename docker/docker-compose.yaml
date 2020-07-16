@@ -22,13 +22,14 @@ services:
       - POWD_IPFSAPIADDR=/dns4/ipfs/tcp/5001
       - POWD_LOTUSTOKENFILE=/root/lotus/.lotus/token
       - POWD_REPOPATH=/root/powergate/.powergate
+      - POWD_NETWORK
     restart: unless-stopped
     volumes:
       - powergate-powd:/root/powergate
       - powergate-lotus:/root/lotus
   
   lotus:
-    image: textile/lotus:v0.4.0
+    image: textile/lotus:${LOTUS_IMAGE_TAG}
     volumes:
       - powergate-lotus:/data
     environment:

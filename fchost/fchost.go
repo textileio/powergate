@@ -27,7 +27,7 @@ type FilecoinHost struct {
 }
 
 // New returns a new FilecoinHost.
-func New(bootstrap bool) (*FilecoinHost, error) {
+func New(network string, bootstrap bool) (*FilecoinHost, error) {
 	ctx := context.Background()
 	opts := getDefaultOpts()
 	h, err := libp2p.New(ctx, opts...)
@@ -41,7 +41,7 @@ func New(bootstrap bool) (*FilecoinHost, error) {
 	}
 
 	if bootstrap {
-		if err := connectToBootstrapPeers(h); err != nil {
+		if err := connectToBootstrapPeers(network, h); err != nil {
 			return nil, err
 		}
 	}
@@ -87,8 +87,11 @@ func (fc *FilecoinHost) Addrs(pid peer.ID) []multiaddr.Multiaddr {
 	return fc.h.Peerstore().Addrs(pid)
 }
 
-func connectToBootstrapPeers(h host.Host) error {
-	peers := getBootstrapPeers()
+func connectToBootstrapPeers(network string, h host.Host) error {
+	peers, err := getBootstrapPeers(network)
+	if err != nil {
+		return fmt.Errorf("getting bootstrap peers: %s", err)
+	}
 	ctx := context.Background()
 	var lock sync.Mutex
 	var success int
