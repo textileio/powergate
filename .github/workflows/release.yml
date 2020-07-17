@@ -146,8 +146,6 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.7
-      - name: Install protoc
-        run: make install-protoc
       - name: Make version number
         id: makeversion
         uses: frabert/replace-string-action@v1.1
