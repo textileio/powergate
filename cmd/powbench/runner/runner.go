@@ -12,7 +12,6 @@ import (
 	"github.com/textileio/powergate/api/client"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/health"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -31,7 +30,7 @@ type TestSetup struct {
 
 // Run runs a test setup.
 func Run(ctx context.Context, ts TestSetup) error {
-	c, err := client.NewClient(ts.LotusAddr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(client.TokenAuth{}))
+	c, err := client.NewClient(ts.LotusAddr)
 	defer func() {
 		if err := c.Close(); err != nil {
 			log.Errorf("closing powergate client: %s", err)
