@@ -12,15 +12,15 @@ import (
 )
 
 func init() {
-	ffsAddToHotCmd.Flags().StringP("token", "t", "", "FFS access token")
+	ffsStageCmd.Flags().StringP("token", "t", "", "FFS access token")
 
-	ffsCmd.AddCommand(ffsAddToHotCmd)
+	ffsCmd.AddCommand(ffsStageCmd)
 }
 
-var ffsAddToHotCmd = &cobra.Command{
-	Use:   "addToHot [path]",
-	Short: "Add data to FFS hot storage via file path",
-	Long:  `Add data to FFS hot storage via file path`,
+var ffsStageCmd = &cobra.Command{
+	Use:   "stage [path]",
+	Short: "Temporarily cache data in the Hot layer in preparation for pushing a cid storage config",
+	Long:  `Temporarily cache data in the Hot layer in preparation for pushing a cid storage config`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -37,11 +37,11 @@ var ffsAddToHotCmd = &cobra.Command{
 		checkErr(err)
 		defer func() { checkErr(f.Close()) }()
 
-		s := spin.New("%s Adding specified file to FFS hot storage...")
+		s := spin.New("%s Caching specified file in FFS hot storage...")
 		s.Start()
-		cid, err := fcClient.FFS.AddToHot(authCtx(ctx), f)
+		cid, err := fcClient.FFS.Stage(authCtx(ctx), f)
 		s.Stop()
 		checkErr(err)
-		Success("Added file to FFS hot storage with cid: %s", cid.String())
+		Success("Cached file in FFS hot storage with cid: %s", cid.String())
 	},
 }

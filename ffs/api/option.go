@@ -6,18 +6,18 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
-// PushConfigOption mutates a push configuration.
-type PushConfigOption func(o *PushConfig) error
+// PushStorageConfigOption mutates a push configuration.
+type PushStorageConfigOption func(o *PushStorageConfigConfig) error
 
-// PushConfig contains options for pushing a Cid configuration.
-type PushConfig struct {
+// PushStorageConfigConfig contains options for pushing a Cid configuration.
+type PushStorageConfigConfig struct {
 	Config         ffs.StorageConfig
 	OverrideConfig bool
 }
 
 // WithStorageConfig overrides the Api default Cid configuration.
-func WithStorageConfig(c ffs.StorageConfig) PushConfigOption {
-	return func(o *PushConfig) error {
+func WithStorageConfig(c ffs.StorageConfig) PushStorageConfigOption {
+	return func(o *PushStorageConfigConfig) error {
 		o.Config = c
 		return nil
 	}
@@ -25,15 +25,15 @@ func WithStorageConfig(c ffs.StorageConfig) PushConfigOption {
 
 // WithOverride allows a new push configuration to override an existing one.
 // It's used as an extra security measure to avoid unwanted configuration changes.
-func WithOverride(override bool) PushConfigOption {
-	return func(o *PushConfig) error {
+func WithOverride(override bool) PushStorageConfigOption {
+	return func(o *PushStorageConfigConfig) error {
 		o.OverrideConfig = override
 		return nil
 	}
 }
 
 // Validate validates a PushConfig.
-func (pc PushConfig) Validate() error {
+func (pc PushStorageConfigConfig) Validate() error {
 	if err := pc.Config.Validate(); err != nil {
 		return fmt.Errorf("invalid config: %s", err)
 	}

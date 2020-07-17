@@ -43,12 +43,12 @@ func WithAddressType(addressType string) NewAddressOption {
 	}
 }
 
-// PushConfigOption mutates a push request.
-type PushConfigOption func(r *rpc.PushConfigRequest)
+// PushStorageConfigOption mutates a push request.
+type PushStorageConfigOption func(r *rpc.PushStorageConfigRequest)
 
 // WithStorageConfig overrides the Api default Cid configuration.
-func WithStorageConfig(c ffs.StorageConfig) PushConfigOption {
-	return func(r *rpc.PushConfigRequest) {
+func WithStorageConfig(c ffs.StorageConfig) PushStorageConfigOption {
+	return func(r *rpc.PushStorageConfigRequest) {
 		r.HasConfig = true
 		r.Config = &rpc.StorageConfig{
 			Repairable: c.Repairable,
@@ -60,8 +60,8 @@ func WithStorageConfig(c ffs.StorageConfig) PushConfigOption {
 
 // WithOverride allows a new push configuration to override an existing one.
 // It's used as an extra security measure to avoid unwanted configuration changes.
-func WithOverride(override bool) PushConfigOption {
-	return func(r *rpc.PushConfigRequest) {
+func WithOverride(override bool) PushStorageConfigOption {
+	return func(r *rpc.PushStorageConfigRequest) {
 		r.HasOverrideConfig = true
 		r.OverrideConfig = override
 	}
@@ -348,14 +348,14 @@ func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, e
 	return ffs.JobID(resp.JobId), nil
 }
 
-// PushConfig push a new configuration for the Cid in the Hot and Cold layers.
-func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
-	req := &rpc.PushConfigRequest{Cid: c.String()}
+// PushStorageConfig push a new configuration for the Cid in the Hot and Cold layers.
+func (f *FFS) PushStorageConfig(ctx context.Context, c cid.Cid, opts ...PushStorageConfigOption) (ffs.JobID, error) {
+	req := &rpc.PushStorageConfigRequest{Cid: c.String()}
 	for _, opt := range opts {
 		opt(req)
 	}
 
-	resp, err := f.client.PushConfig(ctx, req)
+	resp, err := f.client.PushStorageConfig(ctx, req)
 	if err != nil {
 		return ffs.EmptyJobID, err
 	}
@@ -462,9 +462,9 @@ func (f *FFS) Close(ctx context.Context) error {
 	return err
 }
 
-// AddToHot allows you to add data to the Hot layer in preparation for pushing a cid config.
-func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
-	stream, err := f.client.AddToHot(ctx)
+// Stage allows you to temporarily cache data in the Hot layer in preparation for pushing a cid storage config.
+func (f *FFS) Stage(ctx context.Context, data io.Reader) (*cid.Cid, error) {
+	stream, err := f.client.Stage(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +475,7 @@ func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		sendErr := stream.Send(&rpc.AddToHotRequest{Chunk: buffer[:bytesRead]})
+		sendErr := stream.Send(&rpc.StageRequest{Chunk: buffer[:bytesRead]})
 		if sendErr != nil {
 			if sendErr == io.EOF {
 				var noOp interface{}

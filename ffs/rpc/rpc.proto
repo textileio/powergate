@@ -306,7 +306,7 @@ message ReplaceResponse {
    string job_id = 1;
 }
 
-message PushConfigRequest {
+message PushStorageConfigRequest {
    string cid = 1;
    StorageConfig config = 2;
    bool has_config = 3;
@@ -314,7 +314,7 @@ message PushConfigRequest {
    bool has_override_config = 5;
 }
 
-message PushConfigResponse {
+message PushStorageConfigResponse {
    string job_id = 1;
 }
 
@@ -348,11 +348,11 @@ message CloseRequest {
 message CloseResponse {
 }
 
-message AddToHotRequest {
+message StageRequest {
    bytes chunk = 1;
 }
 
-message AddToHotResponse {
+message StageResponse {
    string cid = 1;
 }
 
@@ -422,12 +422,12 @@ service RPCService {
    rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsResponse) {}
    rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
    rpc Replace(ReplaceRequest) returns (ReplaceResponse) {}
-   rpc PushConfig(PushConfigRequest) returns (PushConfigResponse) {}
+   rpc PushStorageConfig(PushStorageConfigRequest) returns (PushStorageConfigResponse) {}
    rpc Remove(RemoveRequest) returns (RemoveResponse) {}
    rpc Get(GetRequest) returns (stream GetResponse) {}
    rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
    rpc Close(CloseRequest) returns (CloseResponse) {}
-   rpc AddToHot(stream AddToHotRequest) returns (AddToHotResponse) {}
+   rpc Stage(stream StageRequest) returns (StageResponse) {}
    rpc ListPayChannels(ListPayChannelsRequest) returns (ListPayChannelsResponse) {}
    rpc CreatePayChannel(CreatePayChannelRequest) returns (CreatePayChannelResponse) {}
    rpc RedeemPayChannel(RedeemPayChannelRequest) returns (RedeemPayChannelResponse) {}

@@ -370,8 +370,8 @@ func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceRespons
 	return &ReplaceResponse{JobId: jid.String()}, nil
 }
 
-// PushConfig applies the provided cid config.
-func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigResponse, error) {
+// PushStorageConfig applies the provided cid storage config.
+func (s *RPC) PushStorageConfig(ctx context.Context, req *PushStorageConfigRequest) (*PushStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -382,7 +382,7 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 		return nil, err
 	}
 
-	options := []api.PushConfigOption{}
+	options := []api.PushStorageConfigOption{}
 
 	if req.HasConfig {
 		config := ffs.StorageConfig{
@@ -397,12 +397,12 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 		options = append(options, api.WithOverride(req.OverrideConfig))
 	}
 
-	jid, err := i.PushConfig(c, options...)
+	jid, err := i.PushStorageConfig(c, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &PushConfigResponse{
+	return &PushStorageConfigResponse{
 		JobId: jid.String(),
 	}, nil
 }
@@ -480,8 +480,8 @@ func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseResponse, err
 	return &CloseResponse{}, nil
 }
 
-// AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig.
-func (s *RPC) AddToHot(srv RPCService_AddToHotServer) error {
+// Stage stores data in the Hot Storage so the resulting cid can be used in PushConfig.
+func (s *RPC) Stage(srv RPCService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
 		return err
@@ -501,7 +501,7 @@ func (s *RPC) AddToHot(srv RPCService_AddToHotServer) error {
 		return fmt.Errorf("adding data to hot storage: %s", err)
 	}
 
-	return srv.SendAndClose(&AddToHotResponse{Cid: c.String()})
+	return srv.SendAndClose(&StageResponse{Cid: c.String()})
 }
 
 // ListPayChannels lists all pay channels.
@@ -609,7 +609,7 @@ func (s *RPC) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	return i, nil
 }
 
-func receiveFile(srv RPCService_AddToHotServer, writer *io.PipeWriter) {
+func receiveFile(srv RPCService_StageServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {

@@ -135,7 +135,7 @@ func TestAdd(t *testing.T) {
 		defer cls()
 
 		cid, _ := addRandomFile(t, r, ipfsAPI)
-		jid, err := fapi.PushConfig(cid)
+		jid, err := fapi.PushStorageConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, nil)
@@ -150,7 +150,7 @@ func TestAdd(t *testing.T) {
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 
 		config := fapi.DefaultStorageConfig().WithHotEnabled(false).WithColdFilDealDuration(int64(1234))
-		jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, &config)
@@ -166,7 +166,7 @@ func TestGet(t *testing.T) {
 
 	r := rand.New(rand.NewSource(22))
 	cid, data := addRandomFile(t, r, ipfs)
-	jid, err := fapi.PushConfig(cid)
+	jid, err := fapi.PushStorageConfig(cid)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, nil)
@@ -202,7 +202,7 @@ func TestInfo(t *testing.T) {
 	n := 3
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
-		jid, err := fapi.PushConfig(cid)
+		jid, err := fapi.PushStorageConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, nil)
@@ -235,7 +235,7 @@ func TestShow(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfs)
-		jid, err := fapi.PushConfig(cid)
+		jid, err := fapi.PushStorageConfig(cid)
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, nil)
@@ -281,7 +281,7 @@ func TestColdInstanceLoad(t *testing.T) {
 
 	ra := rand.New(rand.NewSource(22))
 	cid, data := addRandomFile(t, ra, ipfs)
-	jid, err := fapi.PushConfig(cid)
+	jid, err := fapi.PushStorageConfig(cid)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, nil)
@@ -327,7 +327,7 @@ func TestRepFactor(t *testing.T) {
 			defer cls()
 			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.DefaultStorageConfig().WithColdFilRepFactor(rf)
-			jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 			require.Nil(t, err)
 			requireJobState(t, fapi, jid, ffs.Success)
 			requireStorageConfig(t, fapi, cid, &config)
@@ -345,7 +345,7 @@ func TestRepFactorIncrease(t *testing.T) {
 	ipfsAPI, _, fapi, cls := newAPI(t, 2)
 	defer cls()
 	cid, _ := addRandomFile(t, r, ipfsAPI)
-	jid, err := fapi.PushConfig(cid)
+	jid, err := fapi.PushStorageConfig(cid)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, nil)
@@ -356,7 +356,7 @@ func TestRepFactorIncrease(t *testing.T) {
 	firstProposal := cinfo.Cold.Filecoin.Proposals[0]
 
 	config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
-	jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+	jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -374,7 +374,7 @@ func TestRepFactorDecrease(t *testing.T) {
 
 	cid, _ := addRandomFile(t, r, ipfsAPI)
 	config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -384,7 +384,7 @@ func TestRepFactorDecrease(t *testing.T) {
 	require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 
 	config = fapi.DefaultStorageConfig().WithColdFilRepFactor(1)
-	jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+	jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -402,7 +402,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 	t.Run("ShortTime", func(t *testing.T) {
 		cid, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 		config := fapi.DefaultStorageConfig().WithHotIpfsAddTimeout(1)
-		jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Failed)
 	})
@@ -417,7 +417,7 @@ func TestDurationConfig(t *testing.T) {
 	cid, _ := addRandomFile(t, r, ipfsAPI)
 	duration := int64(1234)
 	config := fapi.DefaultStorageConfig().WithColdFilDealDuration(duration)
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -438,7 +438,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 	excludedMiner := "t01000"
 	config := fapi.DefaultStorageConfig().WithColdFilExcludedMiners([]string{excludedMiner})
 
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -458,7 +458,7 @@ func TestFilecoinTrustedMiner(t *testing.T) {
 	trustedMiner := "t01001"
 	config := fapi.DefaultStorageConfig().WithColdFilTrustedMiners([]string{trustedMiner})
 
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -497,7 +497,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 	countryFilter := []string{"Uruguay"}
 	config := fapi.DefaultStorageConfig().WithColdFilCountryCodes(countryFilter)
 
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -526,12 +526,12 @@ func TestFilecoinMaxPriceFilter(t *testing.T) {
 	cid, _ := addRandomFile(t, r, ipfs)
 
 	config := fapi.DefaultStorageConfig().WithColdMaxPrice(400000000)
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Failed)
 
 	config = fapi.DefaultStorageConfig().WithColdMaxPrice(600000000)
-	jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+	jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -563,7 +563,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.DefaultStorageConfig().WithColdEnabled(tt.ColdEnabled).WithHotEnabled(tt.HotEnabled)
 
-			jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 			require.Nil(t, err)
 
 			expectedJobState := ffs.Success
@@ -635,14 +635,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 		config := fapi.DefaultStorageConfig()
 
-		jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, &config)
 		requireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 
 		config = fapi.DefaultStorageConfig().WithHotEnabled(false)
-		jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, &config)
@@ -657,14 +657,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 		config := fapi.DefaultStorageConfig().WithHotEnabled(false)
 
-		jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, &config)
 		requireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 
 		config = fapi.DefaultStorageConfig().WithHotEnabled(true)
-		jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, &config)
@@ -679,14 +679,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 		config := fapi.DefaultStorageConfig().WithColdEnabled(false)
 
-		jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, &config)
 		requireFilUnstored(ctx, t, client, cid)
 
 		config = fapi.DefaultStorageConfig().WithHotEnabled(true)
-		jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, &config)
@@ -701,14 +701,14 @@ func TestEnabledConfigChange(t *testing.T) {
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 		config := fapi.DefaultStorageConfig().WithColdEnabled(false)
 
-		jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, cid, &config)
 		requireFilUnstored(ctx, t, client, cid)
 
 		config = fapi.DefaultStorageConfig().WithHotEnabled(true)
-		jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 
@@ -745,7 +745,7 @@ func TestUnfreeze(t *testing.T) {
 	cid, data := addRandomFile(t, ra, ipfsAPI)
 
 	config := fapi.DefaultStorageConfig().WithHotEnabled(false).WithHotAllowUnfreeze(true)
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -756,7 +756,7 @@ func TestUnfreeze(t *testing.T) {
 	err = ipfsAPI.Dag().Remove(ctx, cid)
 	require.Nil(t, err)
 	config = config.WithHotEnabled(true)
-	jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+	jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -779,7 +779,7 @@ func TestRenew(t *testing.T) {
 
 	renewThreshold := 12600
 	config := fapi.DefaultStorageConfig().WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold)
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -826,7 +826,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 
 	renewThreshold := 12600
 	config := fapi.DefaultStorageConfig().WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -834,7 +834,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	// Now decrease RepFactor to 1, so the renewal should consider this.
 	// Both now active deals shouldn't be renewed, only one of them.
 	config = config.WithColdFilRepFactor(1)
-	jid, err = fapi.PushConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+	jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -877,7 +877,7 @@ func TestCidLogger(t *testing.T) {
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfs)
-		jid, err := fapi.PushConfig(cid)
+		jid, err := fapi.PushStorageConfig(cid)
 		require.NoError(t, err)
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -916,7 +916,7 @@ func TestCidLogger(t *testing.T) {
 
 			r := rand.New(rand.NewSource(22))
 			cid, _ := addRandomFile(t, r, ipfs)
-			jid, err := fapi.PushConfig(cid)
+			jid, err := fapi.PushStorageConfig(cid)
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithCancel(context.Background())
@@ -954,7 +954,7 @@ func TestCidLogger(t *testing.T) {
 
 			r := rand.New(rand.NewSource(22))
 			cid, _ := addRandomFile(t, r, ipfs)
-			jid, err := fapi.PushConfig(cid)
+			jid, err := fapi.PushStorageConfig(cid)
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithCancel(context.Background())
@@ -994,7 +994,7 @@ func TestPushCidReplace(t *testing.T) {
 
 	// Test tipical case
 	config := fapi.DefaultStorageConfig().WithColdEnabled(false)
-	jid, err := fapi.PushConfig(c1, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(c1, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, c1, &config)
@@ -1037,7 +1037,7 @@ func TestDoubleReplace(t *testing.T) {
 		r := rand.New(rand.NewSource(22))
 		c1, _ := addRandomFile(t, r, ipfs)
 		config := fapi.DefaultStorageConfig().WithColdEnabled(false)
-		jid, err := fapi.PushConfig(c1, api.WithStorageConfig(config))
+		jid, err := fapi.PushStorageConfig(c1, api.WithStorageConfig(config))
 		require.Nil(t, err)
 		requireJobState(t, fapi, jid, ffs.Success)
 		requireStorageConfig(t, fapi, c1, &config)
@@ -1063,7 +1063,7 @@ func TestRemove(t *testing.T) {
 	c1, _ := addRandomFile(t, r, ipfs)
 
 	config := fapi.DefaultStorageConfig().WithColdEnabled(false)
-	jid, err := fapi.PushConfig(c1, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(c1, api.WithStorageConfig(config))
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, c1, &config)
@@ -1072,7 +1072,7 @@ func TestRemove(t *testing.T) {
 	require.Equal(t, api.ErrActiveInStorage, err)
 
 	config = config.WithHotEnabled(false)
-	jid, err = fapi.PushConfig(c1, api.WithStorageConfig(config), api.WithOverride(true))
+	jid, err = fapi.PushStorageConfig(c1, api.WithStorageConfig(config), api.WithOverride(true))
 	requireJobState(t, fapi, jid, ffs.Success)
 	require.Nil(t, err)
 
@@ -1144,7 +1144,7 @@ func TestRepair(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfs)
 	config := fapi.DefaultStorageConfig().WithRepairable(true)
-	jid, err := fapi.PushConfig(cid, api.WithStorageConfig(config))
+	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.NoError(t, err)
 	requireJobState(t, fapi, jid, ffs.Success)
 	requireStorageConfig(t, fapi, cid, &config)
@@ -1201,7 +1201,7 @@ func TestFailedJobMessage(t *testing.T) {
 	// sector size. This should make the deal fail on the miner.
 	c1, _ := addRandomFileSize(t, r, ipfs, 2000)
 
-	jid, err := fapi.PushConfig(c1)
+	jid, err := fapi.PushStorageConfig(c1)
 	require.Nil(t, err)
 	job := requireJobState(t, fapi, jid, ffs.Failed)
 	require.NotEmpty(t, job.ErrCause)
@@ -1219,7 +1219,7 @@ func TestLogHistory(t *testing.T) {
 
 	r := rand.New(rand.NewSource(22))
 	c, _ := addRandomFile(t, r, ipfs)
-	jid, err := fapi.PushConfig(c)
+	jid, err := fapi.PushStorageConfig(c)
 	require.Nil(t, err)
 	job := requireJobState(t, fapi, jid, ffs.Success)
 
@@ -1260,7 +1260,7 @@ func TestResumeScheduler(t *testing.T) {
 
 	r := rand.New(rand.NewSource(22))
 	c, _ := addRandomFile(t, r, ipfs)
-	jid, err := fapi.PushConfig(c)
+	jid, err := fapi.PushStorageConfig(c)
 	require.Nil(t, err)
 
 	time.Sleep(time.Second * 3)
@@ -1290,7 +1290,7 @@ func TestParallelExecution(t *testing.T) {
 	jids := make([]ffs.JobID, n)
 	for i := 0; i < n; i++ {
 		cid, _ := addRandomFile(t, r, ipfs)
-		jid, err := fapi.PushConfig(cid)
+		jid, err := fapi.PushStorageConfig(cid)
 		require.Nil(t, err)
 		cids[i] = cid
 		jids[i] = jid
@@ -1317,7 +1317,7 @@ func TestJobCancellation(t *testing.T) {
 	defer cls()
 
 	cid, _ := addRandomFile(t, r, ipfsAPI)
-	jid, err := fapi.PushConfig(cid)
+	jid, err := fapi.PushStorageConfig(cid)
 	require.Nil(t, err)
 	requireJobState(t, fapi, jid, ffs.Executing)
 	time.Sleep(time.Second * 2)

@@ -10,13 +10,13 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 )
 
-// PushConfig push a new configuration for the Cid in the Hot and
+// PushStorageConfig push a new configuration for the Cid in the Hot and
 // Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig.
-func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
+func (i *API) PushStorageConfig(c cid.Cid, opts ...PushStorageConfigOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg := PushConfig{Config: i.cfg.DefaultConfig}
+	cfg := PushStorageConfigConfig{Config: i.cfg.DefaultConfig}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)

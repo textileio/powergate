@@ -103,7 +103,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	lr := io.LimitReader(ra, size)
 
 	log.Infof("[%d] Adding to hot layer...", id)
-	ci, err := c.FFS.AddToHot(ctx, lr)
+	ci, err := c.FFS.Stage(ctx, lr)
 	if err != nil {
 		return fmt.Errorf("importing data to hot storage (ipfs node): %s", err)
 	}
@@ -138,7 +138,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		},
 	}
 
-	jid, err := c.FFS.PushConfig(ctx, *ci, client.WithStorageConfig(cidConfig))
+	jid, err := c.FFS.PushStorageConfig(ctx, *ci, client.WithStorageConfig(cidConfig))
 	if err != nil {
 		return fmt.Errorf("pushing to FFS: %s", err)
 	}
