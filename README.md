@@ -215,7 +215,7 @@ A production setup is also provided in the `docker` folder. It launches `powd` c
 
 Depending on which network you want to connect to, you have to run different commands:
 - `make up`, to connect to `testnet`.
-- `make nerpa-up`, to conenct to `nerpa`.
+- `make nerpa-up`, to connect to `nerpa`.
 
 Remember that you should wait for _Lotus_ to be fully-synced which might take a long time; you can check your current node sync status running `lotus sync status` inside the Lotus container. We also provide automatically generated Dockerhub images of Powergate server, see [textile/powergate](https://hub.docker.com/r/textile/powergate).
 
