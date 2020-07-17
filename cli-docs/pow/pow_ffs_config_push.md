@@ -1,4 +1,4 @@
-## pow ffs push
+## pow ffs config push
 
 Add data to FFS via cid
 
@@ -7,15 +7,15 @@ Add data to FFS via cid
 Add data to FFS via a cid already in IPFS
 
 ```
-pow ffs push [cid] [flags]
+pow ffs config push [cid] [flags]
 ```
 
 ### Options
 
 ```
-  -c, --conf string    Optional path to a file containing cid storage config json, falls back to stdin, uses FFS default by default
+  -c, --conf string    Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default
   -h, --help           help for push
-  -o, --override       If set, override any pre-existing cid storage configuration
+  -o, --override       If set, override any pre-existing storage configuration for the cid
   -t, --token string   FFS access token
   -w, --watch          Watch the progress of the resulting job
 ```
@@ -28,5 +28,5 @@ pow ffs push [cid] [flags]
 
 ### SEE ALSO
 
-* [pow ffs](pow_ffs.md)	 - Provides commands to manage ffs
+* [pow ffs config](pow_ffs_config.md)	 - Provides commands to manage storage configuration
 

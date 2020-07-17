@@ -1,4 +1,4 @@
-## pow ffs config set
+## pow ffs config set-default
 
 Sets the default cid storage config from stdin or a file
 
@@ -7,13 +7,13 @@ Sets the default cid storage config from stdin or a file
 Sets the default cid storage config from stdin or a file
 
 ```
-pow ffs config set [(optional)file] [flags]
+pow ffs config set-default [(optional)file] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help           help for set
+  -h, --help           help for set-default
   -t, --token string   FFS auth token
 ```
 

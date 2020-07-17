@@ -22,6 +22,7 @@ Provides commands to manage storage configuration
 
 * [pow ffs](pow_ffs.md)	 - Provides commands to manage ffs
 * [pow ffs config default](pow_ffs_config_default.md)	 - Returns the default storage config
-* [pow ffs config prep](pow_ffs_config_prep.md)	 - Returns the default config prepped for the provided cid
-* [pow ffs config set](pow_ffs_config_set.md)	 - Sets the default cid storage config from stdin or a file
+* [pow ffs config get](pow_ffs_config_get.md)	 - Fetches the storage config for the provided cid
+* [pow ffs config push](pow_ffs_config_push.md)	 - Add data to FFS via cid
+* [pow ffs config set-default](pow_ffs_config_set-default.md)	 - Sets the default cid storage config from stdin or a file
 
