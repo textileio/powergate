@@ -130,7 +130,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	}
 	srs, err := m.Store(ctx, addr.String(), dataCid, 2*uint64(size), cfgs, 1000)
 	if err != nil {
-		return cid.Undef, nil, fmt.Errorf("error when calling Store(): %s", err)
+		return cid.Undef, nil, fmt.Errorf("calling Store(): %s", err)
 	}
 
 	var pcids []cid.Cid

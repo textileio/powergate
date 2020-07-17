@@ -205,18 +205,17 @@ In this example we created a random 700 bytes file for the test, but since the l
 
 ## Production setup
 
-Apart from what was mentioned in the _Installation_ section, a docker-compose setup is available which installs extra components for better monitoring of Powergate:
-```bash
-cd docker
-make up
-```
-This will spinup and auto-wire:
+A production setup is also provided in the `docker` folder. It launches `powd` connected to `lotus` and `ipfs`, plus a set of monitoring components:
 - _Prometheus_, which is the backend for metrics processing.
 - _Grafana_, for metrics dashboard.
 - _cAdvisor_, for container metrics.
 - _Lotus_, node running on the current Testnet.
 - _IPFS_, node running to back Powergate FFS.
 - _Powergate_, wired with all of above components.
+
+Depending on which network you want to connect to, you have to run different commands:
+- `make up`, to connect to `testnet`.
+- `make nerpa-up`, to connect to `nerpa`.
 
 Remember that you should wait for _Lotus_ to be fully-synced which might take a long time; you can check your current node sync status running `lotus sync status` inside the Lotus container. We also provide automatically generated Dockerhub images of Powergate server, see [textile/powergate](https://hub.docker.com/r/textile/powergate).
 

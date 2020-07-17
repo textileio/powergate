@@ -185,7 +185,7 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 	}
 	for _, o := range offers {
 		if err = m.api.ClientRetrieve(ctx, o.Order(addr), ref); err != nil {
-			log.Infof("error fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
+			log.Infof("fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
 		m.recordRetrieval(waddr, o)
@@ -228,6 +228,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 			case <-time.After(util.AvgBlockTime):
 				if err := notifyChanges(ctx, m.api, currentState, proposals, ch); err != nil {
 					log.Errorf("pushing new proposal states: %s", err)
+					return
 				}
 			}
 		}
@@ -439,7 +440,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 			return
 		case info, ok := <-updates:
 			if !ok {
-				log.Errorf("updates channel unexpectedly closed for proposal cid: %s", dr.DealInfo.ProposalCid.String(), err)
+				log.Errorf("updates channel unexpectedly closed for proposal cid %s", dr.DealInfo.ProposalCid.String())
 				if err := m.store.deletePendingDeal(dr.DealInfo.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
 				}
@@ -495,8 +496,7 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 	for _, pcid := range proposals {
 		dinfo, err := client.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
-			log.Errorf("getting deal proposal info %s: %s", pcid, err)
-			continue
+			return fmt.Errorf("getting deal proposal info %s: %s", pcid, err)
 		}
 		if currState[pcid] == nil || (*currState[pcid]).State != dinfo.State {
 			currState[pcid] = dinfo
