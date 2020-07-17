@@ -115,8 +115,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	// existence.
 	// This configuration will stop being static when we incorporate
 	// other test cases.
-	cidConfig := ffs.CidConfig{
-		Cid:        *ci,
+	cidConfig := ffs.StorageConfig{
 		Repairable: false,
 		Hot: ffs.HotConfig{
 			Enabled:       true,
@@ -139,7 +138,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		},
 	}
 
-	jid, err := c.FFS.PushConfig(ctx, *ci, client.WithCidConfig(cidConfig))
+	jid, err := c.FFS.PushConfig(ctx, *ci, client.WithStorageConfig(cidConfig))
 	if err != nil {
 		return fmt.Errorf("pushing to FFS: %s", err)
 	}

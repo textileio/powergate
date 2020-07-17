@@ -96,14 +96,14 @@ func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsResponse, err
 	return &AddrsResponse{Addrs: res}, nil
 }
 
-// DefaultConfig calls ffs.DefaultConfig.
-func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigResponse, error) {
+// DefaultStorageConfig calls ffs.DefaultStorageConfig.
+func (s *RPC) DefaultStorageConfig(ctx context.Context, req *DefaultStorageConfigRequest) (*DefaultStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-	conf := i.DefaultConfig()
-	return &DefaultConfigResponse{
+	conf := i.DefaultStorageConfig()
+	return &DefaultStorageConfigResponse{
 		DefaultConfig: &StorageConfig{
 			Hot:        toRPCHotConfig(conf.Hot),
 			Cold:       toRPCColdConfig(conf.Cold),
@@ -134,8 +134,8 @@ func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrRespons
 	return &NewAddrResponse{Addr: addr}, nil
 }
 
-// GetDefaultCidConfig returns the default cid config prepped for the provided cid.
-func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigResponse, error) {
+// GetStorageConfig returns the storage config for the provided cid.
+func (s *RPC) GetStorageConfig(ctx context.Context, req *GetStorageConfigRequest) (*GetStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -144,10 +144,12 @@ func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigR
 	if err != nil {
 		return nil, err
 	}
-	config := i.GetDefaultCidConfig(c)
-	return &GetDefaultCidConfigResponse{
-		Config: &CidConfig{
-			Cid:        config.Cid.String(),
+	config, err := i.GetStorageConfig(c)
+	if err != nil {
+		return nil, err
+	}
+	return &GetStorageConfigResponse{
+		Config: &StorageConfig{
 			Hot:        toRPCHotConfig(config.Hot),
 			Cold:       toRPCColdConfig(config.Cold),
 			Repairable: config.Repairable,
@@ -155,32 +157,8 @@ func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigR
 	}, nil
 }
 
-// GetCidConfig returns the cid config for the provided cid.
-func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c, err := cid.Decode(req.Cid)
-	if err != nil {
-		return nil, err
-	}
-	config, err := i.GetCidConfig(c)
-	if err != nil {
-		return nil, err
-	}
-	return &GetCidConfigResponse{
-		Config: &CidConfig{
-			Cid:        config.Cid.String(),
-			Hot:        toRPCHotConfig(config.Hot),
-			Cold:       toRPCColdConfig(config.Cold),
-			Repairable: config.Repairable,
-		},
-	}, nil
-}
-
-// SetDefaultConfig sets a new config to be used by default.
-func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest) (*SetDefaultConfigResponse, error) {
+// SetDefaultStorageConfig sets a new config to be used by default.
+func (s *RPC) SetDefaultStorageConfig(ctx context.Context, req *SetDefaultStorageConfigRequest) (*SetDefaultStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -190,10 +168,10 @@ func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest
 		Hot:        fromRPCHotConfig(req.Config.Hot),
 		Cold:       fromRPCColdConfig(req.Config.Cold),
 	}
-	if err := i.SetDefaultConfig(defaultConfig); err != nil {
+	if err := i.SetDefaultStorageConfig(defaultConfig); err != nil {
 		return nil, err
 	}
-	return &SetDefaultConfigResponse{}, nil
+	return &SetDefaultStorageConfigResponse{}, nil
 }
 
 // Show returns information about a particular Cid.
@@ -407,17 +385,12 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 	options := []api.PushConfigOption{}
 
 	if req.HasConfig {
-		cid, err := cid.Decode(req.Config.Cid)
-		if err != nil {
-			return nil, err
-		}
-		config := ffs.CidConfig{
-			Cid:        cid,
+		config := ffs.StorageConfig{
 			Repairable: req.Config.Repairable,
 			Hot:        fromRPCHotConfig(req.Config.Hot),
 			Cold:       fromRPCColdConfig(req.Config.Cold),
 		}
-		options = append(options, api.WithCidConfig(config))
+		options = append(options, api.WithStorageConfig(config))
 	}
 
 	if req.HasOverrideConfig {

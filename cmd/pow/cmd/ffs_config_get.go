@@ -13,15 +13,15 @@ import (
 )
 
 func init() {
-	ffsPullCmd.Flags().StringP("token", "t", "", "FFS auth token")
+	ffsConfigGetCmd.Flags().StringP("token", "t", "", "FFS auth token")
 
-	ffsCmd.AddCommand(ffsPullCmd)
+	ffsConfigCmd.AddCommand(ffsConfigGetCmd)
 }
 
-var ffsPullCmd = &cobra.Command{
-	Use:   "pull [cid]",
-	Short: "Fetches the config for the provided cid",
-	Long:  `Fetches the config for the provided cid`,
+var ffsConfigGetCmd = &cobra.Command{
+	Use:   "get [cid]",
+	Short: "Fetches the storage config for the provided cid",
+	Long:  `Fetches the storage config for the provided cid`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -37,15 +37,15 @@ var ffsPullCmd = &cobra.Command{
 		c, err := cid.Parse(args[0])
 		checkErr(err)
 
-		s := spin.New("%s Pulling cid config...")
+		s := spin.New("%s Getting cid storgage config...")
 		s.Start()
-		resp, err := fcClient.FFS.GetCidConfig(authCtx(ctx), c)
+		resp, err := fcClient.FFS.GetStorageConfig(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 
 		json, err := json.MarshalIndent(resp.Config, "", "  ")
 		checkErr(err)
 
-		Message("Cid config:\n%s", string(json))
+		Message("Cid storage config:\n%s", string(json))
 	},
 }

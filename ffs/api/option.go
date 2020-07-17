@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 
-	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
 )
 
@@ -12,26 +11,12 @@ type PushConfigOption func(o *PushConfig) error
 
 // PushConfig contains options for pushing a Cid configuration.
 type PushConfig struct {
-	Config         ffs.CidConfig
+	Config         ffs.StorageConfig
 	OverrideConfig bool
 }
 
-func newDefaultPushConfig(c cid.Cid, dc ffs.StorageConfig) PushConfig {
-	return PushConfig{
-		Config: newDefaultCidConfig(c, dc),
-	}
-}
-
-func newDefaultCidConfig(c cid.Cid, dc ffs.StorageConfig) ffs.CidConfig {
-	return ffs.CidConfig{
-		Cid:  c,
-		Hot:  dc.Hot,
-		Cold: dc.Cold,
-	}
-}
-
-// WithCidConfig overrides the Api default Cid configuration.
-func WithCidConfig(c ffs.CidConfig) PushConfigOption {
+// WithStorageConfig overrides the Api default Cid configuration.
+func WithStorageConfig(c ffs.StorageConfig) PushConfigOption {
 	return func(o *PushConfig) error {
 		o.Config = c
 		return nil

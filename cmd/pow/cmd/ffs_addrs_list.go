@@ -31,7 +31,7 @@ var ffsAddrsListCmd = &cobra.Command{
 		s.Start()
 		addrs, err := fcClient.FFS.Addrs(authCtx(ctx))
 		checkErr(err)
-		defaultConfig, err := fcClient.FFS.DefaultConfig(authCtx(ctx))
+		defaultConfig, err := fcClient.FFS.DefaultStorageConfig(authCtx(ctx))
 		checkErr(err)
 		s.Stop()
 

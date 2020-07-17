@@ -22,7 +22,8 @@ var (
 // Action represents an action to be executed by the Scheduler.
 type Action struct {
 	APIID       ffs.APIID
-	Cfg         ffs.CidConfig
+	Cid         cid.Cid
+	Cfg         ffs.StorageConfig
 	ReplacedCid cid.Cid
 }
 
@@ -87,7 +88,7 @@ func (s *Store) Remove(c cid.Cid) error {
 		if err := json.Unmarshal(r.Value, &a); err != nil {
 			return fmt.Errorf("unmarshalling push config action in query: %s", err)
 		}
-		if a.Cfg.Cid == c {
+		if a.Cid == c {
 			if err := s.ds.Delete(datastore.NewKey(r.Key)); err != nil {
 				return fmt.Errorf("deleting from datastore: %s", err)
 			}

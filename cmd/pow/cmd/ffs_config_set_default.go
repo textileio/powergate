@@ -26,7 +26,7 @@ func init() {
 }
 
 var ffsConfigSetCmd = &cobra.Command{
-	Use:   "set [(optional)file]",
+	Use:   "set-default [(optional)file]",
 	Short: "Sets the default cid storage config from stdin or a file",
 	Long:  `Sets the default cid storage config from stdin or a file`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -60,7 +60,7 @@ var ffsConfigSetCmd = &cobra.Command{
 
 		s := spin.New("%s Setting default storage config...")
 		s.Start()
-		err = fcClient.FFS.SetDefaultConfig(authCtx(ctx), config)
+		err = fcClient.FFS.SetDefaultStorageConfig(authCtx(ctx), config)
 		s.Stop()
 		checkErr(err)
 

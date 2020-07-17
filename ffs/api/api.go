@@ -115,32 +115,25 @@ func (i *API) ID() ffs.APIID {
 	return i.cfg.ID
 }
 
-// DefaultConfig returns the default StorageConfig.
-func (i *API) DefaultConfig() ffs.StorageConfig {
+// DefaultStorageConfig returns the default StorageConfig.
+func (i *API) DefaultStorageConfig() ffs.StorageConfig {
 	return i.cfg.DefaultConfig
 }
 
-// GetDefaultCidConfig returns the default instance Cid config, prepared for a particular Cid.
-func (i *API) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-	return newDefaultPushConfig(c, i.cfg.DefaultConfig).Config
-}
-
-// GetCidConfig returns the current CidConfig for a Cid.
-func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
-	conf, err := i.is.getCidConfig(c)
+// GetStorageConfig returns the current StorageConfig for a Cid.
+func (i *API) GetStorageConfig(c cid.Cid) (ffs.StorageConfig, error) {
+	conf, err := i.is.getStorageConfig(c)
 	if err == ErrNotFound {
-		return ffs.CidConfig{}, err
+		return ffs.StorageConfig{}, err
 	}
 	if err != nil {
-		return ffs.CidConfig{}, fmt.Errorf("getting cid config from store: %s", err)
+		return ffs.StorageConfig{}, fmt.Errorf("getting cid config from store: %s", err)
 	}
 	return conf, nil
 }
 
-// SetDefaultConfig sets a new default StorageConfig.
-func (i *API) SetDefaultConfig(c ffs.StorageConfig) error {
+// SetDefaultStorageConfig sets a new default StorageConfig.
+func (i *API) SetDefaultStorageConfig(c ffs.StorageConfig) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	if err := c.Validate(); err != nil {

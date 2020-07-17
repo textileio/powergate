@@ -100,129 +100,101 @@ type StorageConfig struct {
 	Repairable bool
 }
 
-// Validate validates a StorageConfig.
-func (dc StorageConfig) Validate() error {
-	if err := dc.Hot.Validate(); err != nil {
-		return err
-	}
-	if err := dc.Cold.Validate(); err != nil {
-		return err
-	}
-	return nil
-}
-
-// CidConfig has a Cid desired storing configuration for a Cid in
-// Hot and Cold storage.
-type CidConfig struct {
-	// Cid is the Cid of the stored data.
-	Cid cid.Cid
-	// Hot has desired storing configuration in Hot Storage.
-	Hot HotConfig
-	// Cold has desired storing configuration in the Cold Storage.
-	Cold ColdConfig
-	// Repairable indicates if this cid config should be tracked
-	// for auto-repair.
-	Repairable bool
-}
-
 // WithRepairable allows to enable/disable auto-repair.
-func (c CidConfig) WithRepairable(enabled bool) CidConfig {
-	c.Repairable = enabled
-	return c
+func (s StorageConfig) WithRepairable(enabled bool) StorageConfig {
+	s.Repairable = enabled
+	return s
 }
 
 // WithColdEnabled allows to enable/disable Cold storage usage.
-func (c CidConfig) WithColdEnabled(enabled bool) CidConfig {
-	c.Cold.Enabled = enabled
-	return c
+func (s StorageConfig) WithColdEnabled(enabled bool) StorageConfig {
+	s.Cold.Enabled = enabled
+	return s
 }
 
 // WithColdFilCountryCodes defines a list of allowed country codes to select miners
 // for deals.
-func (c CidConfig) WithColdFilCountryCodes(countryCodes []string) CidConfig {
-	c.Cold.Filecoin.CountryCodes = make([]string, len(countryCodes))
-	copy(c.Cold.Filecoin.CountryCodes, countryCodes)
-	return c
+func (s StorageConfig) WithColdFilCountryCodes(countryCodes []string) StorageConfig {
+	s.Cold.Filecoin.CountryCodes = make([]string, len(countryCodes))
+	copy(s.Cold.Filecoin.CountryCodes, countryCodes)
+	return s
 }
 
 // WithColdFilExcludedMiners defines a list of miner addresses which won't be selected for
 // making deals, no matter if they comply to other filters in the configuration.
-func (c CidConfig) WithColdFilExcludedMiners(miners []string) CidConfig {
-	c.Cold.Filecoin.ExcludedMiners = make([]string, len(miners))
-	copy(c.Cold.Filecoin.ExcludedMiners, miners)
-	return c
+func (s StorageConfig) WithColdFilExcludedMiners(miners []string) StorageConfig {
+	s.Cold.Filecoin.ExcludedMiners = make([]string, len(miners))
+	copy(s.Cold.Filecoin.ExcludedMiners, miners)
+	return s
 }
 
 // WithColdFilTrustedMiners defines a list of trusted miners addresses which will be
 // returned if available. If more miners reusults are needed, other filters will be
 // applied as usual.
-func (c CidConfig) WithColdFilTrustedMiners(miners []string) CidConfig {
-	c.Cold.Filecoin.TrustedMiners = make([]string, len(miners))
-	copy(c.Cold.Filecoin.TrustedMiners, miners)
-	return c
+func (s StorageConfig) WithColdFilTrustedMiners(miners []string) StorageConfig {
+	s.Cold.Filecoin.TrustedMiners = make([]string, len(miners))
+	copy(s.Cold.Filecoin.TrustedMiners, miners)
+	return s
 }
 
 // WithColdFilRepFactor defines the replication factor for Filecoin storage.
-func (c CidConfig) WithColdFilRepFactor(repFactor int) CidConfig {
-	c.Cold.Filecoin.RepFactor = repFactor
-	return c
+func (s StorageConfig) WithColdFilRepFactor(repFactor int) StorageConfig {
+	s.Cold.Filecoin.RepFactor = repFactor
+	return s
 }
 
 // WithColdFilDealDuration defines the duration used for deals for Filecoin storage.
-func (c CidConfig) WithColdFilDealDuration(duration int64) CidConfig {
-	c.Cold.Filecoin.DealMinDuration = duration
-	return c
+func (s StorageConfig) WithColdFilDealDuration(duration int64) StorageConfig {
+	s.Cold.Filecoin.DealMinDuration = duration
+	return s
 }
 
 // WithColdFilRenew specifies if deals should be renewed before they expire with a particular
 // threshold chain epochs.
-func (c CidConfig) WithColdFilRenew(enabled bool, threshold int) CidConfig {
-	c.Cold.Filecoin.Renew.Enabled = enabled
-	c.Cold.Filecoin.Renew.Threshold = threshold
-	return c
+func (s StorageConfig) WithColdFilRenew(enabled bool, threshold int) StorageConfig {
+	s.Cold.Filecoin.Renew.Enabled = enabled
+	s.Cold.Filecoin.Renew.Threshold = threshold
+	return s
 }
 
 // WithColdMaxPrice specifies the max price that should be considered for
 // deal asks even when all other filers match.
-func (c CidConfig) WithColdMaxPrice(maxPrice uint64) CidConfig {
-	c.Cold.Filecoin.MaxPrice = maxPrice
-	return c
+func (s StorageConfig) WithColdMaxPrice(maxPrice uint64) StorageConfig {
+	s.Cold.Filecoin.MaxPrice = maxPrice
+	return s
 }
 
 // WithColdAddr specifies the wallet address that should be used for transactions.
-func (c CidConfig) WithColdAddr(addr string) CidConfig {
-	c.Cold.Filecoin.Addr = addr
-	return c
+func (s StorageConfig) WithColdAddr(addr string) StorageConfig {
+	s.Cold.Filecoin.Addr = addr
+	return s
 }
 
 // WithHotEnabled allows to enable/disable Hot storage usage.
-func (c CidConfig) WithHotEnabled(enabled bool) CidConfig {
-	c.Hot.Enabled = enabled
-	return c
+func (s StorageConfig) WithHotEnabled(enabled bool) StorageConfig {
+	s.Hot.Enabled = enabled
+	return s
 }
 
 // WithHotIpfsAddTimeout specifies a timeout for fetching data in Ipfs.
-func (c CidConfig) WithHotIpfsAddTimeout(seconds int) CidConfig {
-	c.Hot.Ipfs.AddTimeout = seconds
-	return c
+func (s StorageConfig) WithHotIpfsAddTimeout(seconds int) StorageConfig {
+	s.Hot.Ipfs.AddTimeout = seconds
+	return s
 }
 
 // WithHotAllowUnfreeze allows the Scheduler to fetch data from the Cold Storage,
 // if the Enabled flag of the Hot Storage switches from false->true.
-func (c CidConfig) WithHotAllowUnfreeze(allow bool) CidConfig {
-	c.Hot.AllowUnfreeze = true
-	return c
+func (s StorageConfig) WithHotAllowUnfreeze(allow bool) StorageConfig {
+	s.Hot.AllowUnfreeze = true
+	return s
 }
 
-// Validate validates a Cid configuration.
-func (c CidConfig) Validate() error {
-	if !c.Cid.Defined() {
-		return fmt.Errorf("cid is undefined")
-	}
-	if err := c.Hot.Validate(); err != nil {
+// Validate validates a StorageConfig.
+func (s StorageConfig) Validate() error {
+	if err := s.Hot.Validate(); err != nil {
 		return fmt.Errorf("hot-ipfs config is invalid: %s", err)
 	}
-	if err := c.Cold.Validate(); err != nil {
+	if err := s.Cold.Validate(); err != nil {
 		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
 	}
 	return nil

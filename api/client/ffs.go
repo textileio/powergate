@@ -46,14 +46,14 @@ func WithAddressType(addressType string) NewAddressOption {
 // PushConfigOption mutates a push request.
 type PushConfigOption func(r *rpc.PushConfigRequest)
 
-// WithCidConfig overrides the Api default Cid configuration.
-func WithCidConfig(c ffs.CidConfig) PushConfigOption {
+// WithStorageConfig overrides the Api default Cid configuration.
+func WithStorageConfig(c ffs.StorageConfig) PushConfigOption {
 	return func(r *rpc.PushConfigRequest) {
 		r.HasConfig = true
-		r.Config = &rpc.CidConfig{
-			Cid:  c.Cid.String(),
-			Hot:  toRPCHotConfig(c.Hot),
-			Cold: toRPCColdConfig(c.Cold),
+		r.Config = &rpc.StorageConfig{
+			Repairable: c.Repairable,
+			Hot:        toRPCHotConfig(c.Hot),
+			Cold:       toRPCColdConfig(c.Cold),
 		}
 	}
 }
@@ -183,9 +183,9 @@ func (f *FFS) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 	return addrs, nil
 }
 
-// DefaultConfig returns the default storage config.
-func (f *FFS) DefaultConfig(ctx context.Context) (ffs.StorageConfig, error) {
-	resp, err := f.client.DefaultConfig(ctx, &rpc.DefaultConfigRequest{})
+// DefaultStorageConfig returns the default storage config.
+func (f *FFS) DefaultStorageConfig(ctx context.Context) (ffs.StorageConfig, error) {
+	resp, err := f.client.DefaultStorageConfig(ctx, &rpc.DefaultStorageConfigRequest{})
 	if err != nil {
 		return ffs.StorageConfig{}, err
 	}
@@ -202,60 +202,21 @@ func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	return resp.Addr, err
 }
 
-// GetDefaultCidConfig returns a CidConfig built from the default storage config and prepped for the provided cid.
-func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig, error) {
-	res, err := f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: c.String()})
-	if err != nil {
-		return ffs.CidConfig{}, err
-	}
-	resCid, err := cid.Decode(res.Config.Cid)
-	if err != nil {
-		return ffs.CidConfig{}, err
-	}
-	return ffs.CidConfig{
-		Cid:        resCid,
-		Repairable: res.Config.Repairable,
-		Hot: ffs.HotConfig{
-			AllowUnfreeze: res.Config.Hot.AllowUnfreeze,
-			Enabled:       res.Config.Hot.Enabled,
-			Ipfs: ffs.IpfsConfig{
-				AddTimeout: int(res.Config.Hot.Ipfs.AddTimeout),
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Enabled: res.Config.Cold.Enabled,
-			Filecoin: ffs.FilConfig{
-				RepFactor:       int(res.Config.Cold.Filecoin.RepFactor),
-				Addr:            res.Config.Cold.Filecoin.Addr,
-				CountryCodes:    res.Config.Cold.Filecoin.CountryCodes,
-				DealMinDuration: res.Config.Cold.Filecoin.DealMinDuration,
-				ExcludedMiners:  res.Config.Cold.Filecoin.ExcludedMiners,
-				Renew: ffs.FilRenew{
-					Enabled:   res.Config.Cold.Filecoin.Renew.Enabled,
-					Threshold: int(res.Config.Cold.Filecoin.Renew.Threshold),
-				},
-				TrustedMiners: res.Config.Cold.Filecoin.TrustedMiners,
-				MaxPrice:      res.Config.Cold.Filecoin.MaxPrice,
-			},
-		},
-	}, nil
+// GetStorageConfig gets the current config for a cid.
+func (f *FFS) GetStorageConfig(ctx context.Context, c cid.Cid) (*rpc.GetStorageConfigResponse, error) {
+	return f.client.GetStorageConfig(ctx, &rpc.GetStorageConfigRequest{Cid: c.String()})
 }
 
-// GetCidConfig gets the current config for a cid.
-func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigResponse, error) {
-	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: c.String()})
-}
-
-// SetDefaultConfig sets the default storage config.
-func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.StorageConfig) error {
-	req := &rpc.SetDefaultConfigRequest{
+// SetDefaultStorageConfig sets the default storage config.
+func (f *FFS) SetDefaultStorageConfig(ctx context.Context, config ffs.StorageConfig) error {
+	req := &rpc.SetDefaultStorageConfigRequest{
 		Config: &rpc.StorageConfig{
 			Hot:        toRPCHotConfig(config.Hot),
 			Cold:       toRPCColdConfig(config.Cold),
 			Repairable: config.Repairable,
 		},
 	}
-	_, err := f.client.SetDefaultConfig(ctx, req)
+	_, err := f.client.SetDefaultStorageConfig(ctx, req)
 	return err
 }
 
