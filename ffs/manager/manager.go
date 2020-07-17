@@ -101,9 +101,9 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	return fapi.ID(), auth, nil
 }
 
-// SetDefaultConfig sets the default StorageConfig to be set as default to newly created
+// SetDefaultStorageConfig sets the default StorageConfig to be set as default to newly created
 // FFS instances.
-func (m *Manager) SetDefaultConfig(dc ffs.StorageConfig) error {
+func (m *Manager) SetDefaultStorageConfig(dc ffs.StorageConfig) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	if err := m.saveDefaultConfig(dc); err != nil {
@@ -150,9 +150,9 @@ func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 	return i, nil
 }
 
-// GetDefaultConfig returns the current default StorageConfig used
+// GetDefaultStorageConfig returns the current default StorageConfig used
 // for newly created FFS instances.
-func (m *Manager) GetDefaultConfig() ffs.StorageConfig {
+func (m *Manager) GetDefaultStorageConfig() ffs.StorageConfig {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	return m.defaultConfig

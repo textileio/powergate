@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestSetDefaultConfig(t *testing.T) {
+func TestSetDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
 	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
@@ -117,7 +117,7 @@ func TestNewAddressDefault(t *testing.T) {
 	require.Equal(t, defaultConf.Cold.Filecoin.Addr, addr)
 }
 
-func TestGetDefaultConfig(t *testing.T) {
+func TestGetDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
 	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
@@ -129,7 +129,7 @@ func TestGetDefaultConfig(t *testing.T) {
 func TestAdd(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(22))
-	t.Run("WithDefaultConfig", func(t *testing.T) {
+	t.Run("WithDefaultStorageConfig", func(t *testing.T) {
 		ctx := context.Background()
 		ipfsAPI, client, fapi, cls := newAPI(t, 1)
 		defer cls()
@@ -1395,7 +1395,7 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 
 	manager, err := manager.New(ds, wm, pm, dm, sched)
 	require.NoError(t, err)
-	err = manager.SetDefaultConfig(ffs.StorageConfig{
+	err = manager.SetDefaultStorageConfig(ffs.StorageConfig{
 		Hot: ffs.HotConfig{
 			Enabled:       true,
 			AllowUnfreeze: false,

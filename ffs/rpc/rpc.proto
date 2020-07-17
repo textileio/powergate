@@ -95,7 +95,7 @@ message BalanceInfo {
 
 message InstanceInfo {
    string id = 1;
-   StorageConfig default_config = 2;
+   StorageConfig default_storage_config = 2;
    repeated BalanceInfo balances = 3;
    repeated string pins = 4;
 }
@@ -229,7 +229,7 @@ message DefaultStorageConfigRequest {
 }
 
 message DefaultStorageConfigResponse {
-   StorageConfig default_config = 1;
+   StorageConfig default_storage_config = 1;
 }
 
 message NewAddrRequest {

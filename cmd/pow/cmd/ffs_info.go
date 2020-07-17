@@ -40,7 +40,7 @@ var ffsInfoCmd = &cobra.Command{
 		data := make([][]string, len(info.Balances))
 		for i, balance := range info.Balances {
 			isDefault := ""
-			if balance.Addr == info.DefaultConfig.Cold.Filecoin.Addr {
+			if balance.Addr == info.DefaultStorageConfig.Cold.Filecoin.Addr {
 				isDefault = "yes"
 			}
 			data[i] = []string{balance.Name, balance.Addr, balance.Type, fmt.Sprintf("%v", balance.Balance), isDefault}
@@ -48,7 +48,7 @@ var ffsInfoCmd = &cobra.Command{
 		Message("Wallet addresses:")
 		RenderTable(os.Stdout, []string{"name", "address", "type", "balance", "default"}, data)
 
-		bytes, err := json.MarshalIndent(info.DefaultConfig, "", "  ")
+		bytes, err := json.MarshalIndent(info.DefaultStorageConfig, "", "  ")
 		checkErr(err)
 
 		Message("Default storage config:\n%v", string(bytes))

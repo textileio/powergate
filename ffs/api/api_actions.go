@@ -16,7 +16,7 @@ func (i *API) PushStorageConfig(c cid.Cid, opts ...PushStorageConfigOption) (ffs
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg := PushStorageConfigConfig{Config: i.cfg.DefaultConfig}
+	cfg := PushStorageConfigConfig{Config: i.cfg.DefaultStorageConfig}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)

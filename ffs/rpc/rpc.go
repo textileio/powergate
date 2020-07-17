@@ -104,7 +104,7 @@ func (s *RPC) DefaultStorageConfig(ctx context.Context, req *DefaultStorageConfi
 	}
 	conf := i.DefaultStorageConfig()
 	return &DefaultStorageConfigResponse{
-		DefaultConfig: &StorageConfig{
+		DefaultStorageConfig: &StorageConfig{
 			Hot:        toRPCHotConfig(conf.Hot),
 			Cold:       toRPCColdConfig(conf.Cold),
 			Repairable: conf.Repairable,
@@ -223,10 +223,10 @@ func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoResponse, error)
 	reply := &InfoResponse{
 		Info: &InstanceInfo{
 			Id: info.ID.String(),
-			DefaultConfig: &StorageConfig{
-				Hot:        toRPCHotConfig(info.DefaultConfig.Hot),
-				Cold:       toRPCColdConfig(info.DefaultConfig.Cold),
-				Repairable: info.DefaultConfig.Repairable,
+			DefaultStorageConfig: &StorageConfig{
+				Hot:        toRPCHotConfig(info.DefaultStorageConfig.Hot),
+				Cold:       toRPCColdConfig(info.DefaultStorageConfig.Cold),
+				Repairable: info.DefaultStorageConfig.Repairable,
 			},
 			Balances: balances,
 			Pins:     make([]string, len(info.Pins)),

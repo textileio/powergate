@@ -56,7 +56,7 @@ func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 		Type: conf.addressType,
 	}
 	if conf.makeDefault {
-		i.cfg.DefaultConfig.Cold.Filecoin.Addr = addr
+		i.cfg.DefaultStorageConfig.Cold.Filecoin.Addr = addr
 	}
 	if err := i.is.putConfig(i.cfg); err != nil {
 		return "", err

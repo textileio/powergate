@@ -189,7 +189,7 @@ func (f *FFS) DefaultStorageConfig(ctx context.Context) (ffs.StorageConfig, erro
 	if err != nil {
 		return ffs.StorageConfig{}, err
 	}
-	return fromRPCStorageConfig(resp.DefaultConfig), nil
+	return fromRPCStorageConfig(resp.DefaultStorageConfig), nil
 }
 
 // NewAddr created a new wallet address managed by the FFS instance.
@@ -256,10 +256,10 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 	}
 
 	return api.InstanceInfo{
-		ID:            ffs.APIID(res.Info.Id),
-		DefaultConfig: fromRPCStorageConfig(res.Info.DefaultConfig),
-		Balances:      balances,
-		Pins:          pins,
+		ID:                   ffs.APIID(res.Info.Id),
+		DefaultStorageConfig: fromRPCStorageConfig(res.Info.DefaultStorageConfig),
+		Balances:             balances,
+		Pins:                 pins,
 	}, nil
 }
 

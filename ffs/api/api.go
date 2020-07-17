@@ -72,9 +72,9 @@ func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *schedu
 	}
 
 	config := Config{
-		ID:            iid,
-		Addrs:         map[string]AddrInfo{addr: addrInfo},
-		DefaultConfig: dc,
+		ID:                   iid,
+		Addrs:                map[string]AddrInfo{addr: addrInfo},
+		DefaultStorageConfig: dc,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -117,7 +117,7 @@ func (i *API) ID() ffs.APIID {
 
 // DefaultStorageConfig returns the default StorageConfig.
 func (i *API) DefaultStorageConfig() ffs.StorageConfig {
-	return i.cfg.DefaultConfig
+	return i.cfg.DefaultStorageConfig
 }
 
 // GetStorageConfig returns the current StorageConfig for a Cid.
@@ -139,7 +139,7 @@ func (i *API) SetDefaultStorageConfig(c ffs.StorageConfig) error {
 	if err := c.Validate(); err != nil {
 		return fmt.Errorf("default cid config is invalid: %s", err)
 	}
-	i.cfg.DefaultConfig = c
+	i.cfg.DefaultStorageConfig = c
 	return i.is.putConfig(i.cfg)
 }
 
@@ -167,10 +167,10 @@ func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	}
 
 	return InstanceInfo{
-		ID:            i.cfg.ID,
-		DefaultConfig: i.cfg.DefaultConfig,
-		Balances:      balances,
-		Pins:          pins,
+		ID:                   i.cfg.ID,
+		DefaultStorageConfig: i.cfg.DefaultStorageConfig,
+		Balances:             balances,
+		Pins:                 pins,
 	}, nil
 }
 
