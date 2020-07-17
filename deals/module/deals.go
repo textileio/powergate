@@ -139,7 +139,6 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 		}
 		m.recordDeal(params, *p)
 	}
-	fmt.Printf("Store: %s\n", dataCid)
 	return res, nil
 }
 
