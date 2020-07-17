@@ -130,7 +130,15 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	}
 
-	fchost, err := fchost.New(!conf.Devnet)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	network, err := c.StateNetworkName(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting Lotus network name: %s", err)
+	}
+	log.Infof("Detected Lotus node connected to network: %s", network)
+
+	fchost, err := fchost.New(string(network), !conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating filecoin host: %s", err)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	routedhost "github.com/libp2p/go-libp2p/p2p/host/routed"
 	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
@@ -27,7 +28,7 @@ type FilecoinHost struct {
 }
 
 // New returns a new FilecoinHost.
-func New(bootstrap bool) (*FilecoinHost, error) {
+func New(network string, bootstrap bool) (*FilecoinHost, error) {
 	ctx := context.Background()
 	opts := getDefaultOpts()
 	h, err := libp2p.New(ctx, opts...)
@@ -35,13 +36,13 @@ func New(bootstrap bool) (*FilecoinHost, error) {
 		return nil, err
 	}
 
-	dht, err := dht.New(ctx, h, dht.ProtocolPrefix("/fil/kad/testnet"))
+	dht, err := dht.New(ctx, h, dht.ProtocolPrefix(protocol.ID("/fil/kad/"+network)))
 	if err != nil {
 		return nil, err
 	}
 
 	if bootstrap {
-		if err := connectToBootstrapPeers(h); err != nil {
+		if err := connectToBootstrapPeers(network, h); err != nil {
 			return nil, err
 		}
 	}
@@ -87,8 +88,11 @@ func (fc *FilecoinHost) Addrs(pid peer.ID) []multiaddr.Multiaddr {
 	return fc.h.Peerstore().Addrs(pid)
 }
 
-func connectToBootstrapPeers(h host.Host) error {
-	peers := getBootstrapPeers()
+func connectToBootstrapPeers(network string, h host.Host) error {
+	peers, err := getBootstrapPeers(network)
+	if err != nil {
+		return fmt.Errorf("getting bootstrap peers: %s", err)
+	}
 	ctx := context.Background()
 	var lock sync.Mutex
 	var success int
