@@ -32,7 +32,7 @@ Provides commands to manage ffs
 * [pow ffs log](pow_ffs_log.md)	 - Display logs for specified cid
 * [pow ffs paych](pow_ffs_paych.md)	 - Provides commands to manage payment channels
 * [pow ffs remove](pow_ffs_remove.md)	 - Removes a Cid from being tracked as an active storage
-* [pow ffs replace](pow_ffs_replace.md)	 - Pushes a CidConfig of c2 equal to c1, and removes c1
+* [pow ffs replace](pow_ffs_replace.md)	 - Pushes a StorageConfig for c2 equal to that of c1, and removes c1
 * [pow ffs retrievals](pow_ffs_retrievals.md)	 - List retrieval deal records for an FFS instance
 * [pow ffs send](pow_ffs_send.md)	 - Send fil from one managed address to any other address
 * [pow ffs show](pow_ffs_show.md)	 - Show pinned cid data

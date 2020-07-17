@@ -12,13 +12,13 @@ The following picture presents principal packages and interfaces that are part o
 
 The picture has an advanced scenario where different _API_ instances are wired to different _Scheduler_ instances. Component names prefixed with * don't exist but are mentioned as possible implementations of existing interfaces.
 
-The central idea about the design is that an _API_ defines the desired storing state for a _Cid_ using a _CidConfig_ struct. This struct has information about desired storing state configuration in the Hot and Cold storages.
+The central idea about the design is that an _API_ defines the desired storing state for a _Cid_ using a _StorageConfig_ struct. This struct has information about desired storing state configuration in the Hot and Cold storages.
 
-When a new or updated _CidConfig_ is pushed in an _API_, it delegates this work to the _Scheduler_. The _Scheduler_ will execute whatever work is necessary to comply with the new/updated Cid configuration.
+When a new or updated _StorageConfig_ is pushed in an _API_, it delegates this work to the _Scheduler_. The _Scheduler_ will execute whatever work is necessary to comply with the new/updated Cid storage configuration.
 
-From the _Scheduler_ point of view, this work is considered a _Job_ created by _API_. The job refers to doing the necessary work to enforce the new _CidConfig_. The _API_ can watch for this _Job_ state changes to see if the task of pushing a new _CidConfig_ is queued, executing, finished successfully, failed, or canceled. The _Scheduler_ also provides a human-friendly log stream of work being done for a _Cid_.
+From the _Scheduler_ point of view, this work is considered a _Job_ created by _API_. The job refers to doing the necessary work to enforce the new _StorageConfig_. The _API_ can watch for this _Job_ state changes to see if the task of pushing a new _StorageConfig_ is queued, executing, finished successfully, failed, or canceled. The _Scheduler_ also provides a human-friendly log stream of work being done for a _Cid_.
 
-The _Scheduler_ also executes proactive actions for prior pushed _CidConfigs_ which enabled the _renew_ or _repair_ feature. Finally, the _Scheduler_ is designed to resume any kind of interrupted job executions.
+The _Scheduler_ also executes proactive actions for prior pushed _StorageConfigs_ which enabled the _renew_ or _repair_ feature. Finally, the _Scheduler_ is designed to resume any kind of interrupted job executions.
 
 ## Components
 The following sections give a more detailed description of each component and interface in the diagram.
@@ -37,31 +37,31 @@ _Manager_ enables being configured to auto-fund newly created wallet addresses, 
 _API_ is a concrete instance of FFS to be used by a client.
 It owns the following information:
 - At least one Filecoin address. Later the client can opt to create more address and indicate which to use when making action.
-- _CidConfigs_ describing the desired state for Cids to be stored in Hot and Cold storage.
-- A default _CidConfig_ to be used unless an explicit _CidConfig_ is given.
+- _StorageConfigs_ describing the desired state for Cids to be stored in Hot and Cold storage.
+- A default _StorageConfig_ to be used unless an explicit _StorageConfig_ is given.
 
 The instance provides apis to:
-- Get and Set the default _CidConfig_ used to store new data.
+- Get and Set the default _StorageConfig_ used to store new data.
 - Get summary information about all the _Cid_ stored in this instance.
 - Manage Filecoin wallet addresses under its control.
 - Sending FIL transactions from owned Filecoin wallet addresses.
-- Create, replace and remove _CidConfig_ which indicates which cids to store in the instance.
+- Create, replace and remove _StorageConfig_ which indicates which cids to store in the instance.
 - Provide detailed information about a particular stored Cid.
 - Get information about status of executing _Jobs_ corresponding to the FFS instance.
 - Human-friendly log streams about events happening for a _Cid_, from storage, renewals, repair and anything related to actions being done for it.
 
 ### Scheduler
 
-In a nutshell, the _Scheduler_ is the component responsible for orchestrating the Hot and Cold storage to enforce indicated _CidConfigs_ by connected _API_.
+In a nutshell, the _Scheduler_ is the component responsible for orchestrating the Hot and Cold storage to enforce indicated _StorageConfigs_ by connected _API_.
 
 Refer to the [Go docs](https://pkg.go.dev/github.com/textileio/powergate/ffs/scheduler?tab=doc) to see its exported API.
 
 ### Responsibilities
-When a new _CidConfig_ is pushed by an _API_, the _Scheduler_ is responsible for orchestrating whatever actions are necessary to enforce it with the Hot and Col storage.
+When a new _StorageConfig_ is pushed by an _API_, the _Scheduler_ is responsible for orchestrating whatever actions are necessary to enforce it with the Hot and Col storage.
 
-Every new _CidConfig_, being the first or newer version for a Cid, is encapsulated in a _Job_. A _Job_ is the unit of work which the _Scheduler_ executes. _Jobs_ have different status: _Queued_, _Executing_, _Done_, _Failed_, and _Canceled_.
+Every new _StorageConfig_, being the first or newer version for a Cid, is encapsulated in a _Job_. A _Job_ is the unit of work which the _Scheduler_ executes. _Jobs_ have different status: _Queued_, _Executing_, _Done_, _Failed_, and _Canceled_.
 
-Apart from executing _Jobs_, the _Scheduler_ has background processes to keep enforcing configuration features that requires tracking. For example, if a _CidConfig_ has renewal or repair enabled, the _Scheduler_ is responsible for do necessary work as expected.
+Apart from executing _Jobs_, the _Scheduler_ has background processes to keep enforcing configuration features that requires tracking. For example, if a _StorageConfig_ has renewal or repair enabled, the _Scheduler_ is responsible for do necessary work as expected.
 Apart from _Jobs_, the _Scheduler_ has background tasks that monitor deal renewals or repair operations.
 
 In summary, _APIs_ delegates *the desired state for a Cid* and the _Scheduler_ is responsible for *ensuring that state is true* by orchestrating the Hot and Cold storage.
@@ -79,7 +79,7 @@ Powergate has the _Reputation Module_ which leverages built indexes about miners
 The _MinerSelector_ API already provides enough filtering configuration to force using or excluding particular miners. In general, other implementations than the default one should be used if the universe of available miners wants to be completely controlled by design, and not by available miners on the connected Filecoin network.
 
 ### Cid Configuration
-In the current document we've referred to _CidConfigs_ as a central concept in the FFS module. A _CidConfig_ indicates the desired storing state of a _Cid_ scoped in a _API_. Refer to the [Go docs](https://pkg.go.dev/github.com/textileio/powergate/ffs@v0.0.1-beta.6?tab=doc#CidConfig) to understand its rich configuration.
+In the current document we've referred to _StorageConfigs_ as a central concept in the FFS module. A _StorageConfig_ indicates the desired storing state of a _Cid_ scoped in a _API_. Refer to the [Go docs](https://pkg.go.dev/github.com/textileio/powergate/ffs) to understand its rich configuration.
 
 
 #### _API_ _Get(...)_ operation
@@ -96,12 +96,12 @@ The last point indicates that the _API_ client should explicitly set `HotConfig.
 
 The rationale behind asking the client to enable hot storage with allow-unfreeze is related to the fact that retrieving data from Filecion incurs in an economic cost that will be paid by the _API_ address. Retrieving data from the IPFS network is considered _free_ (discarding unavoidable bandwidth costs, etc).
 
-### Updating CidConfig
-The _Scheduler_ is always checking the current state of Cid storage before executing actions regarding an updated _CidConfig_.
+### Updating StorageConfig
+The _Scheduler_ is always checking the current state of Cid storage before executing actions regarding an updated _StorageConfig_.
 
-_CidConfig_ changes regarding Hot Storage are always applied since Hot Storage is, in general, malleable. In particular, enabling or disabling Hot Storage is most probably easy to execute and thus have a predictable ending state.
+_StorageConfig_ changes regarding Hot Storage are always applied since Hot Storage is, in general, malleable. In particular, enabling or disabling Hot Storage is most probably easy to execute and thus have a predictable ending state.
 
-_CidConfig_ changes regarding Cold Storage have more subtle meaning. For example, if the _RepFactor_ is increased the _Scheduler_ will be aware of the current _RepFactor_ and only make enough new deals to ensure its new value. e.g: if _RepFactor_ was 1 and the updated _CidConfig_ has _RepFactor_ 2, it will only make one new deal. 
+_StorageConfig_ changes regarding Cold Storage have more subtle meaning. For example, if the _RepFactor_ is increased the _Scheduler_ will be aware of the current _RepFactor_ and only make enough new deals to ensure its new value. e.g: if _RepFactor_ was 1 and the updated _StorageConfig_ has _RepFactor_ 2, it will only make one new deal. 
 As another example, if _RepFactor_ was 2 and is decreased to 1, the _Scheduler_ won't execute any actual work since one of the two current active deals will eventually expire.
 
 The _RepFactor_ configuration also is considered if the Cid has enabled automatic deal renweal. In particular, if the _RepFactor_ was decreased from 3 to 1, the rewneal logic will wait until the last deal is close to expiring to only renew that one. That's saying, the renew logic doesn't blindly renew expiring deals, but it's _RepFactor aware_ as expected.

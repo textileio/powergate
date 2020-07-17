@@ -28,7 +28,7 @@ type Action struct {
 }
 
 // Store is a Datastore backed implementation of ActionStore, which saves latests
-// PushConfig actions for a Cid.
+// PushStorageConfig actions for a Cid.
 type Store struct {
 	ds datastore.Datastore
 }
@@ -98,7 +98,7 @@ func (s *Store) Remove(c cid.Cid) error {
 	return ErrNotFound
 }
 
-// GetRenewable returns all Actions that have CidConfigs that have the Renew flag enabled
+// GetRenewable returns all Actions that have StorageConfigs that have the Renew flag enabled
 // and should be inspected for Deal renewals.
 func (s *Store) GetRenewable() ([]Action, error) {
 	as, err := s.query(func(a Action) bool {
@@ -110,7 +110,7 @@ func (s *Store) GetRenewable() ([]Action, error) {
 	return as, nil
 }
 
-// GetRepairable returns all Actions that have CidConfigs with enabled auto-repair.
+// GetRepairable returns all Actions that have StorageConfigs with enabled auto-repair.
 func (s *Store) GetRepairable() ([]Action, error) {
 	as, err := s.query(func(a Action) bool {
 		return a.Cfg.Repairable

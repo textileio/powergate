@@ -338,7 +338,7 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 	return nil
 }
 
-// Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
+// Replace pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
 func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 	resp, err := f.client.Replace(ctx, &rpc.ReplaceRequest{Cid1: c1.String(), Cid2: c2.String()})

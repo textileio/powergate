@@ -32,7 +32,7 @@ func WithOverride(override bool) PushStorageConfigOption {
 	}
 }
 
-// Validate validates a PushConfig.
+// Validate validates a PushStorageConfigConfig.
 func (pc PushStorageConfigConfig) Validate() error {
 	if err := pc.Config.Validate(); err != nil {
 		return fmt.Errorf("invalid config: %s", err)

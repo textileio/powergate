@@ -42,7 +42,7 @@ var (
 			},
 		},
 	}
-	dsDefaultCidConfigKey = datastore.NewKey("defaultcidconfig")
+	dsDefaultStorageConfigKey = datastore.NewKey("defaultcidconfig")
 )
 
 // Manager creates Api instances, or loads existing ones them from an auth-token.
@@ -63,9 +63,9 @@ type Manager struct {
 
 // New returns a new Manager.
 func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler) (*Manager, error) {
-	cidConfig, err := loadDefaultStorageConfig(ds)
+	storageConfig, err := loadDefaultStorageConfig(ds)
 	if err != nil {
-		return nil, fmt.Errorf("loading default cidconfig: %s", err)
+		return nil, fmt.Errorf("loading default storage config: %s", err)
 	}
 	return &Manager{
 		auth:          auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
@@ -75,7 +75,7 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm 
 		drm:           drm,
 		sched:         sched,
 		instances:     make(map[ffs.APIID]*api.API),
-		defaultConfig: cidConfig,
+		defaultConfig: storageConfig,
 	}, nil
 }
 
@@ -183,7 +183,7 @@ func (m *Manager) saveDefaultConfig(dc ffs.StorageConfig) error {
 	if err != nil {
 		return fmt.Errorf("marshaling default config: %s", err)
 	}
-	if err := m.ds.Put(dsDefaultCidConfigKey, buf); err != nil {
+	if err := m.ds.Put(dsDefaultStorageConfigKey, buf); err != nil {
 		return fmt.Errorf("saving default config to datastore: %s", err)
 	}
 	m.defaultConfig = dc
@@ -191,7 +191,7 @@ func (m *Manager) saveDefaultConfig(dc ffs.StorageConfig) error {
 }
 
 func loadDefaultStorageConfig(ds datastore.Datastore) (ffs.StorageConfig, error) {
-	d, err := ds.Get(dsDefaultCidConfigKey)
+	d, err := ds.Get(dsDefaultStorageConfigKey)
 	if err == datastore.ErrNotFound {
 		return zeroConfig, nil
 	}

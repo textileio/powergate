@@ -480,7 +480,7 @@ func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseResponse, err
 	return &CloseResponse{}, nil
 }
 
-// Stage stores data in the Hot Storage so the resulting cid can be used in PushConfig.
+// Stage stores data in the Hot Storage so the resulting cid can be used in PushStorageConfig.
 func (s *RPC) Stage(srv RPCService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {

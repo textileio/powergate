@@ -83,13 +83,13 @@ func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.C
 	return sch, nil
 }
 
-// PushConfig queues the specified CidConfig to be executed as a new Job. It returns
+// PushConfig queues the specified StorageConfig to be executed as a new Job. It returns
 // the created JobID for further tracking of its state.
 func (s *Scheduler) PushConfig(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig) (ffs.JobID, error) {
 	return s.push(iid, c, cfg, cid.Undef)
 }
 
-// PushReplace queues a new CidConfig to be executed as a new Job, replacing an oldCid that will be
+// PushReplace queues a new StorageConfig to be executed as a new Job, replacing an oldCid that will be
 // untrack in the Scheduler (i.e: deal renewals, repairing).
 func (s *Scheduler) PushReplace(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid cid.Cid) (ffs.JobID, error) {
 	if !oldCid.Defined() {

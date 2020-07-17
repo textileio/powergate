@@ -73,7 +73,7 @@ func (i *API) Remove(c cid.Cid) error {
 	return nil
 }
 
-// Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
+// Replace pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
 // c1 and c2 must not be equal.
 func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
