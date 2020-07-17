@@ -1,5 +1,5 @@
 down:
-	POWD_NETWORK=testnet LOTUS_IMAGE_TAG=v0.4.1 \
+	LOTUS_IMAGE_TAG=v0.4.1 \
 	docker-compose \
 		-f docker-compose.yaml \
 		-f ipfs-image.yaml \
@@ -8,7 +8,7 @@ down:
 .PHONY: down
 
 up: down
-	POWD_NETWORK=testnet LOTUS_IMAGE_TAG=v0.4.1 \
+	LOTUS_IMAGE_TAG=v0.4.1 \
 	docker-compose \
 		-f docker-compose.yaml \
 		-f ipfs-image.yaml \
@@ -35,7 +35,7 @@ localnet:
 
 
 nerpa-up: nerpa-down
-	POWD_NETWORK=nerpa LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-7.7.0 \
+	LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-7.7.0 \
 	docker-compose \
 		-p nerpa \
 		-f docker-compose.yaml \
@@ -45,7 +45,7 @@ nerpa-up: nerpa-down
 .PHONY: nerpa-up
 
 nerpa-down:
-	POWD_NETWORK=nerpa LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-7.7.0 \
+	LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-7.7.0 \
 	docker-compose \
 		-p nerpa \
 		-f docker-compose.yaml \
