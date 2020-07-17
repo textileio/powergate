@@ -593,7 +593,7 @@ func (x *CidConfig) GetRepairable() bool {
 	return false
 }
 
-type DefaultConfig struct {
+type StorageConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -603,8 +603,8 @@ type DefaultConfig struct {
 	Repairable bool        `protobuf:"varint,3,opt,name=repairable,proto3" json:"repairable,omitempty"`
 }
 
-func (x *DefaultConfig) Reset() {
-	*x = DefaultConfig{}
+func (x *StorageConfig) Reset() {
+	*x = StorageConfig{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_ffs_rpc_rpc_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -612,13 +612,13 @@ func (x *DefaultConfig) Reset() {
 	}
 }
 
-func (x *DefaultConfig) String() string {
+func (x *StorageConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DefaultConfig) ProtoMessage() {}
+func (*StorageConfig) ProtoMessage() {}
 
-func (x *DefaultConfig) ProtoReflect() protoreflect.Message {
+func (x *StorageConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_ffs_rpc_rpc_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -630,26 +630,26 @@ func (x *DefaultConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DefaultConfig.ProtoReflect.Descriptor instead.
-func (*DefaultConfig) Descriptor() ([]byte, []int) {
+// Deprecated: Use StorageConfig.ProtoReflect.Descriptor instead.
+func (*StorageConfig) Descriptor() ([]byte, []int) {
 	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *DefaultConfig) GetHot() *HotConfig {
+func (x *StorageConfig) GetHot() *HotConfig {
 	if x != nil {
 		return x.Hot
 	}
 	return nil
 }
 
-func (x *DefaultConfig) GetCold() *ColdConfig {
+func (x *StorageConfig) GetCold() *ColdConfig {
 	if x != nil {
 		return x.Cold
 	}
 	return nil
 }
 
-func (x *DefaultConfig) GetRepairable() bool {
+func (x *StorageConfig) GetRepairable() bool {
 	if x != nil {
 		return x.Repairable
 	}
@@ -1119,7 +1119,7 @@ type InstanceInfo struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id            string         `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	DefaultConfig *DefaultConfig `protobuf:"bytes,2,opt,name=default_config,json=defaultConfig,proto3" json:"default_config,omitempty"`
+	DefaultConfig *StorageConfig `protobuf:"bytes,2,opt,name=default_config,json=defaultConfig,proto3" json:"default_config,omitempty"`
 	Balances      []*BalanceInfo `protobuf:"bytes,3,rep,name=balances,proto3" json:"balances,omitempty"`
 	Pins          []string       `protobuf:"bytes,4,rep,name=pins,proto3" json:"pins,omitempty"`
 }
@@ -1163,7 +1163,7 @@ func (x *InstanceInfo) GetId() string {
 	return ""
 }
 
-func (x *InstanceInfo) GetDefaultConfig() *DefaultConfig {
+func (x *InstanceInfo) GetDefaultConfig() *StorageConfig {
 	if x != nil {
 		return x.DefaultConfig
 	}
@@ -2310,7 +2310,7 @@ type DefaultConfigResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DefaultConfig *DefaultConfig `protobuf:"bytes,1,opt,name=default_config,json=defaultConfig,proto3" json:"default_config,omitempty"`
+	DefaultConfig *StorageConfig `protobuf:"bytes,1,opt,name=default_config,json=defaultConfig,proto3" json:"default_config,omitempty"`
 }
 
 func (x *DefaultConfigResponse) Reset() {
@@ -2345,7 +2345,7 @@ func (*DefaultConfigResponse) Descriptor() ([]byte, []int) {
 	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{34}
 }
 
-func (x *DefaultConfigResponse) GetDefaultConfig() *DefaultConfig {
+func (x *DefaultConfigResponse) GetDefaultConfig() *StorageConfig {
 	if x != nil {
 		return x.DefaultConfig
 	}
@@ -2655,7 +2655,7 @@ type SetDefaultConfigRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Config *DefaultConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	Config *StorageConfig `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
 }
 
 func (x *SetDefaultConfigRequest) Reset() {
@@ -2690,7 +2690,7 @@ func (*SetDefaultConfigRequest) Descriptor() ([]byte, []int) {
 	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{41}
 }
 
-func (x *SetDefaultConfigRequest) GetConfig() *DefaultConfig {
+func (x *SetDefaultConfigRequest) GetConfig() *StorageConfig {
 	if x != nil {
 		return x.Config
 	}
@@ -4499,7 +4499,7 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x04, 0x63, 0x6f, 0x6c, 0x64, 0x12, 0x1e, 0x0a,
 	0x0a, 0x72, 0x65, 0x70, 0x61, 0x69, 0x72, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28,
 	0x08, 0x52, 0x0a, 0x72, 0x65, 0x70, 0x61, 0x69, 0x72, 0x61, 0x62, 0x6c, 0x65, 0x22, 0x7e, 0x0a,
-	0x0d, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x24,
+	0x0d, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x24,
 	0x0a, 0x03, 0x68, 0x6f, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x66, 0x66,
 	0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x48, 0x6f, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52,
 	0x03, 0x68, 0x6f, 0x74, 0x12, 0x27, 0x0a, 0x04, 0x63, 0x6f, 0x6c, 0x64, 0x18, 0x02, 0x20, 0x01,
@@ -4561,7 +4561,7 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64,
 	0x12, 0x3d, 0x0a, 0x0e, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x63, 0x6f, 0x6e, 0x66,
 	0x69, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72,
-	0x70, 0x63, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+	0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
 	0x52, 0x0d, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12,
 	0x30, 0x0a, 0x08, 0x62, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28,
 	0x0b, 0x32, 0x14, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x42, 0x61, 0x6c, 0x61,
@@ -4688,7 +4688,7 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70,
 	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3d, 0x0a, 0x0e, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f,
 	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x66,
-	0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f,
+	0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f,
 	0x6e, 0x66, 0x69, 0x67, 0x52, 0x0d, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e,
 	0x66, 0x69, 0x67, 0x22, 0x6a, 0x0a, 0x0e, 0x4e, 0x65, 0x77, 0x41, 0x64, 0x64, 0x72, 0x52, 0x65,
 	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
@@ -4717,7 +4717,7 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x0a, 0x17, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66,
 	0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2e, 0x0a, 0x06, 0x63, 0x6f, 0x6e,
 	0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x66, 0x66, 0x73, 0x2e,
-	0x72, 0x70, 0x63, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69,
 	0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x1a, 0x0a, 0x18, 0x53, 0x65, 0x74,
 	0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73,
 	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1f, 0x0a, 0x0b, 0x53, 0x68, 0x6f, 0x77, 0x52, 0x65, 0x71,
@@ -5016,7 +5016,7 @@ var file_ffs_rpc_rpc_proto_goTypes = []interface{}{
 	(*FilConfig)(nil),                        // 6: ffs.rpc.FilConfig
 	(*ColdConfig)(nil),                       // 7: ffs.rpc.ColdConfig
 	(*CidConfig)(nil),                        // 8: ffs.rpc.CidConfig
-	(*DefaultConfig)(nil),                    // 9: ffs.rpc.DefaultConfig
+	(*StorageConfig)(nil),                    // 9: ffs.rpc.StorageConfig
 	(*IpfsHotInfo)(nil),                      // 10: ffs.rpc.IpfsHotInfo
 	(*HotInfo)(nil),                          // 11: ffs.rpc.HotInfo
 	(*FilStorage)(nil),                       // 12: ffs.rpc.FilStorage
@@ -5095,15 +5095,15 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	6,  // 2: ffs.rpc.ColdConfig.filecoin:type_name -> ffs.rpc.FilConfig
 	4,  // 3: ffs.rpc.CidConfig.hot:type_name -> ffs.rpc.HotConfig
 	7,  // 4: ffs.rpc.CidConfig.cold:type_name -> ffs.rpc.ColdConfig
-	4,  // 5: ffs.rpc.DefaultConfig.hot:type_name -> ffs.rpc.HotConfig
-	7,  // 6: ffs.rpc.DefaultConfig.cold:type_name -> ffs.rpc.ColdConfig
+	4,  // 5: ffs.rpc.StorageConfig.hot:type_name -> ffs.rpc.HotConfig
+	7,  // 6: ffs.rpc.StorageConfig.cold:type_name -> ffs.rpc.ColdConfig
 	10, // 7: ffs.rpc.HotInfo.ipfs:type_name -> ffs.rpc.IpfsHotInfo
 	12, // 8: ffs.rpc.FilInfo.proposals:type_name -> ffs.rpc.FilStorage
 	13, // 9: ffs.rpc.ColdInfo.filecoin:type_name -> ffs.rpc.FilInfo
 	11, // 10: ffs.rpc.CidInfo.hot:type_name -> ffs.rpc.HotInfo
 	14, // 11: ffs.rpc.CidInfo.cold:type_name -> ffs.rpc.ColdInfo
 	2,  // 12: ffs.rpc.BalanceInfo.addr:type_name -> ffs.rpc.AddrInfo
-	9,  // 13: ffs.rpc.InstanceInfo.default_config:type_name -> ffs.rpc.DefaultConfig
+	9,  // 13: ffs.rpc.InstanceInfo.default_config:type_name -> ffs.rpc.StorageConfig
 	16, // 14: ffs.rpc.InstanceInfo.balances:type_name -> ffs.rpc.BalanceInfo
 	0,  // 15: ffs.rpc.Job.status:type_name -> ffs.rpc.JobStatus
 	19, // 16: ffs.rpc.Job.deal_errors:type_name -> ffs.rpc.DealError
@@ -5111,10 +5111,10 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	23, // 18: ffs.rpc.StorageDealRecord.deal_info:type_name -> ffs.rpc.StorageDealInfo
 	25, // 19: ffs.rpc.RetrievalDealRecord.deal_info:type_name -> ffs.rpc.RetrievalDealInfo
 	2,  // 20: ffs.rpc.AddrsResponse.addrs:type_name -> ffs.rpc.AddrInfo
-	9,  // 21: ffs.rpc.DefaultConfigResponse.default_config:type_name -> ffs.rpc.DefaultConfig
+	9,  // 21: ffs.rpc.DefaultConfigResponse.default_config:type_name -> ffs.rpc.StorageConfig
 	8,  // 22: ffs.rpc.GetDefaultCidConfigResponse.config:type_name -> ffs.rpc.CidConfig
 	8,  // 23: ffs.rpc.GetCidConfigResponse.config:type_name -> ffs.rpc.CidConfig
-	9,  // 24: ffs.rpc.SetDefaultConfigRequest.config:type_name -> ffs.rpc.DefaultConfig
+	9,  // 24: ffs.rpc.SetDefaultConfigRequest.config:type_name -> ffs.rpc.StorageConfig
 	15, // 25: ffs.rpc.ShowResponse.cid_info:type_name -> ffs.rpc.CidInfo
 	17, // 26: ffs.rpc.InfoResponse.info:type_name -> ffs.rpc.InstanceInfo
 	18, // 27: ffs.rpc.WatchJobsResponse.job:type_name -> ffs.rpc.Job
@@ -5279,7 +5279,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DefaultConfig); i {
+			switch v := v.(*StorageConfig); i {
 			case 0:
 				return &v.state
 			case 1:

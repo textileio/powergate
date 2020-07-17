@@ -104,7 +104,7 @@ func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*De
 	}
 	conf := i.DefaultConfig()
 	return &DefaultConfigResponse{
-		DefaultConfig: &DefaultConfig{
+		DefaultConfig: &StorageConfig{
 			Hot:        toRPCHotConfig(conf.Hot),
 			Cold:       toRPCColdConfig(conf.Cold),
 			Repairable: conf.Repairable,
@@ -185,7 +185,7 @@ func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest
 	if err != nil {
 		return nil, err
 	}
-	defaultConfig := ffs.DefaultConfig{
+	defaultConfig := ffs.StorageConfig{
 		Repairable: req.Config.Repairable,
 		Hot:        fromRPCHotConfig(req.Config.Hot),
 		Cold:       fromRPCColdConfig(req.Config.Cold),
@@ -245,7 +245,7 @@ func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoResponse, error)
 	reply := &InfoResponse{
 		Info: &InstanceInfo{
 			Id: info.ID.String(),
-			DefaultConfig: &DefaultConfig{
+			DefaultConfig: &StorageConfig{
 				Hot:        toRPCHotConfig(info.DefaultConfig.Hot),
 				Cold:       toRPCColdConfig(info.DefaultConfig.Cold),
 				Repairable: info.DefaultConfig.Repairable,

@@ -16,7 +16,7 @@ var (
 type Config struct {
 	ID            ffs.APIID
 	Addrs         map[string]AddrInfo
-	DefaultConfig ffs.DefaultConfig
+	DefaultConfig ffs.StorageConfig
 }
 
 // AddrInfo provides information about a wallet address.
@@ -29,7 +29,7 @@ type AddrInfo struct {
 // InstanceInfo has general information about a running Api instance.
 type InstanceInfo struct {
 	ID            ffs.APIID
-	DefaultConfig ffs.DefaultConfig
+	DefaultConfig ffs.StorageConfig
 	Balances      []BalanceInfo
 	Pins          []cid.Cid
 }

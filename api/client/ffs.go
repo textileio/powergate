@@ -184,37 +184,12 @@ func (f *FFS) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 }
 
 // DefaultConfig returns the default storage config.
-func (f *FFS) DefaultConfig(ctx context.Context) (ffs.DefaultConfig, error) {
+func (f *FFS) DefaultConfig(ctx context.Context) (ffs.StorageConfig, error) {
 	resp, err := f.client.DefaultConfig(ctx, &rpc.DefaultConfigRequest{})
 	if err != nil {
-		return ffs.DefaultConfig{}, err
+		return ffs.StorageConfig{}, err
 	}
-	return ffs.DefaultConfig{
-		Hot: ffs.HotConfig{
-			Enabled:       resp.DefaultConfig.Hot.Enabled,
-			AllowUnfreeze: resp.DefaultConfig.Hot.AllowUnfreeze,
-			Ipfs: ffs.IpfsConfig{
-				AddTimeout: int(resp.DefaultConfig.Hot.Ipfs.AddTimeout),
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Enabled: resp.DefaultConfig.Cold.Enabled,
-			Filecoin: ffs.FilConfig{
-				RepFactor:       int(resp.DefaultConfig.Cold.Filecoin.RepFactor),
-				DealMinDuration: resp.DefaultConfig.Cold.Filecoin.DealMinDuration,
-				ExcludedMiners:  resp.DefaultConfig.Cold.Filecoin.ExcludedMiners,
-				CountryCodes:    resp.DefaultConfig.Cold.Filecoin.CountryCodes,
-				TrustedMiners:   resp.DefaultConfig.Cold.Filecoin.TrustedMiners,
-				Renew: ffs.FilRenew{
-					Enabled:   resp.DefaultConfig.Cold.Filecoin.Renew.Enabled,
-					Threshold: int(resp.DefaultConfig.Cold.Filecoin.Renew.Threshold),
-				},
-				Addr:     resp.DefaultConfig.Cold.Filecoin.Addr,
-				MaxPrice: resp.DefaultConfig.Cold.Filecoin.MaxPrice,
-			},
-		},
-		Repairable: resp.DefaultConfig.Repairable,
-	}, nil
+	return fromRPCStorageConfig(resp.DefaultConfig), nil
 }
 
 // NewAddr created a new wallet address managed by the FFS instance.
@@ -272,9 +247,9 @@ func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigRes
 }
 
 // SetDefaultConfig sets the default storage config.
-func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.DefaultConfig) error {
+func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.StorageConfig) error {
 	req := &rpc.SetDefaultConfigRequest{
-		Config: &rpc.DefaultConfig{
+		Config: &rpc.StorageConfig{
 			Hot:        toRPCHotConfig(config.Hot),
 			Cold:       toRPCColdConfig(config.Cold),
 			Repairable: config.Repairable,
@@ -320,35 +295,10 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 	}
 
 	return api.InstanceInfo{
-		ID: ffs.APIID(res.Info.Id),
-		DefaultConfig: ffs.DefaultConfig{
-			Hot: ffs.HotConfig{
-				Enabled:       res.Info.DefaultConfig.Hot.Enabled,
-				AllowUnfreeze: res.Info.DefaultConfig.Hot.AllowUnfreeze,
-				Ipfs: ffs.IpfsConfig{
-					AddTimeout: int(res.Info.DefaultConfig.Hot.Ipfs.AddTimeout),
-				},
-			},
-			Cold: ffs.ColdConfig{
-				Enabled: res.Info.DefaultConfig.Cold.Enabled,
-				Filecoin: ffs.FilConfig{
-					RepFactor:       int(res.Info.DefaultConfig.Cold.Filecoin.RepFactor),
-					DealMinDuration: res.Info.DefaultConfig.Cold.Filecoin.DealMinDuration,
-					ExcludedMiners:  res.Info.DefaultConfig.Cold.Filecoin.ExcludedMiners,
-					TrustedMiners:   res.Info.DefaultConfig.Cold.Filecoin.TrustedMiners,
-					CountryCodes:    res.Info.DefaultConfig.Cold.Filecoin.CountryCodes,
-					Renew: ffs.FilRenew{
-						Enabled:   res.Info.DefaultConfig.Cold.Filecoin.Renew.Enabled,
-						Threshold: int(res.Info.DefaultConfig.Cold.Filecoin.Renew.Threshold),
-					},
-					Addr:     res.Info.DefaultConfig.Cold.Filecoin.Addr,
-					MaxPrice: res.Info.DefaultConfig.Cold.Filecoin.MaxPrice,
-				},
-			},
-			Repairable: res.Info.DefaultConfig.Repairable,
-		},
-		Balances: balances,
-		Pins:     pins,
+		ID:            ffs.APIID(res.Info.Id),
+		DefaultConfig: fromRPCStorageConfig(res.Info.DefaultConfig),
+		Balances:      balances,
+		Pins:          pins,
 	}, nil
 }
 
@@ -686,6 +636,47 @@ func toRPCColdConfig(config ffs.ColdConfig) *rpc.ColdConfig {
 			Addr: config.Filecoin.Addr,
 		},
 	}
+}
+
+func fromRPCStorageConfig(config *rpc.StorageConfig) ffs.StorageConfig {
+	if config == nil {
+		return ffs.StorageConfig{}
+	}
+	ret := ffs.StorageConfig{Repairable: config.Repairable}
+	if config.Hot != nil {
+		ret.Hot = ffs.HotConfig{
+			Enabled:       config.Hot.Enabled,
+			AllowUnfreeze: config.Hot.AllowUnfreeze,
+		}
+		if config.Hot.Ipfs != nil {
+			ret.Hot.Ipfs = ffs.IpfsConfig{
+				AddTimeout: int(config.Hot.Ipfs.AddTimeout),
+			}
+		}
+	}
+	if config.Cold != nil {
+		ret.Cold = ffs.ColdConfig{
+			Enabled: config.Cold.Enabled,
+		}
+		if config.Cold.Filecoin != nil {
+			ret.Cold.Filecoin = ffs.FilConfig{
+				RepFactor:       int(config.Cold.Filecoin.RepFactor),
+				DealMinDuration: config.Cold.Filecoin.DealMinDuration,
+				ExcludedMiners:  config.Cold.Filecoin.ExcludedMiners,
+				CountryCodes:    config.Cold.Filecoin.CountryCodes,
+				TrustedMiners:   config.Cold.Filecoin.TrustedMiners,
+				Addr:            config.Cold.Filecoin.Addr,
+				MaxPrice:        config.Cold.Filecoin.MaxPrice,
+			}
+			if config.Cold.Filecoin.Renew != nil {
+				ret.Cold.Filecoin.Renew = ffs.FilRenew{
+					Enabled:   config.Cold.Filecoin.Renew.Enabled,
+					Threshold: int(config.Cold.Filecoin.Renew.Threshold),
+				}
+			}
+		}
+	}
+	return ret
 }
 
 func fromRPCDealErrors(des []*rpc.DealError) ([]ffs.DealError, error) {

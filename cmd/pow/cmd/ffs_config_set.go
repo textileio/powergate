@@ -55,7 +55,7 @@ var ffsConfigSetCmd = &cobra.Command{
 		_, err := buf.ReadFrom(reader)
 		checkErr(err)
 
-		config := ffs.DefaultConfig{}
+		config := ffs.StorageConfig{}
 		checkErr(json.Unmarshal(buf.Bytes(), &config))
 
 		s := spin.New("%s Setting default storage config...")

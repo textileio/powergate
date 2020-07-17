@@ -57,7 +57,7 @@ func TestSetDefaultConfig(t *testing.T) {
 	_, _, fapi, cls := newAPI(t, 1)
 	defer cls()
 
-	config := ffs.DefaultConfig{
+	config := ffs.StorageConfig{
 		Hot: ffs.HotConfig{
 			Enabled: false,
 			Ipfs: ffs.IpfsConfig{
@@ -1395,7 +1395,7 @@ func newFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 
 	manager, err := manager.New(ds, wm, pm, dm, sched)
 	require.NoError(t, err)
-	err = manager.SetDefaultConfig(ffs.DefaultConfig{
+	err = manager.SetDefaultConfig(ffs.StorageConfig{
 		Hot: ffs.HotConfig{
 			Enabled:       true,
 			AllowUnfreeze: false,

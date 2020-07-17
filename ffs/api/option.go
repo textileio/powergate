@@ -16,13 +16,13 @@ type PushConfig struct {
 	OverrideConfig bool
 }
 
-func newDefaultPushConfig(c cid.Cid, dc ffs.DefaultConfig) PushConfig {
+func newDefaultPushConfig(c cid.Cid, dc ffs.StorageConfig) PushConfig {
 	return PushConfig{
 		Config: newDefaultCidConfig(c, dc),
 	}
 }
 
-func newDefaultCidConfig(c cid.Cid, dc ffs.DefaultConfig) ffs.CidConfig {
+func newDefaultCidConfig(c cid.Cid, dc ffs.StorageConfig) ffs.CidConfig {
 	return ffs.CidConfig{
 		Cid:  c,
 		Hot:  dc.Hot,

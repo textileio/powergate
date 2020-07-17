@@ -93,15 +93,15 @@ type Job struct {
 	DealErrors []DealError
 }
 
-// DefaultConfig contains a default storage configuration for an Api instance.
-type DefaultConfig struct {
+// StorageConfig contains a default storage configuration for an Api instance.
+type StorageConfig struct {
 	Hot        HotConfig
 	Cold       ColdConfig
 	Repairable bool
 }
 
-// Validate validates a default Cid configuration.
-func (dc DefaultConfig) Validate() error {
+// Validate validates a StorageConfig.
+func (dc StorageConfig) Validate() error {
 	if err := dc.Hot.Validate(); err != nil {
 		return err
 	}

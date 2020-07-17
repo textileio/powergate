@@ -51,7 +51,7 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.DefaultConfig) (*API, error) {
+func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.StorageConfig) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 
 	addr, err := wm.NewAddress(ctx, defaultAddressType)
@@ -115,8 +115,8 @@ func (i *API) ID() ffs.APIID {
 	return i.cfg.ID
 }
 
-// DefaultConfig returns the DefaultConfig.
-func (i *API) DefaultConfig() ffs.DefaultConfig {
+// DefaultConfig returns the default StorageConfig.
+func (i *API) DefaultConfig() ffs.StorageConfig {
 	return i.cfg.DefaultConfig
 }
 
@@ -139,8 +139,8 @@ func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
 	return conf, nil
 }
 
-// SetDefaultConfig sets a new default CidConfig.
-func (i *API) SetDefaultConfig(c ffs.DefaultConfig) error {
+// SetDefaultConfig sets a new default StorageConfig.
+func (i *API) SetDefaultConfig(c ffs.StorageConfig) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	if err := c.Validate(); err != nil {

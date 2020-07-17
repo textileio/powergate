@@ -50,7 +50,7 @@ message CidConfig {
    bool repairable = 4;
 }
 
-message DefaultConfig {
+message StorageConfig {
    HotConfig hot = 1;
    ColdConfig cold = 2;
    bool repairable = 3;
@@ -102,7 +102,7 @@ message BalanceInfo {
 
 message InstanceInfo {
    string id = 1;
-   DefaultConfig default_config = 2;
+   StorageConfig default_config = 2;
    repeated BalanceInfo balances = 3;
    repeated string pins = 4;
 }
@@ -236,7 +236,7 @@ message DefaultConfigRequest {
 }
 
 message DefaultConfigResponse {
-   DefaultConfig default_config = 1;
+   StorageConfig default_config = 1;
 }
 
 message NewAddrRequest {
@@ -266,7 +266,7 @@ message GetCidConfigResponse {
 }
 
 message SetDefaultConfigRequest {
-   DefaultConfig config = 1;
+   StorageConfig config = 1;
 }
 
 message SetDefaultConfigResponse {
