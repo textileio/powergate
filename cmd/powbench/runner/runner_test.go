@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/client"
 	"github.com/textileio/powergate/health"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -76,7 +75,7 @@ func spinup(t *testing.T) *client.Client {
 	limit := 30
 	retries := 0
 	for retries < limit {
-		c, err = client.NewClient(lotusAddr, grpc.WithInsecure())
+		c, err = client.NewClient(lotusAddr)
 		require.NoError(t, err)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()

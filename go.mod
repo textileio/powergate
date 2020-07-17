@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
-	github.com/AlecAivazis/survey/v2 v2.0.7
 	github.com/caarlos0/spin v1.1.0
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
