@@ -26,7 +26,13 @@ setuptools.setup(
 )
 EOF
 
-./scripts/protoc_gen_plugin.bash --proto_path=$PROTOS_PATH --plugin_name=python --plugin_out=$SRC_PATH
+ABS_OUT_PATH="$( cd $OUT_PATH >/dev/null 2>&1 ; pwd -P )"
+ABS_PROTOS_PATH="$( cd $PROTOS_PATH >/dev/null 2>&1 ; pwd -P )"
+
+PROTOS=$(find $ABS_PROTOS_PATH -path $ABS_OUT_PATH -prune -o -iname "*.proto" -print)
+
+python3 -m pip install grpcio-tools 
+python3 -m grpc_tools.protoc -I$ABS_PROTOS_PATH --python_out=$SRC_PATH --grpc_python_out=$SRC_PATH $PROTOS
 
 find $SRC_PATH -type d -exec touch {}/__init__.py \;
 
