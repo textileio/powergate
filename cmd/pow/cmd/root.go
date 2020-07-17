@@ -1,18 +1,14 @@
 package cmd
 
 import (
-	"crypto/tls"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	client "github.com/textileio/powergate/api/client"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 var (
@@ -31,23 +27,9 @@ var (
 
 			target := viper.GetString("serverAddress")
 
-			var creds credentials.TransportCredentials
-			if strings.Contains(target, "443") {
-				creds = credentials.NewTLS(&tls.Config{})
-			}
-
-			var opts []grpc.DialOption
-			if creds != nil {
-				opts = append(opts, grpc.WithTransportCredentials(creds))
-			} else {
-				opts = append(opts, grpc.WithInsecure())
-			}
-
-			auth := client.TokenAuth{}
-			opts = append(opts, grpc.WithPerRPCCredentials(auth))
 			ma, err := multiaddr.NewMultiaddr(target)
 			checkErr(err)
-			fcClient, err = client.NewClient(ma, opts...)
+			fcClient, err = client.NewClient(ma)
 			checkErr(err)
 		},
 	}

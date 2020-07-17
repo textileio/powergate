@@ -2,6 +2,8 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
+	"strings"
 
 	"github.com/multiformats/go-multiaddr"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
@@ -14,6 +16,7 @@ import (
 	"github.com/textileio/powergate/util"
 	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // Client provides the client api.
@@ -55,11 +58,28 @@ func (t TokenAuth) RequireTransportSecurity() bool {
 }
 
 // NewClient creates a client.
-func NewClient(ma multiaddr.Multiaddr, opts ...grpc.DialOption) (*Client, error) {
+func NewClient(ma multiaddr.Multiaddr, optsOverrides ...grpc.DialOption) (*Client, error) {
 	addr, err := util.TCPAddrFromMultiAddr(ma)
 	if err != nil {
 		return nil, err
 	}
+
+	var creds credentials.TransportCredentials
+	if strings.Contains(addr, "443") {
+		creds = credentials.NewTLS(&tls.Config{})
+	}
+
+	var opts []grpc.DialOption
+	if creds != nil {
+		opts = append(opts, grpc.WithTransportCredentials(creds))
+	} else {
+		opts = append(opts, grpc.WithInsecure())
+	}
+
+	auth := TokenAuth{}
+	opts = append(opts, grpc.WithPerRPCCredentials(auth))
+	opts = append(opts, optsOverrides...)
+
 	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return nil, err
