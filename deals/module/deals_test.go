@@ -44,15 +44,20 @@ func TestStore(t *testing.T) {
 	numMiners := []int{1, 2}
 	for _, nm := range numMiners {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
-			client, _, _ := tests.CreateLocalDevnet(t, nm)
+			client, addr, _ := tests.CreateLocalDevnet(t, nm)
 			m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
-			_, pcids, err := storeMultiMiner(m, client, nm, randomBytes(600))
+			cid, pcids, err := storeMultiMiner(m, client, nm, randomBytes(600))
 			checkErr(t, err)
-			pending, err := m.ListStorageDealRecords(deals.WithIncludePending(true))
+			pending, err := m.ListStorageDealRecords(
+				deals.WithIncludePending(true),
+				deals.WithDataCids(cid.String()),
+				deals.WithAscending(true),
+				deals.WithFromAddrs(addr.String()),
+			)
 			require.Nil(t, err)
 			require.Len(t, pending, nm)
-			final, err := m.ListStorageDealRecords()
+			final, err := m.ListStorageDealRecords(deals.WithIncludeFinal(true))
 			require.Nil(t, err)
 			require.Empty(t, final)
 			err = waitForDealComplete(client, pcids)
@@ -61,12 +66,18 @@ func TestStore(t *testing.T) {
 			pending, err = m.ListStorageDealRecords(deals.WithIncludePending(true))
 			require.Nil(t, err)
 			require.Empty(t, pending)
-			final, err = m.ListStorageDealRecords(deals.WithIncludeFinal(true))
+			final, err = m.ListStorageDealRecords(
+				deals.WithIncludeFinal(true),
+				deals.WithDataCids(cid.String()),
+				deals.WithAscending(true),
+				deals.WithFromAddrs(addr.String()),
+			)
 			require.Nil(t, err)
 			require.Len(t, final, nm)
 		})
 	}
 }
+
 func TestRetrieve(t *testing.T) {
 	numMiners := []int{1} // go-fil-markets: doesn't support remembering more than 1 miner
 	data := randomBytes(600)

@@ -275,7 +275,7 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 		}
 		for _, record := range combined {
 			_, inFromAddrsFilter := fromAddrsFilter[record.Addr]
-			_, inDataCidsFilter := dataCidsFilter[record.DealInfo.PieceCID.String()]
+			_, inDataCidsFilter := dataCidsFilter[record.RootCid.String()]
 			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
 			includeViaDataCids := len(c.DataCids) == 0 || inDataCidsFilter
 			if includeViaFromAddrs && includeViaDataCids {
