@@ -42,6 +42,7 @@ var (
 			},
 		},
 	}
+	// ToDo: StorageConfig
 	dsDefaultStorageConfigKey = datastore.NewKey("defaultcidconfig")
 )
 

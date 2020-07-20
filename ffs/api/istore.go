@@ -13,6 +13,7 @@ import (
 
 var (
 	dsDefaultConfig = datastore.NewKey("defaultconfig")
+	// ToDo: StorageConfig
 	dsStorageConfig = datastore.NewKey("cidconfig")
 )
 
