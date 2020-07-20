@@ -42,8 +42,7 @@ var (
 			},
 		},
 	}
-	// ToDo: StorageConfig
-	dsDefaultStorageConfigKey = datastore.NewKey("defaultcidconfig")
+	dsDefaultStorageConfigKey = datastore.NewKey("defaultstorageconfig")
 )
 
 // Manager creates Api instances, or loads existing ones them from an auth-token.

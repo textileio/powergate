@@ -13,9 +13,8 @@ import (
 )
 
 var (
-	dsDefaultConfig = datastore.NewKey("defaultconfig")
-	// ToDo: StorageConfig
-	dsStorageConfig = datastore.NewKey("cidconfig")
+	dsDefaultStorageConfig = datastore.NewKey("defaultstorageconfig")
+	dsStorageConfig        = datastore.NewKey("storageconfig")
 )
 
 type instanceStore struct {
@@ -34,14 +33,14 @@ func (s *instanceStore) putConfig(c Config) error {
 	if err != nil {
 		return fmt.Errorf("marshaling instance config to datastore: %s", err)
 	}
-	if err := s.ds.Put(dsDefaultConfig, buf); err != nil {
+	if err := s.ds.Put(dsDefaultStorageConfig, buf); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
 	return nil
 }
 
 func (s *instanceStore) getConfig() (Config, error) {
-	buf, err := s.ds.Get(dsDefaultConfig)
+	buf, err := s.ds.Get(dsDefaultStorageConfig)
 	if err != nil {
 		if err == datastore.ErrNotFound {
 			return Config{}, ErrNotFound
