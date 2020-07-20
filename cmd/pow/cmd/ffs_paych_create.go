@@ -7,6 +7,7 @@ import (
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/textileio/powergate/util"
 )
 
 func init() {
@@ -39,6 +40,6 @@ var ffsPaychCreateCmd = &cobra.Command{
 		s.Stop()
 		checkErr(err)
 
-		Success("Created payment channel with address %v and message cid %v", chInfo.Addr, msgCid.String())
+		Success("Created payment channel with address %v and message cid %v", chInfo.Addr, util.CidToString(msgCid))
 	},
 }

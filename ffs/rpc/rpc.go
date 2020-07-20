@@ -8,12 +8,12 @@ import (
 	"math/big"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
-	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -140,14 +140,14 @@ func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigR
 	if err != nil {
 		return nil, err
 	}
-	c, err := cid.Decode(req.Cid)
+	c, err := util.CidFromString(req.Cid)
 	if err != nil {
 		return nil, err
 	}
 	config := i.GetDefaultCidConfig(c)
 	return &GetDefaultCidConfigResponse{
 		Config: &CidConfig{
-			Cid:        config.Cid.String(),
+			Cid:        util.CidToString(config.Cid),
 			Hot:        toRPCHotConfig(config.Hot),
 			Cold:       toRPCColdConfig(config.Cold),
 			Repairable: config.Repairable,
@@ -161,7 +161,7 @@ func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetC
 	if err != nil {
 		return nil, err
 	}
-	c, err := cid.Decode(req.Cid)
+	c, err := util.CidFromString(req.Cid)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetC
 	}
 	return &GetCidConfigResponse{
 		Config: &CidConfig{
-			Cid:        config.Cid.String(),
+			Cid:        util.CidToString(config.Cid),
 			Hot:        toRPCHotConfig(config.Hot),
 			Cold:       toRPCColdConfig(config.Cold),
 			Repairable: config.Repairable,
@@ -203,7 +203,7 @@ func (s *RPC) Show(ctx context.Context, req *ShowRequest) (*ShowResponse, error)
 		return nil, err
 	}
 
-	c, err := cid.Decode(req.GetCid())
+	c, err := util.CidFromString(req.GetCid())
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +255,7 @@ func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoResponse, error)
 		},
 	}
 	for i, p := range info.Pins {
-		reply.Info.Pins[i] = p.String()
+		reply.Info.Pins[i] = util.CidToString(p)
 	}
 	return reply, nil
 }
@@ -310,7 +310,7 @@ func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPCService_WatchJobsServer) e
 			Job: &Job{
 				Id:         job.ID.String(),
 				ApiId:      job.APIID.String(),
-				Cid:        job.Cid.String(),
+				Cid:        util.CidToString(job.Cid),
 				Status:     status,
 				ErrCause:   job.ErrCause,
 				DealErrors: toRPCDealErrors(job.DealErrors),
@@ -339,7 +339,7 @@ func (s *RPC) WatchLogs(req *WatchLogsRequest, srv RPCService_WatchLogsServer) e
 		opts = append(opts, api.WithJidFilter(ffs.JobID(req.Jid)))
 	}
 
-	c, err := cid.Decode(req.Cid)
+	c, err := util.CidFromString(req.Cid)
 	if err != nil {
 		return err
 	}
@@ -351,7 +351,7 @@ func (s *RPC) WatchLogs(req *WatchLogsRequest, srv RPCService_WatchLogsServer) e
 	for l := range ch {
 		reply := &WatchLogsResponse{
 			LogEntry: &LogEntry{
-				Cid:  c.String(),
+				Cid:  util.CidToString(c),
 				Jid:  l.Jid.String(),
 				Time: l.Timestamp.Unix(),
 				Msg:  l.Msg,
@@ -375,11 +375,11 @@ func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceRespons
 		return nil, err
 	}
 
-	c1, err := cid.Decode(req.Cid1)
+	c1, err := util.CidFromString(req.Cid1)
 	if err != nil {
 		return nil, err
 	}
-	c2, err := cid.Decode(req.Cid2)
+	c2, err := util.CidFromString(req.Cid2)
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +399,7 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 		return nil, err
 	}
 
-	c, err := cid.Decode(req.Cid)
+	c, err := util.CidFromString(req.Cid)
 	if err != nil {
 		return nil, err
 	}
@@ -407,7 +407,7 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 	options := []api.PushConfigOption{}
 
 	if req.HasConfig {
-		cid, err := cid.Decode(req.Config.Cid)
+		cid, err := util.CidFromString(req.Config.Cid)
 		if err != nil {
 			return nil, err
 		}
@@ -441,7 +441,7 @@ func (s *RPC) Remove(ctx context.Context, req *RemoveRequest) (*RemoveResponse, 
 		return nil, err
 	}
 
-	c, err := cid.Decode(req.Cid)
+	c, err := util.CidFromString(req.Cid)
 	if err != nil {
 		return nil, err
 	}
@@ -459,7 +459,7 @@ func (s *RPC) Get(req *GetRequest, srv RPCService_GetServer) error {
 	if err != nil {
 		return err
 	}
-	c, err := cid.Decode(req.GetCid())
+	c, err := util.CidFromString(req.GetCid())
 	if err != nil {
 		return err
 	}
@@ -528,7 +528,7 @@ func (s *RPC) AddToHot(srv RPCService_AddToHotServer) error {
 		return fmt.Errorf("adding data to hot storage: %s", err)
 	}
 
-	return srv.SendAndClose(&AddToHotResponse{Cid: c.String()})
+	return srv.SendAndClose(&AddToHotResponse{Cid: util.CidToString(c)})
 }
 
 // ListPayChannels lists all pay channels.
@@ -561,7 +561,7 @@ func (s *RPC) CreatePayChannel(ctx context.Context, req *CreatePayChannelRequest
 	respInfo := toRPCPaychInfo(info)
 	return &CreatePayChannelResponse{
 		PayChannel:        respInfo,
-		ChannelMessageCid: cid.String(),
+		ChannelMessageCid: util.CidToString(cid),
 	}, nil
 }
 
@@ -689,7 +689,7 @@ func toRPCDealErrors(des []ffs.DealError) []*DealError {
 	for i, de := range des {
 		var strProposalCid string
 		if de.ProposalCid.Defined() {
-			strProposalCid = de.ProposalCid.String()
+			strProposalCid = util.CidToString(de.ProposalCid)
 		}
 		ret[i] = &DealError{
 			ProposalCid: strProposalCid,
@@ -745,7 +745,7 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 	cidInfo := &CidInfo{
 		JobId:   info.JobID.String(),
-		Cid:     info.Cid.String(),
+		Cid:     util.CidToString(info.Cid),
 		Created: info.Created.UnixNano(),
 		Hot: &HotInfo{
 			Enabled: info.Hot.Enabled,
@@ -757,7 +757,7 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 		Cold: &ColdInfo{
 			Enabled: info.Cold.Enabled,
 			Filecoin: &FilInfo{
-				DataCid:   info.Cold.Filecoin.DataCid.String(),
+				DataCid:   util.CidToString(info.Cold.Filecoin.DataCid),
 				Size:      info.Cold.Filecoin.Size,
 				Proposals: make([]*FilStorage, len(info.Cold.Filecoin.Proposals)),
 			},
@@ -766,7 +766,7 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 	for i, p := range info.Cold.Filecoin.Proposals {
 		var strProposalCid string
 		if p.ProposalCid.Defined() {
-			strProposalCid = p.ProposalCid.String()
+			strProposalCid = util.CidToString(p.ProposalCid)
 		}
 		cidInfo.Cold.Filecoin.Proposals[i] = &FilStorage{
 			ProposalCid:     strProposalCid,
@@ -816,16 +816,16 @@ func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*StorageDealRe
 	ret := make([]*StorageDealRecord, len(records))
 	for i, r := range records {
 		ret[i] = &StorageDealRecord{
-			RootCid: r.RootCid.String(),
+			RootCid: util.CidToString(r.RootCid),
 			Addr:    r.Addr,
 			Time:    r.Time,
 			Pending: r.Pending,
 			DealInfo: &StorageDealInfo{
-				ProposalCid:     r.DealInfo.ProposalCid.String(),
+				ProposalCid:     util.CidToString(r.DealInfo.ProposalCid),
 				StateId:         r.DealInfo.StateID,
 				StateName:       r.DealInfo.StateName,
 				Miner:           r.DealInfo.Miner,
-				PieceCid:        r.DealInfo.PieceCID.String(),
+				PieceCid:        util.CidToString(r.DealInfo.PieceCID),
 				Size:            r.DealInfo.Size,
 				PricePerEpoch:   r.DealInfo.PricePerEpoch,
 				StartEpoch:      r.DealInfo.StartEpoch,
@@ -846,7 +846,7 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*Retrieval
 			Addr: r.Addr,
 			Time: r.Time,
 			DealInfo: &RetrievalDealInfo{
-				RootCid:                 r.DealInfo.RootCid.String(),
+				RootCid:                 util.CidToString(r.DealInfo.RootCid),
 				Size:                    r.DealInfo.Size,
 				MinPrice:                r.DealInfo.MinPrice,
 				PaymentInterval:         r.DealInfo.PaymentInterval,

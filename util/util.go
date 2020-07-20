@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ipfs/go-cid"
 	ma "github.com/multiformats/go-multiaddr"
 	dns "github.com/multiformats/go-multiaddr-dns"
 )
@@ -14,6 +15,8 @@ var (
 	// Defined at the Filecoin spec level.
 	AvgBlockTime = time.Second * 30
 )
+
+const cidUndef = "CID_UNDEF"
 
 // TCPAddrFromMultiAddr converts a multiaddress to a string representation of a tcp address.
 func TCPAddrFromMultiAddr(maddr ma.Multiaddr) (string, error) {
@@ -65,4 +68,20 @@ func MustParseAddr(str string) ma.Multiaddr {
 		panic(err)
 	}
 	return addr
+}
+
+// CidToString converts a cid to string, representing cid.Undef as an empty string.
+func CidToString(c cid.Cid) string {
+	if c == cid.Undef {
+		return cidUndef
+	}
+	return c.String()
+}
+
+// CidFromString converts a string to a cid assuming that an empty string is cid.Undef.
+func CidFromString(c string) (cid.Cid, error) {
+	if c == "b" || c == cidUndef {
+		return cid.Undef, nil
+	}
+	return cid.Decode(c)
 }

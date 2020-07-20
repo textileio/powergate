@@ -11,6 +11,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -161,15 +162,15 @@ func (s *store) getRetrievals() ([]deals.RetrievalDealRecord, error) {
 }
 
 func makePendingDealKey(c cid.Cid) datastore.Key {
-	return dsBaseStoragePending.ChildString(c.String())
+	return dsBaseStoragePending.ChildString(util.CidToString(c))
 }
 
 func makeFinalDealKey(c cid.Cid) datastore.Key {
-	return dsBaseStorageFinal.ChildString(c.String())
+	return dsBaseStorageFinal.ChildString(util.CidToString(c))
 }
 
 func makeRetrievalKey(rr deals.RetrievalDealRecord) datastore.Key {
-	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.Addr, rr.DealInfo.Miner, rr.DealInfo.RootCid.String())
+	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.Addr, rr.DealInfo.Miner, util.CidToString(rr.DealInfo.RootCid))
 	sum := md5.Sum([]byte(str))
 	return dsBaseRetrieval.ChildString(string(sum[:]))
 }

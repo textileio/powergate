@@ -11,6 +11,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/rpc"
+	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -51,7 +52,7 @@ func WithCidConfig(c ffs.CidConfig) PushConfigOption {
 	return func(r *rpc.PushConfigRequest) {
 		r.HasConfig = true
 		r.Config = &rpc.CidConfig{
-			Cid:  c.Cid.String(),
+			Cid:  util.CidToString(c.Cid),
 			Hot:  toRPCHotConfig(c.Hot),
 			Cold: toRPCColdConfig(c.Cold),
 		}
@@ -229,11 +230,11 @@ func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 
 // GetDefaultCidConfig returns a CidConfig built from the default storage config and prepped for the provided cid.
 func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig, error) {
-	res, err := f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: c.String()})
+	res, err := f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: util.CidToString(c)})
 	if err != nil {
 		return ffs.CidConfig{}, err
 	}
-	resCid, err := cid.Decode(res.Config.Cid)
+	resCid, err := util.CidFromString(res.Config.Cid)
 	if err != nil {
 		return ffs.CidConfig{}, err
 	}
@@ -268,7 +269,7 @@ func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig
 
 // GetCidConfig gets the current config for a cid.
 func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigResponse, error) {
-	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: c.String()})
+	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: util.CidToString(c)})
 }
 
 // SetDefaultConfig sets the default storage config.
@@ -287,7 +288,7 @@ func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.DefaultConfig) er
 // Show returns information about the current storage state of a cid.
 func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowResponse, error) {
 	return f.client.Show(ctx, &rpc.ShowRequest{
-		Cid: c.String(),
+		Cid: util.CidToString(c),
 	})
 }
 
@@ -312,7 +313,7 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 
 	pins := make([]cid.Cid, len(res.Info.Pins))
 	for i, pin := range res.Info.Pins {
-		c, err := cid.Decode(pin)
+		c, err := util.CidFromString(pin)
 		if err != nil {
 			return api.InstanceInfo{}, err
 		}
@@ -386,7 +387,7 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 				break
 			}
 
-			c, err := cid.Decode(reply.Job.Cid)
+			c, err := util.CidFromString(reply.Job.Cid)
 			if err != nil {
 				ch <- JobEvent{Err: err}
 				close(ch)
@@ -430,7 +431,7 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 // Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
 func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
-	resp, err := f.client.Replace(ctx, &rpc.ReplaceRequest{Cid1: c1.String(), Cid2: c2.String()})
+	resp, err := f.client.Replace(ctx, &rpc.ReplaceRequest{Cid1: util.CidToString(c1), Cid2: util.CidToString(c2)})
 	if err != nil {
 		return ffs.EmptyJobID, err
 	}
@@ -439,7 +440,7 @@ func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, e
 
 // PushConfig push a new configuration for the Cid in the Hot and Cold layers.
 func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
-	req := &rpc.PushConfigRequest{Cid: c.String()}
+	req := &rpc.PushConfigRequest{Cid: util.CidToString(c)}
 	for _, opt := range opts {
 		opt(req)
 	}
@@ -455,14 +456,14 @@ func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOptio
 // Remove removes a Cid from being tracked as an active storage. The Cid should have
 // both Hot and Cold storage disabled, if that isn't the case it will return ErrActiveInStorage.
 func (f *FFS) Remove(ctx context.Context, c cid.Cid) error {
-	_, err := f.client.Remove(ctx, &rpc.RemoveRequest{Cid: c.String()})
+	_, err := f.client.Remove(ctx, &rpc.RemoveRequest{Cid: util.CidToString(c)})
 	return err
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.
 func (f *FFS) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	stream, err := f.client.Get(ctx, &rpc.GetRequest{
-		Cid: c.String(),
+		Cid: util.CidToString(c),
 	})
 	if err != nil {
 		return nil, err
@@ -493,7 +494,7 @@ func (f *FFS) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 // and will continue to send messages until the context is canceled. The provided channel
 // is owned by the method and must not be closed.
 func (f *FFS) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts ...WatchLogsOption) error {
-	r := &rpc.WatchLogsRequest{Cid: c.String()}
+	r := &rpc.WatchLogsRequest{Cid: util.CidToString(c)}
 	for _, opt := range opts {
 		opt(r)
 	}
@@ -515,7 +516,7 @@ func (f *FFS) WatchLogs(ctx context.Context, ch chan<- LogEvent, c cid.Cid, opts
 				break
 			}
 
-			cid, err := cid.Decode(reply.LogEntry.Cid)
+			cid, err := util.CidFromString(reply.LogEntry.Cid)
 			if err != nil {
 				ch <- LogEvent{Err: err}
 				close(ch)
@@ -581,7 +582,7 @@ func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		return nil, err
 	}
 
-	cid, err := cid.Decode(reply.GetCid())
+	cid, err := util.CidFromString(reply.GetCid())
 	if err != nil {
 		return nil, err
 	}
@@ -612,7 +613,7 @@ func (f *FFS) CreatePayChannel(ctx context.Context, from string, to string, amou
 	if err != nil {
 		return ffs.PaychInfo{}, cid.Undef, err
 	}
-	messageCid, err := cid.Decode(resp.ChannelMessageCid)
+	messageCid, err := util.CidFromString(resp.ChannelMessageCid)
 	if err != nil {
 		return ffs.PaychInfo{}, cid.Undef, err
 	}
@@ -694,7 +695,7 @@ func fromRPCDealErrors(des []*rpc.DealError) ([]ffs.DealError, error) {
 		var propCid cid.Cid
 		if de.ProposalCid != "" && de.ProposalCid != "b" {
 			var err error
-			propCid, err = cid.Decode(de.ProposalCid)
+			propCid, err = util.CidFromString(de.ProposalCid)
 			if err != nil {
 				return nil, fmt.Errorf("proposal cid is invalid")
 			}
@@ -731,7 +732,7 @@ func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.Storag
 		if rpcRecord.DealInfo == nil {
 			continue
 		}
-		rootCid, err := cid.Decode(rpcRecord.RootCid)
+		rootCid, err := util.CidFromString(rpcRecord.RootCid)
 		if err != nil {
 			return nil, err
 		}
@@ -741,11 +742,11 @@ func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.Storag
 			Time:    rpcRecord.Time,
 			Pending: rpcRecord.Pending,
 		}
-		proposalCid, err := cid.Decode(rpcRecord.DealInfo.ProposalCid)
+		proposalCid, err := util.CidFromString(rpcRecord.DealInfo.ProposalCid)
 		if err != nil {
 			return nil, err
 		}
-		pieceCid, err := cid.Decode(rpcRecord.DealInfo.PieceCid)
+		pieceCid, err := util.CidFromString(rpcRecord.DealInfo.PieceCid)
 		if err != nil {
 			return nil, err
 		}
@@ -778,7 +779,7 @@ func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.Re
 			Addr: rpcRecord.Addr,
 			Time: rpcRecord.Time,
 		}
-		rootCid, err := cid.Decode(rpcRecord.DealInfo.RootCid)
+		rootCid, err := util.CidFromString(rpcRecord.DealInfo.RootCid)
 		if err != nil {
 			return nil, err
 		}

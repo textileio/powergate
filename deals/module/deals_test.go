@@ -51,7 +51,7 @@ func TestStore(t *testing.T) {
 			checkErr(t, err)
 			pending, err := m.ListStorageDealRecords(
 				deals.WithIncludePending(true),
-				deals.WithDataCids(cid.String()),
+				deals.WithDataCids(util.CidToString(cid)),
 				deals.WithAscending(true),
 				deals.WithFromAddrs(addr.String()),
 			)
@@ -68,7 +68,7 @@ func TestStore(t *testing.T) {
 			require.Empty(t, pending)
 			final, err = m.ListStorageDealRecords(
 				deals.WithIncludeFinal(true),
-				deals.WithDataCids(cid.String()),
+				deals.WithDataCids(util.CidToString(cid)),
 				deals.WithAscending(true),
 				deals.WithFromAddrs(addr.String()),
 			)

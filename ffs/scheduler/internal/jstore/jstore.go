@@ -12,6 +12,7 @@ import (
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -342,7 +343,7 @@ func (s *Store) loadExecutingJobs() error {
 }
 
 func makeStartedDealsKey(c cid.Cid) datastore.Key {
-	return dsBaseStartedDeals.ChildString(c.String())
+	return dsBaseStartedDeals.ChildString(util.CidToString(c))
 }
 
 func makeKey(jid ffs.JobID) datastore.Key {

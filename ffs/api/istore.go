@@ -9,6 +9,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -112,7 +113,7 @@ func (s *instanceStore) getCids() ([]cid.Cid, error) {
 	var cids []cid.Cid
 	for r := range res.Next() {
 		strCid := datastore.RawKey(r.Key).Name()
-		c, err := cid.Decode(strCid)
+		c, err := util.CidFromString(strCid)
 		if err != nil {
 			return nil, fmt.Errorf("decoding cid: %s", err)
 		}
@@ -122,5 +123,5 @@ func (s *instanceStore) getCids() ([]cid.Cid, error) {
 }
 
 func makeCidConfigKey(c cid.Cid) datastore.Key {
-	return dsCidConfig.ChildString(c.String())
+	return dsCidConfig.ChildString(util.CidToString(c))
 }

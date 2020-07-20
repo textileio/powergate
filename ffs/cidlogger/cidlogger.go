@@ -14,6 +14,7 @@ import (
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -174,5 +175,5 @@ func makeKey(c cid.Cid, t int64) datastore.Key {
 }
 
 func makeCidKey(c cid.Cid) datastore.Key {
-	return datastore.NewKey(c.String())
+	return datastore.NewKey(util.CidToString(c))
 }

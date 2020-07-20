@@ -9,6 +9,7 @@ import (
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/textileio/powergate/util"
 )
 
 func init() {
@@ -56,7 +57,7 @@ var ffsInfoCmd = &cobra.Command{
 		Message("Pinned cids:")
 		data = make([][]string, len(info.Pins))
 		for i, cid := range info.Pins {
-			data[i] = []string{cid.String()}
+			data[i] = []string{util.CidToString(cid)}
 		}
 		RenderTable(os.Stdout, []string{"cid"}, data)
 	},
