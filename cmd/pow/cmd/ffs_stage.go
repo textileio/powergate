@@ -9,6 +9,7 @@ import (
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/textileio/powergate/util"
 )
 
 func init() {
@@ -42,6 +43,6 @@ var ffsStageCmd = &cobra.Command{
 		cid, err := fcClient.FFS.Stage(authCtx(ctx), f)
 		s.Stop()
 		checkErr(err)
-		Success("Cached file in FFS hot storage with cid: %s", cid.String())
+		Success("Cached file in FFS hot storage with cid: %s", util.CidToString(*cid))
 	},
 }

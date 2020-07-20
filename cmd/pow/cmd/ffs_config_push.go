@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/util"
 )
 
 func init() {
@@ -87,7 +88,7 @@ var ffsConfigPushCmd = &cobra.Command{
 		jid, err := fcClient.FFS.PushStorageConfig(authCtx(ctx), c, options...)
 		s.Stop()
 		checkErr(err)
-		Success("Pushed cid storage config for %s to FFS with job id: %v", c.String(), jid.String())
+		Success("Pushed cid storage config for %s to FFS with job id: %v", util.CidToString(c), jid.String())
 
 		if viper.GetBool("watch") {
 			watchJobIds(jid)

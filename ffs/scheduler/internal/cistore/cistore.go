@@ -8,6 +8,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -59,5 +60,5 @@ func (s *Store) Put(ci ffs.CidInfo) error {
 }
 
 func makeKey(c cid.Cid) datastore.Key {
-	return datastore.NewKey(c.String())
+	return datastore.NewKey(util.CidToString(c))
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
+	"github.com/textileio/powergate/util"
 )
 
 func init() {
@@ -59,7 +60,7 @@ var ffsrRetrievalsCmd = &cobra.Command{
 					t.Format("01/02/06 15:04 MST"),
 					r.Addr,
 					r.DealInfo.Miner,
-					r.DealInfo.RootCid.String(),
+					util.CidToString(r.DealInfo.RootCid),
 					strconv.Itoa(int(r.DealInfo.Size)),
 				}
 			}
