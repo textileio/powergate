@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
+	"github.com/textileio/powergate/util"
 )
 
 func init() {
@@ -75,7 +76,7 @@ var ffsStorageCmd = &cobra.Command{
 					r.DealInfo.Miner,
 					strconv.Itoa(int(r.DealInfo.DealID)),
 					strconv.Itoa(int(r.DealInfo.PricePerEpoch)),
-					r.DealInfo.PieceCID.String(),
+					util.CidToString(r.DealInfo.PieceCID),
 					strconv.Itoa(int(r.DealInfo.Size)),
 					strconv.Itoa(int(r.DealInfo.Duration)),
 				}

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/util"
 )
 
 func TestEnqueue(t *testing.T) {
@@ -131,7 +132,7 @@ func TestStartedDeals(t *testing.T) {
 }
 
 func createJob() ffs.Job {
-	c, err := cid.Decode("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u")
+	c, err := util.CidFromString("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u")
 	if err != nil {
 		panic(err)
 	}

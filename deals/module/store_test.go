@@ -4,26 +4,26 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ipfs/go-cid"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/util"
 )
 
 func TestPutPendingDeal(t *testing.T) {
 	s := newStore(tests.NewTxMapDatastore())
 
-	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	c1, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	err = s.putPendingDeal(deals.StorageDealRecord{Addr: "a", Time: time.Now().Unix(), Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c1}})
 	require.Nil(t, err)
 
-	c2, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
+	c2, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
 	require.Nil(t, err)
 	err = s.putPendingDeal(deals.StorageDealRecord{Addr: "b", Time: time.Now().Unix(), Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c2}})
 	require.Nil(t, err)
 
-	c3, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
+	c3, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
 	require.Nil(t, err)
 	err = s.putPendingDeal(deals.StorageDealRecord{Addr: "c", Time: time.Now().Unix(), Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c3}})
 	require.Nil(t, err)
@@ -34,17 +34,17 @@ func TestGetPendingDeals(t *testing.T) {
 
 	now := time.Now().Unix()
 
-	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	c1, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	err = s.putPendingDeal(deals.StorageDealRecord{Addr: "a", Time: now, Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c1}})
 	require.Nil(t, err)
 
-	c2, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
+	c2, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
 	require.Nil(t, err)
 	err = s.putPendingDeal(deals.StorageDealRecord{Addr: "b", Time: now + 1, Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c2}})
 	require.Nil(t, err)
 
-	c3, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
+	c3, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
 	require.Nil(t, err)
 	err = s.putPendingDeal(deals.StorageDealRecord{Addr: "c", Time: now + 3, Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c3}})
 	require.Nil(t, err)
@@ -57,7 +57,7 @@ func TestGetPendingDeals(t *testing.T) {
 func TestDeletePendingDeal(t *testing.T) {
 	s := newStore(tests.NewTxMapDatastore())
 
-	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	c1, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	dr := deals.StorageDealRecord{Addr: "a", Time: time.Now().Unix(), Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c1}}
 	err = s.putPendingDeal(dr)
@@ -78,7 +78,7 @@ func TestDeletePendingDeal(t *testing.T) {
 func TestPutDealRecord(t *testing.T) {
 	s := newStore(tests.NewTxMapDatastore())
 
-	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	c1, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	pdr := deals.StorageDealRecord{Addr: "a", Time: time.Now().Unix(), Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c1}}
 	err = s.putPendingDeal(pdr)
@@ -103,19 +103,19 @@ func TestGetDealRecords(t *testing.T) {
 
 	now := time.Now().Unix()
 
-	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	c1, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	dr1 := deals.StorageDealRecord{Addr: "a", Time: now, Pending: false, DealInfo: deals.StorageDealInfo{ProposalCid: c1}}
 	err = s.putFinalDeal(dr1)
 	require.Nil(t, err)
 
-	c2, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
+	c2, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
 	require.Nil(t, err)
 	dr2 := deals.StorageDealRecord{Addr: "b", Time: now + 1, Pending: false, DealInfo: deals.StorageDealInfo{ProposalCid: c2}}
 	err = s.putFinalDeal(dr2)
 	require.Nil(t, err)
 
-	c3, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
+	c3, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2F")
 	require.Nil(t, err)
 	dr3 := deals.StorageDealRecord{Addr: "c", Time: now + 2, Pending: false, DealInfo: deals.StorageDealInfo{ProposalCid: c3}}
 	err = s.putFinalDeal(dr3)
@@ -129,7 +129,7 @@ func TestGetDealRecords(t *testing.T) {
 func TestPutRetrievalRecords(t *testing.T) {
 	s := newStore(tests.NewTxMapDatastore())
 	now := time.Now().Unix()
-	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	c1, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	rr := deals.RetrievalDealRecord{Time: now, Addr: "from", DealInfo: deals.RetrievalDealInfo{RootCid: c1, Miner: "miner"}}
 	err = s.putRetrieval(rr)
@@ -140,7 +140,7 @@ func TestGetRetrievalDeals(t *testing.T) {
 	s := newStore(tests.NewTxMapDatastore())
 	now := time.Now().Unix()
 
-	c1, err := cid.Decode("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
+	c1, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	require.Nil(t, err)
 	rr := deals.RetrievalDealRecord{Time: now, Addr: "from", DealInfo: deals.RetrievalDealInfo{RootCid: c1, Miner: "miner"}}
 	err = s.putRetrieval(rr)

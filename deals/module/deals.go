@@ -275,7 +275,7 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 		}
 		for _, record := range combined {
 			_, inFromAddrsFilter := fromAddrsFilter[record.Addr]
-			_, inDataCidsFilter := dataCidsFilter[record.RootCid.String()]
+			_, inDataCidsFilter := dataCidsFilter[util.CidToString(record.RootCid)]
 			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
 			includeViaDataCids := len(c.DataCids) == 0 || inDataCidsFilter
 			if includeViaFromAddrs && includeViaDataCids {
@@ -323,7 +323,7 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) (
 		}
 		for _, record := range ret {
 			_, inFromAddrsFilter := fromAddrsFilter[record.Addr]
-			_, inDataCidsFilter := dataCidsFilter[record.DealInfo.RootCid.String()]
+			_, inDataCidsFilter := dataCidsFilter[util.CidToString(record.DealInfo.RootCid)]
 			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
 			includeViaDataCids := len(dataCidsFilter) == 0 || inDataCidsFilter
 			if includeViaFromAddrs && includeViaDataCids {
@@ -377,7 +377,7 @@ func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 		DealInfo: di,
 		Pending:  true,
 	}
-	log.Infof("storing pending deal record for proposal cid: %s", proposalCid.String())
+	log.Infof("storing pending deal record for proposal cid: %s", util.CidToString(proposalCid))
 	if err := m.store.putPendingDeal(record); err != nil {
 		log.Errorf("storing pending deal: %v", err)
 		return
@@ -388,7 +388,7 @@ func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 	deletePending := func() {
 		if err := m.store.deletePendingDeal(dr.DealInfo.ProposalCid); err != nil {
-			log.Errorf("deleting pending deal for proposal cid %s: %v", dr.DealInfo.ProposalCid.String(), err)
+			log.Errorf("deleting pending deal for proposal cid %s: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 		}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
@@ -400,12 +400,12 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 		return
 	}
 	if info.State != storagemarket.StorageDealActive {
-		log.Infof("pending deal for proposal cid %s isn't active yet, deleting pending deal", dr.DealInfo.ProposalCid.String())
+		log.Infof("pending deal for proposal cid %s isn't active yet, deleting pending deal", util.CidToString(dr.DealInfo.ProposalCid))
 		deletePending()
 	} else {
 		di, err := fromLotusDealInfo(ctx, m.api, info)
 		if err != nil {
-			log.Errorf("converting proposal cid %s from lotus deal info: %v", dr.DealInfo.ProposalCid.String(), err)
+			log.Errorf("converting proposal cid %s from lotus deal info: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 			deletePending()
 			return
 		}
@@ -417,7 +417,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 			Pending:  false,
 		}
 		if err := m.store.putFinalDeal(record); err != nil {
-			log.Errorf("storing proposal cid %s deal record: %v", dr.DealInfo.ProposalCid.String(), err)
+			log.Errorf("storing proposal cid %s deal record: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 		}
 	}
 }
@@ -427,20 +427,20 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 	defer cancel()
 	updates, err := m.Watch(ctx, []cid.Cid{dr.DealInfo.ProposalCid})
 	if err != nil {
-		log.Errorf("watching proposal cid %s: %v", dr.DealInfo.ProposalCid.String(), err)
+		log.Errorf("watching proposal cid %s: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 		return
 	}
 	for {
 		select {
 		case <-ctx.Done():
-			log.Infof("watching proposal cid %s timed out, deleting pending deal", dr.DealInfo.ProposalCid.String())
+			log.Infof("watching proposal cid %s timed out, deleting pending deal", util.CidToString(dr.DealInfo.ProposalCid))
 			if err := m.store.deletePendingDeal(dr.DealInfo.ProposalCid); err != nil {
 				log.Errorf("deleting pending deal: %v", err)
 			}
 			return
 		case info, ok := <-updates:
 			if !ok {
-				log.Errorf("updates channel unexpectedly closed for proposal cid %s", dr.DealInfo.ProposalCid.String())
+				log.Errorf("updates channel unexpectedly closed for proposal cid %s", util.CidToString(dr.DealInfo.ProposalCid))
 				if err := m.store.deletePendingDeal(dr.DealInfo.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
 				}
@@ -454,16 +454,16 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 					DealInfo: info,
 					Pending:  false,
 				}
-				log.Infof("proposal cid %s is active, storing deal record", info.ProposalCid.String())
+				log.Infof("proposal cid %s is active, storing deal record", util.CidToString(info.ProposalCid))
 				if err := m.store.putFinalDeal(record); err != nil {
-					log.Errorf("storing proposal cid %s deal record: %v", info.ProposalCid.String(), err)
+					log.Errorf("storing proposal cid %s deal record: %v", util.CidToString(info.ProposalCid), err)
 				}
 				return
 			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||
 				info.StateID == storagemarket.StorageDealProposalRejected ||
 				info.StateID == storagemarket.StorageDealFailing ||
 				info.StateID == storagemarket.StorageDealNotFound {
-				log.Infof("proposal cid %s failed with state %s, deleting pending deal", info.ProposalCid.String(), storagemarket.DealStates[info.StateID])
+				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.StateID])
 				if err := m.store.deletePendingDeal(info.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
 				}
@@ -502,7 +502,7 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 			currState[pcid] = dinfo
 			newState, err := fromLotusDealInfo(ctx, client, dinfo)
 			if err != nil {
-				return fmt.Errorf("converting proposal cid %s from lotus deal info: %v", pcid.String(), err)
+				return fmt.Errorf("converting proposal cid %s from lotus deal info: %v", util.CidToString(pcid), err)
 			}
 			select {
 			case <-ctx.Done():

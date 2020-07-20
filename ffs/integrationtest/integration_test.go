@@ -227,7 +227,7 @@ func TestShow(t *testing.T) {
 	defer cls()
 
 	t.Run("NotStored", func(t *testing.T) {
-		c, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
+		c, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 		_, err := fapi.Show(c)
 		require.Equal(t, api.ErrNotFound, err)
 	})
@@ -400,7 +400,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 	defer cls()
 
 	t.Run("ShortTime", func(t *testing.T) {
-		cid, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
+		cid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 		config := fapi.GetDefaultCidConfig(cid).WithHotIpfsAddTimeout(1)
 		jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
 		require.Nil(t, err)
@@ -988,7 +988,7 @@ func TestPushCidReplace(t *testing.T) {
 	c1, _ := addRandomFile(t, r, ipfs)
 
 	// Test case that an unknown cid is being replaced
-	nc, _ := cid.Decode("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
+	nc, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 	_, err := fapi.Replace(nc, c1)
 	require.Equal(t, api.ErrReplacedCidNotFound, err)
 
