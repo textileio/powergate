@@ -18,7 +18,7 @@ func TestModule(t *testing.T) {
 
 	t.Run("List", func(t *testing.T) {
 		paychInfos, err := m.List(ctx)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Empty(t, paychInfos)
 	})
 

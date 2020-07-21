@@ -21,7 +21,7 @@ func TestModule(t *testing.T) {
 
 	t.Run("Health", func(t *testing.T) {
 		status, messages, err := m.Check(ctx)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, Ok, status)
 		require.Empty(t, messages)
 	})
