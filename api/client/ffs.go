@@ -44,25 +44,25 @@ func WithAddressType(addressType string) NewAddressOption {
 	}
 }
 
-// PushConfigOption mutates a push request.
-type PushConfigOption func(r *rpc.PushConfigRequest)
+// PushStorageConfigOption mutates a push request.
+type PushStorageConfigOption func(r *rpc.PushStorageConfigRequest)
 
-// WithCidConfig overrides the Api default Cid configuration.
-func WithCidConfig(c ffs.CidConfig) PushConfigOption {
-	return func(r *rpc.PushConfigRequest) {
+// WithStorageConfig overrides the Api default Cid configuration.
+func WithStorageConfig(c ffs.StorageConfig) PushStorageConfigOption {
+	return func(r *rpc.PushStorageConfigRequest) {
 		r.HasConfig = true
-		r.Config = &rpc.CidConfig{
-			Cid:  util.CidToString(c.Cid),
-			Hot:  toRPCHotConfig(c.Hot),
-			Cold: toRPCColdConfig(c.Cold),
+		r.Config = &rpc.StorageConfig{
+			Repairable: c.Repairable,
+			Hot:        toRPCHotConfig(c.Hot),
+			Cold:       toRPCColdConfig(c.Cold),
 		}
 	}
 }
 
 // WithOverride allows a new push configuration to override an existing one.
 // It's used as an extra security measure to avoid unwanted configuration changes.
-func WithOverride(override bool) PushConfigOption {
-	return func(r *rpc.PushConfigRequest) {
+func WithOverride(override bool) PushStorageConfigOption {
+	return func(r *rpc.PushStorageConfigRequest) {
 		r.HasOverrideConfig = true
 		r.OverrideConfig = override
 	}
@@ -184,38 +184,13 @@ func (f *FFS) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
 	return addrs, nil
 }
 
-// DefaultConfig returns the default storage config.
-func (f *FFS) DefaultConfig(ctx context.Context) (ffs.DefaultConfig, error) {
-	resp, err := f.client.DefaultConfig(ctx, &rpc.DefaultConfigRequest{})
+// DefaultStorageConfig returns the default storage config.
+func (f *FFS) DefaultStorageConfig(ctx context.Context) (ffs.StorageConfig, error) {
+	resp, err := f.client.DefaultStorageConfig(ctx, &rpc.DefaultStorageConfigRequest{})
 	if err != nil {
-		return ffs.DefaultConfig{}, err
+		return ffs.StorageConfig{}, err
 	}
-	return ffs.DefaultConfig{
-		Hot: ffs.HotConfig{
-			Enabled:       resp.DefaultConfig.Hot.Enabled,
-			AllowUnfreeze: resp.DefaultConfig.Hot.AllowUnfreeze,
-			Ipfs: ffs.IpfsConfig{
-				AddTimeout: int(resp.DefaultConfig.Hot.Ipfs.AddTimeout),
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Enabled: resp.DefaultConfig.Cold.Enabled,
-			Filecoin: ffs.FilConfig{
-				RepFactor:       int(resp.DefaultConfig.Cold.Filecoin.RepFactor),
-				DealMinDuration: resp.DefaultConfig.Cold.Filecoin.DealMinDuration,
-				ExcludedMiners:  resp.DefaultConfig.Cold.Filecoin.ExcludedMiners,
-				CountryCodes:    resp.DefaultConfig.Cold.Filecoin.CountryCodes,
-				TrustedMiners:   resp.DefaultConfig.Cold.Filecoin.TrustedMiners,
-				Renew: ffs.FilRenew{
-					Enabled:   resp.DefaultConfig.Cold.Filecoin.Renew.Enabled,
-					Threshold: int(resp.DefaultConfig.Cold.Filecoin.Renew.Threshold),
-				},
-				Addr:     resp.DefaultConfig.Cold.Filecoin.Addr,
-				MaxPrice: resp.DefaultConfig.Cold.Filecoin.MaxPrice,
-			},
-		},
-		Repairable: resp.DefaultConfig.Repairable,
-	}, nil
+	return fromRPCStorageConfig(resp.DefaultStorageConfig), nil
 }
 
 // NewAddr created a new wallet address managed by the FFS instance.
@@ -228,60 +203,21 @@ func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	return resp.Addr, err
 }
 
-// GetDefaultCidConfig returns a CidConfig built from the default storage config and prepped for the provided cid.
-func (f *FFS) GetDefaultCidConfig(ctx context.Context, c cid.Cid) (ffs.CidConfig, error) {
-	res, err := f.client.GetDefaultCidConfig(ctx, &rpc.GetDefaultCidConfigRequest{Cid: util.CidToString(c)})
-	if err != nil {
-		return ffs.CidConfig{}, err
-	}
-	resCid, err := util.CidFromString(res.Config.Cid)
-	if err != nil {
-		return ffs.CidConfig{}, err
-	}
-	return ffs.CidConfig{
-		Cid:        resCid,
-		Repairable: res.Config.Repairable,
-		Hot: ffs.HotConfig{
-			AllowUnfreeze: res.Config.Hot.AllowUnfreeze,
-			Enabled:       res.Config.Hot.Enabled,
-			Ipfs: ffs.IpfsConfig{
-				AddTimeout: int(res.Config.Hot.Ipfs.AddTimeout),
-			},
-		},
-		Cold: ffs.ColdConfig{
-			Enabled: res.Config.Cold.Enabled,
-			Filecoin: ffs.FilConfig{
-				RepFactor:       int(res.Config.Cold.Filecoin.RepFactor),
-				Addr:            res.Config.Cold.Filecoin.Addr,
-				CountryCodes:    res.Config.Cold.Filecoin.CountryCodes,
-				DealMinDuration: res.Config.Cold.Filecoin.DealMinDuration,
-				ExcludedMiners:  res.Config.Cold.Filecoin.ExcludedMiners,
-				Renew: ffs.FilRenew{
-					Enabled:   res.Config.Cold.Filecoin.Renew.Enabled,
-					Threshold: int(res.Config.Cold.Filecoin.Renew.Threshold),
-				},
-				TrustedMiners: res.Config.Cold.Filecoin.TrustedMiners,
-				MaxPrice:      res.Config.Cold.Filecoin.MaxPrice,
-			},
-		},
-	}, nil
+// GetStorageConfig gets the current config for a cid.
+func (f *FFS) GetStorageConfig(ctx context.Context, c cid.Cid) (*rpc.GetStorageConfigResponse, error) {
+	return f.client.GetStorageConfig(ctx, &rpc.GetStorageConfigRequest{Cid: c.String()})
 }
 
-// GetCidConfig gets the current config for a cid.
-func (f *FFS) GetCidConfig(ctx context.Context, c cid.Cid) (*rpc.GetCidConfigResponse, error) {
-	return f.client.GetCidConfig(ctx, &rpc.GetCidConfigRequest{Cid: util.CidToString(c)})
-}
-
-// SetDefaultConfig sets the default storage config.
-func (f *FFS) SetDefaultConfig(ctx context.Context, config ffs.DefaultConfig) error {
-	req := &rpc.SetDefaultConfigRequest{
-		Config: &rpc.DefaultConfig{
+// SetDefaultStorageConfig sets the default storage config.
+func (f *FFS) SetDefaultStorageConfig(ctx context.Context, config ffs.StorageConfig) error {
+	req := &rpc.SetDefaultStorageConfigRequest{
+		Config: &rpc.StorageConfig{
 			Hot:        toRPCHotConfig(config.Hot),
 			Cold:       toRPCColdConfig(config.Cold),
 			Repairable: config.Repairable,
 		},
 	}
-	_, err := f.client.SetDefaultConfig(ctx, req)
+	_, err := f.client.SetDefaultStorageConfig(ctx, req)
 	return err
 }
 
@@ -321,35 +257,10 @@ func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 	}
 
 	return api.InstanceInfo{
-		ID: ffs.APIID(res.Info.Id),
-		DefaultConfig: ffs.DefaultConfig{
-			Hot: ffs.HotConfig{
-				Enabled:       res.Info.DefaultConfig.Hot.Enabled,
-				AllowUnfreeze: res.Info.DefaultConfig.Hot.AllowUnfreeze,
-				Ipfs: ffs.IpfsConfig{
-					AddTimeout: int(res.Info.DefaultConfig.Hot.Ipfs.AddTimeout),
-				},
-			},
-			Cold: ffs.ColdConfig{
-				Enabled: res.Info.DefaultConfig.Cold.Enabled,
-				Filecoin: ffs.FilConfig{
-					RepFactor:       int(res.Info.DefaultConfig.Cold.Filecoin.RepFactor),
-					DealMinDuration: res.Info.DefaultConfig.Cold.Filecoin.DealMinDuration,
-					ExcludedMiners:  res.Info.DefaultConfig.Cold.Filecoin.ExcludedMiners,
-					TrustedMiners:   res.Info.DefaultConfig.Cold.Filecoin.TrustedMiners,
-					CountryCodes:    res.Info.DefaultConfig.Cold.Filecoin.CountryCodes,
-					Renew: ffs.FilRenew{
-						Enabled:   res.Info.DefaultConfig.Cold.Filecoin.Renew.Enabled,
-						Threshold: int(res.Info.DefaultConfig.Cold.Filecoin.Renew.Threshold),
-					},
-					Addr:     res.Info.DefaultConfig.Cold.Filecoin.Addr,
-					MaxPrice: res.Info.DefaultConfig.Cold.Filecoin.MaxPrice,
-				},
-			},
-			Repairable: res.Info.DefaultConfig.Repairable,
-		},
-		Balances: balances,
-		Pins:     pins,
+		ID:                   ffs.APIID(res.Info.Id),
+		DefaultStorageConfig: fromRPCStorageConfig(res.Info.DefaultStorageConfig),
+		Balances:             balances,
+		Pins:                 pins,
 	}, nil
 }
 
@@ -428,7 +339,7 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 	return nil
 }
 
-// Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
+// Replace pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
 func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 	resp, err := f.client.Replace(ctx, &rpc.ReplaceRequest{Cid1: util.CidToString(c1), Cid2: util.CidToString(c2)})
@@ -438,14 +349,14 @@ func (f *FFS) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (ffs.JobID, e
 	return ffs.JobID(resp.JobId), nil
 }
 
-// PushConfig push a new configuration for the Cid in the Hot and Cold layers.
-func (f *FFS) PushConfig(ctx context.Context, c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
-	req := &rpc.PushConfigRequest{Cid: util.CidToString(c)}
+// PushStorageConfig push a new configuration for the Cid in the Hot and Cold layers.
+func (f *FFS) PushStorageConfig(ctx context.Context, c cid.Cid, opts ...PushStorageConfigOption) (ffs.JobID, error) {
+	req := &rpc.PushStorageConfigRequest{Cid: util.CidToString(c)}
 	for _, opt := range opts {
 		opt(req)
 	}
 
-	resp, err := f.client.PushConfig(ctx, req)
+	resp, err := f.client.PushStorageConfig(ctx, req)
 	if err != nil {
 		return ffs.EmptyJobID, err
 	}
@@ -552,9 +463,9 @@ func (f *FFS) Close(ctx context.Context) error {
 	return err
 }
 
-// AddToHot allows you to add data to the Hot layer in preparation for pushing a cid config.
-func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
-	stream, err := f.client.AddToHot(ctx)
+// Stage allows you to temporarily cache data in the Hot layer in preparation for pushing a cid storage config.
+func (f *FFS) Stage(ctx context.Context, data io.Reader) (*cid.Cid, error) {
+	stream, err := f.client.Stage(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -565,7 +476,7 @@ func (f *FFS) AddToHot(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		sendErr := stream.Send(&rpc.AddToHotRequest{Chunk: buffer[:bytesRead]})
+		sendErr := stream.Send(&rpc.StageRequest{Chunk: buffer[:bytesRead]})
 		if sendErr != nil {
 			if sendErr == io.EOF {
 				var noOp interface{}
@@ -687,6 +598,47 @@ func toRPCColdConfig(config ffs.ColdConfig) *rpc.ColdConfig {
 			Addr: config.Filecoin.Addr,
 		},
 	}
+}
+
+func fromRPCStorageConfig(config *rpc.StorageConfig) ffs.StorageConfig {
+	if config == nil {
+		return ffs.StorageConfig{}
+	}
+	ret := ffs.StorageConfig{Repairable: config.Repairable}
+	if config.Hot != nil {
+		ret.Hot = ffs.HotConfig{
+			Enabled:       config.Hot.Enabled,
+			AllowUnfreeze: config.Hot.AllowUnfreeze,
+		}
+		if config.Hot.Ipfs != nil {
+			ret.Hot.Ipfs = ffs.IpfsConfig{
+				AddTimeout: int(config.Hot.Ipfs.AddTimeout),
+			}
+		}
+	}
+	if config.Cold != nil {
+		ret.Cold = ffs.ColdConfig{
+			Enabled: config.Cold.Enabled,
+		}
+		if config.Cold.Filecoin != nil {
+			ret.Cold.Filecoin = ffs.FilConfig{
+				RepFactor:       int(config.Cold.Filecoin.RepFactor),
+				DealMinDuration: config.Cold.Filecoin.DealMinDuration,
+				ExcludedMiners:  config.Cold.Filecoin.ExcludedMiners,
+				CountryCodes:    config.Cold.Filecoin.CountryCodes,
+				TrustedMiners:   config.Cold.Filecoin.TrustedMiners,
+				Addr:            config.Cold.Filecoin.Addr,
+				MaxPrice:        config.Cold.Filecoin.MaxPrice,
+			}
+			if config.Cold.Filecoin.Renew != nil {
+				ret.Cold.Filecoin.Renew = ffs.FilRenew{
+					Enabled:   config.Cold.Filecoin.Renew.Enabled,
+					Threshold: int(config.Cold.Filecoin.Renew.Threshold),
+				}
+			}
+		}
+	}
+	return ret
 }
 
 func fromRPCDealErrors(des []*rpc.DealError) ([]ffs.DealError, error) {

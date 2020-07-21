@@ -19,15 +19,15 @@ import (
 )
 
 func init() {
-	ffsPushCmd.Flags().StringP("token", "t", "", "FFS access token")
-	ffsPushCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing cid storage config json, falls back to stdin, uses FFS default by default")
-	ffsPushCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing cid storage configuration")
-	ffsPushCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
+	ffsConfigPushCmd.Flags().StringP("token", "t", "", "FFS access token")
+	ffsConfigPushCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
+	ffsConfigPushCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
+	ffsConfigPushCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
-	ffsCmd.AddCommand(ffsPushCmd)
+	ffsConfigCmd.AddCommand(ffsConfigPushCmd)
 }
 
-var ffsPushCmd = &cobra.Command{
+var ffsConfigPushCmd = &cobra.Command{
 	Use:   "push [cid]",
 	Short: "Add data to FFS via cid",
 	Long:  `Add data to FFS via a cid already in IPFS`,
@@ -66,17 +66,17 @@ var ffsPushCmd = &cobra.Command{
 			}
 		}
 
-		options := []client.PushConfigOption{}
+		options := []client.PushStorageConfigOption{}
 
 		if reader != nil {
 			buf := new(bytes.Buffer)
 			_, err := buf.ReadFrom(reader)
 			checkErr(err)
 
-			config := ffs.CidConfig{Cid: c}
+			config := ffs.StorageConfig{}
 			checkErr(json.Unmarshal(buf.Bytes(), &config))
 
-			options = append(options, client.WithCidConfig(config))
+			options = append(options, client.WithStorageConfig(config))
 		}
 
 		if viper.IsSet("override") {
@@ -85,10 +85,10 @@ var ffsPushCmd = &cobra.Command{
 
 		s := spin.New("%s Adding cid storage config to FFS...")
 		s.Start()
-		jid, err := fcClient.FFS.PushConfig(authCtx(ctx), c, options...)
+		jid, err := fcClient.FFS.PushStorageConfig(authCtx(ctx), c, options...)
 		s.Stop()
 		checkErr(err)
-		Success("Pushed cid config for %s to FFS with job id: %v", util.CidToString(c), jid.String())
+		Success("Pushed cid storage config for %s to FFS with job id: %v", util.CidToString(c), jid.String())
 
 		if viper.GetBool("watch") {
 			watchJobIds(jid)

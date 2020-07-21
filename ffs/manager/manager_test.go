@@ -99,7 +99,7 @@ func TestGetByAuthToken(t *testing.T) {
 	})
 }
 
-func TestDefaultConfig(t *testing.T) {
+func TestDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	m, cls := newManager(t, ds)
@@ -107,15 +107,15 @@ func TestDefaultConfig(t *testing.T) {
 
 	// A newly created manager must have
 	// the zeroConfig defined value.
-	c := m.GetDefaultConfig()
+	c := m.GetDefaultStorageConfig()
 	require.Equal(t, zeroConfig, c)
 
 	// Change the default config and test.
 	c.Hot.Enabled = false
 	c.Repairable = true
-	err := m.SetDefaultConfig(c)
+	err := m.SetDefaultStorageConfig(c)
 	require.NoError(t, err)
-	c2 := m.GetDefaultConfig()
+	c2 := m.GetDefaultStorageConfig()
 	require.Equal(t, c, c2)
 	cls()
 
@@ -124,7 +124,7 @@ func TestDefaultConfig(t *testing.T) {
 	// saved one, and not zeroConfig.
 	m, cls = newManager(t, ds)
 	defer cls()
-	c3 := m.GetDefaultConfig()
+	c3 := m.GetDefaultStorageConfig()
 	require.Equal(t, c, c3)
 }
 

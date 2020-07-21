@@ -20,7 +20,7 @@ mkdir -p $PTOTOC_GEN_OUT_DIR
 printf '{"name":"%s", "version":"%s", "files":["%s"]}' $LIB_NAME $LIB_VERSION $LIB_SRC_DIR > $OUT_PATH/package.json
 
 (cd $OUT_PATH && npm install --save-dev ts-protoc-gen)
-(cd $OUT_PATH && npm install google-protobuf @improbable-eng/grpc-web @types/google-protobuf)
+(cd $OUT_PATH && npm install google-protobuf@^3.12.2 @improbable-eng/grpc-web @types/google-protobuf@^3.7.2)
 
 ABS_OUT_PATH="$( cd $OUT_PATH >/dev/null 2>&1 ; pwd -P )"
 ABS_PROTOS_PATH="$( cd $PROTOS_PATH >/dev/null 2>&1 ; pwd -P )"

@@ -83,36 +83,36 @@ func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.C
 	return sch, nil
 }
 
-// PushConfig queues the specified CidConfig to be executed as a new Job. It returns
+// PushConfig queues the specified StorageConfig to be executed as a new Job. It returns
 // the created JobID for further tracking of its state.
-func (s *Scheduler) PushConfig(iid ffs.APIID, cfg ffs.CidConfig) (ffs.JobID, error) {
-	return s.push(iid, cfg, cid.Undef)
+func (s *Scheduler) PushConfig(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig) (ffs.JobID, error) {
+	return s.push(iid, c, cfg, cid.Undef)
 }
 
-// PushReplace queues a new CidConfig to be executed as a new Job, replacing an oldCid that will be
+// PushReplace queues a new StorageConfig to be executed as a new Job, replacing an oldCid that will be
 // untrack in the Scheduler (i.e: deal renewals, repairing).
-func (s *Scheduler) PushReplace(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.JobID, error) {
+func (s *Scheduler) PushReplace(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid cid.Cid) (ffs.JobID, error) {
 	if !oldCid.Defined() {
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
 	}
-	return s.push(iid, cfg, oldCid)
+	return s.push(iid, c, cfg, oldCid)
 }
 
-func (s *Scheduler) push(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.JobID, error) {
-	if !cfg.Cid.Defined() {
+func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid cid.Cid) (ffs.JobID, error) {
+	if !c.Defined() {
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
 	}
 	if iid == ffs.EmptyInstanceID {
 		return ffs.EmptyJobID, fmt.Errorf("invalid Action ID")
 	}
 	if err := cfg.Validate(); err != nil {
-		return ffs.EmptyJobID, fmt.Errorf("validating cid config: %s", err)
+		return ffs.EmptyJobID, fmt.Errorf("validating storage config: %s", err)
 	}
 	jid := ffs.NewJobID()
 	j := ffs.Job{
 		ID:     jid,
 		APIID:  iid,
-		Cid:    cfg.Cid,
+		Cid:    c,
 		Status: ffs.Queued,
 	}
 
@@ -120,10 +120,11 @@ func (s *Scheduler) push(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.
 		return ffs.EmptyJobID, fmt.Errorf("enqueuing job: %s", err)
 	}
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
-	s.l.Log(ctx, cfg.Cid, "Pushing new configuration...")
+	s.l.Log(ctx, c, "Pushing new configuration...")
 
 	aa := astore.Action{
 		APIID:       iid,
+		Cid:         c,
 		Cfg:         cfg,
 		ReplacedCid: oldCid,
 	}
@@ -136,7 +137,7 @@ func (s *Scheduler) push(iid ffs.APIID, cfg ffs.CidConfig, oldCid cid.Cid) (ffs.
 	default:
 	}
 
-	s.l.Log(ctx, cfg.Cid, "Configuration saved successfully")
+	s.l.Log(ctx, c, "Configuration saved successfully")
 	return jid, nil
 }
 
@@ -283,22 +284,22 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
 	for _, a := range as {
-		log.Debugf("scheduling deal repair for Cid %s", a.Cfg.Cid)
+		log.Debugf("scheduling deal repair for Cid %s", a.Cid)
 		if err := s.scheduleRepairJob(ctx, a); err != nil {
-			log.Errorf("repair of %s: %s", a.Cfg.Cid, err)
+			log.Errorf("repair of %s: %s", a.Cid, err)
 		}
 		log.Debugf("scheduling repair done")
 	}
 }
 
 func (s *Scheduler) scheduleRepairJob(ctx context.Context, a astore.Action) error {
-	s.l.Log(ctx, a.Cfg.Cid, "Scheduling deal repair...")
+	s.l.Log(ctx, a.Cid, "Scheduling deal repair...")
 	a.Cfg.Repairable = false
-	jid, err := s.push(a.APIID, a.Cfg, cid.Undef)
+	jid, err := s.push(a.APIID, a.Cid, a.Cfg, cid.Undef)
 	if err != nil {
 		return fmt.Errorf("scheduling repair job: %s", err)
 	}
-	s.l.Log(ctx, a.Cfg.Cid, "Job %s was queued for repair evaluation.", jid)
+	s.l.Log(ctx, a.Cid, "Job %s was queued for repair evaluation.", jid)
 	return nil
 }
 
@@ -308,27 +309,27 @@ func (s *Scheduler) execRenewCron(ctx context.Context) {
 		log.Errorf("getting renweable cid configs from store: %s", err)
 	}
 	for _, a := range as {
-		log.Debugf("evaluating deal renewal for Cid %s", a.Cfg.Cid)
+		log.Debugf("evaluating deal renewal for Cid %s", a.Cid)
 		if err := s.evaluateRenewal(ctx, a); err != nil {
-			log.Errorf("renweal of %s: %s", a.Cfg.Cid, err)
+			log.Errorf("renweal of %s: %s", a.Cid, err)
 		}
 		log.Debugf("deal renewal done")
 	}
 }
 
 func (s *Scheduler) evaluateRenewal(ctx context.Context, a astore.Action) error {
-	inf, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
+	inf, err := s.getRefreshedInfo(ctx, a.Cid)
 	if err == ErrNotFound {
-		log.Infof("skip renewal evaluation for %s since Cid isn't stored yet", a.Cfg.Cid)
+		log.Infof("skip renewal evaluation for %s since Cid isn't stored yet", a.Cid)
 		return nil
 	}
 	if err != nil {
 		return fmt.Errorf("getting cid info from store: %s", err)
 	}
-	s.l.Log(ctx, a.Cfg.Cid, "Evaluating deal renweal...")
+	s.l.Log(ctx, a.Cid, "Evaluating deal renweal...")
 
 	var errors []ffs.DealError
-	inf.Cold.Filecoin, errors, err = s.cs.EnsureRenewals(ctx, a.Cfg.Cid, inf.Cold.Filecoin, a.Cfg.Cold.Filecoin)
+	inf.Cold.Filecoin, errors, err = s.cs.EnsureRenewals(ctx, a.Cid, inf.Cold.Filecoin, a.Cfg.Cold.Filecoin)
 	for _, e := range errors {
 		log.Warnf("renew deal error: %s %s %s", e.ProposalCid, e.Miner, e.Message)
 	}
@@ -339,7 +340,7 @@ func (s *Scheduler) evaluateRenewal(ctx context.Context, a astore.Action) error 
 		return fmt.Errorf("saving new cid info in store: %s", err)
 	}
 
-	s.l.Log(ctx, a.Cfg.Cid, "Deal renewal evaluated successfully")
+	s.l.Log(ctx, a.Cid, "Deal renewal evaluated successfully")
 	return nil
 }
 
@@ -415,12 +416,12 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 		if err := s.js.Finalize(j.ID, ffs.Failed, err, nil); err != nil {
 			log.Errorf("changing job to failed: %s", err)
 		}
-		s.l.Log(ctx, a.Cfg.Cid, "Job %s couldn't start: %s.", j.ID, err)
+		s.l.Log(ctx, a.Cid, "Job %s couldn't start: %s.", j.ID, err)
 		return
 	}
 
 	// Execute
-	s.l.Log(ctx, a.Cfg.Cid, "Executing job %s...", j.ID)
+	s.l.Log(ctx, a.Cid, "Executing job %s...", j.ID)
 	info, dealErrors, err := s.execute(ctx, a, j)
 
 	// Something bad-enough happened to make Job
@@ -430,7 +431,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 		if err := s.js.Finalize(j.ID, ffs.Failed, err, dealErrors); err != nil {
 			log.Errorf("changing job to failed: %s", err)
 		}
-		s.l.Log(ctx, a.Cfg.Cid, "Job %s execution failed: %s", j.ID, err)
+		s.l.Log(ctx, a.Cid, "Job %s execution failed: %s", j.ID, err)
 		return
 	}
 	// Save whatever stored information was completely/partially
@@ -451,14 +452,14 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 	if err := s.js.Finalize(j.ID, finalStatus, nil, dealErrors); err != nil {
 		log.Errorf("changing job to success: %s", err)
 	}
-	s.l.Log(ctx, a.Cfg.Cid, "Job %s execution finished with status %s.", j.ID, ffs.JobStatusStr[finalStatus])
+	s.l.Log(ctx, a.Cid, "Job %s execution finished with status %s.", j.ID, ffs.JobStatusStr[finalStatus])
 }
 
 // execute executes a Job. If an error is returned, it means that the Job
 // should be considered failed. If error is nil, it still can return []ffs.DealError
 // since some deals failing isn't necessarily a fatal Job config execution.
 func (s *Scheduler) execute(ctx context.Context, a astore.Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
-	ci, err := s.getRefreshedInfo(ctx, a.Cfg.Cid)
+	ci, err := s.getRefreshedInfo(ctx, a.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)
 	}
@@ -469,25 +470,25 @@ func (s *Scheduler) execute(ctx context.Context, a astore.Action, job ffs.Job) (
 		}
 	}
 
-	s.l.Log(ctx, a.Cfg.Cid, "Ensuring Hot-Storage satisfies the configuration...")
+	s.l.Log(ctx, a.Cid, "Ensuring Hot-Storage satisfies the configuration...")
 	hot, err := s.executeHotStorage(ctx, ci, a.Cfg.Hot, a.Cfg.Cold.Filecoin.Addr, a.ReplacedCid)
 	if err != nil {
-		s.l.Log(ctx, a.Cfg.Cid, "Hot-Storage excution failed.")
+		s.l.Log(ctx, a.Cid, "Hot-Storage excution failed.")
 		return ffs.CidInfo{}, nil, fmt.Errorf("executing hot-storage config: %s", err)
 	}
-	s.l.Log(ctx, a.Cfg.Cid, "Hot-Storage execution ran successfully.")
+	s.l.Log(ctx, a.Cid, "Hot-Storage execution ran successfully.")
 
-	s.l.Log(ctx, a.Cfg.Cid, "Ensuring Cold-Storage satisfies the configuration...")
+	s.l.Log(ctx, a.Cid, "Ensuring Cold-Storage satisfies the configuration...")
 	cold, errors, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold)
 	if err != nil {
-		s.l.Log(ctx, a.Cfg.Cid, "Cold-Storage execution failed.")
+		s.l.Log(ctx, a.Cid, "Cold-Storage execution failed.")
 		return ffs.CidInfo{}, errors, fmt.Errorf("executing cold-storage config: %s", err)
 	}
-	s.l.Log(ctx, a.Cfg.Cid, "Cold-Storage execution ran successfully.")
+	s.l.Log(ctx, a.Cid, "Cold-Storage execution ran successfully.")
 
 	return ffs.CidInfo{
 		JobID:   job.ID,
-		Cid:     a.Cfg.Cid,
+		Cid:     a.Cid,
 		Hot:     hot,
 		Cold:    cold,
 		Created: time.Now(),

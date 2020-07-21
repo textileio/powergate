@@ -24,7 +24,7 @@ buildtools/protoc-gen-go
 myfile
 myfile2
 
-# CidConfig name that can be used for testing.
+# StorageConfig name that can be used for testing.
 pconfig.pow
 
 tags

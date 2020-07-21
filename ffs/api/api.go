@@ -51,7 +51,7 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.DefaultConfig) (*API, error) {
+func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.StorageConfig) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 
 	addr, err := wm.NewAddress(ctx, defaultAddressType)
@@ -72,9 +72,9 @@ func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *schedu
 	}
 
 	config := Config{
-		ID:            iid,
-		Addrs:         map[string]AddrInfo{addr: addrInfo},
-		DefaultConfig: dc,
+		ID:                   iid,
+		Addrs:                map[string]AddrInfo{addr: addrInfo},
+		DefaultStorageConfig: dc,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -115,38 +115,31 @@ func (i *API) ID() ffs.APIID {
 	return i.cfg.ID
 }
 
-// DefaultConfig returns the DefaultConfig.
-func (i *API) DefaultConfig() ffs.DefaultConfig {
-	return i.cfg.DefaultConfig
+// DefaultStorageConfig returns the default StorageConfig.
+func (i *API) DefaultStorageConfig() ffs.StorageConfig {
+	return i.cfg.DefaultStorageConfig
 }
 
-// GetDefaultCidConfig returns the default instance Cid config, prepared for a particular Cid.
-func (i *API) GetDefaultCidConfig(c cid.Cid) ffs.CidConfig {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-	return newDefaultPushConfig(c, i.cfg.DefaultConfig).Config
-}
-
-// GetCidConfig returns the current CidConfig for a Cid.
-func (i *API) GetCidConfig(c cid.Cid) (ffs.CidConfig, error) {
-	conf, err := i.is.getCidConfig(c)
+// GetStorageConfig returns the current StorageConfig for a Cid.
+func (i *API) GetStorageConfig(c cid.Cid) (ffs.StorageConfig, error) {
+	conf, err := i.is.getStorageConfig(c)
 	if err == ErrNotFound {
-		return ffs.CidConfig{}, err
+		return ffs.StorageConfig{}, err
 	}
 	if err != nil {
-		return ffs.CidConfig{}, fmt.Errorf("getting cid config from store: %s", err)
+		return ffs.StorageConfig{}, fmt.Errorf("getting cid config from store: %s", err)
 	}
 	return conf, nil
 }
 
-// SetDefaultConfig sets a new default CidConfig.
-func (i *API) SetDefaultConfig(c ffs.DefaultConfig) error {
+// SetDefaultStorageConfig sets a new default StorageConfig.
+func (i *API) SetDefaultStorageConfig(c ffs.StorageConfig) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 	if err := c.Validate(); err != nil {
 		return fmt.Errorf("default cid config is invalid: %s", err)
 	}
-	i.cfg.DefaultConfig = c
+	i.cfg.DefaultStorageConfig = c
 	return i.is.putConfig(i.cfg)
 }
 
@@ -174,10 +167,10 @@ func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
 	}
 
 	return InstanceInfo{
-		ID:            i.cfg.ID,
-		DefaultConfig: i.cfg.DefaultConfig,
-		Balances:      balances,
-		Pins:          pins,
+		ID:                   i.cfg.ID,
+		DefaultStorageConfig: i.cfg.DefaultStorageConfig,
+		Balances:             balances,
+		Pins:                 pins,
 	}, nil
 }
 

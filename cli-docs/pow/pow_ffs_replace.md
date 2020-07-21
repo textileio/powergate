@@ -1,10 +1,10 @@
 ## pow ffs replace
 
-Pushes a CidConfig of c2 equal to c1, and removes c1
+Pushes a StorageConfig for c2 equal to that of c1, and removes c1
 
 ### Synopsis
 
-Pushes a CidConfig of c2 equal to c1, and removes c1. This operation is more efficient than manually removing and adding in two separate operations
+Pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation is more efficient than manually removing and adding in two separate operations
 
 ```
 pow ffs replace [cid1] [cid2] [flags]

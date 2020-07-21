@@ -20,8 +20,8 @@ func init() {
 
 var ffsReplaceCmd = &cobra.Command{
 	Use:   "replace [cid1] [cid2]",
-	Short: "Pushes a CidConfig of c2 equal to c1, and removes c1",
-	Long:  `Pushes a CidConfig of c2 equal to c1, and removes c1. This operation is more efficient than manually removing and adding in two separate operations`,
+	Short: "Pushes a StorageConfig for c2 equal to that of c1, and removes c1",
+	Long:  `Pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation is more efficient than manually removing and adding in two separate operations`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)

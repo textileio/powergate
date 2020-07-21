@@ -10,20 +10,20 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 )
 
-// PushConfig push a new configuration for the Cid in the Hot and
+// PushStorageConfig push a new configuration for the Cid in the Hot and
 // Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig.
-func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error) {
+func (i *API) PushStorageConfig(c cid.Cid, opts ...PushStorageConfigOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg := newDefaultPushConfig(c, i.cfg.DefaultConfig)
+	cfg := PushStorageConfigConfig{Config: i.cfg.DefaultStorageConfig}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)
 		}
 	}
 	if !cfg.OverrideConfig {
-		_, err := i.is.getCidConfig(c)
+		_, err := i.is.getStorageConfig(c)
 		if err == nil {
 			return ffs.EmptyJobID, ErrMustOverrideConfig
 		}
@@ -38,11 +38,11 @@ func (i *API) PushConfig(c cid.Cid, opts ...PushConfigOption) (ffs.JobID, error)
 		return ffs.EmptyJobID, err
 	}
 
-	jid, err := i.sched.PushConfig(i.cfg.ID, cfg.Config)
+	jid, err := i.sched.PushConfig(i.cfg.ID, c, cfg.Config)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
 	}
-	if err := i.is.putCidConfig(cfg.Config); err != nil {
+	if err := i.is.putStorageConfig(c, cfg.Config); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil
@@ -54,7 +54,7 @@ func (i *API) Remove(c cid.Cid) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg, err := i.is.getCidConfig(c)
+	cfg, err := i.is.getStorageConfig(c)
 	if err == ErrNotFound {
 		return err
 	}
@@ -67,13 +67,13 @@ func (i *API) Remove(c cid.Cid) error {
 	if err := i.sched.Untrack(c); err != nil {
 		return fmt.Errorf("untracking from scheduler: %s", err)
 	}
-	if err := i.is.removeCidConfig(c); err != nil {
+	if err := i.is.removeStorageConfig(c); err != nil {
 		return fmt.Errorf("deleting replaced cid config: %s", err)
 	}
 	return nil
 }
 
-// Replace pushes a CidConfig of c2 equal to c1, and removes c1. This operation
+// Replace pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
 // c1 and c2 must not be equal.
 func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
@@ -84,27 +84,26 @@ func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 		return ffs.EmptyJobID, fmt.Errorf("the old and new cid should be different")
 	}
 
-	cfg, err := i.is.getCidConfig(c1)
+	cfg, err := i.is.getStorageConfig(c1)
 	if err == ErrNotFound {
 		return ffs.EmptyJobID, ErrReplacedCidNotFound
 	}
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("getting replaced cid config: %s", err)
 	}
-	cfg.Cid = c2
 
 	if err := i.ensureValidColdCfg(cfg.Cold); err != nil {
 		return ffs.EmptyJobID, err
 	}
 
-	jid, err := i.sched.PushReplace(i.cfg.ID, cfg, c1)
+	jid, err := i.sched.PushReplace(i.cfg.ID, c2, cfg, c1)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling replacement %s to %s: %s", c1, c2, err)
 	}
-	if err := i.is.putCidConfig(cfg); err != nil {
+	if err := i.is.putStorageConfig(c2, cfg); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c2, err)
 	}
-	if err := i.is.removeCidConfig(c1); err != nil {
+	if err := i.is.removeStorageConfig(c1); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("deleting replaced cid config: %s", err)
 	}
 	return jid, nil
@@ -115,7 +114,7 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	if !c.Defined() {
 		return nil, fmt.Errorf("cid is undefined")
 	}
-	conf, err := i.is.getCidConfig(c)
+	conf, err := i.is.getStorageConfig(c)
 	if err != nil {
 		return nil, fmt.Errorf("getting cid config: %s", err)
 	}

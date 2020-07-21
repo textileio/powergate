@@ -23,11 +23,11 @@ var (
 	log = logging.Logger("ffs-manager")
 
 	// zeroConfig is a safe-initial value for a default
-	// CidConfig for a manager. A newly (not re-loaded) created
+	// StorageConfig for a manager. A newly (not re-loaded) created
 	// manager will have this configuration by default. It can be
 	// later changed with the Get/Set APIs. A re-loaded manager will
-	// recover its laste configured CidConfig from the datastore.
-	zeroConfig = ffs.DefaultConfig{
+	// recover its last configured default StorageConfig from the datastore.
+	zeroConfig = ffs.StorageConfig{
 		Hot: ffs.HotConfig{
 			Enabled: true,
 			Ipfs: ffs.IpfsConfig{
@@ -42,7 +42,7 @@ var (
 			},
 		},
 	}
-	dsDefaultCidConfigKey = datastore.NewKey("defaultcidconfig")
+	dsDefaultStorageConfigKey = datastore.NewKey("defaultstorageconfig")
 )
 
 // Manager creates Api instances, or loads existing ones them from an auth-token.
@@ -56,16 +56,16 @@ type Manager struct {
 	ds            datastore.Datastore
 	auth          *auth.Auth
 	instances     map[ffs.APIID]*api.API
-	defaultConfig ffs.DefaultConfig
+	defaultConfig ffs.StorageConfig
 
 	closed bool
 }
 
 // New returns a new Manager.
 func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler) (*Manager, error) {
-	cidConfig, err := loadDefaultCidConfig(ds)
+	storageConfig, err := loadDefaultStorageConfig(ds)
 	if err != nil {
-		return nil, fmt.Errorf("loading default cidconfig: %s", err)
+		return nil, fmt.Errorf("loading default storage config: %s", err)
 	}
 	return &Manager{
 		auth:          auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
@@ -75,7 +75,7 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm 
 		drm:           drm,
 		sched:         sched,
 		instances:     make(map[ffs.APIID]*api.API),
-		defaultConfig: cidConfig,
+		defaultConfig: storageConfig,
 	}, nil
 }
 
@@ -101,9 +101,9 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	return fapi.ID(), auth, nil
 }
 
-// SetDefaultConfig sets the default CidConfig to be set as default to newly created
+// SetDefaultStorageConfig sets the default StorageConfig to be set as default to newly created
 // FFS instances.
-func (m *Manager) SetDefaultConfig(dc ffs.DefaultConfig) error {
+func (m *Manager) SetDefaultStorageConfig(dc ffs.StorageConfig) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	if err := m.saveDefaultConfig(dc); err != nil {
@@ -150,9 +150,9 @@ func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 	return i, nil
 }
 
-// GetDefaultConfig returns the current default CidConfig used
+// GetDefaultStorageConfig returns the current default StorageConfig used
 // for newly created FFS instances.
-func (m *Manager) GetDefaultConfig() ffs.DefaultConfig {
+func (m *Manager) GetDefaultStorageConfig() ffs.StorageConfig {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	return m.defaultConfig
@@ -178,30 +178,30 @@ func (m *Manager) Close() error {
 
 // saveDefaultConfig persists a new default configuration and updates
 // the cached value. This method must be guarded.
-func (m *Manager) saveDefaultConfig(dc ffs.DefaultConfig) error {
+func (m *Manager) saveDefaultConfig(dc ffs.StorageConfig) error {
 	buf, err := json.Marshal(dc)
 	if err != nil {
 		return fmt.Errorf("marshaling default config: %s", err)
 	}
-	if err := m.ds.Put(dsDefaultCidConfigKey, buf); err != nil {
+	if err := m.ds.Put(dsDefaultStorageConfigKey, buf); err != nil {
 		return fmt.Errorf("saving default config to datastore: %s", err)
 	}
 	m.defaultConfig = dc
 	return nil
 }
 
-func loadDefaultCidConfig(ds datastore.Datastore) (ffs.DefaultConfig, error) {
-	d, err := ds.Get(dsDefaultCidConfigKey)
+func loadDefaultStorageConfig(ds datastore.Datastore) (ffs.StorageConfig, error) {
+	d, err := ds.Get(dsDefaultStorageConfigKey)
 	if err == datastore.ErrNotFound {
 		return zeroConfig, nil
 	}
 	if err != nil {
-		return ffs.DefaultConfig{}, fmt.Errorf("get from datastore: %s", err)
+		return ffs.StorageConfig{}, fmt.Errorf("get from datastore: %s", err)
 	}
 
-	var defaultConfig ffs.DefaultConfig
+	var defaultConfig ffs.StorageConfig
 	if err := json.Unmarshal(d, &defaultConfig); err != nil {
-		return ffs.DefaultConfig{}, fmt.Errorf("unmarshaling default cidconfig: %s", err)
+		return ffs.StorageConfig{}, fmt.Errorf("unmarshaling default StorageConfig: %s", err)
 	}
 	return defaultConfig, nil
 }

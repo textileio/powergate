@@ -43,14 +43,7 @@ message ColdConfig {
    FilConfig filecoin = 2;
 }
 
-message CidConfig {
-   string cid = 1;
-   HotConfig hot = 2;
-   ColdConfig cold = 3;
-   bool repairable = 4;
-}
-
-message DefaultConfig {
+message StorageConfig {
    HotConfig hot = 1;
    ColdConfig cold = 2;
    bool repairable = 3;
@@ -102,7 +95,7 @@ message BalanceInfo {
 
 message InstanceInfo {
    string id = 1;
-   DefaultConfig default_config = 2;
+   StorageConfig default_storage_config = 2;
    repeated BalanceInfo balances = 3;
    repeated string pins = 4;
 }
@@ -232,11 +225,11 @@ message AddrsResponse {
    repeated AddrInfo addrs = 1;
 }
 
-message DefaultConfigRequest {
+message DefaultStorageConfigRequest {
 }
 
-message DefaultConfigResponse {
-   DefaultConfig default_config = 1;
+message DefaultStorageConfigResponse {
+   StorageConfig default_storage_config = 1;
 }
 
 message NewAddrRequest {
@@ -249,27 +242,19 @@ message NewAddrResponse {
    string addr = 1;
 }
 
-message GetDefaultCidConfigRequest {
+message GetStorageConfigRequest {
    string cid = 1;
 }
 
-message GetDefaultCidConfigResponse {
-   CidConfig config = 1;
+message GetStorageConfigResponse {
+   StorageConfig config = 1;
 }
 
-message GetCidConfigRequest {
-   string cid = 1;
+message SetDefaultStorageConfigRequest {
+   StorageConfig config = 1;
 }
 
-message GetCidConfigResponse {
-   CidConfig config = 1;
-}
-
-message SetDefaultConfigRequest {
-   DefaultConfig config = 1;
-}
-
-message SetDefaultConfigResponse {
+message SetDefaultStorageConfigResponse {
 }
 
 message ShowRequest {
@@ -321,15 +306,15 @@ message ReplaceResponse {
    string job_id = 1;
 }
 
-message PushConfigRequest {
+message PushStorageConfigRequest {
    string cid = 1;
-   CidConfig config = 2;
+   StorageConfig config = 2;
    bool has_config = 3;
    bool override_config = 4;
    bool has_override_config = 5;
 }
 
-message PushConfigResponse {
+message PushStorageConfigResponse {
    string job_id = 1;
 }
 
@@ -363,11 +348,11 @@ message CloseRequest {
 message CloseResponse {
 }
 
-message AddToHotRequest {
+message StageRequest {
    bytes chunk = 1;
 }
 
-message AddToHotResponse {
+message StageResponse {
    string cid = 1;
 }
 
@@ -427,23 +412,22 @@ service RPCService {
    // Instance
    rpc ID(IDRequest) returns (IDResponse) {}
    rpc Addrs(AddrsRequest) returns (AddrsResponse) {}
-   rpc DefaultConfig(DefaultConfigRequest) returns (DefaultConfigResponse) {}
+   rpc DefaultStorageConfig(DefaultStorageConfigRequest) returns (DefaultStorageConfigResponse) {}
    rpc NewAddr(NewAddrRequest) returns (NewAddrResponse) {}
-   rpc GetDefaultCidConfig(GetDefaultCidConfigRequest) returns (GetDefaultCidConfigResponse) {}
-   rpc GetCidConfig(GetCidConfigRequest) returns (GetCidConfigResponse) {}
-   rpc SetDefaultConfig(SetDefaultConfigRequest) returns (SetDefaultConfigResponse) {}
+   rpc GetStorageConfig(GetStorageConfigRequest) returns (GetStorageConfigResponse) {}
+   rpc SetDefaultStorageConfig(SetDefaultStorageConfigRequest) returns (SetDefaultStorageConfigResponse) {}
    rpc Show(ShowRequest) returns (ShowResponse) {}
    rpc Info(InfoRequest) returns (InfoResponse) {}
    rpc CancelJob(CancelJobRequest) returns (CancelJobResponse) {}
    rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsResponse) {}
    rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
    rpc Replace(ReplaceRequest) returns (ReplaceResponse) {}
-   rpc PushConfig(PushConfigRequest) returns (PushConfigResponse) {}
+   rpc PushStorageConfig(PushStorageConfigRequest) returns (PushStorageConfigResponse) {}
    rpc Remove(RemoveRequest) returns (RemoveResponse) {}
    rpc Get(GetRequest) returns (stream GetResponse) {}
    rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
    rpc Close(CloseRequest) returns (CloseResponse) {}
-   rpc AddToHot(stream AddToHotRequest) returns (AddToHotResponse) {}
+   rpc Stage(stream StageRequest) returns (StageResponse) {}
    rpc ListPayChannels(ListPayChannelsRequest) returns (ListPayChannelsResponse) {}
    rpc CreatePayChannel(CreatePayChannelRequest) returns (CreatePayChannelResponse) {}
    rpc RedeemPayChannel(RedeemPayChannelRequest) returns (RedeemPayChannelResponse) {}

@@ -96,15 +96,15 @@ func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsResponse, err
 	return &AddrsResponse{Addrs: res}, nil
 }
 
-// DefaultConfig calls ffs.DefaultConfig.
-func (s *RPC) DefaultConfig(ctx context.Context, req *DefaultConfigRequest) (*DefaultConfigResponse, error) {
+// DefaultStorageConfig calls ffs.DefaultStorageConfig.
+func (s *RPC) DefaultStorageConfig(ctx context.Context, req *DefaultStorageConfigRequest) (*DefaultStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-	conf := i.DefaultConfig()
-	return &DefaultConfigResponse{
-		DefaultConfig: &DefaultConfig{
+	conf := i.DefaultStorageConfig()
+	return &DefaultStorageConfigResponse{
+		DefaultStorageConfig: &StorageConfig{
 			Hot:        toRPCHotConfig(conf.Hot),
 			Cold:       toRPCColdConfig(conf.Cold),
 			Repairable: conf.Repairable,
@@ -134,8 +134,8 @@ func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrRespons
 	return &NewAddrResponse{Addr: addr}, nil
 }
 
-// GetDefaultCidConfig returns the default cid config prepped for the provided cid.
-func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigRequest) (*GetDefaultCidConfigResponse, error) {
+// GetStorageConfig returns the storage config for the provided cid.
+func (s *RPC) GetStorageConfig(ctx context.Context, req *GetStorageConfigRequest) (*GetStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -144,10 +144,12 @@ func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigR
 	if err != nil {
 		return nil, err
 	}
-	config := i.GetDefaultCidConfig(c)
-	return &GetDefaultCidConfigResponse{
-		Config: &CidConfig{
-			Cid:        util.CidToString(config.Cid),
+	config, err := i.GetStorageConfig(c)
+	if err != nil {
+		return nil, err
+	}
+	return &GetStorageConfigResponse{
+		Config: &StorageConfig{
 			Hot:        toRPCHotConfig(config.Hot),
 			Cold:       toRPCColdConfig(config.Cold),
 			Repairable: config.Repairable,
@@ -155,45 +157,21 @@ func (s *RPC) GetDefaultCidConfig(ctx context.Context, req *GetDefaultCidConfigR
 	}, nil
 }
 
-// GetCidConfig returns the cid config for the provided cid.
-func (s *RPC) GetCidConfig(ctx context.Context, req *GetCidConfigRequest) (*GetCidConfigResponse, error) {
+// SetDefaultStorageConfig sets a new config to be used by default.
+func (s *RPC) SetDefaultStorageConfig(ctx context.Context, req *SetDefaultStorageConfigRequest) (*SetDefaultStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-	c, err := util.CidFromString(req.Cid)
-	if err != nil {
-		return nil, err
-	}
-	config, err := i.GetCidConfig(c)
-	if err != nil {
-		return nil, err
-	}
-	return &GetCidConfigResponse{
-		Config: &CidConfig{
-			Cid:        util.CidToString(config.Cid),
-			Hot:        toRPCHotConfig(config.Hot),
-			Cold:       toRPCColdConfig(config.Cold),
-			Repairable: config.Repairable,
-		},
-	}, nil
-}
-
-// SetDefaultConfig sets a new config to be used by default.
-func (s *RPC) SetDefaultConfig(ctx context.Context, req *SetDefaultConfigRequest) (*SetDefaultConfigResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defaultConfig := ffs.DefaultConfig{
+	defaultConfig := ffs.StorageConfig{
 		Repairable: req.Config.Repairable,
 		Hot:        fromRPCHotConfig(req.Config.Hot),
 		Cold:       fromRPCColdConfig(req.Config.Cold),
 	}
-	if err := i.SetDefaultConfig(defaultConfig); err != nil {
+	if err := i.SetDefaultStorageConfig(defaultConfig); err != nil {
 		return nil, err
 	}
-	return &SetDefaultConfigResponse{}, nil
+	return &SetDefaultStorageConfigResponse{}, nil
 }
 
 // Show returns information about a particular Cid.
@@ -245,10 +223,10 @@ func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoResponse, error)
 	reply := &InfoResponse{
 		Info: &InstanceInfo{
 			Id: info.ID.String(),
-			DefaultConfig: &DefaultConfig{
-				Hot:        toRPCHotConfig(info.DefaultConfig.Hot),
-				Cold:       toRPCColdConfig(info.DefaultConfig.Cold),
-				Repairable: info.DefaultConfig.Repairable,
+			DefaultStorageConfig: &StorageConfig{
+				Hot:        toRPCHotConfig(info.DefaultStorageConfig.Hot),
+				Cold:       toRPCColdConfig(info.DefaultStorageConfig.Cold),
+				Repairable: info.DefaultStorageConfig.Repairable,
 			},
 			Balances: balances,
 			Pins:     make([]string, len(info.Pins)),
@@ -392,8 +370,8 @@ func (s *RPC) Replace(ctx context.Context, req *ReplaceRequest) (*ReplaceRespons
 	return &ReplaceResponse{JobId: jid.String()}, nil
 }
 
-// PushConfig applies the provided cid config.
-func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConfigResponse, error) {
+// PushStorageConfig applies the provided cid storage config.
+func (s *RPC) PushStorageConfig(ctx context.Context, req *PushStorageConfigRequest) (*PushStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -404,32 +382,27 @@ func (s *RPC) PushConfig(ctx context.Context, req *PushConfigRequest) (*PushConf
 		return nil, err
 	}
 
-	options := []api.PushConfigOption{}
+	options := []api.PushStorageConfigOption{}
 
 	if req.HasConfig {
-		cid, err := util.CidFromString(req.Config.Cid)
-		if err != nil {
-			return nil, err
-		}
-		config := ffs.CidConfig{
-			Cid:        cid,
+		config := ffs.StorageConfig{
 			Repairable: req.Config.Repairable,
 			Hot:        fromRPCHotConfig(req.Config.Hot),
 			Cold:       fromRPCColdConfig(req.Config.Cold),
 		}
-		options = append(options, api.WithCidConfig(config))
+		options = append(options, api.WithStorageConfig(config))
 	}
 
 	if req.HasOverrideConfig {
 		options = append(options, api.WithOverride(req.OverrideConfig))
 	}
 
-	jid, err := i.PushConfig(c, options...)
+	jid, err := i.PushStorageConfig(c, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &PushConfigResponse{
+	return &PushStorageConfigResponse{
 		JobId: jid.String(),
 	}, nil
 }
@@ -507,8 +480,8 @@ func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseResponse, err
 	return &CloseResponse{}, nil
 }
 
-// AddToHot stores data in the Hot Storage so the resulting cid can be used in PushConfig.
-func (s *RPC) AddToHot(srv RPCService_AddToHotServer) error {
+// Stage allows you to temporarily cache data in the Hot layer in preparation for pushing a cid storage config.
+func (s *RPC) Stage(srv RPCService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
 		return err
@@ -528,7 +501,7 @@ func (s *RPC) AddToHot(srv RPCService_AddToHotServer) error {
 		return fmt.Errorf("adding data to hot storage: %s", err)
 	}
 
-	return srv.SendAndClose(&AddToHotResponse{Cid: util.CidToString(c)})
+	return srv.SendAndClose(&StageResponse{Cid: util.CidToString(c)})
 }
 
 // ListPayChannels lists all pay channels.
@@ -636,7 +609,7 @@ func (s *RPC) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	return i, nil
 }
 
-func receiveFile(srv RPCService_AddToHotServer, writer *io.PipeWriter) {
+func receiveFile(srv RPCService_StageServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {

@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	dsDefaultConfig = datastore.NewKey("defaultconfig")
-	dsCidConfig     = datastore.NewKey("cidconfig")
+	dsDefaultStorageConfig = datastore.NewKey("defaultstorageconfig")
+	dsStorageConfig        = datastore.NewKey("storageconfig")
 )
 
 type instanceStore struct {
@@ -33,14 +33,14 @@ func (s *instanceStore) putConfig(c Config) error {
 	if err != nil {
 		return fmt.Errorf("marshaling instance config to datastore: %s", err)
 	}
-	if err := s.ds.Put(dsDefaultConfig, buf); err != nil {
+	if err := s.ds.Put(dsDefaultStorageConfig, buf); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
 	return nil
 }
 
 func (s *instanceStore) getConfig() (Config, error) {
-	buf, err := s.ds.Get(dsDefaultConfig)
+	buf, err := s.ds.Get(dsDefaultStorageConfig)
 	if err != nil {
 		if err == datastore.ErrNotFound {
 			return Config{}, ErrNotFound
@@ -54,41 +54,41 @@ func (s *instanceStore) getConfig() (Config, error) {
 	return c, nil
 }
 
-func (s *instanceStore) putCidConfig(c ffs.CidConfig) error {
-	if !c.Cid.Defined() {
+func (s *instanceStore) putStorageConfig(c cid.Cid, sc ffs.StorageConfig) error {
+	if !c.Defined() {
 		return fmt.Errorf("cid can't be undefined")
 	}
-	buf, err := json.Marshal(c)
+	buf, err := json.Marshal(sc)
 	if err != nil {
 		return fmt.Errorf("marshaling cid config to datastore: %s", err)
 	}
-	if err := s.ds.Put(makeCidConfigKey(c.Cid), buf); err != nil {
+	if err := s.ds.Put(makeStorageConfigKey(c), buf); err != nil {
 		return fmt.Errorf("saving cid config to datastore: %s", err)
 	}
 	return nil
 }
 
-func (s *instanceStore) removeCidConfig(c cid.Cid) error {
+func (s *instanceStore) removeStorageConfig(c cid.Cid) error {
 	if !c.Defined() {
 		return fmt.Errorf("cid can't be undefined")
 	}
-	if err := s.ds.Delete(makeCidConfigKey(c)); err != nil {
+	if err := s.ds.Delete(makeStorageConfigKey(c)); err != nil {
 		return fmt.Errorf("removing from datastore: %s", err)
 	}
 	return nil
 }
 
-func (s *instanceStore) getCidConfig(c cid.Cid) (ffs.CidConfig, error) {
-	buf, err := s.ds.Get(makeCidConfigKey(c))
+func (s *instanceStore) getStorageConfig(c cid.Cid) (ffs.StorageConfig, error) {
+	buf, err := s.ds.Get(makeStorageConfigKey(c))
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			return ffs.CidConfig{}, ErrNotFound
+			return ffs.StorageConfig{}, ErrNotFound
 		}
-		return ffs.CidConfig{}, err
+		return ffs.StorageConfig{}, err
 	}
-	var conf ffs.CidConfig
+	var conf ffs.StorageConfig
 	if err := json.Unmarshal(buf, &conf); err != nil {
-		return ffs.CidConfig{}, fmt.Errorf("unmarshaling cid config from datastore: %s", err)
+		return ffs.StorageConfig{}, fmt.Errorf("unmarshaling cid config from datastore: %s", err)
 	}
 	return conf, nil
 }
@@ -97,7 +97,7 @@ func (s *instanceStore) getCids() ([]cid.Cid, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{
-		Prefix:   dsCidConfig.String(),
+		Prefix:   dsStorageConfig.String(),
 		KeysOnly: true,
 	}
 	res, err := s.ds.Query(q)
@@ -122,6 +122,6 @@ func (s *instanceStore) getCids() ([]cid.Cid, error) {
 	return cids, nil
 }
 
-func makeCidConfigKey(c cid.Cid) datastore.Key {
-	return dsCidConfig.ChildString(util.CidToString(c))
+func makeStorageConfigKey(c cid.Cid) datastore.Key {
+	return dsStorageConfig.ChildString(util.CidToString(c))
 }
