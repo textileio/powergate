@@ -54,8 +54,7 @@ func TestMain(m *testing.M) {
 
 func TestSetDefaultConfig(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	_, _, fapi := newAPI(t, 1)
 
 	config := ffs.DefaultConfig{
 		Hot: ffs.HotConfig{
@@ -82,8 +81,7 @@ func TestSetDefaultConfig(t *testing.T) {
 
 func TestAddrs(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	_, _, fapi := newAPI(t, 1)
 
 	addrs := fapi.Addrs()
 	require.Len(t, addrs, 1)
@@ -93,8 +91,7 @@ func TestAddrs(t *testing.T) {
 
 func TestNewAddress(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	_, _, fapi := newAPI(t, 1)
 
 	addr, err := fapi.NewAddr(context.Background(), "my address")
 	require.Nil(t, err)
@@ -106,8 +103,7 @@ func TestNewAddress(t *testing.T) {
 
 func TestNewAddressDefault(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	_, _, fapi := newAPI(t, 1)
 
 	addr, err := fapi.NewAddr(context.Background(), "my address", api.WithMakeDefault(true))
 	require.Nil(t, err)
@@ -119,8 +115,7 @@ func TestNewAddressDefault(t *testing.T) {
 
 func TestGetDefaultConfig(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	_, _, fapi := newAPI(t, 1)
 
 	defaultConf := fapi.DefaultConfig()
 	require.Nil(t, defaultConf.Validate())
@@ -131,8 +126,7 @@ func TestAdd(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	t.Run("WithDefaultConfig", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, client, fapi, cls := newAPI(t, 1)
-		defer cls()
+		ipfsAPI, client, fapi := newAPI(t, 1)
 
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 		jid, err := fapi.PushConfig(cid)
@@ -145,8 +139,7 @@ func TestAdd(t *testing.T) {
 	})
 
 	t.Run("WithCustomConfig", func(t *testing.T) {
-		ipfsAPI, _, fapi, cls := newAPI(t, 1)
-		defer cls()
+		ipfsAPI, _, fapi := newAPI(t, 1)
 		cid, _ := addRandomFile(t, r, ipfsAPI)
 
 		config := fapi.GetDefaultCidConfig(cid).WithHotEnabled(false).WithColdFilDealDuration(int64(1234))
@@ -161,8 +154,7 @@ func TestAdd(t *testing.T) {
 func TestGet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfs, _, fapi := newAPI(t, 1)
 
 	r := rand.New(rand.NewSource(22))
 	cid, data := addRandomFile(t, r, ipfs)
@@ -183,8 +175,7 @@ func TestGet(t *testing.T) {
 func TestInfo(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfs, _, fapi := newAPI(t, 1)
 
 	var err error
 	var first api.InstanceInfo
@@ -222,9 +213,7 @@ func TestInfo(t *testing.T) {
 func TestShow(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, _, fapi, cls := newAPI(t, 1)
-
-	defer cls()
+	ipfs, _, fapi := newAPI(t, 1)
 
 	t.Run("NotStored", func(t *testing.T) {
 		c, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
@@ -323,8 +312,7 @@ func TestRepFactor(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
-			ipfsAPI, _, fapi, cls := newAPI(t, rf)
-			defer cls()
+			ipfsAPI, _, fapi := newAPI(t, rf)
 			cid, _ := addRandomFile(t, r, ipfsAPI)
 			config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(rf)
 			jid, err := fapi.PushConfig(cid, api.WithCidConfig(config))
@@ -342,8 +330,7 @@ func TestRepFactor(t *testing.T) {
 func TestRepFactorIncrease(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(22))
-	ipfsAPI, _, fapi, cls := newAPI(t, 2)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 2)
 	cid, _ := addRandomFile(t, r, ipfsAPI)
 	jid, err := fapi.PushConfig(cid)
 	require.Nil(t, err)
@@ -369,8 +356,7 @@ func TestRepFactorIncrease(t *testing.T) {
 func TestRepFactorDecrease(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(22))
-	ipfsAPI, _, fapi, cls := newAPI(t, 2)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 2)
 
 	cid, _ := addRandomFile(t, r, ipfsAPI)
 	config := fapi.GetDefaultCidConfig(cid).WithColdFilRepFactor(2)
@@ -396,8 +382,7 @@ func TestRepFactorDecrease(t *testing.T) {
 
 func TestHotTimeoutConfig(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	_, _, fapi := newAPI(t, 1)
 
 	t.Run("ShortTime", func(t *testing.T) {
 		cid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
@@ -410,8 +395,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 
 func TestDurationConfig(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 1)
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -430,8 +414,7 @@ func TestDurationConfig(t *testing.T) {
 
 func TestFilecoinExcludedMiners(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, _, fapi, cls := newAPI(t, 2)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 2)
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -450,8 +433,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 
 func TestFilecoinTrustedMiner(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, _, fapi, cls := newAPI(t, 2)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 2)
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -556,8 +538,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 	for _, tt := range tableTest {
 		name := fmt.Sprintf("Hot(%v)/Cold(%v)", tt.HotEnabled, tt.ColdEnabled)
 		t.Run(name, func(t *testing.T) {
-			ipfsAPI, _, fapi, cls := newAPI(t, 1)
-			defer cls()
+			ipfsAPI, _, fapi := newAPI(t, 1)
 
 			r := rand.New(rand.NewSource(22))
 			cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -628,8 +609,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	t.Parallel()
 	t.Run("HotEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, _, fapi, cls := newAPI(t, 1)
-		defer cls()
+		ipfsAPI, _, fapi := newAPI(t, 1)
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -650,8 +630,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, _, fapi, cls := newAPI(t, 1)
-		defer cls()
+		ipfsAPI, _, fapi := newAPI(t, 1)
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -672,8 +651,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, client, fapi, cls := newAPI(t, 1)
-		defer cls()
+		ipfsAPI, client, fapi := newAPI(t, 1)
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -694,8 +672,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
 		ctx := context.Background()
-		ipfsAPI, client, fapi, cls := newAPI(t, 1)
-		defer cls()
+		ipfsAPI, client, fapi := newAPI(t, 1)
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfsAPI)
@@ -737,8 +714,7 @@ func requireFilStored(ctx context.Context, t *testing.T, client *apistruct.FullN
 
 func TestUnfreeze(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 1)
 
 	ra := rand.New(rand.NewSource(22))
 	ctx := context.Background()
@@ -771,8 +747,7 @@ func TestUnfreeze(t *testing.T) {
 
 func TestRenew(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 1)
 
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
@@ -818,8 +793,7 @@ Loop:
 func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	// Too flaky for CI.
 	t.SkipNow()
-	ipfsAPI, _, fapi, cls := newAPI(t, 2)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 2)
 
 	ra := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, ra, ipfsAPI)
@@ -872,8 +846,7 @@ Loop:
 func TestCidLogger(t *testing.T) {
 	t.Parallel()
 	t.Run("WithNoFilters", func(t *testing.T) {
-		ipfs, _, fapi, cls := newAPI(t, 1)
-		defer cls()
+		ipfs, _, fapi := newAPI(t, 1)
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := addRandomFile(t, r, ipfs)
@@ -911,8 +884,7 @@ func TestCidLogger(t *testing.T) {
 	})
 	t.Run("WithJidFilter", func(t *testing.T) {
 		t.Run("CorrectJid", func(t *testing.T) {
-			ipfs, _, fapi, cls := newAPI(t, 1)
-			defer cls()
+			ipfs, _, fapi := newAPI(t, 1)
 
 			r := rand.New(rand.NewSource(22))
 			cid, _ := addRandomFile(t, r, ipfs)
@@ -949,8 +921,7 @@ func TestCidLogger(t *testing.T) {
 			requireCidConfig(t, fapi, cid, nil)
 		})
 		t.Run("IncorrectJid", func(t *testing.T) {
-			ipfs, _, fapi, cls := newAPI(t, 1)
-			defer cls()
+			ipfs, _, fapi := newAPI(t, 1)
 
 			r := rand.New(rand.NewSource(22))
 			cid, _ := addRandomFile(t, r, ipfs)
@@ -981,8 +952,7 @@ func TestCidLogger(t *testing.T) {
 func TestPushCidReplace(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, client, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfs, client, fapi := newAPI(t, 1)
 
 	r := rand.New(rand.NewSource(22))
 	c1, _ := addRandomFile(t, r, ipfs)
@@ -1056,8 +1026,7 @@ func TestDoubleReplace(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfs, _, fapi := newAPI(t, 1)
 
 	r := rand.New(rand.NewSource(22))
 	c1, _ := addRandomFile(t, r, ipfs)
@@ -1085,8 +1054,7 @@ func TestRemove(t *testing.T) {
 func TestSendFil(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	_, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	_, _, fapi := newAPI(t, 1)
 
 	const amt int64 = 1
 
@@ -1138,8 +1106,7 @@ func TestSendFil(t *testing.T) {
 // Better than no test is some test, so this tests that the repair logic gets triggered
 // and the related Job ran successfully.
 func TestRepair(t *testing.T) {
-	ipfs, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfs, _, fapi := newAPI(t, 1)
 
 	r := rand.New(rand.NewSource(22))
 	cid, _ := addRandomFile(t, r, ipfs)
@@ -1193,8 +1160,7 @@ func TestRepair(t *testing.T) {
 
 func TestFailedJobMessage(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfs, _, fapi := newAPI(t, 1)
 
 	r := rand.New(rand.NewSource(22))
 	// Add a file size that would be bigger than the
@@ -1214,8 +1180,7 @@ func TestFailedJobMessage(t *testing.T) {
 
 func TestLogHistory(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfs, _, fapi := newAPI(t, 1)
 
 	r := rand.New(rand.NewSource(22))
 	c, _ := addRandomFile(t, r, ipfs)
@@ -1281,8 +1246,7 @@ func TestResumeScheduler(t *testing.T) {
 
 func TestParallelExecution(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfs, _, fapi := newAPI(t, 1)
 
 	r := rand.New(rand.NewSource(22))
 	n := 3
@@ -1313,8 +1277,7 @@ func TestParallelExecution(t *testing.T) {
 
 func TestJobCancellation(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
-	ipfsAPI, _, fapi, cls := newAPI(t, 1)
-	defer cls()
+	ipfsAPI, _, fapi := newAPI(t, 1)
 
 	cid, _ := addRandomFile(t, r, ipfsAPI)
 	jid, err := fapi.PushConfig(cid)
@@ -1332,7 +1295,7 @@ func TestJobCancellation(t *testing.T) {
 	require.True(t, time.Since(before) < time.Second)
 }
 
-func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
+func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := createIPFS(t)
 	addr, client, ms := newDevnet(t, numMiners, ipfsMAddr)
@@ -1342,11 +1305,12 @@ func newAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeS
 	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 	fapi, err := manager.GetByAuthToken(auth)
 	require.NoError(t, err)
-	return ipfs, client, fapi, func() {
+	t.Cleanup(func() {
 		err := fapi.Close()
 		require.NoError(t, err)
 		closeManager()
-	}
+	})
+	return ipfs, client, fapi
 }
 
 func createIPFS(t *testing.T) (*httpapi.HttpApi, string) {
