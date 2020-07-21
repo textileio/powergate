@@ -31,7 +31,7 @@ func TestCheck(t *testing.T) {
 	c, done := setupHealth(t)
 	defer done()
 	status, messages, err := c.Check(ctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, messages)
 	require.Equal(t, h.Ok, status)
 }

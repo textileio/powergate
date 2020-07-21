@@ -55,16 +55,16 @@ func TestStore(t *testing.T) {
 				deals.WithAscending(true),
 				deals.WithFromAddrs(addr.String()),
 			)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Len(t, pending, nm)
 			final, err := m.ListStorageDealRecords(deals.WithIncludeFinal(true))
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Empty(t, final)
 			err = waitForDealComplete(client, pcids)
 			checkErr(t, err)
 			time.Sleep(util.AvgBlockTime)
 			pending, err = m.ListStorageDealRecords(deals.WithIncludePending(true))
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Empty(t, pending)
 			final, err = m.ListStorageDealRecords(
 				deals.WithIncludeFinal(true),
@@ -72,7 +72,7 @@ func TestStore(t *testing.T) {
 				deals.WithAscending(true),
 				deals.WithFromAddrs(addr.String()),
 			)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Len(t, final, nm)
 		})
 	}
@@ -105,7 +105,7 @@ func TestRetrieve(t *testing.T) {
 				t.Fatal("retrieved data doesn't match with stored data")
 			}
 			retrievals, err := m.ListRetrievalDealRecords()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Len(t, retrievals, 1)
 		})
 	}
