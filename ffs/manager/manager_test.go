@@ -130,7 +130,7 @@ func TestDefaultStorageConfig(t *testing.T) {
 
 func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
 	client, addr, _ := tests.CreateLocalDevnet(t, 1)
-	wm, err := walletModule.New(client, addr, *big.NewInt(4000000000), false)
+	wm, err := walletModule.New(client, addr, *big.NewInt(4000000000), false, "")
 	require.NoError(t, err)
 	pm := paych.New(client)
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), client)

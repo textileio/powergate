@@ -136,9 +136,10 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting Lotus network name: %s", err)
 	}
-	log.Infof("Detected Lotus node connected to network: %s", network)
+	networkName := string(network)
+	log.Infof("Detected Lotus node connected to network: %s", networkName)
 
-	fchost, err := fchost.New(string(network), !conf.Devnet)
+	fchost, err := fchost.New(networkName, !conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating filecoin host: %s", err)
 	}
@@ -181,7 +182,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
-	wm, err := walletModule.New(c, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr)
+	wm, err := walletModule.New(c, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName)
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
