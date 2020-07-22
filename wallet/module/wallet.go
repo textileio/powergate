@@ -18,21 +18,28 @@ import (
 
 var (
 	log = logger.Logger("wallet")
+
+	networkFaucet = map[string]string{
+		"testnet":  "https://faucet.testnet.filecoin.io",
+		"nerpanet": "https://faucet.nerpa.fildev.network",
+	}
 )
 
 // Module exposes the filecoin wallet api.
 type Module struct {
-	api        *apistruct.FullNodeStruct
-	iAmount    *big.Int
-	masterAddr address.Address
+	api         *apistruct.FullNodeStruct
+	iAmount     *big.Int
+	masterAddr  address.Address
+	networkName string
 }
 
 // New creates a new wallet module.
-func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, autocreate bool) (*Module, error) {
+func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, autocreate bool, networkName string) (*Module, error) {
 	m := &Module{
-		api:        api,
-		iAmount:    &iam,
-		masterAddr: maddr,
+		api:         api,
+		iAmount:     &iam,
+		masterAddr:  maddr,
+		networkName: networkName,
 	}
 	if maddr == address.Undef && autocreate {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -140,7 +147,12 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 
 // FundFromFaucet make a faucet call to fund the provided wallet address.
 func (m *Module) FundFromFaucet(ctx context.Context, addr string) error {
-	req, err := http.NewRequest("GET", "https://faucet.testnet.filecoin.io/send", nil)
+	faucet, ok := networkFaucet[m.networkName]
+	if !ok {
+		return fmt.Errorf("unknown faucet for network %s", m.networkName)
+	}
+
+	req, err := http.NewRequest("GET", faucet+"/send", nil)
 	if err != nil {
 		return fmt.Errorf("parsing fountain url: %s", err)
 	}
