@@ -149,7 +149,7 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 func (m *Module) FundFromFaucet(ctx context.Context, addr string) error {
 	faucet, ok := networkFaucet[m.networkName]
 	if !ok {
-		return fmt.Errorf("unkown network faucet for network %s", m.networkName)
+		return fmt.Errorf("unkown faucet for network %s", m.networkName)
 	}
 
 	req, err := http.NewRequest("GET", faucet+"/send", nil)
