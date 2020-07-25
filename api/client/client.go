@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"strings"
 
-	"github.com/multiformats/go-multiaddr"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
@@ -13,7 +12,6 @@ import (
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	netRpc "github.com/textileio/powergate/net/rpc"
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
-	"github.com/textileio/powergate/util"
 	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -58,14 +56,9 @@ func (t TokenAuth) RequireTransportSecurity() bool {
 }
 
 // NewClient creates a client.
-func NewClient(ma multiaddr.Multiaddr, optsOverrides ...grpc.DialOption) (*Client, error) {
-	addr, err := util.TCPAddrFromMultiAddr(ma)
-	if err != nil {
-		return nil, err
-	}
-
+func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	var creds credentials.TransportCredentials
-	if strings.Contains(addr, "443") {
+	if strings.Contains(target, "443") {
 		creds = credentials.NewTLS(&tls.Config{})
 	}
 
@@ -80,7 +73,7 @@ func NewClient(ma multiaddr.Multiaddr, optsOverrides ...grpc.DialOption) (*Clien
 	opts = append(opts, grpc.WithPerRPCCredentials(auth))
 	opts = append(opts, optsOverrides...)
 
-	conn, err := grpc.Dial(addr, opts...)
+	conn, err := grpc.Dial(target, opts...)
 	if err != nil {
 		return nil, err
 	}

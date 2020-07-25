@@ -16,7 +16,7 @@ import (
 
 var (
 	grpcHostNetwork     = "tcp"
-	grpcHostAddress     = "/ip4/127.0.0.1/tcp/5002"
+	grpcHostAddress     = "127.0.0.1:5002"
 	grpcWebProxyAddress = "127.0.0.1:6002"
 	gatewayHostAddr     = "0.0.0.0:7000"
 	ctx                 = context.Background()
