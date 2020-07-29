@@ -64,6 +64,11 @@ func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, auto
 	return m, nil
 }
 
+// MasterAddr returns the master address.
+func (m *Module) MasterAddr() address.Address {
+	return m.masterAddr
+}
+
 // NewAddress creates a new address.
 func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	var ty crypto.SigType

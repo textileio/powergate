@@ -6,10 +6,6 @@ import (
 	"math/big"
 )
 
-var (
-	defaultAddressType = "bls"
-)
-
 // Addrs returns the wallet addresses.
 func (i *API) Addrs() []AddrInfo {
 	i.lock.Lock()
@@ -28,7 +24,7 @@ func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 
 	conf := &NewAddressConfig{
 		makeDefault: false,
-		addressType: defaultAddressType,
+		addressType: "bls",
 	}
 	for _, option := range options {
 		option(conf)

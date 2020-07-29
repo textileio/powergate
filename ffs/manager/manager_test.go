@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 
 func TestNewManager(t *testing.T) {
 	t.Parallel()
-	m, cls := newManager(t, tests.NewTxMapDatastore())
+	m, cls := newManager(t, tests.NewTxMapDatastore(), false)
 	require.NotNil(t, m)
 	defer cls()
 }
@@ -32,7 +32,7 @@ func TestCreate(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	m, cls := newManager(t, ds)
+	m, cls := newManager(t, ds, false)
 	defer cls()
 
 	id, auth, err := m.Create(ctx)
@@ -41,11 +41,32 @@ func TestCreate(t *testing.T) {
 	require.True(t, id.Valid())
 }
 
+func TestCreateWithFFSMasterAddr(t *testing.T) {
+	t.Parallel()
+	ds := tests.NewTxMapDatastore()
+	ctx := context.Background()
+	m, cls := newManager(t, ds, true)
+	defer cls()
+
+	id, auth, err := m.Create(ctx)
+	require.NoError(t, err)
+	require.NotEmpty(t, auth)
+	require.True(t, id.Valid())
+
+	i, err := m.GetByAuthToken(auth)
+	require.NoError(t, err)
+	iAddrs := i.Addrs()
+	require.Len(t, iAddrs, 1)
+	require.Equal(t, m.wm.MasterAddr().String(), iAddrs[0].Addr)
+	c := i.DefaultStorageConfig()
+	require.Equal(t, m.wm.MasterAddr().String(), c.Cold.Filecoin.Addr)
+}
+
 func TestList(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	m, cls := newManager(t, ds)
+	m, cls := newManager(t, ds, false)
 	defer cls()
 
 	lst, err := m.List()
@@ -73,7 +94,7 @@ func TestGetByAuthToken(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	m, cls := newManager(t, ds)
+	m, cls := newManager(t, ds, false)
 	defer cls()
 	id, auth, err := m.Create(ctx)
 	require.NoError(t, err)
@@ -85,7 +106,7 @@ func TestGetByAuthToken(t *testing.T) {
 		require.NotEmpty(t, new.Addrs())
 	})
 	t.Run("Cold", func(t *testing.T) {
-		m, cls := newManager(t, ds)
+		m, cls := newManager(t, ds, false)
 		defer cls()
 		new, err := m.GetByAuthToken(auth)
 		require.NoError(t, err)
@@ -102,7 +123,7 @@ func TestGetByAuthToken(t *testing.T) {
 func TestDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
-	m, cls := newManager(t, ds)
+	m, cls := newManager(t, ds, false)
 	defer cls()
 
 	// A newly created manager must have
@@ -122,20 +143,20 @@ func TestDefaultStorageConfig(t *testing.T) {
 	// Re-open manager, and check that
 	// the default config was the last
 	// saved one, and not zeroConfig.
-	m, cls = newManager(t, ds)
+	m, cls = newManager(t, ds, false)
 	defer cls()
 	c3 := m.GetDefaultStorageConfig()
 	require.Equal(t, c, c3)
 }
 
-func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
+func newManager(t *testing.T, ds datastore.TxnDatastore, ffsUseMasterAddr bool) (*Manager, func()) {
 	client, addr, _ := tests.CreateLocalDevnet(t, 1)
 	wm, err := walletModule.New(client, addr, *big.NewInt(4000000000), false, "")
 	require.NoError(t, err)
 	pm := paych.New(client)
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), client)
 	require.NoError(t, err)
-	m, err := New(ds, wm, pm, dm, nil)
+	m, err := New(ds, wm, pm, dm, nil, ffsUseMasterAddr)
 	require.NoError(t, err)
 	cls := func() {
 		require.Nil(t, m.Close())

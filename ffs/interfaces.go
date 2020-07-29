@@ -5,12 +5,15 @@ import (
 	"io"
 	"math/big"
 
+	"github.com/filecoin-project/go-address"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/deals"
 )
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.
 type WalletManager interface {
+	// MasterAddr returns the master address.
+	MasterAddr() address.Address
 	// NewAddress creates a new address.
 	NewAddress(context.Context, string) (string, error)
 	// Balance returns the current balance for an address.
