@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	client "github.com/textileio/powergate/api/client"
@@ -27,9 +26,7 @@ var (
 
 			target := viper.GetString("serverAddress")
 
-			ma, err := multiaddr.NewMultiaddr(target)
-			checkErr(err)
-			fcClient, err = client.NewClient(ma)
+			fcClient, err = client.NewClient(target)
 			checkErr(err)
 		},
 	}

@@ -2,8 +2,6 @@ package client
 
 import (
 	"testing"
-
-	"github.com/multiformats/go-multiaddr"
 )
 
 func TestClient(t *testing.T) {
@@ -11,11 +9,7 @@ func TestClient(t *testing.T) {
 	done := setupServer(t)
 	defer done()
 
-	ma, err := multiaddr.NewMultiaddr(grpcHostAddress)
-	if err != nil {
-		t.Fatalf("parsing multiaddress: %s", err)
-	}
-	client, err := NewClient(ma)
+	client, err := NewClient(grpcHostAddress)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
