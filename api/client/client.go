@@ -62,14 +62,15 @@ func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error)
 		creds = credentials.NewTLS(&tls.Config{})
 	}
 
+	auth := TokenAuth{}
 	var opts []grpc.DialOption
 	if creds != nil {
 		opts = append(opts, grpc.WithTransportCredentials(creds))
+		auth.secure = true
 	} else {
 		opts = append(opts, grpc.WithInsecure())
 	}
 
-	auth := TokenAuth{}
 	opts = append(opts, grpc.WithPerRPCCredentials(auth))
 	opts = append(opts, optsOverrides...)
 
