@@ -8,7 +8,6 @@ import (
 	"time"
 
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/api/client"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/health"
@@ -20,17 +19,17 @@ var (
 
 // TestSetup describes a test configuration.
 type TestSetup struct {
-	LotusAddr    multiaddr.Multiaddr
-	MinerAddr    string
-	SampleSize   int64
-	MaxParallel  int
-	TotalSamples int
-	RandSeed     int
+	PowergateAddr string
+	MinerAddr     string
+	SampleSize    int64
+	MaxParallel   int
+	TotalSamples  int
+	RandSeed      int
 }
 
 // Run runs a test setup.
 func Run(ctx context.Context, ts TestSetup) error {
-	c, err := client.NewClient(ts.LotusAddr)
+	c, err := client.NewClient(ts.PowergateAddr)
 	defer func() {
 		if err := c.Close(); err != nil {
 			log.Errorf("closing powergate client: %s", err)
