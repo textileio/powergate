@@ -8,14 +8,13 @@ import (
 	"time"
 
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/client"
 	"github.com/textileio/powergate/health"
 )
 
 var (
-	lotusAddr = multiaddr.StringCast("/ip4/127.0.0.1/tcp/5002")
+	powergateAddr = "127.0.0.1:5002"
 )
 
 func TestMain(m *testing.M) {
@@ -28,12 +27,12 @@ func TestSimpleSetup(t *testing.T) {
 	t.SkipNow()
 	_ = spinup(t)
 	ts := TestSetup{
-		LotusAddr:    lotusAddr,
-		MinerAddr:    "t01000",
-		SampleSize:   700,
-		MaxParallel:  1,
-		TotalSamples: 1,
-		RandSeed:     22,
+		PowergateAddr: powergateAddr,
+		MinerAddr:     "t01000",
+		SampleSize:    700,
+		MaxParallel:   1,
+		TotalSamples:  1,
+		RandSeed:      22,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
@@ -75,7 +74,7 @@ func spinup(t *testing.T) *client.Client {
 	limit := 30
 	retries := 0
 	for retries < limit {
-		c, err = client.NewClient(lotusAddr)
+		c, err = client.NewClient(powergateAddr)
 		require.NoError(t, err)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()

@@ -8,7 +8,6 @@ import (
 	"syscall"
 
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/cmd/powbench/runner"
@@ -43,13 +42,10 @@ func main() {
 		log.Fatalf("binding flags: %s", err)
 	}
 
-	lma, err := multiaddr.NewMultiaddr(config.GetString(cmdPowergateAddr))
-	if err != nil {
-		log.Fatalf("parsing lotus multiaddr: %s", err)
-	}
+	pgAddr := config.GetString(cmdPowergateAddr)
 	ts := runner.TestSetup{
-		LotusAddr: lma,
-		MinerAddr: config.GetString(cmdMinerAddr),
+		PowergateAddr: pgAddr,
+		MinerAddr:     config.GetString(cmdMinerAddr),
 
 		SampleSize:   config.GetInt64(cmdSampleSize),
 		MaxParallel:  config.GetInt(cmdMaxParallel),
