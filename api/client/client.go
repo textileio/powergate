@@ -37,7 +37,7 @@ const AuthKey = ctxKey("ffstoken")
 
 // TokenAuth provides token based auth.
 type TokenAuth struct {
-	secure bool
+	Secure bool
 }
 
 // GetRequestMetadata returns request metadata that includes the auth token.
@@ -52,7 +52,7 @@ func (t TokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[str
 
 // RequireTransportSecurity specifies if the connection should be secure.
 func (t TokenAuth) RequireTransportSecurity() bool {
-	return t.secure
+	return t.Secure
 }
 
 // NewClient creates a client.
@@ -66,7 +66,7 @@ func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error)
 	var opts []grpc.DialOption
 	if creds != nil {
 		opts = append(opts, grpc.WithTransportCredentials(creds))
-		auth.secure = true
+		auth.Secure = true
 	} else {
 		opts = append(opts, grpc.WithInsecure())
 	}
