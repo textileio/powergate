@@ -37,7 +37,7 @@ const AuthKey = ctxKey("ffstoken")
 
 // TokenAuth provides token based auth.
 type TokenAuth struct {
-	secure bool
+	Secure bool
 }
 
 // GetRequestMetadata returns request metadata that includes the auth token.
@@ -52,11 +52,11 @@ func (t TokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[str
 
 // RequireTransportSecurity specifies if the connection should be secure.
 func (t TokenAuth) RequireTransportSecurity() bool {
-	return t.secure
+	return t.Secure
 }
 
-// NewClient creates a client.
-func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error) {
+// CreateClientConn creates a gRPC connection with sensible defaults and the provided overrides.
+func CreateClientConn(target string, optsOverrides ...grpc.DialOption) (*grpc.ClientConn, error) {
 	var creds credentials.TransportCredentials
 	if strings.Contains(target, "443") {
 		creds = credentials.NewTLS(&tls.Config{})
@@ -66,7 +66,7 @@ func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error)
 	var opts []grpc.DialOption
 	if creds != nil {
 		opts = append(opts, grpc.WithTransportCredentials(creds))
-		auth.secure = true
+		auth.Secure = true
 	} else {
 		opts = append(opts, grpc.WithInsecure())
 	}
@@ -75,6 +75,15 @@ func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error)
 	opts = append(opts, optsOverrides...)
 
 	conn, err := grpc.Dial(target, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
+}
+
+// NewClient creates a client.
+func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error) {
+	conn, err := CreateClientConn(target, optsOverrides...)
 	if err != nil {
 		return nil, err
 	}
