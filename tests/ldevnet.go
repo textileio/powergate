@@ -24,7 +24,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 	require.NoError(t, err)
 	envs := []string{
 		devnetEnv("NUMMINERS", strconv.Itoa(numMiners)),
-		devnetEnv("SPEED", "200"),
+		devnetEnv("SPEED", "300"),
 		devnetEnv("IPFSADDR", ipfsMaddr),
 		devnetEnv("BIGSECTORS", false),
 	}
