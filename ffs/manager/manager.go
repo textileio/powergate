@@ -15,6 +15,7 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/auth"
 	"github.com/textileio/powergate/ffs/scheduler"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -39,7 +40,7 @@ var (
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
 				RepFactor:       1,
-				DealMinDuration: 1000,
+				DealMinDuration: util.MinDealDuration,
 			},
 		},
 	}

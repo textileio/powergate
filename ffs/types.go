@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -293,8 +294,8 @@ func (fc *FilConfig) Validate() error {
 	if fc.RepFactor <= 0 {
 		return fmt.Errorf("replication factor should be greater than zero, got %d", fc.RepFactor)
 	}
-	if fc.DealMinDuration <= 0 {
-		return fmt.Errorf("deal duration should be greater than zero, got %d", fc.DealMinDuration)
+	if fc.DealMinDuration < util.MinDealDuration {
+		return fmt.Errorf("deal duration should be greater than minimum, got %d", fc.DealMinDuration)
 	}
 	if err := fc.Renew.Validate(); err != nil {
 		return fmt.Errorf("invalid renew config: %s", err)

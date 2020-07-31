@@ -45,12 +45,12 @@ func getBootstrapPeers(network string) ([]peer.AddrInfo, error) {
 		var err error
 		maddrs[i], err = multiaddr.NewMultiaddr(addr)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("converting multiaddrs: %s", err)
 		}
 	}
 	peers, err := peer.AddrInfosFromP2pAddrs(maddrs...)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("multiaddr conversion: %s", err)
 	}
 	return peers, nil
 }

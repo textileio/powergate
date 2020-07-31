@@ -268,6 +268,7 @@ func (s *Store) Close() error {
 	for i := range s.watchers {
 		close(s.watchers[i].C)
 	}
+	s.watchers = nil
 	return nil
 }
 

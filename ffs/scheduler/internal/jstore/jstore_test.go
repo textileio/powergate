@@ -14,7 +14,7 @@ import (
 func TestEnqueue(t *testing.T) {
 	t.Parallel()
 	s := create(t)
-	j := createJob()
+	j := createJob(t)
 	err := s.Enqueue(j)
 	require.NoError(t, err)
 	jQueued, err := s.Get(j.ID)
@@ -28,7 +28,7 @@ func TestDequeue(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 		s := create(t)
-		j := createJob()
+		j := createJob(t)
 		err := s.Enqueue(j)
 		require.NoError(t, err)
 		j2, err := s.Dequeue()
@@ -48,13 +48,13 @@ func TestDequeue(t *testing.T) {
 		t.Parallel()
 		s := create(t)
 
-		j1 := createJob()
+		j1 := createJob(t)
 		err := s.Enqueue(j1)
 		require.NoError(t, err)
 		_, err = s.Dequeue()
 		require.NoError(t, err)
 
-		j2 := createJob()
+		j2 := createJob(t)
 		err = s.Enqueue(j2)
 		require.NoError(t, err)
 
@@ -82,11 +82,11 @@ func TestCancelation(t *testing.T) {
 	t.Parallel()
 	s := create(t)
 
-	j1 := createJob()
+	j1 := createJob(t)
 	err := s.Enqueue(j1)
 	require.NoError(t, err)
 
-	j2 := createJob()
+	j2 := createJob(t)
 	err = s.Enqueue(j2)
 	require.NoError(t, err)
 
@@ -131,11 +131,10 @@ func TestStartedDeals(t *testing.T) {
 	require.Equal(t, 0, len(fds))
 }
 
-func createJob() ffs.Job {
+func createJob(t *testing.T) ffs.Job {
 	c, err := util.CidFromString("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
+
 	return ffs.Job{
 		ID:    ffs.NewJobID(),
 		APIID: "ApiIDTest",

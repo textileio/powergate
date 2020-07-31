@@ -41,9 +41,12 @@ func TestMain(m *testing.M) {
 }
 
 func TestStore(t *testing.T) {
+	t.Parallel()
 	numMiners := []int{1, 2}
 	for _, nm := range numMiners {
+		nm := nm
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
+			t.Parallel()
 			client, addr, _ := tests.CreateLocalDevnet(t, nm)
 			m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
@@ -79,10 +82,13 @@ func TestStore(t *testing.T) {
 }
 
 func TestRetrieve(t *testing.T) {
+	t.Parallel()
 	numMiners := []int{1} // go-fil-markets: doesn't support remembering more than 1 miner
 	data := randomBytes(600)
 	for _, nm := range numMiners {
+		nm := nm
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
+			t.Parallel()
 			client, addr, _ := tests.CreateLocalDevnet(t, nm)
 			m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 			checkErr(t, err)
@@ -139,7 +145,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	if !dataCid.Defined() {
 		return cid.Undef, nil, fmt.Errorf("data cid is undefined")
 	}
-	srs, err := m.Store(ctx, addr.String(), dataCid, 2*uint64(size), cfgs, 1000)
+	srs, err := m.Store(ctx, addr.String(), dataCid, 2*uint64(size), cfgs, util.MinDealDuration)
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("calling Store(): %s", err)
 	}
@@ -178,10 +184,13 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 			switch di.State {
 			case
 				storagemarket.StorageDealUnknown,
-				storagemarket.StorageDealWaitingForDataRequest,
+				storagemarket.StorageDealWaitingForData,
 				storagemarket.StorageDealProposalAccepted,
 				storagemarket.StorageDealStaged,
 				storagemarket.StorageDealValidating,
+				storagemarket.StorageDealTransferring,
+				storagemarket.StorageDealFundsEnsured,
+				storagemarket.StorageDealCheckForAcceptance,
 				storagemarket.StorageDealClientFunding,
 				storagemarket.StorageDealPublish,
 				storagemarket.StorageDealPublishing,

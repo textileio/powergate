@@ -46,9 +46,8 @@ func spinup(t *testing.T) *client.Client {
 	makeDown := func() {
 		cmd := exec.Command("make", "down")
 		cmd.Dir = dockerFolder
-		if err := cmd.Run(); err != nil {
-			panic(err)
-		}
+		err := cmd.Run()
+		require.NoError(t, err)
 	}
 	makeDown()
 

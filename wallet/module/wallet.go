@@ -91,7 +91,6 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 			From:     m.masterAddr,
 			To:       addr,
 			Value:    types.BigInt{Int: m.iAmount},
-			GasLimit: 1000,
 			GasPrice: types.NewInt(0),
 		}
 
@@ -144,7 +143,6 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 		From:     f,
 		To:       t,
 		Value:    types.BigInt{Int: amount},
-		GasLimit: 1000, // ToDo: how to handle gas?
 		GasPrice: types.NewInt(0),
 	}
 	_, err = m.api.MpoolPushMessage(ctx, msg)
