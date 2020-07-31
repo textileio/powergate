@@ -99,6 +99,7 @@ type Config struct {
 	LotusAuthToken       string
 	LotusMasterAddr      string
 	AutocreateMasterAddr bool
+	FFSUseMasterAddr     bool
 	Devnet               bool
 	GrpcHostNetwork      string
 	GrpcHostAddress      ma.Multiaddr
@@ -111,6 +112,10 @@ type Config struct {
 
 // NewServer starts and returns a new server with the given configuration.
 func NewServer(conf Config) (*Server, error) {
+	if conf.FFSUseMasterAddr && !(len(conf.LotusMasterAddr) > 0 || conf.AutocreateMasterAddr) {
+		return nil, fmt.Errorf("FFSUseMasterAddr requires LotusMasterAddr or AutocreateMasterAddr to be provided")
+	}
+
 	var err error
 	var masterAddr address.Address
 	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
@@ -210,7 +215,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}
 
-	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, pm, dm, sched)
+	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, pm, dm, sched, conf.FFSUseMasterAddr)
 	if err != nil {
 		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}

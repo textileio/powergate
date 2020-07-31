@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
@@ -23,17 +25,47 @@ func TestMain(m *testing.M) {
 
 func TestNewManager(t *testing.T) {
 	t.Parallel()
-	m, cls := newManager(t, tests.NewTxMapDatastore())
+	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	m, cls, err := newManager(client, tests.NewTxMapDatastore(), addr, false)
+	require.NoError(t, err)
 	require.NotNil(t, m)
-	defer cls()
+	defer require.NoError(t, cls())
+}
+
+func TestNewManagerMasterAddrFFSUseMasterAddr(t *testing.T) {
+	t.Parallel()
+	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	m, cls, err := newManager(client, tests.NewTxMapDatastore(), addr, true)
+	require.NoError(t, err)
+	require.NotNil(t, m)
+	defer require.NoError(t, cls())
+}
+
+func TestNewManagerNoMasterAddrNoFFSUseMasterAddr(t *testing.T) {
+	t.Parallel()
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	m, cls, err := newManager(client, tests.NewTxMapDatastore(), address.Undef, false)
+	require.NoError(t, err)
+	require.NotNil(t, m)
+	defer require.NoError(t, cls())
+}
+
+func TestNewManagerNoMasterAddrFFSUseMasterAddr(t *testing.T) {
+	t.Parallel()
+	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	_, cls, err := newManager(client, tests.NewTxMapDatastore(), address.Undef, true)
+	require.Error(t, err)
+	defer require.NoError(t, cls())
 }
 
 func TestCreate(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	m, cls := newManager(t, ds)
-	defer cls()
+	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	m, cls, err := newManager(client, ds, addr, false)
+	require.NoError(t, err)
+	defer require.NoError(t, cls())
 
 	id, auth, err := m.Create(ctx)
 	require.NoError(t, err)
@@ -41,12 +73,37 @@ func TestCreate(t *testing.T) {
 	require.True(t, id.Valid())
 }
 
+func TestCreateWithFFSMasterAddr(t *testing.T) {
+	t.Parallel()
+	ds := tests.NewTxMapDatastore()
+	ctx := context.Background()
+	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	m, cls, err := newManager(client, ds, addr, true)
+	require.NoError(t, err)
+	defer require.NoError(t, cls())
+
+	id, auth, err := m.Create(ctx)
+	require.NoError(t, err)
+	require.NotEmpty(t, auth)
+	require.True(t, id.Valid())
+
+	i, err := m.GetByAuthToken(auth)
+	require.NoError(t, err)
+	iAddrs := i.Addrs()
+	require.Len(t, iAddrs, 1)
+	require.Equal(t, m.wm.MasterAddr().String(), iAddrs[0].Addr)
+	c := i.DefaultStorageConfig()
+	require.Equal(t, m.wm.MasterAddr().String(), c.Cold.Filecoin.Addr)
+}
+
 func TestList(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	m, cls := newManager(t, ds)
-	defer cls()
+	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	m, cls, err := newManager(client, ds, addr, false)
+	require.NoError(t, err)
+	defer require.NoError(t, cls())
 
 	lst, err := m.List()
 	require.NoError(t, err)
@@ -73,8 +130,10 @@ func TestGetByAuthToken(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	m, cls := newManager(t, ds)
-	defer cls()
+	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	m, cls, err := newManager(client, ds, addr, false)
+	require.NoError(t, err)
+	defer require.NoError(t, cls())
 	id, auth, err := m.Create(ctx)
 	require.NoError(t, err)
 
@@ -85,8 +144,10 @@ func TestGetByAuthToken(t *testing.T) {
 		require.NotEmpty(t, new.Addrs())
 	})
 	t.Run("Cold", func(t *testing.T) {
-		m, cls := newManager(t, ds)
-		defer cls()
+		client, addr, _ := tests.CreateLocalDevnet(t, 1)
+		m, cls, err := newManager(client, ds, addr, false)
+		require.NoError(t, err)
+		defer require.NoError(t, cls())
 		new, err := m.GetByAuthToken(auth)
 		require.NoError(t, err)
 		require.Equal(t, id, new.ID())
@@ -102,8 +163,10 @@ func TestGetByAuthToken(t *testing.T) {
 func TestDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
-	m, cls := newManager(t, ds)
-	defer cls()
+	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	m, cls, err := newManager(client, ds, addr, false)
+	require.NoError(t, err)
+	defer require.NoError(t, cls())
 
 	// A newly created manager must have
 	// the zeroConfig defined value.
@@ -113,32 +176,38 @@ func TestDefaultStorageConfig(t *testing.T) {
 	// Change the default config and test.
 	c.Hot.Enabled = false
 	c.Repairable = true
-	err := m.SetDefaultStorageConfig(c)
+	err = m.SetDefaultStorageConfig(c)
 	require.NoError(t, err)
 	c2 := m.GetDefaultStorageConfig()
 	require.Equal(t, c, c2)
-	cls()
+	defer require.NoError(t, cls())
 
 	// Re-open manager, and check that
 	// the default config was the last
 	// saved one, and not zeroConfig.
-	m, cls = newManager(t, ds)
-	defer cls()
+	m, cls, err = newManager(client, ds, addr, false)
+	require.NoError(t, err)
+	defer require.NoError(t, cls())
 	c3 := m.GetDefaultStorageConfig()
 	require.Equal(t, c, c3)
 }
 
-func newManager(t *testing.T, ds datastore.TxnDatastore) (*Manager, func()) {
-	client, addr, _ := tests.CreateLocalDevnet(t, 1)
-	wm, err := walletModule.New(client, addr, *big.NewInt(4000000000), false, "")
-	require.NoError(t, err)
+func newManager(client *apistruct.FullNodeStruct, ds datastore.TxnDatastore, masterAddr address.Address, ffsUseMasterAddr bool) (*Manager, func() error, error) {
+	wm, err := walletModule.New(client, masterAddr, *big.NewInt(4000000000), false, "")
+	if err != nil {
+		return nil, func() error { return nil }, err
+	}
 	pm := paych.New(client)
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), client)
-	require.NoError(t, err)
-	m, err := New(ds, wm, pm, dm, nil)
-	require.NoError(t, err)
-	cls := func() {
-		require.Nil(t, m.Close())
+	if err != nil {
+		return nil, func() error { return nil }, err
 	}
-	return m, cls
+	m, err := New(ds, wm, pm, dm, nil, ffsUseMasterAddr)
+	if err != nil {
+		return nil, func() error { return nil }, err
+	}
+	cls := func() error {
+		return m.Close()
+	}
+	return m, cls, nil
 }

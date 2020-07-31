@@ -42,7 +42,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().String("serverAddress", "/ip4/127.0.0.1/tcp/5002", "address of the powergate service api")
+	rootCmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the powergate service api")
 }
 
 func initConfig() {

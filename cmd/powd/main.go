@@ -106,6 +106,7 @@ func configFromFlags() (server.Config, error) {
 	ipfsAPIAddr := util.MustParseAddr(config.GetString("ipfsapiaddr"))
 	lotusMasterAddr := config.GetString("lotusmasteraddr")
 	autocreateMasterAddr := config.GetBool("autocreatemasteraddr")
+	ffsUseMasterAddr := config.GetBool("ffsusemasteraddr")
 	grpcWebProxyAddr := config.GetString("grpcwebproxyaddr")
 	gatewayHostAddr := config.GetString("gatewayhostaddr")
 	maxminddbfolder := config.GetString("maxminddbfolder")
@@ -117,6 +118,7 @@ func configFromFlags() (server.Config, error) {
 		LotusAuthToken:       lotusToken,
 		LotusMasterAddr:      lotusMasterAddr,
 		AutocreateMasterAddr: autocreateMasterAddr,
+		FFSUseMasterAddr:     ffsUseMasterAddr,
 		Devnet:               devnet,
 		// ToDo: Support secure gRPC connection
 		GrpcHostNetwork:     "tcp",
@@ -269,6 +271,7 @@ func setupFlags() error {
 	pflag.String("lotustokenfile", "", "Path of a file that contains the Lotus API authorization token.")
 	pflag.String("lotusmasteraddr", "", "Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)")
 	pflag.Bool("autocreatemasteraddr", false, "Automatically creates & funds a master address if none is provided")
+	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
 	pflag.String("repopath", "~/.powergate", "Path of the repository where Powergate state will be saved.")
 	pflag.Bool("devnet", false, "Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "IPFS API endpoint multiaddress. (Optional, only needed if FFS is used)")

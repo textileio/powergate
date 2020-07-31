@@ -19,12 +19,13 @@ pow ffs storage [flags]
   -h, --help              help for storage
   -f, --include-final     include final deals
   -p, --include-pending   include pending deals
+  -t, --token string      token of the request
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --serverAddress string   address of the powergate service api (default "/ip4/127.0.0.1/tcp/5002")
+      --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
 ```
 
 ### SEE ALSO

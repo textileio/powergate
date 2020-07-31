@@ -31,7 +31,7 @@ To build from source, you need to have Go 1.14 or newer installed.
 
 ## Design
 
-Powergate is composed of different modules which can be used independently, and compose toegheter to provide other higher-level modules.
+Powergate is composed of different modules which can be used independently, and compose together to provide other higher-level modules.
 
 Here's a high-level overview of the main components, and how Powergate interacts with IPFS and a Filecoin client:
 ![Powergate Design](https://user-images.githubusercontent.com/6136245/86490337-6dbd5200-bd3d-11ea-9895-3689dd1c8a8f.png)
@@ -144,6 +144,7 @@ Usage of ./powd:
       --autocreatemasteraddr      Automatically creates & funds a master address if none is provided
       --debug                     Enable debug log level in all loggers.
       --devnet                    Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.
+      --ffsusemasteraddr          Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.
       --gatewayhostaddr string    Gateway host listening address (default "0.0.0.0:7000")
       --grpchostaddr string       gRPC host listening address. (default "/ip4/0.0.0.0/tcp/5002")
       --grpcwebproxyaddr string   gRPC webproxy listening address. (default "0.0.0.0:6002")

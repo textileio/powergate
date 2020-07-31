@@ -17,12 +17,13 @@ pow ffs retrievals [flags]
   -a, --ascending       sort records ascending, default is descending
       --cids strings    limit the records to deals for the specified data cids
   -h, --help            help for retrievals
+  -t, --token string    token of the request
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --serverAddress string   address of the powergate service api (default "/ip4/127.0.0.1/tcp/5002")
+      --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
 ```
 
 ### SEE ALSO

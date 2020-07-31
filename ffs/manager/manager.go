@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/filecoin-project/go-address"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/namespace"
 	logging "github.com/ipfs/go-log/v2"
@@ -52,30 +53,35 @@ type Manager struct {
 	drm   ffs.DealRecordsManager
 	sched *scheduler.Scheduler
 
-	lock          sync.Mutex
-	ds            datastore.Datastore
-	auth          *auth.Auth
-	instances     map[ffs.APIID]*api.API
-	defaultConfig ffs.StorageConfig
+	lock             sync.Mutex
+	ds               datastore.Datastore
+	auth             *auth.Auth
+	instances        map[ffs.APIID]*api.API
+	defaultConfig    ffs.StorageConfig
+	ffsUseMasterAddr bool
 
 	closed bool
 }
 
 // New returns a new Manager.
-func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler) (*Manager, error) {
+func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool) (*Manager, error) {
+	if ffsUseMasterAddr && wm.MasterAddr() == address.Undef {
+		return nil, fmt.Errorf("ffsUseMasterAddr requires that master address is defined")
+	}
 	storageConfig, err := loadDefaultStorageConfig(ds)
 	if err != nil {
 		return nil, fmt.Errorf("loading default storage config: %s", err)
 	}
 	return &Manager{
-		auth:          auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
-		ds:            ds,
-		wm:            wm,
-		pm:            pm,
-		drm:           drm,
-		sched:         sched,
-		instances:     make(map[ffs.APIID]*api.API),
-		defaultConfig: storageConfig,
+		auth:             auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
+		ds:               ds,
+		wm:               wm,
+		pm:               pm,
+		drm:              drm,
+		sched:            sched,
+		instances:        make(map[ffs.APIID]*api.API),
+		defaultConfig:    storageConfig,
+		ffsUseMasterAddr: ffsUseMasterAddr,
 	}, nil
 }
 
@@ -85,8 +91,40 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	defer m.lock.Unlock()
 
 	log.Info("creating instance")
+
+	var addr address.Address
+	if m.ffsUseMasterAddr {
+		addr = m.wm.MasterAddr()
+	} else {
+		res, err := m.wm.NewAddress(ctx, "bls")
+		if err != nil {
+			return ffs.EmptyInstanceID, "", fmt.Errorf("creating new wallet addr: %s", err)
+		}
+		a, err := address.NewFromString(res)
+		if err != nil {
+			return ffs.EmptyInstanceID, "", fmt.Errorf("decoding newly created addr: %s", err)
+		}
+		addr = a
+	}
+
+	addrInfo := api.AddrInfo{Name: "Initial Address", Addr: addr.String()}
+	switch addr.Protocol() {
+	case address.BLS:
+		addrInfo.Type = "bls"
+	case address.SECP256K1:
+		addrInfo.Type = "secp256k1"
+	case address.Actor:
+		addrInfo.Type = "actor"
+	case address.ID:
+		addrInfo.Type = "id"
+	case address.Unknown:
+	default:
+		addrInfo.Type = "unknown"
+	}
+
 	iid := ffs.NewAPIID()
-	fapi, err := api.New(ctx, namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm, m.defaultConfig)
+
+	fapi, err := api.New(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm, m.defaultConfig, addrInfo)
 	if err != nil {
 		return ffs.EmptyInstanceID, "", fmt.Errorf("creating new instance: %s", err)
 	}

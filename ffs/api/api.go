@@ -51,29 +51,18 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ctx context.Context, ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.StorageConfig) (*API, error) {
+func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.StorageConfig, addrInfo AddrInfo) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 
-	addr, err := wm.NewAddress(ctx, defaultAddressType)
-	if err != nil {
-		return nil, fmt.Errorf("creating new wallet addr: %s", err)
-	}
-
-	dc.Cold.Filecoin.Addr = addr
+	dc.Cold.Filecoin.Addr = addrInfo.Addr
 
 	if err := dc.Validate(); err != nil {
-		return nil, fmt.Errorf("default cid config is invalid: %s", err)
-	}
-
-	addrInfo := AddrInfo{
-		Name: "Initial Address",
-		Addr: addr,
-		Type: defaultAddressType,
+		return nil, fmt.Errorf("default storage config is invalid: %s", err)
 	}
 
 	config := Config{
 		ID:                   iid,
-		Addrs:                map[string]AddrInfo{addr: addrInfo},
+		Addrs:                map[string]AddrInfo{addrInfo.Addr: addrInfo},
 		DefaultStorageConfig: dc,
 	}
 

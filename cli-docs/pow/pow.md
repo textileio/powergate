@@ -10,7 +10,7 @@ A client for storage and retreival of powergate data
 
 ```
   -h, --help                   help for pow
-      --serverAddress string   address of the powergate service api (default "/ip4/127.0.0.1/tcp/5002")
+      --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
 ```
 
 ### SEE ALSO

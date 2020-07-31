@@ -19,7 +19,7 @@ pow net find [peerID] [flags]
 ### Options inherited from parent commands
 
 ```
-      --serverAddress string   address of the powergate service api (default "/ip4/127.0.0.1/tcp/5002")
+      --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
 ```
 
 ### SEE ALSO
