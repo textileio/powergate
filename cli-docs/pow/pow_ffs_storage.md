@@ -19,6 +19,7 @@ pow ffs storage [flags]
   -h, --help              help for storage
   -f, --include-final     include final deals
   -p, --include-pending   include pending deals
+  -t, --token string      token of the request
 ```
 
 ### Options inherited from parent commands

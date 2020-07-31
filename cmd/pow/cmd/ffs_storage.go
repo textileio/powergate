@@ -15,6 +15,7 @@ import (
 )
 
 func init() {
+	ffsStorageCmd.Flags().StringP("token", "t", "", "token of the request")
 	ffsStorageCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is sort descending")
 	ffsStorageCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids, treated as and AND operation if --addrs is also provided")
 	ffsStorageCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses, treated as and AND operation if --cids is also provided")
