@@ -142,7 +142,7 @@ func NewFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 
 	pm := paych.New(lotusClient)
 
-	manager, err := manager.New(ds, wm, pm, dm, sched)
+	manager, err := manager.New(ds, wm, pm, dm, sched, false)
 	require.NoError(t, err)
 	err = manager.SetDefaultStorageConfig(ffs.StorageConfig{
 		Hot: ffs.HotConfig{
