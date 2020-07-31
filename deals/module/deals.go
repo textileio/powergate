@@ -242,6 +242,11 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 	for _, opt := range opts {
 		opt(&c)
 	}
+
+	if !c.IncludeFinal && !c.IncludePending {
+		return nil, fmt.Errorf("you must specify one or both options of IncludePending and IncludeFinal")
+	}
+
 	var final []deals.StorageDealRecord
 	if c.IncludeFinal {
 		recs, err := m.store.getFinalDeals()
