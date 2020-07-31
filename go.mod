@@ -8,11 +8,11 @@ require (
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/filecoin-project/go-address v0.0.2-0.20200504173055-8b6f2fb2b3ef
-	github.com/filecoin-project/go-fil-markets v0.5.2
+	github.com/filecoin-project/go-fil-markets v0.5.3-0.20200731191349-05110623f114
 	github.com/filecoin-project/go-jsonrpc v0.1.1-0.20200602181149-522144ab4e24
 	github.com/filecoin-project/go-padreader v0.0.0-20200210211231-548257017ca6
-	github.com/filecoin-project/lotus v0.4.3-0.20200729021736-477dd536b5b5
-	github.com/filecoin-project/specs-actors v0.8.1-0.20200728182452-1476088f645b
+	github.com/filecoin-project/lotus v0.4.3-0.20200731220342-4e9343c487a5
+	github.com/filecoin-project/specs-actors v0.8.6
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
@@ -33,9 +33,9 @@ require (
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/ipld/go-car v0.1.1-0.20200526133713-1c7508d55aae
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
-	github.com/libp2p/go-libp2p v0.10.0
-	github.com/libp2p/go-libp2p-core v0.6.0
-	github.com/libp2p/go-libp2p-kad-dht v0.8.2
+	github.com/libp2p/go-libp2p v0.10.2
+	github.com/libp2p/go-libp2p-core v0.6.1
+	github.com/libp2p/go-libp2p-kad-dht v0.8.3
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
