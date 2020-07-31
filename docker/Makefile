@@ -1,19 +1,10 @@
+COMPAT_MSG="The current version of Powergate support newer versions than Testnet network. You might be interested in using the Nerpa network (make nerpa-up)"
+
 down:
-	LOTUS_IMAGE_TAG=v0.4.1 \
-	docker-compose \
-		-f docker-compose.yaml \
-		-f ipfs-image.yaml \
-		-f powergate-build-context.yaml \
-		down
+	@echo ${COMPAT_MSG}
 .PHONY: down
 
 up: down
-	LOTUS_IMAGE_TAG=v0.4.1 \
-	docker-compose \
-		-f docker-compose.yaml \
-		-f ipfs-image.yaml \
-		-f powergate-build-context.yaml \
-		up --build 
 .PHONY: up
 
 
