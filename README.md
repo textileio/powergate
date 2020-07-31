@@ -31,7 +31,7 @@ To build from source, you need to have Go 1.14 or newer installed.
 
 ## Design
 
-Powergate is composed of different modules which can be used independently, and compose toegheter to provide other higher-level modules.
+Powergate is composed of different modules which can be used independently, and compose together to provide other higher-level modules.
 
 Here's a high-level overview of the main components, and how Powergate interacts with IPFS and a Filecoin client:
 ![Powergate Design](https://user-images.githubusercontent.com/6136245/86490337-6dbd5200-bd3d-11ea-9895-3689dd1c8a8f.png)
