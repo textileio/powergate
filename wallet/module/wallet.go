@@ -65,6 +65,7 @@ func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, auto
 }
 
 // MasterAddr returns the master address.
+// Will return address.Undef is Powergate was started with no master address.
 func (m *Module) MasterAddr() address.Address {
 	return m.masterAddr
 }

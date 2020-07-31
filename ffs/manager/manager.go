@@ -65,6 +65,9 @@ type Manager struct {
 
 // New returns a new Manager.
 func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool) (*Manager, error) {
+	if ffsUseMasterAddr && wm.MasterAddr() == address.Undef {
+		return nil, fmt.Errorf("ffsUseMasterAddr requires that master address is defined")
+	}
 	storageConfig, err := loadDefaultStorageConfig(ds)
 	if err != nil {
 		return nil, fmt.Errorf("loading default storage config: %s", err)

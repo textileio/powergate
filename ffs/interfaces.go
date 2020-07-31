@@ -13,6 +13,7 @@ import (
 // WalletManager provides access to a Lotus wallet for a Lotus node.
 type WalletManager interface {
 	// MasterAddr returns the master address.
+	// Will return address.Undef is Powergate was started with no master address.
 	MasterAddr() address.Address
 	// NewAddress creates a new address.
 	NewAddress(context.Context, string) (string, error)
