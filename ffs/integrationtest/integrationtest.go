@@ -316,7 +316,7 @@ func RunFlaky(t *testing.T, f func(ft *FlakyT)) {
 			f()
 		}
 		if !ft.failed {
-			break
+			return
 		}
 		ft.t.Errorf("test attempt %d/%d failed, retrying...", i+1, numRetries)
 	}
