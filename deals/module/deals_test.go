@@ -86,12 +86,12 @@ func TestStore(t *testing.T) {
 func TestRetrieve(t *testing.T) {
 	t.Parallel()
 	numMiners := []int{1} // go-fil-markets: doesn't support remembering more than 1 miner
-	data := randomBytes(600)
 	for _, nm := range numMiners {
 		nm := nm
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			t.Parallel()
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
+				data := randomBytes(600)
 				client, addr, _ := tests.CreateLocalDevnet(t, nm)
 				m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 				require.NoError(t, err)
