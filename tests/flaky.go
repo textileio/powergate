@@ -4,7 +4,6 @@ import (
 	"runtime"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +26,7 @@ var _ require.TestingT = (*FlakyT)(nil)
 
 // Errorf registers an error message.
 func (ft *FlakyT) Errorf(format string, args ...interface{}) {
-	ft.t.Errorf(format, args...)
+	ft.t.Logf(format, args...)
 }
 
 // FailNow indicates to fail the test.
@@ -61,7 +60,6 @@ func RunFlaky(t *testing.T, f func(ft *FlakyT)) {
 			return
 		}
 		ft.t.Logf("test %s attempt %d/%d failed, retrying...", t.Name(), i+1, numRetries)
-		time.Sleep(time.Second * 5)
 	}
 	t.Fatalf("test failed after %d retries", numRetries)
 }
