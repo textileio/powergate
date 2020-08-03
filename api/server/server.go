@@ -57,6 +57,9 @@ import (
 const (
 	datastoreFolderName    = "datastore"
 	lotusConnectionRetries = 10
+
+	// WSPingInterval controls the WebSocket keepalive pinging interval. Must be >= 1s.
+	WSPingInterval = time.Second * 5
 )
 
 var (
@@ -270,7 +273,9 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 		grpcweb.WithOriginFunc(func(origin string) bool {
 			return true
 		}),
+		grpcweb.WithAllowedRequestHeaders([]string{"*"}),
 		grpcweb.WithWebsockets(true),
+		grpcweb.WithWebsocketPingInterval(WSPingInterval),
 		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool {
 			return true
 		}),
