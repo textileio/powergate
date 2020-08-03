@@ -229,7 +229,7 @@ func RequireStorageConfig(t require.TestingT, fapi *api.API, c cid.Cid, config *
 }
 
 // RequireStorageDealRecord checks that a storage deal record exist for a cid.
-func RequireStorageDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {
+func RequireStorageDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
 	time.Sleep(time.Second)
 	recs, err := fapi.ListStorageDealRecords(deals.WithIncludeFinal(true))
 	require.NoError(t, err)

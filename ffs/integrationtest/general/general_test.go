@@ -79,9 +79,9 @@ func TestGet(t *testing.T) {
 		it.RequireJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
-		r, err := fapi.Get(ctx, cid)
+		rr, err := fapi.Get(ctx, cid)
 		require.NoError(t, err)
-		fetched, err := ioutil.ReadAll(r)
+		fetched, err := ioutil.ReadAll(rr)
 		require.NoError(t, err)
 		require.True(t, bytes.Equal(data, fetched))
 	})
