@@ -28,52 +28,57 @@ func TestAdd(t *testing.T) {
 	t.Parallel()
 	t.Run("WithDefaultStorageConfig", func(t *testing.T) {
 		t.Parallel()
+		it.RunFlaky(t, func(t *it.FlakyT) {
+			ctx := context.Background()
+			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
+			defer cls()
 
-		ctx := context.Background()
-		ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
-		defer cls()
-
-		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-		jid, err := fapi.PushStorageConfig(cid)
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, nil)
-		it.RequireFilStored(ctx, t, client, cid)
-		it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
-		it.RequireStorageDealRecord(t, fapi, cid)
+			r := rand.New(rand.NewSource(22))
+			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+			jid, err := fapi.PushStorageConfig(cid)
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, nil)
+			it.RequireFilStored(ctx, t, client, cid)
+			it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
+			it.RequireStorageDealRecord(t, fapi, cid)
+		})
 	})
 
 	t.Run("WithCustomConfig", func(t *testing.T) {
 		t.Parallel()
-		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
-		defer cls()
 
-		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-		config := fapi.DefaultStorageConfig().WithHotEnabled(false).WithColdFilDealDuration(util.MinDealDuration + 1234)
-		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, &config)
-		it.RequireStorageDealRecord(t, fapi, cid)
+		it.RunFlaky(t, func(t *it.FlakyT) {
+			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+			defer cls()
+
+			r := rand.New(rand.NewSource(22))
+			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+			config := fapi.DefaultStorageConfig().WithHotEnabled(false).WithColdFilDealDuration(util.MinDealDuration + 1234)
+			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, &config)
+			it.RequireStorageDealRecord(t, fapi, cid)
+		})
 	})
 }
 
 func TestGet(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
-	ipfs, _, fapi, cls := it.NewAPI(t, 1)
-	defer cls()
 
-	r := rand.New(rand.NewSource(22))
-	cid, data := it.AddRandomFile(t, r, ipfs)
-	jid, err := fapi.PushStorageConfig(cid)
-	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	it.RequireStorageConfig(t, fapi, cid, nil)
+	it.RunFlaky(t, func(t *it.FlakyT) {
+		ctx := context.Background()
+		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		defer cls()
 
-	t.Run("FromAPI", func(t *testing.T) {
+		r := rand.New(rand.NewSource(22))
+		cid, data := it.AddRandomFile(t, r, ipfs)
+		jid, err := fapi.PushStorageConfig(cid)
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, cid, nil)
+
 		r, err := fapi.Get(ctx, cid)
 		require.NoError(t, err)
 		fetched, err := ioutil.ReadAll(r)
@@ -83,13 +88,13 @@ func TestGet(t *testing.T) {
 }
 
 func TestInfo(t *testing.T) {
-	ctx := context.Background()
-	ipfs, _, fapi, cls := it.NewAPI(t, 1)
-	defer cls()
+	it.RunFlaky(t, func(t *it.FlakyT) {
+		ctx := context.Background()
+		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		defer cls()
 
-	var err error
-	var first api.InstanceInfo
-	t.Run("Minimal", func(t *testing.T) {
+		var err error
+		var first api.InstanceInfo
 		first, err = fapi.Info(ctx)
 		require.NoError(t, err)
 		require.NotEmpty(t, first.ID)
@@ -97,19 +102,17 @@ func TestInfo(t *testing.T) {
 		require.NotEmpty(t, first.Balances[0].Addr)
 		require.Greater(t, first.Balances[0].Balance, uint64(0))
 		require.Equal(t, len(first.Pins), 0)
-	})
 
-	r := rand.New(rand.NewSource(22))
-	n := 2
-	for i := 0; i < n; i++ {
-		cid, _ := it.AddRandomFile(t, r, ipfs)
-		jid, err := fapi.PushStorageConfig(cid)
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, nil)
-	}
+		r := rand.New(rand.NewSource(22))
+		n := 2
+		for i := 0; i < n; i++ {
+			cid, _ := it.AddRandomFile(t, r, ipfs)
+			jid, err := fapi.PushStorageConfig(cid)
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, nil)
+		}
 
-	t.Run("WithMoreThanOneAdd", func(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.NoError(t, err)
 		require.Equal(t, second.ID, first.ID)
@@ -134,114 +137,121 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfs)
-		jid, err := fapi.PushStorageConfig(cid)
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, nil)
+		it.RunFlaky(t, func(t *it.FlakyT) {
+			r := rand.New(rand.NewSource(22))
+			cid, _ := it.AddRandomFile(t, r, ipfs)
+			jid, err := fapi.PushStorageConfig(cid)
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, nil)
 
-		inf, err := fapi.Info(ctx)
-		require.NoError(t, err)
-		require.Equal(t, 1, len(inf.Pins))
+			inf, err := fapi.Info(ctx)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(inf.Pins))
 
-		c := inf.Pins[0]
-		s, err := fapi.Show(c)
-		require.NoError(t, err)
+			c := inf.Pins[0]
+			s, err := fapi.Show(c)
+			require.NoError(t, err)
 
-		require.True(t, s.Cid.Defined())
-		require.True(t, time.Now().After(s.Created))
-		require.Greater(t, s.Hot.Size, 0)
-		require.NotNil(t, s.Hot.Ipfs)
-		require.True(t, time.Now().After(s.Hot.Ipfs.Created))
-		require.NotNil(t, s.Cold.Filecoin)
-		require.True(t, s.Cold.Filecoin.DataCid.Defined())
-		require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
-		p := s.Cold.Filecoin.Proposals[0]
-		require.True(t, p.ProposalCid.Defined())
-		require.Greater(t, p.Duration, int64(0))
-		require.Greater(t, p.EpochPrice, uint64(0))
+			require.True(t, s.Cid.Defined())
+			require.True(t, time.Now().After(s.Created))
+			require.Greater(t, s.Hot.Size, 0)
+			require.NotNil(t, s.Hot.Ipfs)
+			require.True(t, time.Now().After(s.Hot.Ipfs.Created))
+			require.NotNil(t, s.Cold.Filecoin)
+			require.True(t, s.Cold.Filecoin.DataCid.Defined())
+			require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
+			p := s.Cold.Filecoin.Proposals[0]
+			require.True(t, p.ProposalCid.Defined())
+			require.Greater(t, p.Duration, int64(0))
+			require.Greater(t, p.EpochPrice, uint64(0))
+		})
 	})
 }
 
 func TestColdInstanceLoad(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	it.RunFlaky(t, func(t *it.FlakyT) {
+		ctx := context.Background()
 
-	ds := tests.NewTxMapDatastore()
-	ipfs, ipfsMAddr := it.CreateIPFS(t)
-	addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
-	manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
+		ds := tests.NewTxMapDatastore()
+		ipfs, ipfsMAddr := it.CreateIPFS(t)
+		addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
+		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
 
-	_, auth, err := manager.Create(context.Background())
-	require.NoError(t, err)
-	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
+		_, auth, err := manager.Create(context.Background())
+		require.NoError(t, err)
+		time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 
-	fapi, err := manager.GetByAuthToken(auth)
-	require.NoError(t, err)
+		fapi, err := manager.GetByAuthToken(auth)
+		require.NoError(t, err)
 
-	ra := rand.New(rand.NewSource(22))
-	cid, data := it.AddRandomFile(t, ra, ipfs)
-	jid, err := fapi.PushStorageConfig(cid)
-	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	it.RequireStorageConfig(t, fapi, cid, nil)
+		ra := rand.New(rand.NewSource(22))
+		cid, data := it.AddRandomFile(t, ra, ipfs)
+		jid, err := fapi.PushStorageConfig(cid)
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, cid, nil)
 
-	info, err := fapi.Info(ctx)
-	require.NoError(t, err)
-	shw, err := fapi.Show(cid)
-	require.NoError(t, err)
+		info, err := fapi.Info(ctx)
+		require.NoError(t, err)
+		shw, err := fapi.Show(cid)
+		require.NoError(t, err)
 
-	// Now close the FFS Instance, and the manager.
-	err = fapi.Close()
-	require.NoError(t, err)
-	closeManager()
+		// Now close the FFS Instance, and the manager.
+		err = fapi.Close()
+		require.NoError(t, err)
+		closeManager()
 
-	// Rehydrate things again and check state.
-	manager, closeManager = it.NewFFSManager(t, ds, client, addr, ms, ipfs)
-	defer closeManager()
-	fapi, err = manager.GetByAuthToken(auth)
-	require.NoError(t, err)
+		// Rehydrate things again and check state.
+		manager, closeManager = it.NewFFSManager(t, ds, client, addr, ms, ipfs)
+		defer closeManager()
+		fapi, err = manager.GetByAuthToken(auth)
+		require.NoError(t, err)
 
-	ninfo, err := fapi.Info(ctx)
-	require.NoError(t, err)
-	require.Equal(t, info, ninfo)
+		ninfo, err := fapi.Info(ctx)
+		require.NoError(t, err)
+		require.Equal(t, info, ninfo)
 
-	nshw, err := fapi.Show(cid)
-	require.NoError(t, err)
-	require.Equal(t, shw, nshw)
+		nshw, err := fapi.Show(cid)
+		require.NoError(t, err)
+		require.Equal(t, shw, nshw)
 
-	r, err := fapi.Get(ctx, cid)
-	require.NoError(t, err)
-	fetched, err := ioutil.ReadAll(r)
-	require.NoError(t, err)
-	require.True(t, bytes.Equal(data, fetched))
+		r, err := fapi.Get(ctx, cid)
+		require.NoError(t, err)
+		fetched, err := ioutil.ReadAll(r)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(data, fetched))
+	})
 }
 
 func TestRemove(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := it.NewAPI(t, 1)
-	defer cls()
 
-	r := rand.New(rand.NewSource(22))
-	c1, _ := it.AddRandomFile(t, r, ipfs)
+	it.RunFlaky(t, func(t *it.FlakyT) {
+		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		defer cls()
 
-	config := fapi.DefaultStorageConfig().WithColdEnabled(false)
-	jid, err := fapi.PushStorageConfig(c1, api.WithStorageConfig(config))
-	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	it.RequireStorageConfig(t, fapi, c1, &config)
+		r := rand.New(rand.NewSource(22))
+		c1, _ := it.AddRandomFile(t, r, ipfs)
 
-	err = fapi.Remove(c1)
-	require.Equal(t, api.ErrActiveInStorage, err)
+		config := fapi.DefaultStorageConfig().WithColdEnabled(false)
+		jid, err := fapi.PushStorageConfig(c1, api.WithStorageConfig(config))
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, c1, &config)
 
-	config = config.WithHotEnabled(false)
-	jid, err = fapi.PushStorageConfig(c1, api.WithStorageConfig(config), api.WithOverride(true))
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	require.NoError(t, err)
+		err = fapi.Remove(c1)
+		require.Equal(t, api.ErrActiveInStorage, err)
 
-	err = fapi.Remove(c1)
-	require.NoError(t, err)
-	_, err = fapi.GetStorageConfig(c1)
-	require.Equal(t, api.ErrNotFound, err)
+		config = config.WithHotEnabled(false)
+		jid, err = fapi.PushStorageConfig(c1, api.WithStorageConfig(config), api.WithOverride(true))
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		require.NoError(t, err)
+
+		err = fapi.Remove(c1)
+		require.NoError(t, err)
+		_, err = fapi.GetStorageConfig(c1)
+		require.Equal(t, api.ErrNotFound, err)
+	})
 }

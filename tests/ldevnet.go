@@ -18,6 +18,12 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
+// TestingTWithCleanup is an augmented require.TestingT with a Cleanup function.
+type TestingTWithCleanup interface {
+	require.TestingT
+	Cleanup(func())
+}
+
 // LaunchDevnetDocker launches the devnet docker image.
 func LaunchDevnetDocker(t TestingTWithCleanup, numMiners int, ipfsMaddr string, mountVolumes bool) *dockertest.Resource {
 	pool, err := dockertest.NewPool("")
@@ -66,11 +72,6 @@ func LaunchDevnetDocker(t TestingTWithCleanup, numMiners int, ipfsMaddr string, 
 		}()
 	}
 	return lotusDevnet
-}
-
-type TestingTWithCleanup interface {
-	require.TestingT
-	Cleanup(func())
 }
 
 // CreateLocalDevnetWithIPFS creates a local devnet connected to an IPFS node.

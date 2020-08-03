@@ -80,7 +80,7 @@ func RequireFilStored(ctx context.Context, t require.TestingT, client *apistruct
 }
 
 // NewAPI returns a new set of components for FFS.
-func NewAPI(t TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
+func NewAPI(t tests.TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := CreateIPFS(t)
 	addr, client, ms := NewDevnet(t, numMiners, ipfsMAddr)
@@ -97,13 +97,8 @@ func NewAPI(t TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apistruct.
 	}
 }
 
-type TestingTWithCleanup interface {
-	require.TestingT
-	Cleanup(func())
-}
-
 // CreateIPFS creates a docker container running IPFS.
-func CreateIPFS(t TestingTWithCleanup) (*httpapi.HttpApi, string) {
+func CreateIPFS(t tests.TestingTWithCleanup) (*httpapi.HttpApi, string) {
 	ipfsDocker, cls := tests.LaunchIPFSDocker(t)
 	t.Cleanup(cls)
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
@@ -116,7 +111,7 @@ func CreateIPFS(t TestingTWithCleanup) (*httpapi.HttpApi, string) {
 }
 
 // NewDevnet creates a localnet.
-func NewDevnet(t TestingTWithCleanup, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
+func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
 	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
@@ -273,12 +268,14 @@ func AddRandomFileSize(t require.TestingT, r *rand.Rand, ipfs *httpapi.HttpApi, 
 	return node.Cid(), data
 }
 
+// FlakyT provides retry mechanisms to test.
 type FlakyT struct {
 	t      *testing.T
 	failed bool
 	cls    []func()
 }
 
+// NewFlakyT creates a new FlakyT.
 func NewFlakyT(t *testing.T) *FlakyT {
 	return &FlakyT{
 		t: t,
@@ -287,21 +284,25 @@ func NewFlakyT(t *testing.T) *FlakyT {
 
 var _ require.TestingT = (*FlakyT)(nil)
 
+// Errorf registers an error message.
 func (ft *FlakyT) Errorf(format string, args ...interface{}) {
 	ft.t.Errorf(format, args...)
 }
 
+// FailNow indicates to fail the test.
 func (ft *FlakyT) FailNow() {
 	ft.failed = true
 	runtime.Goexit()
 }
 
+// Cleanup registers a cleanup function.
 func (ft *FlakyT) Cleanup(cls func()) {
 	ft.cls = append([]func(){cls}, ft.cls...)
 }
 
 var numRetries = 3
 
+// RunFlaky runs a flaky test with retries.
 func RunFlaky(t *testing.T, f func(ft *FlakyT)) {
 	for i := 0; i < numRetries; i++ {
 		var wg sync.WaitGroup
