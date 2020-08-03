@@ -243,3 +243,12 @@ func TestDurationConfig(t *testing.T) {
 	require.Greater(t, p.Duration, duration)
 	require.Greater(t, p.ActivationEpoch, int64(0))
 }
+
+func TestGetDefaultStorageConfig(t *testing.T) {
+	t.Parallel()
+	_, _, fapi, cls := it.NewAPI(t, 1)
+	defer cls()
+
+	defaultConf := fapi.DefaultStorageConfig()
+	require.Nil(t, defaultConf.Validate())
+}
