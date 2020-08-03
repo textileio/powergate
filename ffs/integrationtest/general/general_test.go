@@ -26,13 +26,14 @@ func TestMain(m *testing.M) {
 
 func TestAdd(t *testing.T) {
 	t.Parallel()
-	r := rand.New(rand.NewSource(22))
 	t.Run("WithDefaultStorageConfig", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
 
+		r := rand.New(rand.NewSource(22))
 		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
 		jid, err := fapi.PushStorageConfig(cid)
 		require.NoError(t, err)
@@ -47,8 +48,9 @@ func TestAdd(t *testing.T) {
 		t.Parallel()
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
-		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
 
+		r := rand.New(rand.NewSource(22))
+		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
 		config := fapi.DefaultStorageConfig().WithHotEnabled(false).WithColdFilDealDuration(util.MinDealDuration + 1234)
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
