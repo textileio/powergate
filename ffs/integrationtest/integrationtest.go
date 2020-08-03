@@ -300,7 +300,7 @@ func (ft *FlakyT) Cleanup(cls func()) {
 	ft.cls = append([]func(){cls}, ft.cls...)
 }
 
-var numRetries = 3
+var numRetries = 4
 
 // RunFlaky runs a flaky test with retries.
 func RunFlaky(t *testing.T, f func(ft *FlakyT)) {
