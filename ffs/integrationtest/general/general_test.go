@@ -3,7 +3,6 @@ package general
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -29,6 +28,7 @@ func TestAdd(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(22))
 	t.Run("WithDefaultStorageConfig", func(t *testing.T) {
+		t.Parallel()
 		ctx := context.Background()
 		ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
@@ -44,6 +44,7 @@ func TestAdd(t *testing.T) {
 	})
 
 	t.Run("WithCustomConfig", func(t *testing.T) {
+		t.Parallel()
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
 		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
@@ -97,9 +98,8 @@ func TestInfo(t *testing.T) {
 	})
 
 	r := rand.New(rand.NewSource(22))
-	n := 3
+	n := 2
 	for i := 0; i < n; i++ {
-		fmt.Println(i)
 		cid, _ := it.AddRandomFile(t, r, ipfs)
 		jid, err := fapi.PushStorageConfig(cid)
 		require.NoError(t, err)
@@ -107,7 +107,7 @@ func TestInfo(t *testing.T) {
 		it.RequireStorageConfig(t, fapi, cid, nil)
 	}
 
-	t.Run("WithThreeAdd", func(t *testing.T) {
+	t.Run("WithMoreThanOneAdd", func(t *testing.T) {
 		second, err := fapi.Info(ctx)
 		require.NoError(t, err)
 		require.Equal(t, second.ID, first.ID)
