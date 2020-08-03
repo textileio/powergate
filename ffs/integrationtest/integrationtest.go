@@ -300,7 +300,7 @@ func (ft *FlakyT) Cleanup(cls func()) {
 	ft.cls = append([]func(){cls}, ft.cls...)
 }
 
-var numRetries = 4
+var numRetries = 5
 
 // RunFlaky runs a flaky test with retries.
 func RunFlaky(t *testing.T, f func(ft *FlakyT)) {
@@ -319,7 +319,7 @@ func RunFlaky(t *testing.T, f func(ft *FlakyT)) {
 		if !ft.failed {
 			return
 		}
-		ft.t.Errorf("test attempt %d/%d failed, retrying...", i+1, numRetries)
+		ft.t.Errorf("test %s attempt %d/%d failed, retrying...", t.Name(), i+1, numRetries)
 	}
 	t.Fatalf("test failed after %d retries", numRetries)
 }

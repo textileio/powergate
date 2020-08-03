@@ -24,78 +24,88 @@ func TestMain(m *testing.M) {
 func TestRepFactor(t *testing.T) {
 	t.Parallel()
 	rfs := []int{1, 2}
-	r := rand.New(rand.NewSource(22))
 	for _, rf := range rfs {
+		rf := rf
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
-			ipfsAPI, _, fapi, cls := it.NewAPI(t, rf)
-			defer cls()
-			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-			config := fapi.DefaultStorageConfig().WithColdFilRepFactor(rf)
-			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
-			it.RequireStorageConfig(t, fapi, cid, &config)
+			t.Parallel()
+			it.RunFlaky(t, func(t *it.FlakyT) {
+				r := rand.New(rand.NewSource(22))
+				ipfsAPI, _, fapi, cls := it.NewAPI(t, rf)
+				defer cls()
+				cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+				config := fapi.DefaultStorageConfig().WithColdFilRepFactor(rf)
+				jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+				require.NoError(t, err)
+				it.RequireJobState(t, fapi, jid, ffs.Success)
+				it.RequireStorageConfig(t, fapi, cid, &config)
 
-			cinfo, err := fapi.Show(cid)
-			require.NoError(t, err)
-			require.Equal(t, rf, len(cinfo.Cold.Filecoin.Proposals))
+				cinfo, err := fapi.Show(cid)
+				require.NoError(t, err)
+				require.Equal(t, rf, len(cinfo.Cold.Filecoin.Proposals))
+			})
 		})
 	}
 }
 
 func TestRepFactorIncrease(t *testing.T) {
 	t.Parallel()
-	r := rand.New(rand.NewSource(22))
-	ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
-	defer cls()
-	cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-	jid, err := fapi.PushStorageConfig(cid)
-	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	it.RequireStorageConfig(t, fapi, cid, nil)
 
-	cinfo, err := fapi.Show(cid)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(cinfo.Cold.Filecoin.Proposals))
-	firstProposal := cinfo.Cold.Filecoin.Proposals[0]
+	it.RunFlaky(t, func(t *it.FlakyT) {
+		r := rand.New(rand.NewSource(22))
+		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
+		defer cls()
+		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+		jid, err := fapi.PushStorageConfig(cid)
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, cid, nil)
 
-	config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
-	jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
-	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	it.RequireStorageConfig(t, fapi, cid, &config)
-	cinfo, err = fapi.Show(cid)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
-	require.Contains(t, cinfo.Cold.Filecoin.Proposals, firstProposal)
+		cinfo, err := fapi.Show(cid)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(cinfo.Cold.Filecoin.Proposals))
+		firstProposal := cinfo.Cold.Filecoin.Proposals[0]
+
+		config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
+		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, cid, &config)
+		cinfo, err = fapi.Show(cid)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
+		require.Contains(t, cinfo.Cold.Filecoin.Proposals, firstProposal)
+	})
 }
 
 func TestRepFactorDecrease(t *testing.T) {
 	t.Parallel()
-	r := rand.New(rand.NewSource(22))
-	ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
-	defer cls()
 
-	cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-	config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
-	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	it.RequireStorageConfig(t, fapi, cid, &config)
+	it.RunFlaky(t, func(t *it.FlakyT) {
+		r := rand.New(rand.NewSource(22))
+		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
+		defer cls()
 
-	cinfo, err := fapi.Show(cid)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
+		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+		config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, cid, &config)
 
-	config = fapi.DefaultStorageConfig().WithColdFilRepFactor(1)
-	jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
-	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	it.RequireStorageConfig(t, fapi, cid, &config)
+		cinfo, err := fapi.Show(cid)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 
-	cinfo, err = fapi.Show(cid)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
+		config = fapi.DefaultStorageConfig().WithColdFilRepFactor(1)
+		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, cid, &config)
+
+		cinfo, err = fapi.Show(cid)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
+	})
 }
 
 func TestRenewWithDecreasedRepFactor(t *testing.T) {
