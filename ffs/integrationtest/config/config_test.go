@@ -53,6 +53,7 @@ func TestSetDefaultStorageConfig(t *testing.T) {
 func TestEnabledConfigChange(t *testing.T) {
 	t.Parallel()
 	t.Run("HotEnabledDisabled", func(t *testing.T) {
+		t.Parallel()
 		ctx := context.Background()
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
@@ -75,6 +76,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
+		t.Parallel()
 		ctx := context.Background()
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
@@ -97,6 +99,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 	})
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
+		t.Parallel()
 		ctx := context.Background()
 		ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
@@ -119,6 +122,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		it.RequireFilStored(ctx, t, client, cid)
 	})
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
+		t.Parallel()
 		ctx := context.Background()
 		ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
