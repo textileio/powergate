@@ -166,8 +166,10 @@ func TestFilecoinEnableConfig(t *testing.T) {
 	}
 
 	for _, tt := range tableTest {
+		tt := tt
 		name := fmt.Sprintf("Hot(%v)/Cold(%v)", tt.HotEnabled, tt.ColdEnabled)
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 			defer cls()
 
