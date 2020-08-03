@@ -125,47 +125,46 @@ func TestInfo(t *testing.T) {
 
 func TestShow(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
-	ipfs, _, fapi, cls := it.NewAPI(t, 1)
 
-	defer cls()
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
+		ctx := context.Background()
+		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 
-	t.Run("NotStored", func(t *testing.T) {
+		defer cls()
+
+		// Test not stored
 		c, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
+
 		_, err := fapi.Show(c)
 		require.Equal(t, api.ErrNotFound, err)
-	})
 
-	t.Run("Success", func(t *testing.T) {
-		tests.RunFlaky(t, func(t *tests.FlakyT) {
-			r := rand.New(rand.NewSource(22))
-			cid, _ := it.AddRandomFile(t, r, ipfs)
-			jid, err := fapi.PushStorageConfig(cid)
-			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
-			it.RequireStorageConfig(t, fapi, cid, nil)
+		r := rand.New(rand.NewSource(22))
+		cid, _ := it.AddRandomFile(t, r, ipfs)
+		jid, err := fapi.PushStorageConfig(cid)
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, cid, nil)
 
-			inf, err := fapi.Info(ctx)
-			require.NoError(t, err)
-			require.Equal(t, 1, len(inf.Pins))
+		inf, err := fapi.Info(ctx)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(inf.Pins))
 
-			c := inf.Pins[0]
-			s, err := fapi.Show(c)
-			require.NoError(t, err)
+		c = inf.Pins[0]
+		s, err := fapi.Show(c)
+		require.NoError(t, err)
 
-			require.True(t, s.Cid.Defined())
-			require.True(t, time.Now().After(s.Created))
-			require.Greater(t, s.Hot.Size, 0)
-			require.NotNil(t, s.Hot.Ipfs)
-			require.True(t, time.Now().After(s.Hot.Ipfs.Created))
-			require.NotNil(t, s.Cold.Filecoin)
-			require.True(t, s.Cold.Filecoin.DataCid.Defined())
-			require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
-			p := s.Cold.Filecoin.Proposals[0]
-			require.True(t, p.ProposalCid.Defined())
-			require.Greater(t, p.Duration, int64(0))
-			require.Greater(t, p.EpochPrice, uint64(0))
-		})
+		require.True(t, s.Cid.Defined())
+		require.True(t, time.Now().After(s.Created))
+		require.Greater(t, s.Hot.Size, 0)
+		require.NotNil(t, s.Hot.Ipfs)
+		require.True(t, time.Now().After(s.Hot.Ipfs.Created))
+		require.NotNil(t, s.Cold.Filecoin)
+		require.True(t, s.Cold.Filecoin.DataCid.Defined())
+		require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
+		p := s.Cold.Filecoin.Proposals[0]
+		require.True(t, p.ProposalCid.Defined())
+		require.Greater(t, p.Duration, int64(0))
+		require.Greater(t, p.EpochPrice, uint64(0))
 	})
 }
 
