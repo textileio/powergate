@@ -12,6 +12,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
 
@@ -28,7 +29,7 @@ func TestRepFactor(t *testing.T) {
 		rf := rf
 		t.Run(fmt.Sprintf("%d", rf), func(t *testing.T) {
 			t.Parallel()
-			it.RunFlaky(t, func(t *it.FlakyT) {
+			tests.RunFlaky(t, func(t *tests.FlakyT) {
 				r := rand.New(rand.NewSource(22))
 				ipfsAPI, _, fapi, cls := it.NewAPI(t, rf)
 				defer cls()
@@ -50,7 +51,7 @@ func TestRepFactor(t *testing.T) {
 func TestRepFactorIncrease(t *testing.T) {
 	t.Parallel()
 
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		r := rand.New(rand.NewSource(22))
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
 		defer cls()
@@ -80,7 +81,7 @@ func TestRepFactorIncrease(t *testing.T) {
 func TestRepFactorDecrease(t *testing.T) {
 	t.Parallel()
 
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		r := rand.New(rand.NewSource(22))
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
 		defer cls()

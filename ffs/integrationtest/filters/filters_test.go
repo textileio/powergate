@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 
 func TestFilecoinExcludedMiners(t *testing.T) {
 	t.Parallel()
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
 		defer cls()
 
@@ -50,7 +50,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 func TestFilecoinTrustedMiner(t *testing.T) {
 	t.Parallel()
 
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
 		defer cls()
 
@@ -73,7 +73,7 @@ func TestFilecoinTrustedMiner(t *testing.T) {
 func TestFilecoinCountryFilter(t *testing.T) {
 	t.Parallel()
 
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfs, ipfsAddr := it.CreateIPFS(t)
 		countries := []string{"China", "Uruguay"}
 		numMiners := len(countries)
@@ -115,7 +115,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 func TestFilecoinMaxPriceFilter(t *testing.T) {
 	t.Parallel()
 
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfs, ipfsMAddr := it.CreateIPFS(t)
 		client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, 1, ipfsMAddr, false)
 		miner := fixed.Miner{Addr: "t01000", EpochPrice: 500000000}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"testing"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -91,7 +90,7 @@ func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners int, ipfsMaddr s
 
 // CreateLocalDevnet returns an API client that targets a local devnet with numMiners number
 // of miners. Refer to http://github.com/textileio/local-devnet for more information.
-func CreateLocalDevnet(t *testing.T, numMiners int) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
+func CreateLocalDevnet(t TestingTWithCleanup, numMiners int) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
 	return CreateLocalDevnetWithIPFS(t, numMiners, "", true)
 }
 

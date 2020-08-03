@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
 
@@ -54,7 +55,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	t.Parallel()
 	t.Run("HotEnabledDisabled", func(t *testing.T) {
 		t.Parallel()
-		it.RunFlaky(t, func(t *it.FlakyT) {
+		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
 			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 			defer cls()
@@ -79,7 +80,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
 		t.Parallel()
-		it.RunFlaky(t, func(t *it.FlakyT) {
+		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
 			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 			defer cls()
@@ -105,7 +106,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
 		t.Parallel()
 
-		it.RunFlaky(t, func(t *it.FlakyT) {
+		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
 			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
 			defer cls()
@@ -131,7 +132,7 @@ func TestEnabledConfigChange(t *testing.T) {
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
 		t.Parallel()
 
-		it.RunFlaky(t, func(t *it.FlakyT) {
+		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
 			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
 			defer cls()
@@ -181,7 +182,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			it.RunFlaky(t, func(t *it.FlakyT) {
+			tests.RunFlaky(t, func(t *tests.FlakyT) {
 				ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 				defer cls()
 
@@ -235,7 +236,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 	defer cls()
 
 	t.Run("ShortTime", func(t *testing.T) {
-		it.RunFlaky(t, func(t *it.FlakyT) {
+		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			cid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 			config := fapi.DefaultStorageConfig().WithHotIpfsAddTimeout(1)
 			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
@@ -248,7 +249,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 func TestDurationConfig(t *testing.T) {
 	t.Parallel()
 
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
 

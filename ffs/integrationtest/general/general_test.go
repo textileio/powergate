@@ -28,7 +28,7 @@ func TestAdd(t *testing.T) {
 	t.Parallel()
 	t.Run("WithDefaultStorageConfig", func(t *testing.T) {
 		t.Parallel()
-		it.RunFlaky(t, func(t *it.FlakyT) {
+		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
 			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
 			defer cls()
@@ -48,7 +48,7 @@ func TestAdd(t *testing.T) {
 	t.Run("WithCustomConfig", func(t *testing.T) {
 		t.Parallel()
 
-		it.RunFlaky(t, func(t *it.FlakyT) {
+		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 			defer cls()
 
@@ -67,7 +67,7 @@ func TestAdd(t *testing.T) {
 func TestGet(t *testing.T) {
 	t.Parallel()
 
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ctx := context.Background()
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
@@ -88,7 +88,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestInfo(t *testing.T) {
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ctx := context.Background()
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
@@ -137,7 +137,7 @@ func TestShow(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		it.RunFlaky(t, func(t *it.FlakyT) {
+		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			r := rand.New(rand.NewSource(22))
 			cid, _ := it.AddRandomFile(t, r, ipfs)
 			jid, err := fapi.PushStorageConfig(cid)
@@ -171,7 +171,7 @@ func TestShow(t *testing.T) {
 
 func TestColdInstanceLoad(t *testing.T) {
 	t.Parallel()
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ctx := context.Background()
 
 		ds := tests.NewTxMapDatastore()
@@ -228,7 +228,7 @@ func TestColdInstanceLoad(t *testing.T) {
 func TestRemove(t *testing.T) {
 	t.Parallel()
 
-	it.RunFlaky(t, func(t *it.FlakyT) {
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
 
