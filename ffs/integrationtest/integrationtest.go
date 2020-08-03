@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	"runtime"
+	"sync"
 	"testing"
 	"time"
 
@@ -40,7 +42,7 @@ const (
 )
 
 // RequireIpfsUnpinnedCid checks that a cid is unpinned in the IPFS node.
-func RequireIpfsUnpinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
+func RequireIpfsUnpinnedCid(ctx context.Context, t require.TestingT, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
 	pins, err := ipfsAPI.Pin().Ls(ctx)
 	require.NoError(t, err)
 	for _, p := range pins {
@@ -49,7 +51,7 @@ func RequireIpfsUnpinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfs
 }
 
 // RequireIpfsPinnedCid checks that a cid is pinned in the IPFS node.
-func RequireIpfsPinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
+func RequireIpfsPinnedCid(ctx context.Context, t require.TestingT, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
 	pins, err := ipfsAPI.Pin().Ls(ctx)
 	require.NoError(t, err)
 
@@ -64,21 +66,21 @@ func RequireIpfsPinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAP
 }
 
 // RequireFilUnstored checks that a cid is not stored in the Filecoin network.
-func RequireFilUnstored(ctx context.Context, t *testing.T, client *apistruct.FullNodeStruct, c cid.Cid) {
+func RequireFilUnstored(ctx context.Context, t require.TestingT, client *apistruct.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c, nil)
 	require.NoError(t, err)
 	require.Empty(t, offers)
 }
 
 // RequireFilStored cehcks that a cid is stored in the Filecoin network.
-func RequireFilStored(ctx context.Context, t *testing.T, client *apistruct.FullNodeStruct, c cid.Cid) {
+func RequireFilStored(ctx context.Context, t require.TestingT, client *apistruct.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c, nil)
 	require.NoError(t, err)
 	require.NotEmpty(t, offers)
 }
 
 // NewAPI returns a new set of components for FFS.
-func NewAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
+func NewAPI(t TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := CreateIPFS(t)
 	addr, client, ms := NewDevnet(t, numMiners, ipfsMAddr)
@@ -95,10 +97,15 @@ func NewAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeS
 	}
 }
 
+type TestingTWithCleanup interface {
+	require.TestingT
+	Cleanup(func())
+}
+
 // CreateIPFS creates a docker container running IPFS.
-func CreateIPFS(t *testing.T) (*httpapi.HttpApi, string) {
+func CreateIPFS(t TestingTWithCleanup) (*httpapi.HttpApi, string) {
 	ipfsDocker, cls := tests.LaunchIPFSDocker(t)
-	t.Cleanup(func() { cls() })
+	t.Cleanup(cls)
 	ipfsAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + ipfsDocker.GetPort("5001/tcp"))
 	ipfs, err := httpapi.NewApi(ipfsAddr)
 	require.NoError(t, err)
@@ -109,7 +116,7 @@ func CreateIPFS(t *testing.T) (*httpapi.HttpApi, string) {
 }
 
 // NewDevnet creates a localnet.
-func NewDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
+func NewDevnet(t TestingTWithCleanup, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
 	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
@@ -125,7 +132,7 @@ func NewDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *
 }
 
 // NewFFSManager returns a new FFS manager.
-func NewFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistruct.FullNodeStruct, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
+func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, lotusClient *apistruct.FullNodeStruct, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), lotusClient)
 	require.NoError(t, err)
 
@@ -165,20 +172,22 @@ func NewFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 
 	return manager, func() {
 		if err := manager.Close(); err != nil {
-			t.Fatalf("closing api: %s", err)
+			t.Errorf("closing api: %s", err)
+			t.FailNow()
 		}
 		if err := sched.Close(); err != nil {
-			t.Fatalf("closing scheduler: %s", err)
+			t.Errorf("closing scheduler: %s", err)
+			t.FailNow()
 		}
 		if err := l.Close(); err != nil {
-			t.Fatalf("closing cidlogger: %s", err)
+			t.Errorf("closing cidlogger: %s", err)
+			t.FailNow()
 		}
 	}
 }
 
 // RequireJobState watches a Job for a desired status.
-func RequireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
-	t.Helper()
+func RequireJobState(t require.TestingT, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
 	ch := make(chan ffs.Job)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -192,7 +201,8 @@ func RequireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 	for !stop {
 		select {
 		case <-time.After(90 * time.Second):
-			t.Fatalf("waiting for job update timeout")
+			t.Errorf("waiting for job update timeout")
+			t.FailNow()
 		case job, ok := <-ch:
 			require.True(t, ok)
 			require.Equal(t, jid, job.ID)
@@ -213,7 +223,7 @@ func RequireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 }
 
 // RequireStorageConfig compares a cid storage config against a target.
-func RequireStorageConfig(t *testing.T, fapi *api.API, c cid.Cid, config *ffs.StorageConfig) {
+func RequireStorageConfig(t require.TestingT, fapi *api.API, c cid.Cid, config *ffs.StorageConfig) {
 	if config == nil {
 		defConfig := fapi.DefaultStorageConfig()
 		config = &defConfig
@@ -248,17 +258,67 @@ func RandomBytes(r *rand.Rand, size int) []byte {
 }
 
 // AddRandomFile adds a random file to the IPFS node.
-func AddRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
+func AddRandomFile(t require.TestingT, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
 	return AddRandomFileSize(t, r, ipfs, 1600)
 }
 
 // AddRandomFileSize adds a random file with a specified size to the IPFS node.
-func AddRandomFileSize(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi, size int) (cid.Cid, []byte) {
-	t.Helper()
+func AddRandomFileSize(t require.TestingT, r *rand.Rand, ipfs *httpapi.HttpApi, size int) (cid.Cid, []byte) {
 	data := RandomBytes(r, size)
 	node, err := ipfs.Unixfs().Add(context.Background(), ipfsfiles.NewReaderFile(bytes.NewReader(data)), options.Unixfs.Pin(false))
 	if err != nil {
-		t.Fatalf("error adding random file: %s", err)
+		t.Errorf("error adding random file: %s", err)
+		t.FailNow()
 	}
 	return node.Cid(), data
+}
+
+type FlakyT struct {
+	t      *testing.T
+	failed bool
+	cls    []func()
+}
+
+func NewFlakyT(t *testing.T) *FlakyT {
+	return &FlakyT{
+		t: t,
+	}
+}
+
+var _ require.TestingT = (*FlakyT)(nil)
+
+func (ft *FlakyT) Errorf(format string, args ...interface{}) {
+	ft.t.Errorf(format, args...)
+}
+
+func (ft *FlakyT) FailNow() {
+	ft.failed = true
+	runtime.Goexit()
+}
+
+func (ft *FlakyT) Cleanup(cls func()) {
+	ft.cls = append([]func(){cls}, ft.cls...)
+}
+
+var numRetries = 3
+
+func RunFlaky(t *testing.T, f func(ft *FlakyT)) {
+	for i := 0; i < numRetries; i++ {
+		var wg sync.WaitGroup
+		wg.Add(1)
+		ft := NewFlakyT(t)
+		go func() {
+			defer wg.Done()
+			f(ft)
+		}()
+		wg.Wait()
+		for _, f := range ft.cls {
+			f()
+		}
+		if !ft.failed {
+			break
+		}
+		ft.t.Errorf("test attempt %d/%d failed, retrying...", i+1, numRetries)
+	}
+	t.Fatalf("test failed after %d retries", numRetries)
 }

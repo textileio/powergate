@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"testing"
 	"time"
 
 	"github.com/ory/dockertest/v3"
@@ -10,7 +9,7 @@ import (
 
 // LaunchIPFSDocker runs a fresh go-ipfs docker image and returns the resource for
 // container metadata.
-func LaunchIPFSDocker(t *testing.T) (*dockertest.Resource, func()) {
+func LaunchIPFSDocker(t require.TestingT) (*dockertest.Resource, func()) {
 	pool, err := dockertest.NewPool("")
 	require.NoError(t, err)
 

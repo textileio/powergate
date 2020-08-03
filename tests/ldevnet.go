@@ -19,7 +19,7 @@ import (
 )
 
 // LaunchDevnetDocker launches the devnet docker image.
-func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolumes bool) *dockertest.Resource {
+func LaunchDevnetDocker(t TestingTWithCleanup, numMiners int, ipfsMaddr string, mountVolumes bool) *dockertest.Resource {
 	pool, err := dockertest.NewPool("")
 	require.NoError(t, err)
 	envs := []string{
@@ -68,22 +68,22 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 	return lotusDevnet
 }
 
+type TestingTWithCleanup interface {
+	require.TestingT
+	Cleanup(func())
+}
+
 // CreateLocalDevnetWithIPFS creates a local devnet connected to an IPFS node.
-func CreateLocalDevnetWithIPFS(t *testing.T, numMiners int, ipfsMaddr string, mountVolumes bool) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
+func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners int, ipfsMaddr string, mountVolumes bool) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
 	lotusDevnet := LaunchDevnetDocker(t, numMiners, ipfsMaddr, mountVolumes)
 	c, cls, err := lotus.New(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "", 1)
 	require.NoError(t, err)
 	t.Cleanup(func() { cls() })
 	ctx := context.Background()
 	addr, err := c.WalletDefaultAddress(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	require.NoError(t, err)
 	miners, err := c.StateListMiners(ctx, types.EmptyTSK)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	return c, addr, miners
 }

@@ -54,102 +54,112 @@ func TestEnabledConfigChange(t *testing.T) {
 	t.Parallel()
 	t.Run("HotEnabledDisabled", func(t *testing.T) {
 		t.Parallel()
-		ctx := context.Background()
-		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
-		defer cls()
+		it.RunFlaky(t, func(t *it.FlakyT) {
+			ctx := context.Background()
+			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+			defer cls()
 
-		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-		config := fapi.DefaultStorageConfig()
+			r := rand.New(rand.NewSource(22))
+			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+			config := fapi.DefaultStorageConfig()
 
-		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, &config)
-		it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
+			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, &config)
+			it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 
-		config = fapi.DefaultStorageConfig().WithHotEnabled(false)
-		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, &config)
-		it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
+			config = fapi.DefaultStorageConfig().WithHotEnabled(false)
+			jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, &config)
+			it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
+		})
 	})
 	t.Run("HotDisabledEnabled", func(t *testing.T) {
 		t.Parallel()
-		ctx := context.Background()
-		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
-		defer cls()
+		it.RunFlaky(t, func(t *it.FlakyT) {
+			ctx := context.Background()
+			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+			defer cls()
 
-		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-		config := fapi.DefaultStorageConfig().WithHotEnabled(false)
+			r := rand.New(rand.NewSource(22))
+			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+			config := fapi.DefaultStorageConfig().WithHotEnabled(false)
 
-		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, &config)
-		it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
+			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, &config)
+			it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 
-		config = fapi.DefaultStorageConfig().WithHotEnabled(true)
-		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, &config)
-		it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
+			config = fapi.DefaultStorageConfig().WithHotEnabled(true)
+			jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, &config)
+			it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
+		})
 	})
 	t.Run("ColdDisabledEnabled", func(t *testing.T) {
 		t.Parallel()
-		ctx := context.Background()
-		ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
-		defer cls()
 
-		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-		config := fapi.DefaultStorageConfig().WithColdEnabled(false)
+		it.RunFlaky(t, func(t *it.FlakyT) {
+			ctx := context.Background()
+			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
+			defer cls()
 
-		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, &config)
-		it.RequireFilUnstored(ctx, t, client, cid)
+			r := rand.New(rand.NewSource(22))
+			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+			config := fapi.DefaultStorageConfig().WithColdEnabled(false)
 
-		config = fapi.DefaultStorageConfig().WithHotEnabled(true)
-		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, &config)
-		it.RequireFilStored(ctx, t, client, cid)
+			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, &config)
+			it.RequireFilUnstored(ctx, t, client, cid)
+
+			config = fapi.DefaultStorageConfig().WithHotEnabled(true)
+			jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, &config)
+			it.RequireFilStored(ctx, t, client, cid)
+		})
 	})
 	t.Run("ColdEnabledDisabled", func(t *testing.T) {
 		t.Parallel()
-		ctx := context.Background()
-		ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
-		defer cls()
 
-		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-		config := fapi.DefaultStorageConfig().WithColdEnabled(false)
+		it.RunFlaky(t, func(t *it.FlakyT) {
+			ctx := context.Background()
+			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
+			defer cls()
 
-		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, &config)
-		it.RequireFilUnstored(ctx, t, client, cid)
+			r := rand.New(rand.NewSource(22))
+			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+			config := fapi.DefaultStorageConfig().WithColdEnabled(false)
 
-		config = fapi.DefaultStorageConfig().WithHotEnabled(true)
-		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageConfig(t, fapi, cid, &config)
+			it.RequireFilUnstored(ctx, t, client, cid)
 
-		// Yes, still stored in filecoin since deals can't be
-		// undone.
-		it.RequireFilStored(ctx, t, client, cid)
-		// Despite of the above, check that the Cid Config still reflects
-		// that this *shouldn't* be in the Cold Storage. To indicate
-		// this can't be renewed, or any other future action that tries to
-		// store it again in the Cold Layer.
-		it.RequireStorageConfig(t, fapi, cid, &config)
+			config = fapi.DefaultStorageConfig().WithHotEnabled(true)
+			jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+
+			// Yes, still stored in filecoin since deals can't be
+			// undone.
+			it.RequireFilStored(ctx, t, client, cid)
+			// Despite of the above, check that the Cid Config still reflects
+			// that this *shouldn't* be in the Cold Storage. To indicate
+			// this can't be renewed, or any other future action that tries to
+			// store it again in the Cold Layer.
+			it.RequireStorageConfig(t, fapi, cid, &config)
+		})
 	})
 }
 
@@ -170,48 +180,51 @@ func TestFilecoinEnableConfig(t *testing.T) {
 		name := fmt.Sprintf("Hot(%v)/Cold(%v)", tt.HotEnabled, tt.ColdEnabled)
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
-			defer cls()
 
-			r := rand.New(rand.NewSource(22))
-			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-			config := fapi.DefaultStorageConfig().WithColdEnabled(tt.ColdEnabled).WithHotEnabled(tt.HotEnabled)
+			it.RunFlaky(t, func(t *it.FlakyT) {
+				ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+				defer cls()
 
-			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-			require.NoError(t, err)
+				r := rand.New(rand.NewSource(22))
+				cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+				config := fapi.DefaultStorageConfig().WithColdEnabled(tt.ColdEnabled).WithHotEnabled(tt.HotEnabled)
 
-			expectedJobState := ffs.Success
-			it.RequireJobState(t, fapi, jid, expectedJobState)
-
-			if expectedJobState == ffs.Success {
-				it.RequireStorageConfig(t, fapi, cid, &config)
-
-				// Show() assertions
-				cinfo, err := fapi.Show(cid)
+				jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 				require.NoError(t, err)
-				require.Equal(t, tt.HotEnabled, cinfo.Hot.Enabled)
-				if tt.ColdEnabled {
-					require.NotEmpty(t, cinfo.Cold.Filecoin.Proposals)
-				} else {
-					require.Empty(t, cinfo.Cold.Filecoin.Proposals)
-				}
 
-				// Get() assertions
-				ctx := context.Background()
-				_, err = fapi.Get(ctx, cid)
-				var expectedErr error
-				if !tt.HotEnabled {
-					expectedErr = api.ErrHotStorageDisabled
-				}
-				require.Equal(t, expectedErr, err)
+				expectedJobState := ffs.Success
+				it.RequireJobState(t, fapi, jid, expectedJobState)
 
-				// External assertions
-				if !tt.HotEnabled {
-					it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
-				} else {
-					it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
+				if expectedJobState == ffs.Success {
+					it.RequireStorageConfig(t, fapi, cid, &config)
+
+					// Show() assertions
+					cinfo, err := fapi.Show(cid)
+					require.NoError(t, err)
+					require.Equal(t, tt.HotEnabled, cinfo.Hot.Enabled)
+					if tt.ColdEnabled {
+						require.NotEmpty(t, cinfo.Cold.Filecoin.Proposals)
+					} else {
+						require.Empty(t, cinfo.Cold.Filecoin.Proposals)
+					}
+
+					// Get() assertions
+					ctx := context.Background()
+					_, err = fapi.Get(ctx, cid)
+					var expectedErr error
+					if !tt.HotEnabled {
+						expectedErr = api.ErrHotStorageDisabled
+					}
+					require.Equal(t, expectedErr, err)
+
+					// External assertions
+					if !tt.HotEnabled {
+						it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
+					} else {
+						it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
+					}
 				}
-			}
+			})
 		})
 	}
 }
@@ -222,32 +235,37 @@ func TestHotTimeoutConfig(t *testing.T) {
 	defer cls()
 
 	t.Run("ShortTime", func(t *testing.T) {
-		cid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
-		config := fapi.DefaultStorageConfig().WithHotIpfsAddTimeout(1)
-		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Failed)
+		it.RunFlaky(t, func(t *it.FlakyT) {
+			cid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
+			config := fapi.DefaultStorageConfig().WithHotIpfsAddTimeout(1)
+			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Failed)
+		})
 	})
 }
 
 func TestDurationConfig(t *testing.T) {
 	t.Parallel()
-	ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
-	defer cls()
 
-	r := rand.New(rand.NewSource(22))
-	cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-	duration := int64(util.MinDealDuration + 1234)
-	config := fapi.DefaultStorageConfig().WithColdFilDealDuration(duration)
-	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
-	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
-	it.RequireStorageConfig(t, fapi, cid, &config)
-	cinfo, err := fapi.Show(cid)
-	require.NoError(t, err)
-	p := cinfo.Cold.Filecoin.Proposals[0]
-	require.Greater(t, p.Duration, duration)
-	require.Greater(t, p.ActivationEpoch, int64(0))
+	it.RunFlaky(t, func(t *it.FlakyT) {
+		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+		defer cls()
+
+		r := rand.New(rand.NewSource(22))
+		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+		duration := int64(util.MinDealDuration + 1234)
+		config := fapi.DefaultStorageConfig().WithColdFilDealDuration(duration)
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+		require.NoError(t, err)
+		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireStorageConfig(t, fapi, cid, &config)
+		cinfo, err := fapi.Show(cid)
+		require.NoError(t, err)
+		p := cinfo.Cold.Filecoin.Proposals[0]
+		require.Greater(t, p.Duration, duration)
+		require.Greater(t, p.ActivationEpoch, int64(0))
+	})
 }
 
 func TestGetDefaultStorageConfig(t *testing.T) {
