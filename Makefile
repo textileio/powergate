@@ -1,5 +1,7 @@
+include .bingo/Variables.mk
+
 BUILD_FLAGS=CGO_ENABLED=0
-GOVVV_FLAGS=$(shell govvv -flags -pkg $(shell go list ./buildinfo))
+GOVVV_FLAGS=$(shell $(GOVVV) -flags -pkg $(shell go list ./buildinfo))
 
 build: 
 	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./...
