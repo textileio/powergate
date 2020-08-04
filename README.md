@@ -75,6 +75,7 @@ The binary will be placed automatically in `$GOPATH/bin` which in general is in 
 You can read the [generated CLI docs](https://github.com/textileio/powergate/blob/master/cli-docs/pow/pow.md) in this repo, or run `pow` with the `--help` flag to see the available commands:
 
 ```
+
 $ pow --help
 A client for storage and retreival of powergate data
 
@@ -83,22 +84,18 @@ Usage:
 
 Available Commands:
   asks        Provides commands to view asks data
-  deal        Interactive storage deal
-  deals       Provides commands to manage storage deals
+  faults      Provides commands to view faults data
   ffs         Provides commands to manage ffs
   health      Display the node health status
   help        Help about any command
-  init        Initializes a config file with the provided values or defaults
   miners      Provides commands to view miners data
   net         Provides commands related to peers and network
   reputation  Provides commands to view miner reputation data
-  faults      Provides commands to view faults data
   wallet      Provides commands about filecoin wallets
 
 Flags:
-      --config string          config file (default is $HOME/.powergate.yaml)
   -h, --help                   help for pow
-      --serverAddress string   address of the powergate service api (default "/ip4/127.0.0.1/tcp/5002")
+      --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
 
 Use "pow [command] --help" for more information about a command.
 ```
@@ -140,7 +137,7 @@ make build-powd
 You can run the `-h` flag to see the configurable flags:
 ```bash
 $ powd -h
-Usage of ./powd:
+Usage of powd:
       --autocreatemasteraddr      Automatically creates & funds a master address if none is provided
       --debug                     Enable debug log level in all loggers.
       --devnet                    Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.
@@ -149,6 +146,7 @@ Usage of ./powd:
       --grpchostaddr string       gRPC host listening address. (default "/ip4/0.0.0.0/tcp/5002")
       --grpcwebproxyaddr string   gRPC webproxy listening address. (default "0.0.0.0:6002")
       --ipfsapiaddr string        IPFS API endpoint multiaddress. (Optional, only needed if FFS is used) (default "/ip4/127.0.0.1/tcp/5001")
+      --ipfsrevproxyaddr string   IPFS reverse proxy listen address (default "127.0.0.1:6003")
       --lotushost string          Lotus client API endpoint multiaddress. (default "/ip4/127.0.0.1/tcp/1234")
       --lotusmasteraddr string    Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)
       --lotustoken string         Lotus API authorization token. This flag or --lotustoken file are mandatory.
@@ -156,7 +154,6 @@ Usage of ./powd:
       --maxminddbfolder string    Path of the folder containing GeoLite2-City.mmdb (default ".")
       --repopath string           Path of the repository where Powergate state will be saved. (default "~/.powergate")
       --walletinitialfund int     FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set) (default 4000000000000000)
-pflag: help requested
 ```
 
 We'll soon provide better information about Powergate configurations, stay tuned! 📻
