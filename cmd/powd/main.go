@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/server"
+	"github.com/textileio/powergate/buildinfo"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/plugin/runmetrics"
 )
@@ -29,14 +30,16 @@ var (
 )
 
 func main() {
-	// Configure flags.
-	if err := setupFlags(); err != nil {
-		log.Fatalf("configuring flags: %s", err)
-	}
-
 	// Configure logging.
 	if err := setupLogging(); err != nil {
 		log.Fatalf("configuring up logging: %s", err)
+	}
+
+	log.Infof("starting powd:\n%s", buildinfo.Summary())
+
+	// Configure flags.
+	if err := setupFlags(); err != nil {
+		log.Fatalf("configuring flags: %s", err)
 	}
 
 	// Configuring Prometheus exporter.

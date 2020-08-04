@@ -1,0 +1,20 @@
+syntax = "proto3";
+package buildinfo.rpc;
+
+option go_package = "github.com/textileio/powergate/buildinfo/rpc";
+
+message BuildInfoRequest {
+}
+
+message BuildInfoResponse {
+  string git_commit = 1;
+	string git_branch = 2;
+	string git_state = 3;
+	string git_summary = 4;
+	string build_date = 5;
+	string version = 6;
+}
+
+service RPCService {
+  rpc BuildInfo(BuildInfoRequest) returns (BuildInfoResponse) {}
+}
