@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"strings"
 
+	buildinfoRpc "github.com/textileio/powergate/buildinfo/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
@@ -19,6 +20,7 @@ import (
 
 // Client provides the client api.
 type Client struct {
+	BuildInfo  *BuildInfo
 	Asks       *Asks
 	Miners     *Miners
 	Faults     *Faults
@@ -88,6 +90,7 @@ func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error)
 		return nil, err
 	}
 	client := &Client{
+		BuildInfo:  &BuildInfo{client: buildinfoRpc.NewRPCServiceClient(conn)},
 		Asks:       &Asks{client: askRpc.NewRPCServiceClient(conn)},
 		Miners:     &Miners{client: minerRpc.NewRPCServiceClient(conn)},
 		Faults:     &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
@@ -99,6 +102,11 @@ func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error)
 		conn:       conn,
 	}
 	return client, nil
+}
+
+// Target returns the client target address.
+func (c *Client) Target() string {
+	return c.conn.Target()
 }
 
 // Close closes the client's grpc connection and cancels any active requests.

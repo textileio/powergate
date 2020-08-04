@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	client "github.com/textileio/powergate/api/client"
+	"github.com/textileio/powergate/buildinfo"
 )
 
 var (
@@ -19,6 +20,7 @@ var (
 		Use:               "pow",
 		Short:             "A client for storage and retreival of powergate data",
 		Long:              `A client for storage and retreival of powergate data`,
+		Version:           buildinfo.Summary(),
 		DisableAutoGenTag: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			err := viper.BindPFlag("serverAddress", cmd.Root().PersistentFlags().Lookup("serverAddress"))
@@ -34,6 +36,7 @@ var (
 
 // Execute runs the root command.
 func Execute() {
+	rootCmd.SetVersionTemplate("pow build info:\n{{.Version}}\n")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

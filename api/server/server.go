@@ -18,6 +18,7 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
+	buildinfoRpc "github.com/textileio/powergate/buildinfo/rpc"
 	"github.com/textileio/powergate/deals"
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/fchost"
@@ -57,6 +58,9 @@ import (
 const (
 	datastoreFolderName    = "datastore"
 	lotusConnectionRetries = 10
+
+	// WSPingInterval controls the WebSocket keepalive pinging interval. Must be >= 1s.
+	WSPingInterval = time.Second * 5
 )
 
 var (
@@ -270,7 +274,9 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 		grpcweb.WithOriginFunc(func(origin string) bool {
 			return true
 		}),
+		grpcweb.WithAllowedRequestHeaders([]string{"*"}),
 		grpcweb.WithWebsockets(true),
+		grpcweb.WithWebsocketPingInterval(WSPingInterval),
 		grpcweb.WithWebsocketOriginFunc(func(req *http.Request) bool {
 			return true
 		}),
@@ -290,6 +296,7 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
+	buildinfoService := buildinfoRpc.New()
 	netService := pgnetRpc.New(s.nm)
 	healthService := healthRpc.New(s.hm)
 	walletService := walletRpc.New(s.wm)
@@ -308,6 +315,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
+		buildinfoRpc.RegisterRPCServiceServer(server, buildinfoService)
 		pgnetRpc.RegisterRPCServiceServer(server, netService)
 		healthRpc.RegisterRPCServiceServer(server, healthService)
 		walletRpc.RegisterRPCServiceServer(server, walletService)

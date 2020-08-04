@@ -1,10 +1,12 @@
 # Powergate bench
 
-Powergate `bench` is an utility tool that allows to run benchmark scenarios against a properly configured Powergate server.
+Powergate `powbench` is an utility tool that allows to run benchmark scenarios against a properly configured Powergate server.
+
+To build and install `powbench`, from the root of the Powergate repo, run:
 
 ```bash
-> go build -o powbench .
-> ./powbench -h
+> make build-powbench
+> powbench -h
 Usage of ./powbench:
       --maxParallel int    Max parallel file storage (default 1)
       --minerAddr string   Miner address to force Powergate to select for making deals (default "t01000")

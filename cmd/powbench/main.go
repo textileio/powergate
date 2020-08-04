@@ -10,6 +10,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/textileio/powergate/buildinfo"
 	"github.com/textileio/powergate/cmd/powbench/runner"
 )
 
@@ -28,6 +29,8 @@ var (
 )
 
 func main() {
+	log.Infof("starting powbench:\n%s", buildinfo.Summary())
+
 	pflag.String(cmdPowergateAddr, "/ip4/127.0.0.1/tcp/5002", "Powergate server multiaddress")
 	pflag.Int(cmdSampleSize, 1024, "Size of randomly generated files in bytes")
 	pflag.Int(cmdMaxParallel, 1, "Max parallel file storage")
