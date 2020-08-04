@@ -22,5 +22,6 @@ A client for storage and retreival of powergate data
 * [pow miners](pow_miners.md)	 - Provides commands to view miners data
 * [pow net](pow_net.md)	 - Provides commands related to peers and network
 * [pow reputation](pow_reputation.md)	 - Provides commands to view miner reputation data
+* [pow server-info](pow_server-info.md)	 - Display information about the connected server
 * [pow wallet](pow_wallet.md)	 - Provides commands about filecoin wallets
 
