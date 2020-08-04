@@ -4,17 +4,17 @@ import "fmt"
 
 var (
 	// GitCommit is set by govvv at build time.
-	GitCommit = "default-git-commit"
+	GitCommit = "n/a"
 	// GitBranch  is set by govvv at build time.
-	GitBranch = "default-git-branch"
+	GitBranch = "n/a"
 	// GitState  is set by govvv at build time.
-	GitState = "default-git-state"
+	GitState = "n/a"
 	// GitSummary is set by govvv at build time.
-	GitSummary = "default-git-summary"
+	GitSummary = "n/a"
 	// BuildDate  is set by govvv at build time.
-	BuildDate = "default-build-date"
+	BuildDate = "n/a"
 	// Version  is set by govvv at build time.
-	Version = "default-version"
+	Version = "n/a"
 )
 
 // Summary prints a summary of all build info.
