@@ -20,7 +20,7 @@ import (
 
 func init() {
 	ffsStageCmd.Flags().StringP("token", "t", "", "FFS access token")
-	ffsStageCmd.Flags().String("ipfsproxy", "/ip4/127.0.0.1/tcp/6003", "Powergate IPFS reverse proxy multiaddr")
+	ffsStageCmd.Flags().String("ipfsrevproxy", "/ip4/127.0.0.1/tcp/6003", "Powergate IPFS reverse proxy multiaddr")
 
 	ffsCmd.AddCommand(ffsStageCmd)
 }
@@ -71,7 +71,7 @@ var ffsStageCmd = &cobra.Command{
 }
 
 func addFolder(folderPath string) (cid.Cid, error) {
-	ipfsProxy := viper.GetString("ipfsproxy")
+	ipfsProxy := viper.GetString("ipfsrevproxy")
 	ma, _ := multiaddr.NewMultiaddr(ipfsProxy)
 	ipfs, err := httpapi.NewApi(ma)
 	if err != nil {
