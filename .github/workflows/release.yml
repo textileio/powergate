@@ -52,17 +52,16 @@ jobs:
         run: |
           export PATH=${PATH}:`go env GOPATH`/bin
           go get -v -t -d ./...
-      - name: Install bingo and deps
+      - name: Build govvv
         run: |
-          export PATH=${PATH}:`go env GOPATH`/bin
-          go get github.com/bwplotka/bingo && go mod tidy
-          bingo get
+          go build -modfile .bingo/govvv.mod -o=. github.com/ahmetb/govvv
+      - name: Build gox
+        run: |
+          go build -modfile .bingo/gox.mod -o=. github.com/mitchellh/gox
       - name: Compile
         run: |
           VERSION=${GITHUB_REF##*/}
-          export PATH=${PATH}:`go env GOPATH`/bin
-          source .bingo/variables.env
-          $(GOX) -osarch="linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64" -output="pow-{{.OS}}-{{.Arch}}" -ldflags="$(GOVVV) -flags -version $(VERSION) -pkg $(go list ./buildinfo)" ./cmd/pow
+          ./gox -osarch="linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64" -output="pow-{{.OS}}-{{.Arch}}" -ldflags="./govvv -flags -version $(VERSION) -pkg $(go list ./buildinfo)" ./cmd/pow
       - name: Collect artifacts
         run: |
           VERSION=${GITHUB_REF##*/}
