@@ -73,14 +73,12 @@ var ffsStageCmd = &cobra.Command{
 }
 
 func addFolder(folderPath string, ffsToken string) (cid.Cid, error) {
-	ipfsProxy := viper.GetString("ipfsrevproxy")
-	ma, _ := multiaddr.NewMultiaddr(ipfsProxy)
-	customClient := http.DefaultClient
-	customClient.Transport = newFFSHeaderDecorator(ffsToken)
-	ipfs, err := httpapi.NewApiWithClient(ma, customClient)
+	ipfsRevProxy := viper.GetString("ipfsrevproxy")
+	ipfs, err := newDecoratedIPFSAPI(ipfsRevProxy, ffsToken)
 	if err != nil {
-		return cid.Undef, err
+		return cid.Undef, fmt.Errorf("creating IPFS HTTP client: %s", err)
 	}
+
 	stat, err := os.Lstat(folderPath)
 	if err != nil {
 		return cid.Undef, err
@@ -102,7 +100,19 @@ func addFolder(folderPath string, ffsToken string) (cid.Cid, error) {
 	if err != nil {
 		return cid.Undef, err
 	}
+
 	return pth.Cid(), nil
+}
+
+func newDecoratedIPFSAPI(ipfsRevProxyMaddr, ffsToken string) (*httpapi.HttpApi, error) {
+	ma, _ := multiaddr.NewMultiaddr(ipfsRevProxyMaddr)
+	customClient := http.DefaultClient
+	customClient.Transport = newFFSHeaderDecorator(ffsToken)
+	ipfs, err := httpapi.NewApiWithClient(ma, customClient)
+	if err != nil {
+		return nil, err
+	}
+	return ipfs, nil
 }
 
 type ffsHeaderDecorator struct {
