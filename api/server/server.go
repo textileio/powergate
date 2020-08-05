@@ -230,11 +230,11 @@ func NewServer(conf Config) (*Server, error) {
 	log.Info("Starting gRPC, gateway and index HTTP servers...")
 	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
 	wrappedGRPCServer := wrapGRPCServer(grpcServer)
-	httpFFSAuthInerceptor, err := newHTTPFFSAuthInterceptor(conf, ffsManager)
+	httpFFSAuthInterceptor, err := newHTTPFFSAuthInterceptor(conf, ffsManager)
 	if err != nil {
 		return nil, fmt.Errorf("creating ffsHTTPAuth: %s", err)
 	}
-	webProxy := createProxyServer(wrappedGRPCServer, httpFFSAuthInerceptor, conf.GrpcWebProxyAddress)
+	webProxy := createProxyServer(wrappedGRPCServer, httpFFSAuthInterceptor, conf.GrpcWebProxyAddress)
 
 	gateway := gateway.NewGateway(conf.GatewayHostAddr, ai, mi, si, rm)
 	gateway.Start()
