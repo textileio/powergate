@@ -96,7 +96,7 @@ func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error)
 		Faults:     &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
 		Wallet:     &Wallet{client: walletRpc.NewRPCServiceClient(conn)},
 		Reputation: &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
-		FFS:        &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
+		FFS:        &FFS{client: ffsRpc.NewRPCServiceClient(conn), target: target},
 		Health:     &Health{client: healthRpc.NewRPCServiceClient(conn)},
 		Net:        &Net{client: netRpc.NewRPCServiceClient(conn)},
 		conn:       conn,

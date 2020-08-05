@@ -16,7 +16,6 @@ import (
 
 func init() {
 	ffsStageCmd.Flags().StringP("token", "t", "", "FFS access token")
-	ffsStageCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6003", "Powergate IPFS reverse proxy multiaddr")
 
 	ffsCmd.AddCommand(ffsStageCmd)
 }
@@ -48,7 +47,7 @@ var ffsStageCmd = &cobra.Command{
 		s := spin.New("%s Staging specified asset in FFS hot storage...")
 		s.Start()
 		if fi.IsDir() {
-			cid, err = fcClient.FFS.StageFolder(authCtx(ctx), viper.GetString("ipfsrevproxy"), args[0])
+			cid, err = fcClient.FFS.StageFolder(authCtx(ctx), args[0])
 			checkErr(err)
 		} else {
 			f, err := os.Open(args[0])

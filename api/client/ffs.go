@@ -27,6 +27,7 @@ import (
 // FFS provides the API to create and interact with an FFS instance.
 type FFS struct {
 	client rpc.RPCServiceClient
+	target string
 }
 
 // JobEvent represents an event for Watching a job.
@@ -380,9 +381,9 @@ func (f *FFS) Remove(ctx context.Context, c cid.Cid) error {
 }
 
 // GetFolder retrieves to outputDir a Cid which corresponds to a folder.
-func (f *FFS) GetFolder(ctx context.Context, ipfsRevProxyAddr string, c cid.Cid, outputDir string) error {
+func (f *FFS) GetFolder(ctx context.Context, c cid.Cid, outputDir string) error {
 	token := ctx.Value(AuthKey).(string)
-	ipfs, err := newDecoratedIPFSAPI(ipfsRevProxyAddr, token)
+	ipfs, err := newDecoratedIPFSAPI(f.target, token)
 	if err != nil {
 		return fmt.Errorf("creating decorated IPFS client: %s", err)
 	}
@@ -527,10 +528,10 @@ func (f *FFS) Stage(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 }
 
 // StageFolder allows to temporarily stage a folder in the Hot Storage in preparation for pushing a cid storage config.
-func (f *FFS) StageFolder(ctx context.Context, ipfsRevProxyAddr string, folderPath string) (cid.Cid, error) {
+func (f *FFS) StageFolder(ctx context.Context, folderPath string) (cid.Cid, error) {
 	ffsToken := ctx.Value(AuthKey).(string)
 
-	ipfs, err := newDecoratedIPFSAPI(ipfsRevProxyAddr, ffsToken)
+	ipfs, err := newDecoratedIPFSAPI(f.target, ffsToken)
 	if err != nil {
 		return cid.Undef, fmt.Errorf("creating IPFS HTTP client: %s", err)
 	}
@@ -805,8 +806,8 @@ func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.Re
 	return ret, nil
 }
 
-func newDecoratedIPFSAPI(ipfsRevProxyAddr, ffsToken string) (*httpapi.HttpApi, error) {
-	ipport := strings.Split(ipfsRevProxyAddr, ":")
+func newDecoratedIPFSAPI(proxyAddr, ffsToken string) (*httpapi.HttpApi, error) {
+	ipport := strings.Split(proxyAddr, ":")
 	if len(ipport) != 2 {
 		return nil, fmt.Errorf("ipfs addr is invalid")
 	}
