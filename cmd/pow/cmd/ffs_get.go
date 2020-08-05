@@ -46,7 +46,7 @@ var ffsGetCmd = &cobra.Command{
 		s := spin.New("%s Retrieving specified data...")
 		s.Start()
 
-		isFolder := viper.GetBool("isfolder")
+		isFolder := viper.GetBool("folder")
 		if isFolder {
 			err := getFolder(ctx, c, args[1])
 			checkErr(err)
