@@ -49,7 +49,6 @@ var ffsStageCmd = &cobra.Command{
 		s.Start()
 		if fi.IsDir() {
 			cid, err = fcClient.FFS.StageFolder(authCtx(ctx), viper.GetString("ipfsrevproxy"), args[0])
-			s.Stop()
 			checkErr(err)
 		} else {
 			f, err := os.Open(args[0])
