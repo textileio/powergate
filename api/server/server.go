@@ -278,7 +278,6 @@ func NewServer(conf Config) (*Server, error) {
 type ffsHTTPAuth struct {
 	cont       http.Handler
 	ffsManager *manager.Manager
-	url        *url.URL
 }
 
 func newHTTPFFSAuthInterceptor(conf Config, m *manager.Manager) (*ffsHTTPAuth, error) {
@@ -296,7 +295,6 @@ func newHTTPFFSAuthInterceptor(conf Config, m *manager.Manager) (*ffsHTTPAuth, e
 	fha := &ffsHTTPAuth{
 		cont:       rph,
 		ffsManager: m,
-		url:        urlIPFS,
 	}
 	return fha, nil
 }
@@ -312,7 +310,7 @@ func (fha *ffsHTTPAuth) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (fha *ffsHTTPAuth) IsIPFSRequest(r *http.Request) bool {
-	return r.URL == fha.url
+	return len(r.Header.Get("x-ipfs-ffs-auth")) > 0
 }
 
 func createProxyServer(wrappedGRPCServer *grpcweb.WrappedGrpcServer, fha *ffsHTTPAuth, webProxyAddr string) *http.Server {
