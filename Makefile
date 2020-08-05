@@ -1,3 +1,5 @@
+.DEFAULT_GOAL=build
+
 include .bingo/Variables.mk
 
 BUILD_FLAGS=CGO_ENABLED=0
