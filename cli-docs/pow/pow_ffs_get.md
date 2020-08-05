@@ -15,7 +15,7 @@ pow ffs get [cid] [output file path] [flags]
 ```
   -f, --folder                Indicates that the retrieved Cid is a folder
   -h, --help                  help for get
-      --ipfsrevproxy string   Powergate IPFS reverse proxy multiaddr (default "127.0.0.1:6003")
+      --ipfsrevproxy string   Powergate IPFS reverse proxy multiaddr (default "127.0.0.1:6002")
   -t, --token string          token of the request
 ```
 

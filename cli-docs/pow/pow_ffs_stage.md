@@ -14,7 +14,7 @@ pow ffs stage [path] [flags]
 
 ```
   -h, --help                  help for stage
-      --ipfsrevproxy string   Powergate IPFS reverse proxy multiaddr (default "127.0.0.1:6003")
+      --ipfsrevproxy string   Powergate IPFS reverse proxy multiaddr (default "127.0.0.1:6002")
   -t, --token string          FFS access token
 ```
 

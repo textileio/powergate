@@ -88,12 +88,12 @@ type Server struct {
 	hs         ffs.HotStorage
 	l          *cidlogger.CidLogger
 
-	grpcServer   *grpc.Server
-	grpcWebProxy *http.Server
+	grpcServer *grpc.Server
 
-	gateway      *gateway.Gateway
-	indexServer  *http.Server
-	ipfsRevProxy *http.Server
+	webProxy *http.Server
+
+	gateway     *gateway.Gateway
+	indexServer *http.Server
 
 	closeLotus func()
 }
@@ -114,7 +114,6 @@ type Config struct {
 	GrpcWebProxyAddress  string
 	RepoPath             string
 	GatewayHostAddr      string
-	IPFSRevProxyAddr     string
 	MaxMindDBFolder      string
 }
 
@@ -229,7 +228,13 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	log.Info("Starting gRPC, gateway and index HTTP servers...")
-	grpcServer, grpcWebProxy := createGRPCServer(conf.GrpcServerOpts, conf.GrpcWebProxyAddress)
+	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
+	wrappedGRPCServer := wrapGRPCServer(grpcServer)
+	httpFFSAuthInterceptor, err := newHTTPFFSAuthInterceptor(conf, ffsManager)
+	if err != nil {
+		return nil, fmt.Errorf("creating ffsHTTPAuth: %s", err)
+	}
+	webProxy := createProxyServer(wrappedGRPCServer, httpFFSAuthInterceptor, conf.GrpcWebProxyAddress)
 
 	gateway := gateway.NewGateway(conf.GatewayHostAddr, ai, mi, si, rm)
 	gateway.Start()
@@ -253,22 +258,17 @@ func NewServer(conf Config) (*Server, error) {
 		hs:         hs,
 		l:          l,
 
-		grpcServer:   grpcServer,
-		grpcWebProxy: grpcWebProxy,
-		gateway:      gateway,
-		closeLotus:   cls,
+		grpcServer: grpcServer,
+		webProxy:   webProxy,
+		gateway:    gateway,
+		closeLotus: cls,
 	}
 
-	if err := startGRPCServices(grpcServer, grpcWebProxy, s, conf.GrpcHostNetwork, conf.GrpcHostAddress); err != nil {
+	if err := startGRPCServices(grpcServer, webProxy, s, conf.GrpcHostNetwork, conf.GrpcHostAddress); err != nil {
 		return nil, fmt.Errorf("starting GRPC services: %s", err)
 	}
 
 	s.indexServer = startIndexHTTPServer(s)
-
-	s.ipfsRevProxy, err = startIPFSRevProxy(&conf, ffsManager)
-	if err != nil {
-		return nil, fmt.Errorf("starting IPFS reverse proxy: %s", err)
-	}
 
 	log.Info("Starting finished, serving requests")
 
@@ -280,13 +280,23 @@ type ffsHTTPAuth struct {
 	ffsManager *manager.Manager
 }
 
-func newHTTPFFSAuthInterceptor(cont http.Handler, m *manager.Manager) *ffsHTTPAuth {
-	fha := &ffsHTTPAuth{
-		cont:       cont,
-		ffsManager: m,
+func newHTTPFFSAuthInterceptor(conf Config, m *manager.Manager) (*ffsHTTPAuth, error) {
+	log.Info("Starting IPFS reverse proxy...")
+	ipfsIP, err := util.TCPAddrFromMultiAddr(conf.IpfsAPIAddr)
+	if err != nil {
+		return nil, fmt.Errorf("converting IPFS multiaddr to tcp addr: %s", err)
 	}
 
-	return fha
+	urlIPFS, err := url.Parse("http://" + ipfsIP)
+	if err != nil {
+		return nil, fmt.Errorf("generating IPFS URL for reverse proxy: %s", err)
+	}
+	rph := httputil.NewSingleHostReverseProxy(urlIPFS)
+	fha := &ffsHTTPAuth{
+		cont:       rph,
+		ffsManager: m,
+	}
+	return fha, nil
 }
 
 func (fha *ffsHTTPAuth) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -299,39 +309,28 @@ func (fha *ffsHTTPAuth) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	fha.cont.ServeHTTP(rw, r)
 }
 
-func startIPFSRevProxy(conf *Config, m *manager.Manager) (*http.Server, error) {
-	if conf.IPFSRevProxyAddr == "" {
-		return nil, nil
-	}
-
-	log.Info("Starting IPFS reverse proxy...")
-	ipfsIP, err := util.TCPAddrFromMultiAddr(conf.IpfsAPIAddr)
-	if err != nil {
-		return nil, fmt.Errorf("converting IPFS multiaddr to tcp addr: %s", err)
-	}
-
-	urlIPFS, err := url.Parse("http://" + ipfsIP)
-	if err != nil {
-		return nil, fmt.Errorf("generating IPFS URL for reverse proxy: %s", err)
-	}
-	rph := httputil.NewSingleHostReverseProxy(urlIPFS)
-	fha := newHTTPFFSAuthInterceptor(rph, m)
-	rp := &http.Server{
-		Addr:    conf.IPFSRevProxyAddr,
-		Handler: fha,
-	}
-
-	go func() {
-		if err := rp.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("serving index http: %v", err)
-		}
-	}()
-	return rp, nil
+func (fha *ffsHTTPAuth) IsIPFSRequest(r *http.Request) bool {
+	return len(r.Header.Get("x-ipfs-ffs-auth")) > 0
 }
 
-func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Server, *http.Server) {
-	grpcServer := grpc.NewServer(opts...)
+func createProxyServer(wrappedGRPCServer *grpcweb.WrappedGrpcServer, fha *ffsHTTPAuth, webProxyAddr string) *http.Server {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if fha.IsIPFSRequest(r) {
+			fha.ServeHTTP(w, r)
+		} else if wrappedGRPCServer.IsGrpcWebRequest(r) ||
+			wrappedGRPCServer.IsAcceptableGrpcCorsRequest(r) ||
+			wrappedGRPCServer.IsGrpcWebSocketRequest(r) {
+			wrappedGRPCServer.ServeHTTP(w, r)
+		}
+	})
+	webProxy := &http.Server{
+		Addr:    webProxyAddr,
+		Handler: handler,
+	}
+	return webProxy
+}
 
+func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 	wrappedServer := grpcweb.WrapServer(
 		grpcServer,
 		grpcweb.WithOriginFunc(func(origin string) bool {
@@ -344,18 +343,8 @@ func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Serv
 			return true
 		}),
 	)
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if wrappedServer.IsGrpcWebRequest(r) ||
-			wrappedServer.IsAcceptableGrpcCorsRequest(r) ||
-			wrappedServer.IsGrpcWebSocketRequest(r) {
-			wrappedServer.ServeHTTP(w, r)
-		}
-	})
-	grpcWebProxy := &http.Server{
-		Addr:    webProxyAddr,
-		Handler: handler,
-	}
-	return grpcServer, grpcWebProxy
+
+	return wrappedServer
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
@@ -447,14 +436,6 @@ func startIndexHTTPServer(s *Server) *http.Server {
 
 // Close shuts down the server.
 func (s *Server) Close() {
-	if s.ipfsRevProxy != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-		if err := s.ipfsRevProxy.Shutdown(ctx); err != nil {
-			log.Errorf("closing down ipfs reverse proxy: %s", err)
-		}
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -465,7 +446,7 @@ func (s *Server) Close() {
 	log.Info("closing gRPC endpoints...")
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if err := s.grpcWebProxy.Shutdown(ctx); err != nil {
+	if err := s.webProxy.Shutdown(ctx); err != nil {
 		log.Errorf("closing down proxy: %s", err)
 	}
 	stopped := make(chan struct{})

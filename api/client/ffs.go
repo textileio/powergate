@@ -805,8 +805,8 @@ func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.Re
 	return ret, nil
 }
 
-func newDecoratedIPFSAPI(ipfsRevProxyAddr, ffsToken string) (*httpapi.HttpApi, error) {
-	ipport := strings.Split(ipfsRevProxyAddr, ":")
+func newDecoratedIPFSAPI(proxyAddr, ffsToken string) (*httpapi.HttpApi, error) {
+	ipport := strings.Split(proxyAddr, ":")
 	if len(ipport) != 2 {
 		return nil, fmt.Errorf("ipfs addr is invalid")
 	}

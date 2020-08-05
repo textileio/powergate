@@ -16,7 +16,7 @@ import (
 
 func init() {
 	ffsStageCmd.Flags().StringP("token", "t", "", "FFS access token")
-	ffsStageCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6003", "Powergate IPFS reverse proxy multiaddr")
+	ffsStageCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
 
 	ffsCmd.AddCommand(ffsStageCmd)
 }
