@@ -94,11 +94,11 @@ func getFolder(ctx context.Context, c cid.Cid, outputPath string) error {
 	}
 	n, err := ipfs.Unixfs().Get(ctx, ipfspath.IpfsPath(c))
 	if err != nil {
-		checkErr(err)
+		return fmt.Errorf("getting folder DAG from IPFS: %s", err)
 	}
 	err = files.WriteTo(n, outputPath)
 	if err != nil {
-		checkErr(err)
+		return fmt.Errorf("saving folder DAG to output folder: %s", err)
 	}
 	return nil
 }
