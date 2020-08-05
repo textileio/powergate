@@ -13,8 +13,9 @@ pow ffs stage [path] [flags]
 ### Options
 
 ```
-  -h, --help           help for stage
-  -t, --token string   FFS access token
+  -h, --help                  help for stage
+      --ipfsrevproxy string   Powergate IPFS reverse proxy multiaddr (default "127.0.0.1:6003")
+  -t, --token string          FFS access token
 ```
 
 ### Options inherited from parent commands

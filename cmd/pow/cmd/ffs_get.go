@@ -15,6 +15,7 @@ import (
 
 func init() {
 	ffsGetCmd.Flags().StringP("token", "t", "", "token of the request")
+	ffsGetCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
 	ffsGetCmd.Flags().BoolP("folder", "f", false, "Indicates that the retrieved Cid is a folder")
 	ffsCmd.AddCommand(ffsGetCmd)
 }
@@ -43,7 +44,7 @@ var ffsGetCmd = &cobra.Command{
 
 		isFolder := viper.GetBool("folder")
 		if isFolder {
-			err := fcClient.FFS.GetFolder(authCtx(ctx), c, args[1])
+			err := fcClient.FFS.GetFolder(authCtx(ctx), viper.GetString("ipfsrevproxy"), c, args[1])
 			checkErr(err)
 		} else {
 			reader, err := fcClient.FFS.Get(authCtx(ctx), c)
