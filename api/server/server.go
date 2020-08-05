@@ -7,6 +7,8 @@ import (
 	"math/big"
 	"net"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -89,8 +91,9 @@ type Server struct {
 	grpcServer   *grpc.Server
 	grpcWebProxy *http.Server
 
-	gateway     *gateway.Gateway
-	indexServer *http.Server
+	gateway      *gateway.Gateway
+	indexServer  *http.Server
+	ipfsRevProxy *http.Server
 
 	closeLotus func()
 }
@@ -111,6 +114,7 @@ type Config struct {
 	GrpcWebProxyAddress  string
 	RepoPath             string
 	GatewayHostAddr      string
+	IPFSRevProxyAddr     string
 	MaxMindDBFolder      string
 }
 
@@ -261,9 +265,68 @@ func NewServer(conf Config) (*Server, error) {
 
 	s.indexServer = startIndexHTTPServer(s)
 
+	s.ipfsRevProxy, err = startIPFSRevProxy(&conf, ffsManager)
+	if err != nil {
+		return nil, fmt.Errorf("starting IPFS reverse proxy: %s", err)
+	}
+
 	log.Info("Starting finished, serving requests")
 
 	return s, nil
+}
+
+type ffsHTTPAuth struct {
+	cont       http.Handler
+	ffsManager *manager.Manager
+}
+
+func newHTTPFFSAuthInterceptor(cont http.Handler, m *manager.Manager) *ffsHTTPAuth {
+	fha := &ffsHTTPAuth{
+		cont:       cont,
+		ffsManager: m,
+	}
+
+	return fha
+}
+
+func (fha *ffsHTTPAuth) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	authFFS := r.Header.Get("x-ipfs-ffs-auth")
+	_, err := fha.ffsManager.GetByAuthToken(authFFS)
+	if authFFS == "" || err == manager.ErrAuthTokenNotFound {
+		http.Error(rw, "FFS token required", http.StatusUnauthorized)
+		return
+	}
+	fha.cont.ServeHTTP(rw, r)
+}
+
+func startIPFSRevProxy(conf *Config, m *manager.Manager) (*http.Server, error) {
+	if conf.IPFSRevProxyAddr == "" {
+		return nil, nil
+	}
+
+	log.Info("Starting IPFS reverse proxy...")
+	ipfsIP, err := util.TCPAddrFromMultiAddr(conf.IpfsAPIAddr)
+	if err != nil {
+		return nil, fmt.Errorf("converting IPFS multiaddr to tcp addr: %s", err)
+	}
+
+	urlIPFS, err := url.Parse("http://" + ipfsIP)
+	if err != nil {
+		return nil, fmt.Errorf("generating IPFS URL for reverse proxy: %s", err)
+	}
+	rph := httputil.NewSingleHostReverseProxy(urlIPFS)
+	fha := newHTTPFFSAuthInterceptor(rph, m)
+	rp := &http.Server{
+		Addr:    conf.IPFSRevProxyAddr,
+		Handler: fha,
+	}
+
+	go func() {
+		if err := rp.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("serving index http: %v", err)
+		}
+	}()
+	return rp, nil
 }
 
 func createGRPCServer(opts []grpc.ServerOption, webProxyAddr string) (*grpc.Server, *http.Server) {
@@ -384,17 +447,26 @@ func startIndexHTTPServer(s *Server) *http.Server {
 
 // Close shuts down the server.
 func (s *Server) Close() {
+	if s.ipfsRevProxy != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		if err := s.ipfsRevProxy.Shutdown(ctx); err != nil {
+			log.Errorf("closing down ipfs reverse proxy: %s", err)
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
+
 	if err := s.indexServer.Shutdown(ctx); err != nil {
-		log.Errorf("shutting down index server: %s", err)
+		log.Errorf("closing down index server: %s", err)
 	}
 
 	log.Info("closing gRPC endpoints...")
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	if err := s.grpcWebProxy.Shutdown(ctx); err != nil {
-		log.Errorf("error shutting down proxy: %s", err)
+		log.Errorf("closing down proxy: %s", err)
 	}
 	stopped := make(chan struct{})
 	go func() {

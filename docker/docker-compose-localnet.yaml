@@ -9,6 +9,7 @@ services:
       - 6060:6060
       - 5002:5002
       - 6002:6002
+      - 6003:6003
     depends_on:
       - ipfs
       - lotus
@@ -16,6 +17,7 @@ services:
       - POWD_DEVNET=true
       - POWD_LOTUSHOST=/dns4/lotus/tcp/7777
       - POWD_IPFSAPIADDR=/dns4/ipfs/tcp/5001
+      - POWD_IPFSREVPROXYADDR=0.0.0.0:6003
     restart: unless-stopped
 
   ipfs:

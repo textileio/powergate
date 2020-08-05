@@ -36,7 +36,7 @@ Provides commands to manage ffs
 * [pow ffs retrievals](pow_ffs_retrievals.md)	 - List retrieval deal records for an FFS instance
 * [pow ffs send](pow_ffs_send.md)	 - Send fil from one managed address to any other address
 * [pow ffs show](pow_ffs_show.md)	 - Show pinned cid data
-* [pow ffs stage](pow_ffs_stage.md)	 - Temporarily cache data in the Hot layer in preparation for pushing a cid storage config
+* [pow ffs stage](pow_ffs_stage.md)	 - Temporarily stage data in the Hot layer in preparation for pushing a cid storage config
 * [pow ffs storage](pow_ffs_storage.md)	 - List storage deal records for an FFS instance
 * [pow ffs watch](pow_ffs_watch.md)	 - Watch for job status updates
 

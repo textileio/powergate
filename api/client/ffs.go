@@ -4,9 +4,17 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	cid "github.com/ipfs/go-cid"
+	files "github.com/ipfs/go-ipfs-files"
+	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/ipfs/interface-go-ipfs-core/options"
+	ipfspath "github.com/ipfs/interface-go-ipfs-core/path"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
@@ -371,6 +379,24 @@ func (f *FFS) Remove(ctx context.Context, c cid.Cid) error {
 	return err
 }
 
+// GetFolder retrieves to outputDir a Cid which corresponds to a folder.
+func (f *FFS) GetFolder(ctx context.Context, ipfsRevProxyAddr string, c cid.Cid, outputDir string) error {
+	token := ctx.Value(AuthKey).(string)
+	ipfs, err := newDecoratedIPFSAPI(ipfsRevProxyAddr, token)
+	if err != nil {
+		return fmt.Errorf("creating decorated IPFS client: %s", err)
+	}
+	n, err := ipfs.Unixfs().Get(ctx, ipfspath.IpfsPath(c))
+	if err != nil {
+		return fmt.Errorf("getting folder DAG from IPFS: %s", err)
+	}
+	err = files.WriteTo(n, outputDir)
+	if err != nil {
+		return fmt.Errorf("saving folder DAG to output folder: %s", err)
+	}
+	return nil
+}
+
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.
 func (f *FFS) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	stream, err := f.client.Get(ctx, &rpc.GetRequest{
@@ -463,7 +489,7 @@ func (f *FFS) Close(ctx context.Context) error {
 	return err
 }
 
-// Stage allows you to temporarily cache data in the Hot layer in preparation for pushing a cid storage config.
+// Stage allows to temporarily stage data in the Hot Storage in preparation for pushing a cid storage config.
 func (f *FFS) Stage(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	stream, err := f.client.Stage(ctx)
 	if err != nil {
@@ -498,6 +524,36 @@ func (f *FFS) Stage(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 		return nil, err
 	}
 	return &cid, nil
+}
+
+// StageFolder allows to temporarily stage a folder in the Hot Storage in preparation for pushing a cid storage config.
+func (f *FFS) StageFolder(ctx context.Context, ipfsRevProxyAddr string, folderPath string) (cid.Cid, error) {
+	ffsToken := ctx.Value(AuthKey).(string)
+
+	ipfs, err := newDecoratedIPFSAPI(ipfsRevProxyAddr, ffsToken)
+	if err != nil {
+		return cid.Undef, fmt.Errorf("creating IPFS HTTP client: %s", err)
+	}
+
+	stat, err := os.Lstat(folderPath)
+	if err != nil {
+		return cid.Undef, err
+	}
+	ff, err := files.NewSerialFile(folderPath, false, stat)
+	if err != nil {
+		return cid.Undef, err
+	}
+	defer func() { _ = ff.Close() }()
+	opts := []options.UnixfsAddOption{
+		options.Unixfs.CidVersion(1),
+		options.Unixfs.Pin(false),
+	}
+	pth, err := ipfs.Unixfs().Add(context.Background(), files.ToDir(ff), opts...)
+	if err != nil {
+		return cid.Undef, err
+	}
+
+	return pth.Cid(), nil
 }
 
 // ListPayChannels returns a list of payment channels.
@@ -747,4 +803,43 @@ func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.Re
 		ret = append(ret, record)
 	}
 	return ret, nil
+}
+
+func newDecoratedIPFSAPI(ipfsRevProxyAddr, ffsToken string) (*httpapi.HttpApi, error) {
+	ipport := strings.Split(ipfsRevProxyAddr, ":")
+	if len(ipport) != 2 {
+		return nil, fmt.Errorf("ipfs addr is invalid")
+	}
+	cm, err := multiaddr.NewComponent("ip4", ipport[0])
+	if err != nil {
+		return nil, err
+	}
+	cp, err := multiaddr.NewComponent("tcp", ipport[1])
+	if err != nil {
+		return nil, err
+	}
+	ipfsMaddr := cm.Encapsulate(cp)
+	customClient := http.DefaultClient
+	customClient.Transport = newFFSHeaderDecorator(ffsToken)
+	ipfs, err := httpapi.NewApiWithClient(ipfsMaddr, customClient)
+	if err != nil {
+		return nil, err
+	}
+	return ipfs, nil
+}
+
+type ffsHeaderDecorator struct {
+	ffsToken string
+}
+
+func newFFSHeaderDecorator(ffsToken string) *ffsHeaderDecorator {
+	return &ffsHeaderDecorator{
+		ffsToken: ffsToken,
+	}
+}
+
+func (fhd ffsHeaderDecorator) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header["x-ipfs-ffs-auth"] = []string{fhd.ffsToken}
+
+	return http.DefaultTransport.RoundTrip(req)
 }

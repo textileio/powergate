@@ -15,7 +15,8 @@ import (
 
 func init() {
 	ffsGetCmd.Flags().StringP("token", "t", "", "token of the request")
-
+	ffsGetCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6003", "Powergate IPFS reverse proxy multiaddr")
+	ffsGetCmd.Flags().BoolP("folder", "f", false, "Indicates that the retrieved Cid is a folder")
 	ffsCmd.AddCommand(ffsGetCmd)
 }
 
@@ -40,29 +41,36 @@ var ffsGetCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving specified data...")
 		s.Start()
-		reader, err := fcClient.FFS.Get(authCtx(ctx), c)
-		checkErr(err)
 
-		dir := path.Dir(args[1])
-		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			err = os.MkdirAll(dir, os.ModePerm)
+		isFolder := viper.GetBool("folder")
+		if isFolder {
+			err := fcClient.FFS.GetFolder(authCtx(ctx), viper.GetString("ipfsrevproxy"), c, args[1])
 			checkErr(err)
-		}
-		file, err := os.Create(args[1])
-		checkErr(err)
+		} else {
+			reader, err := fcClient.FFS.Get(authCtx(ctx), c)
+			checkErr(err)
 
-		defer func() { checkErr(file.Close()) }()
-
-		buffer := make([]byte, 1024*32) // 32KB
-		for {
-			bytesRead, readErr := reader.Read(buffer)
-			if readErr != nil && readErr != io.EOF {
-				Fatal(readErr)
+			dir := path.Dir(args[1])
+			if _, err := os.Stat(dir); os.IsNotExist(err) {
+				err = os.MkdirAll(dir, os.ModePerm)
+				checkErr(err)
 			}
-			_, err = file.Write(buffer[:bytesRead])
+			file, err := os.Create(args[1])
 			checkErr(err)
-			if readErr == io.EOF {
-				break
+
+			defer func() { checkErr(file.Close()) }()
+
+			buffer := make([]byte, 1024*32) // 32KB
+			for {
+				bytesRead, readErr := reader.Read(buffer)
+				if readErr != nil && readErr != io.EOF {
+					Fatal(readErr)
+				}
+				_, err = file.Write(buffer[:bytesRead])
+				checkErr(err)
+				if readErr == io.EOF {
+					break
+				}
 			}
 		}
 		s.Stop()
