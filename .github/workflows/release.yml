@@ -61,7 +61,7 @@ jobs:
       - name: Compile
         run: |
           VERSION=${GITHUB_REF##*/}
-          ./gox -osarch="linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64" -output="pow-{{.OS}}-{{.Arch}}" -ldflags="./govvv -flags -version $(VERSION) -pkg $(go list ./buildinfo)" ./cmd/pow
+          ./gox -osarch="linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64" -output="pow-{{.OS}}-{{.Arch}}" -ldflags="$(./govvv -flags -version $(VERSION) -pkg $(go list ./buildinfo))" ./cmd/pow
       - name: Collect artifacts
         run: |
           VERSION=${GITHUB_REF##*/}
