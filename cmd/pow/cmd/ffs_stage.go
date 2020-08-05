@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -50,7 +51,8 @@ var ffsStageCmd = &cobra.Command{
 		}
 		var cid cid.Cid
 		if fi.IsDir() {
-			cid, err = addFolder(args[0])
+			token := viper.GetString("token")
+			cid, err = addFolder(args[0], token)
 			if err != nil {
 				Fatal(fmt.Errorf("staging folder: %s", err))
 			}
@@ -70,10 +72,12 @@ var ffsStageCmd = &cobra.Command{
 	},
 }
 
-func addFolder(folderPath string) (cid.Cid, error) {
+func addFolder(folderPath string, ffsToken string) (cid.Cid, error) {
 	ipfsProxy := viper.GetString("ipfsrevproxy")
 	ma, _ := multiaddr.NewMultiaddr(ipfsProxy)
-	ipfs, err := httpapi.NewApi(ma)
+	customClient := http.DefaultClient
+	customClient.Transport = newFFSHeaderDecorator(ffsToken)
+	ipfs, err := httpapi.NewApiWithClient(ma, customClient)
 	if err != nil {
 		return cid.Undef, err
 	}
@@ -99,5 +103,20 @@ func addFolder(folderPath string) (cid.Cid, error) {
 		return cid.Undef, err
 	}
 	return pth.Cid(), nil
+}
 
+type ffsHeaderDecorator struct {
+	ffsToken string
+}
+
+func newFFSHeaderDecorator(ffsToken string) *ffsHeaderDecorator {
+	return &ffsHeaderDecorator{
+		ffsToken: ffsToken,
+	}
+}
+
+func (fhd ffsHeaderDecorator) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header["x-ipfs-ffs-auth"] = []string{fhd.ffsToken}
+
+	return http.DefaultTransport.RoundTrip(req)
 }

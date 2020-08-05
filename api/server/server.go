@@ -265,17 +265,44 @@ func NewServer(conf Config) (*Server, error) {
 
 	s.indexServer = startIndexHTTPServer(s)
 	if err != nil {
-		return nil, fmt.Errorf("starting IPFS reverse proxy: %s", err)
+		return nil, fmt.Errorf("starting index server: %s", err)
 	}
 
-	s.ipfsRevProxy, err = startIPFSRevProxy(s, &conf)
+	s.ipfsRevProxy, err = startIPFSRevProxy(&conf, ffsManager)
+	if err != nil {
+		return nil, fmt.Errorf("starting IPFS reverse proxy: %s", err)
+	}
 
 	log.Info("Starting finished, serving requests")
 
 	return s, nil
 }
 
-func startIPFSRevProxy(server *Server, conf *Config) (*http.Server, error) {
+type ffsHTTPAuth struct {
+	cont       http.Handler
+	ffsManager *manager.Manager
+}
+
+func newHTTPFFSAuthInterceptor(cont http.Handler, m *manager.Manager) *ffsHTTPAuth {
+	fha := &ffsHTTPAuth{
+		cont:       cont,
+		ffsManager: m,
+	}
+
+	return fha
+}
+
+func (fha *ffsHTTPAuth) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	authFFS := r.Header.Get("x-ipfs-ffs-auth")
+	_, err := fha.ffsManager.GetByAuthToken(authFFS)
+	if authFFS == "" || err == manager.ErrAuthTokenNotFound {
+		http.Error(rw, "FFS token required", http.StatusUnauthorized)
+		return
+	}
+	fha.cont.ServeHTTP(rw, r)
+}
+
+func startIPFSRevProxy(conf *Config, m *manager.Manager) (*http.Server, error) {
 	if conf.IPFSRevProxyAddr == "" {
 		return nil, nil
 	}
@@ -291,9 +318,10 @@ func startIPFSRevProxy(server *Server, conf *Config) (*http.Server, error) {
 		return nil, fmt.Errorf("generating IPFS URL for reverse proxy: %s", err)
 	}
 	rph := httputil.NewSingleHostReverseProxy(urlIPFS)
+	fha := newHTTPFFSAuthInterceptor(rph, m)
 	rp := &http.Server{
 		Addr:    conf.IPFSRevProxyAddr,
-		Handler: rph,
+		Handler: fha,
 	}
 
 	go func() {
