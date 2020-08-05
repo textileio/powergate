@@ -264,9 +264,6 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	s.indexServer = startIndexHTTPServer(s)
-	if err != nil {
-		return nil, fmt.Errorf("starting index server: %s", err)
-	}
 
 	s.ipfsRevProxy, err = startIPFSRevProxy(&conf, ffsManager)
 	if err != nil {

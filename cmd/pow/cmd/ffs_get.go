@@ -3,24 +3,20 @@ package cmd
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"path"
 
 	"github.com/caarlos0/spin"
 	"github.com/ipfs/go-cid"
-	files "github.com/ipfs/go-ipfs-files"
-	ipfspath "github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 func init() {
 	ffsGetCmd.Flags().StringP("token", "t", "", "token of the request")
-	ffsGetCmd.Flags().String("ipfsrevproxy", "/ip4/127.0.0.1/tcp/6003", "Powergate IPFS reverse proxy multiaddr")
+	ffsGetCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6003", "Powergate IPFS reverse proxy multiaddr")
 	ffsGetCmd.Flags().BoolP("folder", "f", false, "Indicates that the retrieved Cid is a folder")
-
 	ffsCmd.AddCommand(ffsGetCmd)
 }
 
@@ -48,7 +44,7 @@ var ffsGetCmd = &cobra.Command{
 
 		isFolder := viper.GetBool("folder")
 		if isFolder {
-			err := getFolder(ctx, c, args[1])
+			err := fcClient.FFS.GetFolder(authCtx(ctx), viper.GetString("ipfsrevproxy"), c, args[1])
 			checkErr(err)
 		} else {
 			reader, err := fcClient.FFS.Get(authCtx(ctx), c)
@@ -80,25 +76,4 @@ var ffsGetCmd = &cobra.Command{
 		s.Stop()
 		Success("Data written to %v", args[1])
 	},
-}
-
-func getFolder(ctx context.Context, c cid.Cid, outputPath string) error {
-	ipfsRevProxy := viper.GetString("ipfsrevproxy")
-	if ipfsRevProxy == "" {
-		return errors.New("the --ipfsrevproxy flag is require to fetch directories")
-	}
-	token := viper.GetString("token")
-	ipfs, err := newDecoratedIPFSAPI(ipfsRevProxy, token)
-	if err != nil {
-		return fmt.Errorf("creating decorated IPFS client: %s", err)
-	}
-	n, err := ipfs.Unixfs().Get(ctx, ipfspath.IpfsPath(c))
-	if err != nil {
-		return fmt.Errorf("getting folder DAG from IPFS: %s", err)
-	}
-	err = files.WriteTo(n, outputPath)
-	if err != nil {
-		return fmt.Errorf("saving folder DAG to output folder: %s", err)
-	}
-	return nil
 }
