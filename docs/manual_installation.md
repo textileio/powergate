@@ -153,7 +153,7 @@ As an optional feature, it can fund the newly created address with initial funds
 
 For this feature to be enabled, the `POWD_LOTUSMASTERADDR`/`--lotusmasteraddr` should be set. If this is the case, this most probably involved a previous action from the system administrator to create or import the wallet address with funds in the Lotus node. If you're running Powergate in a test network, you can avoid setting a specific _master address_, and enable the `POWD_AUTOCREATEMASTERADDR`/`--autocreatemasteraddr`. This configuration will auto-create a _master address_ for the manager, and auto-fund it with the corresponding test network facuet.
 
-Finally, to configure the amount of _attoFil_ to be transfered by the _manager_ to a newly created wallet, you should set `POWD_WALLETINITIALFUND`/`--walletinitialfund`. This configuration only applies if you set the _master address_ manually, or enabled the master address auto-creation.
+Finally, to configure the amount of _attoFil_ to be transferred by the _manager_ to a newly created wallet, you should set `POWD_WALLETINITIALFUND`/`--walletinitialfund`. This configuration only applies if you set the _master address_ manually, or enabled the master address auto-creation.
 
 ### Sharing wallet address in all FFS instances
 
