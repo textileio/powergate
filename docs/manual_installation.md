@@ -21,11 +21,11 @@ Below we'll provide the most natural order of installation of components.
 
 To install [go-ipfs](https://github.com/ipfs/go-ipfs) please refer to its [installation instructions](https://github.com/ipfs/go-ipfs#install). Currently, Powergate targets version v0.6.1, so please have that consideration when selecting a version to install.
 
-Powergate interacts with the IPFS daemon via its HTTP API, so there isn't a hard constrain on where the daemon should run. Depending on how decoupled you might want to do the setup, the daemon can live in the same or different host as `powd`.
+Powergate interacts with the IPFS daemon via its HTTP API, so there isn't a hard constraint on where the daemon should run. Depending on how decoupled you might want to do the setup, the daemon can live in the same or different host as `powd`.
 
 The amount of resources that `go-ipfs` require will depend on the amount of load in the FFS-subsystem of Powergate, but take as a minimum the recommended [official system requirements](https://github.com/ipfs/go-ipfs#system-requirements). Recall those requirements are only for the `go-ipfs` daemon, so if you're installing other components in the same host, those are a hard-minimum.
 
-Apart from CPU/Memory resources consideration, `go-ipfs` is the underlying system behind the _Hot Storage_ abstraction in the FFS module. That's to say, it's a datastore which should be fast to store and retrieve data. As a consequence, the amount of available storage for `go-ipfs` should be enough to your worst-case scenario estimation of _all_ the data stored in _Hot Storage_ for all FFS instances. Remember that storing data in `go-ipfs` has a slight overhead considering that the IPFS node does some data transformation. Despite that same transformation providing deduplication functionality that might compensate the overhead, it's recommended to plan for the worst use-case scenario with an extra threshold.
+Apart from CPU/Memory resources consideration, `go-ipfs` is the underlying system behind the _Hot Storage_ abstraction in the FFS module. That's to say, it's a datastore which should be fast to store and retrieve data. As a consequence, the amount of available storage for `go-ipfs` should be enough for your worst-case scenario estimation of _all_ the data stored in _Hot Storage_ for all FFS instances. Remember that storing data in `go-ipfs` has a slight overhead considering that the IPFS node does some data transformation. Despite that same transformation providing deduplication functionality that might compensate the overhead, it's recommended to plan for the worst use-case scenario with an extra threshold.
 
 A priori, FFS instances can rely on the _Hot Storage_, thus the IPFS node, to go search for a particular piece of data in the public IPFS network which means that the IPFS daemon should have internet connection, and enough bandwidth to satisfy your use case.
 
@@ -99,10 +99,10 @@ The above description wraps all necessary and minimal configuration to run Lotus
 
 As mentioned before, the default folder where Lotus will save all its state is `~/.lotus`. Apart from containing the `config.toml` file, it includes the `keystore` folder. This folder contains *all the keys of wallets created in Lotus*. It's essential to understand the consequences of this fact correctly. 
 
-The Lotus node will manage all wallets addresses used by Powergate, thus its private keys are contained in this folder. Therefore, take necessary precautions such as:
+The Lotus node will manage all wallet addresses used by Powergate, thus its private keys are contained in this folder. Therefore, take necessary precautions such as:
 - This folder should have minimal access.
 - Frequent backups are recommended for this folder. Recall that keys-backups are sensitive process to handle correctly since you're making copies of keys, and possibly increasing the risk of leakeage.
-- You can reduce the blast-radius of data loss by thinking about different strategies to keep the balances from these wallets addresses to a minimum.
+- You can reduce the blast-radius of data loss by thinking about different strategies to keep the balances from these wallet addresses to a minimum.
 
 There's some discussion to allow Lotus to use an external component for signing, which allows to minimize these risks. Whenever that feature is ready, there's a high chance that this document will be updated to explain how to leverage that new feature for Powergate.
 
@@ -119,7 +119,7 @@ In this section, we outline the basic configuration needed for Powergate. Recall
 
 The first configuration step is to provide information to connect to the Lotus API correctly. For this, you should provide `POWD_LOTUSHOST`/`--lotushost`, which should be multiaddress that indicates where is the Lotus API JSON-RPC endpoint mentioned in the previous section. 
 
-Additionally, you should indicate which is the _auth token_ of the API. The _auth token_ lives in `~/.lotus/token` in your Lotus host. Powergate allows this parameter to be configured in two ways: the path of this token file, or providing the token value directly. For the former, you should set `POWD_LOTUSTOKENFILE`/`--lotustokenfile`, and for the latter `POWD_LOTUSTOKEN`/`--lotustoken`. At least one of both env/flags should be provided. If that isn't the case `powd` will fail to start indicating that as an error.
+Additionally, you should indicate which is the _auth token_ of the API. The _auth token_ lives in `~/.lotus/token` in your Lotus host. Powergate allows this parameter to be configured in two ways: the path of this token file, or providing the token value directly. For the former, you should set `POWD_LOTUSTOKENFILE`/`--lotustokenfile`, and for the latter `POWD_LOTUSTOKEN`/`--lotustoken`. At least one of each env/flags should be provided. If that isn't the case `powd` will fail to start indicating that as an error.
 
 The second configuration step is to provide information to connect to the IPFS node. This is done by configuring `POWD_IPFSAPIADDR`/`--ipfsapiaddr` which is a multiaddress with the `go-ipfs` API endpoint.
 
@@ -157,7 +157,7 @@ Finally, to configure the amount of _attoFil_ to be transferred by the _manager_
 
 ### Sharing wallet address in all FFS instances
 
-Depending on your use-case, having each FFS instance have its wallet address might be a beneficial setup. If you plan different FFS instances for different purposes, it may be logical to bound the amount of FIL spent on storage or retrieval actions for various purposes. Also, any abuse of FIL spending gets a hard limit per-instance and not in a _single bag_ of FIL.
+Depending on your use-case, having each FFS instance have its own wallet address might be a beneficial setup. If you plan different FFS instances for different purposes, it may be logical to bound the amount of FIL spent on storage or retrieval actions for various purposes. Also, any abuse of FIL spending gets a hard limit per-instance and not in a _single bag_ of FIL.
 
 On the other hand, other use-cases might want to share a single wallet address for all FFS instances operation. An example could be saving fees or gas cost of funding transactions, or avoiding the delay of funding transactions to be accepted on-chain.
 
