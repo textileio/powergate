@@ -46,7 +46,7 @@ One important fact about `lotus` for Powergate, is that it only needs to be run 
 
 The official system requirements for running Lotus can be found [here](https://docs.lotu.sh/en+faqs#what-operating-systems-can-lotus-run-on-115423).
 
-## Lotus configuration
+### Lotus configuration
 
 Apart from installing a pristine Lotus daemon, some further configuration should be provided to work correctly with Powergate. 
 
