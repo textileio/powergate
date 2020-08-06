@@ -155,8 +155,6 @@ Usage of powd:
       --walletinitialfund int     FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set) (default 4000000000000000)
 ```
 
-We'll soon provide better information about Powergate configurations, stay tuned! 📻
-
 ## Localnet mode
 
 Having a fully synced Lotus node can take a considerable amount of time and effort to mantain. We have built [lotus-devnet](https://github.com/textileio/lotus-devnet) which runs a local network with a _sectorbuilder_ mock. This provides a fast way to spinup a local network where the sealing process if mocked, but the rest of the node logic is the same as production The _localnet_ supports both 2Kib and 512Kib sectors, and the speed of block production is configurable. Refer to [lotus-devnet](https://github.com/textileio/lotus-devnet) readme for more information.
@@ -216,7 +214,7 @@ Depending on which network you want to connect to, you have to run different com
 
 Remember that you should wait for _Lotus_ to be fully-synced which might take a long time; you can check your current node sync status running `lotus sync status` inside the Lotus container. We also provide automatically generated Dockerhub images of Powergate server, see [textile/powergate](https://hub.docker.com/r/textile/powergate).
 
-We will soon provide other non-contanerized setups, but most of the wiring can be auto-explained by the `docker/docker-compose.yaml` file.
+If you're interested in a more detailed explanation about Powergate installation, please refer to the [installation docs](docs/manual_installation.md).
 
 ## Tests
 We have a big set of tests for covering most important Powergate features.
