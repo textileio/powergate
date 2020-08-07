@@ -321,6 +321,8 @@ func createProxyServer(wrappedGRPCServer *grpcweb.WrappedGrpcServer, fha *ffsHTT
 			wrappedGRPCServer.IsAcceptableGrpcCorsRequest(r) ||
 			wrappedGRPCServer.IsGrpcWebSocketRequest(r) {
 			wrappedGRPCServer.ServeHTTP(w, r)
+		} else {
+			http.NotFound(w, r)
 		}
 	})
 	webProxy := &http.Server{

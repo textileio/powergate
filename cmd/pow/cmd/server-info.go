@@ -27,13 +27,13 @@ var serverInfoCmd = &cobra.Command{
 
 		s := spin.New("%s Getting server info...")
 		s.Start()
-		info, err := fcClient.BuildInfo.BuildInfo(ctx)
+		info, err := fcClient.BuildInfo(ctx)
 		s.Stop()
 		checkErr(err)
 
 		bytes, err := json.MarshalIndent(info, "", "    ")
 		checkErr(err)
 
-		Success("\nTarget: %v\nBuild info:\n%v", fcClient.Target(), string(bytes))
+		Success("\nHost: %v\nBuild info:\n%v", fcClient.Host(), string(bytes))
 	},
 }

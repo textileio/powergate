@@ -20,16 +20,16 @@ import (
 
 // Client provides the client api.
 type Client struct {
-	BuildInfo  *BuildInfo
-	Asks       *Asks
-	Miners     *Miners
-	Faults     *Faults
-	Wallet     *Wallet
-	Reputation *Reputation
-	FFS        *FFS
-	Health     *Health
-	Net        *Net
-	conn       *grpc.ClientConn
+	Asks            *Asks
+	Miners          *Miners
+	Faults          *Faults
+	Wallet          *Wallet
+	Reputation      *Reputation
+	FFS             *FFS
+	Health          *Health
+	Net             *Net
+	conn            *grpc.ClientConn
+	buildInfoClient buildinfoRpc.RPCServiceClient
 }
 
 type ctxKey string
@@ -84,29 +84,34 @@ func CreateClientConn(target string, optsOverrides ...grpc.DialOption) (*grpc.Cl
 }
 
 // NewClient creates a client.
-func NewClient(target string, optsOverrides ...grpc.DialOption) (*Client, error) {
-	conn, err := CreateClientConn(target, optsOverrides...)
+func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
+	conn, err := CreateClientConn(host, optsOverrides...)
 	if err != nil {
 		return nil, err
 	}
 	client := &Client{
-		BuildInfo:  &BuildInfo{client: buildinfoRpc.NewRPCServiceClient(conn)},
-		Asks:       &Asks{client: askRpc.NewRPCServiceClient(conn)},
-		Miners:     &Miners{client: minerRpc.NewRPCServiceClient(conn)},
-		Faults:     &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
-		Wallet:     &Wallet{client: walletRpc.NewRPCServiceClient(conn)},
-		Reputation: &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
-		FFS:        &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
-		Health:     &Health{client: healthRpc.NewRPCServiceClient(conn)},
-		Net:        &Net{client: netRpc.NewRPCServiceClient(conn)},
-		conn:       conn,
+		Asks:            &Asks{client: askRpc.NewRPCServiceClient(conn)},
+		Miners:          &Miners{client: minerRpc.NewRPCServiceClient(conn)},
+		Faults:          &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
+		Wallet:          &Wallet{client: walletRpc.NewRPCServiceClient(conn)},
+		Reputation:      &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
+		FFS:             &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
+		Health:          &Health{client: healthRpc.NewRPCServiceClient(conn)},
+		Net:             &Net{client: netRpc.NewRPCServiceClient(conn)},
+		conn:            conn,
+		buildInfoClient: buildinfoRpc.NewRPCServiceClient(conn),
 	}
 	return client, nil
 }
 
-// Target returns the client target address.
-func (c *Client) Target() string {
+// Host returns the client host address.
+func (c *Client) Host() string {
 	return c.conn.Target()
+}
+
+// BuildInfo returns build info about the server.
+func (c *Client) BuildInfo(ctx context.Context) (*buildinfoRpc.BuildInfoResponse, error) {
+	return c.buildInfoClient.BuildInfo(ctx, &buildinfoRpc.BuildInfoRequest{})
 }
 
 // Close closes the client's grpc connection and cancels any active requests.
