@@ -7,7 +7,7 @@ To build and install `powbench`, from the root of the Powergate repo, run:
 ```bash
 > make build-powbench
 > powbench -h
-Usage of ./powbench:
+Usage of powbench:
       --maxParallel int    Max parallel file storage (default 1)
       --minerAddr string   Miner address to force Powergate to select for making deals (default "t01000")
       --pgAddr string      Powergate server multiaddress (default "/ip4/127.0.0.1/tcp/5002")
