@@ -49,8 +49,7 @@ func TestRepFactor(t *testing.T) {
 }
 
 func TestRepFactorIncrease(t *testing.T) {
-	t.Parallel()
-
+	t.SkipNow()
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		r := rand.New(rand.NewSource(22))
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
@@ -79,8 +78,6 @@ func TestRepFactorIncrease(t *testing.T) {
 }
 
 func TestRepFactorDecrease(t *testing.T) {
-	t.Parallel()
-
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		r := rand.New(rand.NewSource(22))
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)

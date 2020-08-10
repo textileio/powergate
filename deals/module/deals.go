@@ -490,7 +490,7 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
 			Size:                    offer.Size,
 			MinPrice:                offer.MinPrice.Uint64(),
 			Miner:                   offer.Miner.String(),
-			MinerPeerID:             offer.MinerPeerID.String(),
+			MinerPeerID:             offer.MinerPeer.ID.String(),
 			PaymentInterval:         offer.PaymentInterval,
 			PaymentIntervalIncrease: offer.PaymentIntervalIncrease,
 		},

@@ -88,10 +88,9 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 
 	if m.masterAddr != address.Undef {
 		msg := &types.Message{
-			From:     m.masterAddr,
-			To:       addr,
-			Value:    types.BigInt{Int: m.iAmount},
-			GasPrice: types.NewInt(0),
+			From:  m.masterAddr,
+			To:    addr,
+			Value: types.BigInt{Int: m.iAmount},
 		}
 
 		_, err = m.api.MpoolPushMessage(ctx, msg)
@@ -140,10 +139,9 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 		return err
 	}
 	msg := &types.Message{
-		From:     f,
-		To:       t,
-		Value:    types.BigInt{Int: amount},
-		GasPrice: types.NewInt(0),
+		From:  f,
+		To:    t,
+		Value: types.BigInt{Int: amount},
 	}
 	_, err = m.api.MpoolPushMessage(ctx, msg)
 	return err
