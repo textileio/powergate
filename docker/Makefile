@@ -25,22 +25,22 @@ localnet:
 .PHONY: localnet
 
 
-nerpa-up: nerpa-down
-	LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-7.7.0 \
+calibration-up: calibration-down
+	LOTUS_IMAGE_TAG=ntwk-calibration-8.8.0 \
 	docker-compose \
 		-p nerpa \
 		-f docker-compose.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
 		up --build 
-.PHONY: nerpa-up
+.PHONY: calibration-up
 
-nerpa-down:
-	LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-7.7.0 \
+calibration-down:
+	LOTUS_IMAGE_TAG=ntwk-calibration-8.8.0 \
 	docker-compose \
 		-p nerpa \
 		-f docker-compose.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
 		down
-.PHONY: nerpa-down
+.PHONY: calibration-down

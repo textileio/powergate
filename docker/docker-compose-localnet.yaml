@@ -27,6 +27,6 @@ services:
     ports:
       - 7777:7777
     environment:
-      - TEXLOTUSDEVNET_SPEED=1500
+      - TEXLOTUSDEVNET_SPEED=1000
       - TEXLOTUSDEVNET_BIGSECTORS=${BIGSECTORS}
       - TEXLOTUSDEVNET_IPFSADDR=/dns4/ipfs/tcp/5001
