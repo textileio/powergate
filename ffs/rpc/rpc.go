@@ -468,18 +468,6 @@ func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilRespons
 	return &SendFilResponse{}, nil
 }
 
-// Close calls API.Close.
-func (s *RPC) Close(ctx context.Context, req *CloseRequest) (*CloseResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := i.Close(); err != nil {
-		return nil, err
-	}
-	return &CloseResponse{}, nil
-}
-
 // Stage allows you to temporarily cache data in the Hot layer in preparation for pushing a cid storage config.
 func (s *RPC) Stage(srv RPCService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer

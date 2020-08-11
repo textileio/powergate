@@ -23,7 +23,6 @@ Provides commands to manage ffs
 * [pow](pow.md)	 - A client for storage and retreival of powergate data
 * [pow ffs addrs](pow_ffs_addrs.md)	 - Provides commands to manage wallet addresses
 * [pow ffs cancel](pow_ffs_cancel.md)	 - Cancel an executing job
-* [pow ffs close](pow_ffs_close.md)	 - Close the FFS instance
 * [pow ffs config](pow_ffs_config.md)	 - Provides commands to manage storage configuration
 * [pow ffs create](pow_ffs_create.md)	 - Create ffs instance
 * [pow ffs get](pow_ffs_get.md)	 - Get data by cid from ffs
