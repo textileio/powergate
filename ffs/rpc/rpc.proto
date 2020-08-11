@@ -342,12 +342,6 @@ message SendFilRequest {
 message SendFilResponse {
 }
 
-message CloseRequest {
-}
-
-message CloseResponse {
-}
-
 message StageRequest {
    bytes chunk = 1;
 }
@@ -426,7 +420,6 @@ service RPCService {
    rpc Remove(RemoveRequest) returns (RemoveResponse) {}
    rpc Get(GetRequest) returns (stream GetResponse) {}
    rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
-   rpc Close(CloseRequest) returns (CloseResponse) {}
    rpc Stage(stream StageRequest) returns (StageResponse) {}
    rpc ListPayChannels(ListPayChannelsRequest) returns (ListPayChannelsResponse) {}
    rpc CreatePayChannel(CreatePayChannelRequest) returns (CreatePayChannelResponse) {}

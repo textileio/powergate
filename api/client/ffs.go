@@ -483,12 +483,6 @@ func (f *FFS) SendFil(ctx context.Context, from string, to string, amount int64)
 	return err
 }
 
-// Close terminates the running FFS instance.
-func (f *FFS) Close(ctx context.Context) error {
-	_, err := f.client.Close(ctx, &rpc.CloseRequest{})
-	return err
-}
-
 // Stage allows to temporarily stage data in the Hot Storage in preparation for pushing a cid storage config.
 func (f *FFS) Stage(ctx context.Context, data io.Reader) (*cid.Cid, error) {
 	stream, err := f.client.Stage(ctx)
