@@ -11,7 +11,7 @@ import (
 
 var (
 	networkBootstrappers = map[string][]string{
-		"ntwk-calibration": {
+		"calibrationnet": {
 			"/dns4/bootstrap-0.calibration.fildev.network/tcp/1347/p2p/12D3KooWPmhFGJkE7wDUdtzDYr7ReML9vgzJ8Tv7ubh9T6Le1Bmn",
 			"/dns4/bootstrap-2.calibration.fildev.network/tcp/1347/p2p/12D3KooWPWUw5yEet6NWpxhxoibXFbLprG4k5PMLKLeubGBLf6nd",
 			"/dns4/bootstrap-1.calibration.fildev.network/tcp/1347/p2p/12D3KooWGwv2YtXyYPrEKssttUT3TKZknPkCWKR6WVTvt9LW4hdf",

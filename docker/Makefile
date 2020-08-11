@@ -1,4 +1,4 @@
-COMPAT_MSG="The current version of Powergate support newer versions than Testnet network. You might be interested in using the Nerpa network (make nerpa-up)"
+COMPAT_MSG="The current version of Powergate support newer versions than Testnet network. You might be interested in using the Calibration network (make calibration-up)"
 
 down:
 	@echo ${COMPAT_MSG}
@@ -28,7 +28,7 @@ localnet:
 calibration-up: calibration-down
 	LOTUS_IMAGE_TAG=ntwk-calibration-8.8.0 \
 	docker-compose \
-		-p nerpa \
+		-p calib \
 		-f docker-compose.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
@@ -38,7 +38,7 @@ calibration-up: calibration-down
 calibration-down:
 	LOTUS_IMAGE_TAG=ntwk-calibration-8.8.0 \
 	docker-compose \
-		-p nerpa \
+		-p calib \
 		-f docker-compose.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
