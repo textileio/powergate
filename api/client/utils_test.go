@@ -28,7 +28,7 @@ func setupServer(t *testing.T) func() {
 		t.Fatal(err)
 	}
 
-	dipfs, cls := tests.LaunchIPFSDocker()
+	dipfs, cls := tests.LaunchIPFSDocker(t)
 	t.Cleanup(func() { cls() })
 
 	ipfsAddrStr := "/ip4/127.0.0.1/tcp/" + dipfs.GetPort("5001/tcp")

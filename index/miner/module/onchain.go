@@ -181,7 +181,7 @@ func getOnChainData(ctx context.Context, c *apistruct.FullNodeStruct, addr addre
 	}
 	var activeDeals uint64
 	for _, s := range sectors {
-		activeDeals += uint64(len(s.Info.Info.DealIDs))
+		activeDeals += uint64(len(s.Info.DealIDs))
 	}
 	return miner.OnChainData{
 		Power:         p,

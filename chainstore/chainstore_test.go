@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/ipfs/go-cid"
 	"github.com/multiformats/go-multihash"
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/tests"
 )
 
@@ -24,33 +25,33 @@ type extraData struct {
 func TestLoadFromEmpty(t *testing.T) {
 	ctx := context.Background()
 	cs, err := New(tests.NewTxMapDatastore(), newMockTipsetOrderer())
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	var d data
 	target := types.NewTipSetKey(cid.Undef)
 	ts, err := cs.LoadAndPrune(ctx, target, &d)
-	checkErr(t, err)
-	if ts != nil {
-		t.Fatal("base tipset should be nil")
-	}
-	if !cmp.Equal(d, data{}) {
-		t.Fatal("state should be default")
-	}
+	require.NoError(t, err)
+
+	require.Nil(t, ts, "base tipset should be nil")
+
+	require.Equal(t, data{}, d, "state should be the default value")
 }
 
 func TestSaveSingle(t *testing.T) {
 	ctx := context.Background()
 	mto := newMockTipsetOrderer()
-	cs, err := New(tests.NewTxMapDatastore(), mto)
-	checkErr(t, err)
 
-	ts, v := mto.next()
+	cs, err := New(tests.NewTxMapDatastore(), mto)
+	require.NoError(t, err)
+
+	ts, v := mto.next(t)
 	err = cs.Save(ctx, ts, &v)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	var v2 data
 	bts, err := cs.LoadAndPrune(ctx, ts, &v2)
-	checkErr(t, err)
+	require.NoError(t, err)
+
 	if !cmp.Equal(v, v2) || *bts != ts {
 		t.Fatalf("saved and loaded state from same tipset should be equal")
 	}
@@ -59,14 +60,15 @@ func TestSaveSingle(t *testing.T) {
 func TestSaveMultiple(t *testing.T) {
 	ctx := context.Background()
 	mto := newMockTipsetOrderer()
+
 	cs, err := New(tests.NewTxMapDatastore(), mto)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	generateTotal := 100
 	for i := 0; i < generateTotal; i++ {
-		ts, v := mto.next()
+		ts, v := mto.next(t)
 		err := cs.Save(ctx, ts, &v)
-		checkErr(t, err)
+		require.NoError(t, err)
 	}
 
 	// Check that we're capping # of checkpoints to maxCheckpoints
@@ -76,16 +78,14 @@ func TestSaveMultiple(t *testing.T) {
 	// Check saved ones are the last maxCheckpoint ones
 	expectedTipsets := mto.list[generateTotal-maxCheckpoints:]
 	for i, c := range cs.checkpoints {
-		if c.ts != expectedTipsets[i] {
-			t.Fatalf("saved tipset doesn't seem to correspond with expected one")
-		}
+		require.Equal(t, expectedTipsets[i], c.ts, "saved tipset doesn't correspond with expected one")
 	}
 
 	for i := len(expectedTipsets) - 1; i >= 0; i-- {
 		ts := expectedTipsets[i]
 		var v data
 		bts, err := cs.LoadAndPrune(ctx, ts, &v)
-		checkErr(t, err)
+		require.NoError(t, err)
 		if *bts != ts || v.Nested.Pos != generateTotal-maxCheckpoints+i {
 			t.Fatalf("elem %d doesn't seem to be loaded from correct tipset", i)
 		}
@@ -96,18 +96,16 @@ func TestSaveInvalid(t *testing.T) {
 	ctx := context.Background()
 	mto := newMockTipsetOrderer()
 	cs, err := New(tests.NewTxMapDatastore(), mto)
-	checkErr(t, err)
+	require.NoError(t, err)
 
-	ts1, v1 := mto.next()
-	ts2, v2 := mto.next()
+	ts1, v1 := mto.next(t)
+	ts2, v2 := mto.next(t)
 
 	err = cs.Save(ctx, ts2, &v2)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	err = cs.Save(ctx, ts1, &v1)
-	if err == nil {
-		t.Fatalf("Save shouldn't allow to save state on an older tipset that last known")
-	}
+	require.Error(t, err, "Save must not allow to save state on an older tipset that last known")
 }
 
 // Most interesting test.
@@ -119,19 +117,20 @@ func TestSaveInvalid(t *testing.T) {
 func TestLoadForkedCheckpoint(t *testing.T) {
 	ctx := context.Background()
 	mto := newMockTipsetOrderer()
+
 	cs, err := New(tests.NewTxMapDatastore(), mto)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	for i := 0; i < 10; i++ {
-		ts, v := mto.next()
+		ts, v := mto.next(t)
 		err := cs.Save(ctx, ts, &v)
-		checkErr(t, err)
+		require.NoError(t, err)
 	}
 
-	fts := mto.fork(5)
+	fts := mto.fork(t, 5)
 	var v data
 	bts, err := cs.LoadAndPrune(ctx, fts, &v)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	if *bts != mto.list[5] {
 		t.Fatalf("returned base tipset state should be from the 6th checkpoint")
@@ -146,17 +145,17 @@ func TestLoadSavedState(t *testing.T) {
 	mto := newMockTipsetOrderer()
 	ds := tests.NewTxMapDatastore()
 	cs, err := New(ds, mto)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	generateTotal := 100
 	for i := 0; i < generateTotal; i++ {
-		ts, v := mto.next()
+		ts, v := mto.next(t)
 		err := cs.Save(ctx, ts, &v)
-		checkErr(t, err)
+		require.NoError(t, err)
 	}
 
 	cs, err = New(ds, mto)
-	checkErr(t, err)
+	require.NoError(t, err)
 	if len(cs.checkpoints) != maxCheckpoints {
 		t.Fatalf("checkpoints are missing")
 	}
@@ -165,7 +164,7 @@ func TestLoadSavedState(t *testing.T) {
 	savedTipset := mto.list[len(mto.list)-offset]
 	var v data
 	bts, err := cs.LoadAndPrune(ctx, savedTipset, &v)
-	checkErr(t, err)
+	require.NoError(t, err)
 	if *bts != savedTipset || v.Tipset != savedTipset.String() || v.Nested.Pos != generateTotal-offset {
 		t.Fatalf("returned state is wrong")
 	}
@@ -199,8 +198,8 @@ func (mto *mockTipsetOrderer) Precedes(ctx context.Context, from, to types.TipSe
 	return false, nil
 }
 
-func (mto *mockTipsetOrderer) next() (types.TipSetKey, data) {
-	ts := randomTipsetkey()
+func (mto *mockTipsetOrderer) next(t *testing.T) (types.TipSetKey, data) {
+	ts := randomTipsetkey(t)
 	mto.list = append(mto.list, ts)
 
 	return ts, data{Tipset: ts.String(), Nested: extraData{
@@ -208,28 +207,18 @@ func (mto *mockTipsetOrderer) next() (types.TipSetKey, data) {
 	}}
 }
 
-func (mto *mockTipsetOrderer) fork(i int) types.TipSetKey {
-	fork := randomTipsetkey()
+func (mto *mockTipsetOrderer) fork(t *testing.T, i int) types.TipSetKey {
+	fork := randomTipsetkey(t)
 	mto.forks[mto.list[i].String()] = fork.String()
 	return fork
 }
 
-func randomTipsetkey() types.TipSetKey {
+func randomTipsetkey(t *testing.T) types.TipSetKey {
 	r := make([]byte, 16)
 	_, err := rand.Read(r)
-	if err != nil {
-		panic(err)
-	}
-	mh, err := multihash.Sum(r, multihash.IDENTITY, -1)
-	if err != nil {
-		panic(err)
-	}
-	return types.NewTipSetKey(cid.NewCidV1(cid.Raw, mh))
-}
+	require.NoError(t, err)
 
-func checkErr(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
-	}
+	mh, err := multihash.Sum(r, multihash.IDENTITY, -1)
+	require.NoError(t, err)
+	return types.NewTipSetKey(cid.NewCidV1(cid.Raw, mh))
 }

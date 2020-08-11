@@ -52,9 +52,9 @@ func TestClientImport(t *testing.T) {
 	ref := api.FileRef{
 		Path: f.Name(),
 	}
-	cid, err := client.ClientImport(context.Background(), ref)
+	res, err := client.ClientImport(context.Background(), ref)
 	checkErr(t, err)
-	if !cid.Defined() {
+	if !res.Root.Defined() {
 		t.Errorf("undefined cid from import")
 	}
 }

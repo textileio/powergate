@@ -11,6 +11,7 @@ import (
 	"github.com/textileio/powergate/api/client"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/health"
+	"github.com/textileio/powergate/util"
 )
 
 var (
@@ -127,7 +128,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
 				RepFactor:       1,
-				DealMinDuration: 1000,
+				DealMinDuration: util.MinDealDuration,
 				Addr:            addr,
 				CountryCodes:    nil,
 				ExcludedMiners:  nil,

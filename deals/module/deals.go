@@ -88,11 +88,11 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 		Path:  f.Name(),
 		IsCAR: isCAR,
 	}
-	dataCid, err := m.api.ClientImport(ctx, ref)
+	res, err := m.api.ClientImport(ctx, ref)
 	if err != nil {
 		return cid.Undef, 0, fmt.Errorf("error when importing data: %s", err)
 	}
-	return dataCid, size, nil
+	return res.Root, size, nil
 }
 
 // Store create Deal Proposals with all miners indicated in dcfgs. The epoch price
@@ -100,6 +100,9 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 // The data of dataCid should be already imported to the Filecoin Client or should be
 // accessible to it. (e.g: is integrated with an IPFS node).
 func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, pieceSize uint64, dcfgs []deals.StorageDealConfig, minDuration uint64) ([]deals.StoreResult, error) {
+	if minDuration < util.MinDealDuration {
+		return nil, fmt.Errorf("duration %d should be greater or equal to %d", minDuration, util.MinDealDuration)
+	}
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
 		return nil, err
@@ -116,7 +119,8 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 		}
 		params := &api.StartDealParams{
 			Data: &storagemarket.DataRef{
-				Root: dataCid,
+				TransferType: storagemarket.TTGraphsync,
+				Root:         dataCid,
 			},
 			MinBlocksDuration: minDuration,
 			EpochPrice:        big.Div(big.Mul(big.NewIntUnsigned(c.EpochPrice), big.NewIntUnsigned(pieceSize)), abi.NewTokenAmount(1<<30)),
@@ -176,7 +180,7 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 	if err != nil {
 		return err
 	}
-	offers, err := m.api.ClientFindData(ctx, cid)
+	offers, err := m.api.ClientFindData(ctx, cid, nil)
 	if err != nil {
 		return err
 	}
@@ -466,8 +470,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				return
 			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||
 				info.StateID == storagemarket.StorageDealProposalRejected ||
-				info.StateID == storagemarket.StorageDealFailing ||
-				info.StateID == storagemarket.StorageDealNotFound {
+				info.StateID == storagemarket.StorageDealFailing {
 				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.StateID])
 				if err := m.store.deletePendingDeal(info.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
@@ -487,7 +490,7 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
 			Size:                    offer.Size,
 			MinPrice:                offer.MinPrice.Uint64(),
 			Miner:                   offer.Miner.String(),
-			MinerPeerID:             offer.MinerPeerID.String(),
+			MinerPeerID:             offer.MinerPeer.ID.String(),
 			PaymentInterval:         offer.PaymentInterval,
 			PaymentIntervalIncrease: offer.PaymentIntervalIncrease,
 		},

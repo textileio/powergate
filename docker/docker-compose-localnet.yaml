@@ -23,10 +23,10 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:v0.4.0
+    image: textile/lotus-devnet:ntwk-calibration-8.8.0
     ports:
       - 7777:7777
     environment:
-      - TEXLOTUSDEVNET_SPEED=1500
+      - TEXLOTUSDEVNET_SPEED=500
       - TEXLOTUSDEVNET_BIGSECTORS=${BIGSECTORS}
       - TEXLOTUSDEVNET_IPFSADDR=/dns4/ipfs/tcp/5001

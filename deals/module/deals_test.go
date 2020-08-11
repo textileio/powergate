@@ -41,72 +41,81 @@ func TestMain(m *testing.M) {
 }
 
 func TestStore(t *testing.T) {
+	t.Parallel()
 	numMiners := []int{1, 2}
 	for _, nm := range numMiners {
+		nm := nm
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
-			client, addr, _ := tests.CreateLocalDevnet(t, nm)
-			m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
-			checkErr(t, err)
-			cid, pcids, err := storeMultiMiner(m, client, nm, randomBytes(600))
-			checkErr(t, err)
-			pending, err := m.ListStorageDealRecords(
-				deals.WithIncludePending(true),
-				deals.WithDataCids(util.CidToString(cid)),
-				deals.WithAscending(true),
-				deals.WithFromAddrs(addr.String()),
-			)
-			require.NoError(t, err)
-			require.Len(t, pending, nm)
-			final, err := m.ListStorageDealRecords(deals.WithIncludeFinal(true))
-			require.NoError(t, err)
-			require.Empty(t, final)
-			err = waitForDealComplete(client, pcids)
-			checkErr(t, err)
-			time.Sleep(util.AvgBlockTime)
-			pending, err = m.ListStorageDealRecords(deals.WithIncludePending(true))
-			require.NoError(t, err)
-			require.Empty(t, pending)
-			final, err = m.ListStorageDealRecords(
-				deals.WithIncludeFinal(true),
-				deals.WithDataCids(util.CidToString(cid)),
-				deals.WithAscending(true),
-				deals.WithFromAddrs(addr.String()),
-			)
-			require.NoError(t, err)
-			require.Len(t, final, nm)
+			t.Parallel()
+			tests.RunFlaky(t, func(t *tests.FlakyT) {
+				client, addr, _ := tests.CreateLocalDevnet(t, nm)
+				m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
+				require.NoError(t, err)
+				cid, pcids, err := storeMultiMiner(m, client, nm, randomBytes(600))
+				require.NoError(t, err)
+				pending, err := m.ListStorageDealRecords(
+					deals.WithIncludePending(true),
+					deals.WithDataCids(util.CidToString(cid)),
+					deals.WithAscending(true),
+					deals.WithFromAddrs(addr.String()),
+				)
+				require.NoError(t, err)
+				require.Len(t, pending, nm)
+				final, err := m.ListStorageDealRecords(deals.WithIncludeFinal(true))
+				require.NoError(t, err)
+				require.Empty(t, final)
+				err = waitForDealComplete(client, pcids)
+				require.NoError(t, err)
+				time.Sleep(util.AvgBlockTime)
+				pending, err = m.ListStorageDealRecords(deals.WithIncludePending(true))
+				require.NoError(t, err)
+				require.Empty(t, pending)
+				final, err = m.ListStorageDealRecords(
+					deals.WithIncludeFinal(true),
+					deals.WithDataCids(util.CidToString(cid)),
+					deals.WithAscending(true),
+					deals.WithFromAddrs(addr.String()),
+				)
+				require.NoError(t, err)
+				require.Len(t, final, nm)
+			})
 		})
 	}
 }
 
 func TestRetrieve(t *testing.T) {
+	t.Parallel()
 	numMiners := []int{1} // go-fil-markets: doesn't support remembering more than 1 miner
-	data := randomBytes(600)
 	for _, nm := range numMiners {
+		nm := nm
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
-			client, addr, _ := tests.CreateLocalDevnet(t, nm)
-			m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
-			checkErr(t, err)
+			t.Parallel()
+			tests.RunFlaky(t, func(t *tests.FlakyT) {
+				data := randomBytes(600)
+				client, addr, _ := tests.CreateLocalDevnet(t, nm)
+				m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
+				require.NoError(t, err)
 
-			dcid, pcids, err := storeMultiMiner(m, client, nm, data)
-			checkErr(t, err)
-			err = waitForDealComplete(client, pcids)
-			checkErr(t, err)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
-			defer cancel()
+				dcid, pcids, err := storeMultiMiner(m, client, nm, data)
+				require.NoError(t, err)
 
-			r, err := m.Retrieve(ctx, addr.String(), dcid, false)
-			checkErr(t, err)
-			defer func() {
-				require.NoError(t, r.Close())
-			}()
-			rdata, err := ioutil.ReadAll(r)
-			checkErr(t, err)
-			if !bytes.Equal(data, rdata) {
-				t.Fatal("retrieved data doesn't match with stored data")
-			}
-			retrievals, err := m.ListRetrievalDealRecords()
-			require.NoError(t, err)
-			require.Len(t, retrievals, 1)
+				err = waitForDealComplete(client, pcids)
+				require.NoError(t, err)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+				defer cancel()
+
+				r, err := m.Retrieve(ctx, addr.String(), dcid, false)
+				require.NoError(t, err)
+				defer func() {
+					require.NoError(t, r.Close())
+				}()
+				rdata, err := ioutil.ReadAll(r)
+				require.NoError(t, err)
+				require.True(t, bytes.Equal(data, rdata), "retrieved data doesn't match with stored data")
+				retrievals, err := m.ListRetrievalDealRecords()
+				require.NoError(t, err)
+				require.Len(t, retrievals, 1)
+			})
 		})
 	}
 }
@@ -139,7 +148,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	if !dataCid.Defined() {
 		return cid.Undef, nil, fmt.Errorf("data cid is undefined")
 	}
-	srs, err := m.Store(ctx, addr.String(), dataCid, 2*uint64(size), cfgs, 1000)
+	srs, err := m.Store(ctx, addr.String(), dataCid, 2*uint64(size), cfgs, util.MinDealDuration)
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("calling Store(): %s", err)
 	}
@@ -178,10 +187,13 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 			switch di.State {
 			case
 				storagemarket.StorageDealUnknown,
-				storagemarket.StorageDealWaitingForDataRequest,
+				storagemarket.StorageDealWaitingForData,
 				storagemarket.StorageDealProposalAccepted,
 				storagemarket.StorageDealStaged,
 				storagemarket.StorageDealValidating,
+				storagemarket.StorageDealTransferring,
+				storagemarket.StorageDealFundsEnsured,
+				storagemarket.StorageDealCheckForAcceptance,
 				storagemarket.StorageDealClientFunding,
 				storagemarket.StorageDealPublish,
 				storagemarket.StorageDealPublishing,
@@ -193,13 +205,6 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 		}
 	}
 	return nil
-}
-
-func checkErr(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func randomBytes(size int) []byte {

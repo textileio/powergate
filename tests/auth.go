@@ -5,8 +5,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"testing"
 
 	ma "github.com/multiformats/go-multiaddr"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -40,25 +42,19 @@ func createAdminToken() (string, error) {
 	return string(out), err
 }
 
-// ClientConfigMA returns the prepared multiaddress and Lotus token, to
-// connect to a Lotus node.
-func ClientConfigMA() (ma.Multiaddr, string) {
+// ClientConfigMA returns the prepared multiaddress and Lotus token,
+// to connect to a Lotus node.
+func ClientConfigMA(t *testing.T) (ma.Multiaddr, string) {
 	addr := fmt.Sprintf("/ip4/%v/tcp/%v", lotusHost, lotusPort)
 	multi, err := ma.NewMultiaddr(addr)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 	authToken, ok := os.LookupEnv("TEXTILE_LOTUS_TOKEN")
 	if !ok {
 		home, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
-		}
+		require.NoError(t, err)
 		path := filepath.Join(home, ".lotus")
 		authToken, err = GetLotusToken(path)
-		if err != nil {
-			panic(err)
-		}
+		require.NoError(t, err)
 	}
 
 	return multi, authToken

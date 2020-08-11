@@ -1,31 +1,27 @@
 package tests
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/ory/dockertest/v3"
+	"github.com/stretchr/testify/require"
 )
 
 // LaunchIPFSDocker runs a fresh go-ipfs docker image and returns the resource for
 // container metadata.
-func LaunchIPFSDocker() (*dockertest.Resource, func()) {
+func LaunchIPFSDocker(t require.TestingT) (*dockertest.Resource, func()) {
 	pool, err := dockertest.NewPool("")
-	if err != nil {
-		panic(fmt.Sprintf("couldn't create docker pool: %s", err))
-	}
-	ipfsDocker, err := pool.Run("ipfs/go-ipfs", "v0.5.1", []string{"IPFS_PROFILE=test"})
-	if err != nil {
-		panic(fmt.Sprintf("couldn't run ipfs docker container: %s", err))
-	}
-	if err := ipfsDocker.Expire(180); err != nil {
-		panic(err)
-	}
-	time.Sleep(time.Second * 3)
+	require.NoError(t, err)
 
+	ipfsDocker, err := pool.Run("ipfs/go-ipfs", "v0.6.0", []string{"IPFS_PROFILE=test"})
+	require.NoError(t, err)
+
+	err = ipfsDocker.Expire(180)
+	require.NoError(t, err)
+
+	time.Sleep(time.Second * 3)
 	return ipfsDocker, func() {
-		if err := pool.Purge(ipfsDocker); err != nil {
-			panic(fmt.Sprintf("couldn't purge ipfs from docker pool: %s", err))
-		}
+		err = pool.Purge(ipfsDocker)
+		require.NoError(t, err)
 	}
 }
