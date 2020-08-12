@@ -5,19 +5,19 @@ include .bingo/Variables.mk
 BUILD_FLAGS=CGO_ENABLED=0
 GOVVV_FLAGS=$(shell $(GOVVV) -flags -pkg $(shell go list ./buildinfo))
 
-build: 
+build: $(GOVVV)
 	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./...
 .PHONY: build
 
-build-pow:
+build-pow: $(GOVVV)
 	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/pow
 .PHONY: build-pow
 
-build-powd:
+build-powd: $(GOVVV)
 	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powd
 .PHONY: build-powd
 
-build-powbench:
+build-powbench: $(GOVVV)
 	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
 .PHONY: build-powbench
 
