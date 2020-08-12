@@ -12,14 +12,17 @@ import (
 
 var (
 	// AvgBlockTime is the expected duration between block in two consecutive epochs.
-	// Defined at the Filecoin spec level.
-	AvgBlockTime = time.Second * 30
+	AvgBlockTime = time.Second * time.Duration(EpochDurationSeconds)
 )
 
 const (
+	// EpochDurationSeconds is the expected duration in seconds of an epoch.
+	// Defined at the filecoin spec level.
+	EpochDurationSeconds = 30
+
 	// MinDealDuration is the minium deal duration accepted in the Filecoin network.
 	// Original calculation: 180 * EpochsInADay
-	MinDealDuration = 180 * (24 * 60 * 60 / 25)
+	MinDealDuration = 180 * (24 * 60 * 60 / EpochDurationSeconds)
 
 	// CidUndef is a magic value to represent an undefined cid as a string.
 	CidUndef = "CID_UNDEF"
