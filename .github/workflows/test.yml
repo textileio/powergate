@@ -2,7 +2,7 @@ name: Tests
 on:
   push:
     branches:
-      - calib.8.13.0
+      - jsign/calib.8.13.0
   pull_request:
     branches:
       - master
