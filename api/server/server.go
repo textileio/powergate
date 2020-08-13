@@ -119,7 +119,7 @@ type Config struct {
 
 // NewServer starts and returns a new server with the given configuration.
 func NewServer(conf Config) (*Server, error) {
-	if conf.FFSUseMasterAddr && !(len(conf.LotusMasterAddr) > 0 || conf.AutocreateMasterAddr) {
+	if conf.FFSUseMasterAddr && !conf.Devnet && !(len(conf.LotusMasterAddr) > 0 || conf.AutocreateMasterAddr) {
 		return nil, fmt.Errorf("FFSUseMasterAddr requires LotusMasterAddr or AutocreateMasterAddr to be provided")
 	}
 
