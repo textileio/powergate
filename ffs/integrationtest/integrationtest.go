@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
-	"testing"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -236,7 +235,7 @@ func RequireStorageDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
 }
 
 // RequireRetrievalDealRecord checks that a retrieval deal record exits for a cid.
-func RequireRetrievalDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {
+func RequireRetrievalDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
 	recs, err := fapi.ListRetrievalDealRecords()
 	require.NoError(t, err)
 	require.Len(t, recs, 1)
