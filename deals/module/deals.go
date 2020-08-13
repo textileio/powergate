@@ -198,6 +198,7 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 				log.Infof("fetching/retrieving progress: %s", u.Err)
 				continue
 			}
+			log.Infof("%s retrieval %#v", cid, u)
 		}
 
 		m.recordRetrieval(waddr, o)
