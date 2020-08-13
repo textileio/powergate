@@ -93,10 +93,11 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 			Value: types.BigInt{Int: m.iAmount},
 		}
 
-		_, err = m.api.MpoolPushMessage(ctx, msg)
+		smsg, err := m.api.MpoolPushMessage(ctx, msg, nil)
 		if err != nil {
 			return "", fmt.Errorf("transferring funds to new address: %s", err)
 		}
+		log.Info("%s funding transaction message: %s", addr, smsg.Message.Cid)
 	}
 
 	return addr.String(), nil
@@ -143,7 +144,7 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 		To:    t,
 		Value: types.BigInt{Int: amount},
 	}
-	_, err = m.api.MpoolPushMessage(ctx, msg)
+	_, err = m.api.MpoolPushMessage(ctx, msg, nil)
 	return err
 }
 

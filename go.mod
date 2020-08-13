@@ -7,12 +7,12 @@ require (
 	github.com/caarlos0/spin v1.1.0
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
-	github.com/filecoin-project/go-address v0.0.2-0.20200504173055-8b6f2fb2b3ef
-	github.com/filecoin-project/go-fil-markets v0.5.4
+	github.com/filecoin-project/go-address v0.0.3
+	github.com/filecoin-project/go-fil-markets v0.5.5
 	github.com/filecoin-project/go-jsonrpc v0.1.1-0.20200602181149-522144ab4e24
 	github.com/filecoin-project/go-padreader v0.0.0-20200210211231-548257017ca6
-	github.com/filecoin-project/lotus v0.4.3-0.20200808023846-2340742ebec1
-	github.com/filecoin-project/specs-actors v0.8.7-0.20200805174427-9d42fb163883
+	github.com/filecoin-project/lotus v0.4.3-0.20200813164239-bf0468e65b76
+	github.com/filecoin-project/specs-actors v0.9.2
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
@@ -29,7 +29,7 @@ require (
 	github.com/ipfs/go-ipfs-http-client v0.0.6-0.20200512220018-7002cce28cb1
 	github.com/ipfs/go-ipld-format v0.2.0
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4
-	github.com/ipfs/go-merkledag v0.3.1
+	github.com/ipfs/go-merkledag v0.3.2
 	github.com/ipfs/interface-go-ipfs-core v0.2.6
 	github.com/ipld/go-car v0.1.1-0.20200526133713-1c7508d55aae
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
@@ -57,3 +57,5 @@ require (
 )
 
 replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.0.1-rc1.0.20200718033852-37ee16d8ad1c
+
+replace github.com/filecoin-project/sector-storage => github.com/filecoin-project/sector-storage v0.0.0-20200812222704-c3077fb85119
