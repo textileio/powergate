@@ -192,7 +192,7 @@ func RequireJobState(t require.TestingT, fapi *api.API, jid ffs.JobID, status ff
 	var res ffs.Job
 	for !stop {
 		select {
-		case <-time.After(120 * time.Second):
+		case <-time.After(150 * time.Second):
 			t.Errorf("waiting for job update timeout")
 			t.FailNow()
 		case job, ok := <-ch:
