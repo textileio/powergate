@@ -3,6 +3,7 @@ package general
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -105,12 +106,45 @@ func TestInfo(t *testing.T) {
 
 		r := rand.New(rand.NewSource(22))
 		n := 2
+		retriesPerDeal := 5
 		for i := 0; i < n; i++ {
-			cid, _ := it.AddRandomFile(t, r, ipfs)
-			jid, err := fapi.PushStorageConfig(cid)
-			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
-			it.RequireStorageConfig(t, fapi, cid, nil)
+			for j := 0; j < retriesPerDeal; j++ {
+				fmt.Printf("Deal %d, attempt %d...\n", i+1, j+1)
+				cid, _ := it.AddRandomFile(t, r, ipfs)
+				jid, err := fapi.PushStorageConfig(cid)
+				require.NoError(t, err)
+				ch := make(chan ffs.Job)
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+				go func() {
+					err = fapi.WatchJobs(ctx, ch, jid)
+					close(ch)
+				}()
+				var failed bool
+				stop := false
+				for !stop {
+					select {
+					case <-time.After(120 * time.Second):
+						t.Errorf("waiting for job update timeout")
+						failed = true
+					case job, ok := <-ch:
+						require.True(t, ok)
+						require.Equal(t, jid, job.ID)
+						if job.Status == ffs.Queued || job.Status == ffs.Executing {
+							continue
+						}
+						if job.Status != ffs.Success {
+							failed = true
+						}
+						stop = true
+					}
+				}
+				require.NoError(t, err)
+				if !failed {
+					it.RequireStorageConfig(t, fapi, cid, nil)
+					break
+				}
+			}
 		}
 
 		second, err := fapi.Info(ctx)
