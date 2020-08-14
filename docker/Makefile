@@ -26,7 +26,7 @@ localnet:
 
 
 calibration-up: calibration-down
-	LOTUS_IMAGE_TAG=ntwk-calibration-8.8.0 \
+	LOTUS_IMAGE_TAG=ntwk-calibration-8.13.1-f094273f \
 	docker-compose \
 		-p calib \
 		-f docker-compose.yaml \
@@ -36,7 +36,7 @@ calibration-up: calibration-down
 .PHONY: calibration-up
 
 calibration-down:
-	LOTUS_IMAGE_TAG=ntwk-calibration-8.8.0 \
+	LOTUS_IMAGE_TAG=ntwk-calibration-8.13.1-f094273f \
 	docker-compose \
 		-p calib \
 		-f docker-compose.yaml \

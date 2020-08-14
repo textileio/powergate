@@ -168,6 +168,9 @@ func setupInstrumentation() (func(), error) {
 }
 
 func setupLogging(repoPath string) error {
+	if err := os.MkdirAll(repoPath, os.ModePerm); err != nil {
+		return fmt.Errorf("creating repo folder: %s", err)
+	}
 	cfg := logging.Config{
 		Level:  logging.LevelError,
 		Stderr: true,
