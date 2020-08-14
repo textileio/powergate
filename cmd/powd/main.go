@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -30,28 +31,28 @@ var (
 )
 
 func main() {
-	// Configure logging.
-	if err := setupLogging(); err != nil {
-		log.Fatalf("configuring up logging: %s", err)
-	}
-
-	log.Infof("starting powd:\n%s", buildinfo.Summary())
-
 	// Configure flags.
 	if err := setupFlags(); err != nil {
 		log.Fatalf("configuring flags: %s", err)
-	}
-
-	// Configuring Prometheus exporter.
-	closeInstr, err := setupInstrumentation()
-	if err != nil {
-		log.Fatalf("starting instrumentation: %s", err)
 	}
 
 	// Create configuration from flags/envs.
 	conf, err := configFromFlags()
 	if err != nil {
 		log.Fatalf("creating config from flags: %s", err)
+	}
+
+	// Configure logging.
+	if err := setupLogging(conf.RepoPath); err != nil {
+		log.Fatalf("configuring up logging: %s", err)
+	}
+
+	log.Infof("starting powd:\n%s", buildinfo.Summary())
+
+	// Configuring Prometheus exporter.
+	closeInstr, err := setupInstrumentation()
+	if err != nil {
+		log.Fatalf("starting instrumentation: %s", err)
 	}
 	confJSON, err := json.MarshalIndent(conf, "", "  ")
 	if err != nil {
@@ -166,10 +167,14 @@ func setupInstrumentation() (func(), error) {
 	return closeFunc, nil
 }
 
-func setupLogging() error {
-	if err := logging.SetLogLevel("*", "error"); err != nil {
-		return err
+func setupLogging(repoPath string) error {
+	cfg := logging.Config{
+		Level:  logging.LevelError,
+		Stderr: true,
+		Stdout: true,
+		File:   filepath.Join(repoPath, "powd.log"),
 	}
+	logging.SetupLogging(cfg)
 	loggers := []string{
 		// Top-level
 		"powd",
