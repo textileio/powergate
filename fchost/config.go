@@ -12,10 +12,10 @@ import (
 var (
 	networkBootstrappers = map[string][]string{
 		"calibrationnet": {
-			"/dns4/bootstrap-0.calibration.fildev.network/tcp/1347/p2p/12D3KooWPmhFGJkE7wDUdtzDYr7ReML9vgzJ8Tv7ubh9T6Le1Bmn",
-			"/dns4/bootstrap-2.calibration.fildev.network/tcp/1347/p2p/12D3KooWPWUw5yEet6NWpxhxoibXFbLprG4k5PMLKLeubGBLf6nd",
-			"/dns4/bootstrap-1.calibration.fildev.network/tcp/1347/p2p/12D3KooWGwv2YtXyYPrEKssttUT3TKZknPkCWKR6WVTvt9LW4hdf",
-			"/dns4/bootstrap-3.calibration.fildev.network/tcp/1347/p2p/12D3KooWHgMU953YxD5skVG3RKa58TXwVL9z5ycGKrZdaFzGpouT",
+			"/dns4/bootstrap-0.calibration.fildev.network/tcp/1347/p2p/12D3KooWDHzHtmsH9BMf9is7hCzJnd1jtVb5rdeAmfm9CCoZFqeY",
+			"/dns4/bootstrap-1.calibration.fildev.network/tcp/1347/p2p/12D3KooWHyTNdCjTviTCMpFiyYVb3TamxuLmM3wEcrhH5T4M9Q3J",
+			"/dns4/bootstrap-2.calibration.fildev.network/tcp/1347/p2p/12D3KooWBM8Zdq288tyYF5yT1j2ym9ynApddGJFjYnXNiFiCbdXp",
+			"/dns4/bootstrap-3.calibration.fildev.network/tcp/1347/p2p/12D3KooWKoegjZRfgY8Zp6QMqr4UtuJHzTKeWVmrniFNXeikzvGT",
 		},
 	}
 )
