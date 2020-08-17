@@ -1,4 +1,4 @@
-COMPAT_MSG="The current version of Powergate support newer versions than Testnet network. You might be interested in using the Calibration network (make calibration-up)"
+COMPAT_MSG="The current version of Powergate support newer versions than Testnet network. You might be interested in using the Calibration network (make calibration-up) or Nerpa network (make nerpa-up)."
 
 down:
 	@echo ${COMPAT_MSG}
