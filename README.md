@@ -169,6 +169,7 @@ make localnet
 This will build Powergate `powd`, a Lotus local network, a IPFS node and wire them correctly to be ready to use.
 
 **Note**: Running `BIGSECTORS=false make localnet` will create the Lotus devent using 2Kib sectors. This may be more appropriate for certain development or testing scenarios.
+**Important**: `make localnet` will run with `BIGSECTORS=false` by default. Currently, there's a bug which doesn't allow `BIGSECTORS=true`, please see [here](https://github.com/filecoin-project/lotus/issues/3109) and give some thumbs-up to make some noise and increase its priority!
 
 Here is a full example of using the local network:
 Terminal 1:

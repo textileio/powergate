@@ -17,7 +17,7 @@ localnet-down:
 .PHONY: localnet-down
 
 localnet: 
-	docker-compose -p localnet \
+	BIGSECTORS=false docker-compose -p localnet \
 		-f docker-compose-localnet.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
