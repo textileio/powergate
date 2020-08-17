@@ -17,6 +17,12 @@ var (
 			"/dns4/bootstrap-2.calibration.fildev.network/tcp/1347/p2p/12D3KooWBM8Zdq288tyYF5yT1j2ym9ynApddGJFjYnXNiFiCbdXp",
 			"/dns4/bootstrap-3.calibration.fildev.network/tcp/1347/p2p/12D3KooWKoegjZRfgY8Zp6QMqr4UtuJHzTKeWVmrniFNXeikzvGT",
 		},
+		"nerpanet": {
+			"/dns4/bootstrap-0.nerpa.interplanetary.dev/tcp/1347/p2p/12D3KooWECgvrrRRHpSGmrdLmi8m2JFm7FUvvfcrQxL1rMgN5DEd",
+			"/dns4/bootstrap-1.nerpa.interplanetary.dev/tcp/1347/p2p/12D3KooWSQ9iAaZvQvLHytgygVxo2GNXY6tXvPLtD7GSEqG6Vqya",
+			"/dns4/bootstrap-2.nerpa.interplanetary.dev/tcp/1347/p2p/12D3KooWMfFW7tswrVhhWC89MkgZQfsVGDMEazSp7YTeu2Hh8n8y",
+			"/dns4/bootstrap-3.nerpa.interplanetary.dev/tcp/1347/p2p/12D3KooWAGUEc5QWMjqvLYVsT5Rh7LgXvUcLc6xgyfkSuYMoEBdb",
+		},
 	}
 )
 

@@ -44,3 +44,24 @@ calibration-down:
 		-f powergate-build-context.yaml \
 		down
 .PHONY: calibration-down
+
+
+nerpa-up: nerpa-down
+	LOTUS_IMAGE_TAG=nerpa-53c7594 \
+	docker-compose \
+		-p nerpa \
+		-f docker-compose.yaml \
+		-f ipfs-image.yaml \
+		-f powergate-build-context.yaml \
+		up --build 
+.PHONY: nerpa-up
+
+nerpa-down:
+	LOTUS_IMAGE_TAG=nerpa-53c7594 \
+	docker-compose \
+		-p nerpa \
+		-f docker-compose.yaml \
+		-f ipfs-image.yaml \
+		-f powergate-build-context.yaml \
+		down
+.PHONY: nerpa-down

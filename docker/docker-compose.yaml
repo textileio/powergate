@@ -22,6 +22,7 @@ services:
       - POWD_IPFSAPIADDR=/dns4/ipfs/tcp/5001
       - POWD_LOTUSTOKENFILE=/root/lotus/.lotus/token
       - POWD_REPOPATH=/root/powergate/.powergate
+      - POWD_AUTOCREATEMASTERADDR=true
     restart: unless-stopped
     volumes:
       - powergate-powd:/root/powergate
