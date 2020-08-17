@@ -21,7 +21,7 @@ var (
 
 	networkFaucet = map[string]string{
 		"testnet":  "https://faucet.testnet.filecoin.io",
-		"nerpanet": "https://faucet.nerpa.fildev.network",
+		"nerpanet": "https://faucet.nerpa.interplanetary.dev",
 	}
 )
 
