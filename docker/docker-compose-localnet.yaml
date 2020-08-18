@@ -19,6 +19,8 @@ services:
     restart: unless-stopped
 
   ipfs:
+    entrypoint: ""
+    command: /bin/sh -c "/usr/local/bin/start_ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[\"*\"]' && /usr/local/bin/start_ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '[\"POST\",\"GET\",\"PUT\"]' && /usr/local/bin/start_ipfs daemon  --enable-pubsub-experiment"
     ports:
       - 5001:5001
 
@@ -26,6 +28,7 @@ services:
     image: textile/lotus-devnet:ntwk-calibration-8.13.1.f0942
     ports:
       - 7777:7777
+      - 1234:1234
     environment:
       - TEXLOTUSDEVNET_SPEED=500
       - TEXLOTUSDEVNET_BIGSECTORS=${BIGSECTORS}
