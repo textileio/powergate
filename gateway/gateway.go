@@ -72,7 +72,7 @@ func NewGateway(
 }
 
 // Start the gateway.
-func (g *Gateway) Start() {
+func (g *Gateway) Start(basePath string) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.Use(location.Default())
@@ -87,15 +87,18 @@ func (g *Gateway) Start() {
 	}
 	router.SetHTMLTemplate(temp)
 
-	router.Use(static.Serve("", &fileSystem{Assets}))
+	if basePath == "/" {
+		basePath = ""
+	}
+	router.Use(static.Serve(basePath, &fileSystem{Assets}))
+	rg := router.Group(basePath)
+	rg.GET("/asks", g.asksHandler)
+	rg.GET("/miners", g.minersHandler)
+	rg.GET("/faults", g.faultsHandler)
+	rg.GET("/reputation", g.reputationHandler)
 
-	router.GET("/asks", g.asksHandler)
-	router.GET("/miners", g.minersHandler)
-	router.GET("/faults", g.faultsHandler)
-	router.GET("/reputation", g.reputationHandler)
-
-	router.GET("/", func(c *gin.Context) {
-		c.Request.URL.Path = "/asks"
+	rg.GET("/", func(c *gin.Context) {
+		c.Request.URL.Path = basePath + "/asks"
 		router.HandleContext(c)
 	})
 
