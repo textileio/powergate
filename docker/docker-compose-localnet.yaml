@@ -9,6 +9,7 @@ services:
       - 6060:6060
       - 5002:5002
       - 6002:6002
+      - 7000:7000
     depends_on:
       - ipfs
       - lotus

@@ -108,6 +108,7 @@ type Config struct {
 	AutocreateMasterAddr bool
 	FFSUseMasterAddr     bool
 	Devnet               bool
+	GatewayBasePath      string
 	GrpcHostNetwork      string
 	GrpcHostAddress      ma.Multiaddr
 	GrpcServerOpts       []grpc.ServerOption
@@ -237,7 +238,7 @@ func NewServer(conf Config) (*Server, error) {
 	webProxy := createProxyServer(wrappedGRPCServer, httpFFSAuthInterceptor, conf.GrpcWebProxyAddress)
 
 	gateway := gateway.NewGateway(conf.GatewayHostAddr, ai, mi, si, rm)
-	gateway.Start()
+	gateway.Start(conf.GatewayBasePath)
 
 	s := &Server{
 		ds: ds,
