@@ -23,4 +23,4 @@ jobs:
         uses: actions/checkout@v1
       - name: make local
         if: success()
-        run: make -f Makefile.buf local
+        run: make buf-local
