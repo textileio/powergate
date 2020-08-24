@@ -268,11 +268,14 @@ func (s *Scheduler) resumeStartedDeals() error {
 		if err != nil {
 			return fmt.Errorf("getting resumed queued job: %s", err)
 		}
+		s.rateLim <- struct{}{}
 		go func(j ffs.Job) {
 			log.Infof("resuming job %s with cid %s", j.ID, j.Cid)
 			// We re-execute the pipeline as if was dequeued.
 			// Both hot and cold storage can detect resumed job execution.
 			s.executeQueuedJob(j)
+
+			<-s.rateLim
 		}(j)
 	}
 	return nil
