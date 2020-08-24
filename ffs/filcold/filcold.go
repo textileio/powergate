@@ -105,6 +105,10 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
+// It returns an updated FilInfo for the Cid. All prevous Proposals in the received FilInfo are kept, only flagging the ones
+// that got renewed with Renewed=true. New deals from renewals are added to the returned FilInfo.
+// Note: Most probably all this code should change in the future, when Filecoin supports telling the miner which deal is about to
+// expire that we're interested in extending the deal duration. Now we should make a new deal from scratch (send data, etc).
 func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig) (ffs.FilInfo, []ffs.DealError, error) {
 	height, err := fc.chain.GetHeight(ctx)
 	if err != nil {
@@ -139,24 +143,32 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		numToBeRenewed = len(renewable)
 	}
 
+	newInf := ffs.FilInfo{
+		DataCid:   inf.DataCid,
+		Size:      inf.Size,
+		Proposals: make([]ffs.FilStorage, len(inf.Proposals)),
+	}
+	for i, p := range inf.Proposals {
+		newInf.Proposals[i] = p
+	}
+
 	toRenew := renewable[:numToBeRenewed]
-	var retErrors []ffs.DealError
+	var newDealErrors []ffs.DealError
 	for i, p := range toRenew {
 		var dealError ffs.DealError
 		newProposal, err := fc.renewDeal(ctx, c, inf.Size, p, cfg)
 		if err != nil {
 			if errors.As(err, &dealError) {
-				retErrors = append(retErrors, dealError)
+				newDealErrors = append(newDealErrors, dealError)
 				continue
 			}
-			log.Errorf("renewing deal %s: %s", p.ProposalCid, err)
 			continue
 		}
-		inf.Proposals = append(inf.Proposals, newProposal)
-		inf.Proposals[i].Renewed = true
+		newInf.Proposals = append(newInf.Proposals, newProposal)
+		newInf.Proposals[i].Renewed = true
 	}
 
-	return inf, retErrors, nil
+	return newInf, newDealErrors, nil
 }
 
 func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig) (ffs.FilStorage, error) {

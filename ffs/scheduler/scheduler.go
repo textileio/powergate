@@ -15,8 +15,8 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/jstore"
+	"github.com/textileio/powergate/ffs/scheduler/internal/trackstore"
 	txndstr "github.com/textileio/powergate/txndstransform"
-	"github.com/textileio/powergate/util"
 )
 
 const (
@@ -28,6 +28,14 @@ var (
 
 	// ErrNotFound is returned when an item isn't found on a Store.
 	ErrNotFound = errors.New("item not found")
+
+	// RenewalEvalFrequency is the frequency in which renewable StorageConfigs
+	// will be evaluated.
+	RenewalEvalFrequency = time.Hour * 24
+
+	// RepairEvalFrequency is the frequency in which repairable StorageConfigs
+	// will be evaluated.
+	RepairEvalFrequency = time.Hour * 24
 )
 
 // Scheduler receives actions to store a Cid in Hot and Cold layers. These actions are
@@ -39,6 +47,7 @@ type Scheduler struct {
 	hs  ffs.HotStorage
 	js  *jstore.Store
 	as  *astore.Store
+	ts  *trackstore.Store
 	cis *cistore.Store
 	l   ffs.CidLogger
 
@@ -143,7 +152,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 
 // Untrack untracks a Cid for renewal and repair background crons.
 func (s *Scheduler) Untrack(c cid.Cid) error {
-	if err := s.as.Remove(c); err != nil {
+	if err := s.ts.Remove(c); err != nil {
 		return fmt.Errorf("removing cid from action store: %s", err)
 	}
 	return nil
@@ -236,18 +245,48 @@ func (s *Scheduler) run() {
 		log.Errorf("resuming started deals: %s", err)
 		return
 	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Timer for evaluating renewable storage configs.
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-s.ctx.Done():
+				return
+			case <-time.After(RenewalEvalFrequency):
+				log.Debug("running renewal checks...")
+				s.execRenewCron(s.ctx)
+				log.Debug("renewal cron done")
+			}
+		}
+	}()
+
+	// Timer for evaluatin repairable storage configs.
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-s.ctx.Done():
+				return
+			case <-time.After(RepairEvalFrequency):
+				log.Debug("running repair checks...")
+				s.execRepairCron(s.ctx)
+				log.Debug("repair cron done")
+			}
+		}
+	}()
+
+	// Loop for new pushed storage configs.
 	for {
 		select {
 		case <-s.ctx.Done():
 			log.Infof("terminating scheduler daemon")
+			wg.Done()
+			log.Infof("scheduler daemon terminated")
 			return
-		case <-time.After(util.AvgBlockTime):
-			log.Debug("running renewal checks...")
-			s.execRenewCron(s.ctx)
-			log.Debug("renewal cron done")
-			log.Debug("running repair checks...")
-			s.execRepairCron(s.ctx)
-			log.Debug("repair cron done")
 		case <-s.evaluateQueuedWork:
 			log.Debug("evaluating Job queue execution...")
 			s.executeQueuedJobs(s.ctx)
@@ -281,69 +320,56 @@ func (s *Scheduler) resumeStartedDeals() error {
 	return nil
 }
 
+// execRepairCron gets all repairable storage configs and
+// reschedule them as if they were pushed. The scheduler main executing logic
+// does whatever work is necessary to satisfy the storage config, thus
+// it has repairing semantics too. If no work is needed, this scheduled
+// job would have no real work done.
 func (s *Scheduler) execRepairCron(ctx context.Context) {
-	as, err := s.as.GetRepairable()
+	cids, err := s.ts.GetRepairables()
 	if err != nil {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
-	for _, a := range as {
-		log.Debugf("scheduling deal repair for Cid %s", a.Cid)
-		if err := s.scheduleRepairJob(ctx, a); err != nil {
-			log.Errorf("repair of %s: %s", a.Cid, err)
+	for _, c := range cids {
+		log.Debugf("scheduling deal repair for Cid %s", c)
+		if err := s.scheduleRenewRepairJob(ctx, c); err != nil {
+			log.Errorf("repair of %s: %s", c, err)
 		}
 		log.Debugf("scheduling repair done")
 	}
 }
 
-func (s *Scheduler) scheduleRepairJob(ctx context.Context, a astore.Action) error {
-	s.l.Log(ctx, a.Cid, "Scheduling deal repair...")
-	a.Cfg.Repairable = false
+// execRenewCron gets all renewable storage configs and
+// reschedule them as if they were pushed. The scheduler main executing logic
+// will do renewals if necessary.
+func (s *Scheduler) execRenewCron(ctx context.Context) {
+	cids, err := s.ts.GetRenewables()
+	if err != nil {
+		log.Errorf("getting repairable cid configs from store: %s", err)
+	}
+	for _, c := range cids {
+		log.Debugf("scheduling deal repair for Cid %s", c)
+		if err := s.scheduleRenewRepairJob(ctx, c); err != nil {
+			log.Errorf("repair of %s: %s", c, err)
+		}
+		log.Debugf("scheduling repair done")
+	}
+}
+
+func (s *Scheduler) scheduleRenewRepairJob(ctx context.Context, c cid.Cid) error {
+	s.l.Log(ctx, c, "Scheduling deal repair evaluation...")
+	sc, err := s.ts.Get(c)
+	if err != nil {
+		return fmt.Errorf("getting latest storage config: %s", err)
+	}
+	a := astore.Action{
+		Cfg: sc,
+	}
 	jid, err := s.push(a.APIID, a.Cid, a.Cfg, cid.Undef)
 	if err != nil {
 		return fmt.Errorf("scheduling repair job: %s", err)
 	}
 	s.l.Log(ctx, a.Cid, "Job %s was queued for repair evaluation.", jid)
-	return nil
-}
-
-func (s *Scheduler) execRenewCron(ctx context.Context) {
-	as, err := s.as.GetRenewable()
-	if err != nil {
-		log.Errorf("getting renweable cid configs from store: %s", err)
-	}
-	for _, a := range as {
-		log.Debugf("evaluating deal renewal for Cid %s", a.Cid)
-		if err := s.evaluateRenewal(ctx, a); err != nil {
-			log.Errorf("renweal of %s: %s", a.Cid, err)
-		}
-		log.Debugf("deal renewal done")
-	}
-}
-
-func (s *Scheduler) evaluateRenewal(ctx context.Context, a astore.Action) error {
-	inf, err := s.getRefreshedInfo(ctx, a.Cid)
-	if err == ErrNotFound {
-		log.Infof("skip renewal evaluation for %s since Cid isn't stored yet", a.Cid)
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("getting cid info from store: %s", err)
-	}
-	s.l.Log(ctx, a.Cid, "Evaluating deal renweal...")
-
-	var errors []ffs.DealError
-	inf.Cold.Filecoin, errors, err = s.cs.EnsureRenewals(ctx, a.Cid, inf.Cold.Filecoin, a.Cfg.Cold.Filecoin)
-	for _, e := range errors {
-		log.Warnf("renew deal error: %s %s %s", e.ProposalCid, e.Miner, e.Message)
-	}
-	if err != nil {
-		return fmt.Errorf("evaluating renewal in cold-storage: %s", err)
-	}
-	if err := s.cis.Put(inf); err != nil {
-		return fmt.Errorf("saving new cid info in store: %s", err)
-	}
-
-	s.l.Log(ctx, a.Cid, "Deal renewal evaluated successfully")
 	return nil
 }
 
@@ -601,6 +627,9 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		return curr.Cold, nil, nil
 	}
 
+	// 1. If we recognize there were some unfinished started deals, then
+	// Powergate was closed while that was being executed. If that's the case
+	// we resume tracking those deals until they finish.
 	sds, err := s.js.GetStartedDeals(curr.Cid)
 	if err != nil {
 		return ffs.ColdInfo{}, nil, fmt.Errorf("checking for started deals: %s", err)
@@ -615,12 +644,61 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		curr.Cold.Filecoin.Proposals = append(okResumedDeals, curr.Cold.Filecoin.Proposals...)
 	}
 
+	// 2. If this Storage Config is renewable, then let's check if any of the existing deals
+	// should be renewed, and do it.
+	if cfg.Filecoin.Renew.Enabled {
+		if curr.Hot.Enabled {
+			s.l.Log(ctx, curr.Cid, "Checking deal renewals...")
+			newFilInfo, errors, err := s.cs.EnsureRenewals(ctx, curr.Cid, curr.Cold.Filecoin, cfg.Filecoin)
+			if err != nil {
+				s.l.Log(ctx, curr.Cid, "Deal renewal process couldn't be executed: %s", err)
+			} else {
+				for _, e := range errors {
+					s.l.Log(ctx, curr.Cid, "Deal deal renewal errored. ProposalCid: %s, Miner: %s, Cause: %s", e.ProposalCid, e.Miner, e.Message)
+				}
+				numDeals := len(newFilInfo.Proposals) - len(curr.Cold.Filecoin.Proposals)
+				if numDeals > 0 {
+					// If renew process created deals, we eagerly save this information in the datastore.
+					// Further work about the new storage config could decide the Job failed and we'd lose
+					// this information if not saved.
+					if err := s.cis.Put(curr); err != nil {
+						return ffs.ColdInfo{}, nil, fmt.Errorf("eager saving of new info: %s", err)
+					}
+					s.l.Log(ctx, curr.Cid, "A total of %d new deals were created in the renewal process", numDeals)
+				}
+				s.l.Log(ctx, curr.Cid, "Deal renewal evaluated successfully")
+				curr.Cold.Filecoin = newFilInfo
+
+				if err := s.cis.Put(curr); err != nil {
+					log.Errorf("saving cid info to store: %s", err)
+				}
+			}
+		} else {
+			// (**) Renewable note:
+			// This shouldn't happen since it would be an invalid Storage Config.
+			// We can only accept "Repair" if Hot Storage is enabled.
+			// We can the feature to retrieve the data from a miner,
+			// put it in Hot Storage, and then try the renewal. Looks to me
+			// we should be sure about doing that since it would be paying
+			// for retrieval to later discard the data. Sounds like Filecoin
+			// should allow renewing a deal without the need of sending the data
+			// again. Still not clear.
+			return ffs.ColdInfo{}, nil, fmt.Errorf("invalid storage configuration, can't be renewable with disabled hot storage")
+		}
+	}
+
+	// 3. Now that we have final information about what deals are really active,
+	// we calculate how many new deals should be made to ensure the desired RepFactor.
+	// If the current active deals is equal or greater than desired, do nothing. If not, make
+	// whatever extra deals we need to make that true.
+
+	// Do we need to do some work?
 	if cfg.Filecoin.RepFactor-len(curr.Cold.Filecoin.Proposals) <= 0 {
 		s.l.Log(ctx, curr.Cid, "The current replication factor is equal or higher than desired, avoiding making new deals.")
 		return curr.Cold, nil, nil
 	}
 
-	// Propose deals
+	// The answer is yes, calculate how many extra deals we need and create them.
 	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
 	s.l.Log(ctx, curr.Cid, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
 	startedProposals, rejectedProposals, size, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
@@ -629,15 +707,19 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
 	allErrors = append(allErrors, rejectedProposals...)
+
+	// If *none* of the tried proposals succeeded, then the Job fails.
 	if len(startedProposals) == 0 {
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("all proposals were rejected")
 	}
 
-	// Track all deals that weren't rejected
+	// Track all deals that weren't rejected, just in case Powergate crashes/closes before
+	// we see them finalize, so they can be detected and resumed on starting Powergate again (point 1. above)
 	if err := s.js.AddStartedDeals(curr.Cid, startedProposals); err != nil {
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
 
+	// Wait for started deals.
 	okDeals, failedDeals := s.waitForDeals(ctx, curr.Cid, startedProposals)
 	allErrors = append(allErrors, failedDeals...)
 	if err := s.js.RemoveStartedDeals(curr.Cid); err != nil {
@@ -650,7 +732,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("all started deals failed")
 	}
 
-	// At least 1 of the proposal deals reached a successful final status.
+	// At least 1 of the proposal deals reached a successful final status, Job succeeds.
 	return ffs.ColdInfo{
 		Enabled: true,
 		Filecoin: ffs.FilInfo{

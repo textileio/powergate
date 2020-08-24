@@ -198,6 +198,10 @@ func (s StorageConfig) Validate() error {
 	if err := s.Cold.Validate(); err != nil {
 		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
 	}
+	// We can't accept being renewable without the hot storage enabled.
+	// See the (**) note in scheduler.go
+	if s.Cold.Enabled && s.Cold.Filecoin.Renew.Enabled && !s.Hot.Enabled {
+	}
 	return nil
 }
 
