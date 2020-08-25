@@ -73,7 +73,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		TrustedMiners:  cfg.TrustedMiners,
 		MaxPrice:       cfg.MaxPrice,
 	}
-	cfgs, err := makeDealConfigs(fc.ms, cfg.RepFactor, f)
+	cfgs, err := makeDealConfigs(fc.ms, cfg.RepFactor, f, cfg.FastRetrieval)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("making deal configs: %s", err)
 	}
@@ -178,7 +178,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 		TrustedMiners:  []string{p.Miner},
 		MaxPrice:       fcfg.MaxPrice,
 	}
-	dealConfig, err := makeDealConfigs(fc.ms, 1, f)
+	dealConfig, err := makeDealConfigs(fc.ms, 1, f, fcfg.FastRetrieval)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
 	}
