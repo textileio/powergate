@@ -90,7 +90,7 @@ type ColdStorage interface {
 	WaitForDeal(context.Context, cid.Cid, cid.Cid) (FilStorage, error)
 
 	// Fetch fetches the cid data in the underlying storage.
-	Fetch(context.Context, cid.Cid, string) error
+	Fetch(context.Context, cid.Cid, *cid.Cid, string) error
 
 	// EnsureRenewals executes renewal logic for a Cid under a particular
 	// configuration. It returns a slice of deal errors happened during execution.

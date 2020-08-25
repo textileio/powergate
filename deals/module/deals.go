@@ -161,20 +161,21 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 // Fetch fetches deal data to the underlying blockstore of the Filecoin client.
 // This API is meant for clients that use external implementations of blockstores with
 // their own API, e.g: IPFS.
-func (m *Module) Fetch(ctx context.Context, waddr string, cid cid.Cid) error {
+func (m *Module) Fetch(ctx context.Context, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid) error {
 	lapi, cls, err := m.clientBuilder()
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
-	if err := m.retrieve(ctx, waddr, cid, nil, lapi); err != nil {
+
+	if err := m.retrieve(ctx, lapi, waddr, payloadCid, pieceCid, nil); err != nil {
 		return err
 	}
 	return nil
 }
 
 // Retrieve retrieves Deal data.
-func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREncoding bool) (io.ReadCloser, error) {
+func (m *Module) Retrieve(ctx context.Context, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, CAREncoding bool) (io.ReadCloser, error) {
 	rf, err := ioutil.TempDir(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
 		return nil, fmt.Errorf("creating temp dir for retrieval: %s", err)
@@ -189,7 +190,7 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREnc
 		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
-	if err := m.retrieve(ctx, waddr, cid, &ref, lapi); err != nil {
+	if err := m.retrieve(ctx, lapi, waddr, payloadCid, pieceCid, &ref); err != nil {
 		return nil, fmt.Errorf("retrieving from lotus: %s", err)
 	}
 
@@ -200,12 +201,12 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREnc
 	return &autodeleteFile{File: f}, nil
 }
 
-func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *api.FileRef, lapi *apistruct.FullNodeStruct) error {
+func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, ref *api.FileRef) error {
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
 		return err
 	}
-	offers, err := lapi.ClientFindData(ctx, cid, nil)
+	offers, err := lapi.ClientFindData(ctx, payloadCid, pieceCid)
 	if err != nil {
 		return err
 	}
@@ -215,7 +216,7 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 	for _, o := range offers {
 		err = lapi.ClientRetrieve(ctx, o.Order(addr), ref)
 		if err != nil {
-			log.Infof("fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
+			log.Infof("fetching/retrieving cid %s from %s: %s", payloadCid, o.Miner, err)
 			continue
 		}
 		m.recordRetrieval(waddr, o)

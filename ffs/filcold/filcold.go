@@ -55,8 +55,8 @@ func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain
 
 // Fetch fetches the stored Cid data.The data will be considered available
 // to the underlying blockstore.
-func (fc *FilCold) Fetch(ctx context.Context, dataCid cid.Cid, waddr string) error {
-	if err := fc.dm.Fetch(ctx, waddr, dataCid); err != nil {
+func (fc *FilCold) Fetch(ctx context.Context, dataCid cid.Cid, pieceCid *cid.Cid, waddr string) error {
+	if err := fc.dm.Fetch(ctx, waddr, dataCid, pieceCid); err != nil {
 		return fmt.Errorf("fetching from deal module: %s", err)
 	}
 	return nil

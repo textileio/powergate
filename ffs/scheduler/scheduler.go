@@ -565,7 +565,18 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
 		s.l.Log(ctx, curr.Cid, "Unfreezing from Filecoin...")
-		if err := s.cs.Fetch(ctx, curr.Cold.Filecoin.DataCid, waddr); err != nil {
+		if len(curr.Cold.Filecoin.Proposals) == 0 {
+			return ffs.HotInfo{}, fmt.Errorf("no active deals to make retrieval possible")
+		}
+		var pieceCid *cid.Cid
+		for _, p := range curr.Cold.Filecoin.Proposals {
+			if p.PieceCid != cid.Undef {
+				pieceCid = &p.PieceCid
+				break
+			}
+		}
+
+		if err := s.cs.Fetch(ctx, curr.Cold.Filecoin.DataCid, pieceCid, waddr); err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
 		}
 		s.l.Log(ctx, curr.Cid, "Unfrozen successfully, saving in Hot-Storage...")

@@ -110,7 +110,7 @@ func TestRetrieve(t *testing.T) {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 				defer cancel()
 
-				r, err := m.Retrieve(ctx, addr.String(), dcid, false)
+				r, err := m.Retrieve(ctx, addr.String(), dcid, nil, false)
 				require.NoError(t, err)
 				defer func() {
 					require.NoError(t, r.Close())
