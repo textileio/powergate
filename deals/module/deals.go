@@ -188,19 +188,11 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 		return ErrRetrievalNoAvailableProviders
 	}
 	for _, o := range offers {
-		upts, err := m.api.ClientRetrieve(ctx, o.Order(addr), ref)
+		err = m.api.ClientRetrieve(ctx, o.Order(addr), ref)
 		if err != nil {
 			log.Infof("fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
 		}
-		for u := range upts {
-			if u.Err != "" {
-				log.Infof("fetching/retrieving progress: %s", u.Err)
-				continue
-			}
-			log.Infof("%s retrieval %#v", cid, u)
-		}
-
 		m.recordRetrieval(waddr, o)
 		return nil
 	}

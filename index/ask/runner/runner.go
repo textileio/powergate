@@ -263,7 +263,7 @@ func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr
 		return ask.StorageAsk{}, false, fmt.Errorf("getting miner %s info: %s", addr, err)
 	}
 
-	sask, err := api.ClientQueryAsk(ctx, mi.PeerId, addr)
+	sask, err := api.ClientQueryAsk(ctx, *mi.PeerId, addr)
 	if err != nil {
 		return ask.StorageAsk{}, false, nil
 	}

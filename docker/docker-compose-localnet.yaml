@@ -24,7 +24,7 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:ntwk-calibration-8.13.1.f0942
+    image: textile/lotus-devnet:v0.5.3
     ports:
       - 7777:7777
     environment:
