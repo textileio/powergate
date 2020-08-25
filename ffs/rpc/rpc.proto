@@ -68,6 +68,7 @@ message FilStorage {
    uint64 start_epoch = 5;
    string miner = 6;
    uint64 epoch_price = 7;
+   string piece_cid = 8;
 }
 
 message FilInfo {

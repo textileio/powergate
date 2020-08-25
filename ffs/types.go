@@ -376,6 +376,7 @@ type FilInfo struct {
 // FilStorage contains Deal information of a storage in Filecoin.
 type FilStorage struct {
 	ProposalCid     cid.Cid
+	PieceCid        cid.Cid
 	Renewed         bool
 	Duration        int64
 	ActivationEpoch int64

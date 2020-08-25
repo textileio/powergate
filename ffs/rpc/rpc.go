@@ -733,6 +733,7 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 		}
 		cidInfo.Cold.Filecoin.Proposals[i] = &FilStorage{
 			ProposalCid:     strProposalCid,
+			PieceCid:        p.PieceCid,
 			Renewed:         p.Renewed,
 			Duration:        p.Duration,
 			ActivationEpoch: p.ActivationEpoch,

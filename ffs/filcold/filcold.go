@@ -251,6 +251,7 @@ func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid)
 		case storagemarket.StorageDealActive:
 			activeProposal = ffs.FilStorage{
 				ProposalCid:     di.ProposalCid,
+				PieceCid:        di.PieceCID,
 				Duration:        int64(di.Duration),
 				Miner:           di.Miner,
 				ActivationEpoch: di.ActivationEpoch,
