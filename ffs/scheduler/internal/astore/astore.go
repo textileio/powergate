@@ -18,8 +18,8 @@ var (
 	ErrNotFound = errors.New("action not found")
 )
 
-// Action contains information necessary to a Job execution.
-type Action struct {
+// StorageAction contains information necessary to a Job execution.
+type StorageAction struct {
 	APIID       ffs.APIID
 	Cid         cid.Cid
 	Cfg         ffs.StorageConfig
@@ -39,8 +39,8 @@ func New(ds datastore.Datastore) *Store {
 }
 
 // Get gets an action for a JobID. If doesn't exist, returns ErrNotFound.
-func (s *Store) Get(jid ffs.JobID) (Action, error) {
-	var a Action
+func (s *Store) Get(jid ffs.JobID) (StorageAction, error) {
+	var a StorageAction
 	buf, err := s.ds.Get(makeKey(jid))
 	if err == datastore.ErrNotFound {
 		return a, ErrNotFound
@@ -55,7 +55,7 @@ func (s *Store) Get(jid ffs.JobID) (Action, error) {
 }
 
 // Put saves a new Action for a Job.
-func (s *Store) Put(jid ffs.JobID, a Action) error {
+func (s *Store) Put(jid ffs.JobID, a StorageAction) error {
 	buf, err := json.Marshal(a)
 	if err != nil {
 		return fmt.Errorf("json marshaling: %s", err)

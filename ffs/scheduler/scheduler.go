@@ -137,7 +137,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
 	s.l.Log(ctx, c, "Pushing new configuration...")
 
-	aa := astore.Action{
+	aa := astore.StorageAction{
 		APIID:       iid,
 		Cid:         c,
 		Cfg:         cfg,
@@ -496,7 +496,7 @@ func (s *Scheduler) executeQueuedJob(j ffs.Job) {
 // execute executes a Job. If an error is returned, it means that the Job
 // should be considered failed. If error is nil, it still can return []ffs.DealError
 // since some deals failing isn't necessarily a fatal Job config execution.
-func (s *Scheduler) execute(ctx context.Context, a astore.Action, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
+func (s *Scheduler) execute(ctx context.Context, a astore.StorageAction, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)
