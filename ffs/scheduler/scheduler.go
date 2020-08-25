@@ -70,6 +70,11 @@ func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.C
 		return nil, fmt.Errorf("loading scheduler jobstore: %s", err)
 	}
 	as := astore.New(txndstr.Wrap(ds, "astore"))
+	ts, err := trackstore.New(txndstr.Wrap(ds, "tstore"))
+	if err != nil {
+		return nil, fmt.Errorf("loading scheduler trackstore: %s", err)
+	}
+
 	cis := cistore.New(txndstr.Wrap(ds, "cistore"))
 	ctx, cancel := context.WithCancel(context.Background())
 	sch := &Scheduler{
@@ -77,6 +82,7 @@ func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.C
 		hs:  hs,
 		js:  js,
 		as:  as,
+		ts:  ts,
 		cis: cis,
 		l:   l,
 
@@ -112,7 +118,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 		return ffs.EmptyJobID, fmt.Errorf("cid can't be undefined")
 	}
 	if iid == ffs.EmptyInstanceID {
-		return ffs.EmptyJobID, fmt.Errorf("invalid Action ID")
+		return ffs.EmptyJobID, fmt.Errorf("empty API ID")
 	}
 	if err := cfg.Validate(); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("validating storage config: %s", err)
@@ -138,7 +144,11 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 		ReplacedCid: oldCid,
 	}
 	if err := s.as.Put(j.ID, aa); err != nil {
-		return ffs.EmptyJobID, fmt.Errorf("saving new config in store: %s", err)
+		return ffs.EmptyJobID, fmt.Errorf("saving action for job: %s", err)
+	}
+
+	if err := s.ts.Put(iid, c, cfg); err != nil {
+		return ffs.EmptyJobID, fmt.Errorf("saving repairable/renewable storage config: %s", err)
 	}
 
 	select {
@@ -248,7 +258,6 @@ func (s *Scheduler) run() {
 
 	var wg sync.WaitGroup
 	wg.Add(2)
-
 	// Timer for evaluating renewable storage configs.
 	go func() {
 		defer wg.Done()
@@ -284,7 +293,7 @@ func (s *Scheduler) run() {
 		select {
 		case <-s.ctx.Done():
 			log.Infof("terminating scheduler daemon")
-			wg.Done()
+			wg.Wait()
 			log.Infof("scheduler daemon terminated")
 			return
 		case <-s.evaluateQueuedWork:
@@ -331,11 +340,14 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
 	for _, c := range cids {
-		log.Debugf("scheduling deal repair for Cid %s", c)
-		if err := s.scheduleRenewRepairJob(ctx, c); err != nil {
-			log.Errorf("repair of %s: %s", c, err)
+		s.l.Log(ctx, c, "Scheduling deal repair evaluation...")
+		jid, err := s.scheduleRenewRepairJob(ctx, c)
+		if err != nil {
+			s.l.Log(ctx, c, "Scheduling deal repair errored: %s", err)
+
+		} else {
+			s.l.Log(ctx, c, "Job %s was queued for repair evaluation.", jid)
 		}
-		log.Debugf("scheduling repair done")
 	}
 }
 
@@ -348,29 +360,26 @@ func (s *Scheduler) execRenewCron(ctx context.Context) {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
 	for _, c := range cids {
-		log.Debugf("scheduling deal repair for Cid %s", c)
-		if err := s.scheduleRenewRepairJob(ctx, c); err != nil {
-			log.Errorf("repair of %s: %s", c, err)
+		s.l.Log(ctx, c, "Scheduling deal renew evaluation...")
+		jid, err := s.scheduleRenewRepairJob(ctx, c)
+		if err != nil {
+			s.l.Log(ctx, c, "Scheduling deal renewal errored: %s", err)
+		} else {
+			s.l.Log(ctx, c, "Job %s was queued for renew evaluation.", jid)
 		}
-		log.Debugf("scheduling repair done")
 	}
 }
 
-func (s *Scheduler) scheduleRenewRepairJob(ctx context.Context, c cid.Cid) error {
-	s.l.Log(ctx, c, "Scheduling deal repair evaluation...")
-	sc, err := s.ts.Get(c)
+func (s *Scheduler) scheduleRenewRepairJob(ctx context.Context, c cid.Cid) (ffs.JobID, error) {
+	sc, iid, err := s.ts.Get(c)
 	if err != nil {
-		return fmt.Errorf("getting latest storage config: %s", err)
+		return "", fmt.Errorf("getting latest storage config: %s", err)
 	}
-	a := astore.Action{
-		Cfg: sc,
-	}
-	jid, err := s.push(a.APIID, a.Cid, a.Cfg, cid.Undef)
+	jid, err := s.push(iid, c, sc, cid.Undef)
 	if err != nil {
-		return fmt.Errorf("scheduling repair job: %s", err)
+		return "", fmt.Errorf("scheduling repair job: %s", err)
 	}
-	s.l.Log(ctx, a.Cid, "Job %s was queued for repair evaluation.", jid)
-	return nil
+	return jid, nil
 }
 
 func (s *Scheduler) executeQueuedJobs(ctx context.Context) {

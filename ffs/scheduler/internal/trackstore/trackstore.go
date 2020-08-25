@@ -23,6 +23,11 @@ type Store struct {
 	renewables  map[cid.Cid]struct{}
 }
 
+type trackedStorageConfig struct {
+	IID           ffs.APIID
+	StorageConfig ffs.StorageConfig
+}
+
 func New(ds datastore.Datastore) (*Store, error) {
 	s := &Store{
 		ds:          ds,
@@ -35,16 +40,16 @@ func New(ds datastore.Datastore) (*Store, error) {
 	return s, nil
 }
 
-func (s *Store) Get(c cid.Cid) (ffs.StorageConfig, error) {
+func (s *Store) Get(c cid.Cid) (ffs.StorageConfig, ffs.APIID, error) {
 	v, err := s.ds.Get(datastore.NewKey(c.String()))
 	if err != nil {
-		return ffs.StorageConfig{}, fmt.Errorf("getting storage config: %s", err)
+		return ffs.StorageConfig{}, "", fmt.Errorf("getting storage config: %s", err)
 	}
-	var sc ffs.StorageConfig
-	if err := json.Unmarshal(v, &sc); err != nil {
-		return ffs.StorageConfig{}, fmt.Errorf("unmarshaling storage config: %s", err)
+	var tsc trackedStorageConfig
+	if err := json.Unmarshal(v, &tsc); err != nil {
+		return ffs.StorageConfig{}, "", fmt.Errorf("unmarshaling storage config: %s", err)
 	}
-	return sc, nil
+	return tsc.StorageConfig, tsc.IID, nil
 }
 
 // Put updates the StorageConfig tracking state for a Cid.
@@ -53,7 +58,7 @@ func (s *Store) Get(c cid.Cid) (ffs.StorageConfig, error) {
 // or renewable, it will ensure it's removed from the store
 // if exists. This last point happens when a StorageConfig
 // which was repairable/renewable get that feature disabled.
-func (s *Store) Put(c cid.Cid, sc ffs.StorageConfig) error {
+func (s *Store) Put(iid ffs.APIID, c cid.Cid, sc ffs.StorageConfig) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -68,7 +73,8 @@ func (s *Store) Put(c cid.Cid, sc ffs.StorageConfig) error {
 		if isRenewable {
 			s.renewables[c] = struct{}{}
 		}
-		buf, err := json.Marshal(sc)
+		tsc := trackedStorageConfig{IID: iid, StorageConfig: sc}
+		buf, err := json.Marshal(tsc)
 		if err != nil {
 			return fmt.Errorf("marshaling storage config: %s", err)
 		}
@@ -90,7 +96,6 @@ func (s *Store) Put(c cid.Cid, sc ffs.StorageConfig) error {
 		}
 	}
 	return nil
-
 }
 
 // Remove removes a Cid from the store, usually meaning
@@ -141,18 +146,18 @@ func (s *Store) loadCaches() error {
 	}
 	defer r.Close()
 	for v := range r.Next() {
-		var sc ffs.StorageConfig
-		if err := json.Unmarshal(v.Value, &sc); err != nil {
+		var tsc trackedStorageConfig
+		if err := json.Unmarshal(v.Value, &tsc); err != nil {
 			return fmt.Errorf("unmarshaling storageconfig: %s", err)
 		}
 		c, err := cid.Decode(v.Key)
 		if err != nil {
 			return fmt.Errorf("decoding cid: %s", err)
 		}
-		if sc.Repairable {
+		if tsc.StorageConfig.Repairable {
 			s.repairables[c] = struct{}{}
 		}
-		if sc.Cold.Enabled && sc.Cold.Filecoin.Renew.Enabled {
+		if tsc.StorageConfig.Cold.Enabled && tsc.StorageConfig.Cold.Filecoin.Renew.Enabled {
 			s.renewables[c] = struct{}{}
 		}
 	}
