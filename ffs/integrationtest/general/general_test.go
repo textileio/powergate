@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/ffs"
@@ -287,4 +288,36 @@ func TestRemove(t *testing.T) {
 		_, err = fapi.GetStorageConfig(c1)
 		require.Equal(t, api.ErrNotFound, err)
 	})
+}
+
+func TestImport(t *testing.T) {
+	t.Parallel()
+	_, _, fapi, cls := it.NewAPI(t, 1)
+	defer cls()
+
+	miner := "t01234"
+	pieceCid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
+	payloadCid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC8z")
+
+	// Import correct data, and shouldn't fail.
+	imd := []api.ImportDeal{{MinerAddress: miner}}
+	err := fapi.ImportStorage(payloadCid, pieceCid, imd)
+	require.NoError(t, err)
+
+	// Check that imported data is in fapi2
+	i, err := fapi.Show(payloadCid)
+	require.NoError(t, err)
+	require.False(t, i.Hot.Enabled)
+	require.Equal(t, payloadCid, i.Cold.Filecoin.DataCid)
+	require.Equal(t, uint64(0), i.Cold.Filecoin.Size)
+	require.Len(t, i.Cold.Filecoin.Proposals, 1)
+
+	prop := i.Cold.Filecoin.Proposals[0]
+	require.Equal(t, cid.Undef, prop.ProposalCid)
+	require.Equal(t, pieceCid, prop.PieceCid)
+	require.Equal(t, prop.Duration, int64(0))
+	require.Equal(t, prop.ActivationEpoch, int64(0))
+	require.Equal(t, prop.StartEpoch, uint64(0))
+	require.Equal(t, prop.EpochPrice, uint64(0))
+	require.Equal(t, imd[0].MinerAddress, prop.Miner)
 }

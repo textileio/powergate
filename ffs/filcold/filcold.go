@@ -114,9 +114,20 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("get current filecoin height: %s", err)
 	}
+	if inf.Size == 0 {
+		return ffs.FilInfo{}, nil, fmt.Errorf("unkown piece size, can't evaluate renewals")
+	}
 	var renewable []ffs.FilStorage
 	for _, p := range inf.Proposals {
+		// If this deal was already renewed, we can ignore it will
+		// soon expire since we already handled it.
 		if p.Renewed {
+			continue
+		}
+		// In imported deals data, we might have missing information
+		// about start and/or duration. If that's the case, ignore
+		// them.
+		if p.StartEpoch == 0 || p.Duration == 0 {
 			continue
 		}
 		expiry := int64(p.StartEpoch) + p.Duration

@@ -337,11 +337,18 @@ func (fr *FilRenew) Validate() error {
 // CidInfo contains information about the current storage state
 // of a Cid.
 type CidInfo struct {
-	JobID   JobID
-	Cid     cid.Cid
+	// JobID indicates the Job ID which updated
+	// the current information. It *may be empty* if
+	// the data was imported manually.
+	JobID JobID
+	// Cid of payload.
+	Cid cid.Cid
+	// Created is the timestamp of the data.
 	Created time.Time
-	Hot     HotInfo
-	Cold    ColdInfo
+	// Hot contains hot storage information.
+	Hot HotInfo
+	// Cold contains cold storage information.
+	Cold ColdInfo
 }
 
 // HotInfo contains information about the current storage state
@@ -368,21 +375,43 @@ type ColdInfo struct {
 // FilInfo contains information about the current storage state
 // of a Cid in the Filecoin network.
 type FilInfo struct {
-	DataCid   cid.Cid
-	Size      uint64
+	// DataCid corresponds to the PayloadCid of the deal.
+	DataCid cid.Cid
+	// Size is the size of the Piece. Recall that this size
+	// is which is accounted for payment. Also is equal or
+	// greater than the original data size.
+	// This value might be zero for imported deals.
+	Size uint64
+	// Proposals contains known deals for the data.
 	Proposals []FilStorage
 }
 
 // FilStorage contains Deal information of a storage in Filecoin.
+// This information is used in FFS may be used by FFS logic to
+// provide repair, renwal, or retrieval tasks.
 type FilStorage struct {
-	ProposalCid     cid.Cid
-	PieceCid        cid.Cid
-	Renewed         bool
-	Duration        int64
+	// ProposalCid of the deal.
+	ProposalCid cid.Cid
+	// PieceCid is the piece Cid.
+	PieceCid cid.Cid
+	// Renewed indicates if this deal was
+	// already renewed, so it can expiry
+	// safely if renewals are enabled.
+	Renewed bool
+	// Duration is the duration of the deal.
+	Duration int64
+	// ActivationEpoch is the epoch in which
+	// the deal was activated.
 	ActivationEpoch int64
-	StartEpoch      uint64
-	Miner           string
-	EpochPrice      uint64
+	// StartEpoch is the starting epoch in which
+	// the deal is considered active on-chain.
+	StartEpoch uint64
+	// Miner is the miner address which is storing
+	// deals data.
+	Miner string
+	// EpochPrice is the price of attoFil per GiB
+	// per epoch paid in this deal.
+	EpochPrice uint64
 }
 
 // CidLoggerCtxKey is a type to use in ctx values for CidLogger.

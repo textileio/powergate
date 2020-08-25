@@ -75,3 +75,15 @@ func WithHistory(enabled bool) GetLogsOption {
 		c.history = enabled
 	}
 }
+
+type importConfig struct {
+	validate bool
+}
+
+type ImportOption func(*importConfig)
+
+func WithValidateImport(enabled bool) ImportOption {
+	return func(c *importConfig) {
+		c.validate = enabled
+	}
+}
