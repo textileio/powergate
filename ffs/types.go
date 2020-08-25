@@ -165,6 +165,13 @@ func (s StorageConfig) WithColdMaxPrice(maxPrice uint64) StorageConfig {
 	return s
 }
 
+// WithFastRetrieval specifies if deal fast retrieval flag on new deals
+// is enabled.
+func (s StorageConfig) WithFastRetrieval(enabled bool) StorageConfig {
+	s.Cold.Filecoin.FastRetrieval = enabled
+	return s
+}
+
 // WithColdAddr specifies the wallet address that should be used for transactions.
 func (s StorageConfig) WithColdAddr(addr string) StorageConfig {
 	s.Cold.Filecoin.Addr = addr
@@ -291,6 +298,9 @@ type FilConfig struct {
 	Addr string
 	// MaxPrice is the maximum price that will be spent to store the data
 	MaxPrice uint64
+	// FastRetrieval indicates that created deals should enable the
+	// fast retrieval feature.
+	FastRetrieval bool
 }
 
 // Validate returns a non-nil error if the configuration is invalid.

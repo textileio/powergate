@@ -6,8 +6,9 @@ import (
 
 // StorageDealConfig contains information about a storage proposal for a miner.
 type StorageDealConfig struct {
-	Miner      string
-	EpochPrice uint64
+	Miner         string
+	EpochPrice    uint64
+	FastRetrieval bool
 }
 
 // StoreResult contains information about Executing deals.

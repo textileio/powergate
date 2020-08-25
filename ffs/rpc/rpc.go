@@ -639,8 +639,9 @@ func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
 				Enabled:   config.Filecoin.Renew.Enabled,
 				Threshold: int64(config.Filecoin.Renew.Threshold),
 			},
-			Addr:     config.Filecoin.Addr,
-			MaxPrice: config.Filecoin.MaxPrice,
+			Addr:          config.Filecoin.Addr,
+			MaxPrice:      config.Filecoin.MaxPrice,
+			FastRetrieval: config.Filecoin.FastRetrieval,
 		},
 	}
 }
@@ -689,6 +690,7 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 				TrustedMiners:   config.Filecoin.TrustedMiners,
 				Addr:            config.Filecoin.Addr,
 				MaxPrice:        config.Filecoin.MaxPrice,
+				FastRetrieval:   config.Filecoin.FastRetrieval,
 			}
 			if config.Filecoin.Renew != nil {
 				renew := ffs.FilRenew{

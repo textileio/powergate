@@ -36,6 +36,7 @@ message FilConfig {
    FilRenew renew = 6;
    string addr = 7;
    uint64 max_price = 8;
+   bool fast_retrieval = 9;
 }
 
 message ColdConfig {

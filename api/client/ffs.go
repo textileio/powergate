@@ -679,6 +679,7 @@ func fromRPCStorageConfig(config *rpc.StorageConfig) ffs.StorageConfig {
 				TrustedMiners:   config.Cold.Filecoin.TrustedMiners,
 				Addr:            config.Cold.Filecoin.Addr,
 				MaxPrice:        config.Cold.Filecoin.MaxPrice,
+				FastRetrieval:   config.Cold.Filecoin.FastRetrieval,
 			}
 			if config.Cold.Filecoin.Renew != nil {
 				ret.Cold.Filecoin.Renew = ffs.FilRenew{

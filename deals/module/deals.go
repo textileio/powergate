@@ -137,6 +137,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 			EpochPrice:        big.Div(big.Mul(big.NewIntUnsigned(c.EpochPrice), big.NewIntUnsigned(pieceSize)), abi.NewTokenAmount(1<<30)),
 			Miner:             maddr,
 			Wallet:            addr,
+			FastRetrieval:     c.FastRetrieval,
 		}
 		p, err := lapi.ClientStartDeal(ctx, params)
 		if err != nil {

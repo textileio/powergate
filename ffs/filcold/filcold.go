@@ -173,8 +173,10 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 
 func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig) (ffs.FilStorage, error) {
 	f := ffs.MinerSelectorFilter{
-		TrustedMiners: []string{p.Miner},
-		MaxPrice:      fcfg.MaxPrice,
+		ExcludedMiners: fcfg.ExcludedMiners,
+		CountryCodes:   fcfg.CountryCodes,
+		TrustedMiners:  []string{p.Miner},
+		MaxPrice:       fcfg.MaxPrice,
 	}
 	dealConfig, err := makeDealConfigs(fc.ms, 1, f)
 	if err != nil {
@@ -316,14 +318,14 @@ func (fc *FilCold) getLinks(ctx context.Context, c cid.Cid) ([]*format.Link, err
 	return fc.ipfs.Object().Links(ctx, path.IpfsPath(c))
 }
 
-func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter) ([]deals.StorageDealConfig, error) {
+func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter, fastRetrieval bool) ([]deals.StorageDealConfig, error) {
 	mps, err := ms.GetMiners(cntMiners, f)
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from minerselector: %s", err)
 	}
 	res := make([]deals.StorageDealConfig, len(mps))
 	for i, m := range mps {
-		res[i] = deals.StorageDealConfig{Miner: m.Addr, EpochPrice: m.EpochPrice}
+		res[i] = deals.StorageDealConfig{Miner: m.Addr, EpochPrice: m.EpochPrice, FastRetrieval: fastRetrieval}
 	}
 	return res, nil
 }
