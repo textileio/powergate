@@ -24,7 +24,7 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:v0.5.3
+    image: textile/lotus-devnet:nerpa-8.28.0
     ports:
       - 7777:7777
     environment:
