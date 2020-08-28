@@ -36,7 +36,7 @@ down:
 .PHONY: down
 
 nerpa-up: nerpa-down
-	LOTUS_IMAGE_TAG=nerpa-8.28.0 \
+	LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-8.28.0 \
 	docker-compose \
 		-p nerpa \
 		-f docker-compose.yaml \
@@ -46,7 +46,7 @@ nerpa-up: nerpa-down
 .PHONY: nerpa-up
 
 nerpa-down:
-	LOTUS_IMAGE_TAG=nerpa-8.28.0 \
+	LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-8.28.0 \
 	docker-compose \
 		-p nerpa \
 		-f docker-compose.yaml \
