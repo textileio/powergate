@@ -132,7 +132,7 @@ func (ci *CoreIpfs) fillPinsetCache(ctx context.Context) error {
 	ci.lock.Lock()
 	defer ci.lock.Unlock()
 	ci.pinset = make(map[cid.Cid]struct{}, len(pins))
-	for _, p := range pins {
+	for p := range pins {
 		ci.pinset[p.Path().Cid()] = struct{}{}
 	}
 	return nil
