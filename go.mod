@@ -57,5 +57,3 @@ require (
 )
 
 replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.0.1-rc1.0.20200718033852-37ee16d8ad1c
-
-replace github.com/filecoin-project/sector-storage => github.com/filecoin-project/sector-storage v0.0.0-20200812222704-c3077fb85119
