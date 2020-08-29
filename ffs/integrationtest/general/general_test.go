@@ -105,7 +105,7 @@ func TestInfo(t *testing.T) {
 		require.Equal(t, len(first.Pins), 0)
 
 		r := rand.New(rand.NewSource(22))
-		n := 2
+		n := 1
 		retriesPerDeal := 5
 		for i := 0; i < n; i++ {
 			for j := 0; j < retriesPerDeal; j++ {

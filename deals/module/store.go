@@ -172,5 +172,5 @@ func makeFinalDealKey(c cid.Cid) datastore.Key {
 func makeRetrievalKey(rr deals.RetrievalDealRecord) datastore.Key {
 	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.Addr, rr.DealInfo.Miner, util.CidToString(rr.DealInfo.RootCid))
 	sum := md5.Sum([]byte(str))
-	return dsBaseRetrieval.ChildString(string(sum[:]))
+	return dsBaseRetrieval.ChildString(fmt.Sprintf("%x", sum[:]))
 }

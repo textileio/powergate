@@ -34,7 +34,7 @@ func New(maddr ma.Multiaddr, authToken string, connRetries int) (*apistruct.Full
 	var api apistruct.FullNodeStruct
 	var closer jsonrpc.ClientCloser
 	for i := 0; i < connRetries; i++ {
-		closer, err = jsonrpc.NewMergeClient("ws://"+addr+"/rpc/v0", "Filecoin",
+		closer, err = jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin",
 			[]interface{}{
 				&api.Internal,
 				&api.CommonStruct.Internal,
