@@ -4,3 +4,4 @@ services:
 
   ipfs:
     image: ipfs/go-ipfs:v0.6.0
+    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
