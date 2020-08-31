@@ -812,10 +812,10 @@ func newDecoratedIPFSAPI(proxyAddr, ffsToken string) (*httpapi.HttpApi, error) {
 	if err != nil {
 		return nil, err
 	}
-	useHTTPs := ipport[1] == "443"
+	useHTTPS := ipport[1] == "443"
 	ipfsMaddr := cm.Encapsulate(cp)
 	customClient := http.DefaultClient
-	customClient.Transport = newFFSHeaderDecorator(ffsToken, useHTTPs)
+	customClient.Transport = newFFSHeaderDecorator(ffsToken, useHTTPS)
 	ipfs, err := httpapi.NewApiWithClient(ipfsMaddr, customClient)
 	if err != nil {
 		return nil, err
@@ -825,19 +825,19 @@ func newDecoratedIPFSAPI(proxyAddr, ffsToken string) (*httpapi.HttpApi, error) {
 
 type ffsHeaderDecorator struct {
 	ffsToken string
-	useHTTPs bool
+	useHTTPS bool
 }
 
-func newFFSHeaderDecorator(ffsToken string, useHTTPs bool) *ffsHeaderDecorator {
+func newFFSHeaderDecorator(ffsToken string, useHTTPS bool) *ffsHeaderDecorator {
 	return &ffsHeaderDecorator{
 		ffsToken: ffsToken,
-		useHTTPs: useHTTPs,
+		useHTTPS: useHTTPS,
 	}
 }
 
 func (fhd ffsHeaderDecorator) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header["x-ipfs-ffs-auth"] = []string{fhd.ffsToken}
-	if fhd.useHTTPs {
+	if fhd.useHTTPS {
 		req.URL.Scheme = "https"
 	}
 
