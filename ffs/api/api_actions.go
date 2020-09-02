@@ -64,6 +64,7 @@ func (i *API) Remove(c cid.Cid) error {
 	if cfg.Hot.Enabled || cfg.Cold.Enabled {
 		return ErrActiveInStorage
 	}
+	// ToDo: remove partial retrievals
 	if err := i.sched.Untrack(c); err != nil {
 		return fmt.Errorf("untracking from scheduler: %s", err)
 	}

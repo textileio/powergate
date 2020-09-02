@@ -114,9 +114,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("get current filecoin height: %s", err)
 	}
-	if inf.Size == 0 {
-		return ffs.FilInfo{}, nil, fmt.Errorf("unkown piece size, can't evaluate renewals")
-	}
+
 	var renewable []ffs.FilStorage
 	for _, p := range inf.Proposals {
 		// If this deal was already renewed, we can ignore it will
@@ -161,6 +159,16 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	}
 	for i, p := range inf.Proposals {
 		newInf.Proposals[i] = p
+	}
+
+	// Manually imported doesn't provide the piece size.
+	// Re-calculate it if necessary. If present, just re-use that value.
+	if inf.Size == 0 {
+		size, err := fc.calculatePieceSize(ctx, inf.DataCid)
+		if err != nil {
+			return ffs.FilInfo{}, nil, fmt.Errorf("can't recalculate piece size: %s", err)
+		}
+		inf.Size = size
 	}
 
 	toRenew := renewable[:numToBeRenewed]

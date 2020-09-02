@@ -11,6 +11,23 @@ import (
 )
 
 var (
+	// EmptyRetrievalID is an undef retrieval id.
+	EmptyRetrievalID = RetrievalID("")
+)
+
+type RetrievalID string
+
+// NewRetrievalID returns an new retrieval ID.
+func NewRetrievalID() RetrievalID {
+	return RetrievalID(uuid.New().String())
+}
+
+// String returns a string representation of RetrievalID.
+func (ri RetrievalID) String() string {
+	return string(ri)
+}
+
+var (
 	// EmptyJobID represents an empty JobID.
 	EmptyJobID = JobID("")
 )
@@ -208,6 +225,7 @@ func (s StorageConfig) Validate() error {
 	// We can't accept being renewable without the hot storage enabled.
 	// See the (**) note in scheduler.go
 	if s.Cold.Enabled && s.Cold.Filecoin.Renew.Enabled && !s.Hot.Enabled {
+		return fmt.Errorf("hot storage should be enabled to enable renewals")
 	}
 	return nil
 }
@@ -380,7 +398,8 @@ type FilInfo struct {
 	// Size is the size of the Piece. Recall that this size
 	// is which is accounted for payment. Also is equal or
 	// greater than the original data size.
-	// This value might be zero for imported deals.
+	// This value might be zero for imported deals; if that's
+	// the case, will be re-calculated in the next made deal.
 	Size uint64
 	// Proposals contains known deals for the data.
 	Proposals []FilStorage

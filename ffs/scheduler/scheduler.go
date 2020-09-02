@@ -829,3 +829,7 @@ func createDeltaFilConfig(cfg ffs.ColdConfig, curr ffs.FilInfo) ffs.FilConfig {
 	}
 	return res
 }
+
+func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, piCid cid.Cid, sel string, miners []string, walletAddr string, maxPrice uint64) (ffs.JobID, error) {
+
+}
