@@ -103,12 +103,13 @@ var JobStatusStr = map[JobStatus]string{
 
 // Job is a task executed by the Scheduler.
 type Job struct {
-	ID         JobID
-	APIID      APIID
-	Cid        cid.Cid
-	Status     JobStatus
-	ErrCause   string
-	DealErrors []DealError
+	ID          JobID
+	APIID       APIID
+	Cid         cid.Cid
+	RetrievalID RetrievalID
+	Status      JobStatus
+	ErrCause    string
+	DealErrors  []DealError
 }
 
 // StorageConfig contains a default storage configuration for an Api instance.
@@ -441,9 +442,12 @@ const (
 	CtxKeyJid CidLoggerCtxKey = iota
 )
 
-// CidLogger saves log information about a Cid executions.
+// CidLogger saves log information about a storage and retrieval tasks.
+// ToDo: should rename.
 type CidLogger interface {
+	// Todo: rename
 	Log(context.Context, cid.Cid, string, ...interface{})
+	LogRetrieval(context.Context, RetrievalID, string, ...interface{})
 	Watch(context.Context, chan<- LogEntry) error
 	Get(context.Context, cid.Cid) ([]LogEntry, error)
 }

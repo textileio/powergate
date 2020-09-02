@@ -13,6 +13,7 @@ var (
 )
 
 // Config has general information about a Api instance.
+// ToDo: rename
 type Config struct {
 	ID                   ffs.APIID
 	Addrs                map[string]AddrInfo

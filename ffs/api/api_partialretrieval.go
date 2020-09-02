@@ -103,13 +103,13 @@ func (i *API) RemoveRetrieval(partialCid cid.Cid) error {
 func retrievalRequestToRetrieval(rr retrievalRequest) Retrieval {
 	return Retrieval{
 		ID:            rr.ID,
-		PayloadCid:    rr.PayloadCId,
+		PayloadCid:    rr.PayloadCid,
 		PieceCid:      rr.PieceCid,
 		Selector:      rr.Selector,
 		Miners:        rr.Miners,
 		WalletAddress: rr.WalletAddress,
 		MaxPrice:      rr.MaxPrice,
-		JID:           rr.Jid,
+		JID:           rr.JID,
 		CreatedAt:     rr.CreatedAt,
 	}
 }

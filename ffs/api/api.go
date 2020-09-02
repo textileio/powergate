@@ -68,7 +68,7 @@ func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs
 
 	ctx, cancel := context.WithCancel(context.Background())
 	i := new(ctx, is, wm, pm, drm, config, sch, cancel)
-	if err := i.is.putConfig(config); err != nil {
+	if err := i.is.putInstanceConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.cfg.ID, err)
 	}
 	return i, nil
@@ -77,7 +77,7 @@ func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs
 // Load loads a saved Api instance from its ConfigStore.
 func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
-	c, err := is.getConfig()
+	c, err := is.getInstanceConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
@@ -129,7 +129,7 @@ func (i *API) SetDefaultStorageConfig(c ffs.StorageConfig) error {
 		return fmt.Errorf("default cid config is invalid: %s", err)
 	}
 	i.cfg.DefaultStorageConfig = c
-	return i.is.putConfig(i.cfg)
+	return i.is.putInstanceConfig(i.cfg)
 }
 
 // Info returns instance information.
