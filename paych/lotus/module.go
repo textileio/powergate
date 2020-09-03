@@ -142,7 +142,8 @@ func (m *Module) Redeem(ctx context.Context, ch string) error {
 		return fmt.Errorf("No spendable vouchers for that channel")
 	}
 
-	mcid, err := m.api.PaychVoucherSubmit(ctx, chAddr, best)
+	// ToDo: fix last two params since API changed.
+	mcid, err := m.api.PaychVoucherSubmit(ctx, chAddr, best, nil, nil)
 	if err != nil {
 		return err
 	}

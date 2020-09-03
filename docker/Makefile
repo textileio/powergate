@@ -7,7 +7,7 @@ localnet-down:
 .PHONY: localnet-down
 
 localnet: 
-	BIGSECTORS=false docker-compose -p localnet \
+	BIGSECTORS=true docker-compose -p localnet \
 		-f docker-compose-localnet.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
@@ -16,7 +16,7 @@ localnet:
 
 
 up: down
-	LOTUS_IMAGE_TAG=testnet-v0.5.3 \
+	LOTUS_IMAGE_TAG=v0.5.8 \
 	docker-compose \
 		-p testnet \
 		-f docker-compose.yaml \
@@ -26,7 +26,7 @@ up: down
 .PHONY: up
 
 down:
-	LOTUS_IMAGE_TAG=testnet-v0.5.3 \
+	LOTUS_IMAGE_TAG=v0.5.8 \
 	docker-compose \
 		-p testnet \
 		-f docker-compose.yaml \
