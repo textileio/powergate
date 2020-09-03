@@ -363,6 +363,14 @@ func (fr *FilRenew) Validate() error {
 	return nil
 }
 
+type RetrievalInfo struct {
+	ID             RetrievalID
+	DataCid        cid.Cid
+	RetrievedMiner string
+	Size           int64
+	CreatedAt      time.Time
+}
+
 // CidInfo contains information about the current storage state
 // of a Cid.
 type CidInfo struct {
@@ -450,14 +458,15 @@ type CidLoggerCtxKey int
 const (
 	// CtxKeyJid is the key to store Jid metadata.
 	CtxKeyJid CidLoggerCtxKey = iota
+	CtxStorageCid
+	CtxRetrievalID
 )
 
 // CidLogger saves log information about a storage and retrieval tasks.
 // ToDo: should rename.
 type CidLogger interface {
 	// Todo: rename
-	Log(context.Context, cid.Cid, string, ...interface{})
-	LogRetrieval(context.Context, RetrievalID, string, ...interface{})
+	Log(context.Context, string, ...interface{})
 	Watch(context.Context, chan<- LogEntry) error
 	Get(context.Context, cid.Cid) ([]LogEntry, error)
 }

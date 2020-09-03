@@ -15,6 +15,7 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/jstore"
+	"github.com/textileio/powergate/ffs/scheduler/internal/ristore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/rjstore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/trackstore"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -51,6 +52,7 @@ type Scheduler struct {
 	as  *astore.Store
 	ts  *trackstore.Store
 	cis *cistore.Store
+	ris *ristore.Store
 	l   ffs.CidLogger
 
 	sd          storageDaemon
@@ -95,16 +97,23 @@ func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.C
 	}
 
 	cis := cistore.New(txndstr.Wrap(ds, "cistore"))
+	ris := ristore.New(txndstr.Wrap(ds, "ristore"))
+
 	ctx, cancel := context.WithCancel(context.Background())
 	sch := &Scheduler{
-		cs:  cs,
-		hs:  hs,
+		cs: cs,
+		hs: hs,
+
 		sjs: sjs,
 		rjs: rjs,
-		as:  as,
-		ts:  ts,
+
+		as: as,
+		ts: ts,
+
 		cis: cis,
-		l:   l,
+		ris: ris,
+
+		l: l,
 
 		cancelChans: make(map[ffs.JobID]chan struct{}),
 		sd: storageDaemon{
@@ -269,13 +278,13 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
 	for _, c := range cids {
-		s.l.Log(ctx, c, "Scheduling deal repair evaluation...")
+		s.l.Log(ctx, "Scheduling deal repair evaluation...")
 		jid, err := s.scheduleRenewRepairJob(ctx, c)
 		if err != nil {
-			s.l.Log(ctx, c, "Scheduling deal repair errored: %s", err)
+			s.l.Log(ctx, "Scheduling deal repair errored: %s", err)
 
 		} else {
-			s.l.Log(ctx, c, "Job %s was queued for repair evaluation.", jid)
+			s.l.Log(ctx, "Job %s was queued for repair evaluation.", jid)
 		}
 	}
 }
@@ -289,12 +298,12 @@ func (s *Scheduler) execRenewCron(ctx context.Context) {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
 	for _, c := range cids {
-		s.l.Log(ctx, c, "Scheduling deal renew evaluation...")
+		s.l.Log(ctx, "Scheduling deal renew evaluation...")
 		jid, err := s.scheduleRenewRepairJob(ctx, c)
 		if err != nil {
-			s.l.Log(ctx, c, "Scheduling deal renewal errored: %s", err)
+			s.l.Log(ctx, "Scheduling deal renewal errored: %s", err)
 		} else {
-			s.l.Log(ctx, c, "Job %s was queued for renew evaluation.", jid)
+			s.l.Log(ctx, "Job %s was queued for renew evaluation.", jid)
 		}
 	}
 }
@@ -369,6 +378,7 @@ func (s *Scheduler) executeQueuedStorage(j ffs.Job) {
 
 	ctx, cancel := context.WithCancel(context.WithValue(context.Background(), ffs.CtxKeyJid, j.ID))
 	defer cancel()
+	ctx = context.WithValue(ctx, ffs.CtxStorageCid, j.Cid)
 	go func() {
 		// If the user called Cancel to cancel Job execution,
 		// we cancel the context to finish.
@@ -383,12 +393,12 @@ func (s *Scheduler) executeQueuedStorage(j ffs.Job) {
 		if err := s.sjs.Finalize(j.ID, ffs.Failed, err, nil); err != nil {
 			log.Errorf("changing job to failed: %s", err)
 		}
-		s.l.Log(ctx, a.Cid, "Job %s couldn't start: %s.", j.ID, err)
+		s.l.Log(ctx, "Job %s couldn't start: %s.", j.ID, err)
 		return
 	}
 
 	// Execute
-	s.l.Log(ctx, a.Cid, "Executing job %s...", j.ID)
+	s.l.Log(ctx, "Executing job %s...", j.ID)
 	info, dealErrors, err := s.executeStorage(ctx, a, j)
 
 	// Something bad-enough happened to make Job
@@ -398,7 +408,7 @@ func (s *Scheduler) executeQueuedStorage(j ffs.Job) {
 		if err := s.sjs.Finalize(j.ID, ffs.Failed, err, dealErrors); err != nil {
 			log.Errorf("changing job to failed: %s", err)
 		}
-		s.l.Log(ctx, a.Cid, "Job %s execution failed: %s", j.ID, err)
+		s.l.Log(ctx, "Job %s execution failed: %s", j.ID, err)
 		return
 	}
 	// Save whatever stored information was completely/partially
@@ -419,7 +429,7 @@ func (s *Scheduler) executeQueuedStorage(j ffs.Job) {
 	if err := s.sjs.Finalize(j.ID, finalStatus, nil, dealErrors); err != nil {
 		log.Errorf("changing job to success: %s", err)
 	}
-	s.l.Log(ctx, a.Cid, "Job %s execution finished with status %s.", j.ID, ffs.JobStatusStr[finalStatus])
+	s.l.Log(ctx, "Job %s execution finished with status %s.", j.ID, ffs.JobStatusStr[finalStatus])
 }
 
 func (s *Scheduler) execQueuedRetrievals(ctx context.Context) {
@@ -480,6 +490,7 @@ func (s *Scheduler) executeQueuedRetrievals(j ffs.Job) {
 
 	ctx, cancel := context.WithCancel(context.WithValue(context.Background(), ffs.CtxKeyJid, j.ID))
 	defer cancel()
+	ctx = context.WithValue(ctx, ffs.CtxRetrievalID, j.RetrievalID)
 	go func() {
 		// If the user called Cancel to cancel Job execution,
 		// we cancel the context to finish.
@@ -491,25 +502,25 @@ func (s *Scheduler) executeQueuedRetrievals(j ffs.Job) {
 	a, err := s.as.GetRetrievalAction(j.ID)
 	if err != nil {
 		log.Errorf("getting job action data from store: %s", err)
-		if err := s.sjs.Finalize(j.ID, ffs.Failed, err, nil); err != nil {
+		if err := s.rjs.Finalize(j.ID, ffs.Failed, err); err != nil {
 			log.Errorf("changing job to failed: %s", err)
 		}
-		s.l.LogRetrieval(ctx, a.RetrievalID, "Job %s couldn't start: %s.", j.ID, err)
+		s.l.Log(ctx, "Job %s couldn't start: %s.", j.ID, err)
 		return
 	}
 
 	// Execute
-	s.l.LogRetrieval(ctx, a.RetrievalID, "Executing job %s...", j.ID)
-	info, dealErrors, err := s.executeRetrieval(ctx, a, j)
+	s.l.Log(ctx, "Executing job %s...", j.ID)
+	info, err := s.executeRetrieval(ctx, a, j)
 
 	// Something bad-enough happened to make Job
 	// execution fail.
 	if err != nil {
 		log.Errorf("executing retrieval job %s: %s", j.ID, err)
-		if err := s.sjs.Finalize(j.ID, ffs.Failed, err, dealErrors); err != nil {
+		if err := s.rjs.Finalize(j.ID, ffs.Failed, err); err != nil {
 			log.Errorf("changing retrieval job status to failed: %s", err)
 		}
-		s.l.LogRetrieval(ctx, a.RetrievalID, "Job %s execution failed: %s", j.ID, err)
+		s.l.Log(ctx, "Job %s execution failed: %s", j.ID, err)
 		return
 	}
 	// Save whatever stored information was completely/partially
@@ -530,5 +541,5 @@ func (s *Scheduler) executeQueuedRetrievals(j ffs.Job) {
 	if err := s.rjs.Finalize(j.ID, finalStatus, nil); err != nil {
 		log.Errorf("changing retrieval job to success: %s", err)
 	}
-	s.l.LogRetrieval(ctx, a.RetrievalID, "Retrieval job %s execution finished with status %s.", j.ID, ffs.JobStatusStr[finalStatus])
+	s.l.Log(ctx, "Retrieval job %s execution finished with status %s.", j.ID, ffs.JobStatusStr[finalStatus])
 }

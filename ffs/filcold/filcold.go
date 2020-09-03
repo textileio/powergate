@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-padreader"
 	"github.com/ipfs/go-cid"
@@ -55,9 +56,15 @@ func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain
 
 // Fetch fetches the stored Cid data.The data will be considered available
 // to the underlying blockstore.
-func (fc *FilCold) Fetch(ctx context.Context, dataCid cid.Cid, pieceCid *cid.Cid, waddr string) error {
-	if err := fc.dm.Fetch(ctx, waddr, dataCid, pieceCid); err != nil {
+func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, waddr string, miners []string, maxPrice uint64, selector string) error {
+	events, err := fc.dm.Fetch(ctx, waddr, pyCid, piCid, miners)
+	if err != nil {
 		return fmt.Errorf("fetching from deal module: %s", err)
+	}
+	for e := range events {
+		strEvent := retrievalmarket.ClientEvents[e.Event]
+		strDealStatus := retrievalmarket.DealStatuses[e.Status]
+		fc.l.Log(ctx, "Event: %s, bytes received %d, funds spent: %d attoFil, status: %s ", strEvent, e.BytesReceived, e.FundsSpent, strDealStatus)
 	}
 	return nil
 }
@@ -78,12 +85,12 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		return nil, nil, 0, fmt.Errorf("making deal configs: %s", err)
 	}
 
-	fc.l.Log(ctx, c, "Calculating piece size...")
+	fc.l.Log(ctx, "Calculating piece size...")
 	size, err := fc.calculatePieceSize(ctx, c)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
-	fc.l.Log(ctx, c, "Estimated piece size is %d bytes.", size)
+	fc.l.Log(ctx, "Estimated piece size is %d bytes.", size)
 
 	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, size, cfgs, cfg)
 	if err != nil {
@@ -210,7 +217,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 		if len(failedStartedDeals) != 1 {
 			return ffs.FilStorage{}, fmt.Errorf("failed started deals must be of size 1, this should never happen")
 		}
-		fc.l.Log(ctx, c, "Starting renewal deal proposal failed: %s", failedStartedDeals[0].Message)
+		fc.l.Log(ctx, "Starting renewal deal proposal failed: %s", failedStartedDeals[0].Message)
 		return ffs.FilStorage{}, failedStartedDeals[0]
 	}
 
@@ -226,7 +233,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 // that were started successfully, and a slice of DealError with deals that failed to be started.
 func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, error) {
 	for _, cfg := range cfgs {
-		fc.l.Log(ctx, c, "Proposing deal to miner %s with %d fil per epoch...", cfg.Miner, cfg.EpochPrice)
+		fc.l.Log(ctx, "Proposing deal to miner %s with %d fil per epoch...", cfg.Miner, cfg.EpochPrice)
 	}
 
 	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, size, cfgs, uint64(fcfg.DealMinDuration))
@@ -237,7 +244,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 	var failedDeals []ffs.DealError
 	for _, r := range sres {
 		if !r.Success {
-			fc.l.Log(ctx, c, "Proposal with miner %s failed: %s", r.Config.Miner, r.Message)
+			fc.l.Log(ctx, "Proposal with miner %s failed: %s", r.Config.Miner, r.Message)
 			log.Warnf("failed store result: %s", r.Message)
 			de := ffs.DealError{
 				ProposalCid: r.ProposalCid,
@@ -277,15 +284,15 @@ func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid)
 				StartEpoch:      di.StartEpoch,
 				EpochPrice:      di.PricePerEpoch,
 			}
-			fc.l.Log(ctx, c, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
+			fc.l.Log(ctx, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
 			return activeProposal, nil
 		case storagemarket.StorageDealError, storagemarket.StorageDealFailing:
 			log.Errorf("deal %d failed with state %s: %s", di.DealID, storagemarket.DealStates[di.StateID], di.Message)
-			fc.l.Log(ctx, c, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
+			fc.l.Log(ctx, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
 
 			return ffs.FilStorage{}, ffs.DealError{ProposalCid: di.ProposalCid, Miner: di.Miner, Message: di.Message}
 		default:
-			fc.l.Log(ctx, c, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.StateID])
+			fc.l.Log(ctx, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.StateID])
 		}
 	}
 	return ffs.FilStorage{}, fmt.Errorf("aborted due to cancellation")

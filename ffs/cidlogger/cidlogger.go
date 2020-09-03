@@ -49,20 +49,14 @@ func New(ds datastore.Datastore) *CidLogger {
 
 // Log logs a log entry for a Cid. The ctx can contain an optional ffs.CtxKeyJid to add
 // additional metadata about the log entry being part of a Job execution.
-func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...interface{}) {
-	cl.log(ctx, c, ffs.EmptyRetrievalID, format, a...)
-}
-
-func (cl *CidLogger) LogRetrieval(ctx context.Context, rid ffs.RetrievalID, format string, a ...interface{}) {
-	cl.log(ctx, cid.Undef, rid, format, a...)
-}
-
-func (cl *CidLogger) log(ctx context.Context, c cid.Cid, rid ffs.RetrievalID, format string, a ...interface{}) {
+func (cl *CidLogger) Log(ctx context.Context, format string, a ...interface{}) {
 	log.Infof(format, a...)
-	jid := ffs.EmptyJobID
-	if ctxjid, ok := ctx.Value(ffs.CtxKeyJid).(ffs.JobID); ok {
-		jid = ctxjid
-	}
+
+	// Retrieve context values.
+	c, _ := ctx.Value(ffs.CtxStorageCid).(cid.Cid)
+	rid, _ := ctx.Value(ffs.CtxRetrievalID).(ffs.RetrievalID)
+	jid, _ := ctx.Value(ffs.CtxKeyJid).(ffs.JobID)
+
 	now := time.Now()
 	nowNano := now.UnixNano()
 	key := makeKey(c, rid, nowNano)

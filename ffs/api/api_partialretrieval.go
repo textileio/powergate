@@ -27,6 +27,7 @@ type Retrieval struct {
 	// Possibly empty
 	RetrievalMiner string
 	DataCid        cid.Cid
+	Size           uint64
 }
 
 func (i *API) StartRetrieval(payloadCid, pieceCid cid.Cid, selector string, miners []string, opts ...PartialRetrievalOption) (Retrieval, error) {

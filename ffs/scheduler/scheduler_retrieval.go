@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
+	"github.com/textileio/powergate/ffs/scheduler/internal/ristore"
 )
 
 func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, piCid cid.Cid, sel string, miners []string, walletAddr string, maxPrice uint64) (ffs.JobID, error) {
@@ -38,7 +39,8 @@ func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, pi
 	}
 
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
-	s.l.LogRetrieval(ctx, rid, "Scheduling new retrieval...")
+	ctx = context.WithValue(ctx, ffs.CtxRetrievalID, rid)
+	s.l.Log(ctx, "Scheduling new retrieval...")
 
 	ra := astore.RetrievalAction{
 		APIID:         iid,
@@ -63,6 +65,40 @@ func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, pi
 	default:
 	}
 
-	s.l.LogRetrieval(ctx, rid, "Retrieval scheduled successfully")
+	s.l.Log(ctx, "Retrieval scheduled successfully")
 	return jid, nil
+}
+
+// GetRetrievalInfo returns the information about an executed retrieval.
+func (s *Scheduler) GetRetrievalInfo(rid ffs.RetrievalID) (ffs.RetrievalInfo, error) {
+	info, err := s.ris.Get(rid)
+	if err == ristore.ErrNotFound {
+		return ffs.RetrievalInfo{}, ErrNotFound
+	}
+	if err != nil {
+		return ffs.RetrievalInfo{}, fmt.Errorf("getting retrieval info from store: %s", err)
+	}
+	return info, nil
+}
+
+func (s *Scheduler) executeRetrieval(ctx context.Context, a astore.RetrievalAction, j ffs.Job) (ffs.RetrievalInfo, error) {
+	err := s.cs.Fetch(ctx, a.PayloadCid, &a.PieceCid, a.WalletAddress, a.Selector, a.Miners, a.MaxPrice)
+	if err != nil {
+		return ffs.RetrievalInfo{}, fmt.Errorf("fetching from cold storage: %s", err)
+	}
+	// ToDo: use graphsync to get the underlying DataCid to be pinned
+	dataCid := cid.Undef
+
+	size, err := s.hs.Store(ctx, dataCid)
+	if err != nil {
+		return ffs.RetrievalInfo{}, fmt.Errorf("pinning data cid: %s", err)
+	}
+
+	ri := ffs.RetrievalInfo{
+		RetrievedMiner: miner,
+		DataCid:        dataCid,
+		Size:           int64(size),
+	}
+
+	return ri, nil
 }
