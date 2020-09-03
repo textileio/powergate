@@ -1,9 +1,7 @@
 package partialretrieval
 
 import (
-	"bytes"
 	"context"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -15,7 +13,6 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	mh "github.com/multiformats/go-multihash"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
 	it "github.com/textileio/powergate/ffs/integrationtest"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
@@ -39,6 +36,8 @@ func TestPartialRetrievalFlow(t *testing.T) {
 		ctx := context.Background()
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
+		_ = ctx
+		_ = fapi
 
 		// Generate some data to run a selector.
 		numInternalNodes := 3
@@ -65,49 +64,51 @@ func TestPartialRetrievalFlow(t *testing.T) {
 		err = ipfs.Dag().Add(context.Background(), rn)
 		require.NoError(t, err)
 
-		c := rn.Cid() // Cid of data.
+		/*
+			c := rn.Cid() // Cid of data.
 
-		// Make a deal with a IPLD graph that makes sense
-		// to do partial retrieval.
-		jid, err := fapi.PushStorageConfig(c)
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+			// Make a deal with a IPLD graph that makes sense
+			// to do partial retrieval.
+			jid, err := fapi.PushStorageConfig(c)
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
 
-		// Current partial retrievals should be 0.
-		prs, err := fapi.GetPartialRetrievals(c)
-		require.NoError(t, err)
-		require.Len(t, 0, prs)
-		it.RequireIpfsUnpinnedCid(context.Background(), t, nodes[1].Cid(), ipfs)
+			// Current partial retrievals should be 0.
+			prs, err := fapi.GetPartialRetrievals(c)
+			require.NoError(t, err)
+			require.Len(t, 0, prs)
+			it.RequireIpfsUnpinnedCid(context.Background(), t, nodes[1].Cid(), ipfs)
 
-		// Do partial retrieval.
-		selector := "/Link/2/Hash/Qm...."
-		jid, err = fapi.PushPartialRetrieval(c, selector)
-		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
-		it.RequireIpfsPinnedCid(context.Background(), t, nodes[1].Cid(), ipfs)
+			// Do partial retrieval.
+			selector := "/Link/2/Hash/Qm...."
+			jid, err = fapi.PushPartialRetrieval(c, selector)
+			require.NoError(t, err)
+			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireIpfsPinnedCid(context.Background(), t, nodes[1].Cid(), ipfs)
 
-		// Current partial retrievals should be 1.
-		prs, err = fapi.GetPartialRetrievals(c)
-		require.NoError(t, err)
-		require.Len(t, 1, prs)
-		pr := prs[0]
-		require.Equal(t, pr.RootCid, c)
-		require.Equal(t, pr.Selector, selector)
-		require.Equal(t, nodes[1].Cid(), pr.DataCid) // Change assertion to expected Cid.
+			// Current partial retrievals should be 1.
+			prs, err = fapi.GetPartialRetrievals(c)
+			require.NoError(t, err)
+			require.Len(t, 1, prs)
+			pr := prs[0]
+			require.Equal(t, pr.RootCid, c)
+			require.Equal(t, pr.Selector, selector)
+			require.Equal(t, nodes[1].Cid(), pr.DataCid) // Change assertion to expected Cid.
 
-		rr, err := fapi.Get(ctx, pr.DataCid)
-		require.NoError(t, err)
-		fetched, err := ioutil.ReadAll(rr)
-		require.NoError(t, err)
-		require.True(t, bytes.Equal(nodes[1].RawData(), fetched))
+			rr, err := fapi.Get(ctx, pr.DataCid)
+			require.NoError(t, err)
+			fetched, err := ioutil.ReadAll(rr)
+			require.NoError(t, err)
+			require.True(t, bytes.Equal(nodes[1].RawData(), fetched))
 
-		// Remove it. Check that we have 0 partial retrievals again, and
-		// check was unpined from IPFS node.
-		err = fapi.RemovePartialRetrieval(c)
-		require.NoError(t, err)
-		prs, err = fapi.GetPartialRetrievals(c)
-		require.NoError(t, err)
-		require.Len(t, 0, prs)
-		it.RequireIpfsUnpinnedCid(context.Background(), t, nodes[1].Cid(), ipfs)
+			// Remove it. Check that we have 0 partial retrievals again, and
+			// check was unpined from IPFS node.
+			err = fapi.RemovePartialRetrieval(c)
+			require.NoError(t, err)
+			prs, err = fapi.GetPartialRetrievals(c)
+			require.NoError(t, err)
+			require.Len(t, 0, prs)
+			it.RequireIpfsUnpinnedCid(context.Background(), t, nodes[1].Cid(), ipfs)
+		*/
 	})
 }

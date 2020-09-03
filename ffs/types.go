@@ -102,6 +102,7 @@ var JobStatusStr = map[JobStatus]string{
 }
 
 // Job is a task executed by the Scheduler.
+// ToDo: rename
 type Job struct {
 	ID          JobID
 	APIID       APIID
@@ -110,6 +111,15 @@ type Job struct {
 	Status      JobStatus
 	ErrCause    string
 	DealErrors  []DealError
+}
+
+// RetrievalJob is a retrieval task executed by the Scheduler.
+type RetrievalJob struct {
+	ID          JobID
+	APIID       APIID
+	RetrievalID RetrievalID
+	Status      JobStatus
+	ErrCause    string
 }
 
 // StorageConfig contains a default storage configuration for an Api instance.

@@ -87,7 +87,7 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 func (s *Store) Dequeue() (*ffs.Job, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	q := query.Query{Prefix: ""}
+	q := query.Query{Prefix: dsBaseJob.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("querying datastore: %s", err)
@@ -321,7 +321,7 @@ func (s *Store) notifyWatchers(j ffs.Job) {
 func (s *Store) loadExecutingJobs() error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	q := query.Query{Prefix: ""}
+	q := query.Query{Prefix: dsBaseStartedDeals.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return fmt.Errorf("querying executing jobs in datastore: %s", err)

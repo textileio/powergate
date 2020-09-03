@@ -52,9 +52,8 @@ func New(ds datastore.Datastore) *Store {
 	}
 }
 
-// Get gets an action for a JobID. If doesn't exist, returns ErrNotFound.
-// ToDo: rename
-func (s *Store) Get(jid ffs.JobID) (StorageAction, error) {
+// GetStorageAction gets an action for a JobID. If doesn't exist, returns ErrNotFound.
+func (s *Store) GetStorageAction(jid ffs.JobID) (StorageAction, error) {
 	var a StorageAction
 	buf, err := s.ds.Get(makeStorageActionKey(jid))
 	if err == datastore.ErrNotFound {
@@ -69,9 +68,8 @@ func (s *Store) Get(jid ffs.JobID) (StorageAction, error) {
 	return a, nil
 }
 
-// Put saves a new Action for a Job.
-// ToDo: rename
-func (s *Store) Put(jid ffs.JobID, a StorageAction) error {
+// PutStorageAction saves a new Action for a Job.
+func (s *Store) PutStorageAction(jid ffs.JobID, a StorageAction) error {
 	buf, err := json.Marshal(a)
 	if err != nil {
 		return fmt.Errorf("json marshaling: %s", err)
