@@ -19,7 +19,8 @@ message IpfsConfig {
 message HotConfig {
    bool enabled = 1;
    bool allow_unfreeze = 2;
-   IpfsConfig ipfs = 3;
+   uint64  unfreeze_max_price = 3;
+   IpfsConfig ipfs = 4;
 }
 
 message FilRenew {

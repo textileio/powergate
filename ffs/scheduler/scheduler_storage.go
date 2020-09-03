@@ -48,7 +48,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 	}
 
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
-	s.l.Log(ctx, c, "Pushing new configuration...")
+	s.l.Log(ctx, "Pushing new configuration...")
 
 	aa := astore.StorageAction{
 		APIID:       iid,
@@ -73,7 +73,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 	default:
 	}
 
-	s.l.Log(ctx, c, "Configuration saved successfully")
+	s.l.Log(ctx, "Configuration saved successfully")
 	return jid, nil
 }
 
@@ -163,21 +163,21 @@ func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, 
 		}
 	}
 
-	s.l.Log(ctx, a.Cid, "Ensuring Hot-Storage satisfies the configuration...")
+	s.l.Log(ctx, "Ensuring Hot-Storage satisfies the configuration...")
 	hot, err := s.executeHotStorage(ctx, ci, a.Cfg.Hot, a.Cfg.Cold.Filecoin.Addr, a.ReplacedCid)
 	if err != nil {
-		s.l.Log(ctx, a.Cid, "Hot-Storage excution failed.")
+		s.l.Log(ctx, "Hot-Storage excution failed.")
 		return ffs.CidInfo{}, nil, fmt.Errorf("executing hot-storage config: %s", err)
 	}
-	s.l.Log(ctx, a.Cid, "Hot-Storage execution ran successfully.")
+	s.l.Log(ctx, "Hot-Storage execution ran successfully.")
 
-	s.l.Log(ctx, a.Cid, "Ensuring Cold-Storage satisfies the configuration...")
+	s.l.Log(ctx, "Ensuring Cold-Storage satisfies the configuration...")
 	cold, errors, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold)
 	if err != nil {
-		s.l.Log(ctx, a.Cid, "Cold-Storage execution failed.")
+		s.l.Log(ctx, "Cold-Storage execution failed.")
 		return ffs.CidInfo{}, errors, fmt.Errorf("executing cold-storage config: %s", err)
 	}
-	s.l.Log(ctx, a.Cid, "Cold-Storage execution ran successfully.")
+	s.l.Log(ctx, "Cold-Storage execution ran successfully.")
 
 	return ffs.CidInfo{
 		JobID:   job.ID,
@@ -190,7 +190,7 @@ func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, 
 
 func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.HotConfig, waddr string, replaceCid cid.Cid) (ffs.HotInfo, error) {
 	if cfg.Enabled == curr.Hot.Enabled {
-		s.l.Log(ctx, curr.Cid, "No actions needed in Hot Storage.")
+		s.l.Log(ctx, "No actions needed in Hot Storage.")
 		return curr.Hot, nil
 	}
 
@@ -198,7 +198,7 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 		if err := s.hs.Remove(ctx, curr.Cid); err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("removing from hot storage: %s", err)
 		}
-		s.l.Log(ctx, curr.Cid, "Cid successfully removed from Hot Storage.")
+		s.l.Log(ctx, "Cid successfully removed from Hot Storage.")
 		return ffs.HotInfo{Enabled: false}, nil
 	}
 
@@ -210,31 +210,33 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 	if !replaceCid.Defined() {
 		size, err = s.hs.Store(sctx, curr.Cid)
 	} else {
-		s.l.Log(ctx, curr.Cid, "Replace of previous pin %s", replaceCid)
+		s.l.Log(ctx, "Replace of previous pin %s", replaceCid)
 		size, err = s.hs.Replace(sctx, replaceCid, curr.Cid)
 	}
 	if err != nil {
-		s.l.Log(ctx, curr.Cid, "Direct fetching from IPFS wasn't possible.")
+		s.l.Log(ctx, "Direct fetching from IPFS wasn't possible.")
 		if !cfg.AllowUnfreeze || len(curr.Cold.Filecoin.Proposals) == 0 {
-			s.l.Log(ctx, curr.Cid, "Unfreeze is disabled or active Filecoin deals are unavailable.")
+			s.l.Log(ctx, "Unfreeze is disabled or active Filecoin deals are unavailable.")
 			return ffs.HotInfo{}, fmt.Errorf("pinning cid in hot storage: %s", err)
 		}
-		s.l.Log(ctx, curr.Cid, "Unfreezing from Filecoin...")
+		s.l.Log(ctx, "Unfreezing from Filecoin...")
 		if len(curr.Cold.Filecoin.Proposals) == 0 {
 			return ffs.HotInfo{}, fmt.Errorf("no active deals to make retrieval possible")
 		}
 		var pieceCid *cid.Cid
+		var miners []string
 		for _, p := range curr.Cold.Filecoin.Proposals {
 			if p.PieceCid != cid.Undef {
 				pieceCid = &p.PieceCid
-				break
 			}
+			miners = append(miners, p.Miner)
 		}
 
-		if err := s.cs.Fetch(ctx, curr.Cold.Filecoin.DataCid, pieceCid, waddr); err != nil {
+		fi, err := s.cs.Fetch(ctx, curr.Cold.Filecoin.DataCid, pieceCid, waddr, miners, cfg.UnfreezeMaxPrice, "")
+		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("unfreezing from Cold Storage: %s", err)
 		}
-		s.l.Log(ctx, curr.Cid, "Unfrozen successfully, saving in Hot-Storage...")
+		s.l.Log(ctx, "Unfrozen successfully from %s with cost %d attoFil, saving in Hot-Storage...", fi.RetrievedMiner, fi.FundsSpent)
 		size, err = s.hs.Store(ctx, curr.Cold.Filecoin.DataCid)
 		if err != nil {
 			return ffs.HotInfo{}, fmt.Errorf("pinning unfrozen cid: %s", err)
@@ -304,7 +306,7 @@ func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, curr ffs.ColdInfo)
 
 func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig) (ffs.ColdInfo, []ffs.DealError, error) {
 	if !cfg.Enabled {
-		s.l.Log(ctx, curr.Cid, "Cold-Storage was disabled, Filecoin deals will eventually expire.")
+		s.l.Log(ctx, "Cold-Storage was disabled, Filecoin deals will eventually expire.")
 		return curr.Cold, nil, nil
 	}
 
@@ -317,9 +319,9 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	}
 	var allErrors []ffs.DealError
 	if len(sds) > 0 {
-		s.l.Log(ctx, curr.Cid, "Resuming %d dettached executing deals...", len(sds))
+		s.l.Log(ctx, "Resuming %d dettached executing deals...", len(sds))
 		okResumedDeals, failedResumedDeals := s.waitForDeals(ctx, curr.Cid, sds)
-		s.l.Log(ctx, curr.Cid, "A total of %d resumed deals finished successfully", len(okResumedDeals))
+		s.l.Log(ctx, "A total of %d resumed deals finished successfully", len(okResumedDeals))
 		allErrors = append(allErrors, failedResumedDeals...)
 		// Append the resumed and confirmed deals to the current active proposals
 		curr.Cold.Filecoin.Proposals = append(okResumedDeals, curr.Cold.Filecoin.Proposals...)
@@ -329,13 +331,13 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	// should be renewed, and do it.
 	if cfg.Filecoin.Renew.Enabled {
 		if curr.Hot.Enabled {
-			s.l.Log(ctx, curr.Cid, "Checking deal renewals...")
+			s.l.Log(ctx, "Checking deal renewals...")
 			newFilInfo, errors, err := s.cs.EnsureRenewals(ctx, curr.Cid, curr.Cold.Filecoin, cfg.Filecoin)
 			if err != nil {
-				s.l.Log(ctx, curr.Cid, "Deal renewal process couldn't be executed: %s", err)
+				s.l.Log(ctx, "Deal renewal process couldn't be executed: %s", err)
 			} else {
 				for _, e := range errors {
-					s.l.Log(ctx, curr.Cid, "Deal deal renewal errored. ProposalCid: %s, Miner: %s, Cause: %s", e.ProposalCid, e.Miner, e.Message)
+					s.l.Log(ctx, "Deal deal renewal errored. ProposalCid: %s, Miner: %s, Cause: %s", e.ProposalCid, e.Miner, e.Message)
 				}
 				numDeals := len(newFilInfo.Proposals) - len(curr.Cold.Filecoin.Proposals)
 				if numDeals > 0 {
@@ -345,9 +347,9 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 					if err := s.cis.Put(curr); err != nil {
 						return ffs.ColdInfo{}, nil, fmt.Errorf("eager saving of new info: %s", err)
 					}
-					s.l.Log(ctx, curr.Cid, "A total of %d new deals were created in the renewal process", numDeals)
+					s.l.Log(ctx, "A total of %d new deals were created in the renewal process", numDeals)
 				}
-				s.l.Log(ctx, curr.Cid, "Deal renewal evaluated successfully")
+				s.l.Log(ctx, "Deal renewal evaluated successfully")
 				curr.Cold.Filecoin = newFilInfo
 
 				if err := s.cis.Put(curr); err != nil {
@@ -375,16 +377,16 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 
 	// Do we need to do some work?
 	if cfg.Filecoin.RepFactor-len(curr.Cold.Filecoin.Proposals) <= 0 {
-		s.l.Log(ctx, curr.Cid, "The current replication factor is equal or higher than desired, avoiding making new deals.")
+		s.l.Log(ctx, "The current replication factor is equal or higher than desired, avoiding making new deals.")
 		return curr.Cold, nil, nil
 	}
 
 	// The answer is yes, calculate how many extra deals we need and create them.
 	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
-	s.l.Log(ctx, curr.Cid, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
+	s.l.Log(ctx, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
 	startedProposals, rejectedProposals, size, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
 	if err != nil {
-		s.l.Log(ctx, curr.Cid, "Starting deals failed, with cause: %s", err)
+		s.l.Log(ctx, "Starting deals failed, with cause: %s", err)
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
 	allErrors = append(allErrors, rejectedProposals...)
@@ -425,7 +427,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 }
 
 func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposals []cid.Cid) ([]ffs.FilStorage, []ffs.DealError) {
-	s.l.Log(ctx, c, "Watching deals unfold...")
+	s.l.Log(ctx, "Watching deals unfold...")
 
 	var failedDeals []ffs.DealError
 	var okDeals []ffs.FilStorage

@@ -82,7 +82,7 @@ func (s *Scheduler) GetRetrievalInfo(rid ffs.RetrievalID) (ffs.RetrievalInfo, er
 }
 
 func (s *Scheduler) executeRetrieval(ctx context.Context, a astore.RetrievalAction, j ffs.Job) (ffs.RetrievalInfo, error) {
-	err := s.cs.Fetch(ctx, a.PayloadCid, &a.PieceCid, a.WalletAddress, a.Selector, a.Miners, a.MaxPrice)
+	fi, err := s.cs.Fetch(ctx, a.PayloadCid, &a.PieceCid, a.WalletAddress, a.Miners, a.MaxPrice, a.Selector)
 	if err != nil {
 		return ffs.RetrievalInfo{}, fmt.Errorf("fetching from cold storage: %s", err)
 	}
@@ -95,9 +95,11 @@ func (s *Scheduler) executeRetrieval(ctx context.Context, a astore.RetrievalActi
 	}
 
 	ri := ffs.RetrievalInfo{
-		RetrievedMiner: miner,
-		DataCid:        dataCid,
-		Size:           int64(size),
+		ID:        a.RetrievalID,
+		DataCid:   dataCid,
+		TotalPaid: fi.FundsSpent,
+		MinerAddr: fi.RetrievedMiner,
+		Size:      int64(size),
 	}
 
 	return ri, nil

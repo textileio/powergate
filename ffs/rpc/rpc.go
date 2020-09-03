@@ -618,8 +618,9 @@ func receiveFile(srv RPCService_StageServer, writer *io.PipeWriter) {
 
 func toRPCHotConfig(config ffs.HotConfig) *HotConfig {
 	return &HotConfig{
-		Enabled:       config.Enabled,
-		AllowUnfreeze: config.AllowUnfreeze,
+		Enabled:          config.Enabled,
+		AllowUnfreeze:    config.AllowUnfreeze,
+		UnfreezeMaxPrice: config.UnfreezeMaxPrice,
 		Ipfs: &IpfsConfig{
 			AddTimeout: int64(config.Ipfs.AddTimeout),
 		},
@@ -667,6 +668,7 @@ func fromRPCHotConfig(config *HotConfig) ffs.HotConfig {
 	if config != nil {
 		res.Enabled = config.Enabled
 		res.AllowUnfreeze = config.AllowUnfreeze
+		res.UnfreezeMaxPrice = config.UnfreezeMaxPrice
 		if config.Ipfs != nil {
 			ipfs := ffs.IpfsConfig{
 				AddTimeout: int(config.Ipfs.AddTimeout),

@@ -225,6 +225,11 @@ func (s StorageConfig) WithHotAllowUnfreeze(allow bool) StorageConfig {
 	return s
 }
 
+func (s StorageConfig) WithUnfreezeMaxPrice(maxPrice uint64) StorageConfig {
+	s.Hot.UnfreezeMaxPrice = maxPrice
+	return s
+}
+
 // Validate validates a StorageConfig.
 func (s StorageConfig) Validate() error {
 	if err := s.Hot.Validate(); err != nil {
@@ -249,6 +254,9 @@ type HotConfig struct {
 	// AllowUnfreeze indicates that if data isn't available in the Hot Storage,
 	// it's allowed to be feeded by Cold Storage if available.
 	AllowUnfreeze bool
+	// UnfreezeMaxPrice indicates the maximum amount of attoFil to pay for
+	// retrieval of data to unfreeze.
+	UnfreezeMaxPrice uint64
 	// Ipfs contains configuration related to storing Cid data in a IPFS node.
 	Ipfs IpfsConfig
 }
@@ -364,11 +372,12 @@ func (fr *FilRenew) Validate() error {
 }
 
 type RetrievalInfo struct {
-	ID             RetrievalID
-	DataCid        cid.Cid
-	RetrievedMiner string
-	Size           int64
-	CreatedAt      time.Time
+	ID        RetrievalID
+	DataCid   cid.Cid
+	TotalPaid uint64
+	MinerAddr string
+	Size      int64
+	CreatedAt time.Time
 }
 
 // CidInfo contains information about the current storage state

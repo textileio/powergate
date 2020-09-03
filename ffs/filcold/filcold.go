@@ -56,17 +56,20 @@ func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain
 
 // Fetch fetches the stored Cid data.The data will be considered available
 // to the underlying blockstore.
-func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, waddr string, miners []string, maxPrice uint64, selector string) error {
-	events, err := fc.dm.Fetch(ctx, waddr, pyCid, piCid, miners)
+func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, waddr string, miners []string, maxPrice uint64, selector string) (ffs.FetchInfo, error) {
+	miner, events, err := fc.dm.Fetch(ctx, waddr, pyCid, piCid, miners)
 	if err != nil {
-		return fmt.Errorf("fetching from deal module: %s", err)
+		return ffs.FetchInfo{}, fmt.Errorf("fetching from deal module: %s", err)
 	}
+	var fundsSpent uint64
 	for e := range events {
 		strEvent := retrievalmarket.ClientEvents[e.Event]
 		strDealStatus := retrievalmarket.DealStatuses[e.Status]
 		fc.l.Log(ctx, "Event: %s, bytes received %d, funds spent: %d attoFil, status: %s ", strEvent, e.BytesReceived, e.FundsSpent, strDealStatus)
+		fundsSpent = e.FundsSpent.Uint64()
+
 	}
-	return nil
+	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
 }
 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using

@@ -624,8 +624,9 @@ func (f *FFS) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealReco
 
 func toRPCHotConfig(config ffs.HotConfig) *rpc.HotConfig {
 	return &rpc.HotConfig{
-		Enabled:       config.Enabled,
-		AllowUnfreeze: config.AllowUnfreeze,
+		Enabled:          config.Enabled,
+		AllowUnfreeze:    config.AllowUnfreeze,
+		UnfreezeMaxPrice: config.UnfreezeMaxPrice,
 		Ipfs: &rpc.IpfsConfig{
 			AddTimeout: int64(config.Ipfs.AddTimeout),
 		},
@@ -657,8 +658,9 @@ func fromRPCStorageConfig(config *rpc.StorageConfig) ffs.StorageConfig {
 	ret := ffs.StorageConfig{Repairable: config.Repairable}
 	if config.Hot != nil {
 		ret.Hot = ffs.HotConfig{
-			Enabled:       config.Hot.Enabled,
-			AllowUnfreeze: config.Hot.AllowUnfreeze,
+			Enabled:          config.Hot.Enabled,
+			AllowUnfreeze:    config.Hot.AllowUnfreeze,
+			UnfreezeMaxPrice: config.Hot.UnfreezeMaxPrice,
 		}
 		if config.Hot.Ipfs != nil {
 			ret.Hot.Ipfs = ffs.IpfsConfig{

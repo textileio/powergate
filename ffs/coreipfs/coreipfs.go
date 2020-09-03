@@ -52,7 +52,7 @@ func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 	if err := ci.ipfs.Pin().Rm(ctx, path.IpfsPath(c), options.Pin.RmRecursive(true)); err != nil {
 		return fmt.Errorf("unpinning cid from ipfs node: %s", err)
 	}
-	ci.l.Log(ctx, c, "Cid data was pinned in IPFS node.")
+	ci.l.Log(ctx, "Cid data was pinned in IPFS node.")
 	return nil
 }
 

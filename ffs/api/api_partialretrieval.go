@@ -81,7 +81,7 @@ func (i *API) GetRetrieval(prID ffs.RetrievalID) (Retrieval, error) {
 	if err != nil {
 		return Retrieval{}, fmt.Errorf("getting retrieval info: %s", err)
 	}
-	r.RetrievalMiner = ri.RetrievalMiner
+	r.RetrievalMiner = ri.MinerAddr
 	r.DataCid = ri.DataCid
 
 	return r, nil

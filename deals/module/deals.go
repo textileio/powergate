@@ -176,11 +176,12 @@ func (m *Module) Fetch(ctx context.Context, waddr string, payloadCid cid.Cid, pi
 	return events, nil
 }
 
-// Retrieve retrieves Deal data.
-func (m *Module) Retrieve(ctx context.Context, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string, CAREncoding bool) (io.ReadCloser, error) {
+// Retrieve retrieves Deal data. It returns the miner address where the data
+// is being fetched from, and a byte reader to read the retrieved data.
+func (m *Module) Retrieve(ctx context.Context, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string, CAREncoding bool) (string, io.ReadCloser, error) {
 	rf, err := ioutil.TempDir(m.cfg.ImportPath, "retrieve-*")
 	if err != nil {
-		return nil, fmt.Errorf("creating temp dir for retrieval: %s", err)
+		return "", nil, fmt.Errorf("creating temp dir for retrieval: %s", err)
 	}
 	ref := api.FileRef{
 		Path:  filepath.Join(rf, "ret"),
@@ -189,30 +190,30 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, payloadCid cid.Cid,
 
 	lapi, cls, err := m.clientBuilder()
 	if err != nil {
-		return nil, fmt.Errorf("creating lotus client: %s", err)
+		return "", nil, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
-	events, err := m.retrieve(ctx, lapi, waddr, payloadCid, pieceCid, miners, &ref)
+	miner, events, err := m.retrieve(ctx, lapi, waddr, payloadCid, pieceCid, miners, &ref)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving from lotus: %s", err)
+		return "", nil, fmt.Errorf("retrieving from lotus: %s", err)
 	}
 	for e := range events {
 		if e.Err != "" {
-			return nil, fmt.Errorf("in progress retrieval error: %s", e.Err)
+			return "", nil, fmt.Errorf("in progress retrieval error: %s", e.Err)
 		}
 	}
 	f, err := os.Open(ref.Path)
 	if err != nil {
-		return nil, fmt.Errorf("opening retrieved file: %s", err)
+		return "", nil, fmt.Errorf("opening retrieved file: %s", err)
 	}
 
-	return &autodeleteFile{File: f}, nil
+	return miner, &autodeleteFile{File: f}, nil
 }
 
-func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string, ref *api.FileRef) (<-chan marketevents.RetrievalEvent, error) {
+func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string, ref *api.FileRef) (string, <-chan marketevents.RetrievalEvent, error) {
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
-		return nil, fmt.Errorf("parsing wallet address: %s", err)
+		return "", nil, fmt.Errorf("parsing wallet address: %s", err)
 	}
 
 	// Ask each miner about costs and information about retrieving this data.
@@ -232,7 +233,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, w
 
 	// If no miners available, fail.
 	if len(offers) == 0 {
-		return nil, ErrRetrievalNoAvailableProviders
+		return "", nil, ErrRetrievalNoAvailableProviders
 	}
 
 	// Sort received options by price.
@@ -281,7 +282,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, w
 		}
 	}()
 
-	return out, nil
+	return o.Miner.String(), out, nil
 }
 
 // GetDealStatus returns the current status of the deal, and a flag indicating if the miner of the deal was slashed.
