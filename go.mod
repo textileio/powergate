@@ -8,10 +8,10 @@ require (
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/filecoin-project/go-address v0.0.3
-	github.com/filecoin-project/go-fil-markets v0.5.7
+	github.com/filecoin-project/go-fil-markets v0.5.9
 	github.com/filecoin-project/go-jsonrpc v0.1.2-0.20200822201400-474f4fdccc52
 	github.com/filecoin-project/go-padreader v0.0.0-20200210211231-548257017ca6
-	github.com/filecoin-project/lotus v0.5.5-0.20200828200022-9d8af87ecf08
+	github.com/filecoin-project/lotus v0.5.8-0.20200902214718-05db79ee35f1
 	github.com/filecoin-project/specs-actors v0.9.3
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
