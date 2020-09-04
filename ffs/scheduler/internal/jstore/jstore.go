@@ -321,7 +321,7 @@ func (s *Store) notifyWatchers(j ffs.Job) {
 func (s *Store) loadExecutingJobs() error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	q := query.Query{Prefix: dsBaseStartedDeals.String()}
+	q := query.Query{Prefix: dsBaseJob.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return fmt.Errorf("querying executing jobs in datastore: %s", err)
