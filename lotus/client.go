@@ -20,9 +20,10 @@ var (
 	log                     = logging.Logger("lotus-client")
 )
 
+// ClientBuilder creates a new Lotus client.
 type ClientBuilder func() (*apistruct.FullNodeStruct, func(), error)
 
-// New creates a new client to Lotus API.
+// NewBuilder creates a new ClientBuilder.
 func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBuilder, error) {
 	addr, err := util.TCPAddrFromMultiAddr(maddr)
 	if err != nil {
