@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/filecoin-project/specs-actors/actors/crypto"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/lotus"
 )
