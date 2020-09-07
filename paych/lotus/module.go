@@ -10,19 +10,20 @@ import (
 	"github.com/filecoin-project/specs-actors/actors/builtin/paych"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/lotus"
 )
 
 // Module provides access to the paych api.
 type Module struct {
-	api *apistruct.FullNodeStruct
+	clientBuilder lotus.ClientBuilder
 }
 
 var _ ffs.PaychManager = (*Module)(nil)
 
 // New creates a new paych module.
-func New(api *apistruct.FullNodeStruct) *Module {
+func New(clientBuilder lotus.ClientBuilder) *Module {
 	return &Module{
-		api: api,
+		clientBuilder: clientBuilder,
 	}
 }
 
@@ -33,14 +34,20 @@ func (m *Module) List(ctx context.Context, addrs ...string) ([]ffs.PaychInfo, er
 		filter[addr] = struct{}{}
 	}
 
-	allAddrs, err := m.api.PaychList(ctx)
+	client, cls, err := m.clientBuilder()
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
+	allAddrs, err := client.PaychList(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	chans := make([]<-chan statusResult, len(allAddrs))
 	for i, addr := range allAddrs {
-		chans[i] = m.paychStatus(ctx, addr)
+		chans[i] = m.paychStatus(ctx, client, addr)
 	}
 
 	resultsCh := make(chan statusResult, len(chans))
@@ -122,14 +129,20 @@ func (m *Module) Redeem(ctx context.Context, ch string) error {
 	if err != nil {
 		return err
 	}
-	vouchers, err := m.api.PaychVoucherList(ctx, chAddr)
+
+	client, cls, err := m.clientBuilder()
+	if err != nil {
+		return fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	vouchers, err := client.PaychVoucherList(ctx, chAddr)
 	if err != nil {
 		return err
 	}
 
 	var best *paych.SignedVoucher
 	for _, v := range vouchers {
-		spendable, err := m.api.PaychVoucherCheckSpendable(ctx, chAddr, v, nil, nil)
+		spendable, err := client.PaychVoucherCheckSpendable(ctx, chAddr, v, nil, nil)
 		if err != nil {
 			return err
 		}
@@ -143,12 +156,12 @@ func (m *Module) Redeem(ctx context.Context, ch string) error {
 	}
 
 	// ToDo: fix last two params since API changed.
-	mcid, err := m.api.PaychVoucherSubmit(ctx, chAddr, best, nil, nil)
+	mcid, err := client.PaychVoucherSubmit(ctx, chAddr, best, nil, nil)
 	if err != nil {
 		return err
 	}
 
-	mwait, err := m.api.StateWaitMsg(ctx, mcid, 3)
+	mwait, err := client.StateWaitMsg(ctx, mcid, 3)
 	if err != nil {
 		return err
 	}
@@ -166,11 +179,11 @@ type statusResult struct {
 	err    error
 }
 
-func (m *Module) paychStatus(ctx context.Context, addr address.Address) <-chan statusResult {
+func (m *Module) paychStatus(ctx context.Context, client *apistruct.FullNodeStruct, addr address.Address) <-chan statusResult {
 	c := make(chan statusResult)
 	go func() {
 		defer close(c)
-		status, err := m.api.PaychStatus(ctx, addr)
+		status, err := client.PaychStatus(ctx, addr)
 		c <- statusResult{addr: addr, status: status, err: err}
 	}()
 	return c

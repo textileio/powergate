@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -74,9 +73,11 @@ func LaunchDevnetDocker(t TestingTWithCleanup, numMiners int, ipfsMaddr string, 
 }
 
 // CreateLocalDevnetWithIPFS creates a local devnet connected to an IPFS node.
-func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners int, ipfsMaddr string, mountVolumes bool) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
+func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners int, ipfsMaddr string, mountVolumes bool) (lotus.ClientBuilder, address.Address, []address.Address) {
 	lotusDevnet := LaunchDevnetDocker(t, numMiners, ipfsMaddr, mountVolumes)
-	c, cls, err := lotus.New(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "", 1)
+	cb, err := lotus.NewBuilder(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "", 1)
+	require.NoError(t, err)
+	c, cls, err := cb()
 	require.NoError(t, err)
 	t.Cleanup(func() { cls() })
 	ctx := context.Background()
@@ -85,12 +86,12 @@ func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners int, ipfsMaddr s
 	miners, err := c.StateListMiners(ctx, types.EmptyTSK)
 	require.NoError(t, err)
 
-	return c, addr, miners
+	return cb, addr, miners
 }
 
 // CreateLocalDevnet returns an API client that targets a local devnet with numMiners number
 // of miners. Refer to http://github.com/textileio/local-devnet for more information.
-func CreateLocalDevnet(t TestingTWithCleanup, numMiners int) (*apistruct.FullNodeStruct, address.Address, []address.Address) {
+func CreateLocalDevnet(t TestingTWithCleanup, numMiners int) (lotus.ClientBuilder, address.Address, []address.Address) {
 	return CreateLocalDevnetWithIPFS(t, numMiners, "", true)
 }
 

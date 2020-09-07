@@ -6,6 +6,7 @@ import (
 
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/textileio/powergate/lotus"
 )
 
 const (
@@ -17,20 +18,25 @@ const (
 
 // ChainSync provides methods to resolve chain syncing situations.
 type ChainSync struct {
-	api *apistruct.FullNodeStruct
+	clientBuilder lotus.ClientBuilder
 }
 
 // New returns a new ChainSync.
-func New(api *apistruct.FullNodeStruct) *ChainSync {
+func New(clientBuilder lotus.ClientBuilder) *ChainSync {
 	return &ChainSync{
-		api: api,
+		clientBuilder: clientBuilder,
 	}
 }
 
 // Precedes returns true if from and to don't live in different chain forks, and
 // from is at a lower epoch than to.
 func (cs *ChainSync) Precedes(ctx context.Context, from, to types.TipSetKey) (bool, error) {
-	fpath, err := cs.api.ChainGetPath(ctx, from, to)
+	client, cls, err := cs.clientBuilder()
+	if err != nil {
+		return false, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	fpath, err := client.ChainGetPath(ctx, from, to)
 	if err != nil {
 		return false, fmt.Errorf("getting path from %v to %v: %s", from.Cids(), to.Cids(), err)
 	}

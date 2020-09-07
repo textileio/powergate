@@ -39,8 +39,8 @@ var (
 		Cold: ffs.ColdConfig{
 			Enabled: true,
 			Filecoin: ffs.FilConfig{
-				RepFactor:       4,
-				TrustedMiners:   []string{"t016303", "t016304", "t016305", "t016306"},
+				RepFactor:       5,
+				TrustedMiners:   []string{"t016303", "t016304", "t016305", "t016306", "t016309"},
 				DealMinDuration: util.MinDealDuration,
 			},
 		},

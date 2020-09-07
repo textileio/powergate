@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/filecoin-project/specs-actors/actors/abi"
 	"github.com/ipfs/go-datastore"
@@ -14,6 +13,7 @@ import (
 	"github.com/textileio/powergate/chainstore"
 	"github.com/textileio/powergate/chainsync"
 	"github.com/textileio/powergate/index/faults"
+	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/signaler"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -35,9 +35,9 @@ var (
 
 // Index builds and provides faults history of miners.
 type Index struct {
-	api      *apistruct.FullNodeStruct
-	store    *chainstore.Store
-	signaler *signaler.Signaler
+	clientBuilder lotus.ClientBuilder
+	store         *chainstore.Store
+	signaler      *signaler.Signaler
 
 	lock  sync.Mutex
 	index faults.IndexSnapshot
@@ -49,8 +49,8 @@ type Index struct {
 
 // New returns a new FaultIndex. It will load previous state from ds, and
 // immediately start getting in sync with new on-chain.
-func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, error) {
-	cs := chainsync.New(api)
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder) (*Index, error) {
+	cs := chainsync.New(clientBuilder)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {
 		return nil, err
@@ -58,9 +58,9 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Index, erro
 	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
 	s := &Index{
-		api:      api,
-		store:    store,
-		signaler: signaler.New(),
+		clientBuilder: clientBuilder,
+		store:         store,
+		signaler:      signaler.New(),
 		index: faults.IndexSnapshot{
 			Miners: make(map[string]faults.Faults),
 		},
@@ -116,6 +116,7 @@ func (s *Index) Close() error {
 // start is a long running job that keeps the index up to date with chain updates.
 func (s *Index) start() {
 	defer close(s.finished)
+	return // Disabled until Lotus fixes its Faults APIs.
 	if err := s.updateIndex(); err != nil {
 		log.Errorf("initial updating faults index: %s", err)
 	}
@@ -135,9 +136,14 @@ func (s *Index) start() {
 
 // updateIndex updates current index.
 func (s *Index) updateIndex() error {
+	client, cls, err := s.clientBuilder()
+	if err != nil {
+		return fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
 	log.Info("updating faults index...")
 
-	chainHead, err := s.api.ChainHead(s.ctx)
+	chainHead, err := client.ChainHead(s.ctx)
 	if err != nil {
 		return fmt.Errorf("getting chain head: %s", err)
 	}
@@ -148,7 +154,7 @@ func (s *Index) updateIndex() error {
 
 	// Get the tipset hOffset before current head as the target tipset
 	// to let the index be built.
-	targetTs, err := s.api.ChainGetTipSetByHeight(s.ctx, chainHead.Height()-hOffset, chainHead.Key())
+	targetTs, err := client.ChainGetTipSetByHeight(s.ctx, chainHead.Height()-hOffset, chainHead.Key())
 	if err != nil {
 		return fmt.Errorf("getting offseted tipset from head: %s", err)
 	}
@@ -166,7 +172,7 @@ func (s *Index) updateIndex() error {
 
 	// Get the tipset path between the indexTs and the targetTs, so to
 	// calculate the faults that happened between last saved index and target.
-	_, path, err := chainsync.ResolveBase(s.ctx, s.api, indexTs, targetTs.Key())
+	_, path, err := chainsync.ResolveBase(s.ctx, client, indexTs, targetTs.Key())
 	if err != nil {
 		return fmt.Errorf("resolving base path: %s", err)
 	}
@@ -183,7 +189,7 @@ func (s *Index) updateIndex() error {
 		// in this section and include it into the updating index.
 		sectionLength := abi.ChainEpoch(j - i)
 		sectionHeadTs := path[j-1].Key()
-		fs, err := s.api.StateAllMinerFaults(s.ctx, sectionLength, sectionHeadTs)
+		fs, err := client.StateAllMinerFaults(s.ctx, sectionLength, sectionHeadTs)
 		if err != nil {
 			return fmt.Errorf("getting faults from path section: %s", err)
 		}

@@ -13,7 +13,6 @@ import (
 
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
-	"go.opencensus.io/stats/view"
 )
 
 var (
@@ -21,44 +20,38 @@ var (
 	log                     = logging.Logger("lotus-client")
 )
 
+type ClientBuilder func() (*apistruct.FullNodeStruct, func(), error)
+
 // New creates a new client to Lotus API.
-func New(maddr ma.Multiaddr, authToken string, connRetries int) (*apistruct.FullNodeStruct, func(), error) {
+func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBuilder, error) {
 	addr, err := util.TCPAddrFromMultiAddr(maddr)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	headers := http.Header{
 		"Authorization": []string{"Bearer " + authToken},
 	}
 
-	var api apistruct.FullNodeStruct
-	var closer jsonrpc.ClientCloser
-	for i := 0; i < connRetries; i++ {
-		closer, err = jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin",
-			[]interface{}{
-				&api.Internal,
-				&api.CommonStruct.Internal,
-			}, headers)
-		if err == nil {
-			break
+	return func() (*apistruct.FullNodeStruct, func(), error) {
+		var api apistruct.FullNodeStruct
+		var closer jsonrpc.ClientCloser
+		for i := 0; i < connRetries; i++ {
+			closer, err = jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin",
+				[]interface{}{
+					&api.Internal,
+					&api.CommonStruct.Internal,
+				}, headers)
+			if err == nil {
+				break
+			}
+			log.Warnf("failed to connect to Lotus client %s, retrying...", err)
+			time.Sleep(time.Second * 5)
 		}
-		log.Warnf("failed to connect to Lotus client %s, retrying...", err)
-		time.Sleep(time.Second * 5)
-	}
-	if err != nil {
-		return nil, nil, fmt.Errorf("couldn't connect to Lotus API: %s", err)
-	}
+		if err != nil {
+			return nil, nil, fmt.Errorf("couldn't connect to Lotus API: %s", err)
+		}
 
-	if err := view.Register(vHeight); err != nil {
-		log.Fatalf("register metrics views: %v", err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	go monitorLotusSync(ctx, &api)
-
-	return &api, func() {
-		cancel()
-		closer()
+		return &api, closer, nil
 	}, nil
 }
 

@@ -23,9 +23,12 @@ func TestFreshBuild(t *testing.T) {
 	// when querying Asks.
 	t.SkipNow()
 	ctx := context.Background()
-	dnet, _, miners := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, miners := tests.CreateLocalDevnet(t, 1)
+	c, cls, err := clientBuilder()
+	require.NoError(t, err)
+	defer cls()
 
-	index, _, err := generateIndex(ctx, dnet)
+	index, _, err := generateIndex(ctx, c)
 	require.NoError(t, err)
 
 	// We should have storage info about every miner in devnet

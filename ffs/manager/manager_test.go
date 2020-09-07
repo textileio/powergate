@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	dealsModule "github.com/textileio/powergate/deals/module"
+	"github.com/textileio/powergate/lotus"
 	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -192,13 +192,13 @@ func TestDefaultStorageConfig(t *testing.T) {
 	require.Equal(t, c, c3)
 }
 
-func newManager(client *apistruct.FullNodeStruct, ds datastore.TxnDatastore, masterAddr address.Address, ffsUseMasterAddr bool) (*Manager, func() error, error) {
-	wm, err := walletModule.New(client, masterAddr, *big.NewInt(4000000000), false, "")
+func newManager(clientBuilder lotus.ClientBuilder, ds datastore.TxnDatastore, masterAddr address.Address, ffsUseMasterAddr bool) (*Manager, func() error, error) {
+	wm, err := walletModule.New(clientBuilder, masterAddr, *big.NewInt(4000000000), false, "")
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}
-	pm := paych.New(client)
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), client)
+	pm := paych.New(clientBuilder)
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder)
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}

@@ -28,15 +28,20 @@ const (
 // updateOnChainIndex updates on-chain index information in the direction of heaviest tipset
 // with some height offset to reduce sensibility to reorgs.
 func (mi *Index) updateOnChainIndex() error {
+	client, cls, err := mi.clientBuilder()
+	if err != nil {
+		return fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
 	log.Info("updating on-chain index...")
-	heaviest, err := mi.api.ChainHead(mi.ctx)
+	heaviest, err := client.ChainHead(mi.ctx)
 	if err != nil {
 		return err
 	}
 	if heaviest.Height()-hOffset <= 0 {
 		return nil
 	}
-	new, err := mi.api.ChainGetTipSetByHeight(mi.ctx, heaviest.Height()-hOffset, heaviest.Key())
+	new, err := client.ChainGetTipSetByHeight(mi.ctx, heaviest.Height()-hOffset, heaviest.Key())
 	if err != nil {
 		return err
 	}
@@ -60,12 +65,12 @@ func (mi *Index) updateOnChainIndex() error {
 	log.Infof("current state height %d, new tipset height %d", chainIndex.LastUpdated, new.Height())
 	if hdiff > fullThreshold || chainIndex.LastUpdated == 0 {
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "full"))
-		if err := fullRefresh(mi.ctx, mi.api, &chainIndex); err != nil {
+		if err := fullRefresh(mi.ctx, client, &chainIndex); err != nil {
 			return fmt.Errorf("error doing full refresh: %s", err)
 		}
 	} else {
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "delta"))
-		if err := deltaRefresh(mi.ctx, mi.api, &chainIndex, *ts, new); err != nil {
+		if err := deltaRefresh(mi.ctx, client, &chainIndex, *ts, new); err != nil {
 			return fmt.Errorf("error doing delta refresh: %s", err)
 		}
 	}

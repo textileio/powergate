@@ -27,6 +27,7 @@ import (
 	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
+	"github.com/textileio/powergate/lotus"
 	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -80,17 +81,20 @@ func RequireFilStored(ctx context.Context, t require.TestingT, client *apistruct
 func NewAPI(t tests.TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := CreateIPFS(t)
-	addr, client, ms := NewDevnet(t, numMiners, ipfsMAddr)
-	manager, closeManager := NewFFSManager(t, ds, client, addr, ms, ipfs)
+	addr, clientBuilder, ms := NewDevnet(t, numMiners, ipfsMAddr)
+	manager, closeManager := NewFFSManager(t, ds, clientBuilder, addr, ms, ipfs)
 	_, auth, err := manager.Create(context.Background())
 	require.NoError(t, err)
 	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 	fapi, err := manager.GetByAuthToken(auth)
 	require.NoError(t, err)
+	client, cls, err := clientBuilder()
+	require.NoError(t, err)
 	return ipfs, client, fapi, func() {
 		err := fapi.Close()
 		require.NoError(t, err)
 		closeManager()
+		cls()
 	}
 }
 
@@ -108,7 +112,7 @@ func CreateIPFS(t tests.TestingTWithCleanup) (*httpapi.HttpApi, string) {
 }
 
 // NewDevnet creates a localnet.
-func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
+func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (address.Address, lotus.ClientBuilder, ffs.MinerSelector) {
 	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
@@ -124,11 +128,11 @@ func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (add
 }
 
 // NewFFSManager returns a new FFS manager.
-func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, lotusClient *apistruct.FullNodeStruct, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), lotusClient)
+func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder)
 	require.NoError(t, err)
 
-	fchain := filchain.New(lotusClient)
+	fchain := filchain.New(clientBuilder)
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
 	cl := filcold.New(ms, dm, ipfsClient, fchain, l)
 	hl, err := coreipfs.New(ipfsClient, l)
@@ -136,10 +140,10 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, lotusClient *a
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl)
 	require.NoError(t, err)
 
-	wm, err := walletModule.New(lotusClient, masterAddr, *big.NewInt(iWalletBal), false, "")
+	wm, err := walletModule.New(clientBuilder, masterAddr, *big.NewInt(iWalletBal), false, "")
 	require.NoError(t, err)
 
-	pm := paych.New(lotusClient)
+	pm := paych.New(clientBuilder)
 
 	manager, err := manager.New(ds, wm, pm, dm, sched, false)
 	require.NoError(t, err)

@@ -48,10 +48,13 @@ func TestStore(t *testing.T) {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			t.Parallel()
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
-				client, addr, _ := tests.CreateLocalDevnet(t, nm)
-				m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
+				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm)
+				m, err := New(tests.NewTxMapDatastore(), clientBuilder, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 				require.NoError(t, err)
-				cid, pcids, err := storeMultiMiner(m, client, nm, randomBytes(600))
+				c, cls, err := clientBuilder()
+				require.NoError(t, err)
+				defer cls()
+				cid, pcids, err := storeMultiMiner(m, c, nm, randomBytes(600))
 				require.NoError(t, err)
 				pending, err := m.ListStorageDealRecords(
 					deals.WithIncludePending(true),
@@ -64,7 +67,7 @@ func TestStore(t *testing.T) {
 				final, err := m.ListStorageDealRecords(deals.WithIncludeFinal(true))
 				require.NoError(t, err)
 				require.Empty(t, final)
-				err = waitForDealComplete(client, pcids)
+				err = waitForDealComplete(c, pcids)
 				require.NoError(t, err)
 				time.Sleep(util.AvgBlockTime)
 				pending, err = m.ListStorageDealRecords(deals.WithIncludePending(true))
@@ -92,14 +95,17 @@ func TestRetrieve(t *testing.T) {
 			t.Parallel()
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
 				data := randomBytes(600)
-				client, addr, _ := tests.CreateLocalDevnet(t, nm)
-				m, err := New(tests.NewTxMapDatastore(), client, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
+				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm)
+				m, err := New(tests.NewTxMapDatastore(), clientBuilder, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
+				require.NoError(t, err)
+				c, cls, err := clientBuilder()
+				require.NoError(t, err)
+				defer cls()
+
+				dcid, pcids, err := storeMultiMiner(m, c, nm, data)
 				require.NoError(t, err)
 
-				dcid, pcids, err := storeMultiMiner(m, client, nm, data)
-				require.NoError(t, err)
-
-				err = waitForDealComplete(client, pcids)
+				err = waitForDealComplete(c, pcids)
 				require.NoError(t, err)
 				ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 				defer cancel()

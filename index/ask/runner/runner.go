@@ -15,6 +15,7 @@ import (
 	"github.com/textileio/powergate/index/ask"
 	"github.com/textileio/powergate/index/ask/internal/metrics"
 	"github.com/textileio/powergate/index/ask/internal/store"
+	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/signaler"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
@@ -31,9 +32,9 @@ var (
 
 // Runner contains cached information about markets.
 type Runner struct {
-	api      *apistruct.FullNodeStruct
-	store    *store.Store
-	signaler *signaler.Signaler
+	clientBuilder lotus.ClientBuilder
+	store         *store.Store
+	signaler      *signaler.Signaler
 
 	lock        sync.Mutex
 	index       ask.Index
@@ -47,7 +48,7 @@ type Runner struct {
 }
 
 // New returns a new ask index runner. It load a persisted ask index, and immediately starts building a new fresh one.
-func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, error) {
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder) (*Runner, error) {
 	if err := metrics.Init(); err != nil {
 		return nil, fmt.Errorf("initing metrics: %s", err)
 	}
@@ -59,9 +60,9 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct) (*Runner, err
 	log.Infof("loaded persisted index with %d entries", len(idx.Storage))
 	ctx, cancel := context.WithCancel(context.Background())
 	ai := &Runner{
-		signaler: signaler.New(),
-		api:      api,
-		store:    store,
+		signaler:      signaler.New(),
+		clientBuilder: clientBuilder,
+		store:         store,
 
 		index:       idx,
 		orderedAsks: generateOrderedAsks(idx.Storage),
@@ -165,8 +166,14 @@ func (ai *Runner) start() {
 func (ai *Runner) update() error {
 	log.Info("updating ask index...")
 	defer log.Info("ask index updated")
+
+	client, cls, err := ai.clientBuilder()
+	if err != nil {
+		return fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
 	startTime := time.Now()
-	newIndex, cache, err := generateIndex(ai.ctx, ai.api)
+	newIndex, cache, err := generateIndex(ai.ctx, client)
 	if err != nil {
 		return fmt.Errorf("generating index: %s", err)
 	}
@@ -255,7 +262,7 @@ func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr
 	if err != nil {
 		return ask.StorageAsk{}, false, fmt.Errorf("getting power %s: %s", addr, err)
 	}
-	ribasMiners := []string{"t016303", "t016304", "t016305", "t016306"}
+	ribasMiners := []string{"t016303", "t016304", "t016305", "t016306", "t016309"}
 	var forceQueryAsk bool
 	for _, rm := range ribasMiners {
 		if addr.String() == rm {

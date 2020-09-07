@@ -12,6 +12,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/iplocation"
+	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -52,7 +53,7 @@ func (mi *Index) metaWorker() {
 				}
 			}
 			mi.lock.Unlock()
-			newIndex := updateMetaIndex(mi.ctx, mi.api, mi.h, mi.lr, addrs)
+			newIndex := updateMetaIndex(mi.ctx, mi.clientBuilder, mi.h, mi.lr, addrs)
 			if err := mi.persistMetaIndex(newIndex); err != nil {
 				log.Errorf("error when persisting meta index: %s", err)
 			}
@@ -67,7 +68,13 @@ func (mi *Index) metaWorker() {
 
 // updateMetaIndex generates a new index that contains fresh metadata information
 // of addrs miners.
-func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, addrs []string) miner.MetaIndex {
+func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, addrs []string) miner.MetaIndex {
+	client, cls, err := clientBuilder()
+	if err != nil {
+		log.Errorf("creating lotus client: %s", err)
+		return miner.MetaIndex{}
+	}
+	defer cls()
 	index := miner.MetaIndex{
 		Info: make(map[string]miner.Meta),
 	}
@@ -77,7 +84,7 @@ func updateMetaIndex(ctx context.Context, api *apistruct.FullNodeStruct, h P2PHo
 		rl <- struct{}{}
 		go func(a string) {
 			defer func() { <-rl }()
-			si, err := getMeta(ctx, api, h, lr, a)
+			si, err := getMeta(ctx, client, h, lr, a)
 			if err != nil {
 				log.Debugf("error getting static info: %s", err)
 				return

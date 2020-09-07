@@ -35,35 +35,41 @@ func TestMain(m *testing.M) {
 }
 
 func TestClientImport(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	client, cls, err := clientBuilder()
+	require.NoError(t, err)
+	defer cls()
 
 	f, err := ioutil.TempFile(tmpDir, "")
-	checkErr(t, err)
+	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, f.Close())
 		require.NoError(t, os.Remove(f.Name()))
 	}()
 	bts := make([]byte, 4)
 	_, err = rand.Read(bts)
-	checkErr(t, err)
+	require.NoError(t, err)
 	_, err = io.Copy(f, bytes.NewReader(bts))
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	ref := api.FileRef{
 		Path: f.Name(),
 	}
 	res, err := client.ClientImport(context.Background(), ref)
-	checkErr(t, err)
+	require.NoError(t, err)
 	if !res.Root.Defined() {
 		t.Errorf("undefined cid from import")
 	}
 }
 
 func TestClientChainNotify(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	client, cls, err := clientBuilder()
+	require.NoError(t, err)
+	defer cls()
 
 	ch, err := client.ChainNotify(context.Background())
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	// ch is guaranteed to push always current tipset
 	h := <-ch
@@ -83,41 +89,42 @@ func TestClientChainNotify(t *testing.T) {
 }
 
 func TestChainHead(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
-
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	client, cls, err := clientBuilder()
+	require.NoError(t, err)
+	defer cls()
 	ts, err := client.ChainHead(context.Background())
-	checkErr(t, err)
+	require.NoError(t, err)
 	if len(ts.Cids()) == 0 || len(ts.Blocks()) == 0 || ts.Height() == 0 {
 		t.Fatalf("invalid tipset")
 	}
 }
 
 func TestChainGetTipset(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	client, cls, err := clientBuilder()
+	require.NoError(t, err)
+	defer cls()
 
 	ts, err := client.ChainHead(context.Background())
-	checkErr(t, err)
+	require.NoError(t, err)
 	pts, err := client.ChainGetTipSet(context.Background(), types.NewTipSetKey(ts.Blocks()[0].Parents...))
-	checkErr(t, err)
+	require.NoError(t, err)
 	if len(pts.Cids()) == 0 || len(pts.Blocks()) == 0 || pts.Height() != ts.Height()-1 {
 		t.Fatalf("invalid tipset")
 	}
 }
 
 func TestGetPeerID(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	client, cls, err := clientBuilder()
+	require.NoError(t, err)
+	defer cls()
 
 	miners, err := client.StateListMiners(context.Background(), types.EmptyTSK)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	mi, err := client.StateMinerInfo(context.Background(), miners[0], types.EmptyTSK)
-	checkErr(t, err)
-	checkErr(t, mi.PeerId.Validate())
-}
-
-func checkErr(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NoError(t, mi.PeerId.Validate())
 }
