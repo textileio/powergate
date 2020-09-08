@@ -102,7 +102,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("transferring funds to new address: %s", err)
 		}
-		log.Info("%s funding transaction message: %s", addr, smsg.Message.Cid)
+		log.Infof("%s funding transaction message: %s", addr, smsg.Message.Cid)
 	}
 
 	return addr.String(), nil
