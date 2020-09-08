@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -15,6 +14,7 @@ import (
 	"github.com/textileio/powergate/chainsync"
 	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/iplocation"
+	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/signaler"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -40,12 +40,12 @@ type P2PHost interface {
 
 // Index builds and provides information about FC miners.
 type Index struct {
-	api      *apistruct.FullNodeStruct
-	ds       datastore.TxnDatastore
-	store    *chainstore.Store
-	h        P2PHost
-	lr       iplocation.LocationResolver
-	signaler *signaler.Signaler
+	clientBuilder lotus.ClientBuilder
+	ds            datastore.TxnDatastore
+	store         *chainstore.Store
+	h             P2PHost
+	lr            iplocation.LocationResolver
+	signaler      *signaler.Signaler
 
 	chMeta      chan struct{}
 	metaTicker  *time.Ticker
@@ -62,8 +62,8 @@ type Index struct {
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
-func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver) (*Index, error) {
-	cs := chainsync.New(api)
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver) (*Index, error) {
+	cs := chainsync.New(clientBuilder)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {
 		return nil, err
@@ -71,15 +71,15 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, h P2PHost, lr
 	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
 	mi := &Index{
-		api:         api,
-		ds:          ds,
-		store:       store,
-		signaler:    signaler.New(),
-		h:           h,
-		lr:          lr,
-		chMeta:      make(chan struct{}, 1),
-		metaTicker:  time.NewTicker(metadataRefreshInterval),
-		minerTicker: time.NewTicker(util.AvgBlockTime),
+		clientBuilder: clientBuilder,
+		ds:            ds,
+		store:         store,
+		signaler:      signaler.New(),
+		h:             h,
+		lr:            lr,
+		chMeta:        make(chan struct{}, 1),
+		metaTicker:    time.NewTicker(metadataRefreshInterval),
+		minerTicker:   time.NewTicker(util.AvgBlockTime),
 
 		ctx:      ctx,
 		cancel:   cancel,

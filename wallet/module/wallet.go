@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/filecoin-project/specs-actors/actors/crypto"
 	logger "github.com/ipfs/go-log/v2"
+	"github.com/textileio/powergate/lotus"
 )
 
 var (
@@ -26,19 +26,19 @@ var (
 
 // Module exposes the filecoin wallet api.
 type Module struct {
-	api         *apistruct.FullNodeStruct
-	iAmount     *big.Int
-	masterAddr  address.Address
-	networkName string
+	clientBuilder lotus.ClientBuilder
+	iAmount       *big.Int
+	masterAddr    address.Address
+	networkName   string
 }
 
 // New creates a new wallet module.
-func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, autocreate bool, networkName string) (*Module, error) {
+func New(clientBuilder lotus.ClientBuilder, maddr address.Address, iam big.Int, autocreate bool, networkName string) (*Module, error) {
 	m := &Module{
-		api:         api,
-		iAmount:     &iam,
-		masterAddr:  maddr,
-		networkName: networkName,
+		clientBuilder: clientBuilder,
+		iAmount:       &iam,
+		masterAddr:    maddr,
+		networkName:   networkName,
 	}
 	if maddr == address.Undef && autocreate {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -54,9 +54,9 @@ func New(api *apistruct.FullNodeStruct, maddr address.Address, iam big.Int, auto
 		log.Info("Autocreated master wallet addr funded successfully")
 		maddr, _ = address.NewFromString(newMasterAddr)
 		m = &Module{
-			api:        api,
-			iAmount:    &iam,
-			masterAddr: maddr,
+			clientBuilder: clientBuilder,
+			iAmount:       &iam,
+			masterAddr:    maddr,
 		}
 	}
 
@@ -80,7 +80,13 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 		return "", fmt.Errorf("unknown address type %s", typ)
 	}
 
-	addr, err := m.api.WalletNew(ctx, ty)
+	client, cls, err := m.clientBuilder()
+	if err != nil {
+		return "", fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
+	addr, err := client.WalletNew(ctx, ty)
 	if err != nil {
 		return "", err
 	}
@@ -92,7 +98,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 			Value: types.BigInt{Int: m.iAmount},
 		}
 
-		smsg, err := m.api.MpoolPushMessage(ctx, msg, nil)
+		smsg, err := client.MpoolPushMessage(ctx, msg, nil)
 		if err != nil {
 			return "", fmt.Errorf("transferring funds to new address: %s", err)
 		}
@@ -104,7 +110,12 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 
 // List returns all wallet addresses.
 func (m *Module) List(ctx context.Context) ([]string, error) {
-	addrs, err := m.api.WalletList(ctx)
+	client, cls, err := m.clientBuilder()
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	addrs, err := client.WalletList(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting wallet addresses: %v", err)
 	}
@@ -117,11 +128,16 @@ func (m *Module) List(ctx context.Context) ([]string, error) {
 
 // Balance returns the balance of the specified address.
 func (m *Module) Balance(ctx context.Context, addr string) (uint64, error) {
+	client, cls, err := m.clientBuilder()
+	if err != nil {
+		return 0, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
 	a, err := address.NewFromString(addr)
 	if err != nil {
 		return 0, err
 	}
-	b, err := m.api.WalletBalance(ctx, a)
+	b, err := client.WalletBalance(ctx, a)
 	if err != nil {
 		return 0, fmt.Errorf("getting balance from lotus: %s", err)
 	}
@@ -143,7 +159,13 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 		To:    t,
 		Value: types.BigInt{Int: amount},
 	}
-	_, err = m.api.MpoolPushMessage(ctx, msg, nil)
+	client, cls, err := m.clientBuilder()
+	if err != nil {
+		return fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
+	_, err = client.MpoolPushMessage(ctx, msg, nil)
 	return err
 }
 

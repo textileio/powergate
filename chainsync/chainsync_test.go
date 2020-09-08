@@ -8,6 +8,7 @@ import (
 
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/tests"
 )
 
@@ -17,14 +18,17 @@ func TestMain(m *testing.M) {
 }
 
 func TestPrecede(t *testing.T) {
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
 	time.Sleep(time.Second * 5) // Give time for at least 1 block to be mined.
 	ctx := context.Background()
+	c, cls, err := clientBuilder()
+	require.NoError(t, err)
+	defer cls()
 
-	h, err := client.ChainHead(ctx)
+	h, err := c.ChainHead(ctx)
 	checkErr(t, err)
 
-	csync := New(client)
+	csync := New(clientBuilder)
 	head := h.Key()
 	prevhead := types.NewTipSetKey(h.Blocks()[0].Parents...)
 	yes, err := csync.Precedes(ctx, prevhead, head)

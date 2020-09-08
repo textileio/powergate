@@ -14,15 +14,16 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
+	"github.com/filecoin-project/go-state-types/abi"
+	"github.com/filecoin-project/go-state-types/big"
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/filecoin-project/specs-actors/actors/abi"
-	"github.com/filecoin-project/specs-actors/actors/abi/big"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/util"
 )
 
@@ -45,13 +46,13 @@ var (
 
 // Module exposes storage and monitoring from the market.
 type Module struct {
-	api   *apistruct.FullNodeStruct
-	cfg   *deals.Config
-	store *store
+	clientBuilder lotus.ClientBuilder
+	cfg           *deals.Config
+	store         *store
 }
 
 // New creates a new Module.
-func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, opts ...deals.Option) (*Module, error) {
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, opts ...deals.Option) (*Module, error) {
 	var cfg deals.Config
 	for _, o := range opts {
 		if err := o(&cfg); err != nil {
@@ -59,9 +60,9 @@ func New(ds datastore.TxnDatastore, api *apistruct.FullNodeStruct, opts ...deals
 		}
 	}
 	m := &Module{
-		api:   api,
-		cfg:   &cfg,
-		store: newStore(ds),
+		clientBuilder: clientBuilder,
+		cfg:           &cfg,
+		store:         newStore(ds),
 	}
 	m.initPendingDeals()
 	return m, nil
@@ -88,7 +89,12 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 		Path:  f.Name(),
 		IsCAR: isCAR,
 	}
-	res, err := m.api.ClientImport(ctx, ref)
+	api, cls, err := m.clientBuilder()
+	if err != nil {
+		return cid.Undef, 0, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	res, err := api.ClientImport(ctx, ref)
 	if err != nil {
 		return cid.Undef, 0, fmt.Errorf("error when importing data: %s", err)
 	}
@@ -105,8 +111,13 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 	}
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
+		return nil, fmt.Errorf("parsing wallet address: %s", err)
+	}
+	lapi, cls, err := m.clientBuilder()
+	if err != nil {
 		return nil, err
 	}
+	defer cls()
 	res := make([]deals.StoreResult, len(dcfgs))
 	for i, c := range dcfgs {
 		maddr, err := address.NewFromString(c.Miner)
@@ -127,7 +138,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 			Miner:             maddr,
 			Wallet:            addr,
 		}
-		p, err := m.api.ClientStartDeal(ctx, params)
+		p, err := lapi.ClientStartDeal(ctx, params)
 		if err != nil {
 			log.Errorf("starting deal with %v: %s", c, err)
 			res[i] = deals.StoreResult{
@@ -150,7 +161,15 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 // This API is meant for clients that use external implementations of blockstores with
 // their own API, e.g: IPFS.
 func (m *Module) Fetch(ctx context.Context, waddr string, cid cid.Cid) error {
-	return m.retrieve(ctx, waddr, cid, nil)
+	lapi, cls, err := m.clientBuilder()
+	if err != nil {
+		return fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	if err := m.retrieve(ctx, waddr, cid, nil, lapi); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Retrieve retrieves Deal data.
@@ -164,7 +183,12 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREnc
 		IsCAR: CAREncoding,
 	}
 
-	if err := m.retrieve(ctx, waddr, cid, &ref); err != nil {
+	lapi, cls, err := m.clientBuilder()
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	if err := m.retrieve(ctx, waddr, cid, &ref, lapi); err != nil {
 		return nil, fmt.Errorf("retrieving from lotus: %s", err)
 	}
 
@@ -175,12 +199,12 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, cid cid.Cid, CAREnc
 	return &autodeleteFile{File: f}, nil
 }
 
-func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *api.FileRef) error {
+func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *api.FileRef, lapi *apistruct.FullNodeStruct) error {
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
 		return err
 	}
-	offers, err := m.api.ClientFindData(ctx, cid, nil)
+	offers, err := lapi.ClientFindData(ctx, cid, nil)
 	if err != nil {
 		return err
 	}
@@ -188,7 +212,7 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 		return ErrRetrievalNoAvailableProviders
 	}
 	for _, o := range offers {
-		err = m.api.ClientRetrieve(ctx, o.Order(addr), ref)
+		err = lapi.ClientRetrieve(ctx, o.Order(addr), ref)
 		if err != nil {
 			log.Infof("fetching/retrieving cid %s from %s: %s", cid, o.Miner, err)
 			continue
@@ -203,14 +227,19 @@ func (m *Module) retrieve(ctx context.Context, waddr string, cid cid.Cid, ref *a
 // If the deal doesn't exist, *or has expired* it will return ErrDealNotFound. There's not actual way of distinguishing
 // both scenarios in Lotus.
 func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error) {
-	di, err := m.api.ClientGetDealInfo(ctx, pcid)
+	lapi, cls, err := m.clientBuilder()
+	if err != nil {
+		return storagemarket.StorageDealUnknown, false, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	di, err := lapi.ClientGetDealInfo(ctx, pcid)
 	if err != nil {
 		if strings.Contains(err.Error(), "datastore: key not found") {
 			return storagemarket.StorageDealUnknown, false, ErrDealNotFound
 		}
 		return storagemarket.StorageDealUnknown, false, fmt.Errorf("getting deal info: %s", err)
 	}
-	md, err := m.api.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
+	md, err := lapi.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
 	if err != nil {
 		return storagemarket.StorageDealUnknown, false, fmt.Errorf("get storage state: %s", err)
 	}
@@ -231,10 +260,15 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 			case <-ctx.Done():
 				return
 			case <-time.After(util.AvgBlockTime):
-				if err := notifyChanges(ctx, m.api, currentState, proposals, ch); err != nil {
-					log.Errorf("pushing new proposal states: %s", err)
-					return
+				api, cls, err := m.clientBuilder()
+				if err != nil {
+					log.Errorf("creating lotus client: %s", err)
+					continue
 				}
+				if err := notifyChanges(ctx, api, currentState, proposals, ch); err != nil {
+					log.Errorf("pushing new proposal states: %s", err)
+				}
+				cls()
 			}
 		}
 	}()
@@ -396,6 +430,12 @@ func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 }
 
 func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
+	lapi, cls, err := m.clientBuilder()
+	if err != nil {
+		log.Errorf("creating client: %s", err)
+		return
+	}
+	defer cls()
 	deletePending := func() {
 		if err := m.store.deletePendingDeal(dr.DealInfo.ProposalCid); err != nil {
 			log.Errorf("deleting pending deal for proposal cid %s: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
@@ -403,7 +443,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	info, err := m.api.ClientGetDealInfo(ctx, dr.DealInfo.ProposalCid)
+	info, err := lapi.ClientGetDealInfo(ctx, dr.DealInfo.ProposalCid)
 	if err != nil {
 		log.Errorf("getting deal info: %v", err)
 		deletePending()
@@ -413,7 +453,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 		log.Infof("pending deal for proposal cid %s isn't active yet, deleting pending deal", util.CidToString(dr.DealInfo.ProposalCid))
 		deletePending()
 	} else {
-		di, err := fromLotusDealInfo(ctx, m.api, info)
+		di, err := fromLotusDealInfo(ctx, lapi, info)
 		if err != nil {
 			log.Errorf("converting proposal cid %s from lotus deal info: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 			deletePending()

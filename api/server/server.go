@@ -94,8 +94,6 @@ type Server struct {
 
 	gateway     *gateway.Gateway
 	indexServer *http.Server
-
-	closeLotus func()
 }
 
 // Config specifies server settings.
@@ -126,7 +124,13 @@ func NewServer(conf Config) (*Server, error) {
 
 	var err error
 	var masterAddr address.Address
-	c, cls, err := lotus.New(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
+	clientBuilder, err := lotus.NewBuilder(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus client builder: %s", err)
+	}
+	lotus.MonitorLotusSync(clientBuilder)
+
+	c, cls, err := clientBuilder()
 	if err != nil {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
@@ -149,6 +153,8 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting Lotus network name: %s", err)
 	}
+	cls()
+
 	networkName := string(network)
 	log.Infof("Detected Lotus node connected to network: %s", networkName)
 
@@ -179,29 +185,29 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
 	}
-	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), c)
+	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder)
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), c, fchost, mm)
+	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
-	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), c)
+	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), clientBuilder)
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
 	}
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), c, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
-	wm, err := walletModule.New(c, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName)
+	wm, err := walletModule.New(clientBuilder, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName)
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
-	pm := paychLotus.New(c)
+	pm := paychLotus.New(clientBuilder)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
-	nm := pgnetlotus.New(c, mm)
+	nm := pgnetlotus.New(clientBuilder, mm)
 	hm := health.New(nm)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
@@ -209,7 +215,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	chain := filchain.New(c)
+	chain := filchain.New(clientBuilder)
 	ms := reptop.New(rm, ai)
 
 	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
@@ -262,7 +268,6 @@ func NewServer(conf Config) (*Server, error) {
 		grpcServer: grpcServer,
 		webProxy:   webProxy,
 		gateway:    gateway,
-		closeLotus: cls,
 	}
 
 	if err := startGRPCServices(grpcServer, webProxy, s, conf.GrpcHostNetwork, conf.GrpcHostAddress); err != nil {
@@ -497,7 +502,6 @@ func (s *Server) Close() {
 	if err := s.gateway.Stop(); err != nil {
 		log.Errorf("closing gateway: %s", err)
 	}
-	s.closeLotus()
 	if err := s.mm.Close(); err != nil {
 		log.Errorf("closing maxmind: %s", err)
 	}

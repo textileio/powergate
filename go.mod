@@ -8,11 +8,12 @@ require (
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/filecoin-project/go-address v0.0.3
-	github.com/filecoin-project/go-fil-markets v0.5.9
+	github.com/filecoin-project/go-fil-markets v0.6.0
 	github.com/filecoin-project/go-jsonrpc v0.1.2-0.20200822201400-474f4fdccc52
-	github.com/filecoin-project/go-padreader v0.0.0-20200210211231-548257017ca6
-	github.com/filecoin-project/lotus v0.5.8-0.20200902214718-05db79ee35f1
-	github.com/filecoin-project/specs-actors v0.9.3
+	github.com/filecoin-project/go-padreader v0.0.0-20200903213702-ed5fae088b20
+	github.com/filecoin-project/go-state-types v0.0.0-20200905071437-95828685f9df
+	github.com/filecoin-project/lotus v0.6.1
+	github.com/filecoin-project/specs-actors v0.9.7
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
@@ -57,3 +58,5 @@ require (
 )
 
 replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.0.1-rc1.0.20200718033852-37ee16d8ad1c
+
+replace github.com/filecoin-project/filecoin-ffi => github.com/filecoin-project/filecoin-ffi v0.30.4-0.20200904205544-405691046034
