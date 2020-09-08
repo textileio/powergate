@@ -88,15 +88,15 @@ func WithValidateImport(enabled bool) ImportOption {
 	}
 }
 
-type PartialRetrievalOption func(*retrievalConfig)
+type RetrievalOption func(*retrievalConfig)
 
-func WitPartialRetrievalWalletAddress(addr string) PartialRetrievalOption {
+func WithRetrievalWalletAddress(addr string) RetrievalOption {
 	return func(prc *retrievalConfig) {
 		prc.walletAddress = addr
 	}
 }
 
-func WitPartialRetrievalMaxPrice(maxPrice uint64) PartialRetrievalOption {
+func WitRetrievalMaxPrice(maxPrice uint64) RetrievalOption {
 	return func(prc *retrievalConfig) {
 		prc.maxPrice = maxPrice
 	}

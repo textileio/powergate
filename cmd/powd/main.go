@@ -213,7 +213,6 @@ func setupLogging(repoPath string) error {
 		"ffs-filcold",
 		"ffs-sched-sjstore",
 		"ffs-sched-rjstore",
-		"ffs-sched-astore",
 		"ffs-cidlogger",
 	}
 

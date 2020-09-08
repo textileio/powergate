@@ -11,7 +11,7 @@ import (
 func TestEnqueue(t *testing.T) {
 	t.Parallel()
 	s := create(t)
-	j := createJob(t)
+	j := createJob()
 	err := s.Enqueue(j)
 	require.NoError(t, err)
 	jQueued, err := s.Get(j.ID)
@@ -25,7 +25,7 @@ func TestDequeue(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 		s := create(t)
-		j := createJob(t)
+		j := createJob()
 		err := s.Enqueue(j)
 		require.NoError(t, err)
 		j2, err := s.Dequeue()
@@ -43,7 +43,7 @@ func TestDequeue(t *testing.T) {
 	})
 }
 
-func createJob(t *testing.T) ffs.Job {
+func createJob() ffs.Job {
 	return ffs.Job{
 		ID:          ffs.NewJobID(),
 		APIID:       "ApiIDTest",

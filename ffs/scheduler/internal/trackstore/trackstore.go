@@ -144,7 +144,7 @@ func (s *Store) loadCaches() error {
 	if err != nil {
 		return fmt.Errorf("querying persisted tracked storage configs: %s", err)
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	for v := range r.Next() {
 		var tsc trackedStorageConfig
 		if err := json.Unmarshal(v.Value, &tsc); err != nil {

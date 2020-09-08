@@ -263,7 +263,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, w
 			case <-ctx.Done():
 				log.Infof("in progress retrieval canceled")
 				canceled = true
-				break
+				break Loop
 			case e, ok := <-events:
 				if !ok {
 					break Loop

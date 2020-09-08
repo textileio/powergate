@@ -71,10 +71,13 @@ type DealError struct {
 	Message     string
 }
 
+// Error returns an stringified message of the
+// underlying error cause.
 func (de DealError) Error() string {
 	return de.Message
 }
 
+// FetchInfo describes information about a Filecoin retrieval.
 type FetchInfo struct {
 	RetrievedMiner string
 	FundsSpent     uint64

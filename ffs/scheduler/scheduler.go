@@ -278,12 +278,15 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
 	for _, c := range cids {
+		if ctx.Err() != nil {
+			log.Info("repair cron execution canceled")
+			break
+		}
 		ctx := context.WithValue(ctx, ffs.CtxStorageCid, c)
 		s.l.Log(ctx, "Scheduling deal repair evaluation...")
 		jid, err := s.scheduleRenewRepairJob(ctx, c)
 		if err != nil {
 			s.l.Log(ctx, "Scheduling deal repair errored: %s", err)
-
 		} else {
 			s.l.Log(ctx, "Job %s was queued for repair evaluation.", jid)
 		}
@@ -299,6 +302,10 @@ func (s *Scheduler) execRenewCron(ctx context.Context) {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
 	for _, c := range cids {
+		if ctx.Err() != nil {
+			log.Infof("renew cron execution canceled")
+			break
+		}
 		ctx := context.WithValue(ctx, ffs.CtxStorageCid, c)
 		s.l.Log(ctx, "Scheduling deal renew evaluation...")
 		jid, err := s.scheduleRenewRepairJob(ctx, c)

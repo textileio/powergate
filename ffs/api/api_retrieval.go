@@ -30,7 +30,7 @@ type Retrieval struct {
 	Size           uint64
 }
 
-func (i *API) StartRetrieval(payloadCid, pieceCid cid.Cid, selector string, miners []string, opts ...PartialRetrievalOption) (Retrieval, error) {
+func (i *API) StartRetrieval(payloadCid, pieceCid cid.Cid, selector string, miners []string, opts ...RetrievalOption) (Retrieval, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 

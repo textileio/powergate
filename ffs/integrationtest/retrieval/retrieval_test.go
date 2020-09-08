@@ -1,4 +1,4 @@
-package partialretrieval
+package retrieval
 
 import (
 	"context"
