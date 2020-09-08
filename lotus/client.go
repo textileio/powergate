@@ -76,6 +76,7 @@ func refreshHeightMetric(clientBuilder ClientBuilder) {
 	c, cls, err := clientBuilder()
 	if err != nil {
 		log.Error("creating lotus client for monitoring: %s", err)
+		return
 	}
 	defer cls()
 	heaviest, err := c.ChainHead(context.Background())
