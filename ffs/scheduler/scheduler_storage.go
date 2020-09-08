@@ -11,7 +11,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/jstore"
+	"github.com/textileio/powergate/ffs/scheduler/internal/sjstore"
 )
 
 // PushConfig queues the specified StorageConfig to be executed as a new Job. It returns
@@ -119,7 +119,7 @@ func (s *Scheduler) ImportCidInfo(ci ffs.CidInfo) error {
 func (s *Scheduler) GetJob(jid ffs.JobID) (ffs.StorageJob, error) {
 	j, err := s.sjs.Get(jid)
 	if err != nil {
-		if err == jstore.ErrNotFound {
+		if err == sjstore.ErrNotFound {
 			return ffs.StorageJob{}, ErrNotFound
 		}
 		return ffs.StorageJob{}, fmt.Errorf("get Job from store: %s", err)

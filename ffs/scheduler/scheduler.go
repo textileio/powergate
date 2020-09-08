@@ -14,9 +14,9 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/jstore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/ristore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/rjstore"
+	"github.com/textileio/powergate/ffs/scheduler/internal/sjstore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/trackstore"
 	txndstr "github.com/textileio/powergate/txndstransform"
 )
@@ -47,7 +47,7 @@ var (
 type Scheduler struct {
 	cs  ffs.ColdStorage
 	hs  ffs.HotStorage
-	sjs *jstore.Store
+	sjs *sjstore.Store
 	rjs *rjstore.Store
 	as  *astore.Store
 	ts  *trackstore.Store
@@ -82,7 +82,7 @@ type retrievalDaemon struct {
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
 func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage) (*Scheduler, error) {
-	sjs, err := jstore.New(txndstr.Wrap(ds, "sjstore"))
+	sjs, err := sjstore.New(txndstr.Wrap(ds, "sjstore"))
 	if err != nil {
 		return nil, fmt.Errorf("loading stroage jobstore: %s", err)
 	}

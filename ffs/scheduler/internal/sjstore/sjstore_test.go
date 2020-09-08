@@ -1,4 +1,4 @@
-package jstore
+package sjstore
 
 import (
 	"testing"

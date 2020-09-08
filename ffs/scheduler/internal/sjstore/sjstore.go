@@ -1,4 +1,4 @@
-package jstore
+package sjstore
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	log = logging.Logger("ffs-sched-jstore")
+	log = logging.Logger("ffs-sched-sjstore")
 
 	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("job not found")
