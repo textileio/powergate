@@ -32,7 +32,7 @@ func newInstanceStore(ds datastore.Datastore) *instanceStore {
 
 // putInstanceConfig saves general instance configuration configuration, such as
 // default wallet address, default storage config, etc.
-func (s *instanceStore) putInstanceConfig(c Config) error {
+func (s *instanceStore) putInstanceConfig(c InstanceConfig) error {
 	buf, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling instance config to datastore: %s", err)
@@ -45,17 +45,17 @@ func (s *instanceStore) putInstanceConfig(c Config) error {
 
 // getInstanceConfig returns general instance configurations, such as default wallet address,
 // default storage config, etc.
-func (s *instanceStore) getInstanceConfig() (Config, error) {
+func (s *instanceStore) getInstanceConfig() (InstanceConfig, error) {
 	buf, err := s.ds.Get(dsInstanceConfig)
 	if err != nil {
 		if err == datastore.ErrNotFound {
-			return Config{}, ErrNotFound
+			return InstanceConfig{}, ErrNotFound
 		}
-		return Config{}, fmt.Errorf("getting instance config from datastore: %s", err)
+		return InstanceConfig{}, fmt.Errorf("getting instance config from datastore: %s", err)
 	}
-	var c Config
+	var c InstanceConfig
 	if err := json.Unmarshal(buf, &c); err != nil {
-		return Config{}, fmt.Errorf("unmarshaling config from datastore: %s", err)
+		return InstanceConfig{}, fmt.Errorf("unmarshaling config from datastore: %s", err)
 	}
 	return c, nil
 }

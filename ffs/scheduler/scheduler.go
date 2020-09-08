@@ -53,7 +53,7 @@ type Scheduler struct {
 	ts  *trackstore.Store
 	cis *cistore.Store
 	ris *ristore.Store
-	l   ffs.CidLogger
+	l   ffs.JobLogger
 
 	sd          storageDaemon
 	rd          retrievalDaemon
@@ -81,7 +81,7 @@ type retrievalDaemon struct {
 
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
-func New(ds datastore.TxnDatastore, l ffs.CidLogger, hs ffs.HotStorage, cs ffs.ColdStorage) (*Scheduler, error) {
+func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage) (*Scheduler, error) {
 	sjs, err := jstore.New(txndstr.Wrap(ds, "sjstore"))
 	if err != nil {
 		return nil, fmt.Errorf("loading stroage jobstore: %s", err)

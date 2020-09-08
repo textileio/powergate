@@ -33,7 +33,7 @@ type FilCold struct {
 	dm    *dealsModule.Module
 	ipfs  iface.CoreAPI
 	chain FilChain
-	l     ffs.CidLogger
+	l     ffs.JobLogger
 }
 
 var _ ffs.ColdStorage = (*FilCold)(nil)
@@ -44,7 +44,7 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.CidLogger) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger) *FilCold {
 	return &FilCold{
 		ms:    ms,
 		dm:    dm,

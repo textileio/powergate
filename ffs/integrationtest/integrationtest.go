@@ -20,9 +20,9 @@ import (
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
+	"github.com/textileio/powergate/ffs/joblogger"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/ffs/scheduler"
@@ -133,7 +133,7 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 	require.NoError(t, err)
 
 	fchain := filchain.New(clientBuilder)
-	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
+	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
 	cl := filcold.New(ms, dm, ipfsClient, fchain, l)
 	hl, err := coreipfs.New(ipfsClient, l)
 	require.NoError(t, err)
@@ -176,7 +176,7 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 			t.FailNow()
 		}
 		if err := l.Close(); err != nil {
-			t.Errorf("closing cidlogger: %s", err)
+			t.Errorf("closing joblogger: %s", err)
 			t.FailNow()
 		}
 	}

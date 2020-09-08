@@ -24,7 +24,7 @@ var (
 // into a remote go-ipfs using the HTTP API.
 type CoreIpfs struct {
 	ipfs iface.CoreAPI
-	l    ffs.CidLogger
+	l    ffs.JobLogger
 
 	lock   sync.Mutex
 	pinset map[cid.Cid]struct{}
@@ -33,7 +33,7 @@ type CoreIpfs struct {
 var _ ffs.HotStorage = (*CoreIpfs)(nil)
 
 // New returns a new CoreIpfs instance.
-func New(ipfs iface.CoreAPI, l ffs.CidLogger) (*CoreIpfs, error) {
+func New(ipfs iface.CoreAPI, l ffs.JobLogger) (*CoreIpfs, error) {
 	ci := &CoreIpfs{
 		ipfs: ipfs,
 		l:    l,

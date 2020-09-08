@@ -1,4 +1,4 @@
-package cidlogger
+package joblogger
 
 import (
 	"context"
@@ -21,8 +21,8 @@ var (
 	log = logging.Logger("ffs-cidlogger")
 )
 
-// CidLogger is a datastore backed implementation of ffs.CidLogger.
-type CidLogger struct {
+// Logger is a datastore backed implementation of ffs.Logger.
+type Logger struct {
 	ds datastore.Datastore
 
 	lock     sync.Mutex
@@ -38,18 +38,18 @@ type logEntry struct {
 	Msg         string
 }
 
-var _ ffs.CidLogger = (*CidLogger)(nil)
+var _ ffs.JobLogger = (*Logger)(nil)
 
 // New returns a new CidLogger.
-func New(ds datastore.Datastore) *CidLogger {
-	return &CidLogger{
+func New(ds datastore.Datastore) *Logger {
+	return &Logger{
 		ds: ds,
 	}
 }
 
 // Log logs a log entry for a Cid. The ctx can contain an optional ffs.CtxKeyJid to add
 // additional metadata about the log entry being part of a Job execution.
-func (cl *CidLogger) Log(ctx context.Context, format string, a ...interface{}) {
+func (cl *Logger) Log(ctx context.Context, format string, a ...interface{}) {
 	log.Infof(format, a...)
 
 	// Retrieve context values.
@@ -94,9 +94,8 @@ func (cl *CidLogger) Log(ctx context.Context, format string, a ...interface{}) {
 	}
 }
 
-// Get returns history logs of a Cid.
-// ToDo: rename
-func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
+// GetByCid returns history logs for a Cid.
+func (cl *Logger) GetByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
 	q := query.Query{Prefix: makeCidKey(c).String()}
 	res, err := cl.ds.Query(q)
 	if err != nil {
@@ -128,7 +127,7 @@ func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error)
 
 // Watch is a blocking function that writes to the channel all new created log entries.
 // The client should cancel the ctx to signal stopping writing to the channel and free resources.
-func (cl *CidLogger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
+func (cl *Logger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
 	cl.lock.Lock()
 	ic := make(chan ffs.LogEntry)
 	cl.watchers = append(cl.watchers, ic)
@@ -158,7 +157,7 @@ func (cl *CidLogger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
 }
 
 // Close closes and cancels all watchers that might be active.
-func (cl *CidLogger) Close() error {
+func (cl *Logger) Close() error {
 	log.Info("closing...")
 	defer log.Info("closed")
 	cl.lock.Lock()

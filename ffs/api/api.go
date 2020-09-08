@@ -45,7 +45,7 @@ type API struct {
 
 	lock   sync.Mutex
 	closed bool
-	cfg    Config
+	cfg    InstanceConfig
 	ctx    context.Context
 	cancel context.CancelFunc
 }
@@ -60,7 +60,7 @@ func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs
 		return nil, fmt.Errorf("default storage config is invalid: %s", err)
 	}
 
-	config := Config{
+	config := InstanceConfig{
 		ID:                   iid,
 		Addrs:                map[string]AddrInfo{addrInfo.Addr: addrInfo},
 		DefaultStorageConfig: dc,
@@ -85,7 +85,7 @@ func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm 
 	return new(ctx, is, wm, pm, drm, c, sched, cancel), nil
 }
 
-func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, config Config, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
+func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, config InstanceConfig, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:     is,
 		wm:     wm,

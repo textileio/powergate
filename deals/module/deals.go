@@ -162,18 +162,18 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 // Fetch fetches deal data to the underlying blockstore of the Filecoin client.
 // This API is meant for clients that use external implementations of blockstores with
 // their own API, e.g: IPFS.
-func (m *Module) Fetch(ctx context.Context, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string) (<-chan marketevents.RetrievalEvent, error) {
+func (m *Module) Fetch(ctx context.Context, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string) (string, <-chan marketevents.RetrievalEvent, error) {
 	lapi, cls, err := m.clientBuilder()
 	if err != nil {
-		return nil, fmt.Errorf("creating lotus client: %s", err)
+		return "", nil, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
 
-	events, err := m.retrieve(ctx, lapi, waddr, payloadCid, pieceCid, miners, nil)
+	miner, events, err := m.retrieve(ctx, lapi, waddr, payloadCid, pieceCid, miners, nil)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	return events, nil
+	return miner, events, nil
 }
 
 // Retrieve retrieves Deal data. It returns the miner address where the data

@@ -461,23 +461,21 @@ type FilStorage struct {
 	EpochPrice uint64
 }
 
-// CidLoggerCtxKey is a type to use in ctx values for CidLogger.
-type CidLoggerCtxKey int
+// JobLoggerCtxKey is a type to use in ctx values for CidLogger.
+type JobLoggerCtxKey int
 
 const (
 	// CtxKeyJid is the key to store Jid metadata.
-	CtxKeyJid CidLoggerCtxKey = iota
+	CtxKeyJid JobLoggerCtxKey = iota
 	CtxStorageCid
 	CtxRetrievalID
 )
 
-// CidLogger saves log information about a storage and retrieval tasks.
-// ToDo: should rename.
-type CidLogger interface {
-	// Todo: rename
+// JobLogger saves log information about a storage and retrieval tasks.
+type JobLogger interface {
 	Log(context.Context, string, ...interface{})
 	Watch(context.Context, chan<- LogEntry) error
-	Get(context.Context, cid.Cid) ([]LogEntry, error)
+	GetByCid(context.Context, cid.Cid) ([]LogEntry, error)
 }
 
 // LogEntry is a log entry from a Cid execution.
