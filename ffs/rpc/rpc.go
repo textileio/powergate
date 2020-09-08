@@ -263,7 +263,7 @@ func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPCService_WatchJobsServer) e
 		jids[i] = ffs.JobID(jid)
 	}
 
-	ch := make(chan ffs.Job, 100)
+	ch := make(chan ffs.StorageJob, 100)
 	go func() {
 		err = i.WatchJobs(srv.Context(), ch, jids...)
 		close(ch)

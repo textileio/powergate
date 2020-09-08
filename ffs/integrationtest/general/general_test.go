@@ -114,7 +114,7 @@ func TestInfo(t *testing.T) {
 				cid, _ := it.AddRandomFile(t, r, ipfs)
 				jid, err := fapi.PushStorageConfig(cid)
 				require.NoError(t, err)
-				ch := make(chan ffs.Job)
+				ch := make(chan ffs.StorageJob)
 				ctx, cancel := context.WithCancel(context.Background())
 				defer cancel()
 				go func() {

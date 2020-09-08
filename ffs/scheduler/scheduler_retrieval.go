@@ -31,7 +31,7 @@ func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, pi
 	}
 
 	jid := ffs.NewJobID()
-	j := ffs.Job{
+	j := ffs.RetrievalJob{
 		ID:          jid,
 		APIID:       iid,
 		RetrievalID: rid,
@@ -56,7 +56,7 @@ func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, pi
 		return ffs.EmptyJobID, fmt.Errorf("saving retrieval action for job: %s", err)
 	}
 
-	if err := s.sjs.Enqueue(j); err != nil {
+	if err := s.rjs.Enqueue(j); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("enqueuing job: %s", err)
 	}
 
@@ -81,7 +81,7 @@ func (s *Scheduler) GetRetrievalInfo(rid ffs.RetrievalID) (ffs.RetrievalInfo, er
 	return info, nil
 }
 
-func (s *Scheduler) executeRetrieval(ctx context.Context, a astore.RetrievalAction, j ffs.Job) (ffs.RetrievalInfo, error) {
+func (s *Scheduler) executeRetrieval(ctx context.Context, a astore.RetrievalAction, j ffs.RetrievalJob) (ffs.RetrievalInfo, error) {
 	fi, err := s.cs.Fetch(ctx, a.PayloadCid, &a.PieceCid, a.WalletAddress, a.Miners, a.MaxPrice, a.Selector)
 	if err != nil {
 		return ffs.RetrievalInfo{}, fmt.Errorf("fetching from cold storage: %s", err)

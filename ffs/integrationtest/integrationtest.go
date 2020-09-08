@@ -183,8 +183,8 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 }
 
 // RequireJobState watches a Job for a desired status.
-func RequireJobState(t require.TestingT, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
-	ch := make(chan ffs.Job, 10)
+func RequireJobState(t require.TestingT, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.StorageJob {
+	ch := make(chan ffs.StorageJob, 10)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var err error
@@ -193,7 +193,7 @@ func RequireJobState(t require.TestingT, fapi *api.API, jid ffs.JobID, status ff
 		close(ch)
 	}()
 	stop := false
-	var res ffs.Job
+	var res ffs.StorageJob
 	for !stop {
 		select {
 		case <-time.After(120 * time.Second):

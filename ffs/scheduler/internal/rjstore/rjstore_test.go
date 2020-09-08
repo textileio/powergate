@@ -43,8 +43,8 @@ func TestDequeue(t *testing.T) {
 	})
 }
 
-func createJob() ffs.Job {
-	return ffs.Job{
+func createJob() ffs.RetrievalJob {
+	return ffs.RetrievalJob{
 		ID:          ffs.NewJobID(),
 		APIID:       "ApiIDTest",
 		RetrievalID: ffs.NewRetrievalID(),

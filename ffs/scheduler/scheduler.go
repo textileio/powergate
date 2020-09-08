@@ -255,7 +255,7 @@ func (s *Scheduler) resumeStartedDeals() error {
 			return fmt.Errorf("getting resumed queued job: %s", err)
 		}
 		s.sd.rateLim <- struct{}{}
-		go func(j ffs.Job) {
+		go func(j ffs.StorageJob) {
 			log.Infof("resuming job %s with cid %s", j.ID, j.Cid)
 			// We re-execute the pipeline as if was dequeued.
 			// Both hot and cold storage can detect resumed job execution.
@@ -331,7 +331,7 @@ func (s *Scheduler) scheduleRenewRepairJob(ctx context.Context, c cid.Cid) (ffs.
 
 func (s *Scheduler) execQueuedStorages(ctx context.Context) {
 	var err error
-	var j *ffs.Job
+	var j *ffs.StorageJob
 
 forLoop:
 	for {
@@ -357,7 +357,7 @@ forLoop:
 			<-s.sd.rateLim
 			break
 		}
-		go func(j ffs.Job) {
+		go func(j ffs.StorageJob) {
 			s.executeQueuedStorage(j)
 
 			<-s.sd.rateLim
@@ -373,7 +373,7 @@ forLoop:
 	}
 }
 
-func (s *Scheduler) executeQueuedStorage(j ffs.Job) {
+func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	cancelChan := make(chan struct{})
 	// Create chan to allow Job cancellation.
 	s.cancelLock.Lock()
@@ -443,7 +443,7 @@ func (s *Scheduler) executeQueuedStorage(j ffs.Job) {
 
 func (s *Scheduler) execQueuedRetrievals(ctx context.Context) {
 	var err error
-	var j *ffs.Job
+	var j *ffs.RetrievalJob
 
 forLoop:
 	for {
@@ -458,7 +458,7 @@ forLoop:
 			break forLoop
 		}
 
-		j, err = s.sjs.Dequeue()
+		j, err = s.rjs.Dequeue()
 		if err != nil {
 			log.Errorf("getting queued jobs: %s", err)
 			<-s.rd.rateLim
@@ -469,8 +469,8 @@ forLoop:
 			<-s.rd.rateLim
 			break
 		}
-		go func(j ffs.Job) {
-			s.executeQueuedStorage(j)
+		go func(j ffs.RetrievalJob) {
+			s.executeQueuedRetrievals(j)
 
 			<-s.rd.rateLim
 
@@ -485,7 +485,7 @@ forLoop:
 	}
 }
 
-func (s *Scheduler) executeQueuedRetrievals(j ffs.Job) {
+func (s *Scheduler) executeQueuedRetrievals(j ffs.RetrievalJob) {
 	cancelChan := make(chan struct{})
 	// Create chan to allow Job cancellation.
 	s.cancelLock.Lock()

@@ -21,7 +21,7 @@ var (
 	dsBaseJob   = datastore.NewKey("job")
 )
 
-// Store is a persistent store for Retrieval Jobs.
+// Store is a persistent store for retrieval jobs.
 type Store struct {
 	lock     sync.Mutex
 	ds       datastore.Datastore
@@ -29,19 +29,19 @@ type Store struct {
 }
 
 // watcher represents an API instance who is watching for
-// Job updates.
+// retrieval jobs updates.
 type watcher struct {
 	iid ffs.APIID
-	C   chan ffs.Job
+	C   chan ffs.RetrievalJob
 }
 
-// New returns a new retrieval Job store.
+// New returns a new retrieval job store.
 func New(ds datastore.Datastore) (*Store, error) {
 	s := &Store{ds: ds}
 	return s, nil
 }
 
-// Finalize sets a Job status to a final state.
+// Finalize finalizes a retrieval job.
 func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -68,8 +68,8 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error) error 
 	return nil
 }
 
-// Dequeue dequeues a ready to be executed Job.
-func (s *Store) Dequeue() (*ffs.Job, error) {
+// Dequeue dequeues a ready to be executed retrieval job.
+func (s *Store) Dequeue() (*ffs.RetrievalJob, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseJob.String()}
@@ -83,7 +83,7 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 		}
 	}()
 	for r := range res.Next() {
-		var j ffs.Job
+		var j ffs.RetrievalJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return nil, fmt.Errorf("unmarshalling job: %s", err)
 		}
@@ -98,8 +98,8 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 	return nil, nil
 }
 
-// Enqueue queues a new Job.
-func (s *Store) Enqueue(j ffs.Job) error {
+// Enqueue queues a new retrieval job.
+func (s *Store) Enqueue(j ffs.RetrievalJob) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	j.Status = ffs.Queued
@@ -109,19 +109,19 @@ func (s *Store) Enqueue(j ffs.Job) error {
 	return nil
 }
 
-// Get returns the current state of Job. If doesn't exist, returns
-// ErrNotFound.
-func (s *Store) Get(jid ffs.JobID) (ffs.Job, error) {
+// Get returns the current state of a retrieval job.
+//If doesn't exist, returns ErrNotFound.
+func (s *Store) Get(jid ffs.JobID) (ffs.RetrievalJob, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	return s.get(jid)
 }
 
-// Watch subscribes to Job changes from a specified Api instance.
-func (s *Store) Watch(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) error {
+// Watch subscribes to retrieval job changes from a specified Api instance.
+func (s *Store) Watch(ctx context.Context, c chan<- ffs.RetrievalJob, iid ffs.APIID) error {
 	s.lock.Lock()
-	ic := make(chan ffs.Job, 1)
+	ic := make(chan ffs.RetrievalJob, 1)
 	s.watchers = append(s.watchers, watcher{iid: iid, C: ic})
 	s.lock.Unlock()
 
@@ -160,7 +160,7 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) put(j ffs.Job) error {
+func (s *Store) put(j ffs.RetrievalJob) error {
 	buf, err := json.Marshal(j)
 	if err != nil {
 		return fmt.Errorf("marshaling for datastore: %s", err)
@@ -172,22 +172,22 @@ func (s *Store) put(j ffs.Job) error {
 	return nil
 }
 
-func (s *Store) get(jid ffs.JobID) (ffs.Job, error) {
+func (s *Store) get(jid ffs.JobID) (ffs.RetrievalJob, error) {
 	buf, err := s.ds.Get(makeKey(jid))
 	if err == datastore.ErrNotFound {
-		return ffs.Job{}, ErrNotFound
+		return ffs.RetrievalJob{}, ErrNotFound
 	}
 	if err != nil {
-		return ffs.Job{}, fmt.Errorf("getting job from datastore: %s", err)
+		return ffs.RetrievalJob{}, fmt.Errorf("getting job from datastore: %s", err)
 	}
-	var job ffs.Job
+	var job ffs.RetrievalJob
 	if err := json.Unmarshal(buf, &job); err != nil {
 		return job, fmt.Errorf("unmarshaling job from datastore: %s", err)
 	}
 	return job, nil
 }
 
-func (s *Store) notifyWatchers(j ffs.Job) {
+func (s *Store) notifyWatchers(j ffs.RetrievalJob) {
 	for _, w := range s.watchers {
 		if w.iid != j.APIID {
 			continue

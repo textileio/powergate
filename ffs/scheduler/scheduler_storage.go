@@ -40,7 +40,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 		return ffs.EmptyJobID, fmt.Errorf("validating storage config: %s", err)
 	}
 	jid := ffs.NewJobID()
-	j := ffs.Job{
+	j := ffs.StorageJob{
 		ID:     jid,
 		APIID:  iid,
 		Cid:    c,
@@ -116,20 +116,20 @@ func (s *Scheduler) ImportCidInfo(ci ffs.CidInfo) error {
 }
 
 // GetJob the current state of a Job.
-func (s *Scheduler) GetJob(jid ffs.JobID) (ffs.Job, error) {
+func (s *Scheduler) GetJob(jid ffs.JobID) (ffs.StorageJob, error) {
 	j, err := s.sjs.Get(jid)
 	if err != nil {
 		if err == jstore.ErrNotFound {
-			return ffs.Job{}, ErrNotFound
+			return ffs.StorageJob{}, ErrNotFound
 		}
-		return ffs.Job{}, fmt.Errorf("get Job from store: %s", err)
+		return ffs.StorageJob{}, fmt.Errorf("get Job from store: %s", err)
 	}
 	return j, nil
 }
 
 // WatchJobs returns a channel to listen to Job status changes from a specified
 // API instance. It immediately pushes the current Job state to the channel.
-func (s *Scheduler) WatchJobs(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) error {
+func (s *Scheduler) WatchJobs(ctx context.Context, c chan<- ffs.StorageJob, iid ffs.APIID) error {
 	return s.sjs.Watch(ctx, c, iid)
 }
 
@@ -151,7 +151,7 @@ func (s *Scheduler) GetLogsByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry
 // executeStorage executes a Job. If an error is returned, it means that the Job
 // should be considered failed. If error is nil, it still can return []ffs.DealError
 // since some deals failing isn't necessarily a fatal Job config execution.
-func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, job ffs.Job) (ffs.CidInfo, []ffs.DealError, error) {
+func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, job ffs.StorageJob) (ffs.CidInfo, []ffs.DealError, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)

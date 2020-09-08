@@ -85,7 +85,6 @@ func (i *API) GetRetrieval(prID ffs.RetrievalID) (Retrieval, error) {
 	r.DataCid = ri.DataCid
 
 	return r, nil
-
 }
 
 func (i *API) RemoveRetrieval(partialCid cid.Cid) error {

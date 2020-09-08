@@ -101,16 +101,14 @@ var JobStatusStr = map[JobStatus]string{
 	Success:     "Success",
 }
 
-// Job is a task executed by the Scheduler.
-// ToDo: rename
-type Job struct {
-	ID          JobID
-	APIID       APIID
-	Cid         cid.Cid
-	RetrievalID RetrievalID
-	Status      JobStatus
-	ErrCause    string
-	DealErrors  []DealError
+// StorageJob is a task executed by the Scheduler.
+type StorageJob struct {
+	ID         JobID
+	APIID      APIID
+	Cid        cid.Cid
+	Status     JobStatus
+	ErrCause   string
+	DealErrors []DealError
 }
 
 // RetrievalJob is a retrieval task executed by the Scheduler.

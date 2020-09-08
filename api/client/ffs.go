@@ -31,7 +31,7 @@ type FFS struct {
 
 // JobEvent represents an event for Watching a job.
 type JobEvent struct {
-	Job ffs.Job
+	Job ffs.StorageJob
 	Err error
 }
 
@@ -333,7 +333,7 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 			default:
 				status = ffs.Unspecified
 			}
-			job := ffs.Job{
+			job := ffs.StorageJob{
 				ID:         ffs.JobID(reply.Job.Id),
 				APIID:      ffs.APIID(reply.Job.ApiId),
 				Cid:        c,
