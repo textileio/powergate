@@ -16,7 +16,6 @@ import (
 	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/signaler"
 	txndstr "github.com/textileio/powergate/txndstransform"
-	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
 )
 
@@ -29,6 +28,12 @@ var (
 	// consider for index updating; this to reduce sensibility to
 	// chain reorgs.
 	hOffset = abi.ChainEpoch(20)
+
+	// updateInterval is the interval duration where the fault index
+	// will be updated.
+	// Note: currently the Fault index is disabled until Lotus re-enables
+	// StateAllMinersFaults() API.
+	updateInterval = time.Hour * 24 * 365
 
 	log = logging.Logger("index-faults")
 )
@@ -71,7 +76,9 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder) (*Index, 
 	if err := s.loadFromDS(); err != nil {
 		return nil, err
 	}
+
 	go s.start()
+
 	return s, nil
 }
 
@@ -116,7 +123,6 @@ func (s *Index) Close() error {
 // start is a long running job that keeps the index up to date with chain updates.
 func (s *Index) start() {
 	defer close(s.finished)
-	return // Disabled until Lotus fixes its Faults APIs.
 	if err := s.updateIndex(); err != nil {
 		log.Errorf("initial updating faults index: %s", err)
 	}
@@ -125,7 +131,7 @@ func (s *Index) start() {
 		case <-s.ctx.Done():
 			log.Info("graceful shutdown of background faults updater")
 			return
-		case <-time.After(util.AvgBlockTime):
+		case <-time.After(updateInterval):
 			if err := s.updateIndex(); err != nil {
 				log.Errorf("updating faults history: %s", err)
 				continue

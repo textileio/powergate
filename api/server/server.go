@@ -128,7 +128,9 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client builder: %s", err)
 	}
-	c1, cls1, err := clientBuilder()
+	lotus.MonitorLotusSync(clientBuilder)
+
+	c, cls, err := clientBuilder()
 	if err != nil {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
@@ -136,7 +138,7 @@ func NewServer(conf Config) (*Server, error) {
 	if conf.Devnet {
 		// Wait for the devnet to bootstrap completely and generate at least 1 block.
 		time.Sleep(time.Second * 6)
-		if masterAddr, err = c1.WalletDefaultAddress(context.Background()); err != nil {
+		if masterAddr, err = c.WalletDefaultAddress(context.Background()); err != nil {
 			return nil, fmt.Errorf("getting default wallet addr as masteraddr: %s", err)
 		}
 	} else {
@@ -147,11 +149,12 @@ func NewServer(conf Config) (*Server, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	network, err := c1.StateNetworkName(ctx)
+	network, err := c.StateNetworkName(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting Lotus network name: %s", err)
 	}
-	cls1()
+	cls()
+
 	networkName := string(network)
 	log.Infof("Detected Lotus node connected to network: %s", networkName)
 

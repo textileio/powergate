@@ -12,7 +12,7 @@ require (
 	github.com/filecoin-project/go-jsonrpc v0.1.2-0.20200822201400-474f4fdccc52
 	github.com/filecoin-project/go-padreader v0.0.0-20200903213702-ed5fae088b20
 	github.com/filecoin-project/go-state-types v0.0.0-20200905071437-95828685f9df
-	github.com/filecoin-project/lotus v0.6.0
+	github.com/filecoin-project/lotus v0.6.1
 	github.com/filecoin-project/specs-actors v0.9.7
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
