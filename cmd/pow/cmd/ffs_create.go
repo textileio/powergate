@@ -2,10 +2,15 @@ package cmd
 
 import (
 	"context"
+	"time"
 
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+var (
+	ffsCreateInstanceTimeout = time.Second * 30
 )
 
 func init() {
@@ -21,7 +26,7 @@ var ffsCreateCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), ffsCreateInstanceTimeout)
 		defer cancel()
 
 		s := spin.New("%s Creating ffs instance...")
