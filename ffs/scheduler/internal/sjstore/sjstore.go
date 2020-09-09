@@ -283,7 +283,7 @@ func (s *Store) put(j ffs.StorageJob) error {
 	s.notifyWatchers(j)
 	if j.Status == ffs.Executing {
 		s.executingCids[j.Cid] = j.ID
-	} else if j.Status == ffs.Failed || j.Status == ffs.Success {
+	} else if j.Status == ffs.Failed || j.Status == ffs.Success || j.Status == ffs.Canceled {
 		delete(s.executingCids, j.Cid)
 	}
 	return nil
