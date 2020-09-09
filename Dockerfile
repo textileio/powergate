@@ -8,9 +8,12 @@ RUN go mod download
 COPY . .
 RUN go build -modfile .bingo/govvv.mod -o=. github.com/ahmetb/govvv
 RUN pkg="$(go list ./buildinfo)" && govvvflags="$(./govvv -flags -pkg $pkg)" && CGO_ENABLED=0 GOOS=linux go build -ldflags="$govvvflags" -o powd cmd/powd/main.go
+RUN pkg="$(go list ./buildinfo)" && govvvflags="$(./govvv -flags -pkg $pkg)" && CGO_ENABLED=0 GOOS=linux go build -ldflags="$govvvflags" -o pow cmd/pow/main.go
+
 
 FROM alpine
 COPY --from=builder /app/iplocation/maxmind/GeoLite2-City.mmdb /app/GeoLite2-City.mmdb
 COPY --from=builder /app/powd /app/powd
+COPY --from=builder /app/pow /app/pow
 WORKDIR /app 
 ENTRYPOINT ["./powd"]
