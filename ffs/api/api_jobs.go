@@ -16,7 +16,7 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 	for _, jid := range jids {
 		j, err := i.sched.GetJob(jid)
 		if err == scheduler.ErrNotFound {
-			continue
+			return fmt.Errorf("job not found: %s", jid)
 		}
 		if err != nil {
 			return fmt.Errorf("getting current job state: %s", err)
