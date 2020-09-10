@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	metadataRefreshInterval = time.Minute * 15
+	metadataRefreshInterval = time.Hour
 	pingTimeout             = time.Second * 5
-	pingRateLim             = 10
+	pingRateLim             = 1
 )
 
 var (
@@ -54,7 +54,7 @@ func (mi *Index) metaWorker() {
 			mi.lock.Unlock()
 			newIndex := updateMetaIndex(mi.ctx, mi.clientBuilder, mi.h, mi.lr, addrs)
 			if err := mi.persistMetaIndex(newIndex); err != nil {
-				log.Errorf("error when persisting meta index: %s", err)
+				log.Errorf("persisting meta index: %s", err)
 			}
 			mi.lock.Lock()
 			mi.index.Meta = newIndex
@@ -80,6 +80,10 @@ func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P
 	rl := make(chan struct{}, pingRateLim)
 	var lock sync.Mutex
 	for i, a := range addrs {
+		if ctx.Err() != nil {
+			log.Infof("update meta index canceled")
+			return miner.MetaIndex{}
+		}
 		rl <- struct{}{}
 		go func(a string) {
 			defer func() { <-rl }()

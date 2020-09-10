@@ -123,9 +123,6 @@ func (s *Index) Close() error {
 // start is a long running job that keeps the index up to date with chain updates.
 func (s *Index) start() {
 	defer close(s.finished)
-	if err := s.updateIndex(); err != nil {
-		log.Errorf("initial updating faults index: %s", err)
-	}
 	for {
 		select {
 		case <-s.ctx.Done():
