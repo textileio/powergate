@@ -45,6 +45,22 @@ var (
 			},
 		},
 	}
+
+	localnetZeroConfig = ffs.StorageConfig{
+		Hot: ffs.HotConfig{
+			Enabled: true,
+			Ipfs: ffs.IpfsConfig{
+				AddTimeout: 30,
+			},
+		},
+		Cold: ffs.ColdConfig{
+			Enabled: true,
+			Filecoin: ffs.FilConfig{
+				RepFactor:       1,
+				DealMinDuration: util.MinDealDuration,
+			},
+		},
+	}
 	dsDefaultStorageConfigKey = datastore.NewKey("defaultstorageconfig")
 )
 
@@ -66,11 +82,11 @@ type Manager struct {
 }
 
 // New returns a new Manager.
-func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool) (*Manager, error) {
+func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool, onLocalnet bool) (*Manager, error) {
 	if ffsUseMasterAddr && wm.MasterAddr() == address.Undef {
 		return nil, fmt.Errorf("ffsUseMasterAddr requires that master address is defined")
 	}
-	storageConfig, err := loadDefaultStorageConfig(ds)
+	storageConfig, err := loadDefaultStorageConfig(ds, onLocalnet)
 	if err != nil {
 		return nil, fmt.Errorf("loading default storage config: %s", err)
 	}
@@ -229,9 +245,12 @@ func (m *Manager) saveDefaultConfig(dc ffs.StorageConfig) error {
 	return nil
 }
 
-func loadDefaultStorageConfig(ds datastore.Datastore) (ffs.StorageConfig, error) {
+func loadDefaultStorageConfig(ds datastore.Datastore, onLocalnet bool) (ffs.StorageConfig, error) {
 	d, err := ds.Get(dsDefaultStorageConfigKey)
 	if err == datastore.ErrNotFound {
+		if onLocalnet {
+			return localnetZeroConfig, nil
+		}
 		return zeroConfig, nil
 	}
 	if err != nil {

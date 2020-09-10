@@ -229,7 +229,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}
 
-	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, pm, dm, sched, conf.FFSUseMasterAddr)
+	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, pm, dm, sched, conf.FFSUseMasterAddr, conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}
