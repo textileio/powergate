@@ -89,7 +89,6 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm 
 
 // Create creates a new Api instance and an auth-token mapped to it.
 func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
-
 	log.Info("creating instance")
 
 	var addr address.Address
