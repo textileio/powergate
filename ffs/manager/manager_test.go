@@ -164,14 +164,14 @@ func TestDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	client, addr, _ := tests.CreateLocalDevnet(t, 1)
-	m, cls, err := newManager(client, ds, addr, false)
+	m, cls, err := newManager(client, ds, addr, true)
 	require.NoError(t, err)
 	defer require.NoError(t, cls())
 
 	// A newly created manager must have
 	// the zeroConfig defined value.
 	c := m.GetDefaultStorageConfig()
-	require.Equal(t, zeroConfig, c)
+	require.Equal(t, localnetZeroConfig, c)
 
 	// Change the default config and test.
 	c.Hot.Enabled = false
@@ -202,7 +202,7 @@ func newManager(clientBuilder lotus.ClientBuilder, ds datastore.TxnDatastore, ma
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}
-	m, err := New(ds, wm, pm, dm, nil, ffsUseMasterAddr)
+	m, err := New(ds, wm, pm, dm, nil, ffsUseMasterAddr, true)
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}

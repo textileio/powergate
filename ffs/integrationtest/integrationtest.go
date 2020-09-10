@@ -145,7 +145,7 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 
 	pm := paych.New(clientBuilder)
 
-	manager, err := manager.New(ds, wm, pm, dm, sched, false)
+	manager, err := manager.New(ds, wm, pm, dm, sched, false, true)
 	require.NoError(t, err)
 	err = manager.SetDefaultStorageConfig(ffs.StorageConfig{
 		Hot: ffs.HotConfig{
