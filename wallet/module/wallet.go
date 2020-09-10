@@ -92,17 +92,27 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	}
 
 	if m.masterAddr != address.Undef {
-		msg := &types.Message{
-			From:  m.masterAddr,
-			To:    addr,
-			Value: types.BigInt{Int: m.iAmount},
-		}
+		go func() {
+			client, cls, err := m.clientBuilder()
+			if err != nil {
+				log.Errorf("creating lotus client: %s", err)
+				return
+			}
+			defer cls()
 
-		smsg, err := client.MpoolPushMessage(ctx, msg, nil)
-		if err != nil {
-			return "", fmt.Errorf("transferring funds to new address: %s", err)
-		}
-		log.Infof("%s funding transaction message: %s", addr, smsg.Message.Cid)
+			msg := &types.Message{
+				From:  m.masterAddr,
+				To:    addr,
+				Value: types.BigInt{Int: m.iAmount},
+			}
+
+			smsg, err := client.MpoolPushMessage(ctx, msg, nil)
+			if err != nil {
+				log.Errorf("transferring funds to new address: %s", err)
+				return
+			}
+			log.Infof("%s funding transaction message: %s", addr, smsg.Message.Cid())
+		}()
 	}
 
 	return addr.String(), nil

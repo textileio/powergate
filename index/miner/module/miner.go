@@ -17,7 +17,6 @@ import (
 	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/signaler"
 	txndstr "github.com/textileio/powergate/txndstransform"
-	"github.com/textileio/powergate/util"
 )
 
 const (
@@ -25,8 +24,9 @@ const (
 )
 
 var (
-	maxParallelism = 10
-	dsBase         = datastore.NewKey("index")
+	minersRefreshInterval = time.Minute * 30
+	maxParallelism        = 10
+	dsBase                = datastore.NewKey("index")
 
 	log = logging.Logger("index-miner")
 )
@@ -79,7 +79,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost
 		lr:            lr,
 		chMeta:        make(chan struct{}, 1),
 		metaTicker:    time.NewTicker(metadataRefreshInterval),
-		minerTicker:   time.NewTicker(util.AvgBlockTime),
+		minerTicker:   time.NewTicker(minersRefreshInterval),
 
 		ctx:      ctx,
 		cancel:   cancel,
