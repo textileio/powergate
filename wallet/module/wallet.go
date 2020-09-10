@@ -92,17 +92,19 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	}
 
 	if m.masterAddr != address.Undef {
-		msg := &types.Message{
-			From:  m.masterAddr,
-			To:    addr,
-			Value: types.BigInt{Int: m.iAmount},
-		}
+		go func() {
+			msg := &types.Message{
+				From:  m.masterAddr,
+				To:    addr,
+				Value: types.BigInt{Int: m.iAmount},
+			}
 
-		smsg, err := client.MpoolPushMessage(ctx, msg, nil)
-		if err != nil {
-			return "", fmt.Errorf("transferring funds to new address: %s", err)
-		}
-		log.Infof("%s funding transaction message: %s", addr, smsg.Message.Cid)
+			smsg, err := client.MpoolPushMessage(ctx, msg, nil)
+			if err != nil {
+				log.Errorf("transferring funds to new address: %s", err)
+			}
+			log.Infof("%s funding transaction message: %s", addr, smsg.Message.Cid())
+		}()
 	}
 
 	return addr.String(), nil
