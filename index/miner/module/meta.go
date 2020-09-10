@@ -13,15 +13,14 @@ import (
 	"github.com/textileio/powergate/index/miner"
 	"github.com/textileio/powergate/iplocation"
 	"github.com/textileio/powergate/lotus"
-	"github.com/textileio/powergate/util"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
 var (
-	metadataRefreshInterval = util.AvgBlockTime * 3
+	metadataRefreshInterval = time.Minute * 15
 	pingTimeout             = time.Second * 5
-	pingRateLim             = 100
+	pingRateLim             = 10
 )
 
 var (

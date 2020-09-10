@@ -89,8 +89,6 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm 
 
 // Create creates a new Api instance and an auth-token mapped to it.
 func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
-	m.lock.Lock()
-	defer m.lock.Unlock()
 
 	log.Info("creating instance")
 
@@ -135,6 +133,8 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	if err != nil {
 		return ffs.EmptyInstanceID, "", fmt.Errorf("generating auth token for %s: %s", fapi.ID(), err)
 	}
+	m.lock.Lock()
+	defer m.lock.Unlock()
 
 	m.instances[iid] = fapi
 
