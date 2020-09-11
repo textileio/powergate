@@ -22,9 +22,9 @@ import (
 )
 
 var (
-	qaRatelim         = 20
+	qaRatelim         = 5
 	qaTimeout         = time.Second * 20
-	qaRefreshInterval = 15 * time.Minute
+	qaRefreshInterval = 30 * time.Minute
 
 	log = logging.Logger("index-ask")
 )

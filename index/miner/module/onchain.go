@@ -34,6 +34,8 @@ func (mi *Index) updateOnChainIndex() error {
 	}
 	defer cls()
 	log.Info("updating on-chain index...")
+	defer log.Info("on-chain index updated")
+
 	heaviest, err := client.ChainHead(mi.ctx)
 	if err != nil {
 		return err
@@ -50,7 +52,7 @@ func (mi *Index) updateOnChainIndex() error {
 	newtsk := new.Key()
 	ts, err := mi.store.LoadAndPrune(mi.ctx, newtsk, &chainIndex)
 	if err != nil {
-		return fmt.Errorf("error getting last saved from store: %s", err)
+		return fmt.Errorf("getting last saved from store: %s", err)
 	}
 	if chainIndex.Miners == nil {
 		chainIndex.Miners = make(map[string]miner.OnChainData)
@@ -66,12 +68,12 @@ func (mi *Index) updateOnChainIndex() error {
 	if hdiff > fullThreshold || chainIndex.LastUpdated == 0 {
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "full"))
 		if err := fullRefresh(mi.ctx, client, &chainIndex); err != nil {
-			return fmt.Errorf("error doing full refresh: %s", err)
+			return fmt.Errorf("doing full refresh: %s", err)
 		}
 	} else {
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "delta"))
 		if err := deltaRefresh(mi.ctx, client, &chainIndex, *ts, new); err != nil {
-			return fmt.Errorf("error doing delta refresh: %s", err)
+			return fmt.Errorf("doing delta refresh: %s", err)
 		}
 	}
 	chainIndex.LastUpdated = int64(new.Height())
@@ -137,12 +139,15 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 	var l sync.Mutex
 	rl := make(chan struct{}, maxParallelism)
 	for i, a := range addrs {
+		if ctx.Err() != nil {
+			return fmt.Errorf("update on-chain index canceled")
+		}
 		rl <- struct{}{}
 		go func(addr address.Address) {
 			defer func() { <-rl }()
 			ocd, err := getOnChainData(ctx, api, addr)
 			if err != nil {
-				log.Debug("getting power: %s", err)
+				log.Debugf("getting onchain data: %s", err)
 				return
 			}
 			l.Lock()

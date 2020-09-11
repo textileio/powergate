@@ -25,7 +25,7 @@ const (
 
 var (
 	minersRefreshInterval = time.Minute * 30
-	maxParallelism        = 10
+	maxParallelism        = 1
 	dsBase                = datastore.NewKey("index")
 
 	log = logging.Logger("index-miner")
@@ -159,7 +159,7 @@ func (mi *Index) start() {
 	defer func() { mi.finished <- struct{}{} }()
 
 	if err := mi.updateOnChainIndex(); err != nil {
-		log.Errorf("error on initial updating miner index: %s", err)
+		log.Errorf("initial updating miner index: %s", err)
 	}
 	mi.chMeta <- struct{}{}
 	for {
@@ -175,7 +175,7 @@ func (mi *Index) start() {
 			}
 		case <-mi.minerTicker.C:
 			if err := mi.updateOnChainIndex(); err != nil {
-				log.Errorf("error when updating miner index: %s", err)
+				log.Errorf("updating miner index: %s", err)
 				continue
 			}
 		}
