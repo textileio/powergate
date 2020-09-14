@@ -167,9 +167,8 @@ func (m *Module) Fetch(ctx context.Context, waddr string, payloadCid cid.Cid, pi
 	if err != nil {
 		return "", nil, fmt.Errorf("creating lotus client: %s", err)
 	}
-	defer cls()
 
-	miner, events, err := m.retrieve(ctx, lapi, waddr, payloadCid, pieceCid, miners, nil)
+	miner, events, err := m.retrieve(ctx, lapi, cls, waddr, payloadCid, pieceCid, miners, nil)
 	if err != nil {
 		return "", nil, err
 	}
@@ -192,8 +191,7 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, payloadCid cid.Cid,
 	if err != nil {
 		return "", nil, fmt.Errorf("creating lotus client: %s", err)
 	}
-	defer cls()
-	miner, events, err := m.retrieve(ctx, lapi, waddr, payloadCid, pieceCid, miners, &ref)
+	miner, events, err := m.retrieve(ctx, lapi, cls, waddr, payloadCid, pieceCid, miners, &ref)
 	if err != nil {
 		return "", nil, fmt.Errorf("retrieving from lotus: %s", err)
 	}
@@ -210,7 +208,7 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, payloadCid cid.Cid,
 	return miner, &autodeleteFile{File: f}, nil
 }
 
-func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string, ref *api.FileRef) (string, <-chan marketevents.RetrievalEvent, error) {
+func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, lapiCls func(), waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string, ref *api.FileRef) (string, <-chan marketevents.RetrievalEvent, error) {
 	addr, err := address.NewFromString(waddr)
 	if err != nil {
 		return "", nil, fmt.Errorf("parsing wallet address: %s", err)
@@ -254,6 +252,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, w
 	}
 
 	go func() {
+		defer lapiCls()
 		defer close(out)
 		// Redirect received events to the output channel
 		var errored, canceled bool

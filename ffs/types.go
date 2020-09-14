@@ -140,6 +140,12 @@ func (s StorageConfig) WithColdEnabled(enabled bool) StorageConfig {
 	return s
 }
 
+// WithColdFastRetrieval sets the Fast Retrieval feature for new deals.
+func (s StorageConfig) WithColdFastRetrieval(enabled bool) StorageConfig {
+	s.Cold.Filecoin.FastRetrieval = enabled
+	return s
+}
+
 // WithColdFilCountryCodes defines a list of allowed country codes to select miners
 // for deals.
 func (s StorageConfig) WithColdFilCountryCodes(countryCodes []string) StorageConfig {

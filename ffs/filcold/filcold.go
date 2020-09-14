@@ -63,6 +63,9 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 	}
 	var fundsSpent uint64
 	for e := range events {
+		if e.Err != "" {
+			return ffs.FetchInfo{}, fmt.Errorf("event error in retrieval progress: %s", e.Err)
+		}
 		strEvent := retrievalmarket.ClientEvents[e.Event]
 		strDealStatus := retrievalmarket.DealStatuses[e.Status]
 		fc.l.Log(ctx, "Event: %s, bytes received %d, funds spent: %d attoFil, status: %s ", strEvent, e.BytesReceived, e.FundsSpent, strDealStatus)
