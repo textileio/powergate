@@ -10,6 +10,7 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler/internal/ristore"
 )
 
+// StartRetrieval schedules a new RetrievalJob to execute a Filecoin retrieval.
 func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, piCid cid.Cid, sel string, miners []string, walletAddr string, maxPrice uint64) (ffs.JobID, error) {
 	if iid == ffs.EmptyInstanceID {
 		return ffs.EmptyJobID, fmt.Errorf("empty API ID")
@@ -82,6 +83,8 @@ func (s *Scheduler) GetRetrievalInfo(rid ffs.RetrievalID) (ffs.RetrievalInfo, er
 }
 
 func (s *Scheduler) executeRetrieval(ctx context.Context, a astore.RetrievalAction, j ffs.RetrievalJob) (ffs.RetrievalInfo, error) {
+	// ToDo: WIP.
+	_ = j
 	fi, err := s.cs.Fetch(ctx, a.PayloadCid, &a.PieceCid, a.WalletAddress, a.Miners, a.MaxPrice, a.Selector)
 	if err != nil {
 		return ffs.RetrievalInfo{}, fmt.Errorf("fetching from cold storage: %s", err)

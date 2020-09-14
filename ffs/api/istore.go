@@ -164,7 +164,6 @@ func (s *instanceStore) putRetrievalRequest(rID ffs.RetrievalID, pyCid, piCid ci
 		return retrievalRequest{}, fmt.Errorf("saving cid config to datastore: %s", err)
 	}
 	return rr, nil
-
 }
 
 func (s *instanceStore) getRetrievalRequest(rid ffs.RetrievalID) (retrievalRequest, error) {

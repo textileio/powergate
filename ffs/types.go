@@ -15,6 +15,7 @@ var (
 	EmptyRetrievalID = RetrievalID("")
 )
 
+// RetrievalID is the identifier of a Filecoin retrieval.
 type RetrievalID string
 
 // NewRetrievalID returns an new retrieval ID.
@@ -223,6 +224,8 @@ func (s StorageConfig) WithHotAllowUnfreeze(allow bool) StorageConfig {
 	return s
 }
 
+// WithUnfreezeMaxPrice indicates the maximum price to pay for an unfreeze
+// procedure.
 func (s StorageConfig) WithUnfreezeMaxPrice(maxPrice uint64) StorageConfig {
 	s.Hot.UnfreezeMaxPrice = maxPrice
 	return s
@@ -369,6 +372,7 @@ func (fr *FilRenew) Validate() error {
 	return nil
 }
 
+// RetrievalInfo has data about an executed Filecoin retrieval.
 type RetrievalInfo struct {
 	ID        RetrievalID
 	DataCid   cid.Cid
@@ -463,9 +467,13 @@ type FilStorage struct {
 type JobLoggerCtxKey int
 
 const (
-	// CtxKeyJid is the key to store Jid metadata.
+	// CtxKeyJid is a context-key to indicate the Job ID for JobLogger.
 	CtxKeyJid JobLoggerCtxKey = iota
+	// CtxStorageCid is the context-key to indicate the Cid of a
+	// StorageJob for JobLogger.
 	CtxStorageCid
+	// CtxRetrievalID is the context-key to indicate the RetrievalID of
+	// a RetrievalJob for JobLogger.
 	CtxRetrievalID
 )
 

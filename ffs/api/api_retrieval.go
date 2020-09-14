@@ -13,6 +13,8 @@ type retrievalConfig struct {
 	maxPrice      uint64
 }
 
+// Retrieval indicates information of a retrieval in the
+// Filecoin network.
 type Retrieval struct {
 	ID            ffs.RetrievalID
 	PayloadCid    cid.Cid
@@ -30,6 +32,7 @@ type Retrieval struct {
 	Size           uint64
 }
 
+// StartRetrieval schedules a new job to do a data retrieval.
 func (i *API) StartRetrieval(payloadCid, pieceCid cid.Cid, selector string, miners []string, opts ...RetrievalOption) (Retrieval, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -65,6 +68,7 @@ func (i *API) StartRetrieval(payloadCid, pieceCid cid.Cid, selector string, mine
 	return retrievalRequestToRetrieval(rr), nil
 }
 
+// GetRetrieval returns information from a Retrieval using its ID.
 func (i *API) GetRetrieval(prID ffs.RetrievalID) (Retrieval, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -87,6 +91,7 @@ func (i *API) GetRetrieval(prID ffs.RetrievalID) (Retrieval, error) {
 	return r, nil
 }
 
+// RemoveRetrieval removes information and data from a executed retrieval.
 func (i *API) RemoveRetrieval(partialCid cid.Cid) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()

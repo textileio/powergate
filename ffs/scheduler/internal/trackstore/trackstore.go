@@ -28,6 +28,7 @@ type trackedStorageConfig struct {
 	StorageConfig ffs.StorageConfig
 }
 
+// New retruns a new Store.
 func New(ds datastore.Datastore) (*Store, error) {
 	s := &Store{
 		ds:          ds,
@@ -40,6 +41,7 @@ func New(ds datastore.Datastore) (*Store, error) {
 	return s, nil
 }
 
+// Get returns the storage config of a repairable/renewable stored Cid.
 func (s *Store) Get(c cid.Cid) (ffs.StorageConfig, ffs.APIID, error) {
 	v, err := s.ds.Get(datastore.NewKey(c.String()))
 	if err != nil {
@@ -162,5 +164,4 @@ func (s *Store) loadCaches() error {
 		}
 	}
 	return nil
-
 }

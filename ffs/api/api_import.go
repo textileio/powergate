@@ -8,19 +8,14 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
-type ImportCheckError struct {
-	cause string
-}
-
-func (ice *ImportCheckError) Error() string {
-	return ice.cause
-}
-
+// ImportDeal contains information of an imported deal.
 type ImportDeal struct {
 	ProposalCid  *cid.Cid
 	MinerAddress string
 }
 
+// ImportStorage imports deals existing in the Filecoin network. The StorageConfig
+// attached to this Cid will be the default one with HotStorage disabled.
 func (i *API) ImportStorage(payloadCid cid.Cid, pieceCid cid.Cid, deals []ImportDeal, opts ...ImportOption) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -62,7 +57,6 @@ func (i *API) ImportStorage(payloadCid cid.Cid, pieceCid cid.Cid, deals []Import
 		},
 	}
 
-	// ToDo: use cfg.validate to validate import? And or fill missing info.
 	if err := i.sched.ImportCidInfo(cinfo); err != nil {
 		return fmt.Errorf("importing cid info in scheduler: %s", err)
 	}

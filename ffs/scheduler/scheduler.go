@@ -276,19 +276,20 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 	cids, err := s.ts.GetRepairables()
 	if err != nil {
 		log.Errorf("getting repairable cid configs from store: %s", err)
+		return
 	}
 	for _, c := range cids {
 		if ctx.Err() != nil {
 			log.Info("repair cron execution canceled")
 			break
 		}
-		ctx := context.WithValue(ctx, ffs.CtxStorageCid, c)
-		s.l.Log(ctx, "Scheduling deal repair evaluation...")
-		jid, err := s.scheduleRenewRepairJob(ctx, c)
+		lCtx := context.WithValue(ctx, ffs.CtxStorageCid, c)
+		s.l.Log(lCtx, "Scheduling deal repair evaluation...")
+		jid, err := s.scheduleRenewRepairJob(c)
 		if err != nil {
-			s.l.Log(ctx, "Scheduling deal repair errored: %s", err)
+			s.l.Log(lCtx, "Scheduling deal repair errored: %s", err)
 		} else {
-			s.l.Log(ctx, "Job %s was queued for repair evaluation.", jid)
+			s.l.Log(lCtx, "Job %s was queued for repair evaluation.", jid)
 		}
 	}
 }
@@ -304,20 +305,20 @@ func (s *Scheduler) execRenewCron(ctx context.Context) {
 	for _, c := range cids {
 		if ctx.Err() != nil {
 			log.Infof("renew cron execution canceled")
-			break
+			return
 		}
-		ctx := context.WithValue(ctx, ffs.CtxStorageCid, c)
-		s.l.Log(ctx, "Scheduling deal renew evaluation...")
-		jid, err := s.scheduleRenewRepairJob(ctx, c)
+		lCtx := context.WithValue(ctx, ffs.CtxStorageCid, c)
+		s.l.Log(lCtx, "Scheduling deal renew evaluation...")
+		jid, err := s.scheduleRenewRepairJob(c)
 		if err != nil {
-			s.l.Log(ctx, "Scheduling deal renewal errored: %s", err)
+			s.l.Log(lCtx, "Scheduling deal renewal errored: %s", err)
 		} else {
-			s.l.Log(ctx, "Job %s was queued for renew evaluation.", jid)
+			s.l.Log(lCtx, "Job %s was queued for renew evaluation.", jid)
 		}
 	}
 }
 
-func (s *Scheduler) scheduleRenewRepairJob(ctx context.Context, c cid.Cid) (ffs.JobID, error) {
+func (s *Scheduler) scheduleRenewRepairJob(c cid.Cid) (ffs.JobID, error) {
 	sc, iid, err := s.ts.Get(c)
 	if err != nil {
 		return "", fmt.Errorf("getting latest storage config: %s", err)

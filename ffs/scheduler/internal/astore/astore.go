@@ -18,7 +18,8 @@ var (
 	dsBaseRetrievalAction = datastore.NewKey("retrievalaction")
 )
 
-// StorageAction contains information necessary to a Job execution.
+// StorageAction contains information necessary to execute a
+// StorageJob.
 type StorageAction struct {
 	APIID       ffs.APIID
 	Cid         cid.Cid
@@ -26,6 +27,8 @@ type StorageAction struct {
 	ReplacedCid cid.Cid
 }
 
+// RetrievalAction contains information necessary to execute a
+// RetrievalJob.
 type RetrievalAction struct {
 	APIID         ffs.APIID
 	RetrievalID   ffs.RetrievalID
@@ -77,6 +80,8 @@ func (s *Store) PutStorageAction(jid ffs.JobID, a StorageAction) error {
 	return nil
 }
 
+// GetRetrievalAction returns a the RetrievalAction corresponding to the
+// RetrievalJob id.
 func (s *Store) GetRetrievalAction(jid ffs.JobID) (RetrievalAction, error) {
 	var a RetrievalAction
 	buf, err := s.ds.Get(makeRetrievalActionKey(jid))
@@ -92,6 +97,7 @@ func (s *Store) GetRetrievalAction(jid ffs.JobID) (RetrievalAction, error) {
 	return a, nil
 }
 
+// PutRetrievalAction saves the RetrievalAction corresponding to a RetrievalJob.
 func (s *Store) PutRetrievalAction(jid ffs.JobID, a RetrievalAction) error {
 	buf, err := json.Marshal(a)
 	if err != nil {
