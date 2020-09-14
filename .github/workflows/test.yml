@@ -2,7 +2,7 @@ name: Tests
 on:
   push:
     branches:
-      - jsign/retr4
+      - master
   pull_request:
     branches:
       - master
