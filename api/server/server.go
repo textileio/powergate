@@ -20,6 +20,7 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
+	mongods "github.com/textileio/go-ds-mongo"
 	buildinfoRpc "github.com/textileio/powergate/buildinfo/rpc"
 	"github.com/textileio/powergate/deals"
 	dealsModule "github.com/textileio/powergate/deals/module"
@@ -114,6 +115,8 @@ type Config struct {
 	RepoPath             string
 	GatewayHostAddr      string
 	MaxMindDBFolder      string
+	MongoURI             string
+	MongoDB              string
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -173,11 +176,25 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating repo folder: %s", err)
 	}
 
-	log.Info("Opening badger database...")
-	opts := &badger.DefaultOptions
-	ds, err := badger.NewDatastore(path, opts)
-	if err != nil {
-		return nil, fmt.Errorf("opening datastore on repo: %s", err)
+	var ds datastore.TxnDatastore
+	if conf.MongoURI != "" {
+		log.Info("Opening Mongo database...")
+		mongoCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+		if conf.MongoDB == "" {
+			return nil, fmt.Errorf("mongo database name is empty")
+		}
+		ds, err = mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB)
+		if err != nil {
+			return nil, fmt.Errorf("opening mongo datastore: %s", err)
+		}
+	} else {
+		log.Info("Opening badger database...")
+		opts := &badger.DefaultOptions
+		ds, err = badger.NewDatastore(path, opts)
+		if err != nil {
+			return nil, fmt.Errorf("opening badger datastore: %s", err)
+		}
 	}
 
 	log.Info("Wiring internal components...")

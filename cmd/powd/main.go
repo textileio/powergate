@@ -54,7 +54,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("starting instrumentation: %s", err)
 	}
-	confJSON, err := json.MarshalIndent(conf, "", "  ")
+	confProtected := conf
+	if confProtected.MongoURI != "" {
+		confProtected.MongoURI = "<hidden>"
+	}
+	confJSON, err := json.MarshalIndent(confProtected, "", "  ")
 	if err != nil {
 		log.Fatalf("marshaling configuration: %s", err)
 	}
@@ -115,6 +119,8 @@ func configFromFlags() (server.Config, error) {
 	gatewayHostAddr := config.GetString("gatewayhostaddr")
 	gatewayBasePath := config.GetString("gatewaybasepath")
 	maxminddbfolder := config.GetString("maxminddbfolder")
+	mongoURI := config.GetString("mongouri")
+	mongoDB := config.GetString("mongodb")
 
 	return server.Config{
 		WalletInitialFunds:   walletInitialFunds,
@@ -133,6 +139,8 @@ func configFromFlags() (server.Config, error) {
 		GatewayHostAddr:     gatewayHostAddr,
 		GatewayBasePath:     gatewayBasePath,
 		MaxMindDBFolder:     maxminddbfolder,
+		MongoURI:            mongoURI,
+		MongoDB:             mongoDB,
 	}, nil
 }
 
@@ -291,6 +299,8 @@ func setupFlags() error {
 	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "Gateway host listening address")
 	pflag.String("gatewaybasepath", "/", "Gateway base path")
 	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb")
+	pflag.String("mongouri", "", "Mongo connection string")
+	pflag.String("mongodb", "", "Mongo database name")
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")
