@@ -11,6 +11,24 @@ import (
 )
 
 var (
+	// EmptyRetrievalID is an undef retrieval id.
+	EmptyRetrievalID = RetrievalID("")
+)
+
+// RetrievalID is the identifier of a Filecoin retrieval.
+type RetrievalID string
+
+// NewRetrievalID returns an new retrieval ID.
+func NewRetrievalID() RetrievalID {
+	return RetrievalID(uuid.New().String())
+}
+
+// String returns a string representation of RetrievalID.
+func (ri RetrievalID) String() string {
+	return string(ri)
+}
+
+var (
 	// EmptyJobID represents an empty JobID.
 	EmptyJobID = JobID("")
 )
@@ -84,14 +102,23 @@ var JobStatusStr = map[JobStatus]string{
 	Success:     "Success",
 }
 
-// Job is a task executed by the Scheduler.
-type Job struct {
+// StorageJob is a task executed by the Scheduler.
+type StorageJob struct {
 	ID         JobID
 	APIID      APIID
 	Cid        cid.Cid
 	Status     JobStatus
 	ErrCause   string
 	DealErrors []DealError
+}
+
+// RetrievalJob is a retrieval task executed by the Scheduler.
+type RetrievalJob struct {
+	ID          JobID
+	APIID       APIID
+	RetrievalID RetrievalID
+	Status      JobStatus
+	ErrCause    string
 }
 
 // StorageConfig contains a default storage configuration for an Api instance.
@@ -110,6 +137,12 @@ func (s StorageConfig) WithRepairable(enabled bool) StorageConfig {
 // WithColdEnabled allows to enable/disable Cold storage usage.
 func (s StorageConfig) WithColdEnabled(enabled bool) StorageConfig {
 	s.Cold.Enabled = enabled
+	return s
+}
+
+// WithColdFastRetrieval sets the Fast Retrieval feature for new deals.
+func (s StorageConfig) WithColdFastRetrieval(enabled bool) StorageConfig {
+	s.Cold.Filecoin.FastRetrieval = enabled
 	return s
 }
 
@@ -165,6 +198,13 @@ func (s StorageConfig) WithColdMaxPrice(maxPrice uint64) StorageConfig {
 	return s
 }
 
+// WithFastRetrieval specifies if deal fast retrieval flag on new deals
+// is enabled.
+func (s StorageConfig) WithFastRetrieval(enabled bool) StorageConfig {
+	s.Cold.Filecoin.FastRetrieval = enabled
+	return s
+}
+
 // WithColdAddr specifies the wallet address that should be used for transactions.
 func (s StorageConfig) WithColdAddr(addr string) StorageConfig {
 	s.Cold.Filecoin.Addr = addr
@@ -190,6 +230,13 @@ func (s StorageConfig) WithHotAllowUnfreeze(allow bool) StorageConfig {
 	return s
 }
 
+// WithUnfreezeMaxPrice indicates the maximum price to pay for an unfreeze
+// procedure.
+func (s StorageConfig) WithUnfreezeMaxPrice(maxPrice uint64) StorageConfig {
+	s.Hot.UnfreezeMaxPrice = maxPrice
+	return s
+}
+
 // Validate validates a StorageConfig.
 func (s StorageConfig) Validate() error {
 	if err := s.Hot.Validate(); err != nil {
@@ -197,6 +244,11 @@ func (s StorageConfig) Validate() error {
 	}
 	if err := s.Cold.Validate(); err != nil {
 		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
+	}
+	// We can't accept being renewable without the hot storage enabled.
+	// See the (**) note in scheduler.go
+	if s.Cold.Enabled && s.Cold.Filecoin.Renew.Enabled && !s.Hot.Enabled {
+		return fmt.Errorf("hot storage should be enabled to enable renewals")
 	}
 	return nil
 }
@@ -209,6 +261,9 @@ type HotConfig struct {
 	// AllowUnfreeze indicates that if data isn't available in the Hot Storage,
 	// it's allowed to be feeded by Cold Storage if available.
 	AllowUnfreeze bool
+	// UnfreezeMaxPrice indicates the maximum amount of attoFil to pay for
+	// retrieval of data to unfreeze.
+	UnfreezeMaxPrice uint64
 	// Ipfs contains configuration related to storing Cid data in a IPFS node.
 	Ipfs IpfsConfig
 }
@@ -287,6 +342,9 @@ type FilConfig struct {
 	Addr string
 	// MaxPrice is the maximum price that will be spent to store the data
 	MaxPrice uint64
+	// FastRetrieval indicates that created deals should enable the
+	// fast retrieval feature.
+	FastRetrieval bool
 }
 
 // Validate returns a non-nil error if the configuration is invalid.
@@ -320,14 +378,31 @@ func (fr *FilRenew) Validate() error {
 	return nil
 }
 
+// RetrievalInfo has data about an executed Filecoin retrieval.
+type RetrievalInfo struct {
+	ID        RetrievalID
+	DataCid   cid.Cid
+	TotalPaid uint64
+	MinerAddr string
+	Size      int64
+	CreatedAt time.Time
+}
+
 // CidInfo contains information about the current storage state
 // of a Cid.
 type CidInfo struct {
-	JobID   JobID
-	Cid     cid.Cid
+	// JobID indicates the Job ID which updated
+	// the current information. It *may be empty* if
+	// the data was imported manually.
+	JobID JobID
+	// Cid of payload.
+	Cid cid.Cid
+	// Created is the timestamp of the data.
 	Created time.Time
-	Hot     HotInfo
-	Cold    ColdInfo
+	// Hot contains hot storage information.
+	Hot HotInfo
+	// Cold contains cold storage information.
+	Cold ColdInfo
 }
 
 // HotInfo contains information about the current storage state
@@ -354,35 +429,65 @@ type ColdInfo struct {
 // FilInfo contains information about the current storage state
 // of a Cid in the Filecoin network.
 type FilInfo struct {
-	DataCid   cid.Cid
-	Size      uint64
+	// DataCid corresponds to the PayloadCid of the deal.
+	DataCid cid.Cid
+	// Size is the size of the Piece. Recall that this size
+	// is which is accounted for payment. Also is equal or
+	// greater than the original data size.
+	// This value might be zero for imported deals; if that's
+	// the case, will be re-calculated in the next made deal.
+	Size uint64
+	// Proposals contains known deals for the data.
 	Proposals []FilStorage
 }
 
 // FilStorage contains Deal information of a storage in Filecoin.
+// This information is used in FFS may be used by FFS logic to
+// provide repair, renwal, or retrieval tasks.
 type FilStorage struct {
-	ProposalCid     cid.Cid
-	Renewed         bool
-	Duration        int64
+	// ProposalCid of the deal.
+	ProposalCid cid.Cid
+	// PieceCid is the piece Cid.
+	PieceCid cid.Cid
+	// Renewed indicates if this deal was
+	// already renewed, so it can expiry
+	// safely if renewals are enabled.
+	Renewed bool
+	// Duration is the duration of the deal.
+	Duration int64
+	// ActivationEpoch is the epoch in which
+	// the deal was activated.
 	ActivationEpoch int64
-	StartEpoch      uint64
-	Miner           string
-	EpochPrice      uint64
+	// StartEpoch is the starting epoch in which
+	// the deal is considered active on-chain.
+	StartEpoch uint64
+	// Miner is the miner address which is storing
+	// deals data.
+	Miner string
+	// EpochPrice is the price of attoFil per GiB
+	// per epoch paid in this deal.
+	EpochPrice uint64
 }
 
-// CidLoggerCtxKey is a type to use in ctx values for CidLogger.
-type CidLoggerCtxKey int
+// JobLoggerCtxKey is a type to use in ctx values for CidLogger.
+type JobLoggerCtxKey int
 
 const (
-	// CtxKeyJid is the key to store Jid metadata.
-	CtxKeyJid CidLoggerCtxKey = iota
+	// CtxKeyJid is a context-key to indicate the Job ID for JobLogger.
+	CtxKeyJid JobLoggerCtxKey = iota
+	// CtxStorageCid is the context-key to indicate the Cid of a
+	// StorageJob for JobLogger.
+	CtxStorageCid
+	// CtxRetrievalID is the context-key to indicate the RetrievalID of
+	// a RetrievalJob for JobLogger.
+	CtxRetrievalID
 )
 
-// CidLogger saves log information about a Cid executions.
-type CidLogger interface {
-	Log(context.Context, cid.Cid, string, ...interface{})
+// JobLogger saves log information about a storage and retrieval tasks.
+type JobLogger interface {
+	Log(context.Context, string, ...interface{})
 	Watch(context.Context, chan<- LogEntry) error
-	Get(context.Context, cid.Cid) ([]LogEntry, error)
+	GetByCid(context.Context, cid.Cid) ([]LogEntry, error)
 }
 
 // LogEntry is a log entry from a Cid execution.

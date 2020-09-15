@@ -31,7 +31,7 @@ type FFS struct {
 
 // JobEvent represents an event for Watching a job.
 type JobEvent struct {
-	Job ffs.Job
+	Job ffs.StorageJob
 	Err error
 }
 
@@ -333,7 +333,7 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 			default:
 				status = ffs.Unspecified
 			}
-			job := ffs.Job{
+			job := ffs.StorageJob{
 				ID:         ffs.JobID(reply.Job.Id),
 				APIID:      ffs.APIID(reply.Job.ApiId),
 				Cid:        c,
@@ -624,8 +624,9 @@ func (f *FFS) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealReco
 
 func toRPCHotConfig(config ffs.HotConfig) *rpc.HotConfig {
 	return &rpc.HotConfig{
-		Enabled:       config.Enabled,
-		AllowUnfreeze: config.AllowUnfreeze,
+		Enabled:          config.Enabled,
+		AllowUnfreeze:    config.AllowUnfreeze,
+		UnfreezeMaxPrice: config.UnfreezeMaxPrice,
 		Ipfs: &rpc.IpfsConfig{
 			AddTimeout: int64(config.Ipfs.AddTimeout),
 		},
@@ -657,8 +658,9 @@ func fromRPCStorageConfig(config *rpc.StorageConfig) ffs.StorageConfig {
 	ret := ffs.StorageConfig{Repairable: config.Repairable}
 	if config.Hot != nil {
 		ret.Hot = ffs.HotConfig{
-			Enabled:       config.Hot.Enabled,
-			AllowUnfreeze: config.Hot.AllowUnfreeze,
+			Enabled:          config.Hot.Enabled,
+			AllowUnfreeze:    config.Hot.AllowUnfreeze,
+			UnfreezeMaxPrice: config.Hot.UnfreezeMaxPrice,
 		}
 		if config.Hot.Ipfs != nil {
 			ret.Hot.Ipfs = ffs.IpfsConfig{
@@ -679,6 +681,7 @@ func fromRPCStorageConfig(config *rpc.StorageConfig) ffs.StorageConfig {
 				TrustedMiners:   config.Cold.Filecoin.TrustedMiners,
 				Addr:            config.Cold.Filecoin.Addr,
 				MaxPrice:        config.Cold.Filecoin.MaxPrice,
+				FastRetrieval:   config.Cold.Filecoin.FastRetrieval,
 			}
 			if config.Cold.Filecoin.Renew != nil {
 				ret.Cold.Filecoin.Renew = ffs.FilRenew{

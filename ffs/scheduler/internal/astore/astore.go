@@ -7,28 +7,40 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
-	"github.com/ipfs/go-datastore/query"
-	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 )
 
 var (
-	log = logging.Logger("ffs-sched-astore")
-
 	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("action not found")
+
+	dsBaseStorageAction   = datastore.NewKey("storageaction")
+	dsBaseRetrievalAction = datastore.NewKey("retrievalaction")
 )
 
-// Action represents an action to be executed by the Scheduler.
-type Action struct {
+// StorageAction contains information necessary to execute a
+// StorageJob.
+type StorageAction struct {
 	APIID       ffs.APIID
 	Cid         cid.Cid
 	Cfg         ffs.StorageConfig
 	ReplacedCid cid.Cid
 }
 
-// Store is a Datastore backed implementation of ActionStore, which saves latests
-// PushStorageConfig actions for a Cid.
+// RetrievalAction contains information necessary to execute a
+// RetrievalJob.
+type RetrievalAction struct {
+	APIID         ffs.APIID
+	RetrievalID   ffs.RetrievalID
+	PayloadCid    cid.Cid
+	PieceCid      cid.Cid
+	Selector      string
+	Miners        []string
+	WalletAddress string
+	MaxPrice      uint64
+}
+
+// Store persists Actions.
 type Store struct {
 	ds datastore.Datastore
 }
@@ -40,10 +52,10 @@ func New(ds datastore.Datastore) *Store {
 	}
 }
 
-// Get gets the lastest pushed Action of a Cid.
-func (s *Store) Get(jid ffs.JobID) (Action, error) {
-	var a Action
-	buf, err := s.ds.Get(makeKey(jid))
+// GetStorageAction gets an action for a JobID. If doesn't exist, returns ErrNotFound.
+func (s *Store) GetStorageAction(jid ffs.JobID) (StorageAction, error) {
+	var a StorageAction
+	buf, err := s.ds.Get(makeStorageActionKey(jid))
 	if err == datastore.ErrNotFound {
 		return a, ErrNotFound
 	}
@@ -56,96 +68,51 @@ func (s *Store) Get(jid ffs.JobID) (Action, error) {
 	return a, nil
 }
 
-// Put saves a new Action for a Cid.
-func (s *Store) Put(ji ffs.JobID, a Action) error {
+// PutStorageAction saves a new Action for a Job.
+func (s *Store) PutStorageAction(jid ffs.JobID, a StorageAction) error {
 	buf, err := json.Marshal(a)
 	if err != nil {
 		return fmt.Errorf("json marshaling: %s", err)
 	}
-	if err := s.ds.Put(makeKey(ji), buf); err != nil {
+	if err := s.ds.Put(makeStorageActionKey(jid), buf); err != nil {
 		return fmt.Errorf("saving in datastore: %s", err)
 	}
 	return nil
 }
 
-// Remove removes any Action associated with a Cid.
-func (s *Store) Remove(c cid.Cid) error {
-	// ToDo: if this becomes a bottleneck, consider including
-	// Cid in key or make an index.
-	q := query.Query{Prefix: ""}
-	res, err := s.ds.Query(q)
+// GetRetrievalAction returns a the RetrievalAction corresponding to the
+// RetrievalJob id.
+func (s *Store) GetRetrievalAction(jid ffs.JobID) (RetrievalAction, error) {
+	var a RetrievalAction
+	buf, err := s.ds.Get(makeRetrievalActionKey(jid))
+	if err == datastore.ErrNotFound {
+		return a, ErrNotFound
+	}
 	if err != nil {
-		return fmt.Errorf("executing query in datastore: %s", err)
+		return a, fmt.Errorf("get from datastore: %s", err)
 	}
-	defer func() {
-		if err := res.Close(); err != nil {
-			log.Errorf("closing query result: %s", err)
-		}
-	}()
-
-	for r := range res.Next() {
-		var a Action
-		if err := json.Unmarshal(r.Value, &a); err != nil {
-			return fmt.Errorf("unmarshalling push config action in query: %s", err)
-		}
-		if a.Cid == c {
-			if err := s.ds.Delete(datastore.NewKey(r.Key)); err != nil {
-				return fmt.Errorf("deleting from datastore: %s", err)
-			}
-			return nil
-		}
+	if err := json.Unmarshal(buf, &a); err != nil {
+		return a, fmt.Errorf("unmarshaling from datastore: %s", err)
 	}
-	return ErrNotFound
+	return a, nil
 }
 
-// GetRenewable returns all Actions that have StorageConfigs that have the Renew flag enabled
-// and should be inspected for Deal renewals.
-func (s *Store) GetRenewable() ([]Action, error) {
-	as, err := s.query(func(a Action) bool {
-		return a.Cfg.Cold.Enabled && a.Cfg.Cold.Filecoin.Renew.Enabled
-	})
+// PutRetrievalAction saves the RetrievalAction corresponding to a RetrievalJob.
+func (s *Store) PutRetrievalAction(jid ffs.JobID, a RetrievalAction) error {
+	buf, err := json.Marshal(a)
 	if err != nil {
-		return nil, fmt.Errorf("querying for repairable actions: %s", err)
+		return fmt.Errorf("json marshaling: %s", err)
 	}
-	return as, nil
+	if err := s.ds.Put(makeRetrievalActionKey(jid), buf); err != nil {
+		return fmt.Errorf("saving in datastore: %s", err)
+	}
+	return nil
 }
 
-// GetRepairable returns all Actions that have StorageConfigs with enabled auto-repair.
-func (s *Store) GetRepairable() ([]Action, error) {
-	as, err := s.query(func(a Action) bool {
-		return a.Cfg.Repairable
-	})
-	if err != nil {
-		return nil, fmt.Errorf("querying for repairable actions: %s", err)
-	}
-	return as, nil
+func makeStorageActionKey(jid ffs.JobID) datastore.Key {
+	return dsBaseStorageAction.ChildString(jid.String())
 }
 
-func (s *Store) query(selector func(Action) bool) ([]Action, error) {
-	q := query.Query{Prefix: ""}
-	res, err := s.ds.Query(q)
-	if err != nil {
-		return nil, fmt.Errorf("executing query in datastore: %s", err)
-	}
-	defer func() {
-		if err := res.Close(); err != nil {
-			log.Errorf("closing query result: %s", err)
-		}
-	}()
-
-	var as []Action
-	for r := range res.Next() {
-		var a Action
-		if err := json.Unmarshal(r.Value, &a); err != nil {
-			return nil, fmt.Errorf("unmarshalling push config action in query: %s", err)
-		}
-		if selector(a) {
-			as = append(as, a)
-		}
-	}
-	return as, nil
-}
-
-func makeKey(jid ffs.JobID) datastore.Key {
-	return datastore.NewKey(jid.String())
+func makeRetrievalActionKey(jid ffs.JobID) datastore.Key {
+	return dsBaseRetrievalAction.ChildString(jid.String())
 }

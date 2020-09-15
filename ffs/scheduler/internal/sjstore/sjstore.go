@@ -1,4 +1,4 @@
-package jstore
+package sjstore
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	log = logging.Logger("ffs-sched-jstore")
+	log = logging.Logger("ffs-sched-sjstore")
 
 	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("job not found")
@@ -37,7 +37,7 @@ type Store struct {
 
 type watcher struct {
 	iid ffs.APIID
-	C   chan ffs.Job
+	C   chan ffs.StorageJob
 }
 
 // New returns a new JobStore backed by the Datastore.
@@ -84,10 +84,10 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 // for the same Cid. Saying it differently, it's safe to execute. The returned
 // job Status is automatically changed to Executing. If no jobs are available to dequeue
 // it returns a nil *ffs.Job and no-error.
-func (s *Store) Dequeue() (*ffs.Job, error) {
+func (s *Store) Dequeue() (*ffs.StorageJob, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	q := query.Query{Prefix: ""}
+	q := query.Query{Prefix: dsBaseJob.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("querying datastore: %s", err)
@@ -98,7 +98,7 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 		}
 	}()
 	for r := range res.Next() {
-		var j ffs.Job
+		var j ffs.StorageJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return nil, fmt.Errorf("unmarshalling job: %s", err)
 		}
@@ -116,7 +116,7 @@ func (s *Store) Dequeue() (*ffs.Job, error) {
 
 // Enqueue queues a new Job. If other Job for the same Cid is in Queued status,
 // it will be automatically marked as Canceled.
-func (s *Store) Enqueue(j ffs.Job) error {
+func (s *Store) Enqueue(j ffs.StorageJob) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if err := s.cancelQueued(j.Cid); err != nil {
@@ -154,7 +154,7 @@ func (s *Store) cancelQueued(c cid.Cid) error {
 		}
 	}()
 	for r := range res.Next() {
-		var j ffs.Job
+		var j ffs.StorageJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return fmt.Errorf("unmarshalling job: %s", err)
 		}
@@ -170,7 +170,7 @@ func (s *Store) cancelQueued(c cid.Cid) error {
 
 // Get returns the current state of Job. If doesn't exist, returns
 // ErrNotFound.
-func (s *Store) Get(jid ffs.JobID) (ffs.Job, error) {
+func (s *Store) Get(jid ffs.JobID) (ffs.StorageJob, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -178,9 +178,9 @@ func (s *Store) Get(jid ffs.JobID) (ffs.Job, error) {
 }
 
 // Watch subscribes to Job changes from a specified Api instance.
-func (s *Store) Watch(ctx context.Context, c chan<- ffs.Job, iid ffs.APIID) error {
+func (s *Store) Watch(ctx context.Context, c chan<- ffs.StorageJob, iid ffs.APIID) error {
 	s.lock.Lock()
-	ic := make(chan ffs.Job, 1)
+	ic := make(chan ffs.StorageJob, 1)
 	s.watchers = append(s.watchers, watcher{iid: iid, C: ic})
 	s.lock.Unlock()
 
@@ -272,7 +272,7 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) put(j ffs.Job) error {
+func (s *Store) put(j ffs.StorageJob) error {
 	buf, err := json.Marshal(j)
 	if err != nil {
 		return fmt.Errorf("marshaling for datastore: %s", err)
@@ -283,28 +283,28 @@ func (s *Store) put(j ffs.Job) error {
 	s.notifyWatchers(j)
 	if j.Status == ffs.Executing {
 		s.executingCids[j.Cid] = j.ID
-	} else if j.Status == ffs.Failed || j.Status == ffs.Success {
+	} else if j.Status == ffs.Failed || j.Status == ffs.Success || j.Status == ffs.Canceled {
 		delete(s.executingCids, j.Cid)
 	}
 	return nil
 }
 
-func (s *Store) get(jid ffs.JobID) (ffs.Job, error) {
+func (s *Store) get(jid ffs.JobID) (ffs.StorageJob, error) {
 	buf, err := s.ds.Get(makeKey(jid))
 	if err == datastore.ErrNotFound {
-		return ffs.Job{}, ErrNotFound
+		return ffs.StorageJob{}, ErrNotFound
 	}
 	if err != nil {
-		return ffs.Job{}, fmt.Errorf("getting job from datastore: %s", err)
+		return ffs.StorageJob{}, fmt.Errorf("getting job from datastore: %s", err)
 	}
-	var job ffs.Job
+	var job ffs.StorageJob
 	if err := json.Unmarshal(buf, &job); err != nil {
 		return job, fmt.Errorf("unmarshaling job from datastore: %s", err)
 	}
 	return job, nil
 }
 
-func (s *Store) notifyWatchers(j ffs.Job) {
+func (s *Store) notifyWatchers(j ffs.StorageJob) {
 	for _, w := range s.watchers {
 		if w.iid != j.APIID {
 			continue
@@ -321,7 +321,7 @@ func (s *Store) notifyWatchers(j ffs.Job) {
 func (s *Store) loadExecutingJobs() error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	q := query.Query{Prefix: ""}
+	q := query.Query{Prefix: dsBaseJob.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return fmt.Errorf("querying executing jobs in datastore: %s", err)
@@ -332,7 +332,7 @@ func (s *Store) loadExecutingJobs() error {
 		}
 	}()
 	for r := range res.Next() {
-		var j ffs.Job
+		var j ffs.StorageJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return fmt.Errorf("unmarshalling job: %s", err)
 		}

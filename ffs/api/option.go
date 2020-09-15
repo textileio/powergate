@@ -75,3 +75,37 @@ func WithHistory(enabled bool) GetLogsOption {
 		c.history = enabled
 	}
 }
+
+type importConfig struct {
+	validate bool
+}
+
+// ImportOption provides configurations for importing deal information.
+type ImportOption func(*importConfig)
+
+// WithValidateImport indicates to validate imported deal information
+// to check for inconsistencies.
+func WithValidateImport(enabled bool) ImportOption {
+	return func(c *importConfig) {
+		c.validate = enabled
+	}
+}
+
+// RetrievalOption provides a retrieval configuration setup.
+type RetrievalOption func(*retrievalConfig)
+
+// WithRetrievalWalletAddress indicates which wallet address to use
+// for doing the deal retrieval.
+func WithRetrievalWalletAddress(addr string) RetrievalOption {
+	return func(prc *retrievalConfig) {
+		prc.walletAddress = addr
+	}
+}
+
+// WithRetrievalMaxPrice indicates which is the maximum prices
+// to pay for the retrieval.
+func WithRetrievalMaxPrice(maxPrice uint64) RetrievalOption {
+	return func(prc *retrievalConfig) {
+		prc.maxPrice = maxPrice
+	}
+}

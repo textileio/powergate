@@ -11,12 +11,12 @@ import (
 // WatchJobs subscribes to Job status changes. If jids is empty, it subscribes to
 // all Job status changes corresonding to the instance. If jids is not empty,
 // it immediately sends current state of those Jobs. If empty, it doesn't.
-func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID) error {
-	var jobs []ffs.Job
+func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.StorageJob, jids ...ffs.JobID) error {
+	var jobs []ffs.StorageJob
 	for _, jid := range jids {
 		j, err := i.sched.GetJob(jid)
 		if err == scheduler.ErrNotFound {
-			return fmt.Errorf("job not found: %s", jid)
+			return fmt.Errorf("job id %s not found", jid)
 		}
 		if err != nil {
 			return fmt.Errorf("getting current job state: %s", err)
@@ -24,7 +24,7 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.Job, jids ...ffs.JobID
 		jobs = append(jobs, j)
 	}
 
-	ch := make(chan ffs.Job, 1)
+	ch := make(chan ffs.StorageJob, 1)
 	for _, j := range jobs {
 		select {
 		case ch <- j:

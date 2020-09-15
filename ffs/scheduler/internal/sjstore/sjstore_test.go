@@ -1,4 +1,4 @@
-package jstore
+package sjstore
 
 import (
 	"testing"
@@ -131,11 +131,11 @@ func TestStartedDeals(t *testing.T) {
 	require.Equal(t, 0, len(fds))
 }
 
-func createJob(t *testing.T) ffs.Job {
+func createJob(t *testing.T) ffs.StorageJob {
 	c, err := util.CidFromString("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u")
 	require.NoError(t, err)
 
-	return ffs.Job{
+	return ffs.StorageJob{
 		ID:    ffs.NewJobID(),
 		APIID: "ApiIDTest",
 		Cid:   c,

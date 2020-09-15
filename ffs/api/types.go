@@ -12,8 +12,8 @@ var (
 	ErrNotFound = errors.New("stored item not found")
 )
 
-// Config has general information about a Api instance.
-type Config struct {
+// InstanceConfig has general information about a Api instance.
+type InstanceConfig struct {
 	ID                   ffs.APIID
 	Addrs                map[string]AddrInfo
 	DefaultStorageConfig ffs.StorageConfig

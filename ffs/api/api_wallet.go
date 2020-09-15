@@ -54,7 +54,7 @@ func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	if conf.makeDefault {
 		i.cfg.DefaultStorageConfig.Cold.Filecoin.Addr = addr
 	}
-	if err := i.is.putConfig(i.cfg); err != nil {
+	if err := i.is.putInstanceConfig(i.cfg); err != nil {
 		return "", err
 	}
 	return addr, nil

@@ -25,9 +25,9 @@ import (
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/fchost"
 	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/cidlogger"
 	"github.com/textileio/powergate/ffs/coreipfs"
 	"github.com/textileio/powergate/ffs/filcold"
+	"github.com/textileio/powergate/ffs/joblogger"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
@@ -86,7 +86,7 @@ type Server struct {
 	ffsManager *manager.Manager
 	sched      *scheduler.Scheduler
 	hs         ffs.HotStorage
-	l          *cidlogger.CidLogger
+	l          *joblogger.Logger
 
 	grpcServer *grpc.Server
 
@@ -218,7 +218,7 @@ func NewServer(conf Config) (*Server, error) {
 	chain := filchain.New(clientBuilder)
 	ms := reptop.New(rm, ai)
 
-	l := cidlogger.New(txndstr.Wrap(ds, "ffs/cidlogger"))
+	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
 	cs := filcold.New(ms, dm, ipfs, chain, l)
 	hs, err := coreipfs.New(ipfs, l)
 	if err != nil {
@@ -478,7 +478,7 @@ func (s *Server) Close() {
 		log.Errorf("closing ffs scheduler: %s", err)
 	}
 	if err := s.l.Close(); err != nil {
-		log.Errorf("closing cid logger: %s", err)
+		log.Errorf("closing joblogger: %s", err)
 	}
 	if err := s.rm.Close(); err != nil {
 		log.Errorf("closing reputation module: %s", err)

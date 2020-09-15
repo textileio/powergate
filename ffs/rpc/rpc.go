@@ -263,7 +263,7 @@ func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPCService_WatchJobsServer) e
 		jids[i] = ffs.JobID(jid)
 	}
 
-	ch := make(chan ffs.Job, 100)
+	ch := make(chan ffs.StorageJob, 100)
 	go func() {
 		err = i.WatchJobs(srv.Context(), ch, jids...)
 		close(ch)
@@ -618,8 +618,9 @@ func receiveFile(srv RPCService_StageServer, writer *io.PipeWriter) {
 
 func toRPCHotConfig(config ffs.HotConfig) *HotConfig {
 	return &HotConfig{
-		Enabled:       config.Enabled,
-		AllowUnfreeze: config.AllowUnfreeze,
+		Enabled:          config.Enabled,
+		AllowUnfreeze:    config.AllowUnfreeze,
+		UnfreezeMaxPrice: config.UnfreezeMaxPrice,
 		Ipfs: &IpfsConfig{
 			AddTimeout: int64(config.Ipfs.AddTimeout),
 		},
@@ -639,8 +640,9 @@ func toRPCColdConfig(config ffs.ColdConfig) *ColdConfig {
 				Enabled:   config.Filecoin.Renew.Enabled,
 				Threshold: int64(config.Filecoin.Renew.Threshold),
 			},
-			Addr:     config.Filecoin.Addr,
-			MaxPrice: config.Filecoin.MaxPrice,
+			Addr:          config.Filecoin.Addr,
+			MaxPrice:      config.Filecoin.MaxPrice,
+			FastRetrieval: config.Filecoin.FastRetrieval,
 		},
 	}
 }
@@ -666,6 +668,7 @@ func fromRPCHotConfig(config *HotConfig) ffs.HotConfig {
 	if config != nil {
 		res.Enabled = config.Enabled
 		res.AllowUnfreeze = config.AllowUnfreeze
+		res.UnfreezeMaxPrice = config.UnfreezeMaxPrice
 		if config.Ipfs != nil {
 			ipfs := ffs.IpfsConfig{
 				AddTimeout: int(config.Ipfs.AddTimeout),
@@ -689,6 +692,7 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 				TrustedMiners:   config.Filecoin.TrustedMiners,
 				Addr:            config.Filecoin.Addr,
 				MaxPrice:        config.Filecoin.MaxPrice,
+				FastRetrieval:   config.Filecoin.FastRetrieval,
 			}
 			if config.Filecoin.Renew != nil {
 				renew := ffs.FilRenew{
@@ -729,8 +733,13 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 		if p.ProposalCid.Defined() {
 			strProposalCid = util.CidToString(p.ProposalCid)
 		}
+		var strPieceCid string
+		if p.PieceCid.Defined() {
+			strPieceCid = util.CidToString(p.PieceCid)
+		}
 		cidInfo.Cold.Filecoin.Proposals[i] = &FilStorage{
 			ProposalCid:     strProposalCid,
+			PieceCid:        strPieceCid,
 			Renewed:         p.Renewed,
 			Duration:        p.Duration,
 			ActivationEpoch: p.ActivationEpoch,

@@ -24,7 +24,7 @@ var (
 // into a remote go-ipfs using the HTTP API.
 type CoreIpfs struct {
 	ipfs iface.CoreAPI
-	l    ffs.CidLogger
+	l    ffs.JobLogger
 
 	lock   sync.Mutex
 	pinset map[cid.Cid]struct{}
@@ -33,7 +33,7 @@ type CoreIpfs struct {
 var _ ffs.HotStorage = (*CoreIpfs)(nil)
 
 // New returns a new CoreIpfs instance.
-func New(ipfs iface.CoreAPI, l ffs.CidLogger) (*CoreIpfs, error) {
+func New(ipfs iface.CoreAPI, l ffs.JobLogger) (*CoreIpfs, error) {
 	ci := &CoreIpfs{
 		ipfs: ipfs,
 		l:    l,
@@ -52,7 +52,7 @@ func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 	if err := ci.ipfs.Pin().Rm(ctx, path.IpfsPath(c), options.Pin.RmRecursive(true)); err != nil {
 		return fmt.Errorf("unpinning cid from ipfs node: %s", err)
 	}
-	ci.l.Log(ctx, c, "Cid data was pinned in IPFS node.")
+	ci.l.Log(ctx, "Cid data was pinned in IPFS node.")
 	return nil
 }
 

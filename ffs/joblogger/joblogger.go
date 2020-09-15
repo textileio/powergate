@@ -1,4 +1,4 @@
-package cidlogger
+package joblogger
 
 import (
 	"context"
@@ -21,8 +21,8 @@ var (
 	log = logging.Logger("ffs-cidlogger")
 )
 
-// CidLogger is a datastore backed implementation of ffs.CidLogger.
-type CidLogger struct {
+// Logger is a datastore backed implementation of ffs.Logger.
+type Logger struct {
 	ds datastore.Datastore
 
 	lock     sync.Mutex
@@ -31,37 +31,41 @@ type CidLogger struct {
 }
 
 type logEntry struct {
-	Cid       cid.Cid
-	Timestamp int64
-	Jid       ffs.JobID
-	Msg       string
+	Cid         cid.Cid
+	RetrievalID ffs.RetrievalID
+	Timestamp   int64
+	Jid         ffs.JobID
+	Msg         string
 }
 
-var _ ffs.CidLogger = (*CidLogger)(nil)
+var _ ffs.JobLogger = (*Logger)(nil)
 
 // New returns a new CidLogger.
-func New(ds datastore.Datastore) *CidLogger {
-	return &CidLogger{
+func New(ds datastore.Datastore) *Logger {
+	return &Logger{
 		ds: ds,
 	}
 }
 
 // Log logs a log entry for a Cid. The ctx can contain an optional ffs.CtxKeyJid to add
 // additional metadata about the log entry being part of a Job execution.
-func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...interface{}) {
+func (cl *Logger) Log(ctx context.Context, format string, a ...interface{}) {
 	log.Infof(format, a...)
-	jid := ffs.EmptyJobID
-	if ctxjid, ok := ctx.Value(ffs.CtxKeyJid).(ffs.JobID); ok {
-		jid = ctxjid
-	}
+
+	// Retrieve context values.
+	c, _ := ctx.Value(ffs.CtxStorageCid).(cid.Cid)
+	rid, _ := ctx.Value(ffs.CtxRetrievalID).(ffs.RetrievalID)
+	jid, _ := ctx.Value(ffs.CtxKeyJid).(ffs.JobID)
+
 	now := time.Now()
 	nowNano := now.UnixNano()
-	key := makeKey(c, nowNano)
+	key := makeKey(c, rid, nowNano)
 	le := logEntry{
-		Cid:       c,
-		Jid:       jid,
-		Msg:       fmt.Sprintf(format, a...),
-		Timestamp: nowNano,
+		Cid:         c,
+		RetrievalID: rid,
+		Jid:         jid,
+		Msg:         fmt.Sprintf(format, a...),
+		Timestamp:   nowNano,
 	}
 	b, err := json.Marshal(le)
 	if err != nil {
@@ -90,8 +94,8 @@ func (cl *CidLogger) Log(ctx context.Context, c cid.Cid, format string, a ...int
 	}
 }
 
-// Get returns history logs of a Cid.
-func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
+// GetByCid returns history logs for a Cid.
+func (cl *Logger) GetByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
 	q := query.Query{Prefix: makeCidKey(c).String()}
 	res, err := cl.ds.Query(q)
 	if err != nil {
@@ -123,7 +127,7 @@ func (cl *CidLogger) Get(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error)
 
 // Watch is a blocking function that writes to the channel all new created log entries.
 // The client should cancel the ctx to signal stopping writing to the channel and free resources.
-func (cl *CidLogger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
+func (cl *Logger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
 	cl.lock.Lock()
 	ic := make(chan ffs.LogEntry)
 	cl.watchers = append(cl.watchers, ic)
@@ -153,7 +157,7 @@ func (cl *CidLogger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
 }
 
 // Close closes and cancels all watchers that might be active.
-func (cl *CidLogger) Close() error {
+func (cl *Logger) Close() error {
 	log.Info("closing...")
 	defer log.Info("closed")
 	cl.lock.Lock()
@@ -169,11 +173,21 @@ func (cl *CidLogger) Close() error {
 	return nil
 }
 
-func makeKey(c cid.Cid, t int64) datastore.Key {
-	strt := strconv.FormatInt(t, 10)
-	return makeCidKey(c).ChildString(strt)
+func makeKey(c cid.Cid, rid ffs.RetrievalID, timestamp int64) datastore.Key {
+	strt := strconv.FormatInt(timestamp, 10)
+	if c != cid.Undef {
+		return makeCidKey(c).ChildString(strt)
+	}
+	if rid != ffs.EmptyRetrievalID {
+		return makeRetrievalKey(c).ChildString(strt)
+	}
+	panic("log should be from stored cid or retrieval request")
 }
 
 func makeCidKey(c cid.Cid) datastore.Key {
 	return datastore.NewKey(util.CidToString(c))
+}
+
+func makeRetrievalKey(rid cid.Cid) datastore.Key {
+	return datastore.NewKey(rid.String())
 }

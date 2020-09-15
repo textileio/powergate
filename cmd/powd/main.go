@@ -211,8 +211,8 @@ func setupLogging(repoPath string) error {
 		"ffs-coreipfs",
 		"ffs-grpc-service",
 		"ffs-filcold",
-		"ffs-sched-jstore",
-		"ffs-sched-astore",
+		"ffs-sched-sjstore",
+		"ffs-sched-rjstore",
 		"ffs-cidlogger",
 	}
 
