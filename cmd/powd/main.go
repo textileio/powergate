@@ -54,7 +54,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("starting instrumentation: %s", err)
 	}
-	confJSON, err := json.MarshalIndent(conf, "", "  ")
+	confProtected := conf
+	if confProtected.MongoURI != "" {
+		confProtected.MongoURI = "<hidden>"
+	}
+	confJSON, err := json.MarshalIndent(confProtected, "", "  ")
 	if err != nil {
 		log.Fatalf("marshaling configuration: %s", err)
 	}
@@ -115,6 +119,8 @@ func configFromFlags() (server.Config, error) {
 	gatewayHostAddr := config.GetString("gatewayhostaddr")
 	gatewayBasePath := config.GetString("gatewaybasepath")
 	maxminddbfolder := config.GetString("maxminddbfolder")
+	mongoURI := config.GetString("mongouri")
+	mongoDB := config.GetString("mongodb")
 
 	return server.Config{
 		WalletInitialFunds:   walletInitialFunds,
@@ -133,6 +139,8 @@ func configFromFlags() (server.Config, error) {
 		GatewayHostAddr:     gatewayHostAddr,
 		GatewayBasePath:     gatewayBasePath,
 		MaxMindDBFolder:     maxminddbfolder,
+		MongoURI:            mongoURI,
+		MongoDB:             mongoDB,
 	}, nil
 }
 
@@ -282,15 +290,17 @@ func setupFlags() error {
 	pflag.String("lotustoken", "", "Lotus API authorization token. This flag or --lotustoken file are mandatory.")
 	pflag.String("lotustokenfile", "", "Path of a file that contains the Lotus API authorization token.")
 	pflag.String("lotusmasteraddr", "", "Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)")
-	pflag.Bool("autocreatemasteraddr", false, "Automatically creates & funds a master address if none is provided")
+	pflag.Bool("autocreatemasteraddr", false, "Automatically creates & funds a master address if none is provided.")
 	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
 	pflag.String("repopath", "~/.powergate", "Path of the repository where Powergate state will be saved.")
 	pflag.Bool("devnet", false, "Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "IPFS API endpoint multiaddress. (Optional, only needed if FFS is used)")
 	pflag.Int64("walletinitialfund", 4000000000000000, "FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set)")
-	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "Gateway host listening address")
-	pflag.String("gatewaybasepath", "/", "Gateway base path")
+	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "Gateway host listening address.")
+	pflag.String("gatewaybasepath", "/", "Gateway base path.")
 	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb")
+	pflag.String("mongouri", "", "Mongo URI to connect to MongoDB database. (Optional: if empty, will use Badger)")
+	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory")
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")
