@@ -105,8 +105,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 				To:    addr,
 				Value: types.BigInt{Int: m.iAmount},
 			}
-
-			smsg, err := client.MpoolPushMessage(ctx, msg, nil)
+			smsg, err := client.MpoolPushMessage(context.Background(), msg, nil)
 			if err != nil {
 				log.Errorf("transferring funds to new address: %s", err)
 				return
