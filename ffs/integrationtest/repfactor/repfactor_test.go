@@ -37,7 +37,7 @@ func TestRepFactor(t *testing.T) {
 				config := fapi.DefaultStorageConfig().WithColdFilRepFactor(rf)
 				jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 				require.NoError(t, err)
-				it.RequireJobState(t, fapi, jid, ffs.Success)
+				it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 				it.RequireStorageConfig(t, fapi, cid, &config)
 
 				cinfo, err := fapi.Show(cid)
@@ -57,7 +57,7 @@ func TestRepFactorIncrease(t *testing.T) {
 		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
 		jid, err := fapi.PushStorageConfig(cid)
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
 		cinfo, err := fapi.Show(cid)
@@ -68,7 +68,7 @@ func TestRepFactorIncrease(t *testing.T) {
 		config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
 		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 		cinfo, err = fapi.Show(cid)
 		require.NoError(t, err)
@@ -87,7 +87,7 @@ func TestRepFactorDecrease(t *testing.T) {
 		config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
 		cinfo, err := fapi.Show(cid)
@@ -97,7 +97,7 @@ func TestRepFactorDecrease(t *testing.T) {
 		config = fapi.DefaultStorageConfig().WithColdFilRepFactor(1)
 		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
 		cinfo, err = fapi.Show(cid)
@@ -119,7 +119,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	config := fapi.DefaultStorageConfig().WithColdFilDealDuration(int64(100)).WithColdFilRenew(true, renewThreshold).WithColdFilRepFactor(2)
 	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
+	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 	it.RequireStorageConfig(t, fapi, cid, &config)
 
 	// Now decrease RepFactor to 1, so the renewal should consider this.
@@ -127,7 +127,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	config = config.WithColdFilRepFactor(1)
 	jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
+	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 	it.RequireStorageConfig(t, fapi, cid, &config)
 
 	ticker := time.NewTicker(time.Second)

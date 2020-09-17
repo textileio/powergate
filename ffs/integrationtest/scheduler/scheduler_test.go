@@ -31,7 +31,7 @@ func TestJobCancellation(t *testing.T) {
 	cid, _ := it.AddRandomFile(t, r, ipfsAPI)
 	jid, err := fapi.PushStorageConfig(cid)
 	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Executing)
+	it.RequireEventualJobState(t, fapi, jid, ffs.Executing)
 	time.Sleep(time.Second * 2)
 
 	err = fapi.CancelJob(jid)
@@ -40,7 +40,7 @@ func TestJobCancellation(t *testing.T) {
 	// Assert that the Job status is Canceled, *and* was
 	// finished _fast_.
 	before := time.Now()
-	it.RequireJobState(t, fapi, jid, ffs.Canceled)
+	it.RequireEventualJobState(t, fapi, jid, ffs.Canceled)
 	require.True(t, time.Since(before) < time.Second)
 }
 
@@ -66,12 +66,12 @@ func TestParallelExecution(t *testing.T) {
 	// Check that all jobs should be immediately in the Executing status, since
 	// the default max parallel runs is 50. So all should get in.
 	for i := 0; i < len(jids); i++ {
-		it.RequireJobState(t, fapi, jids[i], ffs.Executing)
+		it.RequireEventualJobState(t, fapi, jids[i], ffs.Executing)
 	}
 
 	// Now just check that all of them finish successfully.
 	for i := 0; i < len(jids); i++ {
-		it.RequireJobState(t, fapi, jids[i], ffs.Executing)
+		it.RequireEventualJobState(t, fapi, jids[i], ffs.Executing)
 		it.RequireStorageConfig(t, fapi, cids[i], nil)
 	}
 }
@@ -103,7 +103,7 @@ func TestResumeScheduler(t *testing.T) {
 	defer closeManager()
 	fapi, err = manager.GetByAuthToken(auth) // Get same FFS instance again
 	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
+	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 
 	sh, err := fapi.Show(c)
 	require.NoError(t, err)
@@ -122,7 +122,7 @@ func TestFailedJobMessage(t *testing.T) {
 
 	jid, err := fapi.PushStorageConfig(c1)
 	require.NoError(t, err)
-	job := it.RequireJobState(t, fapi, jid, ffs.Failed)
+	job := it.RequireEventualJobState(t, fapi, jid, ffs.Failed)
 	require.NotEmpty(t, job.ErrCause)
 	require.Len(t, job.DealErrors, 1)
 	de := job.DealErrors[0]

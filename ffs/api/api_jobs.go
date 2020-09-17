@@ -8,6 +8,18 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 )
 
+// GetStorageJob returns the current state of the specified job.
+func (i *API) GetStorageJob(ctx context.Context, jid ffs.JobID) (ffs.StorageJob, error) {
+	job, err := i.sched.GetJob(jid)
+	if err == scheduler.ErrNotFound {
+		return ffs.StorageJob{}, fmt.Errorf("job id %s not found", jid)
+	}
+	if err != nil {
+		return ffs.StorageJob{}, fmt.Errorf("getting current job state: %s", err)
+	}
+	return job, nil
+}
+
 // WatchJobs subscribes to Job status changes. If jids is empty, it subscribes to
 // all Job status changes corresonding to the instance. If jids is not empty,
 // it immediately sends current state of those Jobs. If empty, it doesn't.

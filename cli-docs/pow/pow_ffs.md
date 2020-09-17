@@ -37,5 +37,6 @@ Provides commands to manage ffs
 * [pow ffs show](pow_ffs_show.md)	 - Show pinned cid data
 * [pow ffs stage](pow_ffs_stage.md)	 - Temporarily stage data in the Hot layer in preparation for pushing a cid storage config
 * [pow ffs storage](pow_ffs_storage.md)	 - List storage deal records for an FFS instance
+* [pow ffs storage-job](pow_ffs_storage-job.md)	 - Get a storage job's current status
 * [pow ffs watch](pow_ffs_watch.md)	 - Watch for job status updates
 
