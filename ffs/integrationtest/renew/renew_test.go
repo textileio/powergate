@@ -38,7 +38,7 @@ func TestRenew(t *testing.T) {
 	config := fapi.DefaultStorageConfig().WithColdFilDealDuration(util.MinDealDuration+int64(100)).WithColdFilRenew(true, renewThreshold)
 	jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
+	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 	it.RequireStorageConfig(t, fapi, cid, &config)
 
 	i, err := fapi.Show(cid)

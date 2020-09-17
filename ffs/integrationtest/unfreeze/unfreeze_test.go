@@ -37,7 +37,7 @@ func TestUnfreeze(t *testing.T) {
 		config := fapi.DefaultStorageConfig().WithHotEnabled(false).WithHotAllowUnfreeze(true)
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
 		_, err = fapi.Get(ctx, cid)
@@ -48,7 +48,7 @@ func TestUnfreeze(t *testing.T) {
 		config = config.WithHotEnabled(true)
 		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
 		r, err := fapi.Get(ctx, cid)

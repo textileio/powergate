@@ -279,6 +279,15 @@ func (f *FFS) CancelJob(ctx context.Context, jid ffs.JobID) error {
 	return err
 }
 
+// GetStorageJob returns the current state of the specified job.
+func (f *FFS) GetStorageJob(ctx context.Context, jid ffs.JobID) (ffs.StorageJob, error) {
+	res, err := f.client.GetStorageJob(ctx, &rpc.GetStorageJobRequest{Jid: jid.String()})
+	if err != nil {
+		return ffs.StorageJob{}, err
+	}
+	return fromRPCJob(res.Job)
+}
+
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
 // events, the provided ctx should be canceled. If an error occurs, it will be returned
@@ -800,6 +809,42 @@ func fromRPCRetrievalDealRecords(records []*rpc.RetrievalDealRecord) ([]deals.Re
 		ret = append(ret, record)
 	}
 	return ret, nil
+}
+
+func fromRPCJob(job *rpc.Job) (ffs.StorageJob, error) {
+	c, err := util.CidFromString(job.Cid)
+	if err != nil {
+		return ffs.StorageJob{}, err
+	}
+	dealErrors, err := fromRPCDealErrors(job.DealErrors)
+	if err != nil {
+		return ffs.StorageJob{}, err
+	}
+	var status ffs.JobStatus
+	switch job.Status {
+	case rpc.JobStatus_JOB_STATUS_UNSPECIFIED:
+		status = ffs.Unspecified
+	case rpc.JobStatus_JOB_STATUS_QUEUED:
+		status = ffs.Queued
+	case rpc.JobStatus_JOB_STATUS_EXECUTING:
+		status = ffs.Executing
+	case rpc.JobStatus_JOB_STATUS_FAILED:
+		status = ffs.Failed
+	case rpc.JobStatus_JOB_STATUS_CANCELED:
+		status = ffs.Canceled
+	case rpc.JobStatus_JOB_STATUS_SUCCESS:
+		status = ffs.Success
+	default:
+		return ffs.StorageJob{}, fmt.Errorf("unknown job status: %v", job.Status.String())
+	}
+	return ffs.StorageJob{
+		ID:         ffs.JobID(job.Id),
+		APIID:      ffs.APIID(job.ApiId),
+		Cid:        c,
+		Status:     status,
+		ErrCause:   job.ErrCause,
+		DealErrors: dealErrors,
+	}, nil
 }
 
 func newDecoratedIPFSAPI(proxyAddr, ffsToken string) (*httpapi.HttpApi, error) {

@@ -282,6 +282,14 @@ message CancelJobRequest {
 message CancelJobResponse {
 }
 
+message GetStorageJobRequest {
+   string jid = 1;
+}
+
+message GetStorageJobResponse {
+   Job job = 1;
+}
+
 message WatchJobsRequest {
    repeated string jids = 1;
 }
@@ -416,6 +424,7 @@ service RPCService {
    rpc Show(ShowRequest) returns (ShowResponse) {}
    rpc Info(InfoRequest) returns (InfoResponse) {}
    rpc CancelJob(CancelJobRequest) returns (CancelJobResponse) {}
+   rpc GetStorageJob(GetStorageJobRequest) returns (GetStorageJobResponse) {}
    rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsResponse) {}
    rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
    rpc Replace(ReplaceRequest) returns (ReplaceResponse) {}

@@ -14,6 +14,8 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/util"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -251,6 +253,26 @@ func (s *RPC) CancelJob(ctx context.Context, req *CancelJobRequest) (*CancelJobR
 	return &CancelJobResponse{}, nil
 }
 
+// GetStorageJob calls API.GetStorageJob.
+func (s *RPC) GetStorageJob(ctx context.Context, req *GetStorageJobRequest) (*GetStorageJobResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	jid := ffs.JobID(req.Jid)
+	job, err := i.GetStorageJob(ctx, jid)
+	if err != nil {
+		return nil, err
+	}
+	rpcJob, err := toRPCJob(job)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "building job response: %v", err.Error())
+	}
+	return &GetStorageJobResponse{
+		Job: rpcJob,
+	}, nil
+}
+
 // WatchJobs calls API.WatchJobs.
 func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPCService_WatchJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
@@ -269,30 +291,12 @@ func (s *RPC) WatchJobs(req *WatchJobsRequest, srv RPCService_WatchJobsServer) e
 		close(ch)
 	}()
 	for job := range ch {
-		var status JobStatus
-		switch job.Status {
-		case ffs.Queued:
-			status = JobStatus_JOB_STATUS_QUEUED
-		case ffs.Executing:
-			status = JobStatus_JOB_STATUS_EXECUTING
-		case ffs.Failed:
-			status = JobStatus_JOB_STATUS_FAILED
-		case ffs.Canceled:
-			status = JobStatus_JOB_STATUS_CANCELED
-		case ffs.Success:
-			status = JobStatus_JOB_STATUS_SUCCESS
-		default:
-			status = JobStatus_JOB_STATUS_UNSPECIFIED
+		rpcJob, err := toRPCJob(job)
+		if err != nil {
+			return err
 		}
 		reply := &WatchJobsResponse{
-			Job: &Job{
-				Id:         job.ID.String(),
-				ApiId:      job.APIID.String(),
-				Cid:        util.CidToString(job.Cid),
-				Status:     status,
-				ErrCause:   job.ErrCause,
-				DealErrors: toRPCDealErrors(job.DealErrors),
-			},
+			Job: rpcJob,
 		}
 		if err := srv.Send(reply); err != nil {
 			return err
@@ -827,4 +831,32 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*Retrieval
 		}
 	}
 	return ret
+}
+
+func toRPCJob(job ffs.StorageJob) (*Job, error) {
+	var status JobStatus
+	switch job.Status {
+	case ffs.Unspecified:
+		status = JobStatus_JOB_STATUS_UNSPECIFIED
+	case ffs.Queued:
+		status = JobStatus_JOB_STATUS_QUEUED
+	case ffs.Executing:
+		status = JobStatus_JOB_STATUS_EXECUTING
+	case ffs.Failed:
+		status = JobStatus_JOB_STATUS_FAILED
+	case ffs.Canceled:
+		status = JobStatus_JOB_STATUS_CANCELED
+	case ffs.Success:
+		status = JobStatus_JOB_STATUS_SUCCESS
+	default:
+		return nil, fmt.Errorf("unknown job status: %v", job.Status)
+	}
+	return &Job{
+		Id:         job.ID.String(),
+		ApiId:      job.APIID.String(),
+		Cid:        util.CidToString(job.Cid),
+		Status:     status,
+		ErrCause:   job.ErrCause,
+		DealErrors: toRPCDealErrors(job.DealErrors),
+	}, nil
 }

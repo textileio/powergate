@@ -39,7 +39,8 @@ func TestAdd(t *testing.T) {
 			cid, _ := it.AddRandomFile(t, r, ipfsAPI)
 			jid, err := fapi.PushStorageConfig(cid)
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageJobState(t, fapi, jid, ffs.Queued, ffs.Executing)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, nil)
 			it.RequireFilStored(ctx, t, client, cid)
 			it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
@@ -59,7 +60,8 @@ func TestAdd(t *testing.T) {
 			config := fapi.DefaultStorageConfig().WithHotEnabled(false).WithColdFilDealDuration(util.MinDealDuration + 1234)
 			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireStorageJobState(t, fapi, jid, ffs.Queued, ffs.Executing)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, &config)
 			it.RequireStorageDealRecord(t, fapi, cid)
 		})
@@ -78,7 +80,7 @@ func TestGet(t *testing.T) {
 		cid, data := it.AddRandomFile(t, r, ipfs)
 		jid, err := fapi.PushStorageConfig(cid)
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
 		rr, err := fapi.Get(ctx, cid)
@@ -177,7 +179,7 @@ func TestShow(t *testing.T) {
 		cid, _ := it.AddRandomFile(t, r, ipfs)
 		jid, err := fapi.PushStorageConfig(cid)
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
 		inf, err := fapi.Info(ctx)
@@ -224,7 +226,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		cid, data := it.AddRandomFile(t, ra, ipfs)
 		jid, err := fapi.PushStorageConfig(cid)
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
 		info, err := fapi.Info(ctx)
@@ -272,7 +274,7 @@ func TestRemove(t *testing.T) {
 		config := fapi.DefaultStorageConfig().WithColdEnabled(false)
 		jid, err := fapi.PushStorageConfig(c1, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, c1, &config)
 
 		err = fapi.Remove(c1)
@@ -280,7 +282,7 @@ func TestRemove(t *testing.T) {
 
 		config = config.WithHotEnabled(false)
 		jid, err = fapi.PushStorageConfig(c1, api.WithStorageConfig(config), api.WithOverride(true))
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		require.NoError(t, err)
 
 		err = fapi.Remove(c1)
