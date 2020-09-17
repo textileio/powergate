@@ -38,7 +38,7 @@ func New(ipfs iface.CoreAPI, l ffs.JobLogger) (*CoreIpfs, error) {
 		ipfs: ipfs,
 		l:    l,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 	if err := ci.fillPinsetCache(ctx); err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (ci *CoreIpfs) Replace(ctx context.Context, c1 cid.Cid, c2 cid.Cid) (int, e
 }
 
 func (ci *CoreIpfs) fillPinsetCache(ctx context.Context) error {
-	pins, err := ci.ipfs.Pin().Ls(ctx)
+	pins, err := ci.ipfs.Pin().Ls(ctx, options.Pin.Ls.Recursive())
 	if err != nil {
 		return fmt.Errorf("getting pins from IPFS: %s", err)
 	}
