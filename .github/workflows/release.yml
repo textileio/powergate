@@ -27,7 +27,7 @@ jobs:
       - name: Upload artifacts to release
         uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'powergate-docker-${{steps.latesttag.outputs.tag}}.zip'
+          files: "powergate-docker-${{steps.latesttag.outputs.tag}}.zip"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   release-platform-builds:
     name: Release Builds
@@ -52,46 +52,14 @@ jobs:
         run: |
           export PATH=${PATH}:`go env GOPATH`/bin
           go get -v -t -d ./...
-      - name: Build govvv
+      - name: Build release artifacts
         run: |
-          go build -modfile .bingo/govvv.mod -o=. github.com/ahmetb/govvv
-      - name: Build gox
-        run: |
-          go build -modfile .bingo/gox.mod -o=. github.com/mitchellh/gox
-      - name: Compile
-        run: |
-          VERSION=${GITHUB_REF##*/}
-          ./gox -osarch="linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64" -output="pow-{{.OS}}-{{.Arch}}" -ldflags="$(./govvv -flags -version $(VERSION) -pkg $(go list ./buildinfo))" ./cmd/pow
-      - name: Collect artifacts
-        run: |
-          VERSION=${GITHUB_REF##*/}
-          OUT=release/cli
-          mkdir -p ${OUT}
-          mkdir -p tmp
-          cp LICENSE tmp/
-          cp README.md tmp/
-          cp dist/install tmp/
-          cd tmp
-          declare -a arr=("darwin-amd64" "linux-amd64" "linux-386" "linux-arm" "windows-amd64.exe")
-          for i in "${arr[@]}"
-          do
-              OSARCH=${i%.*}
-              EXT=$([[ "$i" = *.* ]] && echo ".${i##*.}" || echo '')
-              cp ../pow-${i} pow${EXT}
-              if [ "${EXT}" == ".exe" ]; then
-                  zip pow_${VERSION}_${OSARCH}.zip LICENSE README.md pow${EXT}
-                  mv pow_${VERSION}_${OSARCH}.zip ../${OUT}/
-              else
-                  tar -czvf pow_${VERSION}_${OSARCH}.tar.gz LICENSE README.md install pow
-                  mv pow_${VERSION}_${OSARCH}.tar.gz ../${OUT}/
-              fi
-          done
-          cd .. && rm -rf tmp
-          echo $(ls ./release/cli)
+          POW_VERSION=${GITHUB_REF##*/} make build-releases
+          echo $(ls ./build/dist/)
       - name: Upload multiple assets to release
         uses: AButler/upload-release-assets@v2.0
         with:
-          files: 'release/cli/pow_*;iplocation/maxmind/GeoLite2-City.mmdb'
+          files: "build/dist/*;iplocation/maxmind/GeoLite2-City.mmdb"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
   publish_js_grpc_lib:
     name: Publish JS gRPC bindings
@@ -111,19 +79,19 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "12.x"
+          registry-url: "https://registry.npmjs.org"
       - name: Install protoc
         uses: arduino/setup-protoc@master
         with:
-          version: '3.11.2'
+          version: "3.11.2"
       - name: Make version number
         id: makeversion
         uses: frabert/replace-string-action@v1.1
         with:
-          pattern: 'v'
+          pattern: "v"
           string: ${{steps.latesttag.outputs.tag}}
-          replace-with: ''
+          replace-with: ""
       - name: Generate JS gRPC bindings
         run: |
           ./scripts/gen-js-protos.sh  ${{steps.makeversion.outputs.replaced}} . ./js-grpc
@@ -152,9 +120,9 @@ jobs:
         id: makeversion
         uses: frabert/replace-string-action@v1.1
         with:
-          pattern: 'v'
+          pattern: "v"
           string: ${{steps.latesttag.outputs.tag}}
-          replace-with: ''
+          replace-with: ""
       - name: Generate Python gRPC bindings
         run: |
           ./scripts/gen-py-protos.sh  ${{steps.makeversion.outputs.replaced}} . ./py-grpc

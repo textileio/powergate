@@ -22,6 +22,12 @@ $(BUF): .bingo/buf.mod
 	@echo "(re)installing $(GOBIN)/buf-v0.20.5"
 	@cd .bingo && $(GO) build -modfile=buf.mod -o=$(GOBIN)/buf-v0.20.5 "github.com/bufbuild/buf/cmd/buf"
 
+GOMPLATE := $(GOBIN)/gomplate-v3.8.0
+$(GOMPLATE): .bingo/gomplate.mod
+	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.
+	@echo "(re)installing $(GOBIN)/gomplate-v3.8.0"
+	@cd .bingo && $(GO) build -modfile=gomplate.mod -o=$(GOBIN)/gomplate-v3.8.0 "github.com/hairyhenderson/gomplate/v3/cmd/gomplate"
+
 GOVVV := $(GOBIN)/govvv-v0.3.0
 $(GOVVV): .bingo/govvv.mod
 	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.

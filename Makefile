@@ -3,7 +3,8 @@
 include .bingo/Variables.mk
 
 BUILD_FLAGS=CGO_ENABLED=0
-GOVVV_FLAGS=$(shell $(GOVVV) -flags -pkg $(shell go list ./buildinfo))
+POW_VERSION ?= "none"
+GOVVV_FLAGS=$(shell $(GOVVV) -flags -version $(POW_VERSION) -pkg $(shell go list ./buildinfo))
 
 build: $(GOVVV)
 	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./...
@@ -20,6 +21,36 @@ build-powd: $(GOVVV)
 build-powbench: $(GOVVV)
 	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
 .PHONY: build-powbench
+
+define gen_release_files
+	$(GOX) -osarch=$(3) -output="build/$(2)/$(2)_${POW_VERSION}_{{.OS}}-{{.Arch}}/$(2)" -ldflags="${GOVVV_FLAGS}" $(1)
+	mkdir -p build/dist; \
+	cd build/$(2); \
+	for release in *; do \
+		cp ../../LICENSE ../../README.md $${release}/; \
+		if [[ $${release} != *"windows"* ]]; then \
+  		POW_FILE=$(2) $(GOMPLATE) -f ../../dist/install.tmpl -o "$${release}/install"; \
+			tar -czvf ../dist/$${release}.tar.gz $${release}; \
+		else \
+			zip -r ../dist/$${release}.zip $${release}; \
+		fi; \
+	done
+endef
+
+build-pow-release: $(GOX) $(GOVVV) $(GOMPLATE)
+	$(call gen_release_files,./cmd/pow,pow,"linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64")
+.PHONY: build-release
+
+build-powd-release: $(GOX) $(GOVVV) $(GOMPLATE)
+	$(call gen_release_files,./cmd/powd,powd,"linux/amd64 darwin/amd64")
+.PHONY: build-release
+
+build-powbench-release: $(GOX) $(GOVVV) $(GOMPLATE)
+	$(call gen_release_files,./cmd/powbench,powbench,"linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64")
+.PHONY: build-release
+
+build-releases: build-pow-release build-powd-release build-powbench-release
+.PHONY: build-releases
 
 docs-pow:
 	rm -rf ./cli-docs/pow
