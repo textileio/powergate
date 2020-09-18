@@ -170,6 +170,7 @@ func (rm *Module) subscribeIndexes() {
 	subSi := rm.fi.Listen()
 	subAi := rm.ai.Listen()
 
+	rm.rebuild <- struct{}{}
 	for {
 		select {
 		case <-rm.ctx.Done():

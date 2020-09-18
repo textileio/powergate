@@ -41,7 +41,7 @@ var (
 			Filecoin: ffs.FilConfig{
 				RepFactor:       5,
 				TrustedMiners:   []string{"t016303", "t016304", "t016305", "t016306", "t016309"},
-				DealMinDuration: util.MinDealDuration * 3,
+				DealMinDuration: util.MinDealDuration * 2,
 				FastRetrieval:   true,
 			},
 		},
