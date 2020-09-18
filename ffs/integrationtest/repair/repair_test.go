@@ -39,7 +39,7 @@ func TestRepair(t *testing.T) {
 		config := fapi.DefaultStorageConfig().WithRepairable(true)
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -63,7 +63,7 @@ func TestRepair(t *testing.T) {
 					parts := strings.SplitN(le.Msg, " ", 3)
 					require.Equal(t, 3, len(parts), "Log message is malformed")
 					jid := ffs.JobID(parts[1])
-					it.RequireJobState(t, fapi, jid, ffs.Success)
+					it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 					it.RequireStorageConfig(t, fapi, cid, &config)
 					cancel()
 				}

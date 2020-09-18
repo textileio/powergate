@@ -38,7 +38,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestFilecoinTrustedMiner(t *testing.T) {
 
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
@@ -103,7 +103,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
@@ -135,12 +135,12 @@ func TestFilecoinMaxPriceFilter(t *testing.T) {
 		config := fapi.DefaultStorageConfig().WithColdMaxPrice(400000000)
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Failed)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Failed)
 
 		config = fapi.DefaultStorageConfig().WithColdMaxPrice(600000000)
 		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)

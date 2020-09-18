@@ -66,14 +66,14 @@ func TestEnabledConfigChange(t *testing.T) {
 
 			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, &config)
 			it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 
 			config = fapi.DefaultStorageConfig().WithHotEnabled(false)
 			jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, &config)
 			it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 		})
@@ -91,14 +91,14 @@ func TestEnabledConfigChange(t *testing.T) {
 
 			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, &config)
 			it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfsAPI)
 
 			config = fapi.DefaultStorageConfig().WithHotEnabled(true)
 			jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, &config)
 			it.RequireIpfsPinnedCid(ctx, t, cid, ipfsAPI)
 		})
@@ -117,14 +117,14 @@ func TestEnabledConfigChange(t *testing.T) {
 
 			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, &config)
 			it.RequireFilUnstored(ctx, t, client, cid)
 
 			config = fapi.DefaultStorageConfig().WithHotEnabled(true)
 			jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, &config)
 			it.RequireFilStored(ctx, t, client, cid)
 		})
@@ -143,14 +143,14 @@ func TestEnabledConfigChange(t *testing.T) {
 
 			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, &config)
 			it.RequireFilUnstored(ctx, t, client, cid)
 
 			config = fapi.DefaultStorageConfig().WithHotEnabled(true)
 			jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 
 			// Yes, still stored in filecoin since deals can't be
 			// undone.
@@ -194,7 +194,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 				require.NoError(t, err)
 
 				expectedJobState := ffs.Success
-				it.RequireJobState(t, fapi, jid, expectedJobState)
+				it.RequireEventualJobState(t, fapi, jid, expectedJobState)
 
 				if expectedJobState == ffs.Success {
 					it.RequireStorageConfig(t, fapi, cid, &config)
@@ -241,7 +241,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 			config := fapi.DefaultStorageConfig().WithHotIpfsAddTimeout(1)
 			jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 			require.NoError(t, err)
-			it.RequireJobState(t, fapi, jid, ffs.Failed)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Failed)
 		})
 	})
 }
@@ -259,7 +259,7 @@ func TestDurationConfig(t *testing.T) {
 		config := fapi.DefaultStorageConfig().WithColdFilDealDuration(duration)
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)

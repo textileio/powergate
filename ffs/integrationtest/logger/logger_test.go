@@ -30,7 +30,7 @@ func TestLogHistory(t *testing.T) {
 	c, _ := it.AddRandomFile(t, r, ipfs)
 	jid, err := fapi.PushStorageConfig(c)
 	require.NoError(t, err)
-	job := it.RequireJobState(t, fapi, jid, ffs.Success)
+	job := it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
@@ -91,7 +91,7 @@ func TestCidLogger(t *testing.T) {
 			}
 		}
 
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 	})
 	t.Run("WithJidFilter", func(t *testing.T) {
@@ -130,7 +130,7 @@ func TestCidLogger(t *testing.T) {
 				}
 			}
 
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, nil)
 		})
 		t.Run("IncorrectJid", func(t *testing.T) {
@@ -157,7 +157,7 @@ func TestCidLogger(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			it.RequireJobState(t, fapi, jid, ffs.Success)
+			it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 			it.RequireStorageConfig(t, fapi, cid, nil)
 		})
 	})

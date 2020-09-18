@@ -40,13 +40,13 @@ func TestPushCidReplace(t *testing.T) {
 	config := fapi.DefaultStorageConfig().WithColdEnabled(false)
 	jid, err := fapi.PushStorageConfig(c1, api.WithStorageConfig(config))
 	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
+	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 	it.RequireStorageConfig(t, fapi, c1, &config)
 
 	c2, _ := it.AddRandomFile(t, r, ipfs)
 	jid, err = fapi.Replace(c1, c2)
 	require.NoError(t, err)
-	it.RequireJobState(t, fapi, jid, ffs.Success)
+	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 
 	config2, err := fapi.GetStorageConfig(c2)
 	require.NoError(t, err)
@@ -83,13 +83,13 @@ func TestDoubleReplace(t *testing.T) {
 		config := fapi.DefaultStorageConfig().WithColdEnabled(false)
 		jid, err := fapi.PushStorageConfig(c1, api.WithStorageConfig(config))
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, c1, &config)
 
 		c2, _ := it.AddRandomFile(t, r, ipfs)
 		jid, err = fapi.Replace(c1, c2)
 		require.NoError(t, err)
-		it.RequireJobState(t, fapi, jid, ffs.Success)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 	}
 
 	// Test the same workflow in different APIs instaneces,
