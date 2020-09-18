@@ -68,7 +68,7 @@ We have a CLI that supports most of Powergate features.
 
 To build and install the CLI, run:
 ```bash
-$ make build-pow
+$ make install-pow
 ```
 The binary will be placed automatically in `$GOPATH/bin` which in general is in `$PATH`, so you can immediately run `pow` in your terminal.
 
@@ -130,9 +130,9 @@ Powergate needs an offline geo-location database to resolve miners country using
 You can copy this file from the GitHub repo at `iplocation/maxmind/GeoLite2-City.mmdb`. If you run Powergate using Docker, this database is bundeled in the image so isn't necessary to have extra considerations.
 
 ### Server
-To build the Powergate server, run:
+To build and install the Powergate server, run:
 ```bash
-make build-powd
+make install-powd
 ```
 You can run the `-h` flag to see the configurable flags:
 ```bash

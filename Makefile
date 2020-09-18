@@ -1,26 +1,42 @@
-.DEFAULT_GOAL=build
+.DEFAULT_GOAL=install
 
 include .bingo/Variables.mk
 
-BUILD_FLAGS=CGO_ENABLED=0
-POW_VERSION ?= "none"
+BUILD_FLAGS?=CGO_ENABLED=0
+POW_VERSION?="none"
 GOVVV_FLAGS=$(shell $(GOVVV) -flags -version $(POW_VERSION) -pkg $(shell go list ./buildinfo))
 
 build: $(GOVVV)
-	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./...
+	$(BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./...
 .PHONY: build
 
 build-pow: $(GOVVV)
-	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/pow
+	$(BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/pow
 .PHONY: build-pow
 
 build-powd: $(GOVVV)
-	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powd
+	$(BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/powd
 .PHONY: build-powd
 
 build-powbench: $(GOVVV)
-	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
+	$(BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
 .PHONY: build-powbench
+
+install: $(GOVVV)
+	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./...
+.PHONY: install
+
+install-pow: $(GOVVV)
+	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/pow
+.PHONY: install-pow
+
+install-powd: $(GOVVV)
+	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powd
+.PHONY: install-powd
+
+install-powbench: $(GOVVV)
+	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
+.PHONY: install-powbench
 
 define gen_release_files
 	$(GOX) -osarch=$(3) -output="build/$(2)/$(2)_${POW_VERSION}_{{.OS}}-{{.Arch}}/$(2)" -ldflags="${GOVVV_FLAGS}" $(1)
