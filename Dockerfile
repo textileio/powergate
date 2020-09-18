@@ -6,10 +6,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -modfile .bingo/govvv.mod -o=. github.com/ahmetb/govvv
-RUN pkg="$(go list ./buildinfo)" && govvvflags="$(./govvv -flags -pkg $pkg)" && CGO_ENABLED=0 GOOS=linux go build -ldflags="$govvvflags" -o powd cmd/powd/main.go
-RUN pkg="$(go list ./buildinfo)" && govvvflags="$(./govvv -flags -pkg $pkg)" && CGO_ENABLED=0 GOOS=linux go build -ldflags="$govvvflags" -o pow cmd/pow/main.go
-
+RUN BUILD_FLAGS="CGO_ENABLED=0 GOOS=linux" make build-powd
+RUN BUILD_FLAGS="CGO_ENABLED=0 GOOS=linux" make build-pow
 
 FROM alpine
 COPY --from=builder /app/iplocation/maxmind/GeoLite2-City.mmdb /app/GeoLite2-City.mmdb

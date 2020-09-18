@@ -5,7 +5,7 @@ Powergate `powbench` is an utility tool that allows to run benchmark scenarios a
 To build and install `powbench`, from the root of the Powergate repo, run:
 
 ```bash
-> make build-powbench
+> make install-powbench
 > powbench -h
 Usage of powbench:
       --maxParallel int    Max parallel file storage (default 1)

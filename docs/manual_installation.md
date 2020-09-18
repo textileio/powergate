@@ -111,7 +111,7 @@ There's some discussion to allow Lotus to use an external component for signing,
 
 To run Powergate, you should run the `powd` binary with proper flags or environment variables configuration.
 
-You can download `powd` binaries from the [GitHub Releases section](https://github.com/textileio/powergate/releases) for your OS and architecture. If you prefer to compile `powd` from source, you can checkout the Powergate repo to your desired version and run `make build-powd` which will install `powd` in your `$GOPATH/bin` folder. Note that to compile, we're targeting Go 1.14 or newer version.
+You can download `powd` binaries from the [GitHub Releases section](https://github.com/textileio/powergate/releases) for your OS and architecture. If you prefer to compile `powd` from source, you can checkout the Powergate repo to your desired version and run `make install-powd` which will build and install `powd` in your `$GOPATH/bin` folder. Note that to compile, we're targeting Go 1.14 or newer version.
 
 ## Basic configuration
 
