@@ -294,6 +294,7 @@ func newHTTPFFSAuthInterceptor(conf Config, m *manager.Manager) (*ffsHTTPAuth, e
 		return nil, fmt.Errorf("generating IPFS URL for reverse proxy: %s", err)
 	}
 	rph := httputil.NewSingleHostReverseProxy(urlIPFS)
+	rph.FlushInterval = -1
 	fha := &ffsHTTPAuth{
 		cont:       rph,
 		ffsManager: m,
