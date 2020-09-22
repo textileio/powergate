@@ -54,7 +54,7 @@ jobs:
           go get -v -t -d ./...
       - name: Build release artifacts
         run: |
-          POW_VERSION=${GITHUB_REF##*/} make build-releases
+          POW_VERSION=${{ github.event.release.tag_name }} make build-releases
           echo $(ls ./build/dist/)
       - name: Upload multiple assets to release
         uses: AButler/upload-release-assets@v2.0
