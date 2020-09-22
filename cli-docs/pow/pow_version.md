@@ -1,19 +1,19 @@
-## pow server-info
+## pow version
 
-Display information about the connected server
+Display version information for pow and the connected server
 
 ### Synopsis
 
-Display information about the connected server
+Display version information for pow and the connected server
 
 ```
-pow server-info [flags]
+pow version [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for server-info
+  -h, --help   help for version
 ```
 
 ### Options inherited from parent commands
