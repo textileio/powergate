@@ -85,7 +85,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		TrustedMiners:  cfg.TrustedMiners,
 		MaxPrice:       cfg.MaxPrice,
 	}
-	cfgs, err := makeDealConfigs(fc.ms, cfg.RepFactor, f, cfg.FastRetrieval)
+	cfgs, err := makeDealConfigs(fc.ms, cfg.RepFactor, f, cfg.FastRetrieval, cfg.DealStartOffset)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("making deal configs: %s", err)
 	}
@@ -209,7 +209,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 		TrustedMiners:  []string{p.Miner},
 		MaxPrice:       fcfg.MaxPrice,
 	}
-	dealConfig, err := makeDealConfigs(fc.ms, 1, f, fcfg.FastRetrieval)
+	dealConfig, err := makeDealConfigs(fc.ms, 1, f, fcfg.FastRetrieval, fcfg.DealStartOffset)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
 	}
@@ -350,14 +350,19 @@ func (fc *FilCold) getLinks(ctx context.Context, c cid.Cid) ([]*format.Link, err
 	return fc.ipfs.Object().Links(ctx, path.IpfsPath(c))
 }
 
-func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter, fastRetrieval bool) ([]deals.StorageDealConfig, error) {
+func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter, fastRetrieval bool, dealStartOffset int64) ([]deals.StorageDealConfig, error) {
 	mps, err := ms.GetMiners(cntMiners, f)
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from minerselector: %s", err)
 	}
 	res := make([]deals.StorageDealConfig, len(mps))
 	for i, m := range mps {
-		res[i] = deals.StorageDealConfig{Miner: m.Addr, EpochPrice: m.EpochPrice, FastRetrieval: fastRetrieval}
+		res[i] = deals.StorageDealConfig{
+			Miner:           m.Addr,
+			EpochPrice:      m.EpochPrice,
+			FastRetrieval:   fastRetrieval,
+			DealStartOffset: dealStartOffset,
+		}
 	}
 	return res, nil
 }

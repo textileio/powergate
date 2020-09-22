@@ -146,6 +146,13 @@ func (s StorageConfig) WithColdFastRetrieval(enabled bool) StorageConfig {
 	return s
 }
 
+// WithColdStartDealOffset sets the maximum time in epochs a new deal must
+// be active on-chain.
+func (s StorageConfig) WithColdStartDealOffset(offset int64) StorageConfig {
+	s.Cold.Filecoin.DealStartOffset = offset
+	return s
+}
+
 // WithColdFilCountryCodes defines a list of allowed country codes to select miners
 // for deals.
 func (s StorageConfig) WithColdFilCountryCodes(countryCodes []string) StorageConfig {
@@ -345,6 +352,11 @@ type FilConfig struct {
 	// FastRetrieval indicates that created deals should enable the
 	// fast retrieval feature.
 	FastRetrieval bool
+	// DealStartOffset indicates how many epochs in the future impose a
+	// deadline to new deals being active on-chain. This value might influence
+	// if miners accept deals, since they should seal fast enough to satisfy
+	// this constraint.
+	DealStartOffset int64
 }
 
 // Validate returns a non-nil error if the configuration is invalid.

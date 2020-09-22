@@ -31,6 +31,8 @@ import (
 const (
 	chanWriteTimeout = time.Second
 	dealTimeout      = time.Hour * 24
+
+	defaultDealStartOffset = 72 * 60 * 60 / util.EpochDurationSeconds // 72hs
 )
 
 var (
@@ -116,9 +118,13 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 	}
 	lapi, cls, err := m.clientBuilder()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
+	ts, err := lapi.ChainHead(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting chaing head: %s", err)
+	}
 	res := make([]deals.StoreResult, len(dcfgs))
 	for i, c := range dcfgs {
 		maddr, err := address.NewFromString(c.Miner)
@@ -128,6 +134,10 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 				Config: c,
 			}
 			continue
+		}
+		dealStartOffset := c.DealStartOffset
+		if dealStartOffset == 0 {
+			dealStartOffset = defaultDealStartOffset
 		}
 		params := &api.StartDealParams{
 			Data: &storagemarket.DataRef{
@@ -139,6 +149,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 			Miner:             maddr,
 			Wallet:            addr,
 			FastRetrieval:     c.FastRetrieval,
+			DealStartEpoch:    ts.Height() + abi.ChainEpoch(dealStartOffset),
 		}
 		p, err := lapi.ClientStartDeal(ctx, params)
 		if err != nil {
