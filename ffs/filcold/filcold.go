@@ -350,7 +350,7 @@ func (fc *FilCold) getLinks(ctx context.Context, c cid.Cid) ([]*format.Link, err
 	return fc.ipfs.Object().Links(ctx, path.IpfsPath(c))
 }
 
-func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter, fastRetrieval bool, dealStartOffset int) ([]deals.StorageDealConfig, error) {
+func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter, fastRetrieval bool, dealStartOffset int64) ([]deals.StorageDealConfig, error) {
 	mps, err := ms.GetMiners(cntMiners, f)
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from minerselector: %s", err)

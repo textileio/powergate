@@ -9,7 +9,7 @@ type StorageDealConfig struct {
 	Miner           string
 	EpochPrice      uint64
 	FastRetrieval   bool
-	DealStartOffset int
+	DealStartOffset int64
 }
 
 // StoreResult contains information about Executing deals.
