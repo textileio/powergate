@@ -38,7 +38,7 @@ func New(ipfs iface.CoreAPI, l ffs.JobLogger) (*CoreIpfs, error) {
 		ipfs: ipfs,
 		l:    l,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3000)
 	defer cancel()
 	if err := ci.fillPinsetCache(ctx); err != nil {
 		return nil, err
