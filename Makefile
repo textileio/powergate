@@ -2,40 +2,40 @@
 
 include .bingo/Variables.mk
 
-BUILD_FLAGS?=CGO_ENABLED=0
-POW_VERSION?="none"
+POW_BUILD_FLAGS?=CGO_ENABLED=0
+POW_VERSION?="git"
 GOVVV_FLAGS=$(shell $(GOVVV) -flags -version $(POW_VERSION) -pkg $(shell go list ./buildinfo))
 
 build: $(GOVVV)
-	$(BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./...
+	$(POW_BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./...
 .PHONY: build
 
 build-pow: $(GOVVV)
-	$(BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/pow
+	$(POW_BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/pow
 .PHONY: build-pow
 
 build-powd: $(GOVVV)
-	$(BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/powd
+	$(POW_BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/powd
 .PHONY: build-powd
 
 build-powbench: $(GOVVV)
-	$(BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
+	$(POW_BUILD_FLAGS) go build -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
 .PHONY: build-powbench
 
 install: $(GOVVV)
-	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./...
+	$(POW_BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./...
 .PHONY: install
 
 install-pow: $(GOVVV)
-	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/pow
+	$(POW_BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/pow
 .PHONY: install-pow
 
 install-powd: $(GOVVV)
-	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powd
+	$(POW_BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powd
 .PHONY: install-powd
 
 install-powbench: $(GOVVV)
-	$(BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
+	$(POW_BUILD_FLAGS) go install -ldflags="${GOVVV_FLAGS}" ./cmd/powbench
 .PHONY: install-powbench
 
 define gen_release_files
@@ -55,15 +55,15 @@ endef
 
 build-pow-release: $(GOX) $(GOVVV) $(GOMPLATE)
 	$(call gen_release_files,./cmd/pow,pow,"linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64")
-.PHONY: build-release
+.PHONY: build-pow-release
 
 build-powd-release: $(GOX) $(GOVVV) $(GOMPLATE)
 	$(call gen_release_files,./cmd/powd,powd,"linux/amd64 darwin/amd64")
-.PHONY: build-release
+.PHONY: build-powd-release
 
 build-powbench-release: $(GOX) $(GOVVV) $(GOMPLATE)
 	$(call gen_release_files,./cmd/powbench,powbench,"linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64")
-.PHONY: build-release
+.PHONY: build-powbench-release
 
 build-releases: build-pow-release build-powd-release build-powbench-release
 .PHONY: build-releases

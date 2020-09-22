@@ -6,8 +6,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN BUILD_FLAGS="CGO_ENABLED=0 GOOS=linux" make build-powd
-RUN BUILD_FLAGS="CGO_ENABLED=0 GOOS=linux" make build-pow
+RUN POW_BUILD_FLAGS="CGO_ENABLED=0 GOOS=linux" make build-powd
+RUN POW_BUILD_FLAGS="CGO_ENABLED=0 GOOS=linux" make build-pow
 
 FROM alpine
 COPY --from=builder /app/iplocation/maxmind/GeoLite2-City.mmdb /app/GeoLite2-City.mmdb
