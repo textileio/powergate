@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/caarlos0/spin"
@@ -22,7 +24,7 @@ func init() {
 }
 
 var ffsStageCmd = &cobra.Command{
-	Use:   "stage [path]",
+	Use:   "stage [path|url]",
 	Short: "Temporarily stage data in the Hot layer in preparation for pushing a cid storage config",
 	Long:  `Temporarily stage data in the Hot layer in preparation for pushing a cid storage config`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -35,6 +37,12 @@ var ffsStageCmd = &cobra.Command{
 
 		if len(args) != 1 {
 			Fatal(errors.New("you must provide a file/folder path"))
+		}
+
+		if strings.HasPrefix(strings.ToLower(args[0]), "http") {
+			err := stageURL(ctx, args[0])
+			checkErr(err)
+			return
 		}
 
 		fi, err := os.Stat(args[0])
@@ -62,4 +70,27 @@ var ffsStageCmd = &cobra.Command{
 		s.Stop()
 		Success("Staged asset in FFS hot storage with cid: %s", util.CidToString(cid))
 	},
+}
+
+func stageURL(ctx context.Context, urlstr string) error {
+	res, err := http.DefaultClient.Get(urlstr)
+	if err != nil {
+		return fmt.Errorf("GET %s: %w", urlstr, err)
+	}
+
+	defer func() { checkErr(res.Body.Close()) }()
+
+	var cid cid.Cid
+	s := spin.New("%s Staging URL in FFS hot storage...")
+	s.Start()
+	defer s.Stop()
+	ptrCid, err := fcClient.FFS.Stage(authCtx(ctx), res.Body)
+	if err != nil {
+		return err
+	}
+
+	cid = *ptrCid
+	s.Stop()
+	Success("Staged asset in FFS hot storage with cid: %s", util.CidToString(cid))
+	return nil
 }
