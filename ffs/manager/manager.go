@@ -43,6 +43,7 @@ var (
 				TrustedMiners:   []string{"t016303", "t016304", "t016305", "t016306", "t016309"},
 				DealMinDuration: util.MinDealDuration * 2,
 				FastRetrieval:   true,
+				DealStartOffset: 72 * 60 * 60 / util.EpochDurationSeconds, // 72hs
 			},
 		},
 	}
