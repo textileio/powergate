@@ -1,9 +1,10 @@
 name: Docker Image
 on:
-  create:
+  release:
+    types: [published]
   push:
     branches:
-        - master
+      - master
 jobs:
   docker:
     name: Docker publishing
