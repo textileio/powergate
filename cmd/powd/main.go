@@ -295,7 +295,7 @@ func setupFlags() error {
 	pflag.String("repopath", "~/.powergate", "Path of the repository where Powergate state will be saved.")
 	pflag.Bool("devnet", false, "Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "IPFS API endpoint multiaddress. (Optional, only needed if FFS is used)")
-	pflag.Int64("walletinitialfund", 4000000000000000, "FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set)")
+	pflag.Int64("walletinitialfund", 250_000_000_000_000_000, "FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set)")
 	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "Gateway host listening address.")
 	pflag.String("gatewaybasepath", "/", "Gateway base path.")
 	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb")

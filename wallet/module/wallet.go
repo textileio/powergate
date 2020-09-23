@@ -16,9 +16,12 @@ import (
 	"github.com/textileio/powergate/lotus"
 )
 
-var (
-	log = logger.Logger("wallet")
+const (
+	feeThreshold = 1_000_000
+)
 
+var (
+	log           = logger.Logger("wallet")
 	networkFaucet = map[string]string{
 		"nerpanet": "https://faucet.nerpa.interplanetary.dev",
 	}
@@ -92,6 +95,13 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	}
 
 	if m.masterAddr != address.Undef {
+		balance, err := client.WalletBalance(ctx, m.masterAddr)
+		if err != nil {
+			return "", fmt.Errorf("getting balance from master addr: %s", err)
+		}
+		if balance.LessThan(types.BigAdd(types.BigInt{Int: m.iAmount}, types.NewInt(feeThreshold))) {
+			return "", fmt.Errorf("balance %d is less than allowed threshold", balance)
+		}
 		go func() {
 			client, cls, err := m.clientBuilder()
 			if err != nil {
