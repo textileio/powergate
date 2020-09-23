@@ -6,7 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/textileio/powergate?style=flat-square)](https://goreportcard.com/report/github.com/textileio/powergate?style=flat-square)
 [![GitHub action](https://github.com/textileio/powergate/workflows/Tests/badge.svg?style=popout-square)](https://github.com/textileio/powergate/actions)
 
-Powergate is a multitiered file storage API built on Filecoin and IPFS, and and index builder for Filecoin data. It's designed to be modular and extensible.
+Powergate is a multitiered file storage API built on Filecoin and IPFS, and an index builder for Filecoin data. It's designed to be modular and extensible.
 
 Join us on our [public Slack channel](https://slack.textile.io/) for news, discussions, and status updates. [Check out our blog](https://medium.com/textileio) for the latest posts and announcements.
 
