@@ -7,7 +7,7 @@ Temporarily stage data in the Hot layer in preparation for pushing a cid storage
 Temporarily stage data in the Hot layer in preparation for pushing a cid storage config
 
 ```
-pow ffs stage [path] [flags]
+pow ffs stage [path|url] [flags]
 ```
 
 ### Options
