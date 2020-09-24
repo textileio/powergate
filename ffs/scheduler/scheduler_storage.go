@@ -14,6 +14,10 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler/internal/sjstore"
 )
 
+var (
+	HardcodedHotTimeout = time.Second * 300
+)
+
 // PushConfig queues the specified StorageConfig to be executed as a new Job. It returns
 // the created JobID for further tracking of its state.
 func (s *Scheduler) PushConfig(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig) (ffs.JobID, error) {
@@ -204,7 +208,7 @@ func (s *Scheduler) executeHotStorage(ctx context.Context, curr ffs.CidInfo, cfg
 
 	// ToDo: this is a hot-fix to force a big timeout until we have a
 	// migration tool to make this tunable again.
-	sctx, cancel := context.WithTimeout(ctx, time.Second*300)
+	sctx, cancel := context.WithTimeout(ctx, HardcodedHotTimeout)
 	defer cancel()
 
 	var size int
