@@ -31,7 +31,7 @@ var (
 	// recover its last configured default StorageConfig from the datastore.
 	zeroConfig = ffs.StorageConfig{
 		Hot: ffs.HotConfig{
-			Enabled: true,
+			Enabled: false,
 			Ipfs: ffs.IpfsConfig{
 				AddTimeout: 30,
 			},

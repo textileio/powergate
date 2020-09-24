@@ -1,0 +1,143 @@
+package sr2
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
+	"time"
+
+	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/chain/types"
+	logger "github.com/ipfs/go-log/v2"
+	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/index/ask"
+	askindex "github.com/textileio/powergate/index/ask/runner"
+	"github.com/textileio/powergate/lotus"
+)
+
+var (
+	log = logger.Logger("sr2-miner-selector")
+)
+
+type MinerSelector struct {
+	url string
+	ai  *askindex.Runner
+	cb  lotus.ClientBuilder
+}
+
+var _ ffs.MinerSelector = (*MinerSelector)(nil)
+
+type minersBuckets struct {
+	Buckets []bucket
+}
+
+type bucket struct {
+	Amount         int
+	MinerAddresses []string
+}
+
+func New(url string, ai *askindex.Runner, cb lotus.ClientBuilder) (*MinerSelector, error) {
+	ms := &MinerSelector{url: url, ai: ai, cb: cb}
+
+	asks := ms.ai.Get()
+	_, err := ms.getMiners(asks)
+	if err != nil {
+		return nil, fmt.Errorf("verifying sr2 url content: %s", err)
+	}
+
+	return ms, nil
+}
+
+func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
+	asks := ms.ai.Get()
+	mb, err := ms.getMiners(asks)
+	if err != nil {
+		return nil, fmt.Errorf("getting miners from url: %s", err)
+	}
+
+	c, cls, err := ms.cb()
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
+	var selected []string
+	for _, bucket := range mb.Buckets {
+		rand.Seed(time.Now().UnixNano())
+		miners := bucket.MinerAddresses
+		rand.Shuffle(len(miners), func(i, j int) { miners[i], miners[j] = miners[j], miners[i] })
+
+		// Stay safe.
+		if bucket.Amount < 0 {
+			bucket.Amount = 0
+		}
+		if bucket.Amount > len(miners) {
+			bucket.Amount = len(miners)
+		}
+		selected = append(selected, miners[:bucket.Amount]...)
+	}
+
+	if len(selected) == 0 {
+		return nil, fmt.Errorf("no SR2 miners are available")
+	}
+
+	res := make([]ffs.MinerProposal, 0, len(selected))
+	for _, miner := range selected {
+		sa, ok := asks.Storage[miner]
+		if !ok {
+			sask, err := getMinerQueryAsk(c, miner)
+			if err != nil {
+				log.Warnf("miner %s not in ask cache and query-ask errored: %s", miner, err)
+				continue
+			}
+
+			log.Info("miner %s not in ask-cache, direct query-ask price: %d", miner, sask)
+			sa.Price = sask
+		}
+		res = append(res, ffs.MinerProposal{
+			Addr:       miner,
+			EpochPrice: sa.Price,
+		})
+	}
+
+	return res, nil
+}
+
+func (ms *MinerSelector) getMiners(asks ask.Index) (minersBuckets, error) {
+	r, err := http.DefaultClient.Get(ms.url)
+	if err != nil {
+		return minersBuckets{}, fmt.Errorf("getting miners list from url: %s", err)
+	}
+	content, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return minersBuckets{}, fmt.Errorf("reading body: %s", err)
+	}
+	var res minersBuckets
+	if err := json.Unmarshal(content, &res); err != nil {
+		return minersBuckets{}, fmt.Errorf("unmarshaling url contents: %s", err)
+	}
+	return res, nil
+}
+
+func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (uint64, error) {
+	addr, err := address.NewFromString(addrStr)
+	if err != nil {
+		return 0, fmt.Errorf("miner address is invalid: %s", err)
+	}
+	ctx, cls := context.WithTimeout(context.Background(), time.Second*15)
+	defer cls()
+	mi, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
+	if err != nil {
+		return 0, fmt.Errorf("getting miner %s info: %s", addr, err)
+	}
+
+	sask, err := c.ClientQueryAsk(ctx, *mi.PeerId, addr)
+	if err != nil {
+		return 0, fmt.Errorf("query asking: %s", err)
+	}
+	return sask.Ask.Price.Uint64(), nil
+}

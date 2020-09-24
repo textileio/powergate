@@ -31,6 +31,7 @@ import (
 	"github.com/textileio/powergate/ffs/joblogger"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
+	"github.com/textileio/powergate/ffs/minerselector/sr2"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
@@ -117,6 +118,8 @@ type Config struct {
 	MaxMindDBFolder      string
 	MongoURI             string
 	MongoDB              string
+	MinerSelector        string
+	MinerSelectorParams  string
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -212,7 +215,11 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	chain := filchain.New(clientBuilder)
-	ms := reptop.New(rm, ai)
+
+	ms, err := getMinerSelector(conf, rm, ai, clientBuilder)
+	if err != nil {
+		return nil, fmt.Errorf("creating miner selector: %s", err)
+	}
 
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
 	cs := filcold.New(ms, dm, ipfs, chain, l)
@@ -530,4 +537,23 @@ func createDatastore(conf Config) (datastore.TxnDatastore, error) {
 		return nil, fmt.Errorf("opening badger datastore: %s", err)
 	}
 	return ds, nil
+}
+
+func getMinerSelector(conf Config, rm *reputation.Module, ai *ask.Runner, cb lotus.ClientBuilder) (ffs.MinerSelector, error) {
+	var ms ffs.MinerSelector
+	var err error
+
+	switch conf.MinerSelector {
+	case "reputation":
+		ms = reptop.New(rm, ai)
+	case "sr2":
+		ms, err = sr2.New(conf.MinerSelectorParams, ai, cb)
+		if err != nil {
+			return nil, fmt.Errorf("creating sr2 miner selector: %s", err)
+		}
+	default:
+		return nil, fmt.Errorf("unknown miner selector: %s", conf.MinerSelector)
+	}
+
+	return ms, nil
 }
