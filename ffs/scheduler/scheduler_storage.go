@@ -15,6 +15,8 @@ import (
 )
 
 var (
+	// HardcodedHotTimeout is a temporary override of storage configs
+	// value for AddTimeout.
 	HardcodedHotTimeout = time.Second * 300
 )
 
