@@ -14,7 +14,6 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/index/ask"
 	askindex "github.com/textileio/powergate/index/ask/runner"
 	"github.com/textileio/powergate/lotus"
 )
@@ -23,6 +22,7 @@ var (
 	log = logger.Logger("sr2-miner-selector")
 )
 
+// MinerSelector chooses miner under SR2 strategy.
 type MinerSelector struct {
 	url string
 	ai  *askindex.Runner
@@ -40,11 +40,11 @@ type bucket struct {
 	MinerAddresses []string
 }
 
+// New returns a new SR2 miner selector.
 func New(url string, ai *askindex.Runner, cb lotus.ClientBuilder) (*MinerSelector, error) {
 	ms := &MinerSelector{url: url, ai: ai, cb: cb}
 
-	asks := ms.ai.Get()
-	_, err := ms.getMiners(asks)
+	_, err := ms.getMiners()
 	if err != nil {
 		return nil, fmt.Errorf("verifying sr2 url content: %s", err)
 	}
@@ -52,9 +52,10 @@ func New(url string, ai *askindex.Runner, cb lotus.ClientBuilder) (*MinerSelecto
 	return ms, nil
 }
 
+// GetMiners returns miners from SR2.
 func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
 	asks := ms.ai.Get()
-	mb, err := ms.getMiners(asks)
+	mb, err := ms.getMiners()
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from url: %s", err)
 	}
@@ -107,11 +108,16 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 	return res, nil
 }
 
-func (ms *MinerSelector) getMiners(asks ask.Index) (minersBuckets, error) {
+func (ms *MinerSelector) getMiners() (minersBuckets, error) {
 	r, err := http.DefaultClient.Get(ms.url)
 	if err != nil {
 		return minersBuckets{}, fmt.Errorf("getting miners list from url: %s", err)
 	}
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			log.Warnf("closing request body from sr2 file: %s", err)
+		}
+	}()
 	content, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return minersBuckets{}, fmt.Errorf("reading body: %s", err)
