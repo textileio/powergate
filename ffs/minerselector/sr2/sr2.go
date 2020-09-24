@@ -96,7 +96,7 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 				continue
 			}
 
-			log.Info("miner %s not in ask-cache, direct query-ask price: %d", miner, sask)
+			log.Infof("miner %s not in ask-cache, direct query-ask price: %d", miner, sask)
 			sa.Price = sask
 		}
 		res = append(res, ffs.MinerProposal{
