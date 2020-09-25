@@ -43,7 +43,7 @@ func TestFullRefresh(t *testing.T) {
 	index := mi.Get()
 	require.Greater(t, index.OnChain.LastUpdated, int64(0))
 	require.Equal(t, len(miners), len(index.OnChain.Miners))
-	require.True(t, index.Meta.Online != uint32(len(miners)) || index.Meta.Offline > 0)
+	require.True(t, index.Meta.Online == uint32(len(miners)) && index.Meta.Offline == 0)
 	for _, m := range miners {
 		chainInfo, ok := index.OnChain.Miners[m.String()]
 		require.True(t, ok)
