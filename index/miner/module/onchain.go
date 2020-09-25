@@ -185,13 +185,13 @@ func getOnChainData(ctx context.Context, c *apistruct.FullNodeStruct, addr addre
 	}
 
 	// Active deals
-	sectors, err := c.StateMinerSectors(ctx, addr, nil, false, types.EmptyTSK)
+	sectors, err := c.StateMinerSectors(ctx, addr, nil, types.EmptyTSK)
 	if err != nil {
 		return miner.OnChainData{}, fmt.Errorf("getting sectors: %s", err)
 	}
 	var activeDeals uint64
 	for _, s := range sectors {
-		activeDeals += uint64(len(s.Info.DealIDs))
+		activeDeals += uint64(len(s.DealIDs))
 	}
 	return miner.OnChainData{
 		Power:         p,

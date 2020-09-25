@@ -10,12 +10,12 @@ require (
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/filecoin-project/go-address v0.0.3
 	github.com/filecoin-project/go-amt-ipld/v2 v2.1.1-0.20200731171407-e559a0579161 // indirect
-	github.com/filecoin-project/go-fil-markets v0.6.0
+	github.com/filecoin-project/go-fil-markets v0.6.2
 	github.com/filecoin-project/go-jsonrpc v0.1.2-0.20200822201400-474f4fdccc52
 	github.com/filecoin-project/go-padreader v0.0.0-20200903213702-ed5fae088b20
-	github.com/filecoin-project/go-state-types v0.0.0-20200905071437-95828685f9df
-	github.com/filecoin-project/lotus v0.6.2
-	github.com/filecoin-project/specs-actors v0.9.7
+	github.com/filecoin-project/go-state-types v0.0.0-20200911004822-964d6c679cfc
+	github.com/filecoin-project/lotus v0.7.2
+	github.com/filecoin-project/specs-actors v0.9.10
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
@@ -35,7 +35,7 @@ require (
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4
 	github.com/ipfs/go-merkledag v0.3.2
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
-	github.com/ipld/go-car v0.1.1-0.20200526133713-1c7508d55aae
+	github.com/ipld/go-car v0.1.1-0.20200923150018-8cdef32e2da4
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/libp2p/go-libp2p v0.11.0
 	github.com/libp2p/go-libp2p-core v0.6.1
@@ -65,6 +65,6 @@ require (
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )
 
-replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.0.1-rc1.0.20200718033852-37ee16d8ad1c
+replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.2007.2
 
-replace github.com/filecoin-project/filecoin-ffi => github.com/filecoin-project/filecoin-ffi v0.30.4-0.20200904205544-405691046034
+replace github.com/filecoin-project/filecoin-ffi => github.com/filecoin-project/filecoin-ffi v0.30.4-0.20200910194244-f640612a1a1f
