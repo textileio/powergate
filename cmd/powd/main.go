@@ -309,7 +309,7 @@ func setupFlags() error {
 	pflag.String("mongouri", "", "Mongo URI to connect to MongoDB database. (Optional: if empty, will use Badger)")
 	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory")
 	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'")
-	pflag.String("ffsminerselectorparams", "https://github.com/filecoin-project/slingshot/blob/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
+	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")
