@@ -51,6 +51,7 @@ func setupServer(t *testing.T) func() {
 		RepoPath:            repoPath,
 		GatewayHostAddr:     gatewayHostAddr,
 		MaxMindDBFolder:     "../../iplocation/maxmind",
+		MinerSelector:       "reputation",
 	}
 	server, err := server.NewServer(conf)
 	checkErr(t, err)

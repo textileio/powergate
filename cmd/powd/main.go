@@ -121,6 +121,8 @@ func configFromFlags() (server.Config, error) {
 	maxminddbfolder := config.GetString("maxminddbfolder")
 	mongoURI := config.GetString("mongouri")
 	mongoDB := config.GetString("mongodb")
+	minerSelector := config.GetString("ffsminerselector")
+	minerSelectorParams := config.GetString("ffsminerselectorparams")
 
 	return server.Config{
 		WalletInitialFunds:   walletInitialFunds,
@@ -141,6 +143,8 @@ func configFromFlags() (server.Config, error) {
 		MaxMindDBFolder:     maxminddbfolder,
 		MongoURI:            mongoURI,
 		MongoDB:             mongoDB,
+		MinerSelector:       minerSelector,
+		MinerSelectorParams: minerSelectorParams,
 	}, nil
 }
 
@@ -210,6 +214,9 @@ func setupLogging(repoPath string) error {
 
 		// Wallet Module
 		"wallet",
+
+		// Miner Selectors
+		"sr2-miner-selector",
 
 		// FFS
 		"ffs-scheduler",
@@ -301,6 +308,8 @@ func setupFlags() error {
 	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb")
 	pflag.String("mongouri", "", "Mongo URI to connect to MongoDB database. (Optional: if empty, will use Badger)")
 	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory")
+	pflag.String("ffsminerselector", "reputation", "Miner selector to be used by FFS: 'sr2', 'reputation'")
+	pflag.String("ffsminerselectorparams", "", "Miner selector configuration parameter, depends on --ffsminerselector")
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")

@@ -238,7 +238,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 // that were started successfully, and a slice of DealError with deals that failed to be started.
 func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, error) {
 	for _, cfg := range cfgs {
-		fc.l.Log(ctx, "Proposing deal to miner %s with %d fil per epoch...", cfg.Miner, cfg.EpochPrice)
+		fc.l.Log(ctx, "Proposing deal to miner %s with %d attoFIL per epoch...", cfg.Miner, cfg.EpochPrice)
 	}
 
 	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, size, cfgs, uint64(fcfg.DealMinDuration))

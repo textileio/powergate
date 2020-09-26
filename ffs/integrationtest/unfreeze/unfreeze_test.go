@@ -14,6 +14,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -26,6 +27,7 @@ func TestMain(m *testing.M) {
 
 func TestUnfreeze(t *testing.T) {
 	t.Parallel()
+	scheduler.HardcodedHotTimeout = time.Second * 10
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()

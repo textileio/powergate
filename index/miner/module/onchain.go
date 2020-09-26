@@ -176,23 +176,22 @@ func getOnChainData(ctx context.Context, c *apistruct.FullNodeStruct, addr addre
 	if err != nil {
 		return miner.OnChainData{}, fmt.Errorf("getting miner power: %s", err)
 	}
-	p := mp.MinerPower.RawBytePower.Uint64()
 
 	// Sector size
 	info, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
 	if err != nil {
 		return miner.OnChainData{}, fmt.Errorf("getting sector size: %s", err)
 	}
-
 	// Active deals
-	sectors, err := c.StateMinerSectors(ctx, addr, nil, false, types.EmptyTSK)
+	sectors, err := c.StateMinerSectors(ctx, addr, nil, types.EmptyTSK)
 	if err != nil {
 		return miner.OnChainData{}, fmt.Errorf("getting sectors: %s", err)
 	}
 	var activeDeals uint64
 	for _, s := range sectors {
-		activeDeals += uint64(len(s.Info.DealIDs))
+		activeDeals += uint64(len(s.DealIDs))
 	}
+	p := mp.MinerPower.RawBytePower.Uint64()
 	return miner.OnChainData{
 		Power:         p,
 		RelativePower: float64(p) / float64(mp.TotalPower.RawBytePower.Uint64()),
