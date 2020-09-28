@@ -44,7 +44,7 @@ define gen_release_files
 	cd build/$(2); \
 	for release in *; do \
 		cp ../../LICENSE ../../README.md $${release}/; \
-		if [[ $${release} != *"windows"* ]]; then \
+		if [ $${release} != *"windows"* ]; then \
   		POW_FILE=$(2) $(GOMPLATE) -f ../../dist/install.tmpl -o "$${release}/install"; \
 			tar -czvf ../dist/$${release}.tar.gz $${release}; \
 		else \
