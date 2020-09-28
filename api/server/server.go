@@ -536,6 +536,9 @@ func createDatastore(conf Config) (datastore.TxnDatastore, error) {
 }
 
 func getMinerSelector(conf Config, rm *reputation.Module, ai *ask.Runner, cb lotus.ClientBuilder) (ffs.MinerSelector, error) {
+	if conf.Devnet {
+		return reptop.New(rm, ai), nil
+	}
 	var ms ffs.MinerSelector
 	var err error
 
