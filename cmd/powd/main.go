@@ -23,6 +23,7 @@ import (
 	"github.com/textileio/powergate/buildinfo"
 	"github.com/textileio/powergate/util"
 	"go.opencensus.io/plugin/runmetrics"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -123,6 +124,9 @@ func configFromFlags() (server.Config, error) {
 	mongoDB := config.GetString("mongodb")
 	minerSelector := config.GetString("ffsminerselector")
 	minerSelectorParams := config.GetString("ffsminerselectorparams")
+	maxRecvMsgSize := config.GetSizeInBytes("maxrecvmsgsize")
+	grpcOptions := make([]grpc.ServerOption, 0)
+	grpcOptions = append(grpcOptions, grpc.MaxRecvMsgSize(int(maxRecvMsgSize)))
 
 	return server.Config{
 		WalletInitialFunds:   walletInitialFunds,
@@ -145,6 +149,7 @@ func configFromFlags() (server.Config, error) {
 		MongoDB:             mongoDB,
 		MinerSelector:       minerSelector,
 		MinerSelectorParams: minerSelectorParams,
+		GrpcServerOpts:      grpcOptions,
 	}, nil
 }
 
@@ -310,6 +315,7 @@ func setupFlags() error {
 	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory")
 	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'")
 	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
+	pflag.String("maxrecvmsgsize", "4mB", "To set the max message size in bytes the server can receive")
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")
