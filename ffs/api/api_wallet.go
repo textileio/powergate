@@ -82,7 +82,6 @@ func (i *API) VerifyMessage(ctx context.Context, addr string, message, signature
 		return false, fmt.Errorf("signing message: %s", err)
 	}
 	return ok, nil
-
 }
 
 // SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously.

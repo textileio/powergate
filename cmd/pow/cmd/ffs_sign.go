@@ -76,9 +76,11 @@ var verifyCmd = &cobra.Command{
 		s.Stop()
 		checkErr(err)
 		if ok {
-			emoji.Println(":heavy_check_mark: The signature corresponds to the wallet address.")
+			_, err := emoji.Println(":heavy_check_mark: The signature corresponds to the wallet address.")
+			checkErr(err)
 		} else {
-			emoji.Println(":x: The signature doesn't correspond to the wallet address.")
+			_, err := emoji.Println(":x: The signature doesn't correspond to the wallet address.")
+			checkErr(err)
 		}
 	},
 }
