@@ -109,3 +109,29 @@ func TestSendFil(t *testing.T) {
 
 	require.Eventually(t, hasNewBal, time.Second*5, time.Second)
 }
+
+func TestSignVerifyMessage(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	_, _, fapi, cls := it.NewAPI(t, 1)
+	defer cls()
+
+	addrs := fapi.Addrs()
+	bi := addrs[0]
+
+	msg := []byte("hello world")
+
+	sig, err := fapi.SignMessage(ctx, bi.Addr, msg)
+	require.NoError(t, err)
+	require.NotEmpty(t, sig)
+
+	ok, err := fapi.VerifyMessage(ctx, bi.Addr, msg, sig)
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	newAddr, err := fapi.NewAddr(ctx, "new")
+	require.NoError(t, err)
+	ok, err = fapi.VerifyMessage(ctx, newAddr, msg, sig)
+	require.NoError(t, err)
+	require.False(t, ok)
+}

@@ -60,6 +60,27 @@ func (i *API) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	return addr, nil
 }
 
+// SignMessage signs a message using a managed address.
+func (i *API) SignMessage(ctx context.Context, addr string, message []byte) ([]byte, error) {
+	if !i.isManagedAddress(addr) {
+		return nil, fmt.Errorf("%v is not managed by ffs instance", addr)
+	}
+	res, err := i.wm.Sign(ctx, addr, message)
+	if err != nil {
+		return nil, fmt.Errorf("signing message: %s", err)
+	}
+	return res, nil
+}
+
+// VerifyMessage verifies a message signature of a message from a managed address.
+func (i *API) VerifyMessage(ctx context.Context, addr string, message, signature []byte) (bool, error) {
+	ok, err := i.wm.Verify(ctx, addr, message, signature)
+	if err != nil {
+		return false, fmt.Errorf("signing message: %s", err)
+	}
+	return ok, nil
+}
+
 // SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously.
 func (i *API) SendFil(ctx context.Context, from string, to string, amount *big.Int) error {
 	if !i.isManagedAddress(from) {

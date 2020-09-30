@@ -201,6 +201,23 @@ func (f *FFS) DefaultStorageConfig(ctx context.Context) (ffs.StorageConfig, erro
 	return fromRPCStorageConfig(resp.DefaultStorageConfig), nil
 }
 
+// SignMessage signs a message with a FFS managed wallet address.
+func (f *FFS) SignMessage(ctx context.Context, addr string, message []byte) ([]byte, error) {
+	r := &rpc.SignMessageRequest{Addr: addr, Msg: message}
+	resp, err := f.client.SignMessage(ctx, r)
+	return resp.Signature, err
+}
+
+// VerifyMessage verifies a message signature from a wallet address.
+func (f *FFS) VerifyMessage(ctx context.Context, addr string, message, signature []byte) (bool, error) {
+	r := &rpc.VerifyMessageRequest{Addr: addr, Msg: message, Signature: signature}
+	resp, err := f.client.VerifyMessage(ctx, r)
+	if err != nil {
+		return false, err
+	}
+	return resp.Ok, nil
+}
+
 // NewAddr created a new wallet address managed by the FFS instance.
 func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (string, error) {
 	r := &rpc.NewAddrRequest{Name: name}

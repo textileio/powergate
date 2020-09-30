@@ -236,6 +236,25 @@ message DefaultStorageConfigResponse {
    StorageConfig default_storage_config = 1;
 }
 
+message SignMessageRequest {
+   string addr = 1;
+   bytes msg =2;
+}
+
+message SignMessageResponse {
+   bytes signature = 1;
+}
+
+message VerifyMessageRequest {
+   string addr = 1;
+   bytes msg = 2;
+   bytes signature = 3;
+}
+
+message VerifyMessageResponse {
+   bool ok = 1;
+}
+
 message NewAddrRequest {
    string name = 1;
    string address_type = 2;
@@ -420,6 +439,8 @@ service RPCService {
    rpc Addrs(AddrsRequest) returns (AddrsResponse) {}
    rpc DefaultStorageConfig(DefaultStorageConfigRequest) returns (DefaultStorageConfigResponse) {}
    rpc NewAddr(NewAddrRequest) returns (NewAddrResponse) {}
+   rpc SignMessage(SignMessageRequest) returns (SignMessageResponse) {}
+   rpc VerifyMessage(VerifyMessageRequest) returns (VerifyMessageResponse) {}
    rpc GetStorageConfig(GetStorageConfigRequest) returns (GetStorageConfigResponse) {}
    rpc SetDefaultStorageConfig(SetDefaultStorageConfigRequest) returns (SetDefaultStorageConfigResponse) {}
    rpc Show(ShowRequest) returns (ShowResponse) {}
