@@ -74,9 +74,6 @@ func (i *API) SignMessage(ctx context.Context, addr string, message []byte) ([]b
 
 // VerifyMessage verifies a message signature of a message from a managed address.
 func (i *API) VerifyMessage(ctx context.Context, addr string, message, signature []byte) (bool, error) {
-	if !i.isManagedAddress(addr) {
-		return false, fmt.Errorf("%v is not managed by ffs instance", addr)
-	}
 	ok, err := i.wm.Verify(ctx, addr, message, signature)
 	if err != nil {
 		return false, fmt.Errorf("signing message: %s", err)
