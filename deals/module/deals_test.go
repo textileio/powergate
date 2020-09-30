@@ -49,7 +49,7 @@ func TestStore(t *testing.T) {
 			t.Parallel()
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
 				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm)
-				m, err := New(tests.NewTxMapDatastore(), clientBuilder, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
+				m, err := New(tests.NewTxMapDatastore(), clientBuilder, util.AvgBlockTime, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 				require.NoError(t, err)
 				c, cls, err := clientBuilder()
 				require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestRetrieve(t *testing.T) {
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
 				data := randomBytes(600)
 				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm)
-				m, err := New(tests.NewTxMapDatastore(), clientBuilder, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
+				m, err := New(tests.NewTxMapDatastore(), clientBuilder, util.AvgBlockTime, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 				require.NoError(t, err)
 				c, cls, err := clientBuilder()
 				require.NoError(t, err)

@@ -52,10 +52,11 @@ type Module struct {
 	clientBuilder lotus.ClientBuilder
 	cfg           *deals.Config
 	store         *store
+	pollDuration  time.Duration
 }
 
 // New creates a new Module.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, opts ...deals.Option) (*Module, error) {
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDuration time.Duration, opts ...deals.Option) (*Module, error) {
 	var cfg deals.Config
 	for _, o := range opts {
 		if err := o(&cfg); err != nil {
@@ -331,7 +332,7 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 			select {
 			case <-ctx.Done():
 				return
-			case <-time.After(util.AvgBlockTime):
+			case <-time.After(m.pollDuration):
 				api, cls, err := m.clientBuilder()
 				if err != nil {
 					log.Errorf("creating lotus client: %s", err)

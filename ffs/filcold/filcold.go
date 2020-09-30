@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
@@ -121,7 +122,7 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 // that got renewed with Renewed=true. New deals from renewals are added to the returned FilInfo.
 // Note: Most probably all this code should change in the future, when Filecoin supports telling the miner which deal is about to
 // expire that we're interested in extending the deal duration. Now we should make a new deal from scratch (send data, etc).
-func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig) (ffs.FilInfo, []ffs.DealError, error) {
+func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig, dealFinalityTimeout time.Duration) (ffs.FilInfo, []ffs.DealError, error) {
 	height, err := fc.chain.GetHeight(ctx)
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("get current filecoin height: %s", err)
@@ -187,7 +188,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	var newDealErrors []ffs.DealError
 	for i, p := range toRenew {
 		var dealError ffs.DealError
-		newProposal, err := fc.renewDeal(ctx, c, inf.Size, p, cfg)
+		newProposal, err := fc.renewDeal(ctx, c, inf.Size, p, cfg, dealFinalityTimeout)
 		if err != nil {
 			if errors.As(err, &dealError) {
 				newDealErrors = append(newDealErrors, dealError)
@@ -202,7 +203,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return newInf, newDealErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig) (ffs.FilStorage, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration) (ffs.FilStorage, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: fcfg.ExcludedMiners,
 		CountryCodes:   fcfg.CountryCodes,
@@ -227,7 +228,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 	}
 
 	var dealError ffs.DealError
-	okDeal, err := fc.WaitForDeal(ctx, c, okDeals[0])
+	okDeal, err := fc.WaitForDeal(ctx, c, okDeals[0], waitDealTimeout)
 	if err != nil && !errors.As(err, &dealError) {
 		return ffs.FilStorage{}, ffs.DealError{ProposalCid: c, Message: fmt.Sprintf("waiting for renew deal: %s", err)}
 	}
@@ -268,7 +269,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 // If the deal finishes successfully it returns a FilStorage result.
 // If the deal finished with error, it returns a ffs.DealError error
 // result, so it should be considered in error handling.
-func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid) (ffs.FilStorage, error) {
+func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid, timeout time.Duration) (ffs.FilStorage, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	chDi, err := fc.dm.Watch(ctx, []cid.Cid{proposal})
@@ -276,28 +277,44 @@ func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid)
 		return ffs.FilStorage{}, fmt.Errorf("watching proposals in deals module: %s", err)
 	}
 
-	var activeProposal ffs.FilStorage
-	for di := range chDi {
-		switch di.StateID {
-		case storagemarket.StorageDealActive:
-			activeProposal = ffs.FilStorage{
-				ProposalCid:     di.ProposalCid,
-				PieceCid:        di.PieceCID,
-				Duration:        int64(di.Duration),
-				Miner:           di.Miner,
-				ActivationEpoch: di.ActivationEpoch,
-				StartEpoch:      di.StartEpoch,
-				EpochPrice:      di.PricePerEpoch,
+	var last deals.StorageDealInfo
+Loop:
+	for {
+		select {
+		case <-time.After(timeout):
+			msg := fmt.Sprintf("DealID %d with miner %s tracking timed out after waiting for %.0f hours.", last.DealID, last.Miner, timeout.Hours())
+			fc.l.Log(ctx, msg)
+			return ffs.FilStorage{}, ffs.DealError{ProposalCid: proposal, Message: msg}
+		case di, ok := <-chDi:
+			if !ok {
+				break Loop
 			}
-			fc.l.Log(ctx, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
-			return activeProposal, nil
-		case storagemarket.StorageDealError, storagemarket.StorageDealFailing:
-			log.Errorf("deal %d failed with state %s: %s", di.DealID, storagemarket.DealStates[di.StateID], di.Message)
-			fc.l.Log(ctx, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
+			last = di
+			switch di.StateID {
+			case storagemarket.StorageDealActive:
+				activeProposal := ffs.FilStorage{
+					ProposalCid:     di.ProposalCid,
+					PieceCid:        di.PieceCID,
+					Duration:        int64(di.Duration),
+					Miner:           di.Miner,
+					ActivationEpoch: di.ActivationEpoch,
+					StartEpoch:      di.StartEpoch,
+					EpochPrice:      di.PricePerEpoch,
+				}
+				fc.l.Log(ctx, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
+				return activeProposal, nil
+			case storagemarket.StorageDealError, storagemarket.StorageDealFailing:
+				log.Errorf("deal %d failed with state %s: %s", di.DealID, storagemarket.DealStates[di.StateID], di.Message)
+				fc.l.Log(ctx, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
 
-			return ffs.FilStorage{}, ffs.DealError{ProposalCid: di.ProposalCid, Miner: di.Miner, Message: di.Message}
-		default:
-			fc.l.Log(ctx, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.StateID])
+				return ffs.FilStorage{}, ffs.DealError{ProposalCid: di.ProposalCid, Miner: di.Miner, Message: di.Message}
+			default:
+				if di.DealID != 0 {
+					fc.l.Log(ctx, "Deal %d with miner %s changed state to %s", di.DealID, di.Miner, storagemarket.DealStates[di.StateID])
+				} else {
+					fc.l.Log(ctx, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.StateID])
+				}
+			}
 		}
 	}
 	return ffs.FilStorage{}, fmt.Errorf("aborted due to cancellation")

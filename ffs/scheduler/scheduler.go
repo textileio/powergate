@@ -21,10 +21,6 @@ import (
 	txndstr "github.com/textileio/powergate/txndstransform"
 )
 
-const (
-	maxParallelExecutions = 50
-)
-
 var (
 	log = logging.Logger("ffs-scheduler")
 
@@ -55,6 +51,9 @@ type Scheduler struct {
 	ris *ristore.Store
 	l   ffs.JobLogger
 
+	sr2RepFactor        func() (int, error)
+	dealFinalityTimeout time.Duration
+
 	sd          storageDaemon
 	rd          retrievalDaemon
 	cancelLock  sync.Mutex
@@ -81,7 +80,7 @@ type retrievalDaemon struct {
 
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
-func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage) (*Scheduler, error) {
+func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage, maxParallel int, dealFinalityTimeout time.Duration, sr2rf func() (int, error)) (*Scheduler, error) {
 	sjs, err := sjstore.New(txndstr.Wrap(ds, "sjstore"))
 	if err != nil {
 		return nil, fmt.Errorf("loading stroage jobstore: %s", err)
@@ -117,17 +116,20 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 
 		cancelChans: make(map[ffs.JobID]chan struct{}),
 		sd: storageDaemon{
-			rateLim:       make(chan struct{}, maxParallelExecutions),
+			rateLim:       make(chan struct{}, maxParallel),
 			evaluateQueue: make(chan struct{}, 1),
 		},
 		rd: retrievalDaemon{
-			rateLim:       make(chan struct{}, maxParallelExecutions),
+			rateLim:       make(chan struct{}, maxParallel),
 			evaluateQueue: make(chan struct{}, 1),
 		},
 
 		ctx:      ctx,
 		cancel:   cancel,
 		finished: make(chan struct{}),
+
+		sr2RepFactor:        sr2rf,
+		dealFinalityTimeout: dealFinalityTimeout,
 	}
 	go sch.run()
 	return sch, nil
@@ -226,6 +228,9 @@ func (s *Scheduler) run() {
 		}
 	}()
 
+	// Force a first evaluation on start.
+	go func() { s.sd.evaluateQueue <- struct{}{} }()
+
 	// Loop for new pushed storage configs.
 	for {
 		select {
@@ -235,9 +240,10 @@ func (s *Scheduler) run() {
 			log.Infof("scheduler daemon terminated")
 			return
 		case <-s.sd.evaluateQueue:
-			log.Debug("evaluating storage job queue...")
+			log.Infof("storage job push rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
+			stats := s.sjs.GetStats()
+			log.Infof("storage job total queued: %d, total executing: %d", stats.TotalQueued, stats.TotalExecuting)
 			s.execQueuedStorages(s.ctx)
-			log.Debug("storage job queue evaluated")
 		}
 	}
 }
@@ -254,6 +260,7 @@ func (s *Scheduler) resumeStartedDeals() error {
 		if err != nil {
 			return fmt.Errorf("getting resumed queued job: %s", err)
 		}
+		log.Infof("storage job resume rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
 		s.sd.rateLim <- struct{}{}
 		go func(j ffs.StorageJob) {
 			log.Infof("resuming job %s with cid %s", j.ID, j.Cid)
@@ -261,6 +268,7 @@ func (s *Scheduler) resumeStartedDeals() error {
 			// Both hot and cold storage can detect resumed job execution.
 			s.executeQueuedStorage(j)
 
+			log.Infof("storage job resume rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
 			<-s.sd.rateLim
 		}(j)
 	}
@@ -360,7 +368,7 @@ forLoop:
 		}
 		go func(j ffs.StorageJob) {
 			s.executeQueuedStorage(j)
-
+			log.Infof("storage job push rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
 			<-s.sd.rateLim
 
 			// Signal that there's a new open slot, and
@@ -410,7 +418,6 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
 	info, dealErrors, err := s.executeStorage(ctx, a, j)
-
 	// Something bad-enough happened to make Job
 	// execution fail.
 	if err != nil {

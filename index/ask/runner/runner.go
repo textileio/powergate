@@ -261,15 +261,7 @@ func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr
 	if err != nil {
 		return ask.StorageAsk{}, false, fmt.Errorf("getting power %s: %s", addr, err)
 	}
-	ribasMiners := []string{"t016303", "t016304", "t016305", "t016306", "t016309"}
-	var forceQueryAsk bool
-	for _, rm := range ribasMiners {
-		if addr.String() == rm {
-			forceQueryAsk = true
-			break
-		}
-	}
-	if !forceQueryAsk && power.MinerPower.RawBytePower.IsZero() {
+	if power.MinerPower.RawBytePower.IsZero() {
 		return ask.StorageAsk{}, false, nil
 	}
 	mi, err := api.StateMinerInfo(ctx, addr, types.EmptyTSK)

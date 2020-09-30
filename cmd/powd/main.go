@@ -123,6 +123,9 @@ func configFromFlags() (server.Config, error) {
 	mongoDB := config.GetString("mongodb")
 	minerSelector := config.GetString("ffsminerselector")
 	minerSelectorParams := config.GetString("ffsminerselectorparams")
+	ffsSchedMaxParallel := config.GetInt("ffsschedmaxparallel")
+	dealWatchPollDuration := time.Second * time.Duration(config.GetInt("dealwatchpollduration"))
+	ffsDealWatchFinalityTimeout := time.Minute * time.Duration(config.GetInt("ffsdealfinalitytimeout"))
 
 	return server.Config{
 		WalletInitialFunds:   walletInitialFunds,
@@ -134,17 +137,20 @@ func configFromFlags() (server.Config, error) {
 		FFSUseMasterAddr:     ffsUseMasterAddr,
 		Devnet:               devnet,
 		// ToDo: Support secure gRPC connection
-		GrpcHostNetwork:     "tcp",
-		GrpcHostAddress:     grpcHostMaddr,
-		GrpcWebProxyAddress: grpcWebProxyAddr,
-		RepoPath:            repoPath,
-		GatewayHostAddr:     gatewayHostAddr,
-		GatewayBasePath:     gatewayBasePath,
-		MaxMindDBFolder:     maxminddbfolder,
-		MongoURI:            mongoURI,
-		MongoDB:             mongoDB,
-		MinerSelector:       minerSelector,
-		MinerSelectorParams: minerSelectorParams,
+		GrpcHostNetwork:        "tcp",
+		GrpcHostAddress:        grpcHostMaddr,
+		GrpcWebProxyAddress:    grpcWebProxyAddr,
+		RepoPath:               repoPath,
+		GatewayHostAddr:        gatewayHostAddr,
+		GatewayBasePath:        gatewayBasePath,
+		MaxMindDBFolder:        maxminddbfolder,
+		MongoURI:               mongoURI,
+		MongoDB:                mongoDB,
+		MinerSelector:          minerSelector,
+		MinerSelectorParams:    minerSelectorParams,
+		SchedMaxParallel:       ffsSchedMaxParallel,
+		DealWatchPollDuration:  dealWatchPollDuration,
+		FFSDealFinalityTimeout: ffsDealWatchFinalityTimeout,
 	}, nil
 }
 
@@ -310,6 +316,9 @@ func setupFlags() error {
 	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory")
 	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'")
 	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
+	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel")
+	pflag.String("dealwatchpollduration", "300", "Poll interval in seconds used by Deals Module watch to detect state changes")
+	pflag.String("ffsdealfinalitytimeout", "1440", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")

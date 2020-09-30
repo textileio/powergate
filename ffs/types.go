@@ -110,6 +110,7 @@ type StorageJob struct {
 	Status     JobStatus
 	ErrCause   string
 	DealErrors []DealError
+	CreatedAt  int64
 }
 
 // RetrievalJob is a retrieval task executed by the Scheduler.
