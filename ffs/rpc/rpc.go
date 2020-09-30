@@ -114,6 +114,34 @@ func (s *RPC) DefaultStorageConfig(ctx context.Context, req *DefaultStorageConfi
 	}, nil
 }
 
+// SignMessage calls ffs.SignMessage.
+func (s *RPC) SignMessage(ctx context.Context, req *SignMessageRequest) (*SignMessageResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	signature, err := i.SignMessage(ctx, req.Addr, req.Msg)
+	if err != nil {
+		return nil, fmt.Errorf("signing message: %s", err)
+	}
+
+	return &SignMessageResponse{Signature: signature}, nil
+}
+
+// VerifyMessage calls ffs.VerifyMessage.
+func (s *RPC) VerifyMessage(ctx context.Context, req *VerifyMessageRequest) (*VerifyMessageResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ok, err := i.VerifyMessage(ctx, req.Addr, req.Msg, req.Signature)
+	if err != nil {
+		return nil, fmt.Errorf("verifying signature: %s", err)
+	}
+
+	return &VerifyMessageResponse{Ok: ok}, nil
+}
+
 // NewAddr calls ffs.NewAddr.
 func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrResponse, error) {
 	i, err := s.getInstanceByToken(ctx)

@@ -127,6 +127,47 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 	return addr.String(), nil
 }
 
+// Sign signs a message with an address.
+func (m *Module) Sign(ctx context.Context, addr string, message []byte) ([]byte, error) {
+	client, cls, err := m.clientBuilder()
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	waddr, err := address.NewFromString(addr)
+	if err != nil {
+		return nil, fmt.Errorf("parsing wallet address: %s", err)
+	}
+	sig, err := client.WalletSign(ctx, waddr, message)
+	if err != nil {
+		return nil, fmt.Errorf("lotus signing message: %s", err)
+	}
+	sigBytes, err := sig.MarshalBinary()
+	if err != nil {
+		return nil, fmt.Errorf("marshaling signature: %s", err)
+	}
+
+	return sigBytes, nil
+}
+
+// Verify verifies a message signature from an address.
+func (m *Module) Verify(ctx context.Context, addr string, message, signature []byte) (bool, error) {
+	client, cls, err := m.clientBuilder()
+	if err != nil {
+		return false, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+	waddr, err := address.NewFromString(addr)
+	if err != nil {
+		return false, fmt.Errorf("parsing wallet address: %s", err)
+	}
+	var sig crypto.Signature
+	if err := sig.UnmarshalBinary(signature); err != nil {
+		return false, fmt.Errorf("unmarshaling signature: %s", err)
+	}
+	return client.WalletVerify(ctx, waddr, message, &sig)
+}
+
 // List returns all wallet addresses.
 func (m *Module) List(ctx context.Context) ([]string, error) {
 	client, cls, err := m.clientBuilder()

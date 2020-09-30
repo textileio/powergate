@@ -21,6 +21,10 @@ type WalletManager interface {
 	Balance(context.Context, string) (uint64, error)
 	// SendFil sends fil from one address to another.
 	SendFil(context.Context, string, string, *big.Int) error
+	// Sign signs a message using an address.
+	Sign(context.Context, string, []byte) ([]byte, error)
+	// Verify verifies if a message was signed with an address.
+	Verify(context.Context, string, []byte, []byte) (bool, error)
 }
 
 // PaychManager provides access to payment channels.
