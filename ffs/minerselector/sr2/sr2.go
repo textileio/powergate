@@ -108,6 +108,8 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 	return res, nil
 }
 
+// GetReplicationFactor returns the current replication factor of the
+// remote configuration.
 func (ms *MinerSelector) GetReplicationFactor() (int, error) {
 	mb, err := ms.getMiners()
 	if err != nil {

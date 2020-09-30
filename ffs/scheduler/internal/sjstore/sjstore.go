@@ -37,6 +37,12 @@ type Store struct {
 	executingCids map[cid.Cid]ffs.JobID
 }
 
+// Stats return metrics about current job queues.
+type Stats struct {
+	TotalQueued    int
+	TotalExecuting int
+}
+
 type watcher struct {
 	iid ffs.APIID
 	C   chan ffs.StorageJob
@@ -133,11 +139,7 @@ func (s *Store) GetExecutingJob(c cid.Cid) *ffs.JobID {
 	return &j
 }
 
-type Stats struct {
-	TotalQueued    int
-	TotalExecuting int
-}
-
+// GetStats return the current Stats for storage jobs.
 func (s *Store) GetStats() Stats {
 	return Stats{
 		TotalQueued:    len(s.queued),
@@ -409,10 +411,7 @@ func (s *Store) loadQueuedJobs() error {
 		}
 	}
 	sort.Slice(s.queued, func(a, b int) bool {
-		if s.queued[a].CreatedAt < s.queued[b].CreatedAt {
-			return true
-		}
-		return false
+		return s.queued[a].CreatedAt < s.queued[b].CreatedAt
 	})
 	return nil
 }
