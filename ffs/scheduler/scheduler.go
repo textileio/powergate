@@ -240,12 +240,17 @@ func (s *Scheduler) run() {
 			log.Infof("scheduler daemon terminated")
 			return
 		case <-s.sd.evaluateQueue:
-			log.Infof("storage job push rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
-			stats := s.sjs.GetStats()
-			log.Infof("storage job total queued: %d, total executing: %d", stats.TotalQueued, stats.TotalExecuting)
+			s.printStats()
 			s.execQueuedStorages(s.ctx)
+			s.printStats()
 		}
 	}
+}
+
+func (s *Scheduler) printStats() {
+	log.Infof("storage job push rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
+	stats := s.sjs.GetStats()
+	log.Infof("storage job total queued: %d, total executing: %d", stats.TotalQueued, stats.TotalExecuting)
 }
 
 func (s *Scheduler) resumeStartedDeals() error {
