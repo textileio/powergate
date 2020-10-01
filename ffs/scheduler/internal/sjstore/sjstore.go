@@ -141,6 +141,8 @@ func (s *Store) GetExecutingJob(c cid.Cid) *ffs.JobID {
 
 // GetStats return the current Stats for storage jobs.
 func (s *Store) GetStats() Stats {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	return Stats{
 		TotalQueued:    len(s.queued),
 		TotalExecuting: len(s.executingCids),

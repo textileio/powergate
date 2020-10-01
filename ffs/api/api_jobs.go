@@ -36,7 +36,7 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.StorageJob, jids ...ff
 		jobs = append(jobs, j)
 	}
 
-	ch := make(chan ffs.StorageJob, 1)
+	ch := make(chan ffs.StorageJob, 10)
 	for _, j := range jobs {
 		select {
 		case ch <- j:
