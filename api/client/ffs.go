@@ -253,6 +253,11 @@ func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowResponse, error) {
 	})
 }
 
+// ShowAll returns information about all the currently stored cids.
+func (f *FFS) ShowAll(ctx context.Context) (*rpc.ShowAllResponse, error) {
+	return f.client.ShowAll(ctx, &rpc.ShowAllRequest{})
+}
+
 // Info returns information about the FFS instance.
 func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 	res, err := f.client.Info(ctx, &rpc.InfoRequest{})
