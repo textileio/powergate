@@ -10,7 +10,7 @@ require (
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/filecoin-project/go-address v0.0.3
 	github.com/filecoin-project/go-amt-ipld/v2 v2.1.1-0.20200731171407-e559a0579161 // indirect
-	github.com/filecoin-project/go-fil-markets v0.6.3
+	github.com/filecoin-project/go-fil-markets v0.7.0
 	github.com/filecoin-project/go-jsonrpc v0.1.2-0.20200822201400-474f4fdccc52
 	github.com/filecoin-project/go-padreader v0.0.0-20200903213702-ed5fae088b20
 	github.com/filecoin-project/go-state-types v0.0.0-20200911004822-964d6c679cfc
