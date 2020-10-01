@@ -313,7 +313,7 @@ func (s *Store) put(j ffs.StorageJob) error {
 
 	// Update queued cids cache.
 	if j.Status == ffs.Queued {
-		// Every new Queued job goes at the front since has
+		// Every new Queued job goes at the tail since has
 		// the biggest CreatedAt value.
 		s.queued = append(s.queued, j)
 	} else { // In any other case, ensure taking it out from queued cache.

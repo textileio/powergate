@@ -67,6 +67,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDurat
 		clientBuilder: clientBuilder,
 		cfg:           &cfg,
 		store:         newStore(ds),
+		pollDuration:  pollDuration,
 	}
 	m.initPendingDeals()
 	return m, nil

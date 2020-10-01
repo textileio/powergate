@@ -251,6 +251,7 @@ func setupLogging(repoPath string) error {
 			}
 		}
 	}
+	_ = logging.SetLogLevel("rpc", "FATAL")
 	return nil
 }
 

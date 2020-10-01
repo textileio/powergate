@@ -129,7 +129,7 @@ func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (add
 
 // NewFFSManager returns a new FFS manager.
 func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, time.Second)
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, util.AvgBlockTime)
 	require.NoError(t, err)
 
 	fchain := filchain.New(clientBuilder)
