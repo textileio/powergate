@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/caarlos0/spin"
-	"github.com/golang/protobuf/proto"
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func init() {
@@ -31,7 +31,7 @@ var ffsShowCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		var res protoiface.MessageV1
+		var res protoreflect.ProtoMessage
 		if len(args) == 1 {
 			c, err := cid.Parse(args[0])
 			checkErr(err)
@@ -50,6 +50,6 @@ var ffsShowCmd = &cobra.Command{
 			checkErr(err)
 		}
 
-		Success("\n%v", proto.MarshalTextString(res))
+		Success("\n%v", prototext.Format(res))
 	},
 }

@@ -7,7 +7,7 @@ Sets the default cid storage config from stdin or a file
 Sets the default cid storage config from stdin or a file
 
 ```
-pow ffs config set-default [(optional)file] [flags]
+pow ffs config set-default [optional file] [flags]
 ```
 
 ### Options
