@@ -677,7 +677,10 @@ func toRPCColdConfig(config ffs.ColdConfig) *rpc.ColdConfig {
 				Enabled:   config.Filecoin.Renew.Enabled,
 				Threshold: int64(config.Filecoin.Renew.Threshold),
 			},
-			Addr: config.Filecoin.Addr,
+			Addr:            config.Filecoin.Addr,
+			DealStartOffset: config.Filecoin.DealStartOffset,
+			FastRetrieval:   config.Filecoin.FastRetrieval,
+			MaxPrice:        config.Filecoin.MaxPrice,
 		},
 	}
 }
