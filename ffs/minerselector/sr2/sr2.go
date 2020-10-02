@@ -160,5 +160,5 @@ func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (uint64, erro
 	if err != nil {
 		return 0, fmt.Errorf("query asking: %s", err)
 	}
-	return sask.Ask.Price.Uint64(), nil
+	return sask.Price.Uint64(), nil
 }
