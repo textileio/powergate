@@ -18,6 +18,7 @@ import (
 func TestMain(m *testing.M) {
 	util.AvgBlockTime = time.Millisecond * 500
 	logging.SetAllLoggers(logging.LevelError)
+	_ = logging.SetLogLevel("rpc", "FATAL")
 	os.Exit(m.Run())
 }
 

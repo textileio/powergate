@@ -97,26 +97,29 @@ type Server struct {
 
 // Config specifies server settings.
 type Config struct {
-	WalletInitialFunds   big.Int
-	IpfsAPIAddr          ma.Multiaddr
-	LotusAddress         ma.Multiaddr
-	LotusAuthToken       string
-	LotusMasterAddr      string
-	AutocreateMasterAddr bool
-	FFSUseMasterAddr     bool
-	Devnet               bool
-	GatewayBasePath      string
-	GrpcHostNetwork      string
-	GrpcHostAddress      ma.Multiaddr
-	GrpcServerOpts       []grpc.ServerOption
-	GrpcWebProxyAddress  string
-	RepoPath             string
-	GatewayHostAddr      string
-	MaxMindDBFolder      string
-	MongoURI             string
-	MongoDB              string
-	MinerSelector        string
-	MinerSelectorParams  string
+	WalletInitialFunds     big.Int
+	IpfsAPIAddr            ma.Multiaddr
+	LotusAddress           ma.Multiaddr
+	LotusAuthToken         string
+	LotusMasterAddr        string
+	AutocreateMasterAddr   bool
+	FFSUseMasterAddr       bool
+	Devnet                 bool
+	GatewayBasePath        string
+	GrpcHostNetwork        string
+	GrpcHostAddress        ma.Multiaddr
+	GrpcServerOpts         []grpc.ServerOption
+	GrpcWebProxyAddress    string
+	RepoPath               string
+	GatewayHostAddr        string
+	MaxMindDBFolder        string
+	MongoURI               string
+	MongoDB                string
+	MinerSelector          string
+	MinerSelectorParams    string
+	SchedMaxParallel       int
+	DealWatchPollDuration  time.Duration
+	FFSDealFinalityTimeout time.Duration
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -193,7 +196,10 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
 	}
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
+	if conf.Devnet {
+		conf.DealWatchPollDuration = time.Second
+	}
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, conf.DealWatchPollDuration, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
@@ -224,7 +230,12 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)
 	}
-	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs)
+
+	var sr2rf func() (int, error)
+	if ms, ok := ms.(*sr2.MinerSelector); ok {
+		sr2rf = ms.GetReplicationFactor
+	}
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf)
 	if err != nil {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}

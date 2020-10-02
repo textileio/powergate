@@ -15,6 +15,7 @@ import (
 	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/util"
 	walletModule "github.com/textileio/powergate/wallet/module"
 )
 
@@ -198,7 +199,7 @@ func newManager(clientBuilder lotus.ClientBuilder, ds datastore.TxnDatastore, ma
 		return nil, func() error { return nil }, err
 	}
 	pm := paych.New(clientBuilder)
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder)
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, util.AvgBlockTime)
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}

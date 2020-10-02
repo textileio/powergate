@@ -129,7 +129,7 @@ func (cl *Logger) GetByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, erro
 // The client should cancel the ctx to signal stopping writing to the channel and free resources.
 func (cl *Logger) Watch(ctx context.Context, c chan<- ffs.LogEntry) error {
 	cl.lock.Lock()
-	ic := make(chan ffs.LogEntry)
+	ic := make(chan ffs.LogEntry, 20)
 	cl.watchers = append(cl.watchers, ic)
 	cl.lock.Unlock()
 

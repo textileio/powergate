@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"testing"
+	"time"
 
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
@@ -39,19 +40,22 @@ func setupServer(t *testing.T) func() {
 
 	grpcMaddr := util.MustParseAddr(grpcHostAddress)
 	conf := server.Config{
-		WalletInitialFunds:  *big.NewInt(int64(4000000000)),
-		IpfsAPIAddr:         ipfsAddr,
-		LotusAddress:        devnetAddr,
-		LotusAuthToken:      "",
-		LotusMasterAddr:     "",
-		Devnet:              true,
-		GrpcHostNetwork:     grpcHostNetwork,
-		GrpcHostAddress:     grpcMaddr,
-		GrpcWebProxyAddress: grpcWebProxyAddress,
-		RepoPath:            repoPath,
-		GatewayHostAddr:     gatewayHostAddr,
-		MaxMindDBFolder:     "../../iplocation/maxmind",
-		MinerSelector:       "reputation",
+		WalletInitialFunds:     *big.NewInt(int64(4000000000)),
+		IpfsAPIAddr:            ipfsAddr,
+		LotusAddress:           devnetAddr,
+		LotusAuthToken:         "",
+		LotusMasterAddr:        "",
+		Devnet:                 true,
+		GrpcHostNetwork:        grpcHostNetwork,
+		GrpcHostAddress:        grpcMaddr,
+		GrpcWebProxyAddress:    grpcWebProxyAddress,
+		RepoPath:               repoPath,
+		GatewayHostAddr:        gatewayHostAddr,
+		MaxMindDBFolder:        "../../iplocation/maxmind",
+		MinerSelector:          "reputation",
+		FFSDealFinalityTimeout: time.Minute * 30,
+		DealWatchPollDuration:  time.Second * 15,
+		SchedMaxParallel:       10,
 	}
 	server, err := server.NewServer(conf)
 	checkErr(t, err)

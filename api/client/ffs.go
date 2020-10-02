@@ -366,6 +366,7 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 				Status:     status,
 				ErrCause:   reply.Job.ErrCause,
 				DealErrors: dealErrors,
+				CreatedAt:  reply.Job.CreatedAt,
 			}
 			ch <- JobEvent{Job: job}
 		}
@@ -862,6 +863,7 @@ func fromRPCJob(job *rpc.Job) (ffs.StorageJob, error) {
 		Status:     status,
 		ErrCause:   job.ErrCause,
 		DealErrors: dealErrors,
+		CreatedAt:  job.CreatedAt,
 	}, nil
 }
 

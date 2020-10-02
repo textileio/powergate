@@ -47,10 +47,11 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 	}
 	jid := ffs.NewJobID()
 	j := ffs.StorageJob{
-		ID:     jid,
-		APIID:  iid,
-		Cid:    c,
-		Status: ffs.Queued,
+		ID:        jid,
+		APIID:     iid,
+		Cid:       c,
+		Status:    ffs.Queued,
+		CreatedAt: time.Now().Unix(),
 	}
 
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
@@ -73,6 +74,9 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 
 	if err := s.sjs.Enqueue(j); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("enqueuing job: %s", err)
+	}
+	if jid := s.sjs.GetExecutingJob(c); jid != nil {
+		s.l.Log(ctx, "Job %s is already being executed for the same data, this job will be queued until it finishes or is canceled.")
 	}
 
 	select {
@@ -340,7 +344,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	if cfg.Filecoin.Renew.Enabled {
 		if curr.Hot.Enabled {
 			s.l.Log(ctx, "Checking deal renewals...")
-			newFilInfo, errors, err := s.cs.EnsureRenewals(ctx, curr.Cid, curr.Cold.Filecoin, cfg.Filecoin)
+			newFilInfo, errors, err := s.cs.EnsureRenewals(ctx, curr.Cid, curr.Cold.Filecoin, cfg.Filecoin, s.dealFinalityTimeout)
 			if err != nil {
 				s.l.Log(ctx, "Deal renewal process couldn't be executed: %s", err)
 			} else {
@@ -384,6 +388,12 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	// whatever extra deals we need to make that true.
 
 	// Do we need to do some work?
+	if s.sr2RepFactor != nil {
+		cfg.Filecoin.RepFactor, err = s.sr2RepFactor()
+		if err != nil {
+			return ffs.ColdInfo{}, nil, fmt.Errorf("getting SR2 replication factor: %s", err)
+		}
+	}
 	if cfg.Filecoin.RepFactor-len(curr.Cold.Filecoin.Proposals) <= 0 {
 		s.l.Log(ctx, "The current replication factor is equal or higher than desired, avoiding making new deals.")
 		return curr.Cold, nil, nil
@@ -447,7 +457,7 @@ func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposal
 		go func() {
 			defer wg.Done()
 
-			res, err := s.cs.WaitForDeal(ctx, c, pc)
+			res, err := s.cs.WaitForDeal(ctx, c, pc, s.dealFinalityTimeout)
 			var dealError ffs.DealError
 			if err != nil {
 				if !errors.As(err, &dealError) {

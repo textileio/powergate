@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/ipfs/go-cid"
@@ -32,7 +33,14 @@ type Store struct {
 	ds       datastore.Datastore
 	watchers []watcher
 
+	queued        []ffs.StorageJob
 	executingCids map[cid.Cid]ffs.JobID
+}
+
+// Stats return metrics about current job queues.
+type Stats struct {
+	TotalQueued    int
+	TotalExecuting int
 }
 
 type watcher struct {
@@ -48,6 +56,9 @@ func New(ds datastore.Datastore) (*Store, error) {
 	}
 	if err := s.loadExecutingJobs(); err != nil {
 		return nil, fmt.Errorf("reloading priori executing jobs: %s", err)
+	}
+	if err := s.loadQueuedJobs(); err != nil {
+		return nil, fmt.Errorf("loading pending jobs: %s", err)
 	}
 	return s, nil
 }
@@ -87,29 +98,17 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 func (s *Store) Dequeue() (*ffs.StorageJob, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	q := query.Query{Prefix: dsBaseJob.String()}
-	res, err := s.ds.Query(q)
-	if err != nil {
-		return nil, fmt.Errorf("querying datastore: %s", err)
-	}
-	defer func() {
-		if err := res.Close(); err != nil {
-			log.Errorf("closing dequeue query result: %s", err)
-		}
-	}()
-	for r := range res.Next() {
-		var j ffs.StorageJob
-		if err := json.Unmarshal(r.Value, &j); err != nil {
-			return nil, fmt.Errorf("unmarshalling job: %s", err)
-		}
-		_, ok := s.executingCids[j.Cid]
-		if j.Status == ffs.Queued && !ok {
-			j.Status = ffs.Executing
-			if err := s.put(j); err != nil {
+
+	for _, job := range s.queued {
+		execJobID, ok := s.executingCids[job.Cid]
+		if job.Status == ffs.Queued && !ok {
+			job.Status = ffs.Executing
+			if err := s.put(job); err != nil {
 				return nil, err
 			}
-			return &j, nil
+			return &job, nil
 		}
+		log.Infof("queued %s is delayed since job %s is running", job.ID, execJobID)
 	}
 	return nil, nil
 }
@@ -126,7 +125,28 @@ func (s *Store) Enqueue(j ffs.StorageJob) error {
 	if err := s.put(j); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
+
 	return nil
+}
+
+// GetExecutingJob returns a JobID that is currently executing for
+// data with cid c. If there's not such job, it returns nil.
+func (s *Store) GetExecutingJob(c cid.Cid) *ffs.JobID {
+	j, ok := s.executingCids[c]
+	if !ok {
+		return nil
+	}
+	return &j
+}
+
+// GetStats return the current Stats for storage jobs.
+func (s *Store) GetStats() Stats {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	return Stats{
+		TotalQueued:    len(s.queued),
+		TotalExecuting: len(s.executingCids),
+	}
 }
 
 // GetExecutingJobs returns the JobIDs of all Jobs in Executing status.
@@ -280,12 +300,38 @@ func (s *Store) put(j ffs.StorageJob) error {
 	if err := s.ds.Put(makeKey(j.ID), buf); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
-	s.notifyWatchers(j)
+
+	// Update executing cids cache.
 	if j.Status == ffs.Executing {
 		s.executingCids[j.Cid] = j.ID
-	} else if j.Status == ffs.Failed || j.Status == ffs.Success || j.Status == ffs.Canceled {
-		delete(s.executingCids, j.Cid)
+	} else {
+		execJobID, ok := s.executingCids[j.Cid]
+		// If the executing job is not longer executing,
+		// take out from executing cache.
+		if ok && execJobID == j.ID {
+			delete(s.executingCids, j.Cid)
+		}
 	}
+
+	// Update queued cids cache.
+	if j.Status == ffs.Queued {
+		// Every new Queued job goes at the tail since has
+		// the biggest CreatedAt value.
+		s.queued = append(s.queued, j)
+	} else { // In any other case, ensure taking it out from queued cache.
+		delIndex := -1
+		for i, job := range s.queued {
+			if j.ID == job.ID {
+				delIndex = i
+				break
+			}
+		}
+		if delIndex != -1 {
+			s.queued = append(s.queued[:delIndex], s.queued[delIndex+1:]...)
+		}
+	}
+
+	s.notifyWatchers(j)
 	return nil
 }
 
@@ -340,6 +386,35 @@ func (s *Store) loadExecutingJobs() error {
 			s.executingCids[j.Cid] = j.ID
 		}
 	}
+	return nil
+}
+
+func (s *Store) loadQueuedJobs() error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	q := query.Query{Prefix: dsBaseJob.String()}
+	res, err := s.ds.Query(q)
+	if err != nil {
+		return fmt.Errorf("querying datastore: %s", err)
+	}
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing queued jobs result: %s", err)
+		}
+	}()
+	for r := range res.Next() {
+		var j ffs.StorageJob
+		if err := json.Unmarshal(r.Value, &j); err != nil {
+			return fmt.Errorf("unmarshalling job: %s", err)
+		}
+		if j.Status == ffs.Queued {
+			s.queued = append(s.queued, j)
+		}
+	}
+	sort.Slice(s.queued, func(a, b int) bool {
+		return s.queued[a].CreatedAt < s.queued[b].CreatedAt
+	})
 	return nil
 }
 
