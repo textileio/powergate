@@ -253,6 +253,11 @@ func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowResponse, error) {
 	})
 }
 
+// ShowAll returns information about all the currently stored cids.
+func (f *FFS) ShowAll(ctx context.Context) (*rpc.ShowAllResponse, error) {
+	return f.client.ShowAll(ctx, &rpc.ShowAllRequest{})
+}
+
 // Info returns information about the FFS instance.
 func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
 	res, err := f.client.Info(ctx, &rpc.InfoRequest{})
@@ -673,7 +678,10 @@ func toRPCColdConfig(config ffs.ColdConfig) *rpc.ColdConfig {
 				Enabled:   config.Filecoin.Renew.Enabled,
 				Threshold: int64(config.Filecoin.Renew.Threshold),
 			},
-			Addr: config.Filecoin.Addr,
+			Addr:            config.Filecoin.Addr,
+			DealStartOffset: config.Filecoin.DealStartOffset,
+			FastRetrieval:   config.Filecoin.FastRetrieval,
+			MaxPrice:        config.Filecoin.MaxPrice,
 		},
 	}
 }

@@ -7,7 +7,7 @@ Show pinned cid data
 Show pinned cid data
 
 ```
-pow ffs show [cid] [flags]
+pow ffs show [optional cid] [flags]
 ```
 
 ### Options

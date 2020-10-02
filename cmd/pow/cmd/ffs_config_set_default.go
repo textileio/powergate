@@ -26,7 +26,7 @@ func init() {
 }
 
 var ffsConfigSetCmd = &cobra.Command{
-	Use:   "set-default [(optional)file]",
+	Use:   "set-default [optional file]",
 	Short: "Sets the default cid storage config from stdin or a file",
 	Long:  `Sets the default cid storage config from stdin or a file`,
 	PreRun: func(cmd *cobra.Command, args []string) {
