@@ -20,10 +20,10 @@ require (
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/protobuf v1.4.2
-	github.com/google/go-cmp v0.5.1
-	github.com/google/uuid v1.1.1
+	github.com/google/go-cmp v0.5.2
+	github.com/google/uuid v1.1.2
 	github.com/gosuri/uilive v0.0.4
-	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/improbable-eng/grpc-web v0.13.0
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.5
@@ -59,9 +59,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/textileio/go-ds-mongo v0.1.0
 	go.opencensus.io v0.22.4
-	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	google.golang.org/grpc v1.31.0
+	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )

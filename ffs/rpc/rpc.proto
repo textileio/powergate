@@ -120,6 +120,7 @@ message Job {
    JobStatus status = 4;
    string err_cause = 5;
    repeated DealError deal_errors = 6;
+   int64 created_at = 7;
 }
 
 message DealError {

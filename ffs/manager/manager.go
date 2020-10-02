@@ -193,14 +193,14 @@ func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 
 	i, ok := m.instances[iid]
 	if !ok {
-		log.Infof("loading uncached instance %s", iid)
+		log.Debugf("loading uncached instance %s", iid)
 		i, err = api.Load(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)
 		}
 		m.instances[iid] = i
 	} else {
-		log.Infof("using cached instance %s", iid)
+		log.Debugf("using cached instance %s", iid)
 	}
 
 	return i, nil

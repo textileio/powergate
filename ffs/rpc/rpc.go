@@ -888,5 +888,6 @@ func toRPCJob(job ffs.StorageJob) (*Job, error) {
 		Status:     status,
 		ErrCause:   job.ErrCause,
 		DealErrors: toRPCDealErrors(job.DealErrors),
+		CreatedAt:  job.CreatedAt,
 	}, nil
 }
