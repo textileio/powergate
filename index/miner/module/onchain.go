@@ -124,10 +124,12 @@ func fullRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex 
 	if err != nil {
 		return err
 	}
+	start := time.Now()
 	addrs, err := api.StateListMiners(ctx, ts.Key())
 	if err != nil {
 		return err
 	}
+	fmt.Printf("state list miners call took: %v", time.Since(start).Milliseconds())
 	if err := updateForAddrs(ctx, api, chainIndex, addrs); err != nil {
 		return fmt.Errorf("updating for addresses: %s", err)
 	}
@@ -155,6 +157,9 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 			l.Unlock()
 		}(a)
 		stats.Record(context.Background(), mOnChainRefreshProgress.M(float64(i)/float64(len(addrs))))
+		if i%100 == 0 {
+			log.Infof("progress %d/%d", i, len(addrs))
+		}
 	}
 	for i := 0; i < maxParallelism; i++ {
 		rl <- struct{}{}

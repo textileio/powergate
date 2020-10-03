@@ -234,7 +234,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct, maxParall
 		}(addr)
 		if i%100 == 0 {
 			stats.Record(context.Background(), metrics.MFullRefreshProgress.M(float64(i)/float64(len(addrs))))
-			log.Debugf("progress %d/%d", i, len(addrs))
+			log.Infof("progress %d/%d", i, len(addrs))
 		}
 	}
 	for i := 0; i < maxParallel; i++ {
