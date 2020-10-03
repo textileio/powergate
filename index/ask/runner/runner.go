@@ -22,10 +22,6 @@ import (
 )
 
 var (
-	qaRatelim         = 5
-	qaTimeout         = time.Second * 20
-	qaRefreshInterval = 30 * time.Minute
-
 	log = logging.Logger("index-ask")
 )
 
@@ -34,6 +30,7 @@ type Runner struct {
 	clientBuilder lotus.ClientBuilder
 	store         *store.Store
 	signaler      *signaler.Signaler
+	config        Config
 
 	lock        sync.Mutex
 	index       ask.Index
@@ -46,8 +43,15 @@ type Runner struct {
 	closed   bool
 }
 
+type Config struct {
+	QueryAskTimeout time.Duration
+	MaxParallel     int
+	RefreshInterval time.Duration
+	RefreshOnStart  bool
+}
+
 // New returns a new ask index runner. It load a persisted ask index, and immediately starts building a new fresh one.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder) (*Runner, error) {
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, config Config) (*Runner, error) {
 	if err := metrics.Init(); err != nil {
 		return nil, fmt.Errorf("initing metrics: %s", err)
 	}
@@ -62,6 +66,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder) (*Runner,
 		signaler:      signaler.New(),
 		clientBuilder: clientBuilder,
 		store:         store,
+		config:        config,
 
 		index:       idx,
 		orderedAsks: generateOrderedAsks(idx.Storage),
@@ -70,7 +75,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder) (*Runner,
 		cancel:   cancel,
 		finished: make(chan struct{}),
 	}
-	go ai.start()
+	go ai.start(config.RefreshOnStart)
 	return ai, nil
 }
 
@@ -142,17 +147,19 @@ func (ai *Runner) Close() error {
 }
 
 // start is a long running job that updates asks information in the market.
-func (ai *Runner) start() {
+func (ai *Runner) start(refreshOnStart bool) {
 	defer close(ai.finished)
-	if err := ai.update(); err != nil {
-		log.Errorf("updating miners asks: %s", err)
+	if refreshOnStart {
+		if err := ai.update(); err != nil {
+			log.Errorf("updating miners asks: %s", err)
+		}
 	}
 	for {
 		select {
 		case <-ai.ctx.Done():
 			log.Info("graceful shutdown of ask index background job")
 			return
-		case <-time.After(qaRefreshInterval):
+		case <-time.After(ai.config.RefreshInterval):
 			if err := ai.update(); err != nil {
 				log.Errorf("updating miners asks: %s", err)
 			}
@@ -172,7 +179,7 @@ func (ai *Runner) update() error {
 	}
 	defer cls()
 	startTime := time.Now()
-	newIndex, cache, err := generateIndex(ai.ctx, client)
+	newIndex, cache, err := generateIndex(ai.ctx, client, ai.config.MaxParallel, ai.config.QueryAskTimeout)
 	if err != nil {
 		return fmt.Errorf("generating index: %s", err)
 	}
@@ -197,13 +204,13 @@ func (ai *Runner) update() error {
 }
 
 // generateIndex returns a fresh index.
-func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Index, []*ask.StorageAsk, error) {
+func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct, maxParallel int, askTimeout time.Duration) (ask.Index, []*ask.StorageAsk, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		return ask.Index{}, nil, err
 	}
 
-	rateLim := make(chan struct{}, qaRatelim)
+	rateLim := make(chan struct{}, maxParallel)
 	var lock sync.Mutex
 	newAsks := make(map[string]ask.StorageAsk)
 	for i, addr := range addrs {
@@ -213,7 +220,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 		rateLim <- struct{}{}
 		go func(addr address.Address) {
 			defer func() { <-rateLim }()
-			sask, ok, err := getMinerStorageAsk(ctx, api, addr)
+			sask, ok, err := getMinerStorageAsk(ctx, api, addr, askTimeout)
 			if err != nil {
 				log.Errorf("getting miner storage ask: %s", err)
 				return
@@ -230,7 +237,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 			log.Debugf("progress %d/%d", i, len(addrs))
 		}
 	}
-	for i := 0; i < qaRatelim; i++ {
+	for i := 0; i < maxParallel; i++ {
 		rateLim <- struct{}{}
 	}
 
@@ -254,8 +261,8 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Inde
 
 // getMinerStorage ask returns the result of querying the miner for its current Storage Ask.
 // If the miner has zero power, it won't be queried returning false.
-func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr address.Address) (ask.StorageAsk, bool, error) {
-	ctx, cancel := context.WithTimeout(ctx, qaTimeout)
+func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr address.Address, askTimeout time.Duration) (ask.StorageAsk, bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, askTimeout)
 	defer cancel()
 	power, err := api.StateMinerPower(ctx, addr, types.EmptyTSK)
 	if err != nil {
