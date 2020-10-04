@@ -43,6 +43,7 @@ type Runner struct {
 	closed   bool
 }
 
+// Config contains parameters for index updating.
 type Config struct {
 	Disable         bool
 	QueryAskTimeout time.Duration
