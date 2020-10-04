@@ -335,7 +335,7 @@ func setupFlags() error {
 	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'")
 	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel")
-	pflag.String("dealwatchpollduration", "000", "Poll interval in seconds used by Deals Module watch to detect state changes")
+	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes")
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
 	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask")
 	pflag.String("askindexrefreshinterval", "60", "Refresh interval measured in minutes")
