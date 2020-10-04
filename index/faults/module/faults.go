@@ -54,7 +54,7 @@ type Index struct {
 
 // New returns a new FaultIndex. It will load previous state from ds, and
 // immediately start getting in sync with new on-chain.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder) (*Index, error) {
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, disable bool) (*Index, error) {
 	cs := chainsync.New(clientBuilder)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {
@@ -77,7 +77,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder) (*Index, 
 		return nil, err
 	}
 
-	go s.start()
+	go s.start(disable)
 
 	return s, nil
 }
@@ -121,7 +121,7 @@ func (s *Index) Close() error {
 }
 
 // start is a long running job that keeps the index up to date with chain updates.
-func (s *Index) start() {
+func (s *Index) start(disabled bool) {
 	defer close(s.finished)
 	for {
 		select {
@@ -129,6 +129,10 @@ func (s *Index) start() {
 			log.Info("graceful shutdown of background faults updater")
 			return
 		case <-time.After(updateInterval):
+			if disabled {
+				log.Infof("skipping updating since it's disabled")
+				continue
+			}
 			if err := s.updateIndex(); err != nil {
 				log.Errorf("updating faults history: %s", err)
 				continue

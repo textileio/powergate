@@ -130,6 +130,8 @@ type Config struct {
 	AskindexMaxParallel     int
 	AskIndexRefreshInterval time.Duration
 	AskIndexRefreshOnStart  bool
+
+	DisableIndices bool
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -195,6 +197,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
 	}
 	askConf := ask.Config{
+		Disable:         conf.DisableIndices,
 		QueryAskTimeout: conf.AskIndexQueryAskTimeout,
 		MaxParallel:     conf.AskindexMaxParallel,
 		RefreshInterval: conf.AskIndexRefreshInterval,
@@ -204,11 +207,11 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm)
+	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm, conf.DisableIndices)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
-	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), clientBuilder)
+	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), clientBuilder, conf.DisableIndices)
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
 	}

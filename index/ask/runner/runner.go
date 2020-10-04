@@ -44,6 +44,7 @@ type Runner struct {
 }
 
 type Config struct {
+	Disable         bool
 	QueryAskTimeout time.Duration
 	MaxParallel     int
 	RefreshInterval time.Duration
@@ -75,7 +76,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, config Co
 		cancel:   cancel,
 		finished: make(chan struct{}),
 	}
-	go ai.start(config.RefreshOnStart)
+	go ai.start(config.RefreshOnStart, config.Disable)
 	return ai, nil
 }
 
@@ -147,7 +148,7 @@ func (ai *Runner) Close() error {
 }
 
 // start is a long running job that updates asks information in the market.
-func (ai *Runner) start(refreshOnStart bool) {
+func (ai *Runner) start(refreshOnStart bool, disable bool) {
 	defer close(ai.finished)
 	if refreshOnStart {
 		if err := ai.update(); err != nil {
@@ -160,6 +161,10 @@ func (ai *Runner) start(refreshOnStart bool) {
 			log.Info("graceful shutdown of ask index background job")
 			return
 		case <-time.After(ai.config.RefreshInterval):
+			if disable {
+				log.Infof("skipping update since disabled")
+				continue
+			}
 			if err := ai.update(); err != nil {
 				log.Errorf("updating miners asks: %s", err)
 			}

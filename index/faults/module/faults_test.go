@@ -23,7 +23,7 @@ func TestFreshIndex(t *testing.T) {
 	client, _, _ := tests.CreateLocalDevnet(t, 1)
 	time.Sleep(time.Millisecond * 500) // Allow the network to some tipsets
 
-	sh, err := New(tests.NewTxMapDatastore(), client)
+	sh, err := New(tests.NewTxMapDatastore(), client, false)
 	require.NoError(t, err)
 
 	// Wait for some rounds of faults updating

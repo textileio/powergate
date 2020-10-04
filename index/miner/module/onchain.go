@@ -129,7 +129,7 @@ func fullRefresh(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex 
 	if err != nil {
 		return err
 	}
-	fmt.Printf("state list miners call took: %v", time.Since(start).Milliseconds())
+	log.Infof("state list miners call took: %v", time.Since(start).Seconds())
 	if err := updateForAddrs(ctx, api, chainIndex, addrs); err != nil {
 		return fmt.Errorf("updating for addresses: %s", err)
 	}
