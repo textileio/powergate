@@ -97,29 +97,41 @@ type Server struct {
 
 // Config specifies server settings.
 type Config struct {
-	WalletInitialFunds     big.Int
-	IpfsAPIAddr            ma.Multiaddr
-	LotusAddress           ma.Multiaddr
-	LotusAuthToken         string
-	LotusMasterAddr        string
-	AutocreateMasterAddr   bool
+	RepoPath        string
+	MaxMindDBFolder string
+	Devnet          bool
+	IpfsAPIAddr     ma.Multiaddr
+
+	LotusAddress    ma.Multiaddr
+	LotusAuthToken  string
+	LotusMasterAddr string
+
+	GrpcHostNetwork     string
+	GrpcHostAddress     ma.Multiaddr
+	GrpcServerOpts      []grpc.ServerOption
+	GrpcWebProxyAddress string
+
+	GatewayBasePath string
+	GatewayHostAddr string
+
+	MongoURI string
+	MongoDB  string
+
 	FFSUseMasterAddr       bool
-	Devnet                 bool
-	GatewayBasePath        string
-	GrpcHostNetwork        string
-	GrpcHostAddress        ma.Multiaddr
-	GrpcServerOpts         []grpc.ServerOption
-	GrpcWebProxyAddress    string
-	RepoPath               string
-	GatewayHostAddr        string
-	MaxMindDBFolder        string
-	MongoURI               string
-	MongoDB                string
+	FFSDealFinalityTimeout time.Duration
+	SchedMaxParallel       int
 	MinerSelector          string
 	MinerSelectorParams    string
-	SchedMaxParallel       int
 	DealWatchPollDuration  time.Duration
-	FFSDealFinalityTimeout time.Duration
+	AutocreateMasterAddr   bool
+	WalletInitialFunds     big.Int
+
+	AskIndexQueryAskTimeout time.Duration
+	AskindexMaxParallel     int
+	AskIndexRefreshInterval time.Duration
+	AskIndexRefreshOnStart  bool
+
+	DisableIndices bool
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -184,15 +196,22 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
 	}
-	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder)
+	askConf := ask.Config{
+		Disable:         conf.DisableIndices,
+		QueryAskTimeout: conf.AskIndexQueryAskTimeout,
+		MaxParallel:     conf.AskindexMaxParallel,
+		RefreshInterval: conf.AskIndexRefreshInterval,
+		RefreshOnStart:  conf.AskIndexRefreshOnStart,
+	}
+	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder, askConf)
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm)
+	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm, conf.DisableIndices)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
-	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), clientBuilder)
+	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), clientBuilder, conf.DisableIndices)
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
 	}

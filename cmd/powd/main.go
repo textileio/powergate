@@ -126,31 +126,48 @@ func configFromFlags() (server.Config, error) {
 	ffsSchedMaxParallel := config.GetInt("ffsschedmaxparallel")
 	dealWatchPollDuration := time.Second * time.Duration(config.GetInt("dealwatchpollduration"))
 	ffsDealWatchFinalityTimeout := time.Minute * time.Duration(config.GetInt("ffsdealfinalitytimeout"))
+	askIndexQueryAskTimeout := time.Second * time.Duration(config.GetInt("askindexqueryasktimeout"))
+	askIndexRefreshInterval := time.Minute * time.Duration(config.GetInt("askindexrefreshinterval"))
+	askIndexRefreshOnStart := config.GetBool("askindexrefreshonstart")
+	askIndexMaxParallel := config.GetInt("askindexmaxparallel")
+	disableIndices := config.GetBool("disableindices")
 
 	return server.Config{
-		WalletInitialFunds:   walletInitialFunds,
-		IpfsAPIAddr:          ipfsAPIAddr,
-		LotusAddress:         maddr,
-		LotusAuthToken:       lotusToken,
-		LotusMasterAddr:      lotusMasterAddr,
-		AutocreateMasterAddr: autocreateMasterAddr,
-		FFSUseMasterAddr:     ffsUseMasterAddr,
-		Devnet:               devnet,
+		WalletInitialFunds: walletInitialFunds,
+		IpfsAPIAddr:        ipfsAPIAddr,
+		Devnet:             devnet,
+		RepoPath:           repoPath,
+		MaxMindDBFolder:    maxminddbfolder,
+
+		LotusAddress:   maddr,
+		LotusAuthToken: lotusToken,
+
 		// ToDo: Support secure gRPC connection
-		GrpcHostNetwork:        "tcp",
-		GrpcHostAddress:        grpcHostMaddr,
-		GrpcWebProxyAddress:    grpcWebProxyAddr,
-		RepoPath:               repoPath,
-		GatewayHostAddr:        gatewayHostAddr,
-		GatewayBasePath:        gatewayBasePath,
-		MaxMindDBFolder:        maxminddbfolder,
-		MongoURI:               mongoURI,
-		MongoDB:                mongoDB,
+		GrpcHostNetwork:     "tcp",
+		GrpcHostAddress:     grpcHostMaddr,
+		GrpcWebProxyAddress: grpcWebProxyAddr,
+
+		GatewayHostAddr: gatewayHostAddr,
+		GatewayBasePath: gatewayBasePath,
+
+		MongoURI: mongoURI,
+		MongoDB:  mongoDB,
+
+		FFSUseMasterAddr:       ffsUseMasterAddr,
+		LotusMasterAddr:        lotusMasterAddr,
+		AutocreateMasterAddr:   autocreateMasterAddr,
 		MinerSelector:          minerSelector,
 		MinerSelectorParams:    minerSelectorParams,
 		SchedMaxParallel:       ffsSchedMaxParallel,
 		DealWatchPollDuration:  dealWatchPollDuration,
 		FFSDealFinalityTimeout: ffsDealWatchFinalityTimeout,
+
+		AskIndexQueryAskTimeout: askIndexQueryAskTimeout,
+		AskIndexRefreshInterval: askIndexRefreshInterval,
+		AskIndexRefreshOnStart:  askIndexRefreshOnStart,
+		AskindexMaxParallel:     askIndexMaxParallel,
+
+		DisableIndices: disableIndices,
 	}, nil
 }
 
@@ -318,8 +335,14 @@ func setupFlags() error {
 	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'")
 	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel")
-	pflag.String("dealwatchpollduration", "300", "Poll interval in seconds used by Deals Module watch to detect state changes")
-	pflag.String("ffsdealfinalitytimeout", "1440", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
+	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes")
+	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
+	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask")
+	pflag.String("askindexrefreshinterval", "60", "Refresh interval measured in minutes")
+	pflag.String("askindexrefreshonstart", "false", "If true it will refresh the index on start")
+	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index")
+	pflag.String("disableindices", "false", "Disable all indices updates, useful to help Lotus syncing process")
+
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")

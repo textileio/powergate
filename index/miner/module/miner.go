@@ -62,7 +62,7 @@ type Index struct {
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver) (*Index, error) {
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, disable bool) (*Index, error) {
 	cs := chainsync.New(clientBuilder)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {
@@ -88,7 +88,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost
 	if err := mi.loadFromDS(); err != nil {
 		return nil, err
 	}
-	go mi.start()
+	go mi.start(disable)
 	go mi.metaWorker()
 	return mi, nil
 }
@@ -155,11 +155,13 @@ func (mi *Index) Close() error {
 // a new potential tipset is notified by the full node. And a metadata updater
 // which do best-efforts to gather/update off-chain information about known
 // miners.
-func (mi *Index) start() {
+func (mi *Index) start(disabled bool) {
 	defer func() { mi.finished <- struct{}{} }()
 
-	if err := mi.updateOnChainIndex(); err != nil {
-		log.Errorf("initial updating miner index: %s", err)
+	if !disabled {
+		if err := mi.updateOnChainIndex(); err != nil {
+			log.Errorf("initial updating miner index: %s", err)
+		}
 	}
 	mi.chMeta <- struct{}{}
 	for {
@@ -168,12 +170,20 @@ func (mi *Index) start() {
 			log.Info("graceful shutdown of background miner index")
 			return
 		case <-mi.metaTicker.C:
+			if disabled {
+				log.Infof("skipping meta index update since it's disabled")
+				continue
+			}
 			select {
 			case mi.chMeta <- struct{}{}:
 			default:
 				log.Info("skipping meta index update since it's busy")
 			}
 		case <-mi.minerTicker.C:
+			if disabled {
+				log.Infof("skipping miner index update since it's disabled")
+				continue
+			}
 			if err := mi.updateOnChainIndex(); err != nil {
 				log.Errorf("updating miner index: %s", err)
 				continue

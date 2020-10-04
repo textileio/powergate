@@ -27,7 +27,7 @@ func TestFullRefresh(t *testing.T) {
 	client, _, miners := tests.CreateLocalDevnet(t, 1)
 	time.Sleep(time.Second * 15) // Allow the network to some tipsets
 
-	mi, err := New(tests.NewTxMapDatastore(), client, &p2pHostMock{}, &lrMock{})
+	mi, err := New(tests.NewTxMapDatastore(), client, &p2pHostMock{}, &lrMock{}, false)
 	require.NoError(t, err)
 
 	l := mi.Listen()

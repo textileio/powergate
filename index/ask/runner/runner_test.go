@@ -5,6 +5,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
@@ -28,7 +29,7 @@ func TestFreshBuild(t *testing.T) {
 	require.NoError(t, err)
 	defer cls()
 
-	index, _, err := generateIndex(ctx, c)
+	index, _, err := generateIndex(ctx, c, 1, time.Second*5)
 	require.NoError(t, err)
 
 	// We should have storage info about every miner in devnet
