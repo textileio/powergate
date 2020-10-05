@@ -22,9 +22,7 @@ const (
 
 var (
 	log           = logger.Logger("wallet")
-	networkFaucet = map[string]string{
-		"nerpanet": "https://faucet.nerpa.interplanetary.dev",
-	}
+	networkFaucet = map[string]string{}
 )
 
 // Module exposes the filecoin wallet api.
