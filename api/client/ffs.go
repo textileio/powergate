@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	cid "github.com/ipfs/go-cid"
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
@@ -791,10 +792,70 @@ func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.Storag
 		if err != nil {
 			return nil, err
 		}
+
+		var status storagemarket.StorageDealStatus
+		switch rpcRecord.DealInfo.Status {
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_ACCEPT_WAIT:
+			status = storagemarket.StorageDealAcceptWait
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_ACTIVE:
+			status = storagemarket.StorageDealActive
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_CHECK_FOR_ACCEPTANCE:
+			status = storagemarket.StorageDealCheckForAcceptance
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_CLIENT_FUNDING:
+			status = storagemarket.StorageDealClientFunding
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_ENSURE_CLIENT_FUNDS:
+			status = storagemarket.StorageDealEnsureClientFunds
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_ENSURE_PROVIDER_FUNDS:
+			status = storagemarket.StorageDealEnsureProviderFunds
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_ERROR:
+			status = storagemarket.StorageDealError
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_EXPIRED:
+			status = storagemarket.StorageDealExpired
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_FAILING:
+			status = storagemarket.StorageDealFailing
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_FINALIZING:
+			status = storagemarket.StorageDealFinalizing
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_FUNDS_ENSURED:
+			status = storagemarket.StorageDealFundsEnsured
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_ACCEPTED:
+			status = storagemarket.StorageDealProposalAccepted
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_NOT_FOUND:
+			status = storagemarket.StorageDealProposalNotFound
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_REJECTED:
+			status = storagemarket.StorageDealProposalRejected
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PROVIDER_FUNDING:
+			status = storagemarket.StorageDealProviderFunding
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PUBLISH:
+			status = storagemarket.StorageDealPublish
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_PUBLISHING:
+			status = storagemarket.StorageDealPublishing
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_REJECTING:
+			status = storagemarket.StorageDealRejecting
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_SEALING:
+			status = storagemarket.StorageDealSealing
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_SLASHED:
+			status = storagemarket.StorageDealSlashed
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_STAGED:
+			status = storagemarket.StorageDealStaged
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_START_DATA_TRANSFER:
+			status = storagemarket.StorageDealStartDataTransfer
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_TRANSFERRING:
+			status = storagemarket.StorageDealTransferring
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_UNKNOWN:
+			status = storagemarket.StorageDealUnknown
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_VALIDATING:
+			status = storagemarket.StorageDealValidating
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_VERIFYING_DATA:
+			status = storagemarket.StorageDealVerifyData
+		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_WAITING_FOR_DATA:
+			status = storagemarket.StorageDealWaitingForData
+		default:
+			return nil, fmt.Errorf("unkown deal state: %v", rpcRecord.DealInfo.Status.String())
+		}
+
 		record.DealInfo = deals.StorageDealInfo{
 			ProposalCid:     proposalCid,
-			StateID:         rpcRecord.DealInfo.StateId,
-			StateName:       rpcRecord.DealInfo.StateName,
+			Status:          status,
 			Miner:           rpcRecord.DealInfo.Miner,
 			PieceCID:        pieceCid,
 			Size:            rpcRecord.DealInfo.Size,

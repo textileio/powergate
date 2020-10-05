@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/big"
 
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/deals"
@@ -819,6 +820,63 @@ func buildListDealRecordsOptions(conf *ListDealRecordsConfig) []deals.ListDealRe
 func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*StorageDealRecord {
 	ret := make([]*StorageDealRecord, len(records))
 	for i, r := range records {
+		var status StorageDealStatus
+		switch r.DealInfo.Status {
+		case storagemarket.StorageDealAcceptWait:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_ACCEPT_WAIT
+		case storagemarket.StorageDealActive:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_ACTIVE
+		case storagemarket.StorageDealCheckForAcceptance:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_CHECK_FOR_ACCEPTANCE
+		case storagemarket.StorageDealClientFunding:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_CLIENT_FUNDING
+		case storagemarket.StorageDealEnsureClientFunds:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_ENSURE_CLIENT_FUNDS
+		case storagemarket.StorageDealEnsureProviderFunds:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_ENSURE_PROVIDER_FUNDS
+		case storagemarket.StorageDealError:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_ERROR
+		case storagemarket.StorageDealExpired:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_EXPIRED
+		case storagemarket.StorageDealFailing:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_FAILING
+		case storagemarket.StorageDealFinalizing:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_FINALIZING
+		case storagemarket.StorageDealFundsEnsured:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_FUNDS_ENSURED
+		case storagemarket.StorageDealProposalAccepted:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_ACCEPTED
+		case storagemarket.StorageDealProposalNotFound:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_NOT_FOUND
+		case storagemarket.StorageDealProposalRejected:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_PROPOSAL_REJECTED
+		case storagemarket.StorageDealProviderFunding:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_PROVIDER_FUNDING
+		case storagemarket.StorageDealPublish:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_PUBLISH
+		case storagemarket.StorageDealPublishing:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_PUBLISHING
+		case storagemarket.StorageDealRejecting:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_REJECTING
+		case storagemarket.StorageDealSealing:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_SEALING
+		case storagemarket.StorageDealSlashed:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_SLASHED
+		case storagemarket.StorageDealStaged:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_STAGED
+		case storagemarket.StorageDealStartDataTransfer:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_START_DATA_TRANSFER
+		case storagemarket.StorageDealTransferring:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_TRANSFERRING
+		case storagemarket.StorageDealUnknown:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_UNKNOWN
+		case storagemarket.StorageDealValidating:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_VALIDATING
+		case storagemarket.StorageDealVerifyData:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_VERIFYING_DATA
+		case storagemarket.StorageDealWaitingForData:
+			status = StorageDealStatus_STORAGE_DEAL_STATUS_WAITING_FOR_DATA
+		}
 		ret[i] = &StorageDealRecord{
 			RootCid: util.CidToString(r.RootCid),
 			Addr:    r.Addr,
@@ -826,8 +884,7 @@ func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*StorageDealRe
 			Pending: r.Pending,
 			DealInfo: &StorageDealInfo{
 				ProposalCid:     util.CidToString(r.DealInfo.ProposalCid),
-				StateId:         r.DealInfo.StateID,
-				StateName:       r.DealInfo.StateName,
+				Status:          status,
 				Miner:           r.DealInfo.Miner,
 				PieceCid:        util.CidToString(r.DealInfo.PieceCID),
 				Size:            r.DealInfo.Size,

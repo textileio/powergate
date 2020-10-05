@@ -290,7 +290,7 @@ Loop:
 				break Loop
 			}
 			last = di
-			switch di.StateID {
+			switch di.Status {
 			case storagemarket.StorageDealActive:
 				activeProposal := ffs.FilStorage{
 					ProposalCid:     di.ProposalCid,
@@ -304,15 +304,15 @@ Loop:
 				fc.l.Log(ctx, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
 				return activeProposal, nil
 			case storagemarket.StorageDealError, storagemarket.StorageDealFailing:
-				log.Errorf("deal %d failed with state %s: %s", di.DealID, storagemarket.DealStates[di.StateID], di.Message)
+				log.Errorf("deal %d failed with state %s: %s", di.DealID, storagemarket.DealStates[di.Status], di.Message)
 				fc.l.Log(ctx, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
 
 				return ffs.FilStorage{}, ffs.DealError{ProposalCid: di.ProposalCid, Miner: di.Miner, Message: di.Message}
 			default:
 				if di.DealID != 0 {
-					fc.l.Log(ctx, "Deal %d with miner %s changed state to %s", di.DealID, di.Miner, storagemarket.DealStates[di.StateID])
+					fc.l.Log(ctx, "Deal %d with miner %s changed state to %s", di.DealID, di.Miner, storagemarket.DealStates[di.Status])
 				} else {
-					fc.l.Log(ctx, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.StateID])
+					fc.l.Log(ctx, "Deal with miner %s changed state to %s", di.Miner, storagemarket.DealStates[di.Status])
 				}
 			}
 		}

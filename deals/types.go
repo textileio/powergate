@@ -1,6 +1,7 @@
 package deals
 
 import (
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-cid"
 )
 
@@ -23,8 +24,7 @@ type StoreResult struct {
 // StorageDealInfo contains information about a proposed storage deal.
 type StorageDealInfo struct {
 	ProposalCid cid.Cid
-	StateID     uint64
-	StateName   string
+	Status      storagemarket.StorageDealStatus
 	Miner       string
 
 	PieceCID cid.Cid

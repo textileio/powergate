@@ -570,7 +570,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				}
 				return
 			}
-			if info.StateID == storagemarket.StorageDealActive {
+			if info.Status == storagemarket.StorageDealActive {
 				record := deals.StorageDealRecord{
 					RootCid:  dr.RootCid,
 					Addr:     dr.Addr,
@@ -583,10 +583,10 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 					log.Errorf("storing proposal cid %s deal record: %v", util.CidToString(info.ProposalCid), err)
 				}
 				return
-			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||
-				info.StateID == storagemarket.StorageDealProposalRejected ||
-				info.StateID == storagemarket.StorageDealFailing {
-				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.StateID])
+			} else if info.Status == storagemarket.StorageDealProposalNotFound ||
+				info.Status == storagemarket.StorageDealProposalRejected ||
+				info.Status == storagemarket.StorageDealFailing {
+				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.Status])
 				if err := m.store.deletePendingDeal(info.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
 				}
@@ -642,8 +642,7 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 func fromLotusDealInfo(ctx context.Context, client *apistruct.FullNodeStruct, dinfo *api.DealInfo) (deals.StorageDealInfo, error) {
 	di := deals.StorageDealInfo{
 		ProposalCid:   dinfo.ProposalCid,
-		StateID:       dinfo.State,
-		StateName:     storagemarket.DealStates[dinfo.State],
+		Status:        dinfo.State,
 		Miner:         dinfo.Provider.String(),
 		PieceCID:      dinfo.PieceCID,
 		Size:          dinfo.Size,

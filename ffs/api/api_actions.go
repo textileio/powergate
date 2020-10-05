@@ -128,6 +128,25 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	return r, nil
 }
 
+// func (i *API) Ahhhh(c cid.Cid) error {
+// 	var currentStoredState *ffs.CidInfo
+// 	inf, err := i.sched.GetCidInfo(c)
+// 	if err == scheduler.ErrNotFound {
+// 		currentStoredState = nil
+// 	} else if err != nil {
+// 		return fmt.Errorf("getting cid current stored state: %s", err)
+// 	} else {
+// 		currentStoredState = &inf
+// 	}
+
+// 	lastPushedStorageConfig, err := i.is.getStorageConfig(c)
+// 	if err != nil {
+// 		return fmt.Errorf("getting last pushed storage config: %s", err)
+// 	}
+
+// 	return nil
+// }
+
 // Show returns the information about a stored Cid. If no information is available,
 // since the Cid was never stored, it returns ErrNotFound.
 func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
