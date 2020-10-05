@@ -201,7 +201,7 @@ func NewServer(conf Config) (*Server, error) {
 		QueryAskTimeout: conf.AskIndexQueryAskTimeout,
 		MaxParallel:     conf.AskindexMaxParallel,
 		RefreshInterval: conf.AskIndexRefreshInterval,
-		RefreshOnStart:  conf.AskIndexRefreshOnStart,
+		RefreshOnStart:  conf.Devnet || conf.AskIndexRefreshOnStart,
 	}
 	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder, askConf)
 	if err != nil {
