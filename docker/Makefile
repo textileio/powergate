@@ -16,7 +16,7 @@ localnet:
 
 
 up: down
-	LOTUS_IMAGE_TAG=v0.8.0 \
+	LOTUS_IMAGE_TAG=v0.8.1 \
 	docker-compose \
 		-p testnet \
 		-f docker-compose.yaml \
@@ -26,7 +26,7 @@ up: down
 .PHONY: up
 
 down:
-	LOTUS_IMAGE_TAG=v0.8.0 \
+	LOTUS_IMAGE_TAG=v0.8.1 \
 	docker-compose \
 		-p testnet \
 		-f docker-compose.yaml \
@@ -35,22 +35,3 @@ down:
 		down
 .PHONY: down
 
-nerpa-up: nerpa-down
-	LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-8.28.0 \
-	docker-compose \
-		-p nerpa \
-		-f docker-compose.yaml \
-		-f ipfs-image.yaml \
-		-f powergate-build-context.yaml \
-		up --build 
-.PHONY: nerpa-up
-
-nerpa-down:
-	LOTUS_IMAGE_TAG=nerpa-ntwk-nerpa-8.28.0 \
-	docker-compose \
-		-p nerpa \
-		-f docker-compose.yaml \
-		-f ipfs-image.yaml \
-		-f powergate-build-context.yaml \
-		down
-.PHONY: nerpa-down
