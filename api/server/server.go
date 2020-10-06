@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/ipfs/go-datastore"
 	badger "github.com/ipfs/go-ds-badger2"
@@ -141,7 +142,6 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	var err error
-	var masterAddr address.Address
 	clientBuilder, err := lotus.NewBuilder(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client builder: %s", err)
@@ -153,16 +153,9 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
 
-	if conf.Devnet {
-		// Wait for the devnet to bootstrap completely and generate at least 1 block.
-		time.Sleep(time.Second * 6)
-		if masterAddr, err = c.WalletDefaultAddress(context.Background()); err != nil {
-			return nil, fmt.Errorf("getting default wallet addr as masteraddr: %s", err)
-		}
-	} else {
-		if masterAddr, err = address.NewFromString(conf.LotusMasterAddr); err != nil {
-			return nil, fmt.Errorf("parsing masteraddr: %s", err)
-		}
+	masterAddr, err := evaluateMasterAddr(conf, c)
+	if err != nil {
+		return nil, fmt.Errorf("evaluating ffs master addr: %s", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -585,4 +578,22 @@ func getMinerSelector(conf Config, rm *reputation.Module, ai *ask.Runner, cb lot
 	}
 
 	return ms, nil
+}
+
+func evaluateMasterAddr(conf Config, c *apistruct.FullNodeStruct) (address.Address, error) {
+	var res address.Address
+	if conf.Devnet {
+		// Wait for the devnet to bootstrap completely and generate at least 1 block.
+		time.Sleep(time.Second * 6)
+		res, err := c.WalletDefaultAddress(context.Background())
+		if err != nil {
+			return address.Address{}, fmt.Errorf("getting default wallet addr as masteraddr: %s", err)
+		}
+		return res, nil
+	}
+	res, err := address.NewFromString(conf.LotusMasterAddr)
+	if err != nil {
+		return address.Address{}, fmt.Errorf("parsing masteraddr: %s", err)
+	}
+	return res, nil
 }
