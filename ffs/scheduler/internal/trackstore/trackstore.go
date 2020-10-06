@@ -3,6 +3,7 @@ package trackstore
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/ipfs/go-cid"
@@ -107,6 +108,9 @@ func (s *Store) Remove(c cid.Cid) error {
 	if err := s.ds.Delete(datastore.NewKey(c.String())); err != nil {
 		return fmt.Errorf("deleting a tracked storage config: %s", err)
 	}
+	delete(s.renewables, c)
+	delete(s.repairables, c)
+
 	return nil
 }
 
@@ -152,7 +156,8 @@ func (s *Store) loadCaches() error {
 		if err := json.Unmarshal(v.Value, &tsc); err != nil {
 			return fmt.Errorf("unmarshaling storageconfig: %s", err)
 		}
-		c, err := cid.Decode(v.Key)
+		cidStr := strings.TrimPrefix(v.Key, "/")
+		c, err := cid.Decode(cidStr)
 		if err != nil {
 			return fmt.Errorf("decoding cid: %s", err)
 		}
