@@ -100,14 +100,14 @@ type ColdStorage interface {
 	// final state. If the deal finishes successfully it returns a FilStorage
 	// result. If the deal finished with error, it returns a ffs.DealError
 	// error result, so it should be considered in error handling.
-	WaitForDeal(context.Context, cid.Cid, cid.Cid, time.Duration, chan<- FilStorage) (FilStorage, error)
+	WaitForDeal(context.Context, cid.Cid, cid.Cid, time.Duration, chan<- deals.StorageDealInfo) (FilStorage, error)
 
 	// Fetch fetches the cid data in the underlying storage.
 	Fetch(context.Context, cid.Cid, *cid.Cid, string, []string, uint64, string) (FetchInfo, error)
 
 	// EnsureRenewals executes renewal logic for a Cid under a particular
 	// configuration. It returns a slice of deal errors happened during execution.
-	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig, time.Duration, chan<- FilStorage) (FilInfo, []DealError, error)
+	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig, time.Duration, chan<- deals.StorageDealInfo) (FilInfo, []DealError, error)
 
 	// IsFIlDealActive returns true if the proposal Cid is active on chain;
 	// returns false otherwise.

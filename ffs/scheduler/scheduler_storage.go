@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
 	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
@@ -161,7 +162,7 @@ func (s *Scheduler) GetLogsByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry
 // executeStorage executes a Job. If an error is returned, it means that the Job
 // should be considered failed. If error is nil, it still can return []ffs.DealError
 // since some deals failing isn't necessarily a fatal Job config execution.
-func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, job ffs.StorageJob, dealUpdates chan<- ffs.FilStorage) (ffs.CidInfo, []ffs.DealError, error) {
+func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, job ffs.StorageJob, dealUpdates chan<- deals.StorageDealInfo) (ffs.CidInfo, []ffs.DealError, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)
@@ -316,7 +317,7 @@ func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, curr ffs.ColdInfo)
 	return curr, nil
 }
 
-func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, dealUpdates chan<- ffs.FilStorage) (ffs.ColdInfo, []ffs.DealError, error) {
+func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, dealUpdates chan<- deals.StorageDealInfo) (ffs.ColdInfo, []ffs.DealError, error) {
 	if !cfg.Enabled {
 		s.l.Log(ctx, "Cold-Storage was disabled, Filecoin deals will eventually expire.")
 		return curr.Cold, nil, nil
@@ -444,7 +445,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	}, allErrors, nil
 }
 
-func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposals []cid.Cid, dealUpdates chan<- ffs.FilStorage) ([]ffs.FilStorage, []ffs.DealError) {
+func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposals []cid.Cid, dealUpdates chan<- deals.StorageDealInfo) ([]ffs.FilStorage, []ffs.DealError) {
 	s.l.Log(ctx, "Watching deals unfold...")
 
 	var failedDeals []ffs.DealError

@@ -156,49 +156,22 @@ enum Direction {
    bool ascending = 5;
 }
 
-enum StorageDealStatus {
-   STORAGE_DEAL_STATUS_UNSPECIFIED = 0;
-   STORAGE_DEAL_STATUS_UNKNOWN = 1;
-   STORAGE_DEAL_STATUS_PROPOSAL_NOT_FOUND = 2;
-   STORAGE_DEAL_STATUS_PROPOSAL_REJECTED = 3;
-   STORAGE_DEAL_STATUS_PROPOSAL_ACCEPTED = 4;
-   STORAGE_DEAL_STATUS_STAGED = 5;
-   STORAGE_DEAL_STATUS_SEALING = 6;
-   STORAGE_DEAL_STATUS_FINALIZING = 7;
-   STORAGE_DEAL_STATUS_ACTIVE = 8;
-   STORAGE_DEAL_STATUS_EXPIRED = 9;
-   STORAGE_DEAL_STATUS_SLASHED = 10;
-   STORAGE_DEAL_STATUS_REJECTING = 11;
-   STORAGE_DEAL_STATUS_FAILING = 12;
-   STORAGE_DEAL_STATUS_FUNDS_ENSURED = 13;
-   STORAGE_DEAL_STATUS_CHECK_FOR_ACCEPTANCE = 14;
-   STORAGE_DEAL_STATUS_VALIDATING = 15;
-   STORAGE_DEAL_STATUS_ACCEPT_WAIT = 16;
-   STORAGE_DEAL_STATUS_START_DATA_TRANSFER = 17;
-   STORAGE_DEAL_STATUS_TRANSFERRING = 18;
-   STORAGE_DEAL_STATUS_WAITING_FOR_DATA = 19;
-   STORAGE_DEAL_STATUS_VERIFYING_DATA = 20;
-   STORAGE_DEAL_STATUS_ENSURE_PROVIDER_FUNDS = 21;
-   STORAGE_DEAL_STATUS_ENSURE_CLIENT_FUNDS = 22;
-   STORAGE_DEAL_STATUS_PROVIDER_FUNDING = 23;
-   STORAGE_DEAL_STATUS_CLIENT_FUNDING = 24;
-   STORAGE_DEAL_STATUS_PUBLISH = 25;
-   STORAGE_DEAL_STATUS_PUBLISHING = 26;
-   STORAGE_DEAL_STATUS_ERROR = 27;
-}
-
 message StorageDealInfo {
    string proposal_cid = 1;
-   StorageDealStatus status = 2;
-   string miner = 3;
-   string piece_cid = 4;
-   uint64 size = 5;
-   uint64 price_per_epoch = 6;
-   uint64 start_epoch = 7;
-   uint64 duration = 8;
-   uint64 deal_id = 9;
-   int64 activation_epoch = 10;
-   string msg = 11;
+   uint64 state_id = 2;
+   string state_name = 3;
+   string miner = 4;
+
+   string piece_cid = 5;
+   uint64 size = 6;
+
+   uint64 price_per_epoch = 7;
+   uint64 start_epoch = 8;
+   uint64 duration = 9;
+
+   uint64 deal_id = 10;
+   int64 activation_epoch = 11;
+   string msg = 12;
 }
 
 message StorageDealRecord {

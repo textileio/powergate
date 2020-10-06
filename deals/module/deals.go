@@ -327,27 +327,36 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 	}
 	ch := make(chan deals.StorageDealInfo)
 	go func() {
-		client, cls, err := m.clientBuilder()
-		defer func() {
-			close(ch)
-			cls()
-		}()
-		if err != nil {
-			log.Errorf("creating lotus client: %s", err)
-			return
-		}
+		defer close(ch)
+
 		currentState := make(map[cid.Cid]*api.DealInfo)
-		if err := notifyChanges(ctx, client, currentState, proposals, ch); err != nil {
-			log.Errorf("pushing new proposal states: %s", err)
+
+		makeClientAndNotify := func() error {
+			client, cls, err := m.clientBuilder()
+			if err != nil {
+				return fmt.Errorf("creating lotus client: %s", err)
+			}
+			if err := notifyChanges(ctx, client, currentState, proposals, ch); err != nil {
+				return fmt.Errorf("pushing new proposal states: %s", err)
+			}
+			cls()
+			return nil
+		}
+
+		// Notify once so that subscribers get a result quickly
+		if err := makeClientAndNotify(); err != nil {
+			log.Errorf("creating lotus client and notifying: %s", err)
 			return
 		}
+
+		// Then notify every m.pollDuration
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-time.After(m.pollDuration):
-				if err := notifyChanges(ctx, client, currentState, proposals, ch); err != nil {
-					log.Errorf("pushing new proposal states: %s", err)
+				if err := makeClientAndNotify(); err != nil {
+					log.Errorf("creating lotus client and notifying: %s", err)
 					return
 				}
 			}
@@ -577,7 +586,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				}
 				return
 			}
-			if info.Status == storagemarket.StorageDealActive {
+			if info.StateID == storagemarket.StorageDealActive {
 				record := deals.StorageDealRecord{
 					RootCid:  dr.RootCid,
 					Addr:     dr.Addr,
@@ -590,10 +599,10 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 					log.Errorf("storing proposal cid %s deal record: %v", util.CidToString(info.ProposalCid), err)
 				}
 				return
-			} else if info.Status == storagemarket.StorageDealProposalNotFound ||
-				info.Status == storagemarket.StorageDealProposalRejected ||
-				info.Status == storagemarket.StorageDealFailing {
-				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.Status])
+			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||
+				info.StateID == storagemarket.StorageDealProposalRejected ||
+				info.StateID == storagemarket.StorageDealFailing {
+				log.Infof("proposal cid %s failed with status %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.StateID])
 				if err := m.store.deletePendingDeal(info.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
 				}
@@ -649,7 +658,8 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 func fromLotusDealInfo(ctx context.Context, client *apistruct.FullNodeStruct, dinfo *api.DealInfo) (deals.StorageDealInfo, error) {
 	di := deals.StorageDealInfo{
 		ProposalCid:   dinfo.ProposalCid,
-		Status:        dinfo.State,
+		StateID:       dinfo.State,
+		StateName:     storagemarket.DealStates[dinfo.State],
 		Miner:         dinfo.Provider.String(),
 		PieceCID:      dinfo.PieceCID,
 		Size:          dinfo.Size,
