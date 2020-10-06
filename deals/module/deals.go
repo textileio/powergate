@@ -602,7 +602,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||
 				info.StateID == storagemarket.StorageDealProposalRejected ||
 				info.StateID == storagemarket.StorageDealFailing {
-				log.Infof("proposal cid %s failed with status %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.StateID])
+				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.StateID])
 				if err := m.store.deletePendingDeal(info.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
 				}

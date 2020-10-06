@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/util"
@@ -461,8 +460,6 @@ type FilInfo struct {
 type FilStorage struct {
 	// ProposalCid of the deal.
 	ProposalCid cid.Cid
-	// Status is the current status of the Filecoin storage deal
-	Status storagemarket.StorageDealStatus
 	// PieceCid is the piece Cid.
 	PieceCid cid.Cid
 	// Renewed indicates if this deal was

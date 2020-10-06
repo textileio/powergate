@@ -791,7 +791,6 @@ func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.Storag
 		if err != nil {
 			return nil, err
 		}
-
 		record.DealInfo = deals.StorageDealInfo{
 			ProposalCid:     proposalCid,
 			StateID:         rpcRecord.DealInfo.StateId,
