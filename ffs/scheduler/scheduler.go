@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
@@ -62,6 +63,8 @@ type Scheduler struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	finished chan struct{}
+
+	jobStatusCache map[ffs.APIID]map[cid.Cid]map[cid.Cid]ffs.FilStorage
 }
 
 // storageDaemon contains components used by
@@ -130,6 +133,8 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 
 		sr2RepFactor:        sr2rf,
 		dealFinalityTimeout: dealFinalityTimeout,
+
+		jobStatusCache: make(map[ffs.APIID]map[cid.Cid]map[cid.Cid]ffs.FilStorage),
 	}
 	go sch.run()
 	return sch, nil
@@ -422,7 +427,24 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
-	info, dealErrors, err := s.executeStorage(ctx, a, j)
+	dealUpdates := make(chan ffs.FilStorage)
+	go func() {
+		for update := range dealUpdates {
+			log.Infof("ZZZ -- API: %v, Miner: %v, Status: %v", a.APIID, update.Miner, storagemarket.DealStates[update.Status])
+			_, ok := s.jobStatusCache[j.APIID]
+			if !ok {
+				s.jobStatusCache[j.APIID] = map[cid.Cid]map[cid.Cid]ffs.FilStorage{}
+			}
+			_, ok = s.jobStatusCache[j.APIID][j.Cid]
+			if !ok {
+				s.jobStatusCache[j.APIID][j.Cid] = map[cid.Cid]ffs.FilStorage{}
+			}
+			s.jobStatusCache[j.APIID][j.Cid][update.ProposalCid] = update
+			log.Infof("\n%v", s.jobStatusCache)
+		}
+		log.Info("ZZZ -- Done receiving updates.")
+	}()
+	info, dealErrors, err := s.executeStorage(ctx, a, j, dealUpdates)
 	// Something bad-enough happened to make Job
 	// execution fail.
 	if err != nil {

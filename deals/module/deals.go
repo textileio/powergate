@@ -327,22 +327,29 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 	}
 	ch := make(chan deals.StorageDealInfo)
 	go func() {
-		defer close(ch)
+		client, cls, err := m.clientBuilder()
+		defer func() {
+			close(ch)
+			cls()
+		}()
+		if err != nil {
+			log.Errorf("creating lotus client: %s", err)
+			return
+		}
 		currentState := make(map[cid.Cid]*api.DealInfo)
+		if err := notifyChanges(ctx, client, currentState, proposals, ch); err != nil {
+			log.Errorf("pushing new proposal states: %s", err)
+			return
+		}
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-time.After(m.pollDuration):
-				api, cls, err := m.clientBuilder()
-				if err != nil {
-					log.Errorf("creating lotus client: %s", err)
-					continue
-				}
-				if err := notifyChanges(ctx, api, currentState, proposals, ch); err != nil {
+				if err := notifyChanges(ctx, client, currentState, proposals, ch); err != nil {
 					log.Errorf("pushing new proposal states: %s", err)
+					return
 				}
-				cls()
 			}
 		}
 	}()

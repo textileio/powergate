@@ -161,7 +161,7 @@ func (s *Scheduler) GetLogsByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry
 // executeStorage executes a Job. If an error is returned, it means that the Job
 // should be considered failed. If error is nil, it still can return []ffs.DealError
 // since some deals failing isn't necessarily a fatal Job config execution.
-func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, job ffs.StorageJob) (ffs.CidInfo, []ffs.DealError, error) {
+func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, job ffs.StorageJob, dealUpdates chan<- ffs.FilStorage) (ffs.CidInfo, []ffs.DealError, error) {
 	ci, err := s.getRefreshedInfo(ctx, a.Cid)
 	if err != nil {
 		return ffs.CidInfo{}, nil, fmt.Errorf("getting current cid info from store: %s", err)
@@ -182,7 +182,7 @@ func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, 
 	s.l.Log(ctx, "Hot-Storage execution ran successfully.")
 
 	s.l.Log(ctx, "Ensuring Cold-Storage satisfies the configuration...")
-	cold, errors, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold)
+	cold, errors, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold, dealUpdates)
 	if err != nil {
 		s.l.Log(ctx, "Cold-Storage execution failed.")
 		return ffs.CidInfo{}, errors, fmt.Errorf("executing cold-storage config: %s", err)
@@ -316,7 +316,7 @@ func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, curr ffs.ColdInfo)
 	return curr, nil
 }
 
-func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig) (ffs.ColdInfo, []ffs.DealError, error) {
+func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cfg ffs.ColdConfig, dealUpdates chan<- ffs.FilStorage) (ffs.ColdInfo, []ffs.DealError, error) {
 	if !cfg.Enabled {
 		s.l.Log(ctx, "Cold-Storage was disabled, Filecoin deals will eventually expire.")
 		return curr.Cold, nil, nil
@@ -332,7 +332,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	var allErrors []ffs.DealError
 	if len(sds) > 0 {
 		s.l.Log(ctx, "Resuming %d dettached executing deals...", len(sds))
-		okResumedDeals, failedResumedDeals := s.waitForDeals(ctx, curr.Cid, sds)
+		okResumedDeals, failedResumedDeals := s.waitForDeals(ctx, curr.Cid, sds, dealUpdates)
 		s.l.Log(ctx, "A total of %d resumed deals finished successfully", len(okResumedDeals))
 		allErrors = append(allErrors, failedResumedDeals...)
 		// Append the resumed and confirmed deals to the current active proposals
@@ -344,7 +344,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	if cfg.Filecoin.Renew.Enabled {
 		if curr.Hot.Enabled {
 			s.l.Log(ctx, "Checking deal renewals...")
-			newFilInfo, errors, err := s.cs.EnsureRenewals(ctx, curr.Cid, curr.Cold.Filecoin, cfg.Filecoin, s.dealFinalityTimeout)
+			newFilInfo, errors, err := s.cs.EnsureRenewals(ctx, curr.Cid, curr.Cold.Filecoin, cfg.Filecoin, s.dealFinalityTimeout, dealUpdates)
 			if err != nil {
 				s.l.Log(ctx, "Deal renewal process couldn't be executed: %s", err)
 			} else {
@@ -421,7 +421,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	}
 
 	// Wait for started deals.
-	okDeals, failedDeals := s.waitForDeals(ctx, curr.Cid, startedProposals)
+	okDeals, failedDeals := s.waitForDeals(ctx, curr.Cid, startedProposals, dealUpdates)
 	allErrors = append(allErrors, failedDeals...)
 	if err := s.sjs.RemoveStartedDeals(curr.Cid); err != nil {
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("removing temporal started deals storage: %s", err)
@@ -444,7 +444,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.CidInfo, cf
 	}, allErrors, nil
 }
 
-func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposals []cid.Cid) ([]ffs.FilStorage, []ffs.DealError) {
+func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposals []cid.Cid, dealUpdates chan<- ffs.FilStorage) ([]ffs.FilStorage, []ffs.DealError) {
 	s.l.Log(ctx, "Watching deals unfold...")
 
 	var failedDeals []ffs.DealError
@@ -457,7 +457,7 @@ func (s *Scheduler) waitForDeals(ctx context.Context, c cid.Cid, startedProposal
 		go func() {
 			defer wg.Done()
 
-			res, err := s.cs.WaitForDeal(ctx, c, pc, s.dealFinalityTimeout)
+			res, err := s.cs.WaitForDeal(ctx, c, pc, s.dealFinalityTimeout, dealUpdates)
 			var dealError ffs.DealError
 			if err != nil {
 				if !errors.As(err, &dealError) {
