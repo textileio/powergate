@@ -850,7 +850,7 @@ func fromRPCStorageDealRecords(records []*rpc.StorageDealRecord) ([]deals.Storag
 		case rpc.StorageDealStatus_STORAGE_DEAL_STATUS_WAITING_FOR_DATA:
 			status = storagemarket.StorageDealWaitingForData
 		default:
-			return nil, fmt.Errorf("unkown deal state: %v", rpcRecord.DealInfo.Status.String())
+			return nil, fmt.Errorf("unknown deal state: %v", rpcRecord.DealInfo.Status.String())
 		}
 
 		record.DealInfo = deals.StorageDealInfo{
