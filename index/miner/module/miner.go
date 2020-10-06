@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -201,19 +202,20 @@ func (mi *Index) loadFromDS() error {
 	}
 	buf, err := mi.ds.Get(dsKeyMetaIndex)
 	if err != nil && err != datastore.ErrNotFound {
-		return err
+		return fmt.Errorf("getting metadata key value: %s", err)
 	}
 	if err == nil {
 		var metaIndex miner.MetaIndex
 		if err := json.Unmarshal(buf, &metaIndex); err != nil {
-			return err
+			log.Warnf("wrong json?: %s", string(buf))
+			return fmt.Errorf("unmarshaling meta index: %s", err)
 		}
 		mi.index.Meta = metaIndex
 	}
 
 	var chainIndex miner.ChainIndex
 	if _, err := mi.store.GetLastCheckpoint(&chainIndex); err != nil {
-		return err
+		return fmt.Errorf("getting last checkpoint: %s", err)
 	}
 	mi.index.OnChain = chainIndex
 
