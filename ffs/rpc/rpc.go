@@ -864,6 +864,25 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*Retrieval
 }
 
 func toRPCJob(job ffs.StorageJob) (*Job, error) {
+	var dealInfo []*DealInfo
+	for _, item := range job.DealInfo {
+		info := &DealInfo{
+			ActivationEpoch: item.ActivationEpoch,
+			DealId:          item.DealID,
+			Duration:        item.Duration,
+			Message:         item.Message,
+			Miner:           item.Miner,
+			PieceCid:        item.PieceCID.String(),
+			PricePerEpoch:   item.PricePerEpoch,
+			ProposalCid:     item.ProposalCid.String(),
+			Size:            item.Size,
+			StartEpoch:      item.Size,
+			StateId:         item.StateID,
+			StateName:       item.StateName,
+		}
+		dealInfo = append(dealInfo, info)
+	}
+
 	var status JobStatus
 	switch job.Status {
 	case ffs.Unspecified:
@@ -889,5 +908,6 @@ func toRPCJob(job ffs.StorageJob) (*Job, error) {
 		ErrCause:   job.ErrCause,
 		DealErrors: toRPCDealErrors(job.DealErrors),
 		CreatedAt:  job.CreatedAt,
+		DealInfo:   dealInfo,
 	}, nil
 }

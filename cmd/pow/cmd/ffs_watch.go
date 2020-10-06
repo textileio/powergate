@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -95,10 +96,10 @@ func updateJobsOutput(writer io.Writer, state map[string]*client.JobEvent) {
 	}
 	sort.Strings(keys)
 
-	data := make([][]string, len(keys))
-	for i, k := range keys {
-		val := "awaiting state"
+	var data [][]string
+	for _, k := range keys {
 		if state[k] != nil {
+			var val string
 			if state[k].Job.Status == ffs.Failed {
 				val = fmt.Sprintf("%v %v", displayName(state[k].Job.Status), state[k].Job.ErrCause)
 			} else if state[k].Err != nil {
@@ -106,13 +107,15 @@ func updateJobsOutput(writer io.Writer, state map[string]*client.JobEvent) {
 			} else {
 				val = displayName(state[k].Job.Status)
 			}
-		}
-		data[i] = []string{
-			k,
-			val,
+			data = append(data, []string{k, val, "", "", ""})
+			for _, dealInfo := range state[k].Job.DealInfo {
+				data = append(data, []string{"", "", dealInfo.Miner, strconv.FormatUint(dealInfo.PricePerEpoch, 10), dealInfo.StateName})
+			}
+		} else {
+			data = append(data, []string{k, "awaiting state", "", "", ""})
 		}
 	}
-	RenderTable(writer, []string{"Job id", "Status"}, data)
+	RenderTable(writer, []string{"Job id", "Status", "Miner", "Price", "Deal Status"}, data)
 }
 
 func jobsComplete(state map[string]*client.JobEvent) bool {

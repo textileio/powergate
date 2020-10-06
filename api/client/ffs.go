@@ -337,42 +337,13 @@ func (f *FFS) WatchJobs(ctx context.Context, ch chan<- JobEvent, jids ...ffs.Job
 				break
 			}
 
-			c, err := util.CidFromString(reply.Job.Cid)
+			job, err := fromRPCJob(reply.Job)
 			if err != nil {
 				ch <- JobEvent{Err: err}
 				close(ch)
 				break
 			}
-			dealErrors, err := fromRPCDealErrors(reply.Job.DealErrors)
-			if err != nil {
-				ch <- JobEvent{Err: err}
-				close(ch)
-				break
-			}
-			var status ffs.JobStatus
-			switch reply.Job.Status {
-			case rpc.JobStatus_JOB_STATUS_QUEUED:
-				status = ffs.Queued
-			case rpc.JobStatus_JOB_STATUS_EXECUTING:
-				status = ffs.Executing
-			case rpc.JobStatus_JOB_STATUS_FAILED:
-				status = ffs.Failed
-			case rpc.JobStatus_JOB_STATUS_CANCELED:
-				status = ffs.Canceled
-			case rpc.JobStatus_JOB_STATUS_SUCCESS:
-				status = ffs.Success
-			default:
-				status = ffs.Unspecified
-			}
-			job := ffs.StorageJob{
-				ID:         ffs.JobID(reply.Job.Id),
-				APIID:      ffs.APIID(reply.Job.ApiId),
-				Cid:        c,
-				Status:     status,
-				ErrCause:   reply.Job.ErrCause,
-				DealErrors: dealErrors,
-				CreatedAt:  reply.Job.CreatedAt,
-			}
+
 			ch <- JobEvent{Job: job}
 		}
 	}()
@@ -843,10 +814,39 @@ func fromRPCJob(job *rpc.Job) (ffs.StorageJob, error) {
 	if err != nil {
 		return ffs.StorageJob{}, err
 	}
+
+	var dealInfos []deals.StorageDealInfo
+	for _, item := range job.DealInfo {
+		proposalCid, err := util.CidFromString(item.ProposalCid)
+		if err != nil {
+			return ffs.StorageJob{}, err
+		}
+		pieceCid, err := util.CidFromString(item.PieceCid)
+		if err != nil {
+			return ffs.StorageJob{}, err
+		}
+		dealInfo := deals.StorageDealInfo{
+			ActivationEpoch: item.ActivationEpoch,
+			DealID:          item.DealId,
+			Duration:        item.Duration,
+			Message:         item.Message,
+			Miner:           item.Miner,
+			PieceCID:        pieceCid,
+			PricePerEpoch:   item.PricePerEpoch,
+			ProposalCid:     proposalCid,
+			Size:            item.Size,
+			StartEpoch:      item.StartEpoch,
+			StateID:         item.StateId,
+			StateName:       item.StateName,
+		}
+		dealInfos = append(dealInfos, dealInfo)
+	}
+
 	dealErrors, err := fromRPCDealErrors(job.DealErrors)
 	if err != nil {
 		return ffs.StorageJob{}, err
 	}
+
 	var status ffs.JobStatus
 	switch job.Status {
 	case rpc.JobStatus_JOB_STATUS_UNSPECIFIED:
@@ -870,6 +870,7 @@ func fromRPCJob(job *rpc.Job) (ffs.StorageJob, error) {
 		Cid:        c,
 		Status:     status,
 		ErrCause:   job.ErrCause,
+		DealInfo:   dealInfos,
 		DealErrors: dealErrors,
 		CreatedAt:  job.CreatedAt,
 	}, nil

@@ -12,6 +12,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/util"
 )
@@ -35,6 +36,12 @@ type Store struct {
 
 	queued        []ffs.StorageJob
 	executingCids map[cid.Cid]ffs.JobID
+
+	jobStatusCache     map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo
+	jobStatusCacheLock sync.Mutex
+
+	// lastFinalJobs      map[ffs.APIID]map[cid.Cid]ffs.StorageJob
+	// lastSuccessfulJobs map[cid.Cid]ffs.StorageJob
 }
 
 // Stats return metrics about current job queues.
@@ -51,8 +58,9 @@ type watcher struct {
 // New returns a new JobStore backed by the Datastore.
 func New(ds datastore.Datastore) (*Store, error) {
 	s := &Store{
-		ds:            ds,
-		executingCids: make(map[cid.Cid]ffs.JobID),
+		ds:             ds,
+		executingCids:  make(map[cid.Cid]ffs.JobID),
+		jobStatusCache: make(map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo),
 	}
 	if err := s.loadExecutingJobs(); err != nil {
 		return nil, fmt.Errorf("reloading priori executing jobs: %s", err)
@@ -61,6 +69,48 @@ func New(ds datastore.Datastore) (*Store, error) {
 		return nil, fmt.Errorf("loading pending jobs: %s", err)
 	}
 	return s, nil
+}
+
+// MonitorJob returns a channel that can be passed into the deal monitoring process.
+func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
+	dealUpdates := make(chan deals.StorageDealInfo, 1000)
+	go func() {
+		for update := range dealUpdates {
+			s.jobStatusCacheLock.Lock()
+			log.Infof("ZZZ -- API: %v, Miner: %v, Status: %v", j.APIID, update.Miner, update.StateName)
+			_, ok := s.jobStatusCache[j.APIID]
+			if !ok {
+				s.jobStatusCache[j.APIID] = map[cid.Cid]map[cid.Cid]deals.StorageDealInfo{}
+			}
+			_, ok = s.jobStatusCache[j.APIID][j.Cid]
+			if !ok {
+				s.jobStatusCache[j.APIID][j.Cid] = map[cid.Cid]deals.StorageDealInfo{}
+			}
+			s.jobStatusCache[j.APIID][j.Cid][update.ProposalCid] = update
+			log.Infof("\n%v", s.jobStatusCache)
+			s.jobStatusCacheLock.Unlock()
+			job, err := s.Get(j.ID)
+			if err != nil {
+				log.Errorf("getting job: %v", err)
+			}
+			values := make([]deals.StorageDealInfo, 0, len(s.jobStatusCache[j.APIID][j.Cid]))
+			for _, v := range s.jobStatusCache[j.APIID][j.Cid] {
+				values = append(values, v)
+			}
+			sort.Slice(values, func(i, j int) bool {
+				return values[i].DealID < values[j].DealID
+			})
+			job.DealInfo = values
+			if err := s.put(job); err != nil {
+				log.Errorf("saving job with deal info updates: %v", err)
+			}
+		}
+		s.jobStatusCacheLock.Lock()
+		delete(s.jobStatusCache[j.APIID], j.Cid)
+		s.jobStatusCacheLock.Unlock()
+		log.Info("ZZZ -- Done receiving updates.")
+	}()
+	return dealUpdates
 }
 
 // Finalize sets a Job status to a final state, i.e. Success or Failed,
@@ -279,6 +329,50 @@ func (s *Store) GetStartedDeals(c cid.Cid) ([]cid.Cid, error) {
 		return nil, fmt.Errorf("unmarshaling started deals from datastore: %s", err)
 	}
 	return sd.ProposalCids, nil
+}
+
+// GetJobs returns a list of jobs for the specified API, optionally filtered to a set of cids.
+func (s *Store) GetJobs(iid ffs.APIID, cids ...cid.Cid) ([]ffs.StorageJob, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	// ToDo: Make this more efficient by using iid in the keys
+	q := query.Query{Prefix: dsBaseJob.String()}
+	res, err := s.ds.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("executing query: %s", err)
+	}
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing query result: %s", err)
+		}
+	}()
+
+	contains := func(cid cid.Cid) bool {
+		for _, c := range cids {
+			if cid == c {
+				return true
+			}
+		}
+		return false
+	}
+
+	var ret []ffs.StorageJob
+	for r := range res.Next() {
+		var sj ffs.StorageJob
+		if err := json.Unmarshal(r.Value, &sj); err != nil {
+			return nil, fmt.Errorf("unmarshaling query result: %s", err)
+		}
+
+		if sj.APIID == iid {
+			if len(cids) > 0 && contains(sj.Cid) {
+				ret = append(ret, sj)
+			} else {
+				ret = append(ret, sj)
+			}
+		}
+	}
+	return ret, nil
 }
 
 // Close closes the Store, unregistering any subscribed watchers.

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/util"
 )
 
@@ -109,6 +110,7 @@ type StorageJob struct {
 	Cid        cid.Cid
 	Status     JobStatus
 	ErrCause   string
+	DealInfo   []deals.StorageDealInfo
 	DealErrors []DealError
 	CreatedAt  int64
 }
