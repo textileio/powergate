@@ -64,7 +64,8 @@ type Scheduler struct {
 	cancel   context.CancelFunc
 	finished chan struct{}
 
-	jobStatusCache map[ffs.APIID]map[cid.Cid]map[cid.Cid]ffs.FilStorage
+	jobStatusCache     map[ffs.APIID]map[cid.Cid]map[cid.Cid]ffs.FilStorage
+	jobStatusCacheLock sync.Mutex
 }
 
 // storageDaemon contains components used by
@@ -430,6 +431,7 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	dealUpdates := make(chan ffs.FilStorage)
 	go func() {
 		for update := range dealUpdates {
+			s.jobStatusCacheLock.Lock()
 			log.Infof("ZZZ -- API: %v, Miner: %v, Status: %v", a.APIID, update.Miner, storagemarket.DealStates[update.Status])
 			_, ok := s.jobStatusCache[j.APIID]
 			if !ok {
@@ -441,7 +443,11 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 			}
 			s.jobStatusCache[j.APIID][j.Cid][update.ProposalCid] = update
 			log.Infof("\n%v", s.jobStatusCache)
+			s.jobStatusCacheLock.Unlock()
 		}
+		s.jobStatusCacheLock.Lock()
+		delete(s.jobStatusCache[j.APIID], j.Cid)
+		s.jobStatusCacheLock.Unlock()
 		log.Info("ZZZ -- Done receiving updates.")
 	}()
 	info, dealErrors, err := s.executeStorage(ctx, a, j, dealUpdates)
