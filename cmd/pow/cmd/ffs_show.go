@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/caarlos0/spin"
@@ -53,6 +54,6 @@ var ffsShowCmd = &cobra.Command{
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
 		checkErr(err)
 
-		Success("\n%s", string(json))
+		fmt.Println(string(json))
 	},
 }

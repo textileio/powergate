@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -43,6 +44,6 @@ var ffsStorageJobCmd = &cobra.Command{
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res.Job)
 		checkErr(err)
 
-		Success("\n%s", string(json))
+		fmt.Println(string(json))
 	},
 }
