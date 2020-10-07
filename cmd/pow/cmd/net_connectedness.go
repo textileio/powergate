@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
-	"github.com/caarlos0/spin"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -17,24 +16,17 @@ var netConnectednessCmd = &cobra.Command{
 	Use:   "connectedness [peerID]",
 	Short: "Check connectedness to a specified peer",
 	Long:  `Check connectedness to a specified peer`,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		if len(args) != 1 {
-			Fatal(errors.New("you must provide a peer id argument"))
-		}
-
-		peerID, err := peer.Decode(args[0])
+		res, err := fcClient.Net.Connectedness(ctx, args[0])
 		checkErr(err)
 
-		s := spin.New("%s Checking connectedness to peer...")
-		s.Start()
-		checkErr(err)
-		connectedness, err := fcClient.Net.Connectedness(ctx, peerID)
-		s.Stop()
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
 		checkErr(err)
 
-		Success("Connectedness: %v", connectedness.String())
+		fmt.Println(string(json))
 	},
 }

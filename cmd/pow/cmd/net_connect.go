@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/caarlos0/spin"
-	"github.com/libp2p/go-libp2p-core/peer"
-	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
+	"github.com/textileio/powergate/net/rpc"
 )
 
 func init() {
@@ -18,6 +16,7 @@ var netConnectCmd = &cobra.Command{
 	Use:   "connect [peerID] [optional address]",
 	Short: "Connect to a specified peer",
 	Long:  `Connect to a specified peer`,
+	Args:  cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
@@ -26,28 +25,17 @@ var netConnectCmd = &cobra.Command{
 			Fatal(errors.New("you must provide a peer id argument"))
 		}
 
-		peerID, err := peer.Decode(args[0])
-		checkErr(err)
-
-		var addrs []ma.Multiaddr
+		var addrs []string
 		if len(args) == 2 {
-			addr, err := ma.NewMultiaddr(args[1])
-			checkErr(err)
-			addrs = append(addrs, addr)
+			addrs = append(addrs, args[1])
 		}
 
-		addrInfo := peer.AddrInfo{
-			ID:    peerID,
+		addrInfo := &rpc.PeerAddrInfo{
+			Id:    args[0],
 			Addrs: addrs,
 		}
 
-		s := spin.New("%s Connecting to peer...")
-		s.Start()
+		err := fcClient.Net.ConnectPeer(ctx, addrInfo)
 		checkErr(err)
-		err = fcClient.Net.ConnectPeer(ctx, addrInfo)
-		s.Stop()
-		checkErr(err)
-
-		Success("Connected to %v", peerID.String())
 	},
 }
