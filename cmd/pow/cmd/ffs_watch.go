@@ -13,7 +13,6 @@ import (
 
 	"github.com/apoorvam/goterminal"
 	"github.com/kataras/tablewriter"
-	"github.com/landoop/tableprinter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
@@ -80,7 +79,6 @@ func watchJobIds(jobIds ...ffs.JobID) {
 			break
 		}
 		state[event.Job.ID.String()] = &event
-		writer.Clear()
 		updateJobsOutput(writer, state)
 		if jobsComplete(state) {
 			break
@@ -115,18 +113,13 @@ func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.JobEve
 		}
 	}
 
-	printer := tableprinter.New(writer)
+	table := tablewriter.NewWriter(writer)
+	table.SetHeader([]string{"Job id", "Status", "Miner", "Price", "Deal Status"})
+	table.SetBorder(false) // Set Border to false
+	table.AppendBulk(data) // Add Bulk Data
+	table.Render()
 
-	// Optionally, customize the table, import of the underline 'tablewriter' package is required for that.
-	printer.BorderTop, printer.BorderBottom, printer.BorderLeft, printer.BorderRight = true, true, true, true
-	printer.CenterSeparator = "│"
-	printer.ColumnSeparator = "│"
-	printer.RowSeparator = "─"
-	printer.HeaderBgColor = tablewriter.BgBlackColor
-	printer.HeaderFgColor = tablewriter.FgGreenColor
-
-	printer.Render([]string{"Job id", "Status", "Miner", "Price", "Deal Status"}, data, nil, false)
-
+	writer.Clear()
 	_ = writer.Print()
 }
 
