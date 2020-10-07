@@ -422,7 +422,9 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
-	info, dealErrors, err := s.executeStorage(ctx, a, j, s.sjs.MonitorJob(j))
+	dealUpdates := s.sjs.MonitorJob(j)
+	info, dealErrors, err := s.executeStorage(ctx, a, j, dealUpdates)
+	close(dealUpdates)
 	// Something bad-enough happened to make Job
 	// execution fail.
 	if err != nil {

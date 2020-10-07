@@ -37,8 +37,7 @@ type Store struct {
 	queued        []ffs.StorageJob
 	executingCids map[cid.Cid]ffs.JobID
 
-	jobStatusCache     map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo
-	jobStatusCacheLock sync.Mutex
+	jobStatusCache map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo
 
 	// lastFinalJobs      map[ffs.APIID]map[cid.Cid]ffs.StorageJob
 	// lastSuccessfulJobs map[cid.Cid]ffs.StorageJob
@@ -76,7 +75,7 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 	dealUpdates := make(chan deals.StorageDealInfo, 1000)
 	go func() {
 		for update := range dealUpdates {
-			s.jobStatusCacheLock.Lock()
+			s.lock.Lock()
 			log.Infof("ZZZ -- API: %v, Miner: %v, Status: %v", j.APIID, update.Miner, update.StateName)
 			_, ok := s.jobStatusCache[j.APIID]
 			if !ok {
@@ -88,8 +87,7 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 			}
 			s.jobStatusCache[j.APIID][j.Cid][update.ProposalCid] = update
 			log.Infof("\n%v", s.jobStatusCache)
-			s.jobStatusCacheLock.Unlock()
-			job, err := s.Get(j.ID)
+			job, err := s.get(j.ID)
 			if err != nil {
 				log.Errorf("getting job: %v", err)
 			}
@@ -98,16 +96,17 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 				values = append(values, v)
 			}
 			sort.Slice(values, func(i, j int) bool {
-				return values[i].DealID < values[j].DealID
+				return values[i].ProposalCid.String() < values[j].ProposalCid.String()
 			})
 			job.DealInfo = values
 			if err := s.put(job); err != nil {
 				log.Errorf("saving job with deal info updates: %v", err)
 			}
+			s.lock.Unlock()
 		}
-		s.jobStatusCacheLock.Lock()
+		s.lock.Lock()
 		delete(s.jobStatusCache[j.APIID], j.Cid)
-		s.jobStatusCacheLock.Unlock()
+		s.lock.Unlock()
 		log.Info("ZZZ -- Done receiving updates.")
 	}()
 	return dealUpdates

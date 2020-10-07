@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"context"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/ffs"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 func init() {
@@ -37,20 +37,9 @@ var ffsStorageJobCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		job, err := fcClient.FFS.GetStorageJob(authCtx(ctx), jid)
+		res, err := fcClient.FFS.GetStorageJob(authCtx(ctx), jid)
 		checkErr(err)
-		dealErrorStrings := make([]string, len(job.DealErrors))
-		for i, dealError := range job.DealErrors {
-			dealErrorStrings[i] = dealError.Error()
-		}
-		rows := [][]string{
-			{"API ID", job.APIID.String()},
-			{"Job ID", job.ID.String()},
-			{"CID", job.Cid.String()},
-			{"Status", ffs.JobStatusStr[job.Status]},
-			{"Error Cause", job.ErrCause},
-			{"Deal Errors", strings.Join(dealErrorStrings, "\n")},
-		}
-		RenderTable(os.Stdout, []string{}, rows)
+
+		Success("\n%s", prototext.Format(res.Job))
 	},
 }

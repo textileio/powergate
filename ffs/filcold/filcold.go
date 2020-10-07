@@ -119,12 +119,12 @@ func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bo
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
 // Deal status updates are sent on the provided dealUpdates channel.
-// That channel should not be closed by the caller and will be closed by EnsureRenewals upon completion.
+// The caller should close the channel once all calls to EnsureRenewals have returned.
 // It returns an updated FilInfo for the Cid. All prevous Proposals in the received FilInfo are kept, only flagging the ones
 // that got renewed with Renewed=true. New deals from renewals are added to the returned FilInfo.
 // Note: Most probably all this code should change in the future, when Filecoin supports telling the miner which deal is about to
 // expire that we're interested in extending the deal duration. Now we should make a new deal from scratch (send data, etc).
-func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig, dealFinalityTimeout time.Duration, dealUpdates chan<- deals.StorageDealInfo) (ffs.FilInfo, []ffs.DealError, error) {
+func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig, dealFinalityTimeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilInfo, []ffs.DealError, error) {
 	height, err := fc.chain.GetHeight(ctx)
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("get current filecoin height: %s", err)
@@ -205,7 +205,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return newInf, newDealErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration, dealUpdates chan<- deals.StorageDealInfo) (ffs.FilStorage, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilStorage, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: fcfg.ExcludedMiners,
 		CountryCodes:   fcfg.CountryCodes,
@@ -269,16 +269,13 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 
 // WaitForDeal blocks the provided Deal Proposal reaches a final state.
 // Deal status updates are sent on the provided dealUpdates channel.
-// That channel should not be closed by the caller and will be closed by WaitForDeal upon completion.
+// The caller should close the channel once all calls to WaitForDeal have returned.
 // If the deal finishes successfully it returns a FilStorage result.
 // If the deal finished with error, it returns a ffs.DealError error
 // result, so it should be considered in error handling.
-func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid, timeout time.Duration, dealUpdates chan<- deals.StorageDealInfo) (ffs.FilStorage, error) {
+func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid, timeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilStorage, error) {
 	ctx, cancel := context.WithCancel(ctx)
-	defer func() {
-		close(dealUpdates)
-		cancel()
-	}()
+	defer cancel()
 	chDi, err := fc.dm.Watch(ctx, []cid.Cid{proposal})
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("watching proposals in deals module: %s", err)

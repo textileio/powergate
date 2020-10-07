@@ -302,12 +302,8 @@ func (f *FFS) CancelJob(ctx context.Context, jid ffs.JobID) error {
 }
 
 // GetStorageJob returns the current state of the specified job.
-func (f *FFS) GetStorageJob(ctx context.Context, jid ffs.JobID) (ffs.StorageJob, error) {
-	res, err := f.client.GetStorageJob(ctx, &rpc.GetStorageJobRequest{Jid: jid.String()})
-	if err != nil {
-		return ffs.StorageJob{}, err
-	}
-	return fromRPCJob(res.Job)
+func (f *FFS) GetStorageJob(ctx context.Context, jid ffs.JobID) (*rpc.GetStorageJobResponse, error) {
+	return f.client.GetStorageJob(ctx, &rpc.GetStorageJobRequest{Jid: jid.String()})
 }
 
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
