@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/ffs"
-	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -40,6 +40,9 @@ var ffsStorageJobCmd = &cobra.Command{
 		res, err := fcClient.FFS.GetStorageJob(authCtx(ctx), jid)
 		checkErr(err)
 
-		Success("\n%s", prototext.Format(res.Job))
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res.Job)
+		checkErr(err)
+
+		Success("\n%s", string(json))
 	},
 }

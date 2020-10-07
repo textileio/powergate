@@ -8,7 +8,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -50,6 +50,9 @@ var ffsShowCmd = &cobra.Command{
 			checkErr(err)
 		}
 
-		Success("\n%v", prototext.Format(res))
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		checkErr(err)
+
+		Success("\n%s", string(json))
 	},
 }
