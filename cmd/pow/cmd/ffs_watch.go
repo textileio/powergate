@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/signal"
 	"sort"
@@ -12,7 +11,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/gosuri/uilive"
+	"github.com/apoorvam/goterminal"
+	"github.com/kataras/tablewriter"
+	"github.com/landoop/tableprinter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
@@ -54,8 +55,7 @@ func watchJobIds(jobIds ...ffs.JobID) {
 		state[jobID.String()] = nil
 	}
 
-	writer := uilive.New()
-	writer.Start()
+	writer := goterminal.New(os.Stdout)
 
 	updateJobsOutput(writer, state)
 
@@ -80,16 +80,15 @@ func watchJobIds(jobIds ...ffs.JobID) {
 			break
 		}
 		state[event.Job.ID.String()] = &event
+		writer.Clear()
 		updateJobsOutput(writer, state)
 		if jobsComplete(state) {
 			break
 		}
 	}
-
-	writer.Stop()
 }
 
-func updateJobsOutput(writer io.Writer, state map[string]*client.JobEvent) {
+func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.JobEvent) {
 	keys := make([]string, 0, len(state))
 	for k := range state {
 		keys = append(keys, k)
@@ -115,7 +114,20 @@ func updateJobsOutput(writer io.Writer, state map[string]*client.JobEvent) {
 			data = append(data, []string{k, "awaiting state", "", "", ""})
 		}
 	}
-	RenderTable(writer, []string{"Job id", "Status", "Miner", "Price", "Deal Status"}, data)
+
+	printer := tableprinter.New(writer)
+
+	// Optionally, customize the table, import of the underline 'tablewriter' package is required for that.
+	printer.BorderTop, printer.BorderBottom, printer.BorderLeft, printer.BorderRight = true, true, true, true
+	printer.CenterSeparator = "│"
+	printer.ColumnSeparator = "│"
+	printer.RowSeparator = "─"
+	printer.HeaderBgColor = tablewriter.BgBlackColor
+	printer.HeaderFgColor = tablewriter.FgGreenColor
+
+	printer.Render([]string{"Job id", "Status", "Miner", "Price", "Deal Status"}, data, nil, false)
+
+	_ = writer.Print()
 }
 
 func jobsComplete(state map[string]*client.JobEvent) bool {

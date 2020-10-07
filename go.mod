@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
+	github.com/apoorvam/goterminal v0.0.0-20180523175556-614d345c47e5
 	github.com/caarlos0/spin v1.1.0
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
@@ -22,7 +23,6 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.5.2
 	github.com/google/uuid v1.1.2
-	github.com/gosuri/uilive v0.0.4
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/improbable-eng/grpc-web v0.13.0
 	github.com/ipfs/go-cid v0.0.7
@@ -37,7 +37,9 @@ require (
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/ipld/go-car v0.1.1-0.20200923150018-8cdef32e2da4
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
+	github.com/kataras/tablewriter v0.0.0-20180708051242-e063d29b7c23
 	github.com/kyokomi/emoji v2.2.4+incompatible
+	github.com/landoop/tableprinter v0.0.0-20200805134727-ea32388e35c1
 	github.com/libp2p/go-libp2p v0.11.0
 	github.com/libp2p/go-libp2p-core v0.6.1
 	github.com/libp2p/go-libp2p-kad-dht v0.8.3
