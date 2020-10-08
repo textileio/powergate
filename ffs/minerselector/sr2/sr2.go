@@ -63,9 +63,9 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 	}
 	defer cls()
 
-	var selected []string
+	rand.Seed(time.Now().UnixNano())
+	var selected []ffs.MinerProposal
 	for _, bucket := range mb.Buckets {
-		rand.Seed(time.Now().UnixNano())
 		miners := bucket.MinerAddresses
 		rand.Shuffle(len(miners), func(i, j int) { miners[i], miners[j] = miners[j], miners[i] })
 
@@ -76,33 +76,30 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 		if bucket.Amount > len(miners) {
 			bucket.Amount = len(miners)
 		}
-		selected = append(selected, miners[:bucket.Amount]...)
+		var regionSelected int
+		for i := 0; regionSelected < bucket.Amount && i < len(miners); i++ {
+			sask, err := getMinerQueryAsk(c, miners[i])
+			if err != nil {
+				log.Warnf("sr2 miner query-ask errored: %s", miners[i], err)
+				continue
+			}
+			if f.MaxPrice > 0 && sask > f.MaxPrice {
+				log.Warnf("skipping miner %s with price % higher than max-price %s", miners[i], sask, f.MaxPrice)
+				continue
+			}
+			selected = append(selected, ffs.MinerProposal{
+				Addr:       miners[i],
+				EpochPrice: sask,
+			})
+			regionSelected++
+		}
 	}
 
 	if len(selected) == 0 {
 		return nil, fmt.Errorf("no SR2 miners are available")
 	}
 
-	res := make([]ffs.MinerProposal, 0, len(selected))
-	for _, miner := range selected {
-		sask, err := getMinerQueryAsk(c, miner)
-		if err != nil {
-			log.Warnf("miner %s not in ask cache and query-ask errored: %s", miner, err)
-			continue
-		}
-		if f.MaxPrice > 0 && sask > f.MaxPrice {
-			log.Warnf("skipping miner %s with price % higher than max-price %s", miner, sask, f.MaxPrice)
-			continue
-		}
-
-		log.Infof("miner %s not in ask-cache, direct query-ask price: %d", miner, sask)
-		res = append(res, ffs.MinerProposal{
-			Addr:       miner,
-			EpochPrice: sask,
-		})
-	}
-
-	return res, nil
+	return selected, nil
 }
 
 // GetReplicationFactor returns the current replication factor of the
