@@ -173,18 +173,18 @@ func (s *Scheduler) GetExecutingStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ff
 	return s.sjs.GetExecutingJobs(iid, cids...)
 }
 
-// GetLastFinalStorageJobs returns the most recent finished jobs for the specified instance id and cids.
+// GetLatestFinalStorageJobs returns the most recent finished jobs for the specified instance id and cids.
 // If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
 // If no cids are provided, data for all data cids is returned.
-func (s *Scheduler) GetLastFinalStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
-	return s.sjs.GetLastFinalJobs(iid, cids...)
+func (s *Scheduler) GetLatestFinalStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+	return s.sjs.GetLatestFinalJobs(iid, cids...)
 }
 
-// GetLastSuccessfulStorageJobs returns the most recent successful jobs for the specified instance id and cids.
+// GetLatestSuccessfulStorageJobs returns the most recent successful jobs for the specified instance id and cids.
 // If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
 // If no cids are provided, data for all data cids is returned.
-func (s *Scheduler) GetLastSuccessfulStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
-	return s.sjs.GetLastSuccessfulJobs(iid, cids...)
+func (s *Scheduler) GetLatestSuccessfulStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+	return s.sjs.GetLatestSuccessfulJobs(iid, cids...)
 }
 
 // executeStorage executes a Job. If an error is returned, it means that the Job

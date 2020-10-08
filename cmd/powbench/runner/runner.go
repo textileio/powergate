@@ -63,11 +63,11 @@ func sanityCheck(ctx context.Context, c *client.Client) error {
 }
 
 func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
-	_, tok, err := c.FFS.Create(ctx)
+	res, err := c.Admin.CreateInstance(ctx)
 	if err != nil {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
-	ctx = context.WithValue(ctx, client.AuthKey, tok)
+	ctx = context.WithValue(ctx, client.AuthKey, res.Token)
 	info, err := c.FFS.Info(ctx)
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)

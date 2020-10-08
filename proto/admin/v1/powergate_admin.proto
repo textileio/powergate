@@ -1,0 +1,66 @@
+syntax = "proto3";
+package proto.admin.v1;
+
+import "ffs/rpc/rpc.proto";
+
+option go_package = "github.com/textileio/powergate/proto/admin/v1";
+
+message CreateInstanceRequest {
+}
+
+message CreateInstanceResponse {
+   string id = 1;
+   string token = 2;
+}
+
+message ListInstancesRequest {
+}
+
+message ListInstancesResponse {
+   repeated string instances = 1;
+}
+
+message GetQueuedStorageJobsRequest {
+  string instance_id = 1;
+  repeated string cids = 2;
+}
+
+message GetQueuedStorageJobsResponse {
+  repeated ffs.rpc.Job storage_jobs = 1;
+}
+
+message GetExecutingStorageJobsRequest {
+  string instance_id = 1;
+  repeated string cids = 2;
+}
+
+message GetExecutingStorageJobsResponse {
+  repeated ffs.rpc.Job storage_jobs = 1;
+}
+
+message GetLatestFinalStorageJobsRequest {
+  string instance_id = 1;
+  repeated string cids = 2;
+}
+
+message GetLatestFinalStorageJobsResponse {
+  repeated ffs.rpc.Job storage_jobs = 1;
+}
+
+message GetLatestSuccessfulStorageJobsRequest {
+  string instance_id = 1;
+  repeated string cids = 2;
+}
+
+message GetLatestSuccessfulStorageJobsResponse {
+  repeated ffs.rpc.Job storage_jobs = 1;
+}
+
+service PowergateAdminService {
+  rpc CreateInstance(CreateInstanceRequest) returns (CreateInstanceResponse) {}
+  rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse) {}
+  rpc GetQueuedStorageJobs(GetQueuedStorageJobsRequest) returns (GetQueuedStorageJobsResponse) {}
+  rpc GetExecutingStorageJobs(GetExecutingStorageJobsRequest) returns (GetExecutingStorageJobsResponse) {}
+  rpc GetLatestFinalStorageJobs(GetLatestFinalStorageJobsRequest) returns (GetLatestFinalStorageJobsResponse) {}
+  rpc GetLatestSuccessfulStorageJobs(GetLatestSuccessfulStorageJobsRequest) returns (GetLatestSuccessfulStorageJobsResponse) {}
+}

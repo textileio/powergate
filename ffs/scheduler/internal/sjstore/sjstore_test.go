@@ -143,8 +143,8 @@ func TestQueryJobs(t *testing.T) {
 
 		queryJobs(t, j, s.GetQueuedJobs, 1)
 		queryJobs(t, j, s.GetExecutingJobs, 0)
-		queryJobs(t, j, s.GetLastFinalJobs, 0)
-		queryJobs(t, j, s.GetLastSuccessfulJobs, 0)
+		queryJobs(t, j, s.GetLatestFinalJobs, 0)
+		queryJobs(t, j, s.GetLatestSuccessfulJobs, 0)
 
 		dequeued, err := s.Dequeue()
 		require.NoError(t, err)
@@ -152,16 +152,16 @@ func TestQueryJobs(t *testing.T) {
 
 		queryJobs(t, j, s.GetQueuedJobs, 0)
 		queryJobs(t, j, s.GetExecutingJobs, 1)
-		queryJobs(t, j, s.GetLastFinalJobs, 0)
-		queryJobs(t, j, s.GetLastSuccessfulJobs, 0)
+		queryJobs(t, j, s.GetLatestFinalJobs, 0)
+		queryJobs(t, j, s.GetLatestSuccessfulJobs, 0)
 
 		err = s.Finalize(j.ID, ffs.Failed, errors.New("oops"), nil)
 		require.NoError(t, err)
 
 		queryJobs(t, j, s.GetQueuedJobs, 0)
 		queryJobs(t, j, s.GetExecutingJobs, 0)
-		queryJobs(t, j, s.GetLastFinalJobs, 1)
-		queryJobs(t, j, s.GetLastSuccessfulJobs, 0)
+		queryJobs(t, j, s.GetLatestFinalJobs, 1)
+		queryJobs(t, j, s.GetLatestSuccessfulJobs, 0)
 	})
 	t.Run("ExecutingAndSucceeded", func(t *testing.T) {
 		t.Parallel()
@@ -180,8 +180,8 @@ func TestQueryJobs(t *testing.T) {
 
 		queryJobs(t, j, s.GetQueuedJobs, 0)
 		queryJobs(t, j, s.GetExecutingJobs, 0)
-		queryJobs(t, j, s.GetLastFinalJobs, 1)
-		queryJobs(t, j, s.GetLastSuccessfulJobs, 1)
+		queryJobs(t, j, s.GetLatestFinalJobs, 1)
+		queryJobs(t, j, s.GetLatestSuccessfulJobs, 1)
 	})
 }
 

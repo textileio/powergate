@@ -81,14 +81,14 @@ func (i *API) GetExecutingStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
 	return i.sched.GetExecutingStorageJobs(i.cfg.ID, cids...)
 }
 
-// GetLastFinalStorageJobs returns the most recent finished jobs for the specified cids.
+// GetLatestFinalStorageJobs returns the most recent finished jobs for the specified cids.
 // If no cids are provided, data for all data cids is returned.
-func (i *API) GetLastFinalStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
-	return i.sched.GetLastFinalStorageJobs(i.cfg.ID, cids...)
+func (i *API) GetLatestFinalStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.GetLatestFinalStorageJobs(i.cfg.ID, cids...)
 }
 
-// GetLastSuccessfulStorageJobs returns the most recent successful jobs for the specified cids.
+// GetLatestSuccessfulStorageJobs returns the most recent successful jobs for the specified cids.
 // If no cids are provided, data for all data cids is returned.
-func (i *API) GetLastSuccessfulStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
-	return i.sched.GetLastSuccessfulStorageJobs(i.cfg.ID, cids...)
+func (i *API) GetLatestSuccessfulStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.GetLatestSuccessfulStorageJobs(i.cfg.ID, cids...)
 }

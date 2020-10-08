@@ -12,6 +12,7 @@ import (
 	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	netRpc "github.com/textileio/powergate/net/rpc"
+	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
@@ -28,6 +29,7 @@ type Client struct {
 	FFS             *FFS
 	Health          *Health
 	Net             *Net
+	Admin           *Admin
 	conn            *grpc.ClientConn
 	buildInfoClient buildinfoRpc.RPCServiceClient
 }
@@ -98,6 +100,7 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 		FFS:             &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
 		Health:          &Health{client: healthRpc.NewRPCServiceClient(conn)},
 		Net:             &Net{client: netRpc.NewRPCServiceClient(conn)},
+		Admin:           &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
 		conn:            conn,
 		buildInfoClient: buildinfoRpc.NewRPCServiceClient(conn),
 	}

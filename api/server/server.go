@@ -50,6 +50,7 @@ import (
 	pgnetlotus "github.com/textileio/powergate/net/lotus"
 	pgnetRpc "github.com/textileio/powergate/net/rpc"
 	paychLotus "github.com/textileio/powergate/paych/lotus"
+	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	"github.com/textileio/powergate/reputation"
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	txndstr "github.com/textileio/powergate/txndstransform"
@@ -395,6 +396,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	minerService := minerRpc.New(s.mi)
 	faultsService := faultsRpc.New(s.fi)
 	ffsService := ffsRpc.New(s.ffsManager, s.hs)
+	adminService := NewAdminService(s.ffsManager, s.sched)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {
@@ -414,6 +416,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		minerRpc.RegisterRPCServiceServer(server, minerService)
 		faultsRpc.RegisterRPCServiceServer(server, faultsService)
 		ffsRpc.RegisterRPCServiceServer(server, ffsService)
+		adminProto.RegisterPowergateAdminServiceServer(server, adminService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
 		}

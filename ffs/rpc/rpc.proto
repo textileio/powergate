@@ -217,21 +217,6 @@ message RetrievalDealRecord {
 // request/reply messages
 // -------------------------------------
 
-message CreateRequest {
-}
-
-message CreateResponse {
-   string id = 1;
-   string token = 2;
-}
-
-message ListAPIRequest {
-}
-
-message ListAPIResponse {
-   repeated string instances = 1;
-}
-
 message IDRequest {
 }
 
@@ -447,11 +432,6 @@ message ShowAllResponse {
 }
 
 service RPCService {
-   // Admin
-   rpc Create(CreateRequest) returns (CreateResponse) {}
-   rpc ListAPI(ListAPIRequest) returns (ListAPIResponse) {}
-
-   // Instance
    rpc ID(IDRequest) returns (IDResponse) {}
    rpc Addrs(AddrsRequest) returns (AddrsResponse) {}
    rpc DefaultStorageConfig(DefaultStorageConfigRequest) returns (DefaultStorageConfigResponse) {}

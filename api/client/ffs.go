@@ -144,28 +144,6 @@ func WithAscending(ascending bool) ListDealRecordsOption {
 	}
 }
 
-// Create creates a new FFS instance, returning the instance ID and auth token.
-func (f *FFS) Create(ctx context.Context) (string, string, error) {
-	r, err := f.client.Create(ctx, &rpc.CreateRequest{})
-	if err != nil {
-		return "", "", err
-	}
-	return r.Id, r.Token, nil
-}
-
-// ListAPI returns a list of existing API instances.
-func (f *FFS) ListAPI(ctx context.Context) ([]ffs.APIID, error) {
-	r, err := f.client.ListAPI(ctx, &rpc.ListAPIRequest{})
-	if err != nil {
-		return nil, err
-	}
-	res := make([]ffs.APIID, len(r.Instances))
-	for i, v := range r.Instances {
-		res[i] = ffs.APIID(v)
-	}
-	return res, nil
-}
-
 // ID returns the FFS instance ID.
 func (f *FFS) ID(ctx context.Context) (ffs.APIID, error) {
 	resp, err := f.client.ID(ctx, &rpc.IDRequest{})

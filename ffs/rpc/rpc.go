@@ -41,35 +41,6 @@ func New(m *manager.Manager, hot ffs.HotStorage) *RPC {
 	}
 }
 
-// Create creates a new Api.
-func (s *RPC) Create(ctx context.Context, req *CreateRequest) (*CreateResponse, error) {
-	id, token, err := s.m.Create(ctx)
-	if err != nil {
-		log.Errorf("creating instance: %s", err)
-		return nil, err
-	}
-	return &CreateResponse{
-		Id:    id.String(),
-		Token: token,
-	}, nil
-}
-
-// ListAPI returns a list of all existing API instances.
-func (s *RPC) ListAPI(ctx context.Context, req *ListAPIRequest) (*ListAPIResponse, error) {
-	lst, err := s.m.List()
-	if err != nil {
-		log.Errorf("listing instances: %s", err)
-		return nil, err
-	}
-	ins := make([]string, len(lst))
-	for i, v := range lst {
-		ins[i] = v.String()
-	}
-	return &ListAPIResponse{
-		Instances: ins,
-	}, nil
-}
-
 // ID returns the API instance id.
 func (s *RPC) ID(ctx context.Context, req *IDRequest) (*IDResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
@@ -861,6 +832,19 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*Retrieval
 		}
 	}
 	return ret
+}
+
+// ToProtoStorageJobs converts a slice of ffs.StorageJobs to proto Jobs.
+func ToProtoStorageJobs(jobs []ffs.StorageJob) ([]*Job, error) {
+	var res []*Job
+	for _, job := range jobs {
+		j, err := toRPCJob(job)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, j)
+	}
+	return res, nil
 }
 
 func toRPCJob(job ffs.StorageJob) (*Job, error) {
