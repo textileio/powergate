@@ -84,7 +84,7 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 				continue
 			}
 			if f.MaxPrice > 0 && sask > f.MaxPrice {
-				log.Warnf("skipping miner %s with price % higher than max-price %s", miners[i], sask, f.MaxPrice)
+				log.Warnf("skipping miner %s with price %d higher than max-price %d", miners[i], sask, f.MaxPrice)
 				continue
 			}
 			selected = append(selected, ffs.MinerProposal{
