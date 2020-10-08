@@ -30,11 +30,12 @@ var (
 // FilCold is a ColdStorage implementation which saves data in the Filecoin network.
 // It assumes the underlying Filecoin client has access to an IPFS node where data is stored.
 type FilCold struct {
-	ms    ffs.MinerSelector
-	dm    *dealsModule.Module
-	ipfs  iface.CoreAPI
-	chain FilChain
-	l     ffs.JobLogger
+	ms               ffs.MinerSelector
+	dm               *dealsModule.Module
+	ipfs             iface.CoreAPI
+	chain            FilChain
+	l                ffs.JobLogger
+	minimumPieceSize uint64
 }
 
 var _ ffs.ColdStorage = (*FilCold)(nil)
@@ -45,13 +46,14 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, minimumPieceSize uint64) *FilCold {
 	return &FilCold{
-		ms:    ms,
-		dm:    dm,
-		ipfs:  ipfs,
-		chain: chain,
-		l:     l,
+		ms:               ms,
+		dm:               dm,
+		ipfs:             ipfs,
+		chain:            chain,
+		l:                l,
+		minimumPieceSize: minimumPieceSize,
 	}
 }
 
@@ -97,6 +99,10 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
 	fc.l.Log(ctx, "Estimated piece size is %d bytes.", size)
+
+	if size < fc.minimumPieceSize {
+		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d", fc.minimumPieceSize)
+	}
 
 	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, size, cfgs, cfg)
 	if err != nil {
