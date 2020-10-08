@@ -254,7 +254,7 @@ func (s *Scheduler) printStats() {
 }
 
 func (s *Scheduler) resumeStartedDeals() error {
-	ejids := s.sjs.GetExecutingJobs()
+	ejids := s.sjs.GetExecutingJobIDs()
 	// No need for rate limit since the number of "Executing"
 	// jobs is always rate-limited on creation.
 	for _, jid := range ejids {
