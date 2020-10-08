@@ -569,7 +569,7 @@ func getMinerSelector(conf Config, rm *reputation.Module, ai *ask.Runner, cb lot
 	case "reputation":
 		ms = reptop.New(rm, ai)
 	case "sr2":
-		ms, err = sr2.New(conf.MinerSelectorParams, ai, cb)
+		ms, err = sr2.New(conf.MinerSelectorParams, cb)
 		if err != nil {
 			return nil, fmt.Errorf("creating sr2 miner selector: %s", err)
 		}

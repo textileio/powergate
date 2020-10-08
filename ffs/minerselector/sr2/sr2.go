@@ -14,7 +14,6 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
-	askindex "github.com/textileio/powergate/index/ask/runner"
 	"github.com/textileio/powergate/lotus"
 )
 
@@ -25,7 +24,6 @@ var (
 // MinerSelector chooses miner under SR2 strategy.
 type MinerSelector struct {
 	url string
-	ai  *askindex.Runner
 	cb  lotus.ClientBuilder
 }
 
@@ -41,8 +39,8 @@ type bucket struct {
 }
 
 // New returns a new SR2 miner selector.
-func New(url string, ai *askindex.Runner, cb lotus.ClientBuilder) (*MinerSelector, error) {
-	ms := &MinerSelector{url: url, ai: ai, cb: cb}
+func New(url string, cb lotus.ClientBuilder) (*MinerSelector, error) {
+	ms := &MinerSelector{url: url, cb: cb}
 
 	_, err := ms.getMiners()
 	if err != nil {
@@ -54,7 +52,6 @@ func New(url string, ai *askindex.Runner, cb lotus.ClientBuilder) (*MinerSelecto
 
 // GetMiners returns miners from SR2.
 func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
-	asks := ms.ai.Get()
 	mb, err := ms.getMiners()
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from url: %s", err)
