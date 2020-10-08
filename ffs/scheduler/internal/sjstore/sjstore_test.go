@@ -185,20 +185,20 @@ func TestQueryJobs(t *testing.T) {
 	})
 }
 
-func queryJobs(t *testing.T, j ffs.StorageJob, f func(opts ...func(*jobsQueryConfig)) []ffs.StorageJob, count int) {
-	jobs := f()
+func queryJobs(t *testing.T, j ffs.StorageJob, f func(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob, count int) {
+	jobs := f(ffs.EmptyInstanceID)
 	require.Len(t, jobs, count)
-	jobs = f(WithAPIID(j.APIID))
+	jobs = f(j.APIID)
 	require.Len(t, jobs, count)
-	jobs = f(WithCids(j.Cid))
+	jobs = f(ffs.EmptyInstanceID, j.Cid)
 	require.Len(t, jobs, count)
-	jobs = f(WithAPIID(j.APIID), WithCids(j.Cid))
+	jobs = f(j.APIID, j.Cid)
 	require.Len(t, jobs, count)
-	jobs = f(WithAPIID("nope"))
+	jobs = f(ffs.APIID("nope"))
 	require.Empty(t, jobs)
 	c, err := util.CidFromString("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs9y")
 	require.NoError(t, err)
-	jobs = f(WithCids(c))
+	jobs = f(ffs.EmptyInstanceID, c)
 	require.Empty(t, jobs)
 }
 

@@ -333,61 +333,32 @@ func (s *Store) GetStartedDeals(c cid.Cid) ([]cid.Cid, error) {
 	return sd.ProposalCids, nil
 }
 
-type jobsQueryConfig struct {
-	iid  ffs.APIID
-	cids []cid.Cid
-}
-
-// JobQueryOption sets config options for querying jobs.
-type JobQueryOption = func(*jobsQueryConfig)
-
-// WithAPIID filters results to a specific FFS instance id.
-// If no instance id is provided, data for all FFS instances will be returned.
-func WithAPIID(iid ffs.APIID) JobQueryOption {
-	return func(opts *jobsQueryConfig) {
-		opts.iid = iid
-	}
-}
-
-// WithCids filters the results to data for specific cids.
+// GetQueuedJobs returns queued jobs for the specified instance id and cids.
+// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
 // If no cids are provided, data for all data cids is returned.
-func WithCids(cids ...cid.Cid) JobQueryOption {
-	return func(opts *jobsQueryConfig) {
-		opts.cids = cids
-	}
-}
-
-// GetQueuedJobs returns queued jobs according to the query options.
-func (s *Store) GetQueuedJobs(opts ...JobQueryOption) []ffs.StorageJob {
+func (s *Store) GetQueuedJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	conf := &jobsQueryConfig{
-		iid: ffs.EmptyInstanceID,
-	}
-	for _, opt := range opts {
-		opt(conf)
-	}
-
 	var iids []ffs.APIID
-	if conf.iid == ffs.EmptyInstanceID {
+	if iid == ffs.EmptyInstanceID {
 		for iid := range s.queuedJobs {
 			iids = append(iids, iid)
 		}
 	} else {
-		iids = append(iids, conf.iid)
-		ensureJobsSliceMap(s.queuedJobs, conf.iid)
+		iids = append(iids, iid)
+		ensureJobsSliceMap(s.queuedJobs, iid)
 	}
 
 	var res []ffs.StorageJob
 	for _, iid := range iids {
-		cids := conf.cids
-		if len(cids) == 0 {
+		cidsList := cids
+		if len(cidsList) == 0 {
 			for cid := range s.queuedJobs[iid] {
-				cids = append(cids, cid)
+				cidsList = append(cidsList, cid)
 			}
 		}
-		for _, cid := range cids {
+		for _, cid := range cidsList {
 			jobs := s.queuedJobs[iid][cid]
 			for _, job := range jobs {
 				res = append(res, *job)
@@ -402,58 +373,57 @@ func (s *Store) GetQueuedJobs(opts ...JobQueryOption) []ffs.StorageJob {
 	return res
 }
 
-// GetExecutingJobs returns executing jobs according to the query options.
-func (s *Store) GetExecutingJobs(opts ...JobQueryOption) []ffs.StorageJob {
+// GetExecutingJobs returns executing jobs for the specified instance id and cids.
+// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
+// If no cids are provided, data for all data cids is returned.
+func (s *Store) GetExecutingJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	return getMappedJobs(s.executingJobs, opts)
+	return getMappedJobs(s.executingJobs, iid, cids...)
 }
 
-// GetLastFinalJobs returns executing jobs according to the query options.
-func (s *Store) GetLastFinalJobs(opts ...JobQueryOption) []ffs.StorageJob {
+// GetLastFinalJobs returns the most recent finished jobs for the specified instance id and cids.
+// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
+// If no cids are provided, data for all data cids is returned.
+func (s *Store) GetLastFinalJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	return getMappedJobs(s.lastFinalJobs, opts)
+	return getMappedJobs(s.lastFinalJobs, iid, cids...)
 }
 
-// GetLastSuccessfulJobs returns executing jobs according to the query options.
-func (s *Store) GetLastSuccessfulJobs(opts ...JobQueryOption) []ffs.StorageJob {
+// GetLastSuccessfulJobs returns the most recent successful jobs for the specified instance id and cids.
+// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
+// If no cids are provided, data for all data cids is returned.
+func (s *Store) GetLastSuccessfulJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	return getMappedJobs(s.lastSuccessfulJobs, opts)
+	return getMappedJobs(s.lastSuccessfulJobs, iid, cids...)
 }
 
-func getMappedJobs(m map[ffs.APIID]map[cid.Cid]*ffs.StorageJob, opts []JobQueryOption) []ffs.StorageJob {
-	conf := &jobsQueryConfig{
-		iid: ffs.EmptyInstanceID,
-	}
-	for _, opt := range opts {
-		opt(conf)
-	}
-
+func getMappedJobs(m map[ffs.APIID]map[cid.Cid]*ffs.StorageJob, iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	var iids []ffs.APIID
-	if conf.iid == ffs.EmptyInstanceID {
+	if iid == ffs.EmptyInstanceID {
 		for iid := range m {
 			iids = append(iids, iid)
 		}
 	} else {
-		iids = append(iids, conf.iid)
-		ensureJobsMap(m, conf.iid)
+		iids = append(iids, iid)
+		ensureJobsMap(m, iid)
 	}
 
 	var res []ffs.StorageJob
 	for _, iid := range iids {
-		cids := conf.cids
-		if len(cids) == 0 {
+		cidsList := cids
+		if len(cidsList) == 0 {
 			for cid := range m[iid] {
-				cids = append(cids, cid)
+				cidsList = append(cidsList, cid)
 			}
 		}
 
-		for _, cid := range cids {
+		for _, cid := range cidsList {
 			job := m[iid][cid]
 			if job != nil {
 				res = append(res, *job)

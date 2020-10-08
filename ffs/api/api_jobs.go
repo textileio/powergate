@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 // GetStorageJob returns the current state of the specified job.
 func (i *API) GetStorageJob(ctx context.Context, jid ffs.JobID) (ffs.StorageJob, error) {
-	job, err := i.sched.GetJob(jid)
+	job, err := i.sched.GetStorageJob(jid)
 	if err == scheduler.ErrNotFound {
 		return ffs.StorageJob{}, fmt.Errorf("job id %s not found", jid)
 	}
@@ -26,7 +27,7 @@ func (i *API) GetStorageJob(ctx context.Context, jid ffs.JobID) (ffs.StorageJob,
 func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.StorageJob, jids ...ffs.JobID) error {
 	var jobs []ffs.StorageJob
 	for _, jid := range jids {
-		j, err := i.sched.GetJob(jid)
+		j, err := i.sched.GetStorageJob(jid)
 		if err == scheduler.ErrNotFound {
 			return fmt.Errorf("job id %s not found", jid)
 		}
@@ -66,4 +67,28 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.StorageJob, jids ...ff
 	}
 
 	return nil
+}
+
+// GetQueuedStorageJobs returns queued jobs for the specified cids.
+// If no cids are provided, data for all data cids is returned.
+func (i *API) GetQueuedStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.GetQueuedStorageJobs(i.cfg.ID, cids...)
+}
+
+// GetExecutingStorageJobs returns executing jobs for the specified cids.
+// If no cids are provided, data for all data cids is returned.
+func (i *API) GetExecutingStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.GetExecutingStorageJobs(i.cfg.ID, cids...)
+}
+
+// GetLastFinalStorageJobs returns the most recent finished jobs for the specified cids.
+// If no cids are provided, data for all data cids is returned.
+func (i *API) GetLastFinalStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.GetLastFinalStorageJobs(i.cfg.ID, cids...)
+}
+
+// GetLastSuccessfulStorageJobs returns the most recent successful jobs for the specified cids.
+// If no cids are provided, data for all data cids is returned.
+func (i *API) GetLastSuccessfulStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.GetLastSuccessfulStorageJobs(i.cfg.ID, cids...)
 }
