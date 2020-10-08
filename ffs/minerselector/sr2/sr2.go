@@ -95,6 +95,10 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 				log.Warnf("miner %s not in ask cache and query-ask errored: %s", miner, err)
 				continue
 			}
+			if f.MaxPrice > 0 && sask > f.MaxPrice {
+				log.Warnf("skipping miner %s with price % higher than max-price %s", miner, sask, f.MaxPrice)
+				continue
+			}
 
 			log.Infof("miner %s not in ask-cache, direct query-ask price: %d", miner, sask)
 			sa.Price = sask
