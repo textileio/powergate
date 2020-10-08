@@ -88,24 +88,20 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 
 	res := make([]ffs.MinerProposal, 0, len(selected))
 	for _, miner := range selected {
-		sa, ok := asks.Storage[miner]
-		if !ok {
-			sask, err := getMinerQueryAsk(c, miner)
-			if err != nil {
-				log.Warnf("miner %s not in ask cache and query-ask errored: %s", miner, err)
-				continue
-			}
-			if f.MaxPrice > 0 && sask > f.MaxPrice {
-				log.Warnf("skipping miner %s with price % higher than max-price %s", miner, sask, f.MaxPrice)
-				continue
-			}
-
-			log.Infof("miner %s not in ask-cache, direct query-ask price: %d", miner, sask)
-			sa.Price = sask
+		sask, err := getMinerQueryAsk(c, miner)
+		if err != nil {
+			log.Warnf("miner %s not in ask cache and query-ask errored: %s", miner, err)
+			continue
 		}
+		if f.MaxPrice > 0 && sask > f.MaxPrice {
+			log.Warnf("skipping miner %s with price % higher than max-price %s", miner, sask, f.MaxPrice)
+			continue
+		}
+
+		log.Infof("miner %s not in ask-cache, direct query-ask price: %d", miner, sask)
 		res = append(res, ffs.MinerProposal{
 			Addr:       miner,
-			EpochPrice: sa.Price,
+			EpochPrice: sask,
 		})
 	}
 
