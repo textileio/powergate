@@ -143,7 +143,7 @@ func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (uint64, erro
 	if err != nil {
 		return 0, fmt.Errorf("miner address is invalid: %s", err)
 	}
-	ctx, cls := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cls := context.WithTimeout(context.Background(), time.Second*10)
 	defer cls()
 	mi, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
 	if err != nil {

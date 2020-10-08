@@ -33,7 +33,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-		excludedMiner := "t01000"
+		excludedMiner := "f01000"
 		config := fapi.DefaultStorageConfig().WithColdFilExcludedMiners([]string{excludedMiner})
 
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
@@ -56,7 +56,7 @@ func TestFilecoinTrustedMiner(t *testing.T) {
 
 		r := rand.New(rand.NewSource(22))
 		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-		trustedMiner := "t01001"
+		trustedMiner := "f01001"
 		config := fapi.DefaultStorageConfig().WithColdFilTrustedMiners([]string{trustedMiner})
 
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
@@ -80,7 +80,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 		client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 		addrs := make([]string, numMiners)
 		for i := 0; i < numMiners; i++ {
-			addrs[i] = fmt.Sprintf("t0%d", 1000+i)
+			addrs[i] = fmt.Sprintf("f0%d", 1000+i)
 		}
 		fixedMiners := make([]fixed.Miner, len(addrs))
 		for i, a := range addrs {
@@ -108,7 +108,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
 		p := cinfo.Cold.Filecoin.Proposals[0]
-		require.Equal(t, p.Miner, "t01001")
+		require.Equal(t, p.Miner, "f01001")
 	})
 }
 
@@ -118,7 +118,7 @@ func TestFilecoinMaxPriceFilter(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfs, ipfsMAddr := it.CreateIPFS(t)
 		client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, 1, ipfsMAddr, false)
-		miner := fixed.Miner{Addr: "t01000", EpochPrice: 500000000}
+		miner := fixed.Miner{Addr: "f01000", EpochPrice: 500000000}
 		ms := fixed.New([]fixed.Miner{miner})
 		ds := tests.NewTxMapDatastore()
 		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
@@ -145,6 +145,6 @@ func TestFilecoinMaxPriceFilter(t *testing.T) {
 		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
 		p := cinfo.Cold.Filecoin.Proposals[0]
-		require.Equal(t, p.Miner, "t01000")
+		require.Equal(t, p.Miner, "f01000")
 	})
 }
