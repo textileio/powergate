@@ -116,7 +116,7 @@ func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (add
 	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
-		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
+		addrs[i] = fmt.Sprintf("f0%d", 1000+i)
 	}
 
 	fixedMiners := make([]fixed.Miner, len(addrs))
