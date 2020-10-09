@@ -19,14 +19,15 @@ func init() {
 		ffsExecutingStorageJobsCmd,
 		ffsLatestFinalStorageJobsCmd,
 		ffsLatestSuccessfulStorageJobsCmd,
+		ffsStorageJobsSummaryCmd,
 	)
 }
 
 var ffsStorageJobsCmd = &cobra.Command{
 	Use:     "storage-jobs",
 	Aliases: []string{"storage-job"},
-	Short:   "Privdes commands to query for storage jobs in various states",
-	Long:    `Privdes commands to query for storage jobs in various statess`,
+	Short:   "Provides commands to query for storage jobs in various states",
+	Long:    `Provides commands to query for storage jobs in various statess`,
 }
 
 var ffsGetStorageJobCmd = &cobra.Command{
@@ -45,7 +46,7 @@ var ffsGetStorageJobCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.FFS.GetStorageJob(authCtx(ctx), jid)
+		res, err := fcClient.FFS.StorageJob(authCtx(ctx), jid)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res.Job)
@@ -73,7 +74,7 @@ var ffsQueuedStorageJobsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.FFS.GetQueuedStorageJobs(authCtx(ctx), cids...)
+		res, err := fcClient.FFS.QueuedStorageJobs(authCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
@@ -101,7 +102,7 @@ var ffsExecutingStorageJobsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.FFS.GetExecutingStorageJobs(authCtx(ctx), cids...)
+		res, err := fcClient.FFS.ExecutingStorageJobs(authCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
@@ -129,7 +130,7 @@ var ffsLatestFinalStorageJobsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.FFS.GetLatestFinalStorageJobs(authCtx(ctx), cids...)
+		res, err := fcClient.FFS.LatestFinalStorageJobs(authCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
@@ -157,7 +158,35 @@ var ffsLatestSuccessfulStorageJobsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.FFS.GetLatestSuccessfulStorageJobs(authCtx(ctx), cids...)
+		res, err := fcClient.FFS.LatestSuccessfulStorageJobs(authCtx(ctx), cids...)
+		checkErr(err)
+
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
+	},
+}
+
+var ffsStorageJobsSummaryCmd = &cobra.Command{
+	Use:   "summary [optional cid1,cid2,...]",
+	Short: "Give a summary of storage jobs in all states",
+	Long:  `Give a summary of storage jobs in all states`,
+	Args:  cobra.RangeArgs(0, 1),
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		checkErr(err)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		var cids []string
+		if len(args) > 0 {
+			cids = strings.Split(args[0], ",")
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		defer cancel()
+
+		res, err := fcClient.FFS.StorageJobsSummary(authCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)

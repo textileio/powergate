@@ -37,7 +37,7 @@ var ffsConfigGetCmd = &cobra.Command{
 
 		s := spin.New("%s Getting cid storgage config...")
 		s.Start()
-		resp, err := fcClient.FFS.GetStorageConfig(authCtx(ctx), c)
+		resp, err := fcClient.FFS.StorageConfig(authCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 

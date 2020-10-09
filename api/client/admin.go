@@ -21,38 +21,47 @@ func (a *Admin) ListInstances(ctx context.Context) (*proto.ListInstancesResponse
 	return a.client.ListInstances(ctx, &proto.ListInstancesRequest{})
 }
 
-// GetQueuedStorageJobs returns a list of queued storage jobs.
-func (a *Admin) GetQueuedStorageJobs(ctx context.Context, instanceID string, cids ...string) (*proto.GetQueuedStorageJobsResponse, error) {
-	req := &proto.GetQueuedStorageJobsRequest{
+// QueuedStorageJobs returns a list of queued storage jobs.
+func (a *Admin) QueuedStorageJobs(ctx context.Context, instanceID string, cids ...string) (*proto.QueuedStorageJobsResponse, error) {
+	req := &proto.QueuedStorageJobsRequest{
 		InstanceId: instanceID,
 		Cids:       cids,
 	}
-	return a.client.GetQueuedStorageJobs(ctx, req)
+	return a.client.QueuedStorageJobs(ctx, req)
 }
 
-// GetExecutingStorageJobs returns a list of executing storage jobs.
-func (a *Admin) GetExecutingStorageJobs(ctx context.Context, instanceID string, cids ...string) (*proto.GetExecutingStorageJobsResponse, error) {
-	req := &proto.GetExecutingStorageJobsRequest{
+// ExecutingStorageJobs returns a list of executing storage jobs.
+func (a *Admin) ExecutingStorageJobs(ctx context.Context, instanceID string, cids ...string) (*proto.ExecutingStorageJobsResponse, error) {
+	req := &proto.ExecutingStorageJobsRequest{
 		InstanceId: instanceID,
 		Cids:       cids,
 	}
-	return a.client.GetExecutingStorageJobs(ctx, req)
+	return a.client.ExecutingStorageJobs(ctx, req)
 }
 
-// GetLatestFinalStorageJobs returns a list of latest final storage jobs.
-func (a *Admin) GetLatestFinalStorageJobs(ctx context.Context, instanceID string, cids ...string) (*proto.GetLatestFinalStorageJobsResponse, error) {
-	req := &proto.GetLatestFinalStorageJobsRequest{
+// LatestFinalStorageJobs returns a list of latest final storage jobs.
+func (a *Admin) LatestFinalStorageJobs(ctx context.Context, instanceID string, cids ...string) (*proto.LatestFinalStorageJobsResponse, error) {
+	req := &proto.LatestFinalStorageJobsRequest{
 		InstanceId: instanceID,
 		Cids:       cids,
 	}
-	return a.client.GetLatestFinalStorageJobs(ctx, req)
+	return a.client.LatestFinalStorageJobs(ctx, req)
 }
 
-// GetLatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
-func (a *Admin) GetLatestSuccessfulStorageJobs(ctx context.Context, instanceID string, cids ...string) (*proto.GetLatestSuccessfulStorageJobsResponse, error) {
-	req := &proto.GetLatestSuccessfulStorageJobsRequest{
+// LatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
+func (a *Admin) LatestSuccessfulStorageJobs(ctx context.Context, instanceID string, cids ...string) (*proto.LatestSuccessfulStorageJobsResponse, error) {
+	req := &proto.LatestSuccessfulStorageJobsRequest{
 		InstanceId: instanceID,
 		Cids:       cids,
 	}
-	return a.client.GetLatestSuccessfulStorageJobs(ctx, req)
+	return a.client.LatestSuccessfulStorageJobs(ctx, req)
+}
+
+// StorageJobsSummary returns a summary of storage jobs.
+func (a *Admin) StorageJobsSummary(ctx context.Context, instanceID string, cids ...string) (*proto.StorageJobsSummaryResponse, error) {
+	req := &proto.StorageJobsSummaryRequest{
+		InstanceId: instanceID,
+		Cids:       cids,
+	}
+	return a.client.StorageJobsSummary(ctx, req)
 }

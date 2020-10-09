@@ -333,10 +333,10 @@ func (s *Store) GetStartedDeals(c cid.Cid) ([]cid.Cid, error) {
 	return sd.ProposalCids, nil
 }
 
-// GetQueuedJobs returns queued jobs for the specified instance id and cids.
+// QueuedJobs returns queued jobs for the specified instance id and cids.
 // If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
 // If no cids are provided, data for all data cids is returned.
-func (s *Store) GetQueuedJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+func (s *Store) QueuedJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -373,37 +373,37 @@ func (s *Store) GetQueuedJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	return res
 }
 
-// GetExecutingJobs returns executing jobs for the specified instance id and cids.
+// ExecutingJobs returns executing jobs for the specified instance id and cids.
 // If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
 // If no cids are provided, data for all data cids is returned.
-func (s *Store) GetExecutingJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+func (s *Store) ExecutingJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	return getMappedJobs(s.executingJobs, iid, cids...)
+	return mappedJobs(s.executingJobs, iid, cids...)
 }
 
-// GetLatestFinalJobs returns the most recent finished jobs for the specified instance id and cids.
+// LatestFinalJobs returns the most recent finished jobs for the specified instance id and cids.
 // If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
 // If no cids are provided, data for all data cids is returned.
-func (s *Store) GetLatestFinalJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+func (s *Store) LatestFinalJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	return getMappedJobs(s.lastFinalJobs, iid, cids...)
+	return mappedJobs(s.lastFinalJobs, iid, cids...)
 }
 
-// GetLatestSuccessfulJobs returns the most recent successful jobs for the specified instance id and cids.
+// LatestSuccessfulJobs returns the most recent successful jobs for the specified instance id and cids.
 // If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
 // If no cids are provided, data for all data cids is returned.
-func (s *Store) GetLatestSuccessfulJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+func (s *Store) LatestSuccessfulJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	return getMappedJobs(s.lastSuccessfulJobs, iid, cids...)
+	return mappedJobs(s.lastSuccessfulJobs, iid, cids...)
 }
 
-func getMappedJobs(m map[ffs.APIID]map[cid.Cid]*ffs.StorageJob, iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+func mappedJobs(m map[ffs.APIID]map[cid.Cid]*ffs.StorageJob, iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 	var iids []ffs.APIID
 	if iid == ffs.EmptyInstanceID {
 		for iid := range m {

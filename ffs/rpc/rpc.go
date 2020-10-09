@@ -136,8 +136,8 @@ func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrRespons
 	return &NewAddrResponse{Addr: addr}, nil
 }
 
-// GetStorageConfig returns the storage config for the provided cid.
-func (s *RPC) GetStorageConfig(ctx context.Context, req *GetStorageConfigRequest) (*GetStorageConfigResponse, error) {
+// StorageConfig returns the storage config for the provided cid.
+func (s *RPC) StorageConfig(ctx context.Context, req *StorageConfigRequest) (*StorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (s *RPC) GetStorageConfig(ctx context.Context, req *GetStorageConfigRequest
 	if err != nil {
 		return nil, err
 	}
-	return &GetStorageConfigResponse{
+	return &StorageConfigResponse{
 		Config: &StorageConfig{
 			Hot:        toRPCHotConfig(config.Hot),
 			Cold:       toRPCColdConfig(config.Cold),
@@ -253,8 +253,8 @@ func (s *RPC) CancelJob(ctx context.Context, req *CancelJobRequest) (*CancelJobR
 	return &CancelJobResponse{}, nil
 }
 
-// GetStorageJob calls API.GetStorageJob.
-func (s *RPC) GetStorageJob(ctx context.Context, req *GetStorageJobRequest) (*GetStorageJobResponse, error) {
+// StorageJob calls API.GetStorageJob.
+func (s *RPC) StorageJob(ctx context.Context, req *StorageJobRequest) (*StorageJobResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -268,13 +268,13 @@ func (s *RPC) GetStorageJob(ctx context.Context, req *GetStorageJobRequest) (*Ge
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "building job response: %v", err.Error())
 	}
-	return &GetStorageJobResponse{
+	return &StorageJobResponse{
 		Job: rpcJob,
 	}, nil
 }
 
-// GetQueuedStorageJobs returns a list of queued storage jobs.
-func (s *RPC) GetQueuedStorageJobs(ctx context.Context, req *GetQueuedStorageJobsRequest) (*GetQueuedStorageJobsResponse, error) {
+// QueuedStorageJobs returns a list of queued storage jobs.
+func (s *RPC) GetQueuedStorageJobs(ctx context.Context, req *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -284,18 +284,18 @@ func (s *RPC) GetQueuedStorageJobs(ctx context.Context, req *GetQueuedStorageJob
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
-	jobs := i.GetQueuedStorageJobs(cids...)
+	jobs := i.QueuedStorageJobs(cids...)
 	protoJobs, err := ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &GetQueuedStorageJobsResponse{
+	return &QueuedStorageJobsResponse{
 		StorageJobs: protoJobs,
 	}, nil
 }
 
-// GetExecutingStorageJobs returns a list of executing storage jobs.
-func (s *RPC) GetExecutingStorageJobs(ctx context.Context, req *GetExecutingStorageJobsRequest) (*GetExecutingStorageJobsResponse, error) {
+// ExecutingStorageJobs returns a list of executing storage jobs.
+func (s *RPC) GetExecutingStorageJobs(ctx context.Context, req *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -305,18 +305,18 @@ func (s *RPC) GetExecutingStorageJobs(ctx context.Context, req *GetExecutingStor
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
-	jobs := i.GetExecutingStorageJobs(cids...)
+	jobs := i.ExecutingStorageJobs(cids...)
 	protoJobs, err := ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &GetExecutingStorageJobsResponse{
+	return &ExecutingStorageJobsResponse{
 		StorageJobs: protoJobs,
 	}, nil
 }
 
-// GetLatestFinalStorageJobs returns a list of latest final storage jobs.
-func (s *RPC) GetLatestFinalStorageJobs(ctx context.Context, req *GetLatestFinalStorageJobsRequest) (*GetLatestFinalStorageJobsResponse, error) {
+// LatestFinalStorageJobs returns a list of latest final storage jobs.
+func (s *RPC) LatestFinalStorageJobs(ctx context.Context, req *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -326,18 +326,18 @@ func (s *RPC) GetLatestFinalStorageJobs(ctx context.Context, req *GetLatestFinal
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
-	jobs := i.GetLatestFinalStorageJobs(cids...)
+	jobs := i.LatestFinalStorageJobs(cids...)
 	protoJobs, err := ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &GetLatestFinalStorageJobsResponse{
+	return &LatestFinalStorageJobsResponse{
 		StorageJobs: protoJobs,
 	}, nil
 }
 
-// GetLatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
-func (s *RPC) GetLatestSuccessfulStorageJobs(ctx context.Context, req *GetLatestSuccessfulStorageJobsRequest) (*GetLatestSuccessfulStorageJobsResponse, error) {
+// LatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
+func (s *RPC) LatestSuccessfulStorageJobs(ctx context.Context, req *LatestSuccessfulStorageJobsRequest) (*LatestSuccessfulStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -347,13 +347,61 @@ func (s *RPC) GetLatestSuccessfulStorageJobs(ctx context.Context, req *GetLatest
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
-	jobs := i.GetLatestSuccessfulStorageJobs(cids...)
+	jobs := i.LatestSuccessfulStorageJobs(cids...)
 	protoJobs, err := ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &GetLatestSuccessfulStorageJobsResponse{
+	return &LatestSuccessfulStorageJobsResponse{
 		StorageJobs: protoJobs,
+	}, nil
+}
+
+// StorageJobsSummary returns a summary of all storage jobs.
+func (s *RPC) StorageJobsSummary(ctx context.Context, req *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+	}
+
+	cids, err := fromProtoCids(req.Cids)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
+	}
+
+	queuedJobs := i.QueuedStorageJobs(cids...)
+	executingJobs := i.ExecutingStorageJobs(cids...)
+	latestFinalJobs := i.LatestFinalStorageJobs(cids...)
+	latestSuccessfulJobs := i.LatestSuccessfulStorageJobs(cids...)
+
+	protoQueuedJobs, err := ToProtoStorageJobs(queuedJobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting queued jobs to protos: %v", err)
+	}
+	protoExecutingJobs, err := ToProtoStorageJobs(executingJobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting executing jobs to protos: %v", err)
+	}
+	protoLatestFinalJobs, err := ToProtoStorageJobs(latestFinalJobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting latest final jobs to protos: %v", err)
+	}
+	protoLatestSuccessfulJobs, err := ToProtoStorageJobs(latestSuccessfulJobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting latest successful jobs to protos: %v", err)
+	}
+
+	return &StorageJobsSummaryResponse{
+		JobCounts: &JobCounts{
+			Executing:        int32(len(executingJobs)),
+			LatestFinal:      int32(len(latestFinalJobs)),
+			LatestSuccessful: int32(len(latestSuccessfulJobs)),
+			Queued:           int32(len(queuedJobs)),
+		},
+		ExecutingStorageJobs:        protoExecutingJobs,
+		LatestFinalStorageJobs:      protoLatestFinalJobs,
+		LatestSuccessfulStorageJobs: protoLatestSuccessfulJobs,
+		QueuedStorageJobs:           protoQueuedJobs,
 	}, nil
 }
 

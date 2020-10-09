@@ -206,9 +206,9 @@ func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	return resp.Addr, err
 }
 
-// GetStorageConfig gets the current config for a cid.
-func (f *FFS) GetStorageConfig(ctx context.Context, c cid.Cid) (*rpc.GetStorageConfigResponse, error) {
-	return f.client.GetStorageConfig(ctx, &rpc.GetStorageConfigRequest{Cid: c.String()})
+// StorageConfig gets the current config for a cid.
+func (f *FFS) StorageConfig(ctx context.Context, c cid.Cid) (*rpc.StorageConfigResponse, error) {
+	return f.client.StorageConfig(ctx, &rpc.StorageConfigRequest{Cid: c.String()})
 }
 
 // SetDefaultStorageConfig sets the default storage config.
@@ -279,41 +279,49 @@ func (f *FFS) CancelJob(ctx context.Context, jid ffs.JobID) error {
 	return err
 }
 
-// GetStorageJob returns the current state of the specified job.
-func (f *FFS) GetStorageJob(ctx context.Context, jid ffs.JobID) (*rpc.GetStorageJobResponse, error) {
-	return f.client.GetStorageJob(ctx, &rpc.GetStorageJobRequest{Jid: jid.String()})
+// StorageJob returns the current state of the specified job.
+func (f *FFS) StorageJob(ctx context.Context, jid ffs.JobID) (*rpc.StorageJobResponse, error) {
+	return f.client.StorageJob(ctx, &rpc.StorageJobRequest{Jid: jid.String()})
 }
 
-// GetQueuedStorageJobs returns a list of queued storage jobs.
-func (f *FFS) GetQueuedStorageJobs(ctx context.Context, cids ...string) (*rpc.GetQueuedStorageJobsResponse, error) {
-	req := &rpc.GetQueuedStorageJobsRequest{
+// QueuedStorageJobs returns a list of queued storage jobs.
+func (f *FFS) QueuedStorageJobs(ctx context.Context, cids ...string) (*rpc.QueuedStorageJobsResponse, error) {
+	req := &rpc.QueuedStorageJobsRequest{
 		Cids: cids,
 	}
-	return f.client.GetQueuedStorageJobs(ctx, req)
+	return f.client.QueuedStorageJobs(ctx, req)
 }
 
-// GetExecutingStorageJobs returns a list of executing storage jobs.
-func (f *FFS) GetExecutingStorageJobs(ctx context.Context, cids ...string) (*rpc.GetExecutingStorageJobsResponse, error) {
-	req := &rpc.GetExecutingStorageJobsRequest{
+// ExecutingStorageJobs returns a list of executing storage jobs.
+func (f *FFS) ExecutingStorageJobs(ctx context.Context, cids ...string) (*rpc.ExecutingStorageJobsResponse, error) {
+	req := &rpc.ExecutingStorageJobsRequest{
 		Cids: cids,
 	}
-	return f.client.GetExecutingStorageJobs(ctx, req)
+	return f.client.ExecutingStorageJobs(ctx, req)
 }
 
-// GetLatestFinalStorageJobs returns a list of latest final storage jobs.
-func (f *FFS) GetLatestFinalStorageJobs(ctx context.Context, cids ...string) (*rpc.GetLatestFinalStorageJobsResponse, error) {
-	req := &rpc.GetLatestFinalStorageJobsRequest{
+// LatestFinalStorageJobs returns a list of latest final storage jobs.
+func (f *FFS) LatestFinalStorageJobs(ctx context.Context, cids ...string) (*rpc.LatestFinalStorageJobsResponse, error) {
+	req := &rpc.LatestFinalStorageJobsRequest{
 		Cids: cids,
 	}
-	return f.client.GetLatestFinalStorageJobs(ctx, req)
+	return f.client.LatestFinalStorageJobs(ctx, req)
 }
 
-// GetLatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
-func (f *FFS) GetLatestSuccessfulStorageJobs(ctx context.Context, cids ...string) (*rpc.GetLatestSuccessfulStorageJobsResponse, error) {
-	req := &rpc.GetLatestSuccessfulStorageJobsRequest{
+// LatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
+func (f *FFS) LatestSuccessfulStorageJobs(ctx context.Context, cids ...string) (*rpc.LatestSuccessfulStorageJobsResponse, error) {
+	req := &rpc.LatestSuccessfulStorageJobsRequest{
 		Cids: cids,
 	}
-	return f.client.GetLatestSuccessfulStorageJobs(ctx, req)
+	return f.client.LatestSuccessfulStorageJobs(ctx, req)
+}
+
+// StorageJobsSummary returns a summary of storage jobs.
+func (f *FFS) StorageJobsSummary(ctx context.Context, cids ...string) (*rpc.StorageJobsSummaryResponse, error) {
+	req := &rpc.StorageJobsSummaryRequest{
+		Cids: cids,
+	}
+	return f.client.StorageJobsSummary(ctx, req)
 }
 
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned

@@ -19,6 +19,7 @@ var (
 // Store is an Datastore implementation of CidInfoStore.
 type Store struct {
 	ds datastore.Datastore
+	// ToDo: Build some index in here for fetching by iid and cid etc
 }
 
 // New returns a new JobStore backed by the Datastore.

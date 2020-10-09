@@ -20,47 +20,61 @@ message ListInstancesResponse {
    repeated string instances = 1;
 }
 
-message GetQueuedStorageJobsRequest {
+message QueuedStorageJobsRequest {
   string instance_id = 1;
   repeated string cids = 2;
 }
 
-message GetQueuedStorageJobsResponse {
+message QueuedStorageJobsResponse {
   repeated ffs.rpc.Job storage_jobs = 1;
 }
 
-message GetExecutingStorageJobsRequest {
+message ExecutingStorageJobsRequest {
   string instance_id = 1;
   repeated string cids = 2;
 }
 
-message GetExecutingStorageJobsResponse {
+message ExecutingStorageJobsResponse {
   repeated ffs.rpc.Job storage_jobs = 1;
 }
 
-message GetLatestFinalStorageJobsRequest {
+message LatestFinalStorageJobsRequest {
   string instance_id = 1;
   repeated string cids = 2;
 }
 
-message GetLatestFinalStorageJobsResponse {
+message LatestFinalStorageJobsResponse {
   repeated ffs.rpc.Job storage_jobs = 1;
 }
 
-message GetLatestSuccessfulStorageJobsRequest {
+message LatestSuccessfulStorageJobsRequest {
   string instance_id = 1;
   repeated string cids = 2;
 }
 
-message GetLatestSuccessfulStorageJobsResponse {
+message LatestSuccessfulStorageJobsResponse {
   repeated ffs.rpc.Job storage_jobs = 1;
+}
+
+message StorageJobsSummaryRequest {
+  string instance_id = 1;
+  repeated string cids = 2;
+}
+
+message StorageJobsSummaryResponse {
+  ffs.rpc.JobCounts job_counts = 1;
+  repeated ffs.rpc.Job queued_storage_jobs = 2;
+  repeated ffs.rpc.Job executing_storage_jobs = 3;
+  repeated ffs.rpc.Job latest_final_storage_jobs = 4;
+  repeated ffs.rpc.Job latest_successful_storage_jobs = 5;
 }
 
 service PowergateAdminService {
   rpc CreateInstance(CreateInstanceRequest) returns (CreateInstanceResponse) {}
   rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse) {}
-  rpc GetQueuedStorageJobs(GetQueuedStorageJobsRequest) returns (GetQueuedStorageJobsResponse) {}
-  rpc GetExecutingStorageJobs(GetExecutingStorageJobsRequest) returns (GetExecutingStorageJobsResponse) {}
-  rpc GetLatestFinalStorageJobs(GetLatestFinalStorageJobsRequest) returns (GetLatestFinalStorageJobsResponse) {}
-  rpc GetLatestSuccessfulStorageJobs(GetLatestSuccessfulStorageJobsRequest) returns (GetLatestSuccessfulStorageJobsResponse) {}
+  rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
+  rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
+  rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
+  rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
+  rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
 }

@@ -208,7 +208,7 @@ func (x *ListInstancesResponse) GetInstances() []string {
 	return nil
 }
 
-type GetQueuedStorageJobsRequest struct {
+type QueuedStorageJobsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -217,8 +217,8 @@ type GetQueuedStorageJobsRequest struct {
 	Cids       []string `protobuf:"bytes,2,rep,name=cids,proto3" json:"cids,omitempty"`
 }
 
-func (x *GetQueuedStorageJobsRequest) Reset() {
-	*x = GetQueuedStorageJobsRequest{}
+func (x *QueuedStorageJobsRequest) Reset() {
+	*x = QueuedStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -226,13 +226,13 @@ func (x *GetQueuedStorageJobsRequest) Reset() {
 	}
 }
 
-func (x *GetQueuedStorageJobsRequest) String() string {
+func (x *QueuedStorageJobsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetQueuedStorageJobsRequest) ProtoMessage() {}
+func (*QueuedStorageJobsRequest) ProtoMessage() {}
 
-func (x *GetQueuedStorageJobsRequest) ProtoReflect() protoreflect.Message {
+func (x *QueuedStorageJobsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -244,26 +244,26 @@ func (x *GetQueuedStorageJobsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetQueuedStorageJobsRequest.ProtoReflect.Descriptor instead.
-func (*GetQueuedStorageJobsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use QueuedStorageJobsRequest.ProtoReflect.Descriptor instead.
+func (*QueuedStorageJobsRequest) Descriptor() ([]byte, []int) {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetQueuedStorageJobsRequest) GetInstanceId() string {
+func (x *QueuedStorageJobsRequest) GetInstanceId() string {
 	if x != nil {
 		return x.InstanceId
 	}
 	return ""
 }
 
-func (x *GetQueuedStorageJobsRequest) GetCids() []string {
+func (x *QueuedStorageJobsRequest) GetCids() []string {
 	if x != nil {
 		return x.Cids
 	}
 	return nil
 }
 
-type GetQueuedStorageJobsResponse struct {
+type QueuedStorageJobsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -271,8 +271,8 @@ type GetQueuedStorageJobsResponse struct {
 	StorageJobs []*rpc.Job `protobuf:"bytes,1,rep,name=storage_jobs,json=storageJobs,proto3" json:"storage_jobs,omitempty"`
 }
 
-func (x *GetQueuedStorageJobsResponse) Reset() {
-	*x = GetQueuedStorageJobsResponse{}
+func (x *QueuedStorageJobsResponse) Reset() {
+	*x = QueuedStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -280,13 +280,13 @@ func (x *GetQueuedStorageJobsResponse) Reset() {
 	}
 }
 
-func (x *GetQueuedStorageJobsResponse) String() string {
+func (x *QueuedStorageJobsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetQueuedStorageJobsResponse) ProtoMessage() {}
+func (*QueuedStorageJobsResponse) ProtoMessage() {}
 
-func (x *GetQueuedStorageJobsResponse) ProtoReflect() protoreflect.Message {
+func (x *QueuedStorageJobsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -298,19 +298,19 @@ func (x *GetQueuedStorageJobsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetQueuedStorageJobsResponse.ProtoReflect.Descriptor instead.
-func (*GetQueuedStorageJobsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use QueuedStorageJobsResponse.ProtoReflect.Descriptor instead.
+func (*QueuedStorageJobsResponse) Descriptor() ([]byte, []int) {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetQueuedStorageJobsResponse) GetStorageJobs() []*rpc.Job {
+func (x *QueuedStorageJobsResponse) GetStorageJobs() []*rpc.Job {
 	if x != nil {
 		return x.StorageJobs
 	}
 	return nil
 }
 
-type GetExecutingStorageJobsRequest struct {
+type ExecutingStorageJobsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -319,8 +319,8 @@ type GetExecutingStorageJobsRequest struct {
 	Cids       []string `protobuf:"bytes,2,rep,name=cids,proto3" json:"cids,omitempty"`
 }
 
-func (x *GetExecutingStorageJobsRequest) Reset() {
-	*x = GetExecutingStorageJobsRequest{}
+func (x *ExecutingStorageJobsRequest) Reset() {
+	*x = ExecutingStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -328,13 +328,13 @@ func (x *GetExecutingStorageJobsRequest) Reset() {
 	}
 }
 
-func (x *GetExecutingStorageJobsRequest) String() string {
+func (x *ExecutingStorageJobsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetExecutingStorageJobsRequest) ProtoMessage() {}
+func (*ExecutingStorageJobsRequest) ProtoMessage() {}
 
-func (x *GetExecutingStorageJobsRequest) ProtoReflect() protoreflect.Message {
+func (x *ExecutingStorageJobsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -346,26 +346,26 @@ func (x *GetExecutingStorageJobsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetExecutingStorageJobsRequest.ProtoReflect.Descriptor instead.
-func (*GetExecutingStorageJobsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ExecutingStorageJobsRequest.ProtoReflect.Descriptor instead.
+func (*ExecutingStorageJobsRequest) Descriptor() ([]byte, []int) {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *GetExecutingStorageJobsRequest) GetInstanceId() string {
+func (x *ExecutingStorageJobsRequest) GetInstanceId() string {
 	if x != nil {
 		return x.InstanceId
 	}
 	return ""
 }
 
-func (x *GetExecutingStorageJobsRequest) GetCids() []string {
+func (x *ExecutingStorageJobsRequest) GetCids() []string {
 	if x != nil {
 		return x.Cids
 	}
 	return nil
 }
 
-type GetExecutingStorageJobsResponse struct {
+type ExecutingStorageJobsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -373,8 +373,8 @@ type GetExecutingStorageJobsResponse struct {
 	StorageJobs []*rpc.Job `protobuf:"bytes,1,rep,name=storage_jobs,json=storageJobs,proto3" json:"storage_jobs,omitempty"`
 }
 
-func (x *GetExecutingStorageJobsResponse) Reset() {
-	*x = GetExecutingStorageJobsResponse{}
+func (x *ExecutingStorageJobsResponse) Reset() {
+	*x = ExecutingStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -382,13 +382,13 @@ func (x *GetExecutingStorageJobsResponse) Reset() {
 	}
 }
 
-func (x *GetExecutingStorageJobsResponse) String() string {
+func (x *ExecutingStorageJobsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetExecutingStorageJobsResponse) ProtoMessage() {}
+func (*ExecutingStorageJobsResponse) ProtoMessage() {}
 
-func (x *GetExecutingStorageJobsResponse) ProtoReflect() protoreflect.Message {
+func (x *ExecutingStorageJobsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -400,19 +400,19 @@ func (x *GetExecutingStorageJobsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetExecutingStorageJobsResponse.ProtoReflect.Descriptor instead.
-func (*GetExecutingStorageJobsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ExecutingStorageJobsResponse.ProtoReflect.Descriptor instead.
+func (*ExecutingStorageJobsResponse) Descriptor() ([]byte, []int) {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *GetExecutingStorageJobsResponse) GetStorageJobs() []*rpc.Job {
+func (x *ExecutingStorageJobsResponse) GetStorageJobs() []*rpc.Job {
 	if x != nil {
 		return x.StorageJobs
 	}
 	return nil
 }
 
-type GetLatestFinalStorageJobsRequest struct {
+type LatestFinalStorageJobsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -421,8 +421,8 @@ type GetLatestFinalStorageJobsRequest struct {
 	Cids       []string `protobuf:"bytes,2,rep,name=cids,proto3" json:"cids,omitempty"`
 }
 
-func (x *GetLatestFinalStorageJobsRequest) Reset() {
-	*x = GetLatestFinalStorageJobsRequest{}
+func (x *LatestFinalStorageJobsRequest) Reset() {
+	*x = LatestFinalStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -430,13 +430,13 @@ func (x *GetLatestFinalStorageJobsRequest) Reset() {
 	}
 }
 
-func (x *GetLatestFinalStorageJobsRequest) String() string {
+func (x *LatestFinalStorageJobsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetLatestFinalStorageJobsRequest) ProtoMessage() {}
+func (*LatestFinalStorageJobsRequest) ProtoMessage() {}
 
-func (x *GetLatestFinalStorageJobsRequest) ProtoReflect() protoreflect.Message {
+func (x *LatestFinalStorageJobsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -448,26 +448,26 @@ func (x *GetLatestFinalStorageJobsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetLatestFinalStorageJobsRequest.ProtoReflect.Descriptor instead.
-func (*GetLatestFinalStorageJobsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use LatestFinalStorageJobsRequest.ProtoReflect.Descriptor instead.
+func (*LatestFinalStorageJobsRequest) Descriptor() ([]byte, []int) {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *GetLatestFinalStorageJobsRequest) GetInstanceId() string {
+func (x *LatestFinalStorageJobsRequest) GetInstanceId() string {
 	if x != nil {
 		return x.InstanceId
 	}
 	return ""
 }
 
-func (x *GetLatestFinalStorageJobsRequest) GetCids() []string {
+func (x *LatestFinalStorageJobsRequest) GetCids() []string {
 	if x != nil {
 		return x.Cids
 	}
 	return nil
 }
 
-type GetLatestFinalStorageJobsResponse struct {
+type LatestFinalStorageJobsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -475,8 +475,8 @@ type GetLatestFinalStorageJobsResponse struct {
 	StorageJobs []*rpc.Job `protobuf:"bytes,1,rep,name=storage_jobs,json=storageJobs,proto3" json:"storage_jobs,omitempty"`
 }
 
-func (x *GetLatestFinalStorageJobsResponse) Reset() {
-	*x = GetLatestFinalStorageJobsResponse{}
+func (x *LatestFinalStorageJobsResponse) Reset() {
+	*x = LatestFinalStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -484,13 +484,13 @@ func (x *GetLatestFinalStorageJobsResponse) Reset() {
 	}
 }
 
-func (x *GetLatestFinalStorageJobsResponse) String() string {
+func (x *LatestFinalStorageJobsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetLatestFinalStorageJobsResponse) ProtoMessage() {}
+func (*LatestFinalStorageJobsResponse) ProtoMessage() {}
 
-func (x *GetLatestFinalStorageJobsResponse) ProtoReflect() protoreflect.Message {
+func (x *LatestFinalStorageJobsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -502,19 +502,19 @@ func (x *GetLatestFinalStorageJobsResponse) ProtoReflect() protoreflect.Message 
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetLatestFinalStorageJobsResponse.ProtoReflect.Descriptor instead.
-func (*GetLatestFinalStorageJobsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use LatestFinalStorageJobsResponse.ProtoReflect.Descriptor instead.
+func (*LatestFinalStorageJobsResponse) Descriptor() ([]byte, []int) {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *GetLatestFinalStorageJobsResponse) GetStorageJobs() []*rpc.Job {
+func (x *LatestFinalStorageJobsResponse) GetStorageJobs() []*rpc.Job {
 	if x != nil {
 		return x.StorageJobs
 	}
 	return nil
 }
 
-type GetLatestSuccessfulStorageJobsRequest struct {
+type LatestSuccessfulStorageJobsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -523,8 +523,8 @@ type GetLatestSuccessfulStorageJobsRequest struct {
 	Cids       []string `protobuf:"bytes,2,rep,name=cids,proto3" json:"cids,omitempty"`
 }
 
-func (x *GetLatestSuccessfulStorageJobsRequest) Reset() {
-	*x = GetLatestSuccessfulStorageJobsRequest{}
+func (x *LatestSuccessfulStorageJobsRequest) Reset() {
+	*x = LatestSuccessfulStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -532,13 +532,13 @@ func (x *GetLatestSuccessfulStorageJobsRequest) Reset() {
 	}
 }
 
-func (x *GetLatestSuccessfulStorageJobsRequest) String() string {
+func (x *LatestSuccessfulStorageJobsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetLatestSuccessfulStorageJobsRequest) ProtoMessage() {}
+func (*LatestSuccessfulStorageJobsRequest) ProtoMessage() {}
 
-func (x *GetLatestSuccessfulStorageJobsRequest) ProtoReflect() protoreflect.Message {
+func (x *LatestSuccessfulStorageJobsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -550,26 +550,26 @@ func (x *GetLatestSuccessfulStorageJobsRequest) ProtoReflect() protoreflect.Mess
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetLatestSuccessfulStorageJobsRequest.ProtoReflect.Descriptor instead.
-func (*GetLatestSuccessfulStorageJobsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use LatestSuccessfulStorageJobsRequest.ProtoReflect.Descriptor instead.
+func (*LatestSuccessfulStorageJobsRequest) Descriptor() ([]byte, []int) {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *GetLatestSuccessfulStorageJobsRequest) GetInstanceId() string {
+func (x *LatestSuccessfulStorageJobsRequest) GetInstanceId() string {
 	if x != nil {
 		return x.InstanceId
 	}
 	return ""
 }
 
-func (x *GetLatestSuccessfulStorageJobsRequest) GetCids() []string {
+func (x *LatestSuccessfulStorageJobsRequest) GetCids() []string {
 	if x != nil {
 		return x.Cids
 	}
 	return nil
 }
 
-type GetLatestSuccessfulStorageJobsResponse struct {
+type LatestSuccessfulStorageJobsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -577,8 +577,8 @@ type GetLatestSuccessfulStorageJobsResponse struct {
 	StorageJobs []*rpc.Job `protobuf:"bytes,1,rep,name=storage_jobs,json=storageJobs,proto3" json:"storage_jobs,omitempty"`
 }
 
-func (x *GetLatestSuccessfulStorageJobsResponse) Reset() {
-	*x = GetLatestSuccessfulStorageJobsResponse{}
+func (x *LatestSuccessfulStorageJobsResponse) Reset() {
+	*x = LatestSuccessfulStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -586,13 +586,13 @@ func (x *GetLatestSuccessfulStorageJobsResponse) Reset() {
 	}
 }
 
-func (x *GetLatestSuccessfulStorageJobsResponse) String() string {
+func (x *LatestSuccessfulStorageJobsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetLatestSuccessfulStorageJobsResponse) ProtoMessage() {}
+func (*LatestSuccessfulStorageJobsResponse) ProtoMessage() {}
 
-func (x *GetLatestSuccessfulStorageJobsResponse) ProtoReflect() protoreflect.Message {
+func (x *LatestSuccessfulStorageJobsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -604,14 +604,148 @@ func (x *GetLatestSuccessfulStorageJobsResponse) ProtoReflect() protoreflect.Mes
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetLatestSuccessfulStorageJobsResponse.ProtoReflect.Descriptor instead.
-func (*GetLatestSuccessfulStorageJobsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use LatestSuccessfulStorageJobsResponse.ProtoReflect.Descriptor instead.
+func (*LatestSuccessfulStorageJobsResponse) Descriptor() ([]byte, []int) {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *GetLatestSuccessfulStorageJobsResponse) GetStorageJobs() []*rpc.Job {
+func (x *LatestSuccessfulStorageJobsResponse) GetStorageJobs() []*rpc.Job {
 	if x != nil {
 		return x.StorageJobs
+	}
+	return nil
+}
+
+type StorageJobsSummaryRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	InstanceId string   `protobuf:"bytes,1,opt,name=instance_id,json=instanceId,proto3" json:"instance_id,omitempty"`
+	Cids       []string `protobuf:"bytes,2,rep,name=cids,proto3" json:"cids,omitempty"`
+}
+
+func (x *StorageJobsSummaryRequest) Reset() {
+	*x = StorageJobsSummaryRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StorageJobsSummaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StorageJobsSummaryRequest) ProtoMessage() {}
+
+func (x *StorageJobsSummaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StorageJobsSummaryRequest.ProtoReflect.Descriptor instead.
+func (*StorageJobsSummaryRequest) Descriptor() ([]byte, []int) {
+	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *StorageJobsSummaryRequest) GetInstanceId() string {
+	if x != nil {
+		return x.InstanceId
+	}
+	return ""
+}
+
+func (x *StorageJobsSummaryRequest) GetCids() []string {
+	if x != nil {
+		return x.Cids
+	}
+	return nil
+}
+
+type StorageJobsSummaryResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	JobCounts                   *rpc.JobCounts `protobuf:"bytes,1,opt,name=job_counts,json=jobCounts,proto3" json:"job_counts,omitempty"`
+	QueuedStorageJobs           []*rpc.Job     `protobuf:"bytes,2,rep,name=queued_storage_jobs,json=queuedStorageJobs,proto3" json:"queued_storage_jobs,omitempty"`
+	ExecutingStorageJobs        []*rpc.Job     `protobuf:"bytes,3,rep,name=executing_storage_jobs,json=executingStorageJobs,proto3" json:"executing_storage_jobs,omitempty"`
+	LatestFinalStorageJobs      []*rpc.Job     `protobuf:"bytes,4,rep,name=latest_final_storage_jobs,json=latestFinalStorageJobs,proto3" json:"latest_final_storage_jobs,omitempty"`
+	LatestSuccessfulStorageJobs []*rpc.Job     `protobuf:"bytes,5,rep,name=latest_successful_storage_jobs,json=latestSuccessfulStorageJobs,proto3" json:"latest_successful_storage_jobs,omitempty"`
+}
+
+func (x *StorageJobsSummaryResponse) Reset() {
+	*x = StorageJobsSummaryResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StorageJobsSummaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StorageJobsSummaryResponse) ProtoMessage() {}
+
+func (x *StorageJobsSummaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_admin_v1_powergate_admin_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StorageJobsSummaryResponse.ProtoReflect.Descriptor instead.
+func (*StorageJobsSummaryResponse) Descriptor() ([]byte, []int) {
+	return file_proto_admin_v1_powergate_admin_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *StorageJobsSummaryResponse) GetJobCounts() *rpc.JobCounts {
+	if x != nil {
+		return x.JobCounts
+	}
+	return nil
+}
+
+func (x *StorageJobsSummaryResponse) GetQueuedStorageJobs() []*rpc.Job {
+	if x != nil {
+		return x.QueuedStorageJobs
+	}
+	return nil
+}
+
+func (x *StorageJobsSummaryResponse) GetExecutingStorageJobs() []*rpc.Job {
+	if x != nil {
+		return x.ExecutingStorageJobs
+	}
+	return nil
+}
+
+func (x *StorageJobsSummaryResponse) GetLatestFinalStorageJobs() []*rpc.Job {
+	if x != nil {
+		return x.LatestFinalStorageJobs
+	}
+	return nil
+}
+
+func (x *StorageJobsSummaryResponse) GetLatestSuccessfulStorageJobs() []*rpc.Job {
+	if x != nil {
+		return x.LatestSuccessfulStorageJobs
 	}
 	return nil
 }
@@ -634,100 +768,131 @@ var file_proto_admin_v1_powergate_admin_proto_rawDesc = []byte{
 	0x73, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
 	0x6e, 0x73, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73,
 	0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x09, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65,
-	0x73, 0x22, 0x52, 0x0a, 0x1b, 0x47, 0x65, 0x74, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74,
-	0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x1f, 0x0a, 0x0b, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x49,
-	0x64, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52,
-	0x04, 0x63, 0x69, 0x64, 0x73, 0x22, 0x4f, 0x0a, 0x1c, 0x47, 0x65, 0x74, 0x51, 0x75, 0x65, 0x75,
-	0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a, 0x0c, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65,
-	0x5f, 0x6a, 0x6f, 0x62, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66,
-	0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x0b, 0x73, 0x74, 0x6f, 0x72, 0x61,
-	0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x22, 0x55, 0x0a, 0x1e, 0x47, 0x65, 0x74, 0x45, 0x78, 0x65,
-	0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x69, 0x6e, 0x73, 0x74,
-	0x61, 0x6e, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x69,
-	0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64,
-	0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x73, 0x22, 0x52, 0x0a,
-	0x1f, 0x47, 0x65, 0x74, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f,
-	0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x12, 0x2f, 0x0a, 0x0c, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x73,
-	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63,
-	0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x0b, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
-	0x73, 0x22, 0x57, 0x0a, 0x20, 0x47, 0x65, 0x74, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69,
-	0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63,
-	0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x69, 0x6e, 0x73, 0x74,
-	0x61, 0x6e, 0x63, 0x65, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18, 0x02,
-	0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x73, 0x22, 0x54, 0x0a, 0x21, 0x47, 0x65,
-	0x74, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72,
+	0x73, 0x22, 0x4f, 0x0a, 0x18, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61,
+	0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a,
+	0x0b, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0a, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x49, 0x64, 0x12, 0x12,
+	0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x63, 0x69,
+	0x64, 0x73, 0x22, 0x4c, 0x0a, 0x19, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72,
 	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
 	0x2f, 0x0a, 0x0c, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x73, 0x18,
 	0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e,
 	0x4a, 0x6f, 0x62, 0x52, 0x0b, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73,
-	0x22, 0x5c, 0x0a, 0x25, 0x47, 0x65, 0x74, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63,
-	0x63, 0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f,
-	0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x69, 0x6e, 0x73,
-	0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a,
-	0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69,
-	0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x73, 0x22, 0x59,
-	0x0a, 0x26, 0x47, 0x65, 0x74, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65,
-	0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a, 0x0c, 0x73, 0x74, 0x6f, 0x72,
-	0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c,
-	0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x0b, 0x73, 0x74,
-	0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x32, 0xe6, 0x05, 0x0a, 0x15, 0x50, 0x6f,
-	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x53, 0x65, 0x72, 0x76,
-	0x69, 0x63, 0x65, 0x12, 0x61, 0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x6e, 0x73,
-	0x74, 0x61, 0x6e, 0x63, 0x65, 0x12, 0x25, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64,
-	0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x6e, 0x73,
-	0x74, 0x61, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72,
-	0x65, 0x61, 0x74, 0x65, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5e, 0x0a, 0x0d, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x6e,
-	0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x12, 0x24, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e,
-	0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x6e, 0x73,
-	0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4c,
-	0x69, 0x73, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x73, 0x0a, 0x14, 0x47, 0x65, 0x74, 0x51, 0x75, 0x65,
-	0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2b,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e,
-	0x47, 0x65, 0x74, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65,
-	0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74,
-	0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
-	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7c, 0x0a, 0x17, 0x47,
-	0x65, 0x74, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72, 0x61,
-	0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61,
-	0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x45, 0x78, 0x65, 0x63, 0x75,
-	0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61,
-	0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x45, 0x78, 0x65, 0x63, 0x75,
-	0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x82, 0x01, 0x0a, 0x19, 0x47, 0x65,
-	0x74, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72,
-	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x30, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e,
-	0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x4c, 0x61, 0x74, 0x65,
-	0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f,
-	0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x4c, 0x61,
-	0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65,
-	0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x91,
-	0x01, 0x0a, 0x1e, 0x47, 0x65, 0x74, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63,
-	0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
-	0x73, 0x12, 0x35, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e,
-	0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63,
-	0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
-	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x4c, 0x61, 0x74,
+	0x22, 0x52, 0x0a, 0x1b, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f,
+	0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x1f, 0x0a, 0x0b, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x49, 0x64,
+	0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04,
+	0x63, 0x69, 0x64, 0x73, 0x22, 0x4f, 0x0a, 0x1c, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e,
+	0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a, 0x0c, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f,
+	0x6a, 0x6f, 0x62, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x0b, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67,
+	0x65, 0x4a, 0x6f, 0x62, 0x73, 0x22, 0x54, 0x0a, 0x1d, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46,
+	0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e,
+	0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x69, 0x6e, 0x73,
+	0x74, 0x61, 0x6e, 0x63, 0x65, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18,
+	0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x73, 0x22, 0x51, 0x0a, 0x1e, 0x4c,
+	0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
+	0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2f, 0x0a,
+	0x0c, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x73, 0x18, 0x01, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4a, 0x6f,
+	0x62, 0x52, 0x0b, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x22, 0x59,
+	0x0a, 0x22, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x66,
+	0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x69, 0x6e, 0x73, 0x74, 0x61,
+	0x6e, 0x63, 0x65, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18, 0x02, 0x20,
+	0x03, 0x28, 0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x73, 0x22, 0x56, 0x0a, 0x23, 0x4c, 0x61, 0x74,
 	0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f,
 	0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x42, 0x2f, 0x5a, 0x2d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x74, 0x65, 0x78, 0x74, 0x69, 0x6c, 0x65, 0x69, 0x6f, 0x2f, 0x70, 0x6f, 0x77, 0x65, 0x72,
-	0x67, 0x61, 0x74, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x61, 0x64, 0x6d, 0x69, 0x6e,
-	0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x12, 0x2f, 0x0a, 0x0c, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x73,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x0b, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
+	0x73, 0x22, 0x50, 0x0a, 0x19, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73,
+	0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1f,
+	0x0a, 0x0b, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0a, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x49, 0x64, 0x12,
+	0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x63,
+	0x69, 0x64, 0x73, 0x22, 0xed, 0x02, 0x0a, 0x1a, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a,
+	0x6f, 0x62, 0x73, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x31, 0x0a, 0x0a, 0x6a, 0x6f, 0x62, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x4a, 0x6f, 0x62, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x73, 0x52, 0x09, 0x6a, 0x6f, 0x62, 0x43,
+	0x6f, 0x75, 0x6e, 0x74, 0x73, 0x12, 0x3c, 0x0a, 0x13, 0x71, 0x75, 0x65, 0x75, 0x65, 0x64, 0x5f,
+	0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x73, 0x18, 0x02, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4a, 0x6f, 0x62,
+	0x52, 0x11, 0x71, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a,
+	0x6f, 0x62, 0x73, 0x12, 0x42, 0x0a, 0x16, 0x65, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67,
+	0x5f, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x73, 0x18, 0x03, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4a, 0x6f,
+	0x62, 0x52, 0x14, 0x65, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x47, 0x0a, 0x19, 0x6c, 0x61, 0x74, 0x65, 0x73,
+	0x74, 0x5f, 0x66, 0x69, 0x6e, 0x61, 0x6c, 0x5f, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f,
+	0x6a, 0x6f, 0x62, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73,
+	0x2e, 0x72, 0x70, 0x63, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x16, 0x6c, 0x61, 0x74, 0x65, 0x73, 0x74,
+	0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73,
+	0x12, 0x51, 0x0a, 0x1e, 0x6c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x5f, 0x73, 0x75, 0x63, 0x63, 0x65,
+	0x73, 0x73, 0x66, 0x75, 0x6c, 0x5f, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f,
+	0x62, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72,
+	0x70, 0x63, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x1b, 0x6c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75,
+	0x63, 0x63, 0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a,
+	0x6f, 0x62, 0x73, 0x32, 0xb0, 0x06, 0x0a, 0x15, 0x50, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
+	0x65, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x61, 0x0a,
+	0x0e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x12,
+	0x25, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31,
+	0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61,
+	0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x49, 0x6e,
+	0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x5e, 0x0a, 0x0d, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65,
+	0x73, 0x12, 0x24, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e,
+	0x76, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6e, 0x63, 0x65, 0x73,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e,
+	0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x6e, 0x73,
+	0x74, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x6a, 0x0a, 0x11, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
+	0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x28, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64,
+	0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f,
+	0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x29, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31,
+	0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f,
+	0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x73, 0x0a, 0x14,
+	0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65,
+	0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d,
+	0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53,
+	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x2c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e,
+	0x76, 0x31, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x79, 0x0a, 0x16, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c,
+	0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2d, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x61, 0x74,
+	0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a,
+	0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x61, 0x74, 0x65,
+	0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f,
+	0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x88, 0x01, 0x0a,
+	0x1b, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x66, 0x75,
+	0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x32, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x61,
+	0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x33, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76,
+	0x31, 0x2e, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x66,
+	0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x6d, 0x0a, 0x12, 0x53, 0x74, 0x6f, 0x72, 0x61,
+	0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x12, 0x29, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x53,
+	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72,
+	0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x2e, 0x61, 0x64, 0x6d, 0x69, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
+	0x65, 0x4a, 0x6f, 0x62, 0x73, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x2f, 0x5a, 0x2d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x65, 0x78, 0x74, 0x69, 0x6c, 0x65, 0x69, 0x6f, 0x2f, 0x70,
+	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x61,
+	0x64, 0x6d, 0x69, 0x6e, 0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -742,44 +907,54 @@ func file_proto_admin_v1_powergate_admin_proto_rawDescGZIP() []byte {
 	return file_proto_admin_v1_powergate_admin_proto_rawDescData
 }
 
-var file_proto_admin_v1_powergate_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_proto_admin_v1_powergate_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_proto_admin_v1_powergate_admin_proto_goTypes = []interface{}{
-	(*CreateInstanceRequest)(nil),                  // 0: proto.admin.v1.CreateInstanceRequest
-	(*CreateInstanceResponse)(nil),                 // 1: proto.admin.v1.CreateInstanceResponse
-	(*ListInstancesRequest)(nil),                   // 2: proto.admin.v1.ListInstancesRequest
-	(*ListInstancesResponse)(nil),                  // 3: proto.admin.v1.ListInstancesResponse
-	(*GetQueuedStorageJobsRequest)(nil),            // 4: proto.admin.v1.GetQueuedStorageJobsRequest
-	(*GetQueuedStorageJobsResponse)(nil),           // 5: proto.admin.v1.GetQueuedStorageJobsResponse
-	(*GetExecutingStorageJobsRequest)(nil),         // 6: proto.admin.v1.GetExecutingStorageJobsRequest
-	(*GetExecutingStorageJobsResponse)(nil),        // 7: proto.admin.v1.GetExecutingStorageJobsResponse
-	(*GetLatestFinalStorageJobsRequest)(nil),       // 8: proto.admin.v1.GetLatestFinalStorageJobsRequest
-	(*GetLatestFinalStorageJobsResponse)(nil),      // 9: proto.admin.v1.GetLatestFinalStorageJobsResponse
-	(*GetLatestSuccessfulStorageJobsRequest)(nil),  // 10: proto.admin.v1.GetLatestSuccessfulStorageJobsRequest
-	(*GetLatestSuccessfulStorageJobsResponse)(nil), // 11: proto.admin.v1.GetLatestSuccessfulStorageJobsResponse
-	(*rpc.Job)(nil),                                // 12: ffs.rpc.Job
+	(*CreateInstanceRequest)(nil),               // 0: proto.admin.v1.CreateInstanceRequest
+	(*CreateInstanceResponse)(nil),              // 1: proto.admin.v1.CreateInstanceResponse
+	(*ListInstancesRequest)(nil),                // 2: proto.admin.v1.ListInstancesRequest
+	(*ListInstancesResponse)(nil),               // 3: proto.admin.v1.ListInstancesResponse
+	(*QueuedStorageJobsRequest)(nil),            // 4: proto.admin.v1.QueuedStorageJobsRequest
+	(*QueuedStorageJobsResponse)(nil),           // 5: proto.admin.v1.QueuedStorageJobsResponse
+	(*ExecutingStorageJobsRequest)(nil),         // 6: proto.admin.v1.ExecutingStorageJobsRequest
+	(*ExecutingStorageJobsResponse)(nil),        // 7: proto.admin.v1.ExecutingStorageJobsResponse
+	(*LatestFinalStorageJobsRequest)(nil),       // 8: proto.admin.v1.LatestFinalStorageJobsRequest
+	(*LatestFinalStorageJobsResponse)(nil),      // 9: proto.admin.v1.LatestFinalStorageJobsResponse
+	(*LatestSuccessfulStorageJobsRequest)(nil),  // 10: proto.admin.v1.LatestSuccessfulStorageJobsRequest
+	(*LatestSuccessfulStorageJobsResponse)(nil), // 11: proto.admin.v1.LatestSuccessfulStorageJobsResponse
+	(*StorageJobsSummaryRequest)(nil),           // 12: proto.admin.v1.StorageJobsSummaryRequest
+	(*StorageJobsSummaryResponse)(nil),          // 13: proto.admin.v1.StorageJobsSummaryResponse
+	(*rpc.Job)(nil),                             // 14: ffs.rpc.Job
+	(*rpc.JobCounts)(nil),                       // 15: ffs.rpc.JobCounts
 }
 var file_proto_admin_v1_powergate_admin_proto_depIdxs = []int32{
-	12, // 0: proto.admin.v1.GetQueuedStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
-	12, // 1: proto.admin.v1.GetExecutingStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
-	12, // 2: proto.admin.v1.GetLatestFinalStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
-	12, // 3: proto.admin.v1.GetLatestSuccessfulStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
-	0,  // 4: proto.admin.v1.PowergateAdminService.CreateInstance:input_type -> proto.admin.v1.CreateInstanceRequest
-	2,  // 5: proto.admin.v1.PowergateAdminService.ListInstances:input_type -> proto.admin.v1.ListInstancesRequest
-	4,  // 6: proto.admin.v1.PowergateAdminService.GetQueuedStorageJobs:input_type -> proto.admin.v1.GetQueuedStorageJobsRequest
-	6,  // 7: proto.admin.v1.PowergateAdminService.GetExecutingStorageJobs:input_type -> proto.admin.v1.GetExecutingStorageJobsRequest
-	8,  // 8: proto.admin.v1.PowergateAdminService.GetLatestFinalStorageJobs:input_type -> proto.admin.v1.GetLatestFinalStorageJobsRequest
-	10, // 9: proto.admin.v1.PowergateAdminService.GetLatestSuccessfulStorageJobs:input_type -> proto.admin.v1.GetLatestSuccessfulStorageJobsRequest
-	1,  // 10: proto.admin.v1.PowergateAdminService.CreateInstance:output_type -> proto.admin.v1.CreateInstanceResponse
-	3,  // 11: proto.admin.v1.PowergateAdminService.ListInstances:output_type -> proto.admin.v1.ListInstancesResponse
-	5,  // 12: proto.admin.v1.PowergateAdminService.GetQueuedStorageJobs:output_type -> proto.admin.v1.GetQueuedStorageJobsResponse
-	7,  // 13: proto.admin.v1.PowergateAdminService.GetExecutingStorageJobs:output_type -> proto.admin.v1.GetExecutingStorageJobsResponse
-	9,  // 14: proto.admin.v1.PowergateAdminService.GetLatestFinalStorageJobs:output_type -> proto.admin.v1.GetLatestFinalStorageJobsResponse
-	11, // 15: proto.admin.v1.PowergateAdminService.GetLatestSuccessfulStorageJobs:output_type -> proto.admin.v1.GetLatestSuccessfulStorageJobsResponse
-	10, // [10:16] is the sub-list for method output_type
-	4,  // [4:10] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	14, // 0: proto.admin.v1.QueuedStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
+	14, // 1: proto.admin.v1.ExecutingStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
+	14, // 2: proto.admin.v1.LatestFinalStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
+	14, // 3: proto.admin.v1.LatestSuccessfulStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
+	15, // 4: proto.admin.v1.StorageJobsSummaryResponse.job_counts:type_name -> ffs.rpc.JobCounts
+	14, // 5: proto.admin.v1.StorageJobsSummaryResponse.queued_storage_jobs:type_name -> ffs.rpc.Job
+	14, // 6: proto.admin.v1.StorageJobsSummaryResponse.executing_storage_jobs:type_name -> ffs.rpc.Job
+	14, // 7: proto.admin.v1.StorageJobsSummaryResponse.latest_final_storage_jobs:type_name -> ffs.rpc.Job
+	14, // 8: proto.admin.v1.StorageJobsSummaryResponse.latest_successful_storage_jobs:type_name -> ffs.rpc.Job
+	0,  // 9: proto.admin.v1.PowergateAdminService.CreateInstance:input_type -> proto.admin.v1.CreateInstanceRequest
+	2,  // 10: proto.admin.v1.PowergateAdminService.ListInstances:input_type -> proto.admin.v1.ListInstancesRequest
+	4,  // 11: proto.admin.v1.PowergateAdminService.QueuedStorageJobs:input_type -> proto.admin.v1.QueuedStorageJobsRequest
+	6,  // 12: proto.admin.v1.PowergateAdminService.ExecutingStorageJobs:input_type -> proto.admin.v1.ExecutingStorageJobsRequest
+	8,  // 13: proto.admin.v1.PowergateAdminService.LatestFinalStorageJobs:input_type -> proto.admin.v1.LatestFinalStorageJobsRequest
+	10, // 14: proto.admin.v1.PowergateAdminService.LatestSuccessfulStorageJobs:input_type -> proto.admin.v1.LatestSuccessfulStorageJobsRequest
+	12, // 15: proto.admin.v1.PowergateAdminService.StorageJobsSummary:input_type -> proto.admin.v1.StorageJobsSummaryRequest
+	1,  // 16: proto.admin.v1.PowergateAdminService.CreateInstance:output_type -> proto.admin.v1.CreateInstanceResponse
+	3,  // 17: proto.admin.v1.PowergateAdminService.ListInstances:output_type -> proto.admin.v1.ListInstancesResponse
+	5,  // 18: proto.admin.v1.PowergateAdminService.QueuedStorageJobs:output_type -> proto.admin.v1.QueuedStorageJobsResponse
+	7,  // 19: proto.admin.v1.PowergateAdminService.ExecutingStorageJobs:output_type -> proto.admin.v1.ExecutingStorageJobsResponse
+	9,  // 20: proto.admin.v1.PowergateAdminService.LatestFinalStorageJobs:output_type -> proto.admin.v1.LatestFinalStorageJobsResponse
+	11, // 21: proto.admin.v1.PowergateAdminService.LatestSuccessfulStorageJobs:output_type -> proto.admin.v1.LatestSuccessfulStorageJobsResponse
+	13, // 22: proto.admin.v1.PowergateAdminService.StorageJobsSummary:output_type -> proto.admin.v1.StorageJobsSummaryResponse
+	16, // [16:23] is the sub-list for method output_type
+	9,  // [9:16] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_admin_v1_powergate_admin_proto_init() }
@@ -837,7 +1012,7 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			}
 		}
 		file_proto_admin_v1_powergate_admin_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetQueuedStorageJobsRequest); i {
+			switch v := v.(*QueuedStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -849,7 +1024,7 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			}
 		}
 		file_proto_admin_v1_powergate_admin_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetQueuedStorageJobsResponse); i {
+			switch v := v.(*QueuedStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -861,7 +1036,7 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			}
 		}
 		file_proto_admin_v1_powergate_admin_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetExecutingStorageJobsRequest); i {
+			switch v := v.(*ExecutingStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -873,7 +1048,7 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			}
 		}
 		file_proto_admin_v1_powergate_admin_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetExecutingStorageJobsResponse); i {
+			switch v := v.(*ExecutingStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -885,7 +1060,7 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			}
 		}
 		file_proto_admin_v1_powergate_admin_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetLatestFinalStorageJobsRequest); i {
+			switch v := v.(*LatestFinalStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -897,7 +1072,7 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			}
 		}
 		file_proto_admin_v1_powergate_admin_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetLatestFinalStorageJobsResponse); i {
+			switch v := v.(*LatestFinalStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -909,7 +1084,7 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			}
 		}
 		file_proto_admin_v1_powergate_admin_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetLatestSuccessfulStorageJobsRequest); i {
+			switch v := v.(*LatestSuccessfulStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -921,7 +1096,31 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			}
 		}
 		file_proto_admin_v1_powergate_admin_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetLatestSuccessfulStorageJobsResponse); i {
+			switch v := v.(*LatestSuccessfulStorageJobsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_admin_v1_powergate_admin_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StorageJobsSummaryRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_proto_admin_v1_powergate_admin_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StorageJobsSummaryResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -939,7 +1138,7 @@ func file_proto_admin_v1_powergate_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_admin_v1_powergate_admin_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -967,10 +1166,11 @@ const _ = grpc.SupportPackageIsVersion6
 type PowergateAdminServiceClient interface {
 	CreateInstance(ctx context.Context, in *CreateInstanceRequest, opts ...grpc.CallOption) (*CreateInstanceResponse, error)
 	ListInstances(ctx context.Context, in *ListInstancesRequest, opts ...grpc.CallOption) (*ListInstancesResponse, error)
-	GetQueuedStorageJobs(ctx context.Context, in *GetQueuedStorageJobsRequest, opts ...grpc.CallOption) (*GetQueuedStorageJobsResponse, error)
-	GetExecutingStorageJobs(ctx context.Context, in *GetExecutingStorageJobsRequest, opts ...grpc.CallOption) (*GetExecutingStorageJobsResponse, error)
-	GetLatestFinalStorageJobs(ctx context.Context, in *GetLatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*GetLatestFinalStorageJobsResponse, error)
-	GetLatestSuccessfulStorageJobs(ctx context.Context, in *GetLatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*GetLatestSuccessfulStorageJobsResponse, error)
+	QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error)
+	ExecutingStorageJobs(ctx context.Context, in *ExecutingStorageJobsRequest, opts ...grpc.CallOption) (*ExecutingStorageJobsResponse, error)
+	LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error)
+	LatestSuccessfulStorageJobs(ctx context.Context, in *LatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*LatestSuccessfulStorageJobsResponse, error)
+	StorageJobsSummary(ctx context.Context, in *StorageJobsSummaryRequest, opts ...grpc.CallOption) (*StorageJobsSummaryResponse, error)
 }
 
 type powergateAdminServiceClient struct {
@@ -999,36 +1199,45 @@ func (c *powergateAdminServiceClient) ListInstances(ctx context.Context, in *Lis
 	return out, nil
 }
 
-func (c *powergateAdminServiceClient) GetQueuedStorageJobs(ctx context.Context, in *GetQueuedStorageJobsRequest, opts ...grpc.CallOption) (*GetQueuedStorageJobsResponse, error) {
-	out := new(GetQueuedStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/GetQueuedStorageJobs", in, out, opts...)
+func (c *powergateAdminServiceClient) QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error) {
+	out := new(QueuedStorageJobsResponse)
+	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/QueuedStorageJobs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *powergateAdminServiceClient) GetExecutingStorageJobs(ctx context.Context, in *GetExecutingStorageJobsRequest, opts ...grpc.CallOption) (*GetExecutingStorageJobsResponse, error) {
-	out := new(GetExecutingStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/GetExecutingStorageJobs", in, out, opts...)
+func (c *powergateAdminServiceClient) ExecutingStorageJobs(ctx context.Context, in *ExecutingStorageJobsRequest, opts ...grpc.CallOption) (*ExecutingStorageJobsResponse, error) {
+	out := new(ExecutingStorageJobsResponse)
+	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/ExecutingStorageJobs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *powergateAdminServiceClient) GetLatestFinalStorageJobs(ctx context.Context, in *GetLatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*GetLatestFinalStorageJobsResponse, error) {
-	out := new(GetLatestFinalStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/GetLatestFinalStorageJobs", in, out, opts...)
+func (c *powergateAdminServiceClient) LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error) {
+	out := new(LatestFinalStorageJobsResponse)
+	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/LatestFinalStorageJobs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *powergateAdminServiceClient) GetLatestSuccessfulStorageJobs(ctx context.Context, in *GetLatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*GetLatestSuccessfulStorageJobsResponse, error) {
-	out := new(GetLatestSuccessfulStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/GetLatestSuccessfulStorageJobs", in, out, opts...)
+func (c *powergateAdminServiceClient) LatestSuccessfulStorageJobs(ctx context.Context, in *LatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*LatestSuccessfulStorageJobsResponse, error) {
+	out := new(LatestSuccessfulStorageJobsResponse)
+	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/LatestSuccessfulStorageJobs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powergateAdminServiceClient) StorageJobsSummary(ctx context.Context, in *StorageJobsSummaryRequest, opts ...grpc.CallOption) (*StorageJobsSummaryResponse, error) {
+	out := new(StorageJobsSummaryResponse)
+	err := c.cc.Invoke(ctx, "/proto.admin.v1.PowergateAdminService/StorageJobsSummary", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1039,10 +1248,11 @@ func (c *powergateAdminServiceClient) GetLatestSuccessfulStorageJobs(ctx context
 type PowergateAdminServiceServer interface {
 	CreateInstance(context.Context, *CreateInstanceRequest) (*CreateInstanceResponse, error)
 	ListInstances(context.Context, *ListInstancesRequest) (*ListInstancesResponse, error)
-	GetQueuedStorageJobs(context.Context, *GetQueuedStorageJobsRequest) (*GetQueuedStorageJobsResponse, error)
-	GetExecutingStorageJobs(context.Context, *GetExecutingStorageJobsRequest) (*GetExecutingStorageJobsResponse, error)
-	GetLatestFinalStorageJobs(context.Context, *GetLatestFinalStorageJobsRequest) (*GetLatestFinalStorageJobsResponse, error)
-	GetLatestSuccessfulStorageJobs(context.Context, *GetLatestSuccessfulStorageJobsRequest) (*GetLatestSuccessfulStorageJobsResponse, error)
+	QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error)
+	ExecutingStorageJobs(context.Context, *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error)
+	LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error)
+	LatestSuccessfulStorageJobs(context.Context, *LatestSuccessfulStorageJobsRequest) (*LatestSuccessfulStorageJobsResponse, error)
+	StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error)
 }
 
 // UnimplementedPowergateAdminServiceServer can be embedded to have forward compatible implementations.
@@ -1055,17 +1265,20 @@ func (*UnimplementedPowergateAdminServiceServer) CreateInstance(context.Context,
 func (*UnimplementedPowergateAdminServiceServer) ListInstances(context.Context, *ListInstancesRequest) (*ListInstancesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListInstances not implemented")
 }
-func (*UnimplementedPowergateAdminServiceServer) GetQueuedStorageJobs(context.Context, *GetQueuedStorageJobsRequest) (*GetQueuedStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetQueuedStorageJobs not implemented")
+func (*UnimplementedPowergateAdminServiceServer) QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueuedStorageJobs not implemented")
 }
-func (*UnimplementedPowergateAdminServiceServer) GetExecutingStorageJobs(context.Context, *GetExecutingStorageJobsRequest) (*GetExecutingStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetExecutingStorageJobs not implemented")
+func (*UnimplementedPowergateAdminServiceServer) ExecutingStorageJobs(context.Context, *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecutingStorageJobs not implemented")
 }
-func (*UnimplementedPowergateAdminServiceServer) GetLatestFinalStorageJobs(context.Context, *GetLatestFinalStorageJobsRequest) (*GetLatestFinalStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLatestFinalStorageJobs not implemented")
+func (*UnimplementedPowergateAdminServiceServer) LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LatestFinalStorageJobs not implemented")
 }
-func (*UnimplementedPowergateAdminServiceServer) GetLatestSuccessfulStorageJobs(context.Context, *GetLatestSuccessfulStorageJobsRequest) (*GetLatestSuccessfulStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLatestSuccessfulStorageJobs not implemented")
+func (*UnimplementedPowergateAdminServiceServer) LatestSuccessfulStorageJobs(context.Context, *LatestSuccessfulStorageJobsRequest) (*LatestSuccessfulStorageJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LatestSuccessfulStorageJobs not implemented")
+}
+func (*UnimplementedPowergateAdminServiceServer) StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StorageJobsSummary not implemented")
 }
 
 func RegisterPowergateAdminServiceServer(s *grpc.Server, srv PowergateAdminServiceServer) {
@@ -1108,74 +1321,92 @@ func _PowergateAdminService_ListInstances_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PowergateAdminService_GetQueuedStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetQueuedStorageJobsRequest)
+func _PowergateAdminService_QueuedStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueuedStorageJobsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PowergateAdminServiceServer).GetQueuedStorageJobs(ctx, in)
+		return srv.(PowergateAdminServiceServer).QueuedStorageJobs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.admin.v1.PowergateAdminService/GetQueuedStorageJobs",
+		FullMethod: "/proto.admin.v1.PowergateAdminService/QueuedStorageJobs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowergateAdminServiceServer).GetQueuedStorageJobs(ctx, req.(*GetQueuedStorageJobsRequest))
+		return srv.(PowergateAdminServiceServer).QueuedStorageJobs(ctx, req.(*QueuedStorageJobsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PowergateAdminService_GetExecutingStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetExecutingStorageJobsRequest)
+func _PowergateAdminService_ExecutingStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExecutingStorageJobsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PowergateAdminServiceServer).GetExecutingStorageJobs(ctx, in)
+		return srv.(PowergateAdminServiceServer).ExecutingStorageJobs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.admin.v1.PowergateAdminService/GetExecutingStorageJobs",
+		FullMethod: "/proto.admin.v1.PowergateAdminService/ExecutingStorageJobs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowergateAdminServiceServer).GetExecutingStorageJobs(ctx, req.(*GetExecutingStorageJobsRequest))
+		return srv.(PowergateAdminServiceServer).ExecutingStorageJobs(ctx, req.(*ExecutingStorageJobsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PowergateAdminService_GetLatestFinalStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetLatestFinalStorageJobsRequest)
+func _PowergateAdminService_LatestFinalStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LatestFinalStorageJobsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PowergateAdminServiceServer).GetLatestFinalStorageJobs(ctx, in)
+		return srv.(PowergateAdminServiceServer).LatestFinalStorageJobs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.admin.v1.PowergateAdminService/GetLatestFinalStorageJobs",
+		FullMethod: "/proto.admin.v1.PowergateAdminService/LatestFinalStorageJobs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowergateAdminServiceServer).GetLatestFinalStorageJobs(ctx, req.(*GetLatestFinalStorageJobsRequest))
+		return srv.(PowergateAdminServiceServer).LatestFinalStorageJobs(ctx, req.(*LatestFinalStorageJobsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PowergateAdminService_GetLatestSuccessfulStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetLatestSuccessfulStorageJobsRequest)
+func _PowergateAdminService_LatestSuccessfulStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LatestSuccessfulStorageJobsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PowergateAdminServiceServer).GetLatestSuccessfulStorageJobs(ctx, in)
+		return srv.(PowergateAdminServiceServer).LatestSuccessfulStorageJobs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.admin.v1.PowergateAdminService/GetLatestSuccessfulStorageJobs",
+		FullMethod: "/proto.admin.v1.PowergateAdminService/LatestSuccessfulStorageJobs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowergateAdminServiceServer).GetLatestSuccessfulStorageJobs(ctx, req.(*GetLatestSuccessfulStorageJobsRequest))
+		return srv.(PowergateAdminServiceServer).LatestSuccessfulStorageJobs(ctx, req.(*LatestSuccessfulStorageJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowergateAdminService_StorageJobsSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StorageJobsSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowergateAdminServiceServer).StorageJobsSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.admin.v1.PowergateAdminService/StorageJobsSummary",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowergateAdminServiceServer).StorageJobsSummary(ctx, req.(*StorageJobsSummaryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1193,20 +1424,24 @@ var _PowergateAdminService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _PowergateAdminService_ListInstances_Handler,
 		},
 		{
-			MethodName: "GetQueuedStorageJobs",
-			Handler:    _PowergateAdminService_GetQueuedStorageJobs_Handler,
+			MethodName: "QueuedStorageJobs",
+			Handler:    _PowergateAdminService_QueuedStorageJobs_Handler,
 		},
 		{
-			MethodName: "GetExecutingStorageJobs",
-			Handler:    _PowergateAdminService_GetExecutingStorageJobs_Handler,
+			MethodName: "ExecutingStorageJobs",
+			Handler:    _PowergateAdminService_ExecutingStorageJobs_Handler,
 		},
 		{
-			MethodName: "GetLatestFinalStorageJobs",
-			Handler:    _PowergateAdminService_GetLatestFinalStorageJobs_Handler,
+			MethodName: "LatestFinalStorageJobs",
+			Handler:    _PowergateAdminService_LatestFinalStorageJobs_Handler,
 		},
 		{
-			MethodName: "GetLatestSuccessfulStorageJobs",
-			Handler:    _PowergateAdminService_GetLatestSuccessfulStorageJobs_Handler,
+			MethodName: "LatestSuccessfulStorageJobs",
+			Handler:    _PowergateAdminService_LatestSuccessfulStorageJobs_Handler,
+		},
+		{
+			MethodName: "StorageJobsSummary",
+			Handler:    _PowergateAdminService_StorageJobsSummary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
