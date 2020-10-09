@@ -80,7 +80,7 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 		for i := 0; regionSelected < bucket.Amount && i < len(miners); i++ {
 			sask, err := getMinerQueryAsk(c, miners[i])
 			if err != nil {
-				log.Warnf("sr2 miner query-ask errored: %s", miners[i], err)
+				log.Warnf("sr2 miner %s query-ask errored: %s", miners[i], err)
 				continue
 			}
 			if f.MaxPrice > 0 && sask > f.MaxPrice {
