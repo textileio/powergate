@@ -11,10 +11,10 @@ import (
 func TestListenAddr(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()
-	addrInfo, err := c.ListenAddr(ctx)
+	res, err := c.ListenAddr(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, addrInfo.Addrs)
-	require.NotEmpty(t, addrInfo.ID)
+	require.NotEmpty(t, res.AddrInfo.Addrs)
+	require.NotEmpty(t, res.AddrInfo.Id)
 }
 
 func TestPeers(t *testing.T) {
@@ -28,37 +28,37 @@ func TestPeers(t *testing.T) {
 func TestFindPeer(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()
-	peers, err := c.Peers(ctx)
+	res0, err := c.Peers(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, peers)
-	peer, err := c.FindPeer(ctx, peers[0].AddrInfo.ID)
+	require.NotEmpty(t, res0)
+	res1, err := c.FindPeer(ctx, res0.Peers[0].AddrInfo.Id)
 	require.NoError(t, err)
-	require.NotEmpty(t, peer.AddrInfo.ID)
-	require.NotEmpty(t, peer.AddrInfo.Addrs)
+	require.NotEmpty(t, res1.PeerInfo.AddrInfo.Id)
+	require.NotEmpty(t, res1.PeerInfo.AddrInfo.Addrs)
 	// The addrs of peers are in localhost, so
 	// no location information will be available.
-	require.Nil(t, peer.Location)
+	require.Nil(t, res1.PeerInfo.Location)
 }
 
 func TestDisconnectConnect(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()
-	peers, err := c.Peers(ctx)
+	res, err := c.Peers(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, peers)
-	err = c.DisconnectPeer(ctx, peers[0].AddrInfo.ID)
+	require.NotEmpty(t, res.Peers)
+	err = c.DisconnectPeer(ctx, res.Peers[0].AddrInfo.Id)
 	require.NoError(t, err)
-	err = c.ConnectPeer(ctx, peers[0].AddrInfo)
+	err = c.ConnectPeer(ctx, res.Peers[0].AddrInfo)
 	require.NoError(t, err)
 }
 
 func TestConnectedness(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()
-	peers, err := c.Peers(ctx)
+	res, err := c.Peers(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, peers)
-	connectedness, err := c.Connectedness(ctx, peers[0].AddrInfo.ID)
+	require.NotEmpty(t, res.Peers)
+	connectedness, err := c.Connectedness(ctx, res.Peers[0].AddrInfo.Id)
 	require.NoError(t, err)
 	require.Equal(t, n.Connected, connectedness)
 }
