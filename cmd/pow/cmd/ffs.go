@@ -5,6 +5,8 @@ import (
 )
 
 func init() {
+	ffsCmd.PersistentFlags().StringP("token", "t", "", "FFS auth token")
+
 	rootCmd.AddCommand(ffsCmd)
 }
 

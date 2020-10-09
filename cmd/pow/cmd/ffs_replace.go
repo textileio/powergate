@@ -12,7 +12,6 @@ import (
 )
 
 func init() {
-	ffsReplaceCmd.Flags().StringP("token", "t", "", "FFS access token")
 	ffsReplaceCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
 	ffsCmd.AddCommand(ffsReplaceCmd)

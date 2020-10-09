@@ -13,10 +13,7 @@ import (
 )
 
 func init() {
-	signCmd.Flags().StringP("token", "t", "", "token of the request")
 	ffsCmd.AddCommand(signCmd)
-
-	verifyCmd.Flags().StringP("token", "t", "", "token of the request")
 	ffsCmd.AddCommand(verifyCmd)
 }
 

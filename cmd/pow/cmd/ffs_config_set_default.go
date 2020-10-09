@@ -20,8 +20,6 @@ var (
 )
 
 func init() {
-	ffsConfigSetCmd.Flags().StringP("token", "t", "", "FFS auth token")
-
 	ffsConfigCmd.AddCommand(ffsConfigSetCmd)
 }
 

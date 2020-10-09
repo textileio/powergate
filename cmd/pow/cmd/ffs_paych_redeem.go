@@ -9,8 +9,6 @@ import (
 )
 
 func init() {
-	ffsPaychRedeemCmd.Flags().StringP("token", "t", "", "token of the request")
-
 	ffsPaychCmd.AddCommand(ffsPaychRedeemCmd)
 }
 

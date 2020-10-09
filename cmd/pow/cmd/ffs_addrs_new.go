@@ -12,7 +12,6 @@ import (
 )
 
 func init() {
-	ffsAddrsNewCmd.Flags().StringP("token", "t", "", "FFS auth token")
 	ffsAddrsNewCmd.Flags().StringP("format", "f", "", "Optionally specify address format bls or secp256k1")
 	ffsAddrsNewCmd.Flags().BoolP("default", "d", false, "Make the new address the ffs default")
 

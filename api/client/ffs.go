@@ -284,6 +284,38 @@ func (f *FFS) GetStorageJob(ctx context.Context, jid ffs.JobID) (*rpc.GetStorage
 	return f.client.GetStorageJob(ctx, &rpc.GetStorageJobRequest{Jid: jid.String()})
 }
 
+// GetQueuedStorageJobs returns a list of queued storage jobs.
+func (f *FFS) GetQueuedStorageJobs(ctx context.Context, cids ...string) (*rpc.GetQueuedStorageJobsResponse, error) {
+	req := &rpc.GetQueuedStorageJobsRequest{
+		Cids: cids,
+	}
+	return f.client.GetQueuedStorageJobs(ctx, req)
+}
+
+// GetExecutingStorageJobs returns a list of executing storage jobs.
+func (f *FFS) GetExecutingStorageJobs(ctx context.Context, cids ...string) (*rpc.GetExecutingStorageJobsResponse, error) {
+	req := &rpc.GetExecutingStorageJobsRequest{
+		Cids: cids,
+	}
+	return f.client.GetExecutingStorageJobs(ctx, req)
+}
+
+// GetLatestFinalStorageJobs returns a list of latest final storage jobs.
+func (f *FFS) GetLatestFinalStorageJobs(ctx context.Context, cids ...string) (*rpc.GetLatestFinalStorageJobsResponse, error) {
+	req := &rpc.GetLatestFinalStorageJobsRequest{
+		Cids: cids,
+	}
+	return f.client.GetLatestFinalStorageJobs(ctx, req)
+}
+
+// GetLatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
+func (f *FFS) GetLatestSuccessfulStorageJobs(ctx context.Context, cids ...string) (*rpc.GetLatestSuccessfulStorageJobsResponse, error) {
+	req := &rpc.GetLatestSuccessfulStorageJobsRequest{
+		Cids: cids,
+	}
+	return f.client.GetLatestSuccessfulStorageJobs(ctx, req)
+}
+
 // WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
 // events, the provided ctx should be canceled. If an error occurs, it will be returned

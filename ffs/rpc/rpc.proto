@@ -312,6 +312,38 @@ message GetStorageJobResponse {
    Job job = 1;
 }
 
+message GetQueuedStorageJobsRequest {
+   repeated string cids = 2;
+}
+
+message GetQueuedStorageJobsResponse {
+   repeated ffs.rpc.Job storage_jobs = 1;
+}
+
+message GetExecutingStorageJobsRequest {
+   repeated string cids = 2;
+}
+
+message GetExecutingStorageJobsResponse {
+   repeated ffs.rpc.Job storage_jobs = 1;
+}
+
+message GetLatestFinalStorageJobsRequest {
+   repeated string cids = 2;
+}
+
+message GetLatestFinalStorageJobsResponse {
+   repeated ffs.rpc.Job storage_jobs = 1;
+}
+
+message GetLatestSuccessfulStorageJobsRequest {
+   repeated string cids = 2;
+}
+
+message GetLatestSuccessfulStorageJobsResponse {
+   repeated ffs.rpc.Job storage_jobs = 1;
+}
+
 message WatchJobsRequest {
    repeated string jids = 1;
 }
@@ -444,6 +476,10 @@ service RPCService {
    rpc Info(InfoRequest) returns (InfoResponse) {}
    rpc CancelJob(CancelJobRequest) returns (CancelJobResponse) {}
    rpc GetStorageJob(GetStorageJobRequest) returns (GetStorageJobResponse) {}
+   rpc GetQueuedStorageJobs(GetQueuedStorageJobsRequest) returns (GetQueuedStorageJobsResponse) {}
+   rpc GetExecutingStorageJobs(GetExecutingStorageJobsRequest) returns (GetExecutingStorageJobsResponse) {}
+   rpc GetLatestFinalStorageJobs(GetLatestFinalStorageJobsRequest) returns (GetLatestFinalStorageJobsResponse) {}
+   rpc GetLatestSuccessfulStorageJobs(GetLatestSuccessfulStorageJobsRequest) returns (GetLatestSuccessfulStorageJobsResponse) {}
    rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsResponse) {}
    rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
    rpc Replace(ReplaceRequest) returns (ReplaceResponse) {}

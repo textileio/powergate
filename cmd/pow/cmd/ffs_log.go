@@ -15,7 +15,6 @@ import (
 )
 
 func init() {
-	ffsLogCmd.Flags().StringP("token", "t", "", "FFS auth token")
 	ffsLogCmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
 
 	ffsCmd.AddCommand(ffsLogCmd)

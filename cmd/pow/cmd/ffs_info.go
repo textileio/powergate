@@ -13,8 +13,6 @@ import (
 )
 
 func init() {
-	ffsInfoCmd.Flags().StringP("token", "t", "", "token of the request")
-
 	ffsCmd.AddCommand(ffsInfoCmd)
 }
 

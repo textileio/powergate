@@ -10,8 +10,6 @@ import (
 )
 
 func init() {
-	ffsIDCmd.Flags().StringP("token", "t", "", "FFS auth token")
-
 	ffsCmd.AddCommand(ffsIDCmd)
 }
 

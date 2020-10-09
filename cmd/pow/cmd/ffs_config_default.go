@@ -11,8 +11,6 @@ import (
 )
 
 func init() {
-	ffsConfigDefaultCmd.Flags().StringP("token", "t", "", "FFS auth token")
-
 	ffsConfigCmd.AddCommand(ffsConfigDefaultCmd)
 }
 

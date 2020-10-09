@@ -8,6 +8,7 @@ import (
 	"math/big"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
+	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
@@ -269,6 +270,90 @@ func (s *RPC) GetStorageJob(ctx context.Context, req *GetStorageJobRequest) (*Ge
 	}
 	return &GetStorageJobResponse{
 		Job: rpcJob,
+	}, nil
+}
+
+// GetQueuedStorageJobs returns a list of queued storage jobs.
+func (s *RPC) GetQueuedStorageJobs(ctx context.Context, req *GetQueuedStorageJobsRequest) (*GetQueuedStorageJobsResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+	}
+
+	cids, err := fromProtoCids(req.Cids)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
+	}
+	jobs := i.GetQueuedStorageJobs(cids...)
+	protoJobs, err := ToProtoStorageJobs(jobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
+	}
+	return &GetQueuedStorageJobsResponse{
+		StorageJobs: protoJobs,
+	}, nil
+}
+
+// GetExecutingStorageJobs returns a list of executing storage jobs.
+func (s *RPC) GetExecutingStorageJobs(ctx context.Context, req *GetExecutingStorageJobsRequest) (*GetExecutingStorageJobsResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+	}
+
+	cids, err := fromProtoCids(req.Cids)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
+	}
+	jobs := i.GetExecutingStorageJobs(cids...)
+	protoJobs, err := ToProtoStorageJobs(jobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
+	}
+	return &GetExecutingStorageJobsResponse{
+		StorageJobs: protoJobs,
+	}, nil
+}
+
+// GetLatestFinalStorageJobs returns a list of latest final storage jobs.
+func (s *RPC) GetLatestFinalStorageJobs(ctx context.Context, req *GetLatestFinalStorageJobsRequest) (*GetLatestFinalStorageJobsResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+	}
+
+	cids, err := fromProtoCids(req.Cids)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
+	}
+	jobs := i.GetLatestFinalStorageJobs(cids...)
+	protoJobs, err := ToProtoStorageJobs(jobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
+	}
+	return &GetLatestFinalStorageJobsResponse{
+		StorageJobs: protoJobs,
+	}, nil
+}
+
+// GetLatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
+func (s *RPC) GetLatestSuccessfulStorageJobs(ctx context.Context, req *GetLatestSuccessfulStorageJobsRequest) (*GetLatestSuccessfulStorageJobsResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+	}
+
+	cids, err := fromProtoCids(req.Cids)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
+	}
+	jobs := i.GetLatestSuccessfulStorageJobs(cids...)
+	protoJobs, err := ToProtoStorageJobs(jobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
+	}
+	return &GetLatestSuccessfulStorageJobsResponse{
+		StorageJobs: protoJobs,
 	}, nil
 }
 
@@ -894,4 +979,16 @@ func toRPCJob(job ffs.StorageJob) (*Job, error) {
 		CreatedAt:  job.CreatedAt,
 		DealInfo:   dealInfo,
 	}, nil
+}
+
+func fromProtoCids(cids []string) ([]cid.Cid, error) {
+	var res []cid.Cid
+	for _, cid := range cids {
+		cid, err := util.CidFromString(cid)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, cid)
+	}
+	return res, nil
 }

@@ -11,8 +11,6 @@ import (
 )
 
 func init() {
-	ffsPaychListCmd.Flags().StringP("token", "t", "", "token of the request")
-
 	ffsPaychCmd.AddCommand(ffsPaychListCmd)
 }
 

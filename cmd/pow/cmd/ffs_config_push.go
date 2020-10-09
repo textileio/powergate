@@ -19,7 +19,6 @@ import (
 )
 
 func init() {
-	ffsConfigPushCmd.Flags().StringP("token", "t", "", "FFS access token")
 	ffsConfigPushCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
 	ffsConfigPushCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
 	ffsConfigPushCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")

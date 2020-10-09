@@ -10,8 +10,6 @@ import (
 )
 
 func init() {
-	ffsAddrsListCmd.Flags().StringP("token", "t", "", "token of the request")
-
 	ffsAddrsCmd.AddCommand(ffsAddrsListCmd)
 }
 

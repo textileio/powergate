@@ -15,7 +15,6 @@ import (
 )
 
 func init() {
-	ffsRetrievalsCmd.Flags().StringP("token", "t", "", "token of the request")
 	ffsRetrievalsCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is descending")
 	ffsRetrievalsCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids")
 	ffsRetrievalsCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses")

@@ -14,7 +14,6 @@ import (
 )
 
 func init() {
-	ffsGetCmd.Flags().StringP("token", "t", "", "token of the request")
 	ffsGetCmd.Flags().String("ipfsrevproxy", "localhost:6002", "Powergate IPFS reverse proxy DNS address. If port 443, is assumed is a HTTPS endpoint.")
 	ffsGetCmd.Flags().BoolP("folder", "f", false, "Indicates that the retrieved Cid is a folder")
 	ffsCmd.AddCommand(ffsGetCmd)
