@@ -14,7 +14,6 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
-	askindex "github.com/textileio/powergate/index/ask/runner"
 	"github.com/textileio/powergate/lotus"
 )
 
@@ -25,7 +24,6 @@ var (
 // MinerSelector chooses miner under SR2 strategy.
 type MinerSelector struct {
 	url string
-	ai  *askindex.Runner
 	cb  lotus.ClientBuilder
 }
 
@@ -41,8 +39,8 @@ type bucket struct {
 }
 
 // New returns a new SR2 miner selector.
-func New(url string, ai *askindex.Runner, cb lotus.ClientBuilder) (*MinerSelector, error) {
-	ms := &MinerSelector{url: url, ai: ai, cb: cb}
+func New(url string, cb lotus.ClientBuilder) (*MinerSelector, error) {
+	ms := &MinerSelector{url: url, cb: cb}
 
 	_, err := ms.getMiners()
 	if err != nil {
@@ -54,7 +52,6 @@ func New(url string, ai *askindex.Runner, cb lotus.ClientBuilder) (*MinerSelecto
 
 // GetMiners returns miners from SR2.
 func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerProposal, error) {
-	asks := ms.ai.Get()
 	mb, err := ms.getMiners()
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from url: %s", err)
@@ -66,9 +63,9 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 	}
 	defer cls()
 
-	var selected []string
+	rand.Seed(time.Now().UnixNano())
+	var selected []ffs.MinerProposal
 	for _, bucket := range mb.Buckets {
-		rand.Seed(time.Now().UnixNano())
 		miners := bucket.MinerAddresses
 		rand.Shuffle(len(miners), func(i, j int) { miners[i], miners[j] = miners[j], miners[i] })
 
@@ -79,33 +76,30 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 		if bucket.Amount > len(miners) {
 			bucket.Amount = len(miners)
 		}
-		selected = append(selected, miners[:bucket.Amount]...)
+		var regionSelected int
+		for i := 0; regionSelected < bucket.Amount && i < len(miners); i++ {
+			sask, err := getMinerQueryAsk(c, miners[i])
+			if err != nil {
+				log.Warnf("sr2 miner %s query-ask errored: %s", miners[i], err)
+				continue
+			}
+			if f.MaxPrice > 0 && sask > f.MaxPrice {
+				log.Warnf("skipping miner %s with price %d higher than max-price %d", miners[i], sask, f.MaxPrice)
+				continue
+			}
+			selected = append(selected, ffs.MinerProposal{
+				Addr:       miners[i],
+				EpochPrice: sask,
+			})
+			regionSelected++
+		}
 	}
 
 	if len(selected) == 0 {
 		return nil, fmt.Errorf("no SR2 miners are available")
 	}
 
-	res := make([]ffs.MinerProposal, 0, len(selected))
-	for _, miner := range selected {
-		sa, ok := asks.Storage[miner]
-		if !ok {
-			sask, err := getMinerQueryAsk(c, miner)
-			if err != nil {
-				log.Warnf("miner %s not in ask cache and query-ask errored: %s", miner, err)
-				continue
-			}
-
-			log.Infof("miner %s not in ask-cache, direct query-ask price: %d", miner, sask)
-			sa.Price = sask
-		}
-		res = append(res, ffs.MinerProposal{
-			Addr:       miner,
-			EpochPrice: sa.Price,
-		})
-	}
-
-	return res, nil
+	return selected, nil
 }
 
 // GetReplicationFactor returns the current replication factor of the
@@ -149,7 +143,7 @@ func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (uint64, erro
 	if err != nil {
 		return 0, fmt.Errorf("miner address is invalid: %s", err)
 	}
-	ctx, cls := context.WithTimeout(context.Background(), time.Second*15)
+	ctx, cls := context.WithTimeout(context.Background(), time.Second*10)
 	defer cls()
 	mi, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
 	if err != nil {

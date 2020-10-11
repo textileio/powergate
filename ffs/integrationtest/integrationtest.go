@@ -116,7 +116,7 @@ func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (add
 	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
-		addrs[i] = fmt.Sprintf("t0%d", 1000+i)
+		addrs[i] = fmt.Sprintf("f0%d", 1000+i)
 	}
 
 	fixedMiners := make([]fixed.Miner, len(addrs))
@@ -129,12 +129,17 @@ func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (add
 
 // NewFFSManager returns a new FFS manager.
 func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
+	return NewCustomFFSManager(t, ds, clientBuilder, masterAddr, ms, ipfsClient, 0)
+}
+
+// NewCustomFFSManager returns a new customized FFS manager.
+func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi, minimumPieceSize uint64) (*manager.Manager, func()) {
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, util.AvgBlockTime)
 	require.NoError(t, err)
 
 	fchain := filchain.New(clientBuilder)
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
-	cl := filcold.New(ms, dm, ipfsClient, fchain, l)
+	cl := filcold.New(ms, dm, ipfsClient, fchain, l, minimumPieceSize)
 	hl, err := coreipfs.New(ipfsClient, l)
 	require.NoError(t, err)
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil)
