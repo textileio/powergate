@@ -13,14 +13,14 @@ pow ffs config set-default [optional file] [flags]
 ### Options
 
 ```
-  -h, --help           help for set-default
-  -t, --token string   FFS auth token
+  -h, --help   help for set-default
 ```
 
 ### Options inherited from parent commands
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           FFS auth token
 ```
 
 ### SEE ALSO

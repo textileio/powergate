@@ -7,7 +7,7 @@ Disconnect from specified peer
 Disconnect from specified peer
 
 ```
-pow net disconnect [peerID] [address] [flags]
+pow net disconnect [peerID] [flags]
 ```
 
 ### Options

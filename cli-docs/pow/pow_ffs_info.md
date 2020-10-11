@@ -1,26 +1,26 @@
 ## pow ffs info
 
-Get info from ffs instance
+Get information about the current state of cid storage
 
 ### Synopsis
 
-Get info from ffs instance
+Get information about the current state of cid storage
 
 ```
-pow ffs info [flags]
+pow ffs info [optional cid1,cid2,...] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help           help for info
-  -t, --token string   token of the request
+  -h, --help   help for info
 ```
 
 ### Options inherited from parent commands
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           FFS auth token
 ```
 
 ### SEE ALSO

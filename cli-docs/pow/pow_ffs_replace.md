@@ -13,15 +13,15 @@ pow ffs replace [cid1] [cid2] [flags]
 ### Options
 
 ```
-  -h, --help           help for replace
-  -t, --token string   FFS access token
-  -w, --watch          Watch the progress of the resulting job
+  -h, --help    help for replace
+  -w, --watch   Watch the progress of the resulting job
 ```
 
 ### Options inherited from parent commands
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           FFS auth token
 ```
 
 ### SEE ALSO

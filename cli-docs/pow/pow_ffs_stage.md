@@ -15,13 +15,13 @@ pow ffs stage [path|url] [flags]
 ```
   -h, --help                  help for stage
       --ipfsrevproxy string   Powergate IPFS reverse proxy multiaddr (default "127.0.0.1:6002")
-  -t, --token string          FFS access token
 ```
 
 ### Options inherited from parent commands
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           FFS auth token
 ```
 
 ### SEE ALSO

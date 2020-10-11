@@ -16,13 +16,13 @@ pow ffs addrs new [name] [flags]
   -d, --default         Make the new address the ffs default
   -f, --format string   Optionally specify address format bls or secp256k1
   -h, --help            help for new
-  -t, --token string    FFS auth token
 ```
 
 ### Options inherited from parent commands
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           FFS auth token
 ```
 
 ### SEE ALSO

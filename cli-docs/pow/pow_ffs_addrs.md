@@ -16,6 +16,7 @@ Provides commands to manage wallet addresses
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           FFS auth token
 ```
 
 ### SEE ALSO

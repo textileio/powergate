@@ -13,14 +13,14 @@ pow ffs verify [addr] [hex-encoded-message] [hex-encoded-signature] [flags]
 ### Options
 
 ```
-  -h, --help           help for verify
-  -t, --token string   token of the request
+  -h, --help   help for verify
 ```
 
 ### Options inherited from parent commands
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           FFS auth token
 ```
 
 ### SEE ALSO
