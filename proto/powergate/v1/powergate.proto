@@ -1,0 +1,16 @@
+syntax = "proto3";
+package proto.powergate.v1;
+
+option go_package = "github.com/textileio/powergate/proto/powergate/v1";
+
+message BalanceRequest {
+  string address = 1;
+}
+
+message BalanceResponse {
+  uint64 balance = 1;
+}
+
+service PowergateService {
+  rpc Balance(BalanceRequest) returns (BalanceResponse) {}
+}
