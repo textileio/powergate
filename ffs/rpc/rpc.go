@@ -180,7 +180,7 @@ func (s *RPC) CidInfo(ctx context.Context, req *CidInfoRequest) (*CidInfoRespons
 		}
 		return nil, status.Errorf(code, "getting storage configs: %v", err)
 	}
-	res := make([]*CidInfo, len(storageConfigs))
+	res := make([]*CidInfo, 0, len(storageConfigs))
 	for cid, config := range storageConfigs {
 		rpcConfig := &StorageConfig{
 			Repairable: config.Repairable,

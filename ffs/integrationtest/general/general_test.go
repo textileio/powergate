@@ -189,7 +189,7 @@ func TestShow(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(cfgs))
 
-		cfgCids := make([]cid.Cid, len(cfgs))
+		cfgCids := make([]cid.Cid, 0, len(cfgs))
 		for cid := range cfgs {
 			cfgCids = append(cfgCids, cid)
 		}
