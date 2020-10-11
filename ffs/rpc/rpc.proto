@@ -10,6 +10,7 @@ message AddrInfo {
    string name = 1;
    string addr = 2;
    string type = 3;
+   uint64 balance = 4;
 }
 
 message IpfsConfig {
@@ -84,7 +85,7 @@ message ColdInfo {
    FilInfo filecoin = 2;
 }
 
-message CidInfo {
+message StorageInfo {
    string job_id = 1;
    string cid = 2;
    int64 created = 3;
@@ -92,16 +93,14 @@ message CidInfo {
    ColdInfo cold = 5;
 }
 
-message BalanceInfo {
-   AddrInfo addr = 1;
-   int64 balance = 2;
-}
-
-message InstanceInfo {
-   string id = 1;
-   StorageConfig default_storage_config = 2;
-   repeated BalanceInfo balances = 3;
-   repeated string pins = 4;
+message CidInfo {
+   string cid = 1;
+   StorageConfig latest_pushed_storage_config = 2;
+   StorageInfo current_storage_info = 3;
+   repeated Job queued_storage_jobs = 4;
+   Job executing_storage_job = 5;
+   Job latest_final_storage_job = 6;
+   Job latest_successful_storage_job = 7;
 }
 
 enum JobStatus {
@@ -267,14 +266,6 @@ message NewAddrResponse {
    string addr = 1;
 }
 
-message StorageConfigRequest {
-   string cid = 1;
-}
-
-message StorageConfigResponse {
-   StorageConfig config = 1;
-}
-
 message SetDefaultStorageConfigRequest {
    StorageConfig config = 1;
 }
@@ -282,19 +273,12 @@ message SetDefaultStorageConfigRequest {
 message SetDefaultStorageConfigResponse {
 }
 
-message ShowRequest {
-   string cid = 1;
+message CidInfoRequest {
+   repeated string cids = 1;
 }
 
-message ShowResponse {
-   CidInfo cid_info = 1;
-}
-
-message InfoRequest {
-}
-
-message InfoResponse {
-   InstanceInfo info = 1;
+message CidInfoResponse {
+   repeated CidInfo cid_infos = 1;
 }
 
 message CancelJobRequest {
@@ -475,13 +459,6 @@ message ListRetrievalDealRecordsResponse {
    repeated RetrievalDealRecord records = 1;
 }
 
-message ShowAllRequest {
-}
-
-message ShowAllResponse {
-   repeated CidInfo cid_infos = 1;
-}
-
 service RPCService {
    rpc ID(IDRequest) returns (IDResponse) {}
    rpc Addrs(AddrsRequest) returns (AddrsResponse) {}
@@ -489,10 +466,8 @@ service RPCService {
    rpc NewAddr(NewAddrRequest) returns (NewAddrResponse) {}
    rpc SignMessage(SignMessageRequest) returns (SignMessageResponse) {}
    rpc VerifyMessage(VerifyMessageRequest) returns (VerifyMessageResponse) {}
-   rpc StorageConfig(StorageConfigRequest) returns (StorageConfigResponse) {}
    rpc SetDefaultStorageConfig(SetDefaultStorageConfigRequest) returns (SetDefaultStorageConfigResponse) {}
-   rpc Show(ShowRequest) returns (ShowResponse) {}
-   rpc Info(InfoRequest) returns (InfoResponse) {}
+   rpc CidInfo(CidInfoRequest) returns (CidInfoResponse) {}
    rpc CancelJob(CancelJobRequest) returns (CancelJobResponse) {}
    rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}
    rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
@@ -513,7 +488,4 @@ service RPCService {
    rpc RedeemPayChannel(RedeemPayChannelRequest) returns (RedeemPayChannelResponse) {}
    rpc ListStorageDealRecords(ListStorageDealRecordsRequest) returns (ListStorageDealRecordsResponse) {}
    rpc ListRetrievalDealRecords(ListRetrievalDealRecordsRequest) returns (ListRetrievalDealRecordsResponse) {}
-
-   // UI support
-   rpc ShowAll(ShowAllRequest) returns (ShowAllResponse) {}
 }

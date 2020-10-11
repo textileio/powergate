@@ -2,14 +2,12 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
+	"strings"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/util"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -17,9 +15,10 @@ func init() {
 }
 
 var ffsInfoCmd = &cobra.Command{
-	Use:   "info",
-	Short: "Get info from ffs instance",
-	Long:  `Get info from ffs instance`,
+	Use:   "info [optional cid1,cid2,...]",
+	Short: "Get information about the current state of cid storage",
+	Long:  `Get information about the current state of cid storage`,
+	Args:  cobra.MaximumNArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -28,35 +27,17 @@ var ffsInfoCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Retrieving instance info...")
-		s.Start()
-		info, err := fcClient.FFS.Info(authCtx(ctx))
-		checkErr(err)
-		s.Stop()
-
-		Message("FFS instance id: %v", info.ID.String())
-
-		data := make([][]string, len(info.Balances))
-		for i, balance := range info.Balances {
-			isDefault := ""
-			if balance.Addr == info.DefaultStorageConfig.Cold.Filecoin.Addr {
-				isDefault = "yes"
-			}
-			data[i] = []string{balance.Name, balance.Addr, balance.Type, fmt.Sprintf("%v", balance.Balance), isDefault}
+		var cids []string
+		if len(args) > 0 {
+			cids = strings.Split(args[0], ",")
 		}
-		Message("Wallet addresses:")
-		RenderTable(os.Stdout, []string{"name", "address", "type", "balance", "default"}, data)
 
-		bytes, err := json.MarshalIndent(info.DefaultStorageConfig, "", "  ")
+		res, err := fcClient.FFS.CidInfo(authCtx(ctx), cids...)
 		checkErr(err)
 
-		Message("Default storage config:\n%v", string(bytes))
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		checkErr(err)
 
-		Message("Pinned cids:")
-		data = make([][]string, len(info.Pins))
-		for i, cid := range info.Pins {
-			data[i] = []string{util.CidToString(cid)}
-		}
-		RenderTable(os.Stdout, []string{"cid"}, data)
+		fmt.Println(string(json))
 	},
 }

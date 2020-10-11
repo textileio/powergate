@@ -35,10 +35,10 @@ var signCmd = &cobra.Command{
 
 		s := spin.New(fmt.Sprintf("%s Signing message with addresses...", "%s"))
 		s.Start()
-		addrs, err := fcClient.FFS.Addrs(authCtx(ctx))
+		res, err := fcClient.FFS.Addrs(authCtx(ctx))
 		checkErr(err)
-		data := make([][]string, len(addrs))
-		for _, a := range addrs {
+		data := make([][]string, len(res.Addrs))
+		for _, a := range res.Addrs {
 			sig, err := fcClient.FFS.SignMessage(authCtx(ctx), a.Addr, b)
 			checkErr(err)
 			data = append(data, []string{a.Addr, hex.EncodeToString(sig)})

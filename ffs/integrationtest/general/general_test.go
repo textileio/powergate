@@ -93,19 +93,19 @@ func TestGet(t *testing.T) {
 
 func TestInfo(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ctx := context.Background()
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
 
-		var err error
-		var first api.InstanceInfo
-		first, err = fapi.Info(ctx)
+		firstID := fapi.ID()
+		require.NotEmpty(t, firstID)
+
+		firstAddrs := fapi.Addrs()
+		require.Len(t, firstAddrs, 1)
+		require.NotEmpty(t, firstAddrs[0].Addr)
+
+		firstStorageConfigs, err := fapi.GetStorageConfigs()
 		require.NoError(t, err)
-		require.NotEmpty(t, first.ID)
-		require.Len(t, first.Balances, 1)
-		require.NotEmpty(t, first.Balances[0].Addr)
-		require.Greater(t, first.Balances[0].Balance, uint64(0))
-		require.Equal(t, len(first.Pins), 0)
+		require.Equal(t, len(firstStorageConfigs), 0)
 
 		r := rand.New(rand.NewSource(22))
 		n := 1
@@ -150,13 +150,17 @@ func TestInfo(t *testing.T) {
 			}
 		}
 
-		second, err := fapi.Info(ctx)
+		secondID := fapi.ID()
+		require.Equal(t, secondID, firstID)
+
+		secondAddrs := fapi.Addrs()
 		require.NoError(t, err)
-		require.Equal(t, second.ID, first.ID)
-		require.Len(t, second.Balances, 1)
-		require.Equal(t, second.Balances[0].Addr, first.Balances[0].Addr)
-		require.Less(t, second.Balances[0].Balance, first.Balances[0].Balance)
-		require.Equal(t, n, len(second.Pins))
+		require.Len(t, secondAddrs, 1)
+		require.Equal(t, secondAddrs[0].Addr, firstAddrs[0].Addr)
+
+		secondStorageConfigs, err := fapi.GetStorageConfigs()
+		require.NoError(t, err)
+		require.Equal(t, n, len(secondStorageConfigs))
 	})
 }
 
@@ -164,7 +168,6 @@ func TestShow(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ctx := context.Background()
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 
 		defer cls()
@@ -172,22 +175,28 @@ func TestShow(t *testing.T) {
 		// Test not stored
 		c, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 
-		_, err := fapi.Show(c)
+		_, err := fapi.GetStorageConfigs(c)
 		require.Equal(t, api.ErrNotFound, err)
 
 		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfs)
-		jid, err := fapi.PushStorageConfig(cid)
+		randomCid, _ := it.AddRandomFile(t, r, ipfs)
+		jid, err := fapi.PushStorageConfig(randomCid)
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, nil)
+		it.RequireStorageConfig(t, fapi, randomCid, nil)
 
-		inf, err := fapi.Info(ctx)
+		cfgs, err := fapi.GetStorageConfigs()
 		require.NoError(t, err)
-		require.Equal(t, 1, len(inf.Pins))
+		require.Equal(t, 1, len(cfgs))
 
-		c = inf.Pins[0]
-		s, err := fapi.Show(c)
+		cfgCids := make([]cid.Cid, len(cfgs))
+		for cid := range cfgs {
+			cfgCids = append(cfgCids, cid)
+		}
+
+		c = cfgCids[0]
+
+		s, err := fapi.StorageInfo(c)
 		require.NoError(t, err)
 
 		require.True(t, s.Cid.Defined())
@@ -229,9 +238,8 @@ func TestColdInstanceLoad(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
-		info, err := fapi.Info(ctx)
-		require.NoError(t, err)
-		shw, err := fapi.Show(cid)
+		id := fapi.ID()
+		sinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 
 		// Now close the FFS Instance, and the manager.
@@ -245,13 +253,12 @@ func TestColdInstanceLoad(t *testing.T) {
 		fapi, err = manager.GetByAuthToken(auth)
 		require.NoError(t, err)
 
-		ninfo, err := fapi.Info(ctx)
-		require.NoError(t, err)
-		require.Equal(t, info, ninfo)
+		nid := fapi.ID()
+		require.Equal(t, id, nid)
 
-		nshw, err := fapi.Show(cid)
+		nsinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
-		require.Equal(t, shw, nshw)
+		require.Equal(t, sinfo, nsinfo)
 
 		r, err := fapi.Get(ctx, cid)
 		require.NoError(t, err)
@@ -287,7 +294,7 @@ func TestRemove(t *testing.T) {
 
 		err = fapi.Remove(c1)
 		require.NoError(t, err)
-		_, err = fapi.GetStorageConfig(c1)
+		_, err = fapi.GetStorageConfigs(c1)
 		require.Equal(t, api.ErrNotFound, err)
 	})
 }
@@ -307,7 +314,7 @@ func TestImport(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that imported data is in fapi2
-	i, err := fapi.Show(payloadCid)
+	i, err := fapi.StorageInfo(payloadCid)
 	require.NoError(t, err)
 	require.False(t, i.Hot.Enabled)
 	require.Equal(t, payloadCid, i.Cold.Filecoin.DataCid)

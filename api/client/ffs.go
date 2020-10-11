@@ -17,7 +17,6 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc/codes"
@@ -154,20 +153,8 @@ func (f *FFS) ID(ctx context.Context) (ffs.APIID, error) {
 }
 
 // Addrs returns a list of addresses managed by the FFS instance.
-func (f *FFS) Addrs(ctx context.Context) ([]api.AddrInfo, error) {
-	resp, err := f.client.Addrs(ctx, &rpc.AddrsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	addrs := make([]api.AddrInfo, len(resp.Addrs))
-	for i, addr := range resp.Addrs {
-		addrs[i] = api.AddrInfo{
-			Name: addr.Name,
-			Addr: addr.Addr,
-			Type: addr.Type,
-		}
-	}
-	return addrs, nil
+func (f *FFS) Addrs(ctx context.Context) (*rpc.AddrsResponse, error) {
+	return f.client.Addrs(ctx, &rpc.AddrsRequest{})
 }
 
 // DefaultStorageConfig returns the default storage config.
@@ -206,11 +193,6 @@ func (f *FFS) NewAddr(ctx context.Context, name string, options ...NewAddressOpt
 	return resp.Addr, err
 }
 
-// StorageConfig gets the current config for a cid.
-func (f *FFS) StorageConfig(ctx context.Context, c cid.Cid) (*rpc.StorageConfigResponse, error) {
-	return f.client.StorageConfig(ctx, &rpc.StorageConfigRequest{Cid: c.String()})
-}
-
 // SetDefaultStorageConfig sets the default storage config.
 func (f *FFS) SetDefaultStorageConfig(ctx context.Context, config ffs.StorageConfig) error {
 	req := &rpc.SetDefaultStorageConfigRequest{
@@ -224,52 +206,9 @@ func (f *FFS) SetDefaultStorageConfig(ctx context.Context, config ffs.StorageCon
 	return err
 }
 
-// Show returns information about the current storage state of a cid.
-func (f *FFS) Show(ctx context.Context, c cid.Cid) (*rpc.ShowResponse, error) {
-	return f.client.Show(ctx, &rpc.ShowRequest{
-		Cid: util.CidToString(c),
-	})
-}
-
-// ShowAll returns information about all the currently stored cids.
-func (f *FFS) ShowAll(ctx context.Context) (*rpc.ShowAllResponse, error) {
-	return f.client.ShowAll(ctx, &rpc.ShowAllRequest{})
-}
-
-// Info returns information about the FFS instance.
-func (f *FFS) Info(ctx context.Context) (api.InstanceInfo, error) {
-	res, err := f.client.Info(ctx, &rpc.InfoRequest{})
-	if err != nil {
-		return api.InstanceInfo{}, err
-	}
-
-	balances := make([]api.BalanceInfo, len(res.Info.Balances))
-	for i, bal := range res.Info.Balances {
-		balances[i] = api.BalanceInfo{
-			AddrInfo: api.AddrInfo{
-				Name: bal.Addr.Name,
-				Addr: bal.Addr.Addr,
-				Type: bal.Addr.Type,
-			},
-			Balance: uint64(bal.Balance),
-		}
-	}
-
-	pins := make([]cid.Cid, len(res.Info.Pins))
-	for i, pin := range res.Info.Pins {
-		c, err := util.CidFromString(pin)
-		if err != nil {
-			return api.InstanceInfo{}, err
-		}
-		pins[i] = c
-	}
-
-	return api.InstanceInfo{
-		ID:                   ffs.APIID(res.Info.Id),
-		DefaultStorageConfig: fromRPCStorageConfig(res.Info.DefaultStorageConfig),
-		Balances:             balances,
-		Pins:                 pins,
-	}, nil
+// CidInfo returns information about cids managed by the FFS instance.
+func (f *FFS) CidInfo(ctx context.Context, cids ...string) (*rpc.CidInfoResponse, error) {
+	return f.client.CidInfo(ctx, &rpc.CidInfoRequest{Cids: cids})
 }
 
 // CancelJob signals that the executing Job with JobID jid should be

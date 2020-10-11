@@ -31,13 +31,15 @@ type RPC struct {
 	UnimplementedRPCServiceServer
 
 	m   *manager.Manager
+	wm  ffs.WalletManager
 	hot ffs.HotStorage
 }
 
 // New creates a new rpc service.
-func New(m *manager.Manager, hot ffs.HotStorage) *RPC {
+func New(m *manager.Manager, wm ffs.WalletManager, hot ffs.HotStorage) *RPC {
 	return &RPC{
 		m:   m,
+		wm:  wm,
 		hot: hot,
 	}
 }
@@ -56,15 +58,20 @@ func (s *RPC) ID(ctx context.Context, req *IDRequest) (*IDResponse, error) {
 func (s *RPC) Addrs(ctx context.Context, req *AddrsRequest) (*AddrsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
 	}
 	addrs := i.Addrs()
 	res := make([]*AddrInfo, len(addrs))
 	for i, addr := range addrs {
+		bal, err := s.wm.Balance(ctx, addr.Addr)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "getting address balance: %v", err)
+		}
 		res[i] = &AddrInfo{
-			Name: addr.Name,
-			Addr: addr.Addr,
-			Type: addr.Type,
+			Name:    addr.Name,
+			Addr:    addr.Addr,
+			Type:    addr.Type,
+			Balance: bal,
 		}
 	}
 	return &AddrsResponse{Addrs: res}, nil
@@ -136,29 +143,6 @@ func (s *RPC) NewAddr(ctx context.Context, req *NewAddrRequest) (*NewAddrRespons
 	return &NewAddrResponse{Addr: addr}, nil
 }
 
-// StorageConfig returns the storage config for the provided cid.
-func (s *RPC) StorageConfig(ctx context.Context, req *StorageConfigRequest) (*StorageConfigResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c, err := util.CidFromString(req.Cid)
-	if err != nil {
-		return nil, err
-	}
-	config, err := i.GetStorageConfig(c)
-	if err != nil {
-		return nil, err
-	}
-	return &StorageConfigResponse{
-		Config: &StorageConfig{
-			Hot:        toRPCHotConfig(config.Hot),
-			Cold:       toRPCColdConfig(config.Cold),
-			Repairable: config.Repairable,
-		},
-	}, nil
-}
-
 // SetDefaultStorageConfig sets a new config to be used by default.
 func (s *RPC) SetDefaultStorageConfig(ctx context.Context, req *SetDefaultStorageConfigRequest) (*SetDefaultStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
@@ -176,68 +160,80 @@ func (s *RPC) SetDefaultStorageConfig(ctx context.Context, req *SetDefaultStorag
 	return &SetDefaultStorageConfigResponse{}, nil
 }
 
-// Show returns information about a particular Cid.
-func (s *RPC) Show(ctx context.Context, req *ShowRequest) (*ShowResponse, error) {
+// CidInfo returns information about cids managed by the FFS instance.
+func (s *RPC) CidInfo(ctx context.Context, req *CidInfoRequest) (*CidInfoResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	c, err := util.CidFromString(req.GetCid())
+	cids, err := fromProtoCids(req.Cids)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 
-	info, err := i.Show(c)
+	storageConfigs, err := i.GetStorageConfigs(cids...)
 	if err != nil {
-		return nil, err
-	}
-	reply := &ShowResponse{
-		CidInfo: toRPCCidInfo(info),
-	}
-	return reply, nil
-}
-
-// Info returns an Api information.
-func (s *RPC) Info(ctx context.Context, req *InfoRequest) (*InfoResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	info, err := i.Info(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	balances := make([]*BalanceInfo, len(info.Balances))
-	for i, balanceInfo := range info.Balances {
-		balances[i] = &BalanceInfo{
-			Addr: &AddrInfo{
-				Name: balanceInfo.Name,
-				Addr: balanceInfo.Addr,
-				Type: balanceInfo.Type,
-			},
-			Balance: int64(balanceInfo.Balance),
+		code := codes.Internal
+		if err == api.ErrNotFound {
+			code = codes.NotFound
 		}
+		return nil, status.Errorf(code, "getting storage configs: %v", err)
 	}
-
-	reply := &InfoResponse{
-		Info: &InstanceInfo{
-			Id: info.ID.String(),
-			DefaultStorageConfig: &StorageConfig{
-				Hot:        toRPCHotConfig(info.DefaultStorageConfig.Hot),
-				Cold:       toRPCColdConfig(info.DefaultStorageConfig.Cold),
-				Repairable: info.DefaultStorageConfig.Repairable,
-			},
-			Balances: balances,
-			Pins:     make([]string, len(info.Pins)),
-		},
+	res := make([]*CidInfo, len(storageConfigs))
+	for cid, config := range storageConfigs {
+		rpcConfig := &StorageConfig{
+			Repairable: config.Repairable,
+			Cold:       toRPCColdConfig(config.Cold),
+			Hot:        toRPCHotConfig(config.Hot),
+		}
+		cidInfo := &CidInfo{
+			Cid:                       cid.String(),
+			LatestPushedStorageConfig: rpcConfig,
+		}
+		storageInfo, err := i.StorageInfo(cid)
+		if err != nil && err != api.ErrNotFound {
+			return nil, status.Errorf(codes.Internal, "getting storage info: %v", err)
+		} else if err == nil {
+			cidInfo.CurrentStorageInfo = toRPCStorageInfo(storageInfo)
+		}
+		queuedJobs := i.QueuedStorageJobs(cid)
+		rpcQueudJobs := make([]*Job, len(queuedJobs))
+		for i, job := range queuedJobs {
+			rpcJob, err := toRPCJob(job)
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
+			}
+			rpcQueudJobs[i] = rpcJob
+		}
+		cidInfo.QueuedStorageJobs = rpcQueudJobs
+		executingJobs := i.ExecutingStorageJobs()
+		if len(executingJobs) > 0 {
+			rpcJob, err := toRPCJob(executingJobs[0])
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
+			}
+			cidInfo.ExecutingStorageJob = rpcJob
+		}
+		finalJobs := i.LatestFinalStorageJobs(cid)
+		if len(finalJobs) > 0 {
+			rpcJob, err := toRPCJob(finalJobs[0])
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
+			}
+			cidInfo.LatestFinalStorageJob = rpcJob
+		}
+		successfulJobs := i.LatestSuccessfulStorageJobs(cid)
+		if len(successfulJobs) > 0 {
+			rpcJob, err := toRPCJob(successfulJobs[0])
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
+			}
+			cidInfo.LatestSuccessfulStorageJob = rpcJob
+		}
+		res = append(res, cidInfo)
 	}
-	for i, p := range info.Pins {
-		reply.Info.Pins[i] = util.CidToString(p)
-	}
-	return reply, nil
+	return &CidInfoResponse{CidInfos: res}, nil
 }
 
 // CancelJob calls API.CancelJob.
@@ -274,7 +270,7 @@ func (s *RPC) StorageJob(ctx context.Context, req *StorageJobRequest) (*StorageJ
 }
 
 // QueuedStorageJobs returns a list of queued storage jobs.
-func (s *RPC) GetQueuedStorageJobs(ctx context.Context, req *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error) {
+func (s *RPC) QueuedStorageJobs(ctx context.Context, req *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -295,7 +291,7 @@ func (s *RPC) GetQueuedStorageJobs(ctx context.Context, req *QueuedStorageJobsRe
 }
 
 // ExecutingStorageJobs returns a list of executing storage jobs.
-func (s *RPC) GetExecutingStorageJobs(ctx context.Context, req *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error) {
+func (s *RPC) ExecutingStorageJobs(ctx context.Context, req *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -700,27 +696,6 @@ func (s *RPC) ListRetrievalDealRecords(ctx context.Context, req *ListRetrievalDe
 	return &ListRetrievalDealRecordsResponse{Records: toRPCRetrievalDealRecords(records)}, nil
 }
 
-// ShowAll returns a list of CidInfo for all data stored in the FFS instance.
-func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	instanceInfo, err := i.Info(ctx)
-	if err != nil {
-		return nil, err
-	}
-	cidInfos := make([]*CidInfo, len(instanceInfo.Pins))
-	for j, cid := range instanceInfo.Pins {
-		cidInfo, err := i.Show(cid)
-		if err != nil {
-			return nil, err
-		}
-		cidInfos[j] = toRPCCidInfo(cidInfo)
-	}
-	return &ShowAllResponse{CidInfos: cidInfos}, nil
-}
-
 func (s *RPC) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-ffs-Token")
 	if token == "" {
@@ -845,8 +820,8 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 	return res
 }
 
-func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
-	cidInfo := &CidInfo{
+func toRPCStorageInfo(info ffs.StorageInfo) *StorageInfo {
+	cidInfo := &StorageInfo{
 		JobId:   info.JobID.String(),
 		Cid:     util.CidToString(info.Cid),
 		Created: info.Created.UnixNano(),

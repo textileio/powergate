@@ -41,7 +41,7 @@ func TestRenew(t *testing.T) {
 	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 	it.RequireStorageConfig(t, fapi, cid, &config)
 
-	i, err := fapi.Show(cid)
+	i, err := fapi.StorageInfo(cid)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(i.Cold.Filecoin.Proposals))
 
@@ -50,7 +50,7 @@ func TestRenew(t *testing.T) {
 	epochDeadline := 200
 Loop:
 	for range ticker.C {
-		i, err := fapi.Show(cid)
+		i, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 
 		firstDeal := i.Cold.Filecoin.Proposals[0]

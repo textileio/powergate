@@ -395,7 +395,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	askService := askRpc.New(s.ai)
 	minerService := minerRpc.New(s.mi)
 	faultsService := faultsRpc.New(s.fi)
-	ffsService := ffsRpc.New(s.ffsManager, s.hs)
+	ffsService := ffsRpc.New(s.ffsManager, s.wm, s.hs)
 	adminService := NewAdminService(s.ffsManager, s.sched)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)

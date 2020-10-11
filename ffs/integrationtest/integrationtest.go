@@ -234,9 +234,9 @@ func RequireStorageConfig(t require.TestingT, fapi *api.API, c cid.Cid, config *
 		defConfig := fapi.DefaultStorageConfig()
 		config = &defConfig
 	}
-	currentConfig, err := fapi.GetStorageConfig(c)
+	currentConfigs, err := fapi.GetStorageConfigs(c)
 	require.NoError(t, err)
-	require.Equal(t, *config, currentConfig)
+	require.Equal(t, *config, currentConfigs[c])
 }
 
 // RequireStorageDealRecord checks that a storage deal record exist for a cid.

@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"context"
-	"os"
+	"fmt"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -25,23 +25,12 @@ var ffsAddrsListCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Retrieving addresses...")
-		s.Start()
-		addrs, err := fcClient.FFS.Addrs(authCtx(ctx))
+		res, err := fcClient.FFS.Addrs(authCtx(ctx))
 		checkErr(err)
-		defaultConfig, err := fcClient.FFS.DefaultStorageConfig(authCtx(ctx))
-		checkErr(err)
-		s.Stop()
 
-		data := make([][]string, len(addrs))
-		for i, addr := range addrs {
-			isDefault := ""
-			if addr.Addr == defaultConfig.Cold.Filecoin.Addr {
-				isDefault = "yes"
-			}
-			data[i] = []string{addr.Name, addr.Addr, addr.Type, isDefault}
-		}
-		Message("Wallet addresses:")
-		RenderTable(os.Stdout, []string{"name", "address", "type", "default"}, data)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

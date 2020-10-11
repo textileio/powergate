@@ -109,18 +109,6 @@ func (i *API) DefaultStorageConfig() ffs.StorageConfig {
 	return i.cfg.DefaultStorageConfig
 }
 
-// GetStorageConfig returns the current StorageConfig for a Cid.
-func (i *API) GetStorageConfig(c cid.Cid) (ffs.StorageConfig, error) {
-	conf, err := i.is.getStorageConfig(c)
-	if err == ErrNotFound {
-		return ffs.StorageConfig{}, err
-	}
-	if err != nil {
-		return ffs.StorageConfig{}, fmt.Errorf("getting cid config from store: %s", err)
-	}
-	return conf, nil
-}
-
 // SetDefaultStorageConfig sets a new default StorageConfig.
 func (i *API) SetDefaultStorageConfig(c ffs.StorageConfig) error {
 	i.lock.Lock()
@@ -132,35 +120,29 @@ func (i *API) SetDefaultStorageConfig(c ffs.StorageConfig) error {
 	return i.is.putInstanceConfig(i.cfg)
 }
 
-// Info returns instance information.
-func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-
-	pins, err := i.is.getCids()
+// GetStorageConfigs returns the current StorageConfigs for a FFS instance, filtered by cids, if provided.
+func (i *API) GetStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.StorageConfig, error) {
+	configs, err := i.is.getStorageConfigs(cids...)
+	if err == ErrNotFound {
+		return nil, err
+	}
 	if err != nil {
-		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
+		return nil, fmt.Errorf("getting cid config from store: %s", err)
 	}
+	return configs, nil
+}
 
-	var balances []BalanceInfo
-	for _, addr := range i.cfg.Addrs {
-		balance, err := i.wm.Balance(ctx, addr.Addr)
-		if err != nil {
-			return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", addr.Addr, err)
-		}
-		info := BalanceInfo{
-			AddrInfo: addr,
-			Balance:  balance,
-		}
-		balances = append(balances, info)
+// StorageInfo returns the information about a stored Cid. If no information is available,
+// since the Cid was never stored, it returns ErrNotFound.
+func (i *API) StorageInfo(cid cid.Cid) (ffs.StorageInfo, error) {
+	inf, err := i.sched.GetStorageInfo(cid)
+	if err == scheduler.ErrNotFound {
+		return inf, ErrNotFound
 	}
-
-	return InstanceInfo{
-		ID:                   i.cfg.ID,
-		DefaultStorageConfig: i.cfg.DefaultStorageConfig,
-		Balances:             balances,
-		Pins:                 pins,
-	}, nil
+	if err != nil {
+		return inf, fmt.Errorf("getting cid storage info: %s", err)
+	}
+	return inf, nil
 }
 
 // Close terminates the running Api.

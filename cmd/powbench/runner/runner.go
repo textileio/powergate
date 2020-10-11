@@ -68,11 +68,11 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
 	ctx = context.WithValue(ctx, client.AuthKey, res.Token)
-	info, err := c.FFS.Info(ctx)
+	res2, err := c.FFS.Addrs(ctx)
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)
 	}
-	addr := info.Balances[0].Addr
+	addr := res2.Addrs[0].Addr
 	time.Sleep(time.Second * 5)
 
 	chLimit := make(chan struct{}, ts.MaxParallel)
