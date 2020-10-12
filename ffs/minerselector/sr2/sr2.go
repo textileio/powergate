@@ -82,7 +82,7 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 			bucket.Amount = len(miners)
 		}
 		var regionSelected int
-		for i := 0; i < len(miners); i++ {
+		for i := 0; regionSelected < bucket.Amount && i < len(miners); i++ {
 			sask, err := getMinerQueryAsk(c, miners[i])
 			if err != nil {
 				log.Warnf("sr2 miner %s query-ask errored: %s", miners[i], err)
