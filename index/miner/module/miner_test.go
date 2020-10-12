@@ -59,7 +59,7 @@ func TestFullRefresh(t *testing.T) {
 }
 
 func TestIntegration(t *testing.T) {
-	t.Skip()
+	t.SkipNow()
 	metaRefreshInterval = time.Hour
 	minersRefreshInterval = time.Second
 
