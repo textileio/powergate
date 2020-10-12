@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	metaRefreshInterval = time.Hour
+	metaRefreshInterval = time.Hour * 6
 	pingTimeout         = time.Second * 5
 	pingRateLim         = 1
 )

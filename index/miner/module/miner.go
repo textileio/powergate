@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	minersRefreshInterval = time.Minute * 30
+	minersRefreshInterval = time.Hour * 6
 	maxParallelism        = 1
 	dsBase                = datastore.NewKey("index")
 
