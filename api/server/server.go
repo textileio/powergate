@@ -634,7 +634,7 @@ func adminAuth(conf Config) grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		adminToken := metautils.ExtractIncoming(ctx).Get("X-ffs-token")
+		adminToken := metautils.ExtractIncoming(ctx).Get("X-pow-admin-token")
 		if adminToken != conf.FFSAdminToken {
 			return nil, status.Error(codes.PermissionDenied, "Method requires admin permission")
 		}

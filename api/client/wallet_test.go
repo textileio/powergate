@@ -13,7 +13,7 @@ func TestNewWallet(t *testing.T) {
 
 	address, err := w.NewAddress(ctx, "bls")
 	require.NoError(t, err)
-	require.Greater(t, 0, len(address))
+	require.Greater(t, len(address), 0)
 }
 
 func TestList(t *testing.T) {
@@ -22,7 +22,7 @@ func TestList(t *testing.T) {
 
 	addresses, err := w.List(ctx)
 	require.NoError(t, err)
-	require.Greater(t, 0, len(addresses))
+	require.Greater(t, len(addresses), 0)
 }
 
 func TestWalletBalance(t *testing.T) {
@@ -34,7 +34,7 @@ func TestWalletBalance(t *testing.T) {
 
 	bal, err := w.Balance(ctx, address)
 	require.NoError(t, err)
-	require.Greater(t, uint64(0), bal)
+	require.Greater(t, bal, uint64(0))
 }
 
 func setupWallet(t *testing.T) (*Wallet, func()) {

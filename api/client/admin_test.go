@@ -13,10 +13,10 @@ import (
 
 func TestCreate(t *testing.T) {
 	t.Run("WithoutAdminToken", func(t *testing.T) {
-		f, done := setupFfs(t, "")
+		a, done := setupAdmin(t, "")
 		defer done()
 
-		resp, err := f.CreateInstance(ctx)
+		resp, err := a.CreateInstance(ctx)
 		require.NoError(t, err)
 		require.NotEmpty(t, resp.Id)
 		require.NotEmpty(t, resp.Token)
@@ -24,11 +24,11 @@ func TestCreate(t *testing.T) {
 
 	t.Run("WithAdminToken", func(t *testing.T) {
 		authToken := uuid.New().String()
-		f, done := setupFfs(t, authToken)
+		a, done := setupAdmin(t, authToken)
 		defer done()
 
 		t.Run("UnauthorizedEmpty", func(t *testing.T) {
-			resp, err := f.CreateInstance(ctx)
+			resp, err := a.CreateInstance(ctx)
 			require.Error(t, err)
 			require.Nil(t, resp)
 		})
@@ -39,8 +39,8 @@ func TestCreate(t *testing.T) {
 				"wrong", // Non-empty
 			}
 			for _, auth := range wrongAuths {
-				ctx := context.WithValue(ctx, AuthKey, auth)
-				resp, err := f.CreateInstance(ctx)
+				ctx := context.WithValue(ctx, AdminKey, auth)
+				resp, err := a.CreateInstance(ctx)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
 				require.Equal(t, codes.PermissionDenied, st.Code())
@@ -48,8 +48,8 @@ func TestCreate(t *testing.T) {
 			}
 		})
 		t.Run("Authorized", func(t *testing.T) {
-			ctx := context.WithValue(ctx, AuthKey, authToken)
-			resp, err := f.CreateInstance(ctx)
+			ctx := context.WithValue(ctx, AdminKey, authToken)
+			resp, err := a.CreateInstance(ctx)
 			require.NoError(t, err)
 			require.NotEmpty(t, resp.Id)
 			require.NotEmpty(t, resp.Token)
@@ -57,7 +57,7 @@ func TestCreate(t *testing.T) {
 	})
 }
 
-func setupFfs(t *testing.T, adminAuthToken string) (*Admin, func()) {
+func setupAdmin(t *testing.T, adminAuthToken string) (*Admin, func()) {
 	defConfig := defaultServerConfig(t)
 	if adminAuthToken != "" {
 		defConfig.FFSAdminToken = adminAuthToken

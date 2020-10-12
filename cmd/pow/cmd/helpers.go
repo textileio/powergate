@@ -73,3 +73,11 @@ func mustAuthCtx(ctx context.Context) context.Context {
 	}
 	return context.WithValue(ctx, client.AuthKey, token)
 }
+
+func mustAdminAuthCtx(ctx context.Context) context.Context {
+	token := viper.GetString("admin-token")
+	if token == "" {
+		Fatal(errors.New("must provide --admin-token"))
+	}
+	return context.WithValue(ctx, client.AdminKey, token)
+}

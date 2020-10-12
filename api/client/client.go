@@ -39,6 +39,9 @@ type ctxKey string
 // AuthKey is the key that should be used to set the auth token in a Context.
 const AuthKey = ctxKey("ffstoken")
 
+// AdminKey is the key that should be used to set the admin auth token in a Context.
+const AdminKey = ctxKey("admintoken")
+
 // TokenAuth provides token based auth.
 type TokenAuth struct {
 	Secure bool
@@ -47,10 +50,17 @@ type TokenAuth struct {
 // GetRequestMetadata returns request metadata that includes the auth token.
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
 	md := map[string]string{}
+
 	token, ok := ctx.Value(AuthKey).(string)
 	if ok && token != "" {
 		md["X-ffs-Token"] = token
 	}
+
+	adminToken, ok := ctx.Value(AdminKey).(string)
+	if ok && adminToken != "" {
+		md["X-pow-admin-token"] = adminToken
+	}
+
 	return md, nil
 }
 
