@@ -10,11 +10,16 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/lotus"
+)
+
+const (
+	maxSR2Price = 100_000_000_000
 )
 
 var (
@@ -77,10 +82,14 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 			bucket.Amount = len(miners)
 		}
 		var regionSelected int
-		for i := 0; regionSelected < bucket.Amount && i < len(miners); i++ {
+		for i := 0; i < len(miners); i++ {
 			sask, err := getMinerQueryAsk(c, miners[i])
 			if err != nil {
 				log.Warnf("sr2 miner %s query-ask errored: %s", miners[i], err)
+				continue
+			}
+			if sask > maxSR2Price {
+				log.Warnf("skipping miner %s since has price above maximum allowed for SR2")
 				continue
 			}
 			if f.MaxPrice > 0 && sask > f.MaxPrice {
@@ -150,9 +159,24 @@ func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (uint64, erro
 		return 0, fmt.Errorf("getting miner %s info: %s", addr, err)
 	}
 
-	sask, err := c.ClientQueryAsk(ctx, *mi.PeerId, addr)
-	if err != nil {
-		return 0, fmt.Errorf("query asking: %s", err)
+	type chAskRes struct {
+		Error string
+		Ask   *storagemarket.StorageAsk
 	}
-	return sask.Price.Uint64(), nil
+	chAsk := make(chan chAskRes)
+	go func() {
+		sask, err := c.ClientQueryAsk(ctx, *mi.PeerId, addr)
+		if err != nil {
+			chAsk <- chAskRes{Error: err.Error()}
+			return
+		}
+		chAsk <- chAskRes{Ask: sask}
+	}()
+
+	select {
+	case <-time.After(time.Second * 10):
+		return 0, fmt.Errorf("query asking timed out")
+	case r := <-chAsk:
+		return r.Ask.Price.Uint64(), nil
+	}
 }

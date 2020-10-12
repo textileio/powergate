@@ -66,11 +66,13 @@ func (mi *Index) updateOnChainIndex() error {
 	start := time.Now()
 	log.Infof("current state height %d, new tipset height %d", chainIndex.LastUpdated, new.Height())
 	if hdiff > fullThreshold || chainIndex.LastUpdated == 0 {
+		log.Infof("doing full refresh")
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "full"))
 		if err := fullRefresh(mi.ctx, client, &chainIndex); err != nil {
 			return fmt.Errorf("doing full refresh: %s", err)
 		}
 	} else {
+		log.Infof("doing delta refresh")
 		mctx, _ = tag.New(mctx, tag.Insert(metricRefreshType, "delta"))
 		if err := deltaRefresh(mi.ctx, client, &chainIndex, *ts, new); err != nil {
 			return fmt.Errorf("doing delta refresh: %s", err)
@@ -187,11 +189,13 @@ func getOnChainData(ctx context.Context, c *apistruct.FullNodeStruct, addr addre
 	if err != nil {
 		return miner.OnChainData{}, fmt.Errorf("getting sector size: %s", err)
 	}
+
 	// Active deals
 	sectors, err := c.StateMinerSectors(ctx, addr, nil, types.EmptyTSK)
 	if err != nil {
 		return miner.OnChainData{}, fmt.Errorf("getting sectors: %s", err)
 	}
+
 	var activeDeals uint64
 	for _, s := range sectors {
 		activeDeals += uint64(len(s.DealIDs))
