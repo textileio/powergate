@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	n "github.com/textileio/powergate/net"
 	"github.com/textileio/powergate/net/rpc"
 )
 
@@ -58,9 +57,9 @@ func TestConnectedness(t *testing.T) {
 	res, err := c.Peers(ctx)
 	require.NoError(t, err)
 	require.NotEmpty(t, res.Peers)
-	connectedness, err := c.Connectedness(ctx, res.Peers[0].AddrInfo.Id)
+	res2, err := c.Connectedness(ctx, res.Peers[0].AddrInfo.Id)
 	require.NoError(t, err)
-	require.Equal(t, n.Connected, connectedness)
+	require.Equal(t, rpc.Connectedness_CONNECTEDNESS_CONNECTED, res2.Connectedness)
 }
 
 func setupNet(t *testing.T) (*Net, func()) {

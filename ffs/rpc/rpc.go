@@ -160,8 +160,8 @@ func (s *RPC) SetDefaultStorageConfig(ctx context.Context, req *SetDefaultStorag
 	return &SetDefaultStorageConfigResponse{}, nil
 }
 
-// CidInfo returns information about cids managed by the FFS instance.
-func (s *RPC) CidInfo(ctx context.Context, req *CidInfoRequest) (*CidInfoResponse, error) {
+// CidData returns information about cids managed by the FFS instance.
+func (s *RPC) CidData(ctx context.Context, req *CidDataRequest) (*CidDataResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -180,22 +180,22 @@ func (s *RPC) CidInfo(ctx context.Context, req *CidInfoRequest) (*CidInfoRespons
 		}
 		return nil, status.Errorf(code, "getting storage configs: %v", err)
 	}
-	res := make([]*CidInfo, 0, len(storageConfigs))
+	res := make([]*CidData, 0, len(storageConfigs))
 	for cid, config := range storageConfigs {
 		rpcConfig := &StorageConfig{
 			Repairable: config.Repairable,
 			Cold:       toRPCColdConfig(config.Cold),
 			Hot:        toRPCHotConfig(config.Hot),
 		}
-		cidInfo := &CidInfo{
+		cidData := &CidData{
 			Cid:                       cid.String(),
 			LatestPushedStorageConfig: rpcConfig,
 		}
-		storageInfo, err := i.StorageInfo(cid)
+		info, err := i.Show(cid)
 		if err != nil && err != api.ErrNotFound {
 			return nil, status.Errorf(codes.Internal, "getting storage info: %v", err)
 		} else if err == nil {
-			cidInfo.CurrentStorageInfo = toRPCStorageInfo(storageInfo)
+			cidData.CurrentCidInfo = toRPCCidInfo(info)
 		}
 		queuedJobs := i.QueuedStorageJobs(cid)
 		rpcQueudJobs := make([]*Job, len(queuedJobs))
@@ -206,14 +206,14 @@ func (s *RPC) CidInfo(ctx context.Context, req *CidInfoRequest) (*CidInfoRespons
 			}
 			rpcQueudJobs[i] = rpcJob
 		}
-		cidInfo.QueuedStorageJobs = rpcQueudJobs
+		cidData.QueuedStorageJobs = rpcQueudJobs
 		executingJobs := i.ExecutingStorageJobs()
 		if len(executingJobs) > 0 {
 			rpcJob, err := toRPCJob(executingJobs[0])
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
 			}
-			cidInfo.ExecutingStorageJob = rpcJob
+			cidData.ExecutingStorageJob = rpcJob
 		}
 		finalJobs := i.LatestFinalStorageJobs(cid)
 		if len(finalJobs) > 0 {
@@ -221,7 +221,7 @@ func (s *RPC) CidInfo(ctx context.Context, req *CidInfoRequest) (*CidInfoRespons
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
 			}
-			cidInfo.LatestFinalStorageJob = rpcJob
+			cidData.LatestFinalStorageJob = rpcJob
 		}
 		successfulJobs := i.LatestSuccessfulStorageJobs(cid)
 		if len(successfulJobs) > 0 {
@@ -229,11 +229,11 @@ func (s *RPC) CidInfo(ctx context.Context, req *CidInfoRequest) (*CidInfoRespons
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
 			}
-			cidInfo.LatestSuccessfulStorageJob = rpcJob
+			cidData.LatestSuccessfulStorageJob = rpcJob
 		}
-		res = append(res, cidInfo)
+		res = append(res, cidData)
 	}
-	return &CidInfoResponse{CidInfos: res}, nil
+	return &CidDataResponse{CidDatas: res}, nil
 }
 
 // CancelJob calls API.CancelJob.
@@ -820,8 +820,8 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 	return res
 }
 
-func toRPCStorageInfo(info ffs.StorageInfo) *StorageInfo {
-	cidInfo := &StorageInfo{
+func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
+	cidInfo := &CidInfo{
 		JobId:   info.JobID.String(),
 		Cid:     util.CidToString(info.Cid),
 		Created: info.Created.UnixNano(),

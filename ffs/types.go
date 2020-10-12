@@ -403,9 +403,9 @@ type RetrievalInfo struct {
 	CreatedAt time.Time
 }
 
-// StorageInfo contains information about the current storage state
+// CidInfo contains information about the current storage state
 // of a Cid.
-type StorageInfo struct {
+type CidInfo struct {
 	// JobID indicates the Job ID which updated
 	// the current information. It *may be empty* if
 	// the data was imported manually.

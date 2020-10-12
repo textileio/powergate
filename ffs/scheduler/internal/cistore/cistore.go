@@ -30,8 +30,8 @@ func New(ds datastore.Datastore) *Store {
 }
 
 // Get gets the current stored state of a Cid.
-func (s *Store) Get(c cid.Cid) (ffs.StorageInfo, error) {
-	var ci ffs.StorageInfo
+func (s *Store) Get(c cid.Cid) (ffs.CidInfo, error) {
+	var ci ffs.CidInfo
 	buf, err := s.ds.Get(makeKey(c))
 	if err == datastore.ErrNotFound {
 		return ci, ErrNotFound
@@ -46,7 +46,7 @@ func (s *Store) Get(c cid.Cid) (ffs.StorageInfo, error) {
 }
 
 // Put saves a new storing state for a Cid.
-func (s *Store) Put(ci ffs.StorageInfo) error {
+func (s *Store) Put(ci ffs.CidInfo) error {
 	if !ci.Cid.Defined() {
 		return fmt.Errorf("cid can't be undefined")
 	}

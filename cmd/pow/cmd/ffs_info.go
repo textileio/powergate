@@ -11,11 +11,11 @@ import (
 )
 
 func init() {
-	ffsCmd.AddCommand(ffsInfoCmd)
+	ffsCmd.AddCommand(ffsDataCmd)
 }
 
-var ffsInfoCmd = &cobra.Command{
-	Use:   "info [optional cid1,cid2,...]",
+var ffsDataCmd = &cobra.Command{
+	Use:   "data [optional cid1,cid2,...]",
 	Short: "Get information about the current state of cid storage",
 	Long:  `Get information about the current state of cid storage`,
 	Args:  cobra.MaximumNArgs(1),
@@ -32,7 +32,7 @@ var ffsInfoCmd = &cobra.Command{
 			cids = strings.Split(args[0], ",")
 		}
 
-		res, err := fcClient.FFS.CidInfo(authCtx(ctx), cids...)
+		res, err := fcClient.FFS.CidData(authCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)

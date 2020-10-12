@@ -40,7 +40,7 @@ func TestRepFactor(t *testing.T) {
 				it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 				it.RequireStorageConfig(t, fapi, cid, &config)
 
-				sinfo, err := fapi.StorageInfo(cid)
+				sinfo, err := fapi.Show(cid)
 				require.NoError(t, err)
 				require.Equal(t, rf, len(sinfo.Cold.Filecoin.Proposals))
 			})
@@ -60,7 +60,7 @@ func TestRepFactorIncrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
-		sinfo, err := fapi.StorageInfo(cid)
+		sinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(sinfo.Cold.Filecoin.Proposals))
 		firstProposal := sinfo.Cold.Filecoin.Proposals[0]
@@ -70,7 +70,7 @@ func TestRepFactorIncrease(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		sinfo, err = fapi.StorageInfo(cid)
+		sinfo, err = fapi.Show(cid)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(sinfo.Cold.Filecoin.Proposals))
 		require.Contains(t, sinfo.Cold.Filecoin.Proposals, firstProposal)
@@ -90,7 +90,7 @@ func TestRepFactorDecrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
-		sinfo, err := fapi.StorageInfo(cid)
+		sinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(sinfo.Cold.Filecoin.Proposals))
 
@@ -100,7 +100,7 @@ func TestRepFactorDecrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
-		sinfo, err = fapi.StorageInfo(cid)
+		sinfo, err = fapi.Show(cid)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(sinfo.Cold.Filecoin.Proposals))
 	})
@@ -135,7 +135,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	epochDeadline := 200
 Loop:
 	for range ticker.C {
-		i, err := fapi.StorageInfo(cid)
+		i, err := fapi.Show(cid)
 		require.NoError(t, err)
 
 		firstDeal := i.Cold.Filecoin.Proposals[0]

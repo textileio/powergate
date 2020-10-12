@@ -206,9 +206,9 @@ func (f *FFS) SetDefaultStorageConfig(ctx context.Context, config ffs.StorageCon
 	return err
 }
 
-// CidInfo returns information about cids managed by the FFS instance.
-func (f *FFS) CidInfo(ctx context.Context, cids ...string) (*rpc.CidInfoResponse, error) {
-	return f.client.CidInfo(ctx, &rpc.CidInfoRequest{Cids: cids})
+// CidData returns information about cids managed by the FFS instance.
+func (f *FFS) CidData(ctx context.Context, cids ...string) (*rpc.CidDataResponse, error) {
+	return f.client.CidData(ctx, &rpc.CidDataRequest{Cids: cids})
 }
 
 // CancelJob signals that the executing Job with JobID jid should be
