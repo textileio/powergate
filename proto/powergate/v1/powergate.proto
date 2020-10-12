@@ -3,6 +3,8 @@ package proto.powergate.v1;
 
 option go_package = "github.com/textileio/powergate/proto/powergate/v1";
 
+import "ffs/rpc/rpc.proto";
+
 message BalanceRequest {
   string address = 1;
 }
@@ -11,6 +13,15 @@ message BalanceResponse {
   uint64 balance = 1;
 }
 
+message StorageConfigForJobRequest {
+  string job_id = 1;
+}
+
+message StorageConfigForJobResponse {
+  ffs.rpc.StorageConfig storage_config = 1;
+}
+
 service PowergateService {
   rpc Balance(BalanceRequest) returns (BalanceResponse) {}
+  rpc StorageConfigForJob(StorageConfigForJobRequest) returns (StorageConfigForJobResponse) {}
 }

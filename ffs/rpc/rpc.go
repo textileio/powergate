@@ -85,11 +85,7 @@ func (s *RPC) DefaultStorageConfig(ctx context.Context, req *DefaultStorageConfi
 	}
 	conf := i.DefaultStorageConfig()
 	return &DefaultStorageConfigResponse{
-		DefaultStorageConfig: &StorageConfig{
-			Hot:        toRPCHotConfig(conf.Hot),
-			Cold:       toRPCColdConfig(conf.Cold),
-			Repairable: conf.Repairable,
-		},
+		DefaultStorageConfig: ToRPCStorageConfig(conf),
 	}, nil
 }
 
@@ -182,11 +178,7 @@ func (s *RPC) CidData(ctx context.Context, req *CidDataRequest) (*CidDataRespons
 	}
 	res := make([]*CidData, 0, len(storageConfigs))
 	for cid, config := range storageConfigs {
-		rpcConfig := &StorageConfig{
-			Repairable: config.Repairable,
-			Cold:       toRPCColdConfig(config.Cold),
-			Hot:        toRPCHotConfig(config.Hot),
-		}
+		rpcConfig := ToRPCStorageConfig(config)
 		cidData := &CidData{
 			Cid:                       cid.String(),
 			LatestPushedStorageConfig: rpcConfig,
@@ -724,6 +716,15 @@ func receiveFile(srv RPCService_StageServer, writer *io.PipeWriter) {
 				log.Errorf("closing with error: %s", err)
 			}
 		}
+	}
+}
+
+// ToRPCStorageConfig converts from a ffs.StorageConfig to a rpc StorageConfig.
+func ToRPCStorageConfig(config ffs.StorageConfig) *StorageConfig {
+	return &StorageConfig{
+		Repairable: config.Repairable,
+		Hot:        toRPCHotConfig(config.Hot),
+		Cold:       toRPCColdConfig(config.Cold),
 	}
 }
 

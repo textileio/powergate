@@ -187,6 +187,18 @@ func (s *Scheduler) LatestSuccessfulStorageJobs(iid ffs.APIID, cids ...cid.Cid) 
 	return s.sjs.LatestSuccessfulJobs(iid, cids...)
 }
 
+// StorageConfig returns the storage config for a job.
+func (s *Scheduler) StorageConfig(jid ffs.JobID) (ffs.StorageConfig, error) {
+	a, err := s.as.GetStorageAction(jid)
+	if err == astore.ErrNotFound {
+		return ffs.StorageConfig{}, ErrNotFound
+	}
+	if err != nil {
+		return ffs.StorageConfig{}, fmt.Errorf("getting storage action: %v", err)
+	}
+	return a.Cfg, nil
+}
+
 // executeStorage executes a Job. If an error is returned, it means that the Job
 // should be considered failed. If error is nil, it still can return []ffs.DealError
 // since some deals failing isn't necessarily a fatal Job config execution.

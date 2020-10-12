@@ -26,6 +26,8 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	mongods "github.com/textileio/go-ds-mongo"
+	adminService "github.com/textileio/powergate/api/server/admin"
+	powergateService "github.com/textileio/powergate/api/server/powergate"
 	buildinfoRpc "github.com/textileio/powergate/buildinfo/rpc"
 	"github.com/textileio/powergate/deals"
 	dealsModule "github.com/textileio/powergate/deals/module"
@@ -94,6 +96,8 @@ type Server struct {
 	sched      *scheduler.Scheduler
 	hs         ffs.HotStorage
 	l          *joblogger.Logger
+
+	clientBuilder lotus.ClientBuilder
 
 	grpcServer *grpc.Server
 
@@ -304,6 +308,8 @@ func NewServer(conf Config) (*Server, error) {
 		grpcServer: grpcServer,
 		webProxy:   webProxy,
 		gateway:    gateway,
+
+		clientBuilder: clientBuilder,
 	}
 
 	if err := startGRPCServices(grpcServer, webProxy, s, conf.GrpcHostNetwork, conf.GrpcHostAddress); err != nil {
@@ -401,8 +407,8 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	minerService := minerRpc.New(s.mi)
 	faultsService := faultsRpc.New(s.fi)
 	ffsService := ffsRpc.New(s.ffsManager, s.wm, s.hs)
-	powergateService := NewPowergateService()
-	adminService := NewAdminService(s.ffsManager, s.sched)
+	powergateService := powergateService.New(s.sched, s.clientBuilder)
+	adminService := adminService.New(s.ffsManager, s.sched)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {
