@@ -89,7 +89,7 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 				continue
 			}
 			if sask > maxSR2Price {
-				log.Warnf("skipping miner %s since has price above maximum allowed for SR2")
+				log.Warnf("skipping miner %s since has price %d above maximum allowed for SR2", miners[i], sask)
 				continue
 			}
 			if f.MaxPrice > 0 && sask > f.MaxPrice {
