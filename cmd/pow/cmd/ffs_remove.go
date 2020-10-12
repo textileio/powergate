@@ -36,7 +36,7 @@ var ffsRemoveCmd = &cobra.Command{
 
 		s := spin.New("%s Removing cid config...")
 		s.Start()
-		err = fcClient.FFS.Remove(authCtx(ctx), c)
+		err = fcClient.FFS.Remove(mustAuthCtx(ctx), c)
 		s.Stop()
 		checkErr(err)
 		Success("Removed cid config")

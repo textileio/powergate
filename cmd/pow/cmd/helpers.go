@@ -66,10 +66,15 @@ func checkErr(e error) {
 	}
 }
 
-func authCtx(ctx context.Context) context.Context {
+func mustAuthCtx(ctx context.Context) context.Context {
 	token := viper.GetString("token")
 	if token == "" {
 		Fatal(errors.New("must provide -t token"))
 	}
+	return context.WithValue(ctx, client.AuthKey, token)
+}
+
+func authCtx(ctx context.Context) context.Context {
+	token := viper.GetString("token")
 	return context.WithValue(ctx, client.AuthKey, token)
 }

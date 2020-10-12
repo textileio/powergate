@@ -126,6 +126,7 @@ func configFromFlags() (server.Config, error) {
 	ffsSchedMaxParallel := config.GetInt("ffsschedmaxparallel")
 	ffsDealWatchFinalityTimeout := time.Minute * time.Duration(config.GetInt("ffsdealfinalitytimeout"))
 	ffsMinimumPieceSize := config.GetUint64("ffsminimumpiecesize")
+	ffsAdminToken := config.GetString("ffsadmintoken")
 	dealWatchPollDuration := time.Second * time.Duration(config.GetInt("dealwatchpollduration"))
 	askIndexQueryAskTimeout := time.Second * time.Duration(config.GetInt("askindexqueryasktimeout"))
 	askIndexRefreshInterval := time.Minute * time.Duration(config.GetInt("askindexrefreshinterval"))
@@ -157,6 +158,7 @@ func configFromFlags() (server.Config, error) {
 		FFSUseMasterAddr:       ffsUseMasterAddr,
 		FFSDealFinalityTimeout: ffsDealWatchFinalityTimeout,
 		FFSMinimumPieceSize:    ffsMinimumPieceSize,
+		FFSAdminToken:          ffsAdminToken,
 		LotusMasterAddr:        lotusMasterAddr,
 		AutocreateMasterAddr:   autocreateMasterAddr,
 		MinerSelector:          minerSelector,
@@ -338,6 +340,7 @@ func setupFlags() error {
 	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
 	pflag.String("ffsminimumpiecesize", "52428800", "Minimum piece size in bytes allowed to be stored in Filecoin")
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel")
+	pflag.String("ffsadmintoken", "", "FFS admin token for authorized APIs. If empty, the APIs will be open to the public.")
 	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes")
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
 	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask")
@@ -345,7 +348,6 @@ func setupFlags() error {
 	pflag.String("askindexrefreshonstart", "false", "If true it will refresh the index on start")
 	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index")
 	pflag.String("disableindices", "false", "Disable all indices updates, useful to help Lotus syncing process")
-
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")

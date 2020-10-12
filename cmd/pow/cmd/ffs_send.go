@@ -39,7 +39,7 @@ var ffsSendCmd = &cobra.Command{
 		s := spin.New("%s Sending fil...")
 		s.Start()
 
-		err = fcClient.FFS.SendFil(authCtx(ctx), from, to, amount)
+		err = fcClient.FFS.SendFil(mustAuthCtx(ctx), from, to, amount)
 		s.Stop()
 		checkErr(err)
 

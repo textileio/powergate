@@ -34,7 +34,7 @@ var ffsPaychCreateCmd = &cobra.Command{
 
 		s := spin.New("%s Creating payment channel...")
 		s.Start()
-		chInfo, msgCid, err := fcClient.FFS.CreatePayChannel(authCtx(ctx), from, to, uint64(amt))
+		chInfo, msgCid, err := fcClient.FFS.CreatePayChannel(mustAuthCtx(ctx), from, to, uint64(amt))
 		s.Stop()
 		checkErr(err)
 

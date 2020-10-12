@@ -43,10 +43,10 @@ var ffsGetCmd = &cobra.Command{
 
 		isFolder := viper.GetBool("folder")
 		if isFolder {
-			err := fcClient.FFS.GetFolder(authCtx(ctx), viper.GetString("ipfsrevproxy"), c, args[1])
+			err := fcClient.FFS.GetFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), c, args[1])
 			checkErr(err)
 		} else {
-			reader, err := fcClient.FFS.Get(authCtx(ctx), c)
+			reader, err := fcClient.FFS.Get(mustAuthCtx(ctx), c)
 			checkErr(err)
 
 			dir := path.Dir(args[1])

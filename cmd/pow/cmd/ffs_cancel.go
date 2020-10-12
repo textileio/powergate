@@ -34,7 +34,7 @@ var ffsCancelCmd = &cobra.Command{
 
 		s := spin.New("%s Signaling executing Job cancellation...")
 		s.Start()
-		err := fcClient.FFS.CancelJob(authCtx(ctx), jid)
+		err := fcClient.FFS.CancelJob(mustAuthCtx(ctx), jid)
 		s.Stop()
 		checkErr(err)
 		Success("Successful cancellation signaling.")

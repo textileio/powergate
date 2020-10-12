@@ -2,20 +2,16 @@ package client
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient(t *testing.T) {
-	skipIfShort(t)
-	done := setupServer(t)
+	done := setupServer(t, defaultServerConfig(t))
 	defer done()
 
 	client, err := NewClient(grpcHostAddress)
-	if err != nil {
-		t.Fatalf("failed to create client: %v", err)
-	}
-
+	require.NoError(t, err)
 	err = client.Close()
-	if err != nil {
-		t.Fatalf("failed to close client: %v", err)
-	}
+	require.NoError(t, err)
 }

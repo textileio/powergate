@@ -48,7 +48,7 @@ var ffsRetrievalsCmd = &cobra.Command{
 
 		s := spin.New("%s Getting retrieval records...")
 		s.Start()
-		res, err := fcClient.FFS.ListRetrievalDealRecords(authCtx(ctx), opts...)
+		res, err := fcClient.FFS.ListRetrievalDealRecords(mustAuthCtx(ctx), opts...)
 		s.Stop()
 		checkErr(err)
 

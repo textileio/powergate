@@ -28,7 +28,7 @@ var ffsPaychListCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving payment channels...")
 		s.Start()
-		infos, err := fcClient.FFS.ListPayChannels(authCtx(ctx))
+		infos, err := fcClient.FFS.ListPayChannels(mustAuthCtx(ctx))
 		checkErr(err)
 		s.Stop()
 

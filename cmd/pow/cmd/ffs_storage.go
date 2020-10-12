@@ -56,7 +56,7 @@ var ffsStorageCmd = &cobra.Command{
 
 		s := spin.New("%s Retrieving deal records...")
 		s.Start()
-		res, err := fcClient.FFS.ListStorageDealRecords(authCtx(ctx), opts...)
+		res, err := fcClient.FFS.ListStorageDealRecords(mustAuthCtx(ctx), opts...)
 		s.Stop()
 		checkErr(err)
 

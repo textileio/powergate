@@ -37,7 +37,7 @@ func TestCheck(t *testing.T) {
 }
 
 func setupHealth(t *testing.T) (*Health, func()) {
-	serverDone := setupServer(t)
+	serverDone := setupServer(t, defaultServerConfig(t))
 	conn, done := setupConnection(t)
 	return &Health{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()

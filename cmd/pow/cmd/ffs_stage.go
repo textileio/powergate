@@ -55,14 +55,14 @@ var ffsStageCmd = &cobra.Command{
 		s := spin.New("%s Staging specified asset in FFS hot storage...")
 		s.Start()
 		if fi.IsDir() {
-			cid, err = fcClient.FFS.StageFolder(authCtx(ctx), viper.GetString("ipfsrevproxy"), args[0])
+			cid, err = fcClient.FFS.StageFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), args[0])
 			checkErr(err)
 		} else {
 			f, err := os.Open(args[0])
 			checkErr(err)
 			defer func() { checkErr(f.Close()) }()
 
-			ptrCid, err := fcClient.FFS.Stage(authCtx(ctx), f)
+			ptrCid, err := fcClient.FFS.Stage(mustAuthCtx(ctx), f)
 			checkErr(err)
 			cid = *ptrCid
 		}

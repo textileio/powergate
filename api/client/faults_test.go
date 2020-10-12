@@ -7,7 +7,6 @@ import (
 )
 
 func TestGetFaults(t *testing.T) {
-	skipIfShort(t)
 	s, done := setupFaults(t)
 	defer done()
 
@@ -18,7 +17,7 @@ func TestGetFaults(t *testing.T) {
 }
 
 func setupFaults(t *testing.T) (*Faults, func()) {
-	serverDone := setupServer(t)
+	serverDone := setupServer(t, defaultServerConfig(t))
 	conn, done := setupConnection(t)
 	return &Faults{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()

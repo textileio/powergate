@@ -4,16 +4,16 @@ import (
 	"testing"
 
 	ma "github.com/multiformats/go-multiaddr"
+	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/reputation/rpc"
 )
 
 func TestAddSource(t *testing.T) {
-	skipIfShort(t)
 	r, done := setupReputation(t)
 	defer done()
 
 	maddr, err := ma.NewMultiaddr("/dns4/lotus-bootstrap-0.sin.fil-test.net/tcp/1347/p2p/12D3KooWLZs8BWtEzRTYET4yR4jzDtPamaA1YsyPQJq6cf2RfxBD")
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	err = r.AddSource(ctx, "id", maddr)
 	if err != nil {
@@ -22,7 +22,6 @@ func TestAddSource(t *testing.T) {
 }
 
 func TestGetTopMiners(t *testing.T) {
-	skipIfShort(t)
 	r, done := setupReputation(t)
 	defer done()
 
@@ -33,7 +32,7 @@ func TestGetTopMiners(t *testing.T) {
 }
 
 func setupReputation(t *testing.T) (*Reputation, func()) {
-	serverDone := setupServer(t)
+	serverDone := setupServer(t, defaultServerConfig(t))
 	conn, done := setupConnection(t)
 	return &Reputation{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()

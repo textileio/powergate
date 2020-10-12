@@ -84,7 +84,7 @@ var ffsConfigPushCmd = &cobra.Command{
 
 		s := spin.New("%s Adding cid storage config to FFS...")
 		s.Start()
-		jid, err := fcClient.FFS.PushStorageConfig(authCtx(ctx), c, options...)
+		jid, err := fcClient.FFS.PushStorageConfig(mustAuthCtx(ctx), c, options...)
 		s.Stop()
 		checkErr(err)
 		Success("Pushed cid storage config for %s to FFS with job id: %v", util.CidToString(c), jid.String())

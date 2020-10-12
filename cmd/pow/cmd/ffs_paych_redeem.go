@@ -27,7 +27,7 @@ var ffsPaychRedeemCmd = &cobra.Command{
 
 		s := spin.New("%s Redeeming payment channel...")
 		s.Start()
-		err := fcClient.FFS.RedeemPayChannel(authCtx(ctx), args[0])
+		err := fcClient.FFS.RedeemPayChannel(mustAuthCtx(ctx), args[0])
 		s.Stop()
 		checkErr(err)
 

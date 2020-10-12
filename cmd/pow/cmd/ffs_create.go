@@ -15,6 +15,7 @@ var (
 
 func init() {
 	ffsCmd.AddCommand(ffsCreateCmd)
+	ffsCreateCmd.Flags().StringP("token", "t", "", "FFS admin token (if applies)")
 }
 
 var ffsCreateCmd = &cobra.Command{
