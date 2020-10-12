@@ -626,25 +626,19 @@ func adminAuth(conf Config) grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
+		adminServicePrefix := "/proto.admin.v1.PowergateAdminService"
+
 		method, _ := grpc.Method(ctx)
 
-		ffsAPIPrefix := "/ffs.rpc.RPCService"
-		ffsCreateAPI := ffsAPIPrefix + "/Create"
-
-		// Consider that all FFS RPC calls but "Create" require a generated FFS token.
-		isFFSInstanceAPI := strings.HasPrefix(method, ffsAPIPrefix) && method != ffsCreateAPI
-
-		// If the called method isn't a FFS API that requires a generated FFS token, then
-		// it should use the admin token.
-		if !isFFSInstanceAPI {
-			adminToken := metautils.ExtractIncoming(ctx).Get("X-ffs-token")
-			if adminToken != conf.FFSAdminToken {
-				return nil, status.Error(codes.PermissionDenied, "Method requires admin permission")
-			}
+		if !strings.HasPrefix(method, adminServicePrefix) {
 			return handler(ctx, req)
 		}
 
-		// Not an admin method
+		adminToken := metautils.ExtractIncoming(ctx).Get("X-ffs-token")
+		if adminToken != conf.FFSAdminToken {
+			return nil, status.Error(codes.PermissionDenied, "Method requires admin permission")
+		}
 		return handler(ctx, req)
+
 	}
 }

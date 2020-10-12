@@ -32,7 +32,7 @@ var ffsCreateCmd = &cobra.Command{
 
 		s := spin.New("%s Creating ffs instance...")
 		s.Start()
-		res, err := fcClient.Admin.CreateInstance(ctx)
+		res, err := fcClient.Admin.CreateInstance(mustAuthCtx(ctx))
 		s.Stop()
 		checkErr(err)
 		Message("Instance created with id %s and token %s", res.Id, res.Token)
