@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 
+	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -20,12 +20,15 @@ var netPeersCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Net.Peers(ctx)
+		s := spin.New("%s Getting peers...")
+		s.Start()
+		peers, err := fcClient.Net.Peers(ctx)
+		s.Stop()
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		bytes, err := json.MarshalIndent(peers, "", "  ")
 		checkErr(err)
 
-		fmt.Println(string(json))
+		Success(string(bytes))
 	},
 }
