@@ -26,9 +26,9 @@ Provides commands to manage ffs
 * [pow ffs cancel](pow_ffs_cancel.md)	 - Cancel an executing job
 * [pow ffs config](pow_ffs_config.md)	 - Provides commands to manage storage configuration
 * [pow ffs create](pow_ffs_create.md)	 - Create ffs instance
+* [pow ffs data](pow_ffs_data.md)	 - Get information about the current state of cid storage
 * [pow ffs get](pow_ffs_get.md)	 - Get data by cid from ffs
 * [pow ffs id](pow_ffs_id.md)	 - Returns the FFS instance id
-* [pow ffs info](pow_ffs_info.md)	 - Get information about the current state of cid storage
 * [pow ffs log](pow_ffs_log.md)	 - Display logs for specified cid
 * [pow ffs paych](pow_ffs_paych.md)	 - Provides commands to manage payment channels
 * [pow ffs remove](pow_ffs_remove.md)	 - Removes a Cid from being tracked as an active storage
