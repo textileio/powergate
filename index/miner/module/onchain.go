@@ -159,7 +159,7 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 			l.Unlock()
 		}(a)
 		stats.Record(context.Background(), mOnChainRefreshProgress.M(float64(i)/float64(len(addrs))))
-		if i%100 == 0 {
+		if i%5000 == 0 {
 			log.Infof("progress %d/%d", i, len(addrs))
 		}
 	}
