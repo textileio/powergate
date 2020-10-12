@@ -177,6 +177,9 @@ func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (uint64, erro
 	case <-time.After(time.Second * 10):
 		return 0, fmt.Errorf("query asking timed out")
 	case r := <-chAsk:
+		if r.Error != "" {
+			return 0, fmt.Errorf("query ask had controlled error: %s", r.Error)
+		}
 		return r.Ask.Price.Uint64(), nil
 	}
 }
