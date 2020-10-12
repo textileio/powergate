@@ -83,7 +83,7 @@ func stageURL(ctx context.Context, urlstr string) error {
 	s := spin.New("%s Staging URL in FFS hot storage...")
 	s.Start()
 	defer s.Stop()
-	ptrCid, err := fcClient.FFS.Stage(authCtx(ctx), res.Body)
+	ptrCid, err := fcClient.FFS.Stage(mustAuthCtx(ctx), res.Body)
 	if err != nil {
 		return err
 	}

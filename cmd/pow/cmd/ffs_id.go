@@ -27,7 +27,7 @@ var ffsIDCmd = &cobra.Command{
 
 		s := spin.New("%s Getting FFS instance id...")
 		s.Start()
-		id, err := fcClient.FFS.ID(authCtx(ctx))
+		id, err := fcClient.FFS.ID(mustAuthCtx(ctx))
 		s.Stop()
 		checkErr(err)
 		Message("FFS instance id: %s", id.String())

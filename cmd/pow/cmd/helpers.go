@@ -73,8 +73,3 @@ func mustAuthCtx(ctx context.Context) context.Context {
 	}
 	return context.WithValue(ctx, client.AuthKey, token)
 }
-
-func authCtx(ctx context.Context) context.Context {
-	token := viper.GetString("token")
-	return context.WithValue(ctx, client.AuthKey, token)
-}

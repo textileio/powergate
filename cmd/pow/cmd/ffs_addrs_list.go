@@ -25,7 +25,7 @@ var ffsAddrsListCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.FFS.Addrs(authCtx(ctx))
+		res, err := fcClient.FFS.Addrs(mustAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)

@@ -201,13 +201,13 @@ func TestFilecoinEnableConfig(t *testing.T) {
 					it.RequireStorageConfig(t, fapi, cid, &config)
 
 					// Show() assertions
-					sinfo, err := fapi.Show(cid)
+					cinfo, err := fapi.Show(cid)
 					require.NoError(t, err)
-					require.Equal(t, tt.HotEnabled, sinfo.Hot.Enabled)
+					require.Equal(t, tt.HotEnabled, cinfo.Hot.Enabled)
 					if tt.ColdEnabled {
-						require.NotEmpty(t, sinfo.Cold.Filecoin.Proposals)
+						require.NotEmpty(t, cinfo.Cold.Filecoin.Proposals)
 					} else {
-						require.Empty(t, sinfo.Cold.Filecoin.Proposals)
+						require.Empty(t, cinfo.Cold.Filecoin.Proposals)
 					}
 
 					// Get() assertions
@@ -264,9 +264,9 @@ func TestDurationConfig(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		sinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
-		p := sinfo.Cold.Filecoin.Proposals[0]
+		p := cinfo.Cold.Filecoin.Proposals[0]
 		require.Greater(t, p.Duration, duration)
 		require.Greater(t, p.ActivationEpoch, int64(0))
 	})

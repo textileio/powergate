@@ -151,35 +151,6 @@ func (s *instanceStore) getStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.Stor
 	return res, nil
 }
 
-func (s *instanceStore) getCids() ([]cid.Cid, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	q := query.Query{
-		Prefix:   dsBaseCidStorageConfig.String(),
-		KeysOnly: true,
-	}
-	res, err := s.ds.Query(q)
-	if err != nil {
-		return nil, fmt.Errorf("querying for all cids in instance: %s", err)
-	}
-	defer func() {
-		if err := res.Close(); err != nil {
-			log.Errorf("closing query result: %s", err)
-		}
-	}()
-
-	var cids []cid.Cid
-	for r := range res.Next() {
-		strCid := datastore.RawKey(r.Key).Name()
-		c, err := util.CidFromString(strCid)
-		if err != nil {
-			return nil, fmt.Errorf("decoding cid: %s", err)
-		}
-		cids = append(cids, c)
-	}
-	return cids, nil
-}
-
 func makeStorageConfigKey(c cid.Cid) datastore.Key {
 	return dsBaseCidStorageConfig.ChildString(util.CidToString(c))
 }

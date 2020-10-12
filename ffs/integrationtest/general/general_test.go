@@ -239,7 +239,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
 		id := fapi.ID()
-		sinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
 
 		// Now close the FFS Instance, and the manager.
@@ -258,7 +258,7 @@ func TestColdInstanceLoad(t *testing.T) {
 
 		nsinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
-		require.Equal(t, sinfo, nsinfo)
+		require.Equal(t, cinfo, nsinfo)
 
 		r, err := fapi.Get(ctx, cid)
 		require.NoError(t, err)

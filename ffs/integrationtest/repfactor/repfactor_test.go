@@ -40,9 +40,9 @@ func TestRepFactor(t *testing.T) {
 				it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 				it.RequireStorageConfig(t, fapi, cid, &config)
 
-				sinfo, err := fapi.Show(cid)
+				cinfo, err := fapi.Show(cid)
 				require.NoError(t, err)
-				require.Equal(t, rf, len(sinfo.Cold.Filecoin.Proposals))
+				require.Equal(t, rf, len(cinfo.Cold.Filecoin.Proposals))
 			})
 		})
 	}
@@ -60,20 +60,20 @@ func TestRepFactorIncrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
-		sinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
-		require.Equal(t, 1, len(sinfo.Cold.Filecoin.Proposals))
-		firstProposal := sinfo.Cold.Filecoin.Proposals[0]
+		require.Equal(t, 1, len(cinfo.Cold.Filecoin.Proposals))
+		firstProposal := cinfo.Cold.Filecoin.Proposals[0]
 
 		config := fapi.DefaultStorageConfig().WithColdFilRepFactor(2)
 		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		sinfo, err = fapi.Show(cid)
+		cinfo, err = fapi.Show(cid)
 		require.NoError(t, err)
-		require.Equal(t, 2, len(sinfo.Cold.Filecoin.Proposals))
-		require.Contains(t, sinfo.Cold.Filecoin.Proposals, firstProposal)
+		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
+		require.Contains(t, cinfo.Cold.Filecoin.Proposals, firstProposal)
 	})
 }
 
@@ -90,9 +90,9 @@ func TestRepFactorDecrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
-		sinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.Show(cid)
 		require.NoError(t, err)
-		require.Equal(t, 2, len(sinfo.Cold.Filecoin.Proposals))
+		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 
 		config = fapi.DefaultStorageConfig().WithColdFilRepFactor(1)
 		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
@@ -100,9 +100,9 @@ func TestRepFactorDecrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
-		sinfo, err = fapi.Show(cid)
+		cinfo, err = fapi.Show(cid)
 		require.NoError(t, err)
-		require.Equal(t, 2, len(sinfo.Cold.Filecoin.Proposals))
+		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 	})
 }
 

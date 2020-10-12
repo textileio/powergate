@@ -32,7 +32,7 @@ var ffsDataCmd = &cobra.Command{
 			cids = strings.Split(args[0], ",")
 		}
 
-		res, err := fcClient.FFS.CidData(authCtx(ctx), cids...)
+		res, err := fcClient.FFS.CidData(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
