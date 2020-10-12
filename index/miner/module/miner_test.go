@@ -74,7 +74,7 @@ func TestIntegration(t *testing.T) {
 	require.NoError(t, err)
 
 	<-time.After(time.Second * 15)
-	mi.Close()
+	_ = mi.Close()
 }
 
 var _ P2PHost = (*p2pHostMock)(nil)

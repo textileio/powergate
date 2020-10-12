@@ -31,7 +31,6 @@ func TestMS(t *testing.T) {
 		_, err := sr2.GetMiners(1, ffs.MinerSelectorFilter{})
 		require.NoError(t, err)
 	}
-
 }
 
 func TestCustom(t *testing.T) {
