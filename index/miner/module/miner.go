@@ -20,12 +20,8 @@ import (
 	txndstr "github.com/textileio/powergate/txndstransform"
 )
 
-const (
-	goroutinesCount = 2
-)
-
 var (
-	minersRefreshInterval = time.Minute * 30
+	minersRefreshInterval = time.Hour * 6
 	maxParallelism        = 1
 	dsBase                = datastore.NewKey("index")
 
@@ -48,17 +44,13 @@ type Index struct {
 	lr            iplocation.LocationResolver
 	signaler      *signaler.Signaler
 
-	chMeta      chan struct{}
-	metaTicker  *time.Ticker
-	minerTicker *time.Ticker
-	lock        sync.Mutex
-	index       miner.IndexSnapshot
+	lock  sync.Mutex
+	index miner.IndexSnapshot
 
-	ctx      context.Context
-	cancel   context.CancelFunc
-	finished chan struct{}
-	clsLock  sync.Mutex
-	closed   bool
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
+	closed bool
 }
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
@@ -78,19 +70,16 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost
 		signaler:      signaler.New(),
 		h:             h,
 		lr:            lr,
-		chMeta:        make(chan struct{}, 1),
-		metaTicker:    time.NewTicker(metadataRefreshInterval),
-		minerTicker:   time.NewTicker(minersRefreshInterval),
 
-		ctx:      ctx,
-		cancel:   cancel,
-		finished: make(chan struct{}, 2),
+		ctx:    ctx,
+		cancel: cancel,
 	}
 	if err := mi.loadFromDS(); err != nil {
 		return nil, err
 	}
-	go mi.start(disable)
-	go mi.metaWorker()
+
+	mi.startMinerWorker(disable)
+	mi.startMetaWorker(disable)
 	return mi, nil
 }
 
@@ -133,64 +122,42 @@ func (mi *Index) Unregister(c chan struct{}) {
 func (mi *Index) Close() error {
 	log.Info("closing...")
 	defer log.Info("closed")
-	mi.clsLock.Lock()
-	defer mi.clsLock.Unlock()
+	mi.lock.Lock()
+	defer mi.lock.Unlock()
 	if mi.closed {
 		return nil
 	}
 	mi.cancel()
-	for i := 0; i < goroutinesCount; i++ {
-		<-mi.finished
-	}
-	close(mi.finished)
+	mi.wg.Wait()
 	mi.signaler.Close()
-	mi.minerTicker.Stop()
-	mi.metaTicker.Stop()
 
 	mi.closed = true
 	return nil
 }
 
-// start is a long running job that keep the index up to date. It separates
-// updating tasks in two components. Updating on-chain information whenever
-// a new potential tipset is notified by the full node. And a metadata updater
-// which do best-efforts to gather/update off-chain information about known
-// miners.
-func (mi *Index) start(disabled bool) {
-	defer func() { mi.finished <- struct{}{} }()
-
-	if !disabled {
+func (mi *Index) startMinerWorker(disabled bool) {
+	mi.wg.Add(1)
+	go func() {
+		defer mi.wg.Done()
+		if disabled {
+			log.Infof("miners index worker disabled")
+			return
+		}
 		if err := mi.updateOnChainIndex(); err != nil {
 			log.Errorf("initial updating miner index: %s", err)
 		}
-	}
-	mi.chMeta <- struct{}{}
-	for {
-		select {
-		case <-mi.ctx.Done():
-			log.Info("graceful shutdown of background miner index")
-			return
-		case <-mi.metaTicker.C:
-			if disabled {
-				log.Infof("skipping meta index update since it's disabled")
-				continue
-			}
+		for {
 			select {
-			case mi.chMeta <- struct{}{}:
-			default:
-				log.Info("skipping meta index update since it's busy")
-			}
-		case <-mi.minerTicker.C:
-			if disabled {
-				log.Infof("skipping miner index update since it's disabled")
-				continue
-			}
-			if err := mi.updateOnChainIndex(); err != nil {
-				log.Errorf("updating miner index: %s", err)
-				continue
+			case <-mi.ctx.Done():
+				log.Info("graceful shutdown of background miner index")
+				return
+			case <-time.After(minersRefreshInterval):
+				if err := mi.updateOnChainIndex(); err != nil {
+					log.Errorf("updating miner index: %s", err)
+				}
 			}
 		}
-	}
+	}()
 }
 
 // loadFromDS loads persisted indexes to memory datastructures. No locks needed

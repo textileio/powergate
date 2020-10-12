@@ -18,51 +18,53 @@ import (
 )
 
 var (
-	metadataRefreshInterval = time.Hour
-	pingTimeout             = time.Second * 5
-	pingRateLim             = 1
+	metaRefreshInterval = time.Hour * 6
+	pingTimeout         = time.Second * 5
+	pingRateLim         = 1
 )
 
 var (
 	dsKeyMetaIndex = dsBase.ChildString("meta")
 )
 
-// metaWorker makes a pass on refreshing metadata information about known miners.
-func (mi *Index) metaWorker() {
-	defer func() { mi.finished <- struct{}{} }()
-	mi.chMeta <- struct{}{}
-	for {
-		select {
-		case <-mi.ctx.Done():
-			log.Info("graceful shutdown of meta updater")
+func (mi *Index) startMetaWorker(disabled bool) {
+	mi.wg.Add(1)
+	go func() {
+		defer mi.wg.Done()
+		if disabled {
+			log.Infof("meta index worker disabled")
 			return
-		case _, ok := <-mi.chMeta:
-			if !ok {
-				log.Info("meta worker channel closed")
-				return
-			}
-			log.Info("updating meta index...")
-			// ToDo: coud have smarter ways of electing which addrs to refresh, and then
-			// doing a merge. Will depend if this too slow, but might not be the case
-			mi.lock.Lock()
-			addrs := make([]string, 0, len(mi.index.OnChain.Miners))
-			for addr, miner := range mi.index.OnChain.Miners {
-				if miner.Power > 0 {
-					addrs = append(addrs, addr)
-				}
-			}
-			mi.lock.Unlock()
-			newIndex := updateMetaIndex(mi.ctx, mi.clientBuilder, mi.h, mi.lr, addrs)
-			if err := mi.persistMetaIndex(newIndex); err != nil {
-				log.Errorf("persisting meta index: %s", err)
-			}
-			mi.lock.Lock()
-			mi.index.Meta = newIndex
-			mi.lock.Unlock()
-			mi.signaler.Signal() // ToDo: consider a finer-grained signaling
-			log.Info("meta index updated")
 		}
-	}
+
+		for {
+			select {
+			case <-mi.ctx.Done():
+				log.Info("graceful shutdown of meta updater")
+				return
+			case <-time.After(metaRefreshInterval):
+				log.Info("updating meta index...")
+				// ToDo: coud have smarter ways of electing which addrs to refresh, and then
+				// doing a merge. Will depend if this too slow, but might not be the case
+				mi.lock.Lock()
+				addrs := make([]string, 0, len(mi.index.OnChain.Miners))
+				for addr, miner := range mi.index.OnChain.Miners {
+					if miner.Power > 0 {
+						addrs = append(addrs, addr)
+					}
+				}
+				mi.lock.Unlock()
+				newIndex := updateMetaIndex(mi.ctx, mi.clientBuilder, mi.h, mi.lr, addrs)
+				if err := mi.persistMetaIndex(newIndex); err != nil {
+					log.Errorf("persisting meta index: %s", err)
+				}
+				mi.lock.Lock()
+				mi.index.Meta = newIndex
+				mi.lock.Unlock()
+				mi.signaler.Signal() // ToDo: consider a finer-grained signaling
+				log.Info("meta index updated")
+			}
+		}
+	}()
 }
 
 // updateMetaIndex generates a new index that contains fresh metadata information
