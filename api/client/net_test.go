@@ -64,7 +64,7 @@ func TestConnectedness(t *testing.T) {
 }
 
 func setupNet(t *testing.T) (*Net, func()) {
-	serverDone := setupServer(t)
+	serverDone := setupServer(t, defaultServerConfig(t))
 	conn, done := setupConnection(t)
 	return &Net{client: rpc.NewRPCServiceClient(conn)}, func() {
 		done()
