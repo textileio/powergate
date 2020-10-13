@@ -77,11 +77,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 		return ffs.EmptyJobID, fmt.Errorf("enqueuing job: %s", err)
 	}
 	if jid := s.sjs.GetExecutingJob(c); jid != nil {
-<<<<<<< HEAD
-		s.l.Log(ctx, "Job %s is already being executed for the same data, this job will be queued until it finishes or is canceled.", jid.String())
-=======
 		s.l.Log(ctx, "Job %s is already being executed for the same data, this job will be queued until it finishes or is canceled.", jid)
->>>>>>> origin/master
 	}
 
 	select {

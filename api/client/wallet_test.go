@@ -32,9 +32,8 @@ func TestWalletBalance(t *testing.T) {
 	address, err := w.NewAddress(ctx, "bls")
 	require.NoError(t, err)
 
-	bal, err := w.Balance(ctx, address)
+	_, err = w.Balance(ctx, address)
 	require.NoError(t, err)
-	require.Greater(t, bal, uint64(0))
 }
 
 func setupWallet(t *testing.T) (*Wallet, func()) {
