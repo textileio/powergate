@@ -25,7 +25,6 @@ Provides commands to manage ffs
 * [pow ffs addrs](pow_ffs_addrs.md)	 - Provides commands to manage wallet addresses
 * [pow ffs cancel](pow_ffs_cancel.md)	 - Cancel an executing job
 * [pow ffs config](pow_ffs_config.md)	 - Provides commands to manage storage configuration
-* [pow ffs create](pow_ffs_create.md)	 - Create ffs instance
 * [pow ffs data](pow_ffs_data.md)	 - Get information about the current state of cid storage
 * [pow ffs get](pow_ffs_get.md)	 - Get data by cid from ffs
 * [pow ffs id](pow_ffs_id.md)	 - Returns the FFS instance id

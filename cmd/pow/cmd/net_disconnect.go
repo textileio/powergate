@@ -14,7 +14,7 @@ func init() {
 }
 
 var netDisconnectCmd = &cobra.Command{
-	Use:   "disconnect [peerID] [address]",
+	Use:   "disconnect [peerID]",
 	Short: "Disconnect from specified peer",
 	Long:  `Disconnect from specified peer`,
 	Run: func(cmd *cobra.Command, args []string) {

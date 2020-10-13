@@ -20,6 +20,7 @@ pow [flags]
 
 ### SEE ALSO
 
+* [pow admin](pow_admin.md)	 - Provides admin commands
 * [pow asks](pow_asks.md)	 - Provides commands to view asks data
 * [pow faults](pow_faults.md)	 - Provides commands to view faults data
 * [pow ffs](pow_ffs.md)	 - Provides commands to manage ffs

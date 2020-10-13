@@ -635,6 +635,5 @@ func adminAuth(conf Config) grpc.UnaryServerInterceptor {
 			return nil, status.Error(codes.PermissionDenied, "Method requires admin permission")
 		}
 		return handler(ctx, req)
-
 	}
 }
