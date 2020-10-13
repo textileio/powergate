@@ -2,19 +2,19 @@ package powergate
 
 import (
 	"github.com/textileio/powergate/ffs/scheduler"
-	"github.com/textileio/powergate/lotus"
+	walletModule "github.com/textileio/powergate/wallet/module"
 )
 
 // Service implements the Powergate API.
 type Service struct {
-	s             *scheduler.Scheduler
-	clientBuilder lotus.ClientBuilder
+	s *scheduler.Scheduler
+	w *walletModule.Module
 }
 
 // New creates a new powergate Service.
-func New(s *scheduler.Scheduler, clientBuilder lotus.ClientBuilder) *Service {
+func New(s *scheduler.Scheduler, w *walletModule.Module) *Service {
 	return &Service{
-		s:             s,
-		clientBuilder: clientBuilder,
+		s: s,
+		w: w,
 	}
 }
