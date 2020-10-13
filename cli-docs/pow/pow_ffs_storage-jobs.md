@@ -27,5 +27,6 @@ Provides commands to query for storage jobs in various statess
 * [pow ffs storage-jobs latest-final](pow_ffs_storage-jobs_latest-final.md)	 - List the latest final storage jobs
 * [pow ffs storage-jobs latest-successful](pow_ffs_storage-jobs_latest-successful.md)	 - List the latest successful storage jobs
 * [pow ffs storage-jobs queued](pow_ffs_storage-jobs_queued.md)	 - List queued storage jobs
+* [pow ffs storage-jobs storage-config](pow_ffs_storage-jobs_storage-config.md)	 - Get the StorageConfig associated with the specified job
 * [pow ffs storage-jobs summary](pow_ffs_storage-jobs_summary.md)	 - Give a summary of storage jobs in all states
 
