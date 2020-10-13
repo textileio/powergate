@@ -248,7 +248,7 @@ func (s *RPC) StorageJob(ctx context.Context, req *StorageJobRequest) (*StorageJ
 		return nil, err
 	}
 	jid := ffs.JobID(req.Jid)
-	job, err := i.GetStorageJob(ctx, jid)
+	job, err := i.GetStorageJob(jid)
 	if err != nil {
 		return nil, err
 	}

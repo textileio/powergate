@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/wallet/rpc"
 )
 
@@ -39,7 +40,7 @@ func TestWalletBalance(t *testing.T) {
 func setupWallet(t *testing.T) (*Wallet, func()) {
 	serverDone := setupServer(t, defaultServerConfig(t))
 	conn, done := setupConnection(t)
-	return &Wallet{client: rpc.NewRPCServiceClient(conn)}, func() {
+	return &Wallet{walletClient: rpc.NewRPCServiceClient(conn), powergateClient: proto.NewPowergateServiceClient(conn)}, func() {
 		done()
 		serverDone()
 	}

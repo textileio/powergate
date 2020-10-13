@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/gogo/status"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	proto "github.com/textileio/powergate/proto/admin/v1"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestCreate(t *testing.T) {

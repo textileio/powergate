@@ -1164,8 +1164,10 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PowergateAdminServiceClient interface {
+	// Instances
 	CreateInstance(ctx context.Context, in *CreateInstanceRequest, opts ...grpc.CallOption) (*CreateInstanceResponse, error)
 	ListInstances(ctx context.Context, in *ListInstancesRequest, opts ...grpc.CallOption) (*ListInstancesResponse, error)
+	// Jobs
 	QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error)
 	ExecutingStorageJobs(ctx context.Context, in *ExecutingStorageJobsRequest, opts ...grpc.CallOption) (*ExecutingStorageJobsResponse, error)
 	LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error)
@@ -1246,8 +1248,10 @@ func (c *powergateAdminServiceClient) StorageJobsSummary(ctx context.Context, in
 
 // PowergateAdminServiceServer is the server API for PowergateAdminService service.
 type PowergateAdminServiceServer interface {
+	// Instances
 	CreateInstance(context.Context, *CreateInstanceRequest) (*CreateInstanceResponse, error)
 	ListInstances(context.Context, *ListInstancesRequest) (*ListInstancesResponse, error)
+	// Jobs
 	QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error)
 	ExecutingStorageJobs(context.Context, *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error)
 	LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error)

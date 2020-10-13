@@ -20,6 +20,7 @@ func init() {
 		ffsLatestFinalStorageJobsCmd,
 		ffsLatestSuccessfulStorageJobsCmd,
 		ffsStorageJobsSummaryCmd,
+		ffsStorageConfigForJobCmd,
 	)
 }
 
@@ -187,6 +188,29 @@ var ffsStorageJobsSummaryCmd = &cobra.Command{
 		defer cancel()
 
 		res, err := fcClient.FFS.StorageJobsSummary(mustAuthCtx(ctx), cids...)
+		checkErr(err)
+
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
+	},
+}
+
+var ffsStorageConfigForJobCmd = &cobra.Command{
+	Use:   "storage-config [job-id]",
+	Short: "Get the StorageConfig associated with the specified job",
+	Long:  `Get the StorageConfig associated with the specified job`,
+	Args:  cobra.ExactArgs(1),
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		checkErr(err)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		defer cancel()
+
+		res, err := fcClient.Jobs.StorageConfigForJob(mustAuthCtx(ctx), args[0])
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)

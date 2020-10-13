@@ -19,7 +19,6 @@ require (
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
-	github.com/gogo/status v1.1.0
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.5.2
 	github.com/google/uuid v1.1.2
@@ -37,7 +36,6 @@ require (
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/ipld/go-car v0.1.1-0.20200923150018-8cdef32e2da4
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
-	github.com/kataras/tablewriter v0.0.0-20180708051242-e063d29b7c23
 	github.com/kyokomi/emoji v2.2.4+incompatible
 	github.com/libp2p/go-libp2p v0.11.0
 	github.com/libp2p/go-libp2p-core v0.6.1

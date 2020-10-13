@@ -19,14 +19,6 @@ message ListResponse {
     repeated string addresses = 1;
 }
 
-message BalanceRequest {
-    string address = 1;
-}
-
-message BalanceResponse {
-    uint64 balance = 1;
-}
-
 message SendFilRequest {
     string from = 1;
     string to = 2;
@@ -40,6 +32,5 @@ message SendFilResponse {
 service RPCService {
     rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
     rpc List(ListRequest) returns (ListResponse) {}
-    rpc Balance(BalanceRequest) returns (BalanceResponse) {}
     rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
 }

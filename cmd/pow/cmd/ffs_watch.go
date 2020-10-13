@@ -12,7 +12,6 @@ import (
 	"syscall"
 
 	"github.com/apoorvam/goterminal"
-	"github.com/kataras/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
@@ -111,11 +110,7 @@ func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.JobEve
 		}
 	}
 
-	table := tablewriter.NewWriter(writer)
-	table.SetHeader([]string{"Job id", "Status", "Miner", "Price", "Deal Status"})
-	table.SetBorder(false) // Set Border to false
-	table.AppendBulk(data) // Add Bulk Data
-	table.Render()
+	RenderTable(writer, []string{"Job id", "Status", "Miner", "Price", "Deal Status"}, data)
 
 	writer.Clear()
 	_ = writer.Print()

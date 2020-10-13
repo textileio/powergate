@@ -79,7 +79,6 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 	go func() {
 		for update := range dealUpdates {
 			s.lock.Lock()
-			log.Infof("ZZZ -- API: %v, Miner: %v, Status: %v", j.APIID, update.Miner, update.StateName)
 			_, ok := s.jobStatusCache[j.APIID]
 			if !ok {
 				s.jobStatusCache[j.APIID] = map[cid.Cid]map[cid.Cid]deals.StorageDealInfo{}
@@ -89,7 +88,6 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 				s.jobStatusCache[j.APIID][j.Cid] = map[cid.Cid]deals.StorageDealInfo{}
 			}
 			s.jobStatusCache[j.APIID][j.Cid][update.ProposalCid] = update
-			log.Infof("\n%v", s.jobStatusCache)
 			job, err := s.get(j.ID)
 			if err != nil {
 				log.Errorf("getting job: %v", err)
@@ -110,7 +108,6 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 		s.lock.Lock()
 		delete(s.jobStatusCache[j.APIID], j.Cid)
 		s.lock.Unlock()
-		log.Info("ZZZ -- Done receiving updates.")
 	}()
 	return dealUpdates
 }

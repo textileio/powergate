@@ -10,7 +10,7 @@ import (
 )
 
 // GetStorageJob returns the current state of the specified job.
-func (i *API) GetStorageJob(ctx context.Context, jid ffs.JobID) (ffs.StorageJob, error) {
+func (i *API) GetStorageJob(jid ffs.JobID) (ffs.StorageJob, error) {
 	job, err := i.sched.StorageJob(jid)
 	if err == scheduler.ErrNotFound {
 		return ffs.StorageJob{}, fmt.Errorf("job id %s not found", jid)
@@ -91,4 +91,16 @@ func (i *API) LatestFinalStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
 // If no cids are provided, data for all data cids is returned.
 func (i *API) LatestSuccessfulStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
 	return i.sched.LatestSuccessfulStorageJobs(i.cfg.ID, cids...)
+}
+
+// StorageConfigForJob returns the StorageConfig associated with the specified job.
+func (i *API) StorageConfigForJob(jid ffs.JobID) (ffs.StorageConfig, error) {
+	sc, err := i.sched.StorageConfig(jid)
+	if err == scheduler.ErrNotFound {
+		return ffs.StorageConfig{}, ErrNotFound
+	}
+	if err != nil {
+		return ffs.StorageConfig{}, fmt.Errorf("getting storage config for job: %v", err)
+	}
+	return sc, nil
 }

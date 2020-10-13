@@ -189,9 +189,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBu
 
 // RequireStorageJobState checks if the current status of a job matches one of the specified statuses.
 func RequireStorageJobState(t require.TestingT, fapi *api.API, jid ffs.JobID, statuses ...ffs.JobStatus) ffs.StorageJob {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	job, err := fapi.GetStorageJob(ctx, jid)
+	job, err := fapi.GetStorageJob(jid)
 	require.NoError(t, err)
 	require.Contains(t, statuses, job.Status)
 	return job

@@ -13,6 +13,7 @@ import (
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	netRpc "github.com/textileio/powergate/net/rpc"
 	adminProto "github.com/textileio/powergate/proto/admin/v1"
+	proto "github.com/textileio/powergate/proto/powergate/v1"
 	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
@@ -29,6 +30,7 @@ type Client struct {
 	FFS             *FFS
 	Health          *Health
 	Net             *Net
+	Jobs            *Jobs
 	Admin           *Admin
 	conn            *grpc.ClientConn
 	buildInfoClient buildinfoRpc.RPCServiceClient
@@ -101,15 +103,17 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	powClient := proto.NewPowergateServiceClient(conn)
 	client := &Client{
 		Asks:            &Asks{client: askRpc.NewRPCServiceClient(conn)},
 		Miners:          &Miners{client: minerRpc.NewRPCServiceClient(conn)},
 		Faults:          &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
-		Wallet:          &Wallet{client: walletRpc.NewRPCServiceClient(conn)},
+		Wallet:          &Wallet{walletClient: walletRpc.NewRPCServiceClient(conn), powergateClient: powClient},
 		Reputation:      &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
 		FFS:             &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
 		Health:          &Health{client: healthRpc.NewRPCServiceClient(conn)},
 		Net:             &Net{client: netRpc.NewRPCServiceClient(conn)},
+		Jobs:            &Jobs{client: powClient},
 		Admin:           &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
 		conn:            conn,
 		buildInfoClient: buildinfoRpc.NewRPCServiceClient(conn),

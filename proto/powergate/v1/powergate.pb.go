@@ -381,7 +381,9 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PowergateServiceClient interface {
+	// Wallet
 	Balance(ctx context.Context, in *BalanceRequest, opts ...grpc.CallOption) (*BalanceResponse, error)
+	// Jobs
 	StorageConfigForJob(ctx context.Context, in *StorageConfigForJobRequest, opts ...grpc.CallOption) (*StorageConfigForJobResponse, error)
 }
 
@@ -413,7 +415,9 @@ func (c *powergateServiceClient) StorageConfigForJob(ctx context.Context, in *St
 
 // PowergateServiceServer is the server API for PowergateService service.
 type PowergateServiceServer interface {
+	// Wallet
 	Balance(context.Context, *BalanceRequest) (*BalanceResponse, error)
+	// Jobs
 	StorageConfigForJob(context.Context, *StorageConfigForJobRequest) (*StorageConfigForJobResponse, error)
 }
 

@@ -16,7 +16,6 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
-	"github.com/gogo/status"
 	grpcm "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
@@ -67,6 +66,7 @@ import (
 	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -403,7 +403,7 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	minerService := minerRpc.New(s.mi)
 	faultsService := faultsRpc.New(s.fi)
 	ffsService := ffsRpc.New(s.ffsManager, s.wm, s.hs)
-	powergateService := powergateService.New(s.sched, s.wm)
+	powergateService := powergateService.New(s.ffsManager, s.wm)
 	adminService := adminService.New(s.ffsManager, s.sched)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)

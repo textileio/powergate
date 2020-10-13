@@ -40,17 +40,7 @@ func Fatal(err error, args ...interface{}) {
 func RenderTable(writer io.Writer, header []string, data [][]string) {
 	table := tablewriter.NewWriter(writer)
 	table.SetHeader(header)
-	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(true)
-	table.SetHeaderAlignment(tablewriter.ALIGN_CENTER)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetCenterSeparator("")
-	table.SetColumnSeparator("")
-	table.SetRowSeparator("")
-	table.SetHeaderLine(false)
 	table.SetBorder(false)
-	table.SetTablePadding("\t")
-	table.SetNoWhiteSpace(true)
 	headersColors := make([]tablewriter.Colors, len(header))
 	for i := range headersColors {
 		headersColors[i] = tablewriter.Colors{tablewriter.FgHiBlackColor}

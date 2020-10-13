@@ -5,6 +5,8 @@ option go_package = "github.com/textileio/powergate/proto/powergate/v1";
 
 import "ffs/rpc/rpc.proto";
 
+// Wallet
+
 message BalanceRequest {
   string address = 1;
 }
@@ -12,6 +14,8 @@ message BalanceRequest {
 message BalanceResponse {
   uint64 balance = 1;
 }
+
+// Jobs
 
 message StorageConfigForJobRequest {
   string job_id = 1;
@@ -22,6 +26,9 @@ message StorageConfigForJobResponse {
 }
 
 service PowergateService {
+  // Wallet
   rpc Balance(BalanceRequest) returns (BalanceResponse) {}
+
+  // Jobs
   rpc StorageConfigForJob(StorageConfigForJobRequest) returns (StorageConfigForJobResponse) {}
 }

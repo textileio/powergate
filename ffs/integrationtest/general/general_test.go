@@ -91,7 +91,7 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestInfo(t *testing.T) {
+func TestDealConsistency(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
@@ -175,7 +175,7 @@ func TestShow(t *testing.T) {
 		// Test not stored
 		c, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 
-		_, err := fapi.GetStorageConfigs(c)
+		_, err := fapi.Show(c)
 		require.Equal(t, api.ErrNotFound, err)
 
 		r := rand.New(rand.NewSource(22))
@@ -239,7 +239,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
 		id := fapi.ID()
-		cinfo, err := fapi.Show(cid)
+		shw, err := fapi.Show(cid)
 		require.NoError(t, err)
 
 		// Now close the FFS Instance, and the manager.
@@ -256,9 +256,9 @@ func TestColdInstanceLoad(t *testing.T) {
 		nid := fapi.ID()
 		require.Equal(t, id, nid)
 
-		nsinfo, err := fapi.Show(cid)
+		nshw, err := fapi.Show(cid)
 		require.NoError(t, err)
-		require.Equal(t, cinfo, nsinfo)
+		require.Equal(t, shw, nshw)
 
 		r, err := fapi.Get(ctx, cid)
 		require.NoError(t, err)
