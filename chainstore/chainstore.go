@@ -67,7 +67,9 @@ func (s *Store) GetLastCheckpoint(v interface{}) (*types.TipSetKey, error) {
 	}
 	chk := s.checkpoints[len(s.checkpoints)-1]
 	if err := s.load(chk.ts, v); err != nil {
-		return nil, err
+		log.Warnf("loading last checkpoint with base %s: %s", chk.ts, err)
+		// On error, just assume there's no previous checkpoint.
+		return nil, nil
 	}
 	return &chk.ts, nil
 }
