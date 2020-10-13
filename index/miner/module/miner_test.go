@@ -11,14 +11,15 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/iplocation"
+	"github.com/textileio/powergate/lotus"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
 
 func TestMain(m *testing.M) {
 	util.AvgBlockTime = time.Millisecond * 10
-	metadataRefreshInterval = time.Millisecond * 10
-	logging.SetAllLoggers(logging.LevelError)
+	metaRefreshInterval = time.Millisecond * 10
+	logging.SetAllLoggers(logging.LevelInfo)
 	//logging.SetLogLevel("index-miner", "debug")
 	os.Exit(m.Run())
 }
@@ -55,6 +56,25 @@ func TestFullRefresh(t *testing.T) {
 		emptyTime := time.Time{}
 		require.False(t, metaInfo.LastUpdated == emptyTime || metaInfo.UserAgent == "" || !metaInfo.Online)
 	}
+}
+
+func TestIntegration(t *testing.T) {
+	t.SkipNow()
+	metaRefreshInterval = time.Hour
+	minersRefreshInterval = time.Second
+
+	lotusHost, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5555")
+	require.NoError(t, err)
+	lotusToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.4KpuySIvV4n6kBEXQOle-hi1Ec3lyUmRYCknz4NQyLM"
+
+	cb, err := lotus.NewBuilder(lotusHost, lotusToken, 1)
+	require.NoError(t, err)
+
+	mi, err := New(tests.NewTxMapDatastore(), cb, &p2pHostMock{}, &lrMock{}, false)
+	require.NoError(t, err)
+
+	<-time.After(time.Second * 15)
+	_ = mi.Close()
 }
 
 var _ P2PHost = (*p2pHostMock)(nil)
