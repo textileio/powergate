@@ -98,7 +98,9 @@ func (s *Store) LoadAndPrune(ctx context.Context, currHead types.TipSetKey, valu
 		return nil, nil
 	}
 	if err := s.load(*base, value); err != nil {
-		return nil, err
+		log.Warnf("loading base %s: %s", *base, err)
+		// On error, just assume there's no previous checkpoint.
+		return nil, nil
 	}
 	return base, nil
 }
@@ -110,7 +112,8 @@ func (s *Store) load(tsk types.TipSetKey, v interface{}) error {
 		return fmt.Errorf("error getting key %s: %s", key, err)
 	}
 	if err := json.Unmarshal(buf, v); err != nil {
-		return err
+		log.Warnf("corrupted checkpoint: %s", buf)
+		return fmt.Errorf("unmarshaling checkpoint: %s", err)
 	}
 	return nil
 }
