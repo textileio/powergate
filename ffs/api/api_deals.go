@@ -8,9 +8,6 @@ import (
 
 // ListStorageDealRecords lists storage deals for this FFS instance according to the provided options.
 func (i *API) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-
 	c := deals.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
@@ -34,9 +31,6 @@ func (i *API) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]dea
 
 // ListRetrievalDealRecords returns a list of retrieval deals for this FFS instance according to the provided options.
 func (i *API) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-
 	c := deals.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
