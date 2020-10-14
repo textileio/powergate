@@ -72,11 +72,11 @@ func (m *Module) MasterAddr() address.Address {
 
 // NewAddress creates a new address.
 func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
-	var ty crypto.SigType
+	var ty types.KeyType
 	if typ == "bls" {
-		ty = crypto.SigTypeBLS
+		ty = types.KTBLS
 	} else if typ == "secp256k1" {
-		ty = crypto.SigTypeSecp256k1
+		ty = types.KTSecp256k1
 	} else {
 		return "", fmt.Errorf("unknown address type %s", typ)
 	}
