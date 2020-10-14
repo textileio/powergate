@@ -65,7 +65,7 @@ var ffsRetrievalsCmd = &cobra.Command{
 					strconv.Itoa(int(r.DealInfo.Size)),
 				}
 			}
-			RenderTable(os.Stdout, []string{"time", "addr", "miner", "piece cid", "size"}, data)
+			RenderTable(os.Stdout, []string{"time", "addr", "miner", "cid", "size"}, data)
 		}
 		Message("Found %d retrieval deal records", aurora.White(len(res)).Bold())
 	},
