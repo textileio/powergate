@@ -67,7 +67,9 @@ func (s *Store) GetLastCheckpoint(v interface{}) (*types.TipSetKey, error) {
 	}
 	chk := s.checkpoints[len(s.checkpoints)-1]
 	if err := s.load(chk.ts, v); err != nil {
-		return nil, err
+		log.Warnf("loading last checkpoint with base %s: %s", chk.ts, err)
+		// On error, just assume there's no previous checkpoint.
+		return nil, nil
 	}
 	return &chk.ts, nil
 }
@@ -98,7 +100,9 @@ func (s *Store) LoadAndPrune(ctx context.Context, currHead types.TipSetKey, valu
 		return nil, nil
 	}
 	if err := s.load(*base, value); err != nil {
-		return nil, err
+		log.Warnf("loading base %s: %s", *base, err)
+		// On error, just assume there's no previous checkpoint.
+		return nil, nil
 	}
 	return base, nil
 }
@@ -110,7 +114,8 @@ func (s *Store) load(tsk types.TipSetKey, v interface{}) error {
 		return fmt.Errorf("error getting key %s: %s", key, err)
 	}
 	if err := json.Unmarshal(buf, v); err != nil {
-		return err
+		log.Warnf("corrupted checkpoint: %s", buf)
+		return fmt.Errorf("unmarshaling checkpoint: %s", err)
 	}
 	return nil
 }
