@@ -30,7 +30,6 @@ import (
 
 const (
 	chanWriteTimeout = time.Second
-	dealTimeout      = time.Hour * 24
 
 	defaultDealStartOffset = 72 * 60 * 60 / util.EpochDurationSeconds // 72hs
 )
@@ -49,14 +48,15 @@ var (
 
 // Module exposes storage and monitoring from the market.
 type Module struct {
-	clientBuilder lotus.ClientBuilder
-	cfg           *deals.Config
-	store         *store
-	pollDuration  time.Duration
+	clientBuilder       lotus.ClientBuilder
+	cfg                 *deals.Config
+	store               *store
+	pollDuration        time.Duration
+	dealFinalityTimeout time.Duration
 }
 
 // New creates a new Module.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDuration time.Duration, opts ...deals.Option) (*Module, error) {
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDuration time.Duration, dealFinalityTimeout time.Duration, opts ...deals.Option) (*Module, error) {
 	var cfg deals.Config
 	for _, o := range opts {
 		if err := o(&cfg); err != nil {
@@ -64,10 +64,11 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDurat
 		}
 	}
 	m := &Module{
-		clientBuilder: clientBuilder,
-		cfg:           &cfg,
-		store:         newStore(ds),
-		pollDuration:  pollDuration,
+		clientBuilder:       clientBuilder,
+		cfg:                 &cfg,
+		store:               newStore(ds),
+		pollDuration:        pollDuration,
+		dealFinalityTimeout: dealFinalityTimeout,
 	}
 	m.initPendingDeals()
 	return m, nil
@@ -472,7 +473,7 @@ func (m *Module) initPendingDeals() {
 		return
 	}
 	for _, dr := range pendingDeals {
-		remaining := time.Until(time.Unix(dr.Time, 0).Add(dealTimeout))
+		remaining := time.Until(time.Unix(dr.Time, 0).Add(m.dealFinalityTimeout))
 		if remaining <= 0 {
 			go m.finalizePendingDeal(dr)
 		} else {
@@ -500,7 +501,7 @@ func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 		log.Errorf("storing pending deal: %v", err)
 		return
 	}
-	go m.eventuallyFinalizeDeal(record, dealTimeout)
+	go m.eventuallyFinalizeDeal(record, m.dealFinalityTimeout)
 }
 
 func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
