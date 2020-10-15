@@ -134,7 +134,7 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 
 // NewCustomFFSManager returns a new customized FFS manager.
 func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi, minimumPieceSize uint64) (*manager.Manager, func()) {
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, util.AvgBlockTime)
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, time.Minute*10, util.AvgBlockTime)
 	require.NoError(t, err)
 
 	fchain := filchain.New(clientBuilder)
