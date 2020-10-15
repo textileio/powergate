@@ -31,7 +31,7 @@ var ffsStageCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*30)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Hour*8)
 		defer cancel()
 
 		if len(args) != 1 {

@@ -40,17 +40,3 @@ func (w *Wallet) Balance(ctx context.Context, address string) (uint64, error) {
 	}
 	return resp.GetBalance(), nil
 }
-
-// SendFil sends Fils from one address to another.
-func (w *Wallet) SendFil(ctx context.Context, from, to string, amount int64) error {
-	req := &walletRpc.SendFilRequest{
-		From:   from,
-		To:     to,
-		Amount: amount,
-	}
-	_, err := w.walletClient.SendFil(ctx, req)
-	if err != nil {
-		return fmt.Errorf("calling SendFil: %v", err)
-	}
-	return nil
-}

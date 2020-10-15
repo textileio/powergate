@@ -24,5 +24,4 @@ Provides commands about filecoin wallets
 * [pow wallet balance](pow_wallet_balance.md)	 - Print the balance of the specified wallet address
 * [pow wallet list](pow_wallet_list.md)	 - Print all wallet addresses
 * [pow wallet new](pow_wallet_new.md)	 - Create a new filecoin wallet address
-* [pow wallet send](pow_wallet_send.md)	 - Send Fil from one address to another
 

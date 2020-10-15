@@ -69,6 +69,7 @@ var ffsStorageCmd = &cobra.Command{
 					pending = "pending"
 				}
 				data[i] = []string{
+					util.CidToString(r.RootCid),
 					pending,
 					strconv.FormatInt(r.DealInfo.ActivationEpoch, 10),
 					t.Format("01/02/06 15:04 MST"),
@@ -76,12 +77,11 @@ var ffsStorageCmd = &cobra.Command{
 					r.DealInfo.Miner,
 					strconv.Itoa(int(r.DealInfo.DealID)),
 					strconv.Itoa(int(r.DealInfo.PricePerEpoch)),
-					util.CidToString(r.DealInfo.PieceCID),
 					strconv.Itoa(int(r.DealInfo.Size)),
 					strconv.Itoa(int(r.DealInfo.Duration)),
 				}
 			}
-			RenderTable(os.Stdout, []string{"pending", "active epoch", "time", "addr", "miner", "deal id", "price/epoch", "piece cid", "size", "duration"}, data)
+			RenderTable(os.Stdout, []string{"cid", "pending", "active epoch", "time", "addr", "miner", "deal id", "price/epoch", "size", "duration"}, data)
 		}
 		Message("Found %d storage deal records", aurora.White(len(res)).Bold())
 	},
