@@ -609,6 +609,9 @@ func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllRespons
 	cidInfos := make([]*CidInfo, len(instanceInfo.Pins))
 	for j, cid := range instanceInfo.Pins {
 		cidInfo, err := i.Show(cid)
+		if err == api.ErrNotFound {
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
