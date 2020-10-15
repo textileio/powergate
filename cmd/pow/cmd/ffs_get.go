@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"time"
 
 	"github.com/caarlos0/spin"
 	"github.com/ipfs/go-cid"
@@ -29,7 +30,7 @@ var ffsGetCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Hour*8)
 		defer cancel()
 
 		if len(args) != 2 {
