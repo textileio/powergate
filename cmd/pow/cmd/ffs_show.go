@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/caarlos0/spin"
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -35,21 +35,18 @@ var ffsShowCmd = &cobra.Command{
 		if len(args) == 1 {
 			c, err := cid.Parse(args[0])
 			checkErr(err)
-			s := spin.New("%s Getting info for cid...")
-			s.Start()
 			res, err = fcClient.FFS.Show(authCtx(ctx), c)
-			s.Stop()
 			checkErr(err)
 
 		} else {
-			s := spin.New("%s Getting info all stored cids...")
-			s.Start()
 			var err error
 			res, err = fcClient.FFS.ShowAll(authCtx(ctx))
-			s.Stop()
 			checkErr(err)
 		}
 
-		Success("\n%v", prototext.Format(res))
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }
