@@ -40,18 +40,6 @@ func TestFindPeer(t *testing.T) {
 	require.Nil(t, peer.Location)
 }
 
-func TestDisconnectConnect(t *testing.T) {
-	c, done := setupNet(t)
-	defer done()
-	peers, err := c.Peers(ctx)
-	require.NoError(t, err)
-	require.NotEmpty(t, peers)
-	err = c.DisconnectPeer(ctx, peers[0].AddrInfo.ID)
-	require.NoError(t, err)
-	err = c.ConnectPeer(ctx, peers[0].AddrInfo)
-	require.NoError(t, err)
-}
-
 func TestConnectedness(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()

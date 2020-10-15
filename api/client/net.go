@@ -65,26 +65,6 @@ func (net *Net) FindPeer(ctx context.Context, peerID peer.ID) (n.PeerInfo, error
 	return fromProtoPeerInfo(resp.PeerInfo)
 }
 
-// ConnectPeer connects to a peer.
-func (net *Net) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
-	addrs := make([]string, len(addrInfo.Addrs))
-	for i, addr := range addrInfo.Addrs {
-		addrs[i] = addr.String()
-	}
-	info := &rpc.PeerAddrInfo{
-		Id:    addrInfo.ID.String(),
-		Addrs: addrs,
-	}
-	_, err := net.client.ConnectPeer(ctx, &rpc.ConnectPeerRequest{PeerInfo: info})
-	return err
-}
-
-// DisconnectPeer disconnects from a peer.
-func (net *Net) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
-	_, err := net.client.DisconnectPeer(ctx, &rpc.DisconnectPeerRequest{PeerId: peerID.String()})
-	return err
-}
-
 // Connectedness returns the connection status to a peer.
 func (net *Net) Connectedness(ctx context.Context, peerID peer.ID) (n.Connectedness, error) {
 	resp, err := net.client.Connectedness(ctx, &rpc.ConnectednessRequest{PeerId: peerID.String()})
