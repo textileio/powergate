@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"math/big"
 
 	"github.com/textileio/powergate/wallet"
 )
@@ -44,13 +43,4 @@ func (s *RPC) Balance(ctx context.Context, req *BalanceRequest) (*BalanceRespons
 		return nil, err
 	}
 	return &BalanceResponse{Balance: res}, nil
-}
-
-// SendFil calls wallet.SendFil.
-func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilResponse, error) {
-	err := s.Module.SendFil(ctx, req.From, req.To, big.NewInt(req.Amount))
-	if err != nil {
-		return nil, err
-	}
-	return &SendFilResponse{}, nil
 }

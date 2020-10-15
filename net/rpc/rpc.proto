@@ -50,20 +50,6 @@ message FindPeerResponse {
     PeerInfo peer_info = 1;
 }
 
-message ConnectPeerRequest {
-    PeerAddrInfo peer_info = 1;
-}
-
-message ConnectPeerResponse {
-}
-
-message DisconnectPeerRequest {
-    string peer_id = 1;
-}
-
-message DisconnectPeerResponse {
-}
-
 message ConnectednessRequest {
     string peer_id = 1;
 }
@@ -76,7 +62,5 @@ service RPCService {
     rpc ListenAddr(ListenAddrRequest) returns (ListenAddrResponse) {}
     rpc Peers(PeersRequest) returns (PeersResponse) {}
     rpc FindPeer(FindPeerRequest) returns (FindPeerResponse) {}
-    rpc ConnectPeer(ConnectPeerRequest) returns (ConnectPeerResponse) {}
-    rpc DisconnectPeer(DisconnectPeerRequest) returns (DisconnectPeerResponse) {}
     rpc Connectedness(ConnectednessRequest) returns (ConnectednessResponse) {}
 }

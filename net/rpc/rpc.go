@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/libp2p/go-libp2p-core/peer"
-	ma "github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/net"
 )
 
@@ -107,48 +106,6 @@ func (a *RPC) FindPeer(ctx context.Context, req *FindPeerRequest) (*FindPeerResp
 			Location: l,
 		},
 	}, nil
-}
-
-// ConnectPeer calls module.ConnectPeer.
-func (a *RPC) ConnectPeer(ctx context.Context, req *ConnectPeerRequest) (*ConnectPeerResponse, error) {
-	addrs := make([]ma.Multiaddr, len(req.PeerInfo.Addrs))
-	for i, addr := range req.PeerInfo.Addrs {
-		ma, err := ma.NewMultiaddr(addr)
-		if err != nil {
-			return nil, err
-		}
-		addrs[i] = ma
-	}
-
-	id, err := peer.Decode(req.PeerInfo.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	addrInfo := peer.AddrInfo{
-		ID:    id,
-		Addrs: addrs,
-	}
-
-	if err := a.module.ConnectPeer(ctx, addrInfo); err != nil {
-		return nil, err
-	}
-
-	return &ConnectPeerResponse{}, nil
-}
-
-// DisconnectPeer calls module.DisconnectPeer.
-func (a *RPC) DisconnectPeer(ctx context.Context, req *DisconnectPeerRequest) (*DisconnectPeerResponse, error) {
-	peerID, err := peer.Decode(req.PeerId)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := a.module.DisconnectPeer(ctx, peerID); err != nil {
-		return nil, err
-	}
-
-	return &DisconnectPeerResponse{}, nil
 }
 
 // Connectedness calls module.Connectedness.
