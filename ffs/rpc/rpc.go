@@ -606,8 +606,8 @@ func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllRespons
 	if err != nil {
 		return nil, err
 	}
-	cidInfos := make([]*CidInfo, len(instanceInfo.Pins))
-	for j, cid := range instanceInfo.Pins {
+	var cidInfos []*CidInfo
+	for _, cid := range instanceInfo.Pins {
 		cidInfo, err := i.Show(cid)
 		if err == api.ErrNotFound {
 			continue
@@ -615,7 +615,7 @@ func (s *RPC) ShowAll(ctx context.Context, req *ShowAllRequest) (*ShowAllRespons
 		if err != nil {
 			return nil, err
 		}
-		cidInfos[j] = toRPCCidInfo(cidInfo)
+		cidInfos = append(cidInfos, toRPCCidInfo(cidInfo))
 	}
 	return &ShowAllResponse{CidInfos: cidInfos}, nil
 }
