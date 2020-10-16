@@ -348,7 +348,7 @@ type FilConfig struct {
 	Renew FilRenew
 	// Addr is the wallet address used to store the data in filecoin
 	Addr string
-	// MaxPrice is the maximum price that will be spent to store the data
+	// MaxPrice is the maximum price that will be spent to store the data in AttoFil per GiB per epoch
 	MaxPrice uint64
 	// FastRetrieval indicates that created deals should enable the
 	// fast retrieval feature.
