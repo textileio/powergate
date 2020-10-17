@@ -205,12 +205,12 @@ A production setup is also provided in the `docker` folder. It launches `powd` c
 - _Prometheus_, which is the backend for metrics processing.
 - _Grafana_, for metrics dashboard.
 - _cAdvisor_, for container metrics.
-- _Lotus_, node running on the current Testnet.
+- _Lotus_, node running on the current mainnet.
 - _IPFS_, node running to back Powergate FFS.
 - _Powergate_, wired with all of above components.
 
 Depending on which network you want to connect to, you have to run different commands:
-- `make up`, to connect to `testnet`.
+- `make up`, to connect to `mainnet`.
 
 Remember that you should wait for _Lotus_ to be fully-synced which might take a long time; you can check your current node sync status running `lotus sync status` inside the Lotus container. We also provide automatically generated Dockerhub images of Powergate server, see [textile/powergate](https://hub.docker.com/r/textile/powergate).
 
@@ -230,7 +230,7 @@ It will auto-download any necessary dependencies and run all tests.
 ## Benchmark
 There's a dedicated binary to run benchmarks against a Powergate server. For more information see the [specific README](cmd/powbench/README.md). 
 
-Soon we'll add benchmark results against real miners in the Testnet network, so stay tuned. ⌛ 
+Soon we'll add benchmark results against real miners in mainnet, so stay tuned. ⌛ 
 
 ## Contributing
 
