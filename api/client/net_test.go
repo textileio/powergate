@@ -4,51 +4,50 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	n "github.com/textileio/powergate/net"
 	"github.com/textileio/powergate/net/rpc"
 )
 
 func TestListenAddr(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()
-	addrInfo, err := c.ListenAddr(ctx)
+	res, err := c.ListenAddr(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, addrInfo.Addrs)
-	require.NotEmpty(t, addrInfo.ID)
+	require.NotEmpty(t, res.AddrInfo.Addrs)
+	require.NotEmpty(t, res.AddrInfo.Id)
 }
 
 func TestPeers(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()
-	peers, err := c.Peers(ctx)
+	res, err := c.Peers(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, peers)
+	require.NotEmpty(t, res)
 }
 
 func TestFindPeer(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()
-	peers, err := c.Peers(ctx)
+	peersRes, err := c.Peers(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, peers)
-	peer, err := c.FindPeer(ctx, peers[0].AddrInfo.ID)
+	require.NotEmpty(t, peersRes.Peers)
+	peerRes, err := c.FindPeer(ctx, peersRes.Peers[0].AddrInfo.Id)
 	require.NoError(t, err)
-	require.NotEmpty(t, peer.AddrInfo.ID)
-	require.NotEmpty(t, peer.AddrInfo.Addrs)
+	require.NotEmpty(t, peerRes.PeerInfo.AddrInfo.Id)
+	require.NotEmpty(t, peerRes.PeerInfo.AddrInfo.Addrs)
 	// The addrs of peers are in localhost, so
 	// no location information will be available.
-	require.Nil(t, peer.Location)
+	require.Nil(t, peerRes.PeerInfo.Location)
 }
 
 func TestConnectedness(t *testing.T) {
 	c, done := setupNet(t)
 	defer done()
-	peers, err := c.Peers(ctx)
+	peersRes, err := c.Peers(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, peers)
-	connectedness, err := c.Connectedness(ctx, peers[0].AddrInfo.ID)
+	require.NotEmpty(t, peersRes.Peers)
+	connectednessRes, err := c.Connectedness(ctx, peersRes.Peers[0].AddrInfo.Id)
 	require.NoError(t, err)
-	require.Equal(t, n.Connected, connectedness)
+	require.Equal(t, rpc.Connectedness_CONNECTEDNESS_CONNECTED, connectednessRes.Connectedness)
 }
 
 func setupNet(t *testing.T) (*Net, func()) {

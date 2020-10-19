@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/big"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/ipfs/go-cid"
@@ -578,18 +577,6 @@ func (s *RPC) Get(req *GetRequest, srv RPCService_GetServer) error {
 			return nil
 		}
 	}
-}
-
-// SendFil sends fil from a managed address to any other address.
-func (s *RPC) SendFil(ctx context.Context, req *SendFilRequest) (*SendFilResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := i.SendFil(ctx, req.From, req.To, big.NewInt(req.Amount)); err != nil {
-		return nil, err
-	}
-	return &SendFilResponse{}, nil
 }
 
 // Stage allows you to temporarily cache data in the Hot layer in preparation for pushing a cid storage config.

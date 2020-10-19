@@ -42,7 +42,7 @@ var ffsLogCmd = &cobra.Command{
 			opts = append(opts, client.WithJidFilter(ffs.JobID(jid)))
 		}
 
-		ch := make(chan client.LogEvent)
+		ch := make(chan client.WatchLogsEvent)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 

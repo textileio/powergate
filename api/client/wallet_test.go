@@ -12,28 +12,28 @@ func TestNewWallet(t *testing.T) {
 	w, done := setupWallet(t)
 	defer done()
 
-	address, err := w.NewAddress(ctx, "bls")
+	res, err := w.NewAddress(ctx, "bls")
 	require.NoError(t, err)
-	require.Greater(t, len(address), 0)
+	require.Greater(t, len(res.Address), 0)
 }
 
 func TestList(t *testing.T) {
 	w, done := setupWallet(t)
 	defer done()
 
-	addresses, err := w.List(ctx)
+	res, err := w.List(ctx)
 	require.NoError(t, err)
-	require.Greater(t, len(addresses), 0)
+	require.Greater(t, len(res.Addresses), 0)
 }
 
 func TestWalletBalance(t *testing.T) {
 	w, done := setupWallet(t)
 	defer done()
 
-	address, err := w.NewAddress(ctx, "bls")
+	newAddressRes, err := w.NewAddress(ctx, "bls")
 	require.NoError(t, err)
 
-	_, err = w.Balance(ctx, address)
+	_, err = w.Balance(ctx, newAddressRes.Address)
 	require.NoError(t, err)
 }
 

@@ -46,7 +46,7 @@ var ffsWatchCmd = &cobra.Command{
 }
 
 func watchJobIds(jobIds ...ffs.JobID) {
-	state := make(map[string]*client.JobEvent, len(jobIds))
+	state := make(map[string]*client.WatchJobsEvent, len(jobIds))
 	for _, jobID := range jobIds {
 		state[jobID.String()] = nil
 	}
@@ -55,7 +55,7 @@ func watchJobIds(jobIds ...ffs.JobID) {
 
 	updateJobsOutput(writer, state)
 
-	ch := make(chan client.JobEvent)
+	ch := make(chan client.WatchJobsEvent)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -83,7 +83,7 @@ func watchJobIds(jobIds ...ffs.JobID) {
 	}
 }
 
-func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.JobEvent) {
+func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.WatchJobsEvent) {
 	keys := make([]string, 0, len(state))
 	for k := range state {
 		keys = append(keys, k)
@@ -116,7 +116,7 @@ func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.JobEve
 	_ = writer.Print()
 }
 
-func jobsComplete(state map[string]*client.JobEvent) bool {
+func jobsComplete(state map[string]*client.WatchJobsEvent) bool {
 	for _, event := range state {
 		processing := false
 		if event == nil ||

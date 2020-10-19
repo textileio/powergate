@@ -401,15 +401,6 @@ message GetResponse {
    bytes chunk = 1;
 }
 
-message SendFilRequest {
-   string from = 1;
-   string to = 2;
-   int64 amount = 3;
-}
-
-message SendFilResponse {
-}
-
 message StageRequest {
    bytes chunk = 1;
 }
@@ -481,7 +472,6 @@ service RPCService {
    rpc PushStorageConfig(PushStorageConfigRequest) returns (PushStorageConfigResponse) {}
    rpc Remove(RemoveRequest) returns (RemoveResponse) {}
    rpc Get(GetRequest) returns (stream GetResponse) {}
-   rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
    rpc Stage(stream StageRequest) returns (StageResponse) {}
    rpc ListPayChannels(ListPayChannelsRequest) returns (ListPayChannelsResponse) {}
    rpc CreatePayChannel(CreatePayChannelRequest) returns (CreatePayChannelResponse) {}

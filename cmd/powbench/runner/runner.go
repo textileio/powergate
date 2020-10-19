@@ -145,14 +145,14 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	}
 
 	log.Infof("[%d] Pushed successfully, queued job %s. Waiting for termination...", id, jid)
-	chJob := make(chan client.JobEvent, 1)
+	chJob := make(chan client.WatchJobsEvent, 1)
 	ctxWatch, cancel := context.WithCancel(ctx)
 	defer cancel()
 	err = c.FFS.WatchJobs(ctxWatch, chJob, jid)
 	if err != nil {
 		return fmt.Errorf("opening listening job status: %s", err)
 	}
-	var s client.JobEvent
+	var s client.WatchJobsEvent
 	for s = range chJob {
 		if s.Err != nil {
 			return fmt.Errorf("job watching: %s", s.Err)
