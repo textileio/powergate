@@ -108,6 +108,9 @@ func (cl *Logger) GetByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, erro
 	}()
 	var lgs []ffs.LogEntry
 	for r := range res.Next() {
+		if r.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
 		var le logEntry
 		if err := json.Unmarshal(r.Value, &le); err != nil {
 			return nil, fmt.Errorf("unmarshaling log entry: %s", err)

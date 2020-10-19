@@ -95,6 +95,9 @@ func (r *Auth) List() ([]ffs.APIID, error) {
 
 	var ret []ffs.APIID
 	for r := range res.Next() {
+		if r.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
 		var e entry
 		if err := json.Unmarshal(r.Entry.Value, &e); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)

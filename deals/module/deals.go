@@ -314,11 +314,7 @@ func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket
 		}
 		return storagemarket.StorageDealUnknown, false, fmt.Errorf("getting deal info: %s", err)
 	}
-	md, err := lapi.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
-	if err != nil {
-		return storagemarket.StorageDealUnknown, false, fmt.Errorf("get storage state: %s", err)
-	}
-	return di.State, md.State.SlashEpoch != -1, nil
+	return di.State, di.State == storagemarket.StorageDealSlashed, nil
 }
 
 // Watch returns a channel with state changes of indicated proposals.
