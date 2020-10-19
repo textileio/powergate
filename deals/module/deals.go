@@ -307,7 +307,6 @@ func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket
 		return storagemarket.StorageDealUnknown, false, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
-	now := time.Now()
 	di, err := lapi.ClientGetDealInfo(ctx, pcid)
 	if err != nil {
 		if strings.Contains(err.Error(), "datastore: key not found") {
@@ -315,7 +314,6 @@ func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket
 		}
 		return storagemarket.StorageDealUnknown, false, fmt.Errorf("getting deal info: %s", err)
 	}
-	log.Infof("GetDealStatus(): %dms", time.Since(now).Milliseconds())
 	return di.State, di.State == storagemarket.StorageDealSlashed, nil
 }
 
@@ -616,12 +614,10 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
 
 func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- deals.StorageDealInfo) error {
 	for _, pcid := range proposals {
-		now := time.Now()
 		dinfo, err := client.ClientGetDealInfo(ctx, pcid)
 		if err != nil {
 			return fmt.Errorf("getting deal proposal info %s: %s", pcid, err)
 		}
-		log.Infof("client get deal info call: %d", time.Since(now).Milliseconds())
 		if currState[pcid] == nil || (*currState[pcid]).State != dinfo.State {
 			currState[pcid] = dinfo
 			newState, err := fromLotusDealInfo(ctx, client, dinfo)

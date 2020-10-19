@@ -331,8 +331,6 @@ Loop:
 // padding. It's important to not underestimate the size since that would lead to deal rejection
 // since the miner won't accept the further calculated PricePerEpoch.
 func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (uint64, error) {
-	ctx, cls := context.WithTimeout(ctx, time.Minute*15)
-	defer cls()
 	// Get unique nodes.
 	seen := cid.NewSet()
 	if err := dag.Walk(ctx, fc.getLinks, c, seen.Visit); err != nil {
