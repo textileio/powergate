@@ -13,10 +13,6 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
-const (
-	initialBalance int64 = 4000000000000000
-)
-
 func TestMain(m *testing.M) {
 	util.AvgBlockTime = time.Millisecond * 500
 	logging.SetAllLoggers(logging.LevelError)
