@@ -129,7 +129,7 @@ func (s *instanceStore) getStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.Stor
 					rawRes[c] = r.Value
 				}
 			} else {
-				// no filter, inclide everything
+				// no filter, include everything
 				rawRes[c] = r.Value
 			}
 		}

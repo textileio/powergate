@@ -89,8 +89,15 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 			}
 			s.jobStatusCache[j.APIID][j.Cid][update.ProposalCid] = update
 			job, err := s.get(j.ID)
+			if err == ErrNotFound {
+				log.Errorf("job not found: %v", err)
+				s.lock.Unlock()
+				return
+			}
 			if err != nil {
 				log.Errorf("getting job: %v", err)
+				s.lock.Unlock()
+				continue
 			}
 			values := make([]deals.StorageDealInfo, 0, len(s.jobStatusCache[j.APIID][j.Cid]))
 			for _, v := range s.jobStatusCache[j.APIID][j.Cid] {
