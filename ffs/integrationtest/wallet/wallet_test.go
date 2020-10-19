@@ -2,8 +2,6 @@ package wallet
 
 import (
 	"context"
-	"fmt"
-	"math/big"
 	"os"
 	"testing"
 	"time"
@@ -60,54 +58,6 @@ func TestNewAddressDefault(t *testing.T) {
 
 	defaultConf := fapi.DefaultStorageConfig()
 	require.Equal(t, defaultConf.Cold.Filecoin.Addr, addr)
-}
-func TestSendFil(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	_, _, fapi, cls := it.NewAPI(t, 1)
-	defer cls()
-
-	const amt int64 = 1
-
-	balForAddress := func(addr string) (uint64, error) {
-		info, err := fapi.Info(ctx)
-		if err != nil {
-			return 0, err
-		}
-		for _, balanceInfo := range info.Balances {
-			if balanceInfo.Addr == addr {
-				return balanceInfo.Balance, nil
-			}
-		}
-		return 0, fmt.Errorf("no balance info for address %v", addr)
-	}
-
-	addrs := fapi.Addrs()
-	require.NotEmpty(t, addrs)
-
-	addr1 := addrs[0].Addr
-
-	addr2, err := fapi.NewAddr(ctx, "addr2")
-	require.NoError(t, err)
-
-	hasInitialBal := func() bool {
-		bal, err := balForAddress(addr2)
-		require.NoError(t, err)
-		return bal == uint64(initialBalance)
-	}
-
-	hasNewBal := func() bool {
-		bal, err := balForAddress(addr2)
-		require.NoError(t, err)
-		return bal == uint64(initialBalance+amt)
-	}
-
-	require.Eventually(t, hasInitialBal, time.Second*5, time.Second)
-
-	err = fapi.SendFil(ctx, addr1, addr2, big.NewInt(amt))
-	require.NoError(t, err)
-
-	require.Eventually(t, hasNewBal, time.Second*5, time.Second)
 }
 
 func TestSignVerifyMessage(t *testing.T) {

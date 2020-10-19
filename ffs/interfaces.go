@@ -3,7 +3,6 @@ package ffs
 import (
 	"context"
 	"io"
-	"math/big"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -20,8 +19,6 @@ type WalletManager interface {
 	NewAddress(context.Context, string) (string, error)
 	// Balance returns the current balance for an address.
 	Balance(context.Context, string) (uint64, error)
-	// SendFil sends fil from one address to another.
-	SendFil(context.Context, string, string, *big.Int) error
 	// Sign signs a message using an address.
 	Sign(context.Context, string, []byte) ([]byte, error)
 	// Verify verifies if a message was signed with an address.

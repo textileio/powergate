@@ -202,31 +202,6 @@ func (m *Module) Balance(ctx context.Context, addr string) (uint64, error) {
 	return b.Uint64(), nil
 }
 
-// SendFil sends fil from one address to another.
-func (m *Module) SendFil(ctx context.Context, from string, to string, amount *big.Int) error {
-	f, err := address.NewFromString(from)
-	if err != nil {
-		return err
-	}
-	t, err := address.NewFromString(to)
-	if err != nil {
-		return err
-	}
-	msg := &types.Message{
-		From:  f,
-		To:    t,
-		Value: types.BigInt{Int: amount},
-	}
-	client, cls, err := m.clientBuilder()
-	if err != nil {
-		return fmt.Errorf("creating lotus client: %s", err)
-	}
-	defer cls()
-
-	_, err = client.MpoolPushMessage(ctx, msg, nil)
-	return err
-}
-
 // FundFromFaucet make a faucet call to fund the provided wallet address.
 func (m *Module) FundFromFaucet(ctx context.Context, addr string) error {
 	faucet, ok := networkFaucet[m.networkName]
