@@ -3,6 +3,7 @@ package source
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
@@ -87,6 +88,9 @@ func (ss *Store) GetAll() ([]Source, error) {
 	}()
 	var ret []Source
 	for r := range res.Next() {
+		if r.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
 		s := Source{}
 		if err := json.Unmarshal(r.Value, &s); err != nil {
 			return nil, err

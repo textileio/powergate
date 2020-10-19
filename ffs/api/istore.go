@@ -118,6 +118,9 @@ func (s *instanceStore) getCids() ([]cid.Cid, error) {
 
 	var cids []cid.Cid
 	for r := range res.Next() {
+		if err != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
 		strCid := datastore.RawKey(r.Key).Name()
 		c, err := util.CidFromString(strCid)
 		if err != nil {
