@@ -15,6 +15,7 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
+	grpcm "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/ipfs/go-datastore"
 	badger "github.com/ipfs/go-ds-badger2"
@@ -58,6 +59,8 @@ import (
 	walletModule "github.com/textileio/powergate/wallet/module"
 	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -67,6 +70,10 @@ const (
 
 var (
 	log = logging.Logger("server")
+
+	nonCompliantAPIs = []string{
+		"/ffs.rpc.RPCService/SendFil",
+	}
 )
 
 // Server represents the configured lotus client and filecoin grpc server.
@@ -134,6 +141,8 @@ type Config struct {
 	AskIndexRefreshOnStart  bool
 
 	DisableIndices bool
+
+	DisableNonCompliantAPIs bool
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -259,7 +268,15 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	log.Info("Starting gRPC, gateway and index HTTP servers...")
-	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
+
+	var unaryInterceptors []grpc.UnaryServerInterceptor
+	if conf.DisableNonCompliantAPIs {
+		unaryInterceptors = append(unaryInterceptors, nonCompliantAPIsInterceptor(nonCompliantAPIs))
+	}
+	unaryInterceptorChain := grpcm.WithUnaryServerChain(unaryInterceptors...)
+
+	opts := append(conf.GrpcServerOpts, unaryInterceptorChain)
+	grpcServer := grpc.NewServer(opts...)
 	wrappedGRPCServer := wrapGRPCServer(grpcServer)
 	httpFFSAuthInterceptor, err := newHTTPFFSAuthInterceptor(conf, ffsManager)
 	if err != nil {
@@ -597,4 +614,16 @@ func evaluateMasterAddr(conf Config, c *apistruct.FullNodeStruct) (address.Addre
 		return address.Address{}, fmt.Errorf("parsing masteraddr: %s", err)
 	}
 	return res, nil
+}
+
+func nonCompliantAPIsInterceptor(nonCompliantAPIs []string) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		method, _ := grpc.Method(ctx)
+		for _, nonCompliantAPI := range nonCompliantAPIs {
+			if method == nonCompliantAPI {
+				return nil, status.Error(codes.PermissionDenied, "method disabled by powergate administrators")
+			}
+		}
+		return handler(ctx, req)
+	}
 }
