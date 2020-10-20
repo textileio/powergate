@@ -13,11 +13,11 @@ pow asks query [flags]
 ### Options
 
 ```
-  -h, --help            help for query
-  -l, --limit int       limit the number of results (default -1)
-  -m, --maxPrice uint   max price of the asks to query
-  -o, --offset int      offset of results (default -1)
-  -p, --pieceSize int   piece size of the asks to query
+  -h, --help             help for query
+  -l, --limit int32      limit the number of results (default -1)
+  -m, --maxPrice uint    max price of the asks to query
+  -o, --offset int32     offset of results (default -1)
+  -p, --pieceSize uint   piece size of the asks to query
 ```
 
 ### Options inherited from parent commands

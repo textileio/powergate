@@ -13,8 +13,8 @@ pow reputation topMiners [flags]
 ### Options
 
 ```
-  -h, --help        help for topMiners
-  -l, --limit int   limit the number of results (default -1)
+  -h, --help          help for topMiners
+  -l, --limit int32   limit the number of results (default -1)
 ```
 
 ### Options inherited from parent commands
