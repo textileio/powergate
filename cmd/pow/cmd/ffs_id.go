@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -25,11 +26,12 @@ var ffsIDCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		s := spin.New("%s Getting FFS instance id...")
-		s.Start()
-		id, err := fcClient.FFS.ID(mustAuthCtx(ctx))
-		s.Stop()
+		res, err := fcClient.FFS.ID(mustAuthCtx(ctx))
 		checkErr(err)
-		Message("FFS instance id: %s", id.String())
+
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

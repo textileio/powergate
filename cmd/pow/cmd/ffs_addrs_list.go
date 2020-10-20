@@ -28,7 +28,7 @@ var ffsAddrsListCmd = &cobra.Command{
 		res, err := fcClient.FFS.Addrs(mustAuthCtx(ctx))
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))

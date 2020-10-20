@@ -2,16 +2,14 @@ package cmd
 
 import (
 	"context"
-	"os"
-	"strconv"
+	"fmt"
 
-	"github.com/caarlos0/spin"
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
-	topMinersCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
+	topMinersCmd.Flags().Int32P("limit", "l", -1, "limit the number of results")
 
 	reputationCmd.AddCommand(topMinersCmd)
 }
@@ -24,25 +22,15 @@ var topMinersCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		limit, err := cmd.Flags().GetInt("limit")
+		limit, err := cmd.Flags().GetInt32("limit")
 		checkErr(err)
 
-		s := spin.New("%s Fetching top miners...")
-		s.Start()
-		topMiners, err := fcClient.Reputation.GetTopMiners(ctx, limit)
-		s.Stop()
+		res, err := fcClient.Reputation.GetTopMiners(ctx, limit)
 		checkErr(err)
 
-		data := make([][]string, len(topMiners))
-		for i, minerScore := range topMiners {
-			data[i] = []string{
-				minerScore.Addr,
-				strconv.Itoa(minerScore.Score),
-			}
-		}
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
 
-		RenderTable(os.Stdout, []string{"miner", "score"}, data)
-
-		Message("Showing data for %d miners", aurora.White(len(topMiners)).Bold())
+		fmt.Println(string(json))
 	},
 }

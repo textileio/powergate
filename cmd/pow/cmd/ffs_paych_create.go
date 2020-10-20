@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/util"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -32,12 +32,12 @@ var ffsPaychCreateCmd = &cobra.Command{
 		amt, err := strconv.ParseInt(args[2], 10, 64)
 		checkErr(err)
 
-		s := spin.New("%s Creating payment channel...")
-		s.Start()
-		chInfo, msgCid, err := fcClient.FFS.CreatePayChannel(mustAuthCtx(ctx), from, to, uint64(amt))
-		s.Stop()
+		res, err := fcClient.FFS.CreatePayChannel(mustAuthCtx(ctx), from, to, uint64(amt))
 		checkErr(err)
 
-		Success("Created payment channel with address %v and message cid %v", chInfo.Addr, util.CidToString(msgCid))
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

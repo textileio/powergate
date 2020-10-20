@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"time"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -26,15 +26,12 @@ var ffsConfigDefaultCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		s := spin.New("%s Getting default storage config...")
-		s.Start()
-		config, err := fcClient.FFS.DefaultStorageConfig(mustAuthCtx(ctx))
-		s.Stop()
+		res, err := fcClient.FFS.DefaultStorageConfig(mustAuthCtx(ctx))
 		checkErr(err)
 
-		json, err := json.MarshalIndent(config, "", "  ")
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.DefaultStorageConfig)
 		checkErr(err)
 
-		Message("Default storage config:\n%s", string(json))
+		fmt.Println(string(json))
 	},
 }

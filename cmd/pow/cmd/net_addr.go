@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -20,15 +20,12 @@ var netListenAddrCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Getting listen address...")
-		s.Start()
-		addrInfo, err := fcClient.Net.ListenAddr(ctx)
-		s.Stop()
+		res, err := fcClient.Net.ListenAddr(ctx)
 		checkErr(err)
 
-		bytes, err := json.MarshalIndent(addrInfo, "", "  ")
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.AddrInfo)
 		checkErr(err)
 
-		Success(string(bytes))
+		fmt.Println(string(json))
 	},
 }

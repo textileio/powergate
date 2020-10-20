@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	cid "github.com/ipfs/go-cid"
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
@@ -307,9 +306,9 @@ func (f *FFS) GetFolder(ctx context.Context, ipfsRevProxyAddr, cid, outputDir st
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.
-func (f *FFS) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
+func (f *FFS) Get(ctx context.Context, cid string) (io.Reader, error) {
 	stream, err := f.client.Get(ctx, &rpc.GetRequest{
-		Cid: util.CidToString(c),
+		Cid: cid,
 	})
 	if err != nil {
 		return nil, err
@@ -339,8 +338,8 @@ func (f *FFS) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 // WatchLogs pushes human-friendly messages about Cid executions. The method is blocking
 // and will continue to send messages until the context is canceled. The provided channel
 // is owned by the method and must not be closed.
-func (f *FFS) WatchLogs(ctx context.Context, ch chan<- WatchLogsEvent, c cid.Cid, opts ...WatchLogsOption) error {
-	r := &rpc.WatchLogsRequest{Cid: util.CidToString(c)}
+func (f *FFS) WatchLogs(ctx context.Context, ch chan<- WatchLogsEvent, cid string, opts ...WatchLogsOption) error {
+	r := &rpc.WatchLogsRequest{Cid: cid}
 	for _, opt := range opts {
 		opt(r)
 	}

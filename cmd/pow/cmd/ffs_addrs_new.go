@@ -3,12 +3,13 @@ package cmd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -45,11 +46,12 @@ var ffsAddrsNewCmd = &cobra.Command{
 			opts = append(opts, client.WithMakeDefault(makeDefault))
 		}
 
-		s := spin.New("%s Getting FFS instance wallet address...")
-		s.Start()
-		addr, err := fcClient.FFS.NewAddr(mustAuthCtx(ctx), args[0], opts...)
-		s.Stop()
+		res, err := fcClient.FFS.NewAddr(mustAuthCtx(ctx), args[0], opts...)
 		checkErr(err)
-		Success("Created new wallet address: %s", addr)
+
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

@@ -3,19 +3,16 @@ package cmd
 import (
 	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"os"
 	"time"
 
-	"github.com/caarlos0/spin"
-	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/ffs/rpc"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -30,6 +27,7 @@ var ffsConfigPushCmd = &cobra.Command{
 	Use:   "push [cid]",
 	Short: "Add data to FFS via cid",
 	Long:  `Add data to FFS via a cid already in IPFS`,
+	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -37,13 +35,6 @@ var ffsConfigPushCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
-
-		if len(args) != 1 {
-			Fatal(errors.New("you must provide a cid"))
-		}
-
-		c, err := cid.Parse(args[0])
-		checkErr(err)
 
 		configPath := viper.GetString("conf")
 
@@ -72,8 +63,9 @@ var ffsConfigPushCmd = &cobra.Command{
 			_, err := buf.ReadFrom(reader)
 			checkErr(err)
 
-			config := ffs.StorageConfig{}
-			checkErr(json.Unmarshal(buf.Bytes(), &config))
+			config := &rpc.StorageConfig{}
+			err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
+			checkErr(err)
 
 			options = append(options, client.WithStorageConfig(config))
 		}
@@ -82,15 +74,16 @@ var ffsConfigPushCmd = &cobra.Command{
 			options = append(options, client.WithOverride(viper.GetBool("override")))
 		}
 
-		s := spin.New("%s Adding cid storage config to FFS...")
-		s.Start()
-		jid, err := fcClient.FFS.PushStorageConfig(mustAuthCtx(ctx), c, options...)
-		s.Stop()
+		res, err := fcClient.FFS.PushStorageConfig(mustAuthCtx(ctx), args[0], options...)
 		checkErr(err)
-		Success("Pushed cid storage config for %s to FFS with job id: %v", util.CidToString(c), jid.String())
+
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 
 		if viper.GetBool("watch") {
-			watchJobIds(jid)
+			watchJobIds(res.JobId)
 		}
 	},
 }

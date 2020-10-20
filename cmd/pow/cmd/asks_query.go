@@ -3,21 +3,19 @@ package cmd
 import (
 	"context"
 	"errors"
-	"os"
-	"strconv"
+	"fmt"
 
-	"github.com/caarlos0/spin"
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/index/ask"
+	"github.com/textileio/powergate/index/ask/rpc"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
 	queryCmd.Flags().Uint64P("maxPrice", "m", 0, "max price of the asks to query")
-	queryCmd.Flags().IntP("pieceSize", "p", 0, "piece size of the asks to query")
-	queryCmd.Flags().IntP("limit", "l", -1, "limit the number of results")
-	queryCmd.Flags().IntP("offset", "o", -1, "offset of results")
+	queryCmd.Flags().Uint64P("pieceSize", "p", 0, "piece size of the asks to query")
+	queryCmd.Flags().Int32P("limit", "l", -1, "limit the number of results")
+	queryCmd.Flags().Int32P("offset", "o", -1, "offset of results")
 
 	asksCmd.AddCommand(queryCmd)
 }
@@ -36,8 +34,8 @@ var queryCmd = &cobra.Command{
 
 		mp := viper.GetUint64("maxPrice")
 		ps := viper.GetUint64("pieceSize")
-		l := viper.GetInt("limit")
-		o := viper.GetInt("offset")
+		l := viper.GetInt32("limit")
+		o := viper.GetInt32("offset")
 
 		if mp == 0 {
 			Fatal(errors.New("maxPrice must be > 0"))
@@ -47,34 +45,19 @@ var queryCmd = &cobra.Command{
 			Fatal(errors.New("pieceSize must be > 0"))
 		}
 
-		q := ask.Query{
+		q := &rpc.Query{
 			MaxPrice:  mp,
 			PieceSize: ps,
 			Limit:     l,
 			Offset:    o,
 		}
 
-		s := spin.New("%s Querying network for available storage asks...")
-		s.Start()
-		asks, err := fcClient.Asks.Query(ctx, q)
-		s.Stop()
+		res, err := fcClient.Asks.Query(ctx, q)
 		checkErr(err)
 
-		if len(asks) > 0 {
-			data := make([][]string, len(asks))
-			for i, a := range asks {
-				data[i] = []string{
-					a.Miner,
-					strconv.Itoa(int(a.Price)),
-					strconv.Itoa(int(a.MinPieceSize)),
-					strconv.FormatInt(a.Timestamp, 10),
-					strconv.FormatInt(a.Expiry, 10),
-				}
-			}
-			RenderTable(os.Stdout, []string{"miner", "price", "min piece size", "timestamp", "expiry"}, data)
-		}
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
 
-		Message("Found %d asks", aurora.White(len(asks)).Bold())
-
+		fmt.Println(string(json))
 	},
 }

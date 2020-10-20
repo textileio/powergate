@@ -23,7 +23,7 @@ var getCmd = &cobra.Command{
 		res, err := fcClient.Asks.Get(ctx)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res.Index)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.Index)
 		checkErr(err)
 
 		fmt.Println(string(json))

@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/caarlos0/spin"
-	"github.com/kyokomi/emoji"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -33,17 +32,14 @@ var signCmd = &cobra.Command{
 		b, err := hex.DecodeString(args[0])
 		checkErr(err)
 
-		s := spin.New(fmt.Sprintf("%s Signing message with addresses...", "%s"))
-		s.Start()
 		res, err := fcClient.FFS.Addrs(mustAuthCtx(ctx))
-		checkErr(err)
+
 		data := make([][]string, len(res.Addrs))
 		for i, a := range res.Addrs {
-			sig, err := fcClient.FFS.SignMessage(mustAuthCtx(ctx), a.Addr, b)
+			signRes, err := fcClient.FFS.SignMessage(mustAuthCtx(ctx), a.Addr, b)
 			checkErr(err)
-			data[i] = []string{a.Addr, hex.EncodeToString(sig)}
+			data[i] = []string{a.Addr, hex.EncodeToString(signRes.Signature)}
 		}
-		s.Stop()
 
 		RenderTable(os.Stdout, []string{"address", "signature"}, data)
 	},
@@ -67,17 +63,12 @@ var verifyCmd = &cobra.Command{
 		sb, err := hex.DecodeString(args[2])
 		checkErr(err)
 
-		s := spin.New(fmt.Sprintf("%s Verifying signature...", "%s"))
-		s.Start()
-		ok, err := fcClient.FFS.VerifyMessage(mustAuthCtx(ctx), args[0], mb, sb)
-		s.Stop()
+		res, err := fcClient.FFS.VerifyMessage(mustAuthCtx(ctx), args[0], mb, sb)
 		checkErr(err)
-		if ok {
-			_, err := emoji.Println(":heavy_check_mark: The signature corresponds to the wallet address.")
-			checkErr(err)
-		} else {
-			_, err := emoji.Println(":x: The signature doesn't correspond to the wallet address.")
-			checkErr(err)
-		}
+
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

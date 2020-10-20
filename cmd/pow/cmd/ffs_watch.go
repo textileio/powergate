@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -15,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/rpc"
 )
 
 func init() {
@@ -26,29 +25,21 @@ var ffsWatchCmd = &cobra.Command{
 	Use:   "watch [jobid,...]",
 	Short: "Watch for job status updates",
 	Long:  `Watch for job status updates`,
+	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) != 1 {
-			Fatal(errors.New("you must provide a comma-separated list of job ids"))
-		}
-
-		idStrings := strings.Split(args[0], ",")
-		jobIds := make([]ffs.JobID, len(idStrings))
-		for i, s := range idStrings {
-			jobIds[i] = ffs.JobID(s)
-		}
-
+		jobIds := strings.Split(args[0], ",")
 		watchJobIds(jobIds...)
 	},
 }
 
-func watchJobIds(jobIds ...ffs.JobID) {
+func watchJobIds(jobIds ...string) {
 	state := make(map[string]*client.WatchJobsEvent, len(jobIds))
 	for _, jobID := range jobIds {
-		state[jobID.String()] = nil
+		state[jobID] = nil
 	}
 
 	writer := goterminal.New(os.Stdout)
@@ -75,7 +66,7 @@ func watchJobIds(jobIds ...ffs.JobID) {
 		if !ok {
 			break
 		}
-		state[event.Job.ID.String()] = &event
+		state[event.Res.Job.Id] = &event
 		updateJobsOutput(writer, state)
 		if jobsComplete(state) {
 			break
@@ -94,15 +85,15 @@ func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.WatchJ
 	for _, k := range keys {
 		if state[k] != nil {
 			var val string
-			if state[k].Job.Status == ffs.Failed {
-				val = fmt.Sprintf("%v %v", displayName(state[k].Job.Status), state[k].Job.ErrCause)
+			if state[k].Res.Job.Status == rpc.JobStatus_JOB_STATUS_FAILED {
+				val = fmt.Sprintf("%v %v", displayName(state[k].Res.Job.Status), state[k].Res.Job.ErrCause)
 			} else if state[k].Err != nil {
 				val = fmt.Sprintf("Error: %v", state[k].Err.Error())
 			} else {
-				val = displayName(state[k].Job.Status)
+				val = displayName(state[k].Res.Job.Status)
 			}
 			data = append(data, []string{k, val, "", "", ""})
-			for _, dealInfo := range state[k].Job.DealInfo {
+			for _, dealInfo := range state[k].Res.Job.DealInfo {
 				data = append(data, []string{"", "", dealInfo.Miner, strconv.FormatUint(dealInfo.PricePerEpoch, 10), dealInfo.StateName})
 			}
 		} else {
@@ -120,8 +111,8 @@ func jobsComplete(state map[string]*client.WatchJobsEvent) bool {
 	for _, event := range state {
 		processing := false
 		if event == nil ||
-			event.Job.Status == ffs.Executing ||
-			event.Job.Status == ffs.Queued {
+			event.Res.Job.Status == rpc.JobStatus_JOB_STATUS_EXECUTING ||
+			event.Res.Job.Status == rpc.JobStatus_JOB_STATUS_QUEUED {
 			processing = true
 		}
 		if processing && event != nil && event.Err == nil {
@@ -131,8 +122,8 @@ func jobsComplete(state map[string]*client.WatchJobsEvent) bool {
 	return true
 }
 
-func displayName(s ffs.JobStatus) string {
-	name, ok := ffs.JobStatusStr[s]
+func displayName(s rpc.JobStatus) string {
+	name, ok := rpc.JobStatus_name[int32(s)]
 	if !ok {
 		return "Unknown"
 	}

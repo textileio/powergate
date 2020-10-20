@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"context"
-	"os"
+	"fmt"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -25,19 +25,12 @@ var healthCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Checking node health...")
-		s.Start()
-		status, messages, err := fcClient.Health.Check(ctx)
-		s.Stop()
+		res, err := fcClient.Health.Check(ctx)
 		checkErr(err)
 
-		Success("Health status: %v", status.String())
-		if len(messages) > 0 {
-			rows := make([][]string, len(messages))
-			for i, message := range messages {
-				rows[i] = []string{message}
-			}
-			RenderTable(os.Stdout, []string{"messages"}, rows)
-		}
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

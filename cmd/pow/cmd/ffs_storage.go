@@ -2,16 +2,12 @@ package cmd
 
 import (
 	"context"
-	"os"
-	"strconv"
-	"time"
+	"fmt"
 
-	"github.com/caarlos0/spin"
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/util"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -54,35 +50,12 @@ var ffsStorageCmd = &cobra.Command{
 			opts = append(opts, client.WithIncludeFinal(viper.GetBool("include-final")))
 		}
 
-		s := spin.New("%s Retrieving deal records...")
-		s.Start()
 		res, err := fcClient.FFS.ListStorageDealRecords(mustAuthCtx(ctx), opts...)
-		s.Stop()
 		checkErr(err)
 
-		if len(res) > 0 {
-			data := make([][]string, len(res))
-			for i, r := range res {
-				t := time.Unix(r.Time, 0)
-				pending := ""
-				if r.Pending {
-					pending = "pending"
-				}
-				data[i] = []string{
-					util.CidToString(r.RootCid),
-					pending,
-					strconv.FormatInt(r.DealInfo.ActivationEpoch, 10),
-					t.Format("01/02/06 15:04 MST"),
-					r.Addr,
-					r.DealInfo.Miner,
-					strconv.Itoa(int(r.DealInfo.DealID)),
-					strconv.Itoa(int(r.DealInfo.PricePerEpoch)),
-					strconv.Itoa(int(r.DealInfo.Size)),
-					strconv.Itoa(int(r.DealInfo.Duration)),
-				}
-			}
-			RenderTable(os.Stdout, []string{"cid", "pending", "active epoch", "time", "addr", "miner", "deal id", "price/epoch", "size", "duration"}, data)
-		}
-		Message("Found %d storage deal records", aurora.White(len(res)).Bold())
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/ffs"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -42,15 +41,13 @@ var ffsGetStorageJobCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		jid := ffs.JobID(args[0])
-
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.FFS.StorageJob(mustAuthCtx(ctx), jid)
+		res, err := fcClient.FFS.StorageJob(mustAuthCtx(ctx), args[0])
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res.Job)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.Job)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -78,7 +75,7 @@ var ffsQueuedStorageJobsCmd = &cobra.Command{
 		res, err := fcClient.FFS.QueuedStorageJobs(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -106,7 +103,7 @@ var ffsExecutingStorageJobsCmd = &cobra.Command{
 		res, err := fcClient.FFS.ExecutingStorageJobs(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -134,7 +131,7 @@ var ffsLatestFinalStorageJobsCmd = &cobra.Command{
 		res, err := fcClient.FFS.LatestFinalStorageJobs(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -162,7 +159,7 @@ var ffsLatestSuccessfulStorageJobsCmd = &cobra.Command{
 		res, err := fcClient.FFS.LatestSuccessfulStorageJobs(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -190,7 +187,7 @@ var ffsStorageJobsSummaryCmd = &cobra.Command{
 		res, err := fcClient.FFS.StorageJobsSummary(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -213,7 +210,7 @@ var ffsStorageConfigForJobCmd = &cobra.Command{
 		res, err := fcClient.Jobs.StorageConfigForJob(mustAuthCtx(ctx), args[0])
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.StorageConfig)
 		checkErr(err)
 
 		fmt.Println(string(json))

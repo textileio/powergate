@@ -2,14 +2,12 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"io"
 	"os"
 	"path"
 	"time"
 
 	"github.com/caarlos0/spin"
-	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -24,6 +22,7 @@ var ffsGetCmd = &cobra.Command{
 	Use:   "get [cid] [output file path]",
 	Short: "Get data by cid from ffs",
 	Long:  `Get data by cid from ffs`,
+	Args:  cobra.ExactArgs(2),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -32,22 +31,15 @@ var ffsGetCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Hour*8)
 		defer cancel()
 
-		if len(args) != 2 {
-			Fatal(errors.New("you must provide cid and output file path arguments"))
-		}
-
-		c, err := cid.Parse(args[0])
-		checkErr(err)
-
 		s := spin.New("%s Retrieving specified data...")
 		s.Start()
 
 		isFolder := viper.GetBool("folder")
 		if isFolder {
-			err := fcClient.FFS.GetFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), c, args[1])
+			err := fcClient.FFS.GetFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), args[0], args[1])
 			checkErr(err)
 		} else {
-			reader, err := fcClient.FFS.Get(mustAuthCtx(ctx), c)
+			reader, err := fcClient.FFS.Get(mustAuthCtx(ctx), args[0])
 			checkErr(err)
 
 			dir := path.Dir(args[1])

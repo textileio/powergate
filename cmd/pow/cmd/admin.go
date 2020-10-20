@@ -58,10 +58,10 @@ var adminCreateInstanceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.CreateInstance(mustAdminAuthCtx(ctx))
+		res, err := fcClient.Admin.CreateInstance(adminAuthCtx(ctx))
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -81,10 +81,10 @@ var adminInstancesCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.ListInstances(mustAdminAuthCtx(ctx))
+		res, err := fcClient.Admin.ListInstances(adminAuthCtx(ctx))
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -105,13 +105,13 @@ var adminQueuedStorageJobsCmd = &cobra.Command{
 		defer cancel()
 
 		res, err := fcClient.Admin.QueuedStorageJobs(
-			mustAdminAuthCtx(ctx),
+			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
 		)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -132,13 +132,13 @@ var adminExecutingStorageJobsCmd = &cobra.Command{
 		defer cancel()
 
 		res, err := fcClient.Admin.ExecutingStorageJobs(
-			mustAdminAuthCtx(ctx),
+			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
 		)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -159,13 +159,13 @@ var adminLatestFinalStorageJobsCmd = &cobra.Command{
 		defer cancel()
 
 		res, err := fcClient.Admin.LatestFinalStorageJobs(
-			mustAdminAuthCtx(ctx),
+			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
 		)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -186,13 +186,13 @@ var adminLatestSuccessfulStorageJobsCmd = &cobra.Command{
 		defer cancel()
 
 		res, err := fcClient.Admin.LatestSuccessfulStorageJobs(
-			mustAdminAuthCtx(ctx),
+			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
 		)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))
@@ -213,13 +213,13 @@ var adminStorageJobsSummaryCmd = &cobra.Command{
 		defer cancel()
 
 		res, err := fcClient.Admin.StorageJobsSummary(
-			mustAdminAuthCtx(ctx),
+			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
 		)
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  "}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))

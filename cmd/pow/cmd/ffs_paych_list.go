@@ -2,12 +2,11 @@ package cmd
 
 import (
 	"context"
-	"os"
+	"fmt"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/ffs"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -26,17 +25,12 @@ var ffsPaychListCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Retrieving payment channels...")
-		s.Start()
-		infos, err := fcClient.FFS.ListPayChannels(mustAuthCtx(ctx))
+		res, err := fcClient.FFS.ListPayChannels(mustAuthCtx(ctx))
 		checkErr(err)
-		s.Stop()
 
-		data := make([][]string, len(infos))
-		for i, info := range infos {
-			data[i] = []string{info.CtlAddr, info.Addr, ffs.PaychDirStr[info.Direction]}
-		}
-		Message("Payment channels:")
-		RenderTable(os.Stdout, []string{"Ctrl Address", "Address", "Direction"}, data)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }
