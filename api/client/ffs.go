@@ -365,6 +365,16 @@ func (f *FFS) WatchLogs(ctx context.Context, ch chan<- WatchLogsEvent, cid strin
 	return nil
 }
 
+// SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously.
+func (f *FFS) SendFil(ctx context.Context, from string, to string, amount int64) (*rpc.SendFilResponse, error) {
+	req := &rpc.SendFilRequest{
+		From:   from,
+		To:     to,
+		Amount: amount,
+	}
+	return f.client.SendFil(ctx, req)
+}
+
 // Stage allows to temporarily stage data in the Hot Storage in preparation for pushing a cid storage config.
 func (f *FFS) Stage(ctx context.Context, data io.Reader) (*rpc.StageResponse, error) {
 	stream, err := f.client.Stage(ctx)

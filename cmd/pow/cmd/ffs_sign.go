@@ -33,6 +33,7 @@ var signCmd = &cobra.Command{
 		checkErr(err)
 
 		res, err := fcClient.FFS.Addrs(mustAuthCtx(ctx))
+		checkErr(err)
 
 		data := make([][]string, len(res.Addrs))
 		for i, a := range res.Addrs {
