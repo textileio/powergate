@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
@@ -17,6 +18,7 @@ import (
 func init() {
 	ffsLogCmd.Flags().StringP("token", "t", "", "FFS auth token")
 	ffsLogCmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
+	ffsLogCmd.Flags().IntP("interval", "i", 3, "watch log second interval")
 
 	ffsCmd.AddCommand(ffsLogCmd)
 }
@@ -52,10 +54,20 @@ var ffsLogCmd = &cobra.Command{
 
 		c := make(chan os.Signal)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+		interval := viper.GetInt("interval")
+		ti := time.NewTicker(time.Second * time.Duration(interval))
+
 		go func() {
-			<-c
-			cancel()
-			os.Exit(0)
+			select {
+			case <-c:
+				cancel()
+				os.Exit(0)
+			case <-ti.C:
+				ti.Stop()
+				cancel()
+				os.Exit(0)
+			}
 		}()
 
 		for {
