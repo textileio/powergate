@@ -133,6 +133,7 @@ func configFromFlags() (server.Config, error) {
 	askIndexRefreshOnStart := config.GetBool("askindexrefreshonstart")
 	askIndexMaxParallel := config.GetInt("askindexmaxparallel")
 	disableIndices := config.GetBool("disableindices")
+	disableNonCompliantAPIs := config.GetBool("disablenoncompliantapis")
 
 	return server.Config{
 		WalletInitialFunds: walletInitialFunds,
@@ -172,6 +173,8 @@ func configFromFlags() (server.Config, error) {
 		AskindexMaxParallel:     askIndexMaxParallel,
 
 		DisableIndices: disableIndices,
+
+		DisableNonCompliantAPIs: disableNonCompliantAPIs,
 	}, nil
 }
 
@@ -345,9 +348,11 @@ func setupFlags() error {
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
 	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask")
 	pflag.String("askindexrefreshinterval", "60", "Refresh interval measured in minutes")
-	pflag.String("askindexrefreshonstart", "false", "If true it will refresh the index on start")
+	pflag.Bool("askindexrefreshonstart", false, "If true it will refresh the index on start")
 	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index")
-	pflag.String("disableindices", "false", "Disable all indices updates, useful to help Lotus syncing process")
+	pflag.Bool("disableindices", false, "Disable all indices updates, useful to help Lotus syncing process")
+	pflag.Bool("disablenoncompliantapis", false, "Disable APIs that may not easily comply with US law")
+
 	pflag.Parse()
 
 	config.SetEnvPrefix("POWD")

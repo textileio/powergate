@@ -118,6 +118,9 @@ func (s *instanceStore) getStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.Stor
 			}
 		}()
 		for r := range res.Next() {
+			if r.Error != nil {
+				return nil, fmt.Errorf("iter next: %s", r.Error)
+			}
 			strCid := datastore.RawKey(r.Key).Name()
 			c, err := util.CidFromString(strCid)
 			if err != nil {

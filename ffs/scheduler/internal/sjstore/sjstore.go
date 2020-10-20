@@ -230,6 +230,9 @@ func (s *Store) cancelQueued(c cid.Cid) error {
 		}
 	}()
 	for r := range res.Next() {
+		if r.Error != nil {
+			return fmt.Errorf("iter next: %s", r.Error)
+		}
 		var j ffs.StorageJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return fmt.Errorf("unmarshalling job: %s", err)
@@ -567,6 +570,9 @@ func (s *Store) loadCaches() error {
 		}
 	}()
 	for r := range res.Next() {
+		if r.Error != nil {
+			return fmt.Errorf("iter next: %s", r.Error)
+		}
 		var j ffs.StorageJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return fmt.Errorf("unmarshalling job: %s", err)
