@@ -72,6 +72,7 @@ func (i APIID) String() string {
 	return string(i)
 }
 
+// AuthEntry encapsulates auth info for a FFS instance.
 type AuthEntry struct {
 	Token string
 	APIID APIID
