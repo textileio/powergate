@@ -7,7 +7,7 @@ Redeem a payment channel
 Redeem a payment channel
 
 ```
-pow ffs paych redeem [from] [to] [amount] [flags]
+pow ffs paych redeem [addr] [flags]
 ```
 
 ### Options

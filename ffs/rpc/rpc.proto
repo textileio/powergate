@@ -401,13 +401,13 @@ message GetResponse {
    bytes chunk = 1;
 }
 
-message SendFilRequest {
-   string from = 1;
-   string to = 2;
-   int64 amount = 3;
-}
+message SendFilRequest {		
+   string from = 1;		
+   string to = 2;		
+   int64 amount = 3;		
+}		
 
-message SendFilResponse {
+message SendFilResponse {		
 }
 
 message StageRequest {

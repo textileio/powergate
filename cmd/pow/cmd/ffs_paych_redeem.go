@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -13,7 +12,7 @@ func init() {
 }
 
 var ffsPaychRedeemCmd = &cobra.Command{
-	Use:   "redeem [from] [to] [amount]",
+	Use:   "redeem [addr]",
 	Short: "Redeem a payment channel",
 	Long:  `Redeem a payment channel`,
 	Args:  cobra.ExactArgs(1),
@@ -25,12 +24,7 @@ var ffsPaychRedeemCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Redeeming payment channel...")
-		s.Start()
-		err := fcClient.FFS.RedeemPayChannel(mustAuthCtx(ctx), args[0])
-		s.Stop()
+		_, err := fcClient.FFS.RedeemPayChannel(mustAuthCtx(ctx), args[0])
 		checkErr(err)
-
-		Success("Redeemed payment channel %v", args[0])
 	},
 }

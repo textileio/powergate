@@ -2,12 +2,10 @@ package cmd
 
 import (
 	"context"
-	"os"
-	"strconv"
+	"fmt"
 
-	"github.com/caarlos0/spin"
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -22,30 +20,12 @@ var getCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Getting storage asks...")
-		s.Start()
-		index, err := fcClient.Asks.Get(ctx)
-		s.Stop()
+		res, err := fcClient.Asks.Get(ctx)
 		checkErr(err)
 
-		if len(index.Storage) > 0 {
-			Message("Storage median price price: %v", index.StorageMedianPrice)
-			Message("Last updated: %v", index.LastUpdated.Format("01/02/06 15:04 MST"))
-			data := make([][]string, len(index.Storage))
-			i := 0
-			for _, a := range index.Storage {
-				data[i] = []string{
-					a.Miner,
-					strconv.Itoa(int(a.Price)),
-					strconv.Itoa(int(a.MinPieceSize)),
-					strconv.FormatInt(a.Timestamp, 10),
-					strconv.FormatInt(a.Expiry, 10),
-				}
-				i++
-			}
-			RenderTable(os.Stdout, []string{"miner", "price", "min piece size", "timestamp", "expiry"}, data)
-		}
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.Index)
+		checkErr(err)
 
-		Message("Found %d asks", aurora.White(len(index.Storage)).Bold())
+		fmt.Println(string(json))
 	},
 }

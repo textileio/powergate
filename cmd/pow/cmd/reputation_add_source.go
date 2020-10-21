@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/caarlos0/spin"
-	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 )
 
@@ -35,15 +33,7 @@ var addSourceCmd = &cobra.Command{
 			Fatal(errors.New("must provide a miner address"))
 		}
 
-		maddr, err := ma.NewMultiaddr(address)
+		_, err := fcClient.Reputation.AddSource(ctx, id, address)
 		checkErr(err)
-
-		s := spin.New("%s Adding source...")
-		s.Start()
-		err = fcClient.Reputation.AddSource(ctx, id, maddr)
-		s.Stop()
-		checkErr(err)
-
-		Success("Source added")
 	},
 }

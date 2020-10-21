@@ -2,16 +2,14 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/ffs"
 )
 
 func init() {
@@ -24,29 +22,23 @@ var ffsLogCmd = &cobra.Command{
 	Use:   "log [cid]",
 	Short: "Display logs for specified cid",
 	Long:  `Display logs for specified cid`,
+	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) != 1 {
-			Fatal(errors.New("you must provide a cid"))
-		}
-
-		cid, err := cid.Parse(args[0])
-		checkErr(err)
-
 		opts := []client.WatchLogsOption{client.WithHistory(true)}
 		jid := viper.GetString("jid")
 		if jid != "" {
-			opts = append(opts, client.WithJidFilter(ffs.JobID(jid)))
+			opts = append(opts, client.WithJidFilter(jid))
 		}
 
-		ch := make(chan client.LogEvent)
+		ch := make(chan client.WatchLogsEvent)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		err = fcClient.FFS.WatchLogs(mustAuthCtx(ctx), ch, cid, opts...)
+		err := fcClient.FFS.WatchLogs(mustAuthCtx(ctx), ch, args[0], opts...)
 		checkErr(err)
 
 		c := make(chan os.Signal)
@@ -66,7 +58,8 @@ var ffsLogCmd = &cobra.Command{
 				Fatal(event.Err)
 				break
 			}
-			Message("%v - %v", event.LogEntry.Timestamp.Format("2006-01-02T15:04:05"), event.LogEntry.Msg)
+			ts := time.Unix(event.Res.LogEntry.Time, 0)
+			Message("%v - %v", ts.Format("2006-01-02T15:04:05"), event.Res.LogEntry.Msg)
 		}
 	},
 }

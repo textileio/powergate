@@ -2,12 +2,10 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
+	"fmt"
 
-	"github.com/caarlos0/spin"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -18,25 +16,17 @@ var netFindCmd = &cobra.Command{
 	Use:   "find [peerID]",
 	Short: "Find a peer by peer id",
 	Long:  `Find a peer by peer id`,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		if len(args) != 1 {
-			Fatal(errors.New("you must provide a peer id argument"))
-		}
-
-		s := spin.New("%s Finding peer...")
-		s.Start()
-		peerID, err := peer.Decode(args[0])
-		checkErr(err)
-		peerInfo, err := fcClient.Net.FindPeer(ctx, peerID)
-		s.Stop()
+		res, err := fcClient.Net.FindPeer(ctx, args[0])
 		checkErr(err)
 
-		bytes, err := json.MarshalIndent(peerInfo, "", "  ")
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.PeerInfo)
 		checkErr(err)
 
-		Success(string(bytes))
+		fmt.Println(string(json))
 	},
 }

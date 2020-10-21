@@ -10,7 +10,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/health"
+	"github.com/textileio/powergate/health/rpc"
 )
 
 var (
@@ -77,9 +77,9 @@ func spinup(t *testing.T) *client.Client {
 		require.NoError(t, err)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
-		s, _, err := c.Health.Check(ctx)
+		res, err := c.Health.Check(ctx)
 		if err == nil {
-			require.Equal(t, health.Ok, s)
+			require.Equal(t, rpc.Status_STATUS_OK, res.Status)
 			break
 		}
 		time.Sleep(time.Second)

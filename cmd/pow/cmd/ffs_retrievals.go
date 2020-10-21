@@ -2,16 +2,12 @@ package cmd
 
 import (
 	"context"
-	"os"
-	"strconv"
-	"time"
+	"fmt"
 
-	"github.com/caarlos0/spin"
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/util"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -46,26 +42,12 @@ var ffsRetrievalsCmd = &cobra.Command{
 			opts = append(opts, client.WithFromAddrs(viper.GetStringSlice("addrs")...))
 		}
 
-		s := spin.New("%s Getting retrieval records...")
-		s.Start()
 		res, err := fcClient.FFS.ListRetrievalDealRecords(mustAuthCtx(ctx), opts...)
-		s.Stop()
 		checkErr(err)
 
-		if len(res) > 0 {
-			data := make([][]string, len(res))
-			for i, r := range res {
-				t := time.Unix(r.Time, 0)
-				data[i] = []string{
-					t.Format("01/02/06 15:04 MST"),
-					r.Addr,
-					r.DealInfo.Miner,
-					util.CidToString(r.DealInfo.RootCid),
-					strconv.Itoa(int(r.DealInfo.Size)),
-				}
-			}
-			RenderTable(os.Stdout, []string{"time", "addr", "miner", "cid", "size"}, data)
-		}
-		Message("Found %d retrieval deal records", aurora.White(len(res)).Bold())
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

@@ -4,16 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/caarlos0/spin"
-	"github.com/ipfs/go-cid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/util"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -26,6 +25,7 @@ var ffsStageCmd = &cobra.Command{
 	Use:   "stage [path|url]",
 	Short: "Temporarily stage data in the Hot layer in preparation for pushing a cid storage config",
 	Long:  `Temporarily stage data in the Hot layer in preparation for pushing a cid storage config`,
+	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -34,13 +34,11 @@ var ffsStageCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Hour*8)
 		defer cancel()
 
-		if len(args) != 1 {
-			Fatal(errors.New("you must provide a file/folder path"))
-		}
-
 		if strings.HasPrefix(strings.ToLower(args[0]), "http") {
-			err := stageURL(ctx, args[0])
+			res, err := http.DefaultClient.Get(args[0])
 			checkErr(err)
+			defer func() { checkErr(res.Body.Close()) }()
+			stageReader(ctx, res.Body)
 			return
 		}
 
@@ -51,45 +49,25 @@ var ffsStageCmd = &cobra.Command{
 		if err != nil {
 			Fatal(fmt.Errorf("getting file/folder information: %s", err))
 		}
-		var cid cid.Cid
-		s := spin.New("%s Staging specified asset in FFS hot storage...")
-		s.Start()
 		if fi.IsDir() {
-			cid, err = fcClient.FFS.StageFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), args[0])
+			c, err := fcClient.FFS.StageFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), args[0])
 			checkErr(err)
+			Success("Staged folder with cid: %s", c)
 		} else {
 			f, err := os.Open(args[0])
 			checkErr(err)
 			defer func() { checkErr(f.Close()) }()
-
-			ptrCid, err := fcClient.FFS.Stage(mustAuthCtx(ctx), f)
-			checkErr(err)
-			cid = *ptrCid
+			stageReader(ctx, f)
 		}
-		s.Stop()
-		Success("Staged asset in FFS hot storage with cid: %s", util.CidToString(cid))
 	},
 }
 
-func stageURL(ctx context.Context, urlstr string) error {
-	res, err := http.DefaultClient.Get(urlstr)
-	if err != nil {
-		return fmt.Errorf("GET %s: %w", urlstr, err)
-	}
+func stageReader(ctx context.Context, reader io.Reader) {
+	res, err := fcClient.FFS.Stage(mustAuthCtx(ctx), reader)
+	checkErr(err)
 
-	defer func() { checkErr(res.Body.Close()) }()
+	json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+	checkErr(err)
 
-	var cid cid.Cid
-	s := spin.New("%s Staging URL in FFS hot storage...")
-	s.Start()
-	defer s.Stop()
-	ptrCid, err := fcClient.FFS.Stage(mustAuthCtx(ctx), res.Body)
-	if err != nil {
-		return err
-	}
-
-	cid = *ptrCid
-	s.Stop()
-	Success("Staged asset in FFS hot storage with cid: %s", util.CidToString(cid))
-	return nil
+	fmt.Println(string(json))
 }

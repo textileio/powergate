@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -28,12 +29,12 @@ var newCmd = &cobra.Command{
 		typ, err := cmd.Flags().GetString("type")
 		checkErr(err)
 
-		s := spin.New("%s Creating new wallet address...")
-		s.Start()
-		address, err := fcClient.Wallet.NewAddress(ctx, typ)
-		s.Stop()
+		res, err := fcClient.Wallet.NewAddress(ctx, typ)
 		checkErr(err)
 
-		Success("Wallet address: %v", address)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
+
+		fmt.Println(string(json))
 	},
 }

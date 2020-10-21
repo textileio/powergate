@@ -3,16 +3,15 @@ package cmd
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"io"
 	"os"
 	"time"
 
-	"github.com/caarlos0/spin"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/rpc"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var (
@@ -27,6 +26,7 @@ var ffsConfigSetCmd = &cobra.Command{
 	Use:   "set-default [optional file]",
 	Short: "Sets the default cid storage config from stdin or a file",
 	Long:  `Sets the default cid storage config from stdin or a file`,
+	Args:  cobra.MaximumNArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -53,15 +53,11 @@ var ffsConfigSetCmd = &cobra.Command{
 		_, err := buf.ReadFrom(reader)
 		checkErr(err)
 
-		config := ffs.StorageConfig{}
-		checkErr(json.Unmarshal(buf.Bytes(), &config))
-
-		s := spin.New("%s Setting default storage config...")
-		s.Start()
-		err = fcClient.FFS.SetDefaultStorageConfig(mustAuthCtx(ctx), config)
-		s.Stop()
+		config := &rpc.StorageConfig{}
+		err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
 		checkErr(err)
 
-		Success("Default storage config updated")
+		_, err = fcClient.FFS.SetDefaultStorageConfig(mustAuthCtx(ctx), config)
+		checkErr(err)
 	},
 }

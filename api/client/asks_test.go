@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/index/ask"
 	"github.com/textileio/powergate/index/ask/rpc"
 )
 
@@ -20,7 +19,7 @@ func TestQuery(t *testing.T) {
 	a, done := setupAsks(t)
 	defer done()
 
-	_, err := a.Query(ctx, ask.Query{MaxPrice: 5})
+	_, err := a.Query(ctx, &rpc.Query{MaxPrice: 5})
 	require.NoError(t, err)
 }
 

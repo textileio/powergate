@@ -3,11 +3,10 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 
-	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -26,17 +25,12 @@ var listCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New(fmt.Sprintf("%s Getting wallet addresses...", "%s"))
-		s.Start()
-		addrs, err := fcClient.Wallet.List(ctx)
-		s.Stop()
+		res, err := fcClient.Wallet.List(ctx)
 		checkErr(err)
 
-		data := make([][]string, len(addrs))
-		for i, addr := range addrs {
-			data[i] = []string{addr}
-		}
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		checkErr(err)
 
-		RenderTable(os.Stdout, []string{"address"}, data)
+		fmt.Println(string(json))
 	},
 }

@@ -6,7 +6,6 @@ import (
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	h "github.com/textileio/powergate/health"
 	"github.com/textileio/powergate/health/rpc"
 )
 
@@ -30,10 +29,10 @@ func TestMain(m *testing.M) {
 func TestCheck(t *testing.T) {
 	c, done := setupHealth(t)
 	defer done()
-	status, messages, err := c.Check(ctx)
+	res, err := c.Check(ctx)
 	require.NoError(t, err)
-	require.Empty(t, messages)
-	require.Equal(t, h.Ok, status)
+	require.Empty(t, res.Messages)
+	require.Equal(t, rpc.Status_STATUS_OK, res.Status)
 }
 
 func setupHealth(t *testing.T) (*Health, func()) {

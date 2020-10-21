@@ -3,11 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 
-	"github.com/caarlos0/spin"
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -22,29 +20,12 @@ var getFaultsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		s := spin.New("%s Getting Faults data...")
-		s.Start()
-		index, err := fcClient.Faults.Get(ctx)
-		s.Stop()
+		res, err := fcClient.Faults.Get(ctx)
 		checkErr(err)
 
-		Message("%v", aurora.Blue("Faults index data:").Bold())
-		cmd.Println()
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.Index)
+		checkErr(err)
 
-		Message("Tipset key: %v", aurora.White(index.TipSetKey).Bold())
-		cmd.Println()
-
-		data := make([][]string, len(index.Miners))
-		i := 0
-		for id, faults := range index.Miners {
-			data[i] = []string{
-				id,
-				fmt.Sprintf("%v", faults.Epochs),
-			}
-			i++
-		}
-		RenderTable(os.Stdout, []string{"miner", "faults"}, data)
-
-		Message("Found faults data for %d miners", aurora.White(len(index.Miners)).Bold())
+		fmt.Println(string(json))
 	},
 }
