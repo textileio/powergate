@@ -254,6 +254,9 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
+	if conf.Devnet {
+		conf.FFSMinimumPieceSize = 0
+	}
 	cs := filcold.New(ms, dm, ipfs, chain, l, conf.FFSMinimumPieceSize)
 	hs, err := coreipfs.New(ipfs, l)
 	if err != nil {
