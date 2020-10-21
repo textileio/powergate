@@ -71,11 +71,11 @@ func TestDoubleReplace(t *testing.T) {
 
 	// This will ask for a new API to the manager, and do a replace. Always the same replace.
 	testAddThenReplace := func() {
-		_, authToken, err := m.Create(context.Background())
+		auth, err := m.Create(context.Background())
 		require.NoError(t, err)
 		time.Sleep(time.Second * 2) // Give some time to the funding transaction
 
-		fapi, err := m.GetByAuthToken(authToken)
+		fapi, err := m.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		r := rand.New(rand.NewSource(22))

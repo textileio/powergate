@@ -83,10 +83,10 @@ func NewAPI(t tests.TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apis
 	ipfs, ipfsMAddr := CreateIPFS(t)
 	addr, clientBuilder, ms := NewDevnet(t, numMiners, ipfsMAddr)
 	manager, closeManager := NewFFSManager(t, ds, clientBuilder, addr, ms, ipfs)
-	_, auth, err := manager.Create(context.Background())
+	auth, err := manager.Create(context.Background())
 	require.NoError(t, err)
 	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
-	fapi, err := manager.GetByAuthToken(auth)
+	fapi, err := manager.GetByAuthToken(auth.Token)
 	require.NoError(t, err)
 	client, cls, err := clientBuilder()
 	require.NoError(t, err)

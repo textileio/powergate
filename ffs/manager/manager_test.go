@@ -69,10 +69,10 @@ func TestCreate(t *testing.T) {
 	require.NoError(t, err)
 	defer require.NoError(t, cls())
 
-	id, auth, err := m.Create(ctx)
+	auth, err := m.Create(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, auth)
-	require.True(t, id.Valid())
+	require.NotEmpty(t, auth.Token)
+	require.True(t, auth.APIID.Valid())
 }
 
 func TestCreateWithFFSMasterAddr(t *testing.T) {
@@ -84,12 +84,12 @@ func TestCreateWithFFSMasterAddr(t *testing.T) {
 	require.NoError(t, err)
 	defer require.NoError(t, cls())
 
-	id, auth, err := m.Create(ctx)
+	auth, err := m.Create(ctx)
 	require.NoError(t, err)
-	require.NotEmpty(t, auth)
-	require.True(t, id.Valid())
+	require.NotEmpty(t, auth.Token)
+	require.True(t, auth.APIID.Valid())
 
-	i, err := m.GetByAuthToken(auth)
+	i, err := m.GetByAuthToken(auth.Token)
 	require.NoError(t, err)
 	iAddrs := i.Addrs()
 	require.Len(t, iAddrs, 1)
@@ -111,20 +111,20 @@ func TestList(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 0, len(lst))
 
-	id1, _, err := m.Create(ctx)
+	auth1, err := m.Create(ctx)
 	require.NoError(t, err)
 	lst, err = m.List()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(lst))
-	require.Contains(t, lst, id1)
+	require.Contains(t, lst, auth1)
 
-	id2, _, err := m.Create(ctx)
+	auth2, err := m.Create(ctx)
 	require.NoError(t, err)
 
 	lst, err = m.List()
 	require.NoError(t, err)
-	require.Contains(t, lst, id1)
-	require.Contains(t, lst, id2)
+	require.Contains(t, lst, auth1)
+	require.Contains(t, lst, auth2)
 	require.Equal(t, 2, len(lst))
 }
 
@@ -136,13 +136,13 @@ func TestGetByAuthToken(t *testing.T) {
 	m, cls, err := newManager(client, ds, addr, false)
 	require.NoError(t, err)
 	defer require.NoError(t, cls())
-	id, auth, err := m.Create(ctx)
+	auth, err := m.Create(ctx)
 	require.NoError(t, err)
 
 	t.Run("Hot", func(t *testing.T) {
-		new, err := m.GetByAuthToken(auth)
+		new, err := m.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
-		require.Equal(t, id, new.ID())
+		require.Equal(t, auth.APIID, new.ID())
 		require.NotEmpty(t, new.Addrs())
 	})
 	t.Run("Cold", func(t *testing.T) {
@@ -150,9 +150,9 @@ func TestGetByAuthToken(t *testing.T) {
 		m, cls, err := newManager(client, ds, addr, false)
 		require.NoError(t, err)
 		defer require.NoError(t, cls())
-		new, err := m.GetByAuthToken(auth)
+		new, err := m.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
-		require.Equal(t, id, new.ID())
+		require.Equal(t, auth.APIID, new.ID())
 		require.NotEmpty(t, new.Addrs())
 	})
 	t.Run("NonExistant", func(t *testing.T) {

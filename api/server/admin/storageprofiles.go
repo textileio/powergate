@@ -10,14 +10,14 @@ import (
 
 // CreateStorageProfile creates a new managed instance.
 func (a *Service) CreateStorageProfile(ctx context.Context, req *proto.CreateStorageProfileRequest) (*proto.CreateStorageProfileResponse, error) {
-	id, token, err := a.m.Create(ctx)
+	auth, err := a.m.Create(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "creating instance: %v", err)
 	}
 	return &proto.CreateStorageProfileResponse{
 		AuthEntry: &proto.AuthEntry{
-			Id:    id.String(),
-			Token: token,
+			Id:    auth.APIID.String(),
+			Token: auth.Token,
 		},
 	}, nil
 }

@@ -224,11 +224,11 @@ func TestColdInstanceLoad(t *testing.T) {
 		addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
 		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
 
-		_, auth, err := manager.Create(context.Background())
+		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)
 		time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 
-		fapi, err := manager.GetByAuthToken(auth)
+		fapi, err := manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		ra := rand.New(rand.NewSource(22))
@@ -250,7 +250,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		// Rehydrate things again and check state.
 		manager, closeManager = it.NewFFSManager(t, ds, client, addr, ms, ipfs)
 		defer closeManager()
-		fapi, err = manager.GetByAuthToken(auth)
+		fapi, err = manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		nid := fapi.ID()
@@ -278,11 +278,11 @@ func TestHighMinimumPieceSize(t *testing.T) {
 		manager, closeManager := it.NewCustomFFSManager(t, ds, client, addr, ms, ipfs, 1024*1024*1024)
 		defer closeManager()
 
-		_, auth, err := manager.Create(context.Background())
+		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)
 		time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 
-		fapi, err := manager.GetByAuthToken(auth)
+		fapi, err := manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		r := rand.New(rand.NewSource(22))

@@ -90,10 +90,10 @@ func TestFilecoinCountryFilter(t *testing.T) {
 		ds := tests.NewTxMapDatastore()
 		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
 		defer closeManager()
-		_, auth, err := manager.Create(context.Background())
+		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)
 		time.Sleep(time.Second * 3)
-		fapi, err := manager.GetByAuthToken(auth)
+		fapi, err := manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		r := rand.New(rand.NewSource(22))
@@ -123,10 +123,10 @@ func TestFilecoinMaxPriceFilter(t *testing.T) {
 		ds := tests.NewTxMapDatastore()
 		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
 		defer closeManager()
-		_, auth, err := manager.Create(context.Background())
+		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)
 		time.Sleep(time.Second * 3) // Wait for funding txn.
-		fapi, err := manager.GetByAuthToken(auth)
+		fapi, err := manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		r := rand.New(rand.NewSource(22))

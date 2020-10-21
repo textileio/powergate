@@ -105,7 +105,7 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm 
 }
 
 // Create creates a new Api instance and an auth-token mapped to it.
-func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
+func (m *Manager) Create(ctx context.Context) (ffs.AuthEntry, error) {
 	log.Info("creating instance")
 
 	var addr address.Address
@@ -114,11 +114,11 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	} else {
 		res, err := m.wm.NewAddress(ctx, "bls")
 		if err != nil {
-			return ffs.EmptyInstanceID, "", fmt.Errorf("creating new wallet addr: %s", err)
+			return ffs.AuthEntry{}, fmt.Errorf("creating new wallet addr: %s", err)
 		}
 		a, err := address.NewFromString(res)
 		if err != nil {
-			return ffs.EmptyInstanceID, "", fmt.Errorf("decoding newly created addr: %s", err)
+			return ffs.AuthEntry{}, fmt.Errorf("decoding newly created addr: %s", err)
 		}
 		addr = a
 	}
@@ -142,19 +142,19 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 
 	fapi, err := api.New(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm, m.defaultConfig, addrInfo)
 	if err != nil {
-		return ffs.EmptyInstanceID, "", fmt.Errorf("creating new instance: %s", err)
+		return ffs.AuthEntry{}, fmt.Errorf("creating new instance: %s", err)
 	}
 
 	auth, err := m.auth.Generate(fapi.ID())
 	if err != nil {
-		return ffs.EmptyInstanceID, "", fmt.Errorf("generating auth token for %s: %s", fapi.ID(), err)
+		return ffs.AuthEntry{}, fmt.Errorf("generating auth token for %s: %s", fapi.ID(), err)
 	}
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
 	m.instances[iid] = fapi
 
-	return fapi.ID(), auth, nil
+	return ffs.AuthEntry{APIID: fapi.ID(), Token: auth}, nil
 }
 
 // SetDefaultStorageConfig sets the default StorageConfig to be set as default to newly created
