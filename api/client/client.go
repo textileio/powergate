@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"strings"
 
-	buildinfoRpc "github.com/textileio/powergate/buildinfo/rpc"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
@@ -22,18 +21,18 @@ import (
 
 // Client provides the client api.
 type Client struct {
-	Asks            *Asks
-	Miners          *Miners
-	Faults          *Faults
-	Wallet          *Wallet
-	Reputation      *Reputation
-	FFS             *FFS
-	Health          *Health
-	Net             *Net
-	Jobs            *Jobs
-	Admin           *Admin
-	conn            *grpc.ClientConn
-	buildInfoClient buildinfoRpc.RPCServiceClient
+	Asks       *Asks
+	Miners     *Miners
+	Faults     *Faults
+	Wallet     *Wallet
+	Reputation *Reputation
+	FFS        *FFS
+	Health     *Health
+	Net        *Net
+	Jobs       *Jobs
+	Admin      *Admin
+	conn       *grpc.ClientConn
+	powClient  proto.PowergateServiceClient
 }
 
 type ctxKey string
@@ -105,18 +104,18 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	}
 	powClient := proto.NewPowergateServiceClient(conn)
 	client := &Client{
-		Asks:            &Asks{client: askRpc.NewRPCServiceClient(conn)},
-		Miners:          &Miners{client: minerRpc.NewRPCServiceClient(conn)},
-		Faults:          &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
-		Wallet:          &Wallet{walletClient: walletRpc.NewRPCServiceClient(conn), powergateClient: powClient},
-		Reputation:      &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
-		FFS:             &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
-		Health:          &Health{client: healthRpc.NewRPCServiceClient(conn)},
-		Net:             &Net{client: netRpc.NewRPCServiceClient(conn)},
-		Jobs:            &Jobs{client: powClient},
-		Admin:           &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
-		conn:            conn,
-		buildInfoClient: buildinfoRpc.NewRPCServiceClient(conn),
+		Asks:       &Asks{client: askRpc.NewRPCServiceClient(conn)},
+		Miners:     &Miners{client: minerRpc.NewRPCServiceClient(conn)},
+		Faults:     &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
+		Wallet:     &Wallet{walletClient: walletRpc.NewRPCServiceClient(conn), powergateClient: powClient},
+		Reputation: &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
+		FFS:        &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
+		Health:     &Health{client: healthRpc.NewRPCServiceClient(conn)},
+		Net:        &Net{client: netRpc.NewRPCServiceClient(conn)},
+		Jobs:       &Jobs{client: powClient},
+		Admin:      &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
+		conn:       conn,
+		powClient:  proto.NewPowergateServiceClient(conn),
 	}
 	return client, nil
 }
@@ -127,8 +126,8 @@ func (c *Client) Host() string {
 }
 
 // BuildInfo returns build info about the server.
-func (c *Client) BuildInfo(ctx context.Context) (*buildinfoRpc.BuildInfoResponse, error) {
-	return c.buildInfoClient.BuildInfo(ctx, &buildinfoRpc.BuildInfoRequest{})
+func (c *Client) BuildInfo(ctx context.Context) (*proto.BuildInfoResponse, error) {
+	return c.powClient.BuildInfo(ctx, &proto.BuildInfoRequest{})
 }
 
 // Close closes the client's grpc connection and cancels any active requests.

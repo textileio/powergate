@@ -5,8 +5,10 @@ import (
 	"errors"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
+	"github.com/textileio/powergate/buildinfo"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
+	proto "github.com/textileio/powergate/proto/powergate/v1"
 	walletModule "github.com/textileio/powergate/wallet/module"
 )
 
@@ -27,6 +29,18 @@ func New(m *manager.Manager, w *walletModule.Module) *Service {
 		m: m,
 		w: w,
 	}
+}
+
+// BuildInfo returns information about the powergate build.
+func (s *Service) BuildInfo(ctx context.Context, req *proto.BuildInfoRequest) (*proto.BuildInfoResponse, error) {
+	return &proto.BuildInfoResponse{
+		BuildDate:  buildinfo.BuildDate,
+		GitBranch:  buildinfo.GitBranch,
+		GitCommit:  buildinfo.GitCommit,
+		GitState:   buildinfo.GitState,
+		GitSummary: buildinfo.GitSummary,
+		Version:    buildinfo.Version,
+	}, nil
 }
 
 func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
