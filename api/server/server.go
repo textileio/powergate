@@ -41,8 +41,6 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/gateway"
-	"github.com/textileio/powergate/health"
-	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	ask "github.com/textileio/powergate/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/index/faults/module"
@@ -93,7 +91,6 @@ type Server struct {
 	wm *walletModule.Module
 	rm *reputation.Module
 	nm pgnet.Module
-	hm *health.Module
 
 	ffsManager *manager.Manager
 	sched      *scheduler.Scheduler
@@ -238,7 +235,6 @@ func NewServer(conf Config) (*Server, error) {
 	pm := paychLotus.New(clientBuilder)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
 	nm := pgnetlotus.New(clientBuilder, mm)
-	hm := health.New(nm)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
 	if err != nil {
@@ -308,7 +304,6 @@ func NewServer(conf Config) (*Server, error) {
 		wm: wm,
 		rm: rm,
 		nm: nm,
-		hm: hm,
 
 		ffsManager: ffsManager,
 		sched:      sched,
@@ -407,7 +402,6 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
 	netService := pgnetRpc.New(s.nm)
-	healthService := healthRpc.New(s.hm)
 	walletService := walletRpc.New(s.wm)
 	reputationService := reputationRpc.New(s.rm)
 	askService := askRpc.New(s.ai)
@@ -427,7 +421,6 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	}
 	go func() {
 		pgnetRpc.RegisterRPCServiceServer(server, netService)
-		healthRpc.RegisterRPCServiceServer(server, healthService)
 		walletRpc.RegisterRPCServiceServer(server, walletService)
 		reputationRpc.RegisterRPCServiceServer(server, reputationService)
 		askRpc.RegisterRPCServiceServer(server, askService)

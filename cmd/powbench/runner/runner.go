@@ -10,7 +10,6 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/api/client"
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
-	healthRpc "github.com/textileio/powergate/health/rpc"
 	"github.com/textileio/powergate/util"
 )
 
@@ -40,25 +39,10 @@ func Run(ctx context.Context, ts TestSetup) error {
 		return fmt.Errorf("creating client: %s", err)
 	}
 
-	if err := sanityCheck(ctx, c); err != nil {
-		return fmt.Errorf("sanity check with client: %s", err)
-	}
-
 	if err := runSetup(ctx, c, ts); err != nil {
 		return fmt.Errorf("running test setup: %s", err)
 	}
 
-	return nil
-}
-
-func sanityCheck(ctx context.Context, c *client.Client) error {
-	res, err := c.Health.Check(ctx)
-	if err != nil {
-		return fmt.Errorf("health check call: %s", err)
-	}
-	if res.Status != healthRpc.Status_STATUS_OK {
-		return fmt.Errorf("reported health check not Ok: %s", res.Status.String())
-	}
 	return nil
 }
 

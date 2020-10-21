@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
-	healthRpc "github.com/textileio/powergate/health/rpc"
 	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	minerRpc "github.com/textileio/powergate/index/miner/rpc"
@@ -27,7 +26,6 @@ type Client struct {
 	Wallet     *Wallet
 	Reputation *Reputation
 	FFS        *FFS
-	Health     *Health
 	Net        *Net
 	Jobs       *Jobs
 	Admin      *Admin
@@ -110,7 +108,6 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 		Wallet:     &Wallet{walletClient: walletRpc.NewRPCServiceClient(conn), powergateClient: powClient},
 		Reputation: &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
 		FFS:        &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
-		Health:     &Health{client: healthRpc.NewRPCServiceClient(conn)},
 		Net:        &Net{client: netRpc.NewRPCServiceClient(conn)},
 		Jobs:       &Jobs{client: powClient},
 		Admin:      &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
