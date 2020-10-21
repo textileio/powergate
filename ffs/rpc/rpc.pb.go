@@ -1027,7 +1027,7 @@ func (x *StorageInfo) GetCold() *ColdInfo {
 	return nil
 }
 
-type CidData struct {
+type CidInfo struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -1041,8 +1041,8 @@ type CidData struct {
 	LatestSuccessfulStorageJob *Job           `protobuf:"bytes,7,opt,name=latest_successful_storage_job,json=latestSuccessfulStorageJob,proto3" json:"latest_successful_storage_job,omitempty"`
 }
 
-func (x *CidData) Reset() {
-	*x = CidData{}
+func (x *CidInfo) Reset() {
+	*x = CidInfo{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_ffs_rpc_rpc_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1050,13 +1050,13 @@ func (x *CidData) Reset() {
 	}
 }
 
-func (x *CidData) String() string {
+func (x *CidInfo) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CidData) ProtoMessage() {}
+func (*CidInfo) ProtoMessage() {}
 
-func (x *CidData) ProtoReflect() protoreflect.Message {
+func (x *CidInfo) ProtoReflect() protoreflect.Message {
 	mi := &file_ffs_rpc_rpc_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1068,54 +1068,54 @@ func (x *CidData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CidData.ProtoReflect.Descriptor instead.
-func (*CidData) Descriptor() ([]byte, []int) {
+// Deprecated: Use CidInfo.ProtoReflect.Descriptor instead.
+func (*CidInfo) Descriptor() ([]byte, []int) {
 	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *CidData) GetCid() string {
+func (x *CidInfo) GetCid() string {
 	if x != nil {
 		return x.Cid
 	}
 	return ""
 }
 
-func (x *CidData) GetLatestPushedStorageConfig() *StorageConfig {
+func (x *CidInfo) GetLatestPushedStorageConfig() *StorageConfig {
 	if x != nil {
 		return x.LatestPushedStorageConfig
 	}
 	return nil
 }
 
-func (x *CidData) GetCurrentStorageInfo() *StorageInfo {
+func (x *CidInfo) GetCurrentStorageInfo() *StorageInfo {
 	if x != nil {
 		return x.CurrentStorageInfo
 	}
 	return nil
 }
 
-func (x *CidData) GetQueuedStorageJobs() []*Job {
+func (x *CidInfo) GetQueuedStorageJobs() []*Job {
 	if x != nil {
 		return x.QueuedStorageJobs
 	}
 	return nil
 }
 
-func (x *CidData) GetExecutingStorageJob() *Job {
+func (x *CidInfo) GetExecutingStorageJob() *Job {
 	if x != nil {
 		return x.ExecutingStorageJob
 	}
 	return nil
 }
 
-func (x *CidData) GetLatestFinalStorageJob() *Job {
+func (x *CidInfo) GetLatestFinalStorageJob() *Job {
 	if x != nil {
 		return x.LatestFinalStorageJob
 	}
 	return nil
 }
 
-func (x *CidData) GetLatestSuccessfulStorageJob() *Job {
+func (x *CidInfo) GetLatestSuccessfulStorageJob() *Job {
 	if x != nil {
 		return x.LatestSuccessfulStorageJob
 	}
@@ -2670,7 +2670,7 @@ func (*SetDefaultStorageConfigResponse) Descriptor() ([]byte, []int) {
 	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{37}
 }
 
-type CidDataRequest struct {
+type CidInfoRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -2678,8 +2678,8 @@ type CidDataRequest struct {
 	Cids []string `protobuf:"bytes,1,rep,name=cids,proto3" json:"cids,omitempty"`
 }
 
-func (x *CidDataRequest) Reset() {
-	*x = CidDataRequest{}
+func (x *CidInfoRequest) Reset() {
+	*x = CidInfoRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_ffs_rpc_rpc_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2687,13 +2687,13 @@ func (x *CidDataRequest) Reset() {
 	}
 }
 
-func (x *CidDataRequest) String() string {
+func (x *CidInfoRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CidDataRequest) ProtoMessage() {}
+func (*CidInfoRequest) ProtoMessage() {}
 
-func (x *CidDataRequest) ProtoReflect() protoreflect.Message {
+func (x *CidInfoRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_ffs_rpc_rpc_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2705,28 +2705,28 @@ func (x *CidDataRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CidDataRequest.ProtoReflect.Descriptor instead.
-func (*CidDataRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CidInfoRequest.ProtoReflect.Descriptor instead.
+func (*CidInfoRequest) Descriptor() ([]byte, []int) {
 	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{38}
 }
 
-func (x *CidDataRequest) GetCids() []string {
+func (x *CidInfoRequest) GetCids() []string {
 	if x != nil {
 		return x.Cids
 	}
 	return nil
 }
 
-type CidDataResponse struct {
+type CidInfoResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	CidDatas []*CidData `protobuf:"bytes,1,rep,name=cid_datas,json=cidDatas,proto3" json:"cid_datas,omitempty"`
+	CidInfos []*CidInfo `protobuf:"bytes,1,rep,name=cid_infos,json=cidInfos,proto3" json:"cid_infos,omitempty"`
 }
 
-func (x *CidDataResponse) Reset() {
-	*x = CidDataResponse{}
+func (x *CidInfoResponse) Reset() {
+	*x = CidInfoResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_ffs_rpc_rpc_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2734,13 +2734,13 @@ func (x *CidDataResponse) Reset() {
 	}
 }
 
-func (x *CidDataResponse) String() string {
+func (x *CidInfoResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CidDataResponse) ProtoMessage() {}
+func (*CidInfoResponse) ProtoMessage() {}
 
-func (x *CidDataResponse) ProtoReflect() protoreflect.Message {
+func (x *CidInfoResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_ffs_rpc_rpc_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2752,14 +2752,14 @@ func (x *CidDataResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CidDataResponse.ProtoReflect.Descriptor instead.
-func (*CidDataResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use CidInfoResponse.ProtoReflect.Descriptor instead.
+func (*CidInfoResponse) Descriptor() ([]byte, []int) {
 	return file_ffs_rpc_rpc_proto_rawDescGZIP(), []int{39}
 }
 
-func (x *CidDataResponse) GetCidDatas() []*CidData {
+func (x *CidInfoResponse) GetCidInfos() []*CidInfo {
 	if x != nil {
-		return x.CidDatas
+		return x.CidInfos
 	}
 	return nil
 }
@@ -4911,7 +4911,7 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x6f, 0x52, 0x03, 0x68, 0x6f, 0x74, 0x12, 0x25, 0x0a, 0x04, 0x63, 0x6f, 0x6c, 0x64, 0x18, 0x05,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43,
 	0x6f, 0x6c, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x04, 0x63, 0x6f, 0x6c, 0x64, 0x22, 0xd4, 0x03,
-	0x0a, 0x07, 0x43, 0x69, 0x64, 0x44, 0x61, 0x74, 0x61, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64,
+	0x0a, 0x07, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x69, 0x64,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x63, 0x69, 0x64, 0x12, 0x57, 0x0a, 0x1c, 0x6c,
 	0x61, 0x74, 0x65, 0x73, 0x74, 0x5f, 0x70, 0x75, 0x73, 0x68, 0x65, 0x64, 0x5f, 0x73, 0x74, 0x6f,
 	0x72, 0x61, 0x67, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28,
@@ -5116,13 +5116,13 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69,
 	0x67, 0x22, 0x21, 0x0a, 0x1f, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53,
 	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x24, 0x0a, 0x0e, 0x43, 0x69, 0x64, 0x44, 0x61, 0x74, 0x61, 0x52,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x24, 0x0a, 0x0e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18, 0x01,
 	0x20, 0x03, 0x28, 0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x73, 0x22, 0x40, 0x0a, 0x0f, 0x43, 0x69,
-	0x64, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2d, 0x0a,
-	0x09, 0x63, 0x69, 0x64, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
-	0x32, 0x10, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x44, 0x61,
-	0x74, 0x61, 0x52, 0x08, 0x63, 0x69, 0x64, 0x44, 0x61, 0x74, 0x61, 0x73, 0x22, 0x24, 0x0a, 0x10,
+	0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2d, 0x0a,
+	0x09, 0x63, 0x69, 0x64, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x10, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e,
+	0x66, 0x6f, 0x52, 0x08, 0x63, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x73, 0x22, 0x24, 0x0a, 0x10,
 	0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
 	0x12, 0x10, 0x0a, 0x03, 0x6a, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6a,
 	0x69, 0x64, 0x22, 0x13, 0x0a, 0x11, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x4a, 0x6f, 0x62, 0x52,
@@ -5357,10 +5357,10 @@ var file_ffs_rpc_rpc_proto_rawDesc = []byte{
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x28, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63,
 	0x2e, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61,
 	0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x3e, 0x0a, 0x07, 0x43, 0x69, 0x64, 0x44, 0x61, 0x74, 0x61, 0x12, 0x17, 0x2e,
-	0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x44, 0x61, 0x74, 0x61, 0x52,
+	0x22, 0x00, 0x12, 0x3e, 0x0a, 0x07, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x17, 0x2e,
+	0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x18, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63,
-	0x2e, 0x43, 0x69, 0x64, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
 	0x22, 0x00, 0x12, 0x44, 0x0a, 0x09, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x4a, 0x6f, 0x62, 0x12,
 	0x19, 0x2e, 0x66, 0x66, 0x73, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c,
 	0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1a, 0x2e, 0x66, 0x66, 0x73,
@@ -5503,7 +5503,7 @@ var file_ffs_rpc_rpc_proto_goTypes = []interface{}{
 	(*FilInfo)(nil),                             // 12: ffs.rpc.FilInfo
 	(*ColdInfo)(nil),                            // 13: ffs.rpc.ColdInfo
 	(*StorageInfo)(nil),                         // 14: ffs.rpc.StorageInfo
-	(*CidData)(nil),                             // 15: ffs.rpc.CidData
+	(*CidInfo)(nil),                             // 15: ffs.rpc.CidInfo
 	(*DealInfo)(nil),                            // 16: ffs.rpc.DealInfo
 	(*Job)(nil),                                 // 17: ffs.rpc.Job
 	(*DealError)(nil),                           // 18: ffs.rpc.DealError
@@ -5528,8 +5528,8 @@ var file_ffs_rpc_rpc_proto_goTypes = []interface{}{
 	(*NewAddrResponse)(nil),                     // 37: ffs.rpc.NewAddrResponse
 	(*SetDefaultStorageConfigRequest)(nil),      // 38: ffs.rpc.SetDefaultStorageConfigRequest
 	(*SetDefaultStorageConfigResponse)(nil),     // 39: ffs.rpc.SetDefaultStorageConfigResponse
-	(*CidDataRequest)(nil),                      // 40: ffs.rpc.CidDataRequest
-	(*CidDataResponse)(nil),                     // 41: ffs.rpc.CidDataResponse
+	(*CidInfoRequest)(nil),                      // 40: ffs.rpc.CidInfoRequest
+	(*CidInfoResponse)(nil),                     // 41: ffs.rpc.CidInfoResponse
 	(*CancelJobRequest)(nil),                    // 42: ffs.rpc.CancelJobRequest
 	(*CancelJobResponse)(nil),                   // 43: ffs.rpc.CancelJobResponse
 	(*StorageJobRequest)(nil),                   // 44: ffs.rpc.StorageJobRequest
@@ -5583,12 +5583,12 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	12, // 7: ffs.rpc.ColdInfo.filecoin:type_name -> ffs.rpc.FilInfo
 	10, // 8: ffs.rpc.StorageInfo.hot:type_name -> ffs.rpc.HotInfo
 	13, // 9: ffs.rpc.StorageInfo.cold:type_name -> ffs.rpc.ColdInfo
-	8,  // 10: ffs.rpc.CidData.latest_pushed_storage_config:type_name -> ffs.rpc.StorageConfig
-	14, // 11: ffs.rpc.CidData.current_storage_info:type_name -> ffs.rpc.StorageInfo
-	17, // 12: ffs.rpc.CidData.queued_storage_jobs:type_name -> ffs.rpc.Job
-	17, // 13: ffs.rpc.CidData.executing_storage_job:type_name -> ffs.rpc.Job
-	17, // 14: ffs.rpc.CidData.latest_final_storage_job:type_name -> ffs.rpc.Job
-	17, // 15: ffs.rpc.CidData.latest_successful_storage_job:type_name -> ffs.rpc.Job
+	8,  // 10: ffs.rpc.CidInfo.latest_pushed_storage_config:type_name -> ffs.rpc.StorageConfig
+	14, // 11: ffs.rpc.CidInfo.current_storage_info:type_name -> ffs.rpc.StorageInfo
+	17, // 12: ffs.rpc.CidInfo.queued_storage_jobs:type_name -> ffs.rpc.Job
+	17, // 13: ffs.rpc.CidInfo.executing_storage_job:type_name -> ffs.rpc.Job
+	17, // 14: ffs.rpc.CidInfo.latest_final_storage_job:type_name -> ffs.rpc.Job
+	17, // 15: ffs.rpc.CidInfo.latest_successful_storage_job:type_name -> ffs.rpc.Job
 	0,  // 16: ffs.rpc.Job.status:type_name -> ffs.rpc.JobStatus
 	16, // 17: ffs.rpc.Job.deal_info:type_name -> ffs.rpc.DealInfo
 	18, // 18: ffs.rpc.Job.deal_errors:type_name -> ffs.rpc.DealError
@@ -5598,7 +5598,7 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	2,  // 22: ffs.rpc.AddrsResponse.addrs:type_name -> ffs.rpc.AddrInfo
 	8,  // 23: ffs.rpc.DefaultStorageConfigResponse.default_storage_config:type_name -> ffs.rpc.StorageConfig
 	8,  // 24: ffs.rpc.SetDefaultStorageConfigRequest.config:type_name -> ffs.rpc.StorageConfig
-	15, // 25: ffs.rpc.CidDataResponse.cid_datas:type_name -> ffs.rpc.CidData
+	15, // 25: ffs.rpc.CidInfoResponse.cid_infos:type_name -> ffs.rpc.CidInfo
 	17, // 26: ffs.rpc.StorageJobResponse.job:type_name -> ffs.rpc.Job
 	17, // 27: ffs.rpc.QueuedStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
 	17, // 28: ffs.rpc.ExecutingStorageJobsResponse.storage_jobs:type_name -> ffs.rpc.Job
@@ -5625,7 +5625,7 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	32, // 49: ffs.rpc.RPCService.SignMessage:input_type -> ffs.rpc.SignMessageRequest
 	34, // 50: ffs.rpc.RPCService.VerifyMessage:input_type -> ffs.rpc.VerifyMessageRequest
 	38, // 51: ffs.rpc.RPCService.SetDefaultStorageConfig:input_type -> ffs.rpc.SetDefaultStorageConfigRequest
-	40, // 52: ffs.rpc.RPCService.CidData:input_type -> ffs.rpc.CidDataRequest
+	40, // 52: ffs.rpc.RPCService.CidInfo:input_type -> ffs.rpc.CidInfoRequest
 	42, // 53: ffs.rpc.RPCService.CancelJob:input_type -> ffs.rpc.CancelJobRequest
 	44, // 54: ffs.rpc.RPCService.StorageJob:input_type -> ffs.rpc.StorageJobRequest
 	46, // 55: ffs.rpc.RPCService.QueuedStorageJobs:input_type -> ffs.rpc.QueuedStorageJobsRequest
@@ -5653,7 +5653,7 @@ var file_ffs_rpc_rpc_proto_depIdxs = []int32{
 	33, // 77: ffs.rpc.RPCService.SignMessage:output_type -> ffs.rpc.SignMessageResponse
 	35, // 78: ffs.rpc.RPCService.VerifyMessage:output_type -> ffs.rpc.VerifyMessageResponse
 	39, // 79: ffs.rpc.RPCService.SetDefaultStorageConfig:output_type -> ffs.rpc.SetDefaultStorageConfigResponse
-	41, // 80: ffs.rpc.RPCService.CidData:output_type -> ffs.rpc.CidDataResponse
+	41, // 80: ffs.rpc.RPCService.CidInfo:output_type -> ffs.rpc.CidInfoResponse
 	43, // 81: ffs.rpc.RPCService.CancelJob:output_type -> ffs.rpc.CancelJobResponse
 	45, // 82: ffs.rpc.RPCService.StorageJob:output_type -> ffs.rpc.StorageJobResponse
 	47, // 83: ffs.rpc.RPCService.QueuedStorageJobs:output_type -> ffs.rpc.QueuedStorageJobsResponse
@@ -5844,7 +5844,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CidData); i {
+			switch v := v.(*CidInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6144,7 +6144,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CidDataRequest); i {
+			switch v := v.(*CidInfoRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6156,7 +6156,7 @@ func file_ffs_rpc_rpc_proto_init() {
 			}
 		}
 		file_ffs_rpc_rpc_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CidDataResponse); i {
+			switch v := v.(*CidInfoResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6700,7 +6700,7 @@ type RPCServiceClient interface {
 	SignMessage(ctx context.Context, in *SignMessageRequest, opts ...grpc.CallOption) (*SignMessageResponse, error)
 	VerifyMessage(ctx context.Context, in *VerifyMessageRequest, opts ...grpc.CallOption) (*VerifyMessageResponse, error)
 	SetDefaultStorageConfig(ctx context.Context, in *SetDefaultStorageConfigRequest, opts ...grpc.CallOption) (*SetDefaultStorageConfigResponse, error)
-	CidData(ctx context.Context, in *CidDataRequest, opts ...grpc.CallOption) (*CidDataResponse, error)
+	CidInfo(ctx context.Context, in *CidInfoRequest, opts ...grpc.CallOption) (*CidInfoResponse, error)
 	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*CancelJobResponse, error)
 	StorageJob(ctx context.Context, in *StorageJobRequest, opts ...grpc.CallOption) (*StorageJobResponse, error)
 	QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error)
@@ -6794,9 +6794,9 @@ func (c *rPCServiceClient) SetDefaultStorageConfig(ctx context.Context, in *SetD
 	return out, nil
 }
 
-func (c *rPCServiceClient) CidData(ctx context.Context, in *CidDataRequest, opts ...grpc.CallOption) (*CidDataResponse, error) {
-	out := new(CidDataResponse)
-	err := c.cc.Invoke(ctx, "/ffs.rpc.RPCService/CidData", in, out, opts...)
+func (c *rPCServiceClient) CidInfo(ctx context.Context, in *CidInfoRequest, opts ...grpc.CallOption) (*CidInfoResponse, error) {
+	out := new(CidInfoResponse)
+	err := c.cc.Invoke(ctx, "/ffs.rpc.RPCService/CidInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -7086,7 +7086,7 @@ type RPCServiceServer interface {
 	SignMessage(context.Context, *SignMessageRequest) (*SignMessageResponse, error)
 	VerifyMessage(context.Context, *VerifyMessageRequest) (*VerifyMessageResponse, error)
 	SetDefaultStorageConfig(context.Context, *SetDefaultStorageConfigRequest) (*SetDefaultStorageConfigResponse, error)
-	CidData(context.Context, *CidDataRequest) (*CidDataResponse, error)
+	CidInfo(context.Context, *CidInfoRequest) (*CidInfoResponse, error)
 	CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error)
 	StorageJob(context.Context, *StorageJobRequest) (*StorageJobResponse, error)
 	QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error)
@@ -7134,8 +7134,8 @@ func (*UnimplementedRPCServiceServer) VerifyMessage(context.Context, *VerifyMess
 func (*UnimplementedRPCServiceServer) SetDefaultStorageConfig(context.Context, *SetDefaultStorageConfigRequest) (*SetDefaultStorageConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetDefaultStorageConfig not implemented")
 }
-func (*UnimplementedRPCServiceServer) CidData(context.Context, *CidDataRequest) (*CidDataResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CidData not implemented")
+func (*UnimplementedRPCServiceServer) CidInfo(context.Context, *CidInfoRequest) (*CidInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CidInfo not implemented")
 }
 func (*UnimplementedRPCServiceServer) CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CancelJob not implemented")
@@ -7328,20 +7328,20 @@ func _RPCService_SetDefaultStorageConfig_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RPCService_CidData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CidDataRequest)
+func _RPCService_CidInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CidInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RPCServiceServer).CidData(ctx, in)
+		return srv.(RPCServiceServer).CidInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ffs.rpc.RPCService/CidData",
+		FullMethod: "/ffs.rpc.RPCService/CidInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RPCServiceServer).CidData(ctx, req.(*CidDataRequest))
+		return srv.(RPCServiceServer).CidInfo(ctx, req.(*CidInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -7756,8 +7756,8 @@ var _RPCService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _RPCService_SetDefaultStorageConfig_Handler,
 		},
 		{
-			MethodName: "CidData",
-			Handler:    _RPCService_CidData_Handler,
+			MethodName: "CidInfo",
+			Handler:    _RPCService_CidInfo_Handler,
 		},
 		{
 			MethodName: "CancelJob",
