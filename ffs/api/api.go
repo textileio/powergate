@@ -134,8 +134,8 @@ func (i *API) GetStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.StorageConfig,
 
 // Show returns the information about a stored Cid. If no information is available,
 // since the Cid was never stored, it returns ErrNotFound.
-func (i *API) Show(cid cid.Cid) (ffs.CidInfo, error) {
-	inf, err := i.sched.GetCidInfo(cid)
+func (i *API) Show(cid cid.Cid) (ffs.StorageInfo, error) {
+	inf, err := i.sched.GetStorageInfo(cid)
 	if err == scheduler.ErrNotFound {
 		return inf, ErrNotFound
 	}

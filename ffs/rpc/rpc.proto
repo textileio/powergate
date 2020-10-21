@@ -85,7 +85,7 @@ message ColdInfo {
    FilInfo filecoin = 2;
 }
 
-message CidInfo {
+message StorageInfo {
    string job_id = 1;
    string cid = 2;
    int64 created = 3;
@@ -96,7 +96,7 @@ message CidInfo {
 message CidData {
    string cid = 1;
    StorageConfig latest_pushed_storage_config = 2;
-   CidInfo current_cid_info = 3;
+   StorageInfo current_storage_info = 3;
    repeated Job queued_storage_jobs = 4;
    Job executing_storage_job = 5;
    Job latest_final_storage_job = 6;

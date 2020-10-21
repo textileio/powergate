@@ -187,7 +187,7 @@ func (s *RPC) CidData(ctx context.Context, req *CidDataRequest) (*CidDataRespons
 		if err != nil && err != api.ErrNotFound {
 			return nil, status.Errorf(codes.Internal, "getting storage info: %v", err)
 		} else if err == nil {
-			cidData.CurrentCidInfo = toRPCCidInfo(info)
+			cidData.CurrentStorageInfo = toRPCStorageInfo(info)
 		}
 		queuedJobs := i.QueuedStorageJobs(cid)
 		rpcQueudJobs := make([]*Job, len(queuedJobs))
@@ -821,8 +821,8 @@ func fromRPCColdConfig(config *ColdConfig) ffs.ColdConfig {
 	return res
 }
 
-func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
-	cidInfo := &CidInfo{
+func toRPCStorageInfo(info ffs.StorageInfo) *StorageInfo {
+	storageInfo := &StorageInfo{
 		JobId:   info.JobID.String(),
 		Cid:     util.CidToString(info.Cid),
 		Created: info.Created.UnixNano(),
@@ -851,7 +851,7 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 		if p.PieceCid.Defined() {
 			strPieceCid = util.CidToString(p.PieceCid)
 		}
-		cidInfo.Cold.Filecoin.Proposals[i] = &FilStorage{
+		storageInfo.Cold.Filecoin.Proposals[i] = &FilStorage{
 			ProposalCid:     strProposalCid,
 			PieceCid:        strPieceCid,
 			Renewed:         p.Renewed,
@@ -862,7 +862,7 @@ func toRPCCidInfo(info ffs.CidInfo) *CidInfo {
 			EpochPrice:      p.EpochPrice,
 		}
 	}
-	return cidInfo
+	return storageInfo
 }
 
 func toRPCPaychInfo(info ffs.PaychInfo) *PaychInfo {
