@@ -1,4 +1,4 @@
-## pow ffs data
+## pow ffs info
 
 Get information about the current state of cid storage
 
@@ -7,13 +7,13 @@ Get information about the current state of cid storage
 Get information about the current state of cid storage
 
 ```
-pow ffs data [optional cid1,cid2,...] [flags]
+pow ffs info [optional cid1,cid2,...] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for data
+  -h, --help   help for info
 ```
 
 ### Options inherited from parent commands
