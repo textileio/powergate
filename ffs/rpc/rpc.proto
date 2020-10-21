@@ -85,7 +85,7 @@ message ColdInfo {
    FilInfo filecoin = 2;
 }
 
-message CidInfo {
+message StorageInfo {
    string job_id = 1;
    string cid = 2;
    int64 created = 3;
@@ -93,10 +93,10 @@ message CidInfo {
    ColdInfo cold = 5;
 }
 
-message CidData {
+message CidInfo {
    string cid = 1;
    StorageConfig latest_pushed_storage_config = 2;
-   CidInfo current_cid_info = 3;
+   StorageInfo current_storage_info = 3;
    repeated Job queued_storage_jobs = 4;
    Job executing_storage_job = 5;
    Job latest_final_storage_job = 6;
@@ -273,12 +273,12 @@ message SetDefaultStorageConfigRequest {
 message SetDefaultStorageConfigResponse {
 }
 
-message CidDataRequest {
+message CidInfoRequest {
    repeated string cids = 1;
 }
 
-message CidDataResponse {
-   repeated CidData cid_datas = 1;
+message CidInfoResponse {
+   repeated CidInfo cid_infos = 1;
 }
 
 message CancelJobRequest {
@@ -467,7 +467,7 @@ service RPCService {
    rpc SignMessage(SignMessageRequest) returns (SignMessageResponse) {}
    rpc VerifyMessage(VerifyMessageRequest) returns (VerifyMessageResponse) {}
    rpc SetDefaultStorageConfig(SetDefaultStorageConfigRequest) returns (SetDefaultStorageConfigResponse) {}
-   rpc CidData(CidDataRequest) returns (CidDataResponse) {}
+   rpc CidInfo(CidInfoRequest) returns (CidInfoResponse) {}
    rpc CancelJob(CancelJobRequest) returns (CancelJobResponse) {}
    rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}
    rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
