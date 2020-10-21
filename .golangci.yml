@@ -6,7 +6,6 @@ linters:
   enable:
     - golint
     - misspell
-    - gocyclo
     - bodyclose
     - unconvert
     - goconst
