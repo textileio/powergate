@@ -46,9 +46,9 @@ var adminCmd = &cobra.Command{
 }
 
 var adminCreateInstanceCmd = &cobra.Command{
-	Use:   "create-instance",
-	Short: "Create a powergate FFS instance.",
-	Long:  `Create a powergate FFS instance.`,
+	Use:   "create-profile",
+	Short: "Create a Powergate storage profile.",
+	Long:  `Create a Powergate storage profile.`,
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -58,7 +58,7 @@ var adminCreateInstanceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.CreateInstance(adminAuthCtx(ctx))
+		res, err := fcClient.Admin.CreateStorageProfile(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -69,9 +69,9 @@ var adminCreateInstanceCmd = &cobra.Command{
 }
 
 var adminInstancesCmd = &cobra.Command{
-	Use:   "instances",
-	Short: "List all powergate FFS instances.",
-	Long:  `List all powergate FFS instances.`,
+	Use:   "profiles",
+	Short: "List all Powergate storage profiles.",
+	Long:  `List all Powergate storage profiles.`,
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -81,7 +81,7 @@ var adminInstancesCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.ListInstances(adminAuthCtx(ctx))
+		res, err := fcClient.Admin.ListStorageProfiles(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

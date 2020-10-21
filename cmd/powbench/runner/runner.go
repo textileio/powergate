@@ -63,11 +63,11 @@ func sanityCheck(ctx context.Context, c *client.Client) error {
 }
 
 func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
-	res, err := c.Admin.CreateInstance(ctx)
+	res, err := c.Admin.CreateStorageProfile(ctx)
 	if err != nil {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
-	ctx = context.WithValue(ctx, client.AuthKey, res.Token)
+	ctx = context.WithValue(ctx, client.AuthKey, res.AuthEntry.Token)
 	res2, err := c.FFS.Addrs(ctx)
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)

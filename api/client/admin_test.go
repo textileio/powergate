@@ -16,10 +16,10 @@ func TestCreate(t *testing.T) {
 		a, done := setupAdmin(t, "")
 		defer done()
 
-		resp, err := a.CreateInstance(ctx)
+		resp, err := a.CreateStorageProfile(ctx)
 		require.NoError(t, err)
-		require.NotEmpty(t, resp.Id)
-		require.NotEmpty(t, resp.Token)
+		require.NotEmpty(t, resp.AuthEntry.Id)
+		require.NotEmpty(t, resp.AuthEntry.Token)
 	})
 
 	t.Run("WithAdminToken", func(t *testing.T) {
@@ -28,7 +28,7 @@ func TestCreate(t *testing.T) {
 		defer done()
 
 		t.Run("UnauthorizedEmpty", func(t *testing.T) {
-			resp, err := a.CreateInstance(ctx)
+			resp, err := a.CreateStorageProfile(ctx)
 			require.Error(t, err)
 			require.Nil(t, resp)
 		})
@@ -40,7 +40,7 @@ func TestCreate(t *testing.T) {
 			}
 			for _, auth := range wrongAuths {
 				ctx := context.WithValue(ctx, AdminKey, auth)
-				resp, err := a.CreateInstance(ctx)
+				resp, err := a.CreateStorageProfile(ctx)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
 				require.Equal(t, codes.PermissionDenied, st.Code())
@@ -49,10 +49,10 @@ func TestCreate(t *testing.T) {
 		})
 		t.Run("Authorized", func(t *testing.T) {
 			ctx := context.WithValue(ctx, AdminKey, authToken)
-			resp, err := a.CreateInstance(ctx)
+			resp, err := a.CreateStorageProfile(ctx)
 			require.NoError(t, err)
-			require.NotEmpty(t, resp.Id)
-			require.NotEmpty(t, resp.Token)
+			require.NotEmpty(t, resp.AuthEntry.Id)
+			require.NotEmpty(t, resp.AuthEntry.Token)
 		})
 	})
 }

@@ -1,19 +1,19 @@
-## pow admin instances
+## pow admin create-profile
 
-List all powergate FFS instances.
+Create a Powergate storage profile.
 
 ### Synopsis
 
-List all powergate FFS instances.
+Create a Powergate storage profile.
 
 ```
-pow admin instances [flags]
+pow admin create-profile [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for instances
+  -h, --help   help for create-profile
 ```
 
 ### Options inherited from parent commands
