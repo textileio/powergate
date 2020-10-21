@@ -169,7 +169,7 @@ func (m *Manager) SetDefaultStorageConfig(dc ffs.StorageConfig) error {
 }
 
 // List returns a list of all existing API instances.
-func (m *Manager) List() ([]ffs.APIID, error) {
+func (m *Manager) List() ([]ffs.AuthEntry, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 

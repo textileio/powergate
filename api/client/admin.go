@@ -11,14 +11,14 @@ type Admin struct {
 	client proto.PowergateAdminServiceClient
 }
 
-// CreateInstance creates a new FFS instance, returning the instance ID and auth token.
-func (a *Admin) CreateInstance(ctx context.Context) (*proto.CreateInstanceResponse, error) {
-	return a.client.CreateInstance(ctx, &proto.CreateInstanceRequest{})
+// CreateStorageProfile creates a new Powergate storage profile, returning the instance ID and auth token.
+func (a *Admin) CreateStorageProfile(ctx context.Context) (*proto.CreateStorageProfileResponse, error) {
+	return a.client.CreateStorageProfile(ctx, &proto.CreateStorageProfileRequest{})
 }
 
-// ListInstances returns a list of existing API instances.
-func (a *Admin) ListInstances(ctx context.Context) (*proto.ListInstancesResponse, error) {
-	return a.client.ListInstances(ctx, &proto.ListInstancesRequest{})
+// ListStorageProfiles returns a list of existing API instances.
+func (a *Admin) ListStorageProfiles(ctx context.Context) (*proto.ListStorageProfilesResponse, error) {
+	return a.client.ListStorageProfiles(ctx, &proto.ListStorageProfilesRequest{})
 }
 
 // QueuedStorageJobs returns a list of queued storage jobs.

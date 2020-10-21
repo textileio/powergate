@@ -72,6 +72,11 @@ func (i APIID) String() string {
 	return string(i)
 }
 
+type AuthEntry struct {
+	Token string
+	APIID APIID
+}
+
 // JobStatus is a type for Job statuses.
 type JobStatus int
 
