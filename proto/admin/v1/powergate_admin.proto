@@ -5,6 +5,31 @@ import "ffs/rpc/rpc.proto";
 
 option go_package = "github.com/textileio/powergate/proto/admin/v1";
 
+// Wallet
+message NewAddressRequest {
+  string type = 1;
+}
+
+message NewAddressResponse {
+  string address = 1;
+}
+
+message ListAddressesRequest {
+}
+
+message ListAddressesResponse {
+  repeated string addresses = 1;
+}
+
+message SendFilRequest {
+  string from = 1;
+  string to = 2;	
+  int64 amount = 3;
+}
+
+message SendFilResponse {
+}
+
 // Instances
 
 message AuthEntry {
@@ -78,6 +103,11 @@ message StorageJobsSummaryResponse {
 }
 
 service PowergateAdminService {
+  // Wallet
+  rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
+  rpc ListAddresses(ListAddressesRequest) returns (ListAddressesResponse) {}
+  rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
+
   // Instances
   rpc CreateStorageProfile(CreateStorageProfileRequest) returns (CreateStorageProfileResponse) {}
   rpc ListStorageProfiles(ListStorageProfilesRequest) returns (ListStorageProfilesResponse) {}

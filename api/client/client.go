@@ -8,7 +8,6 @@ import (
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	proto "github.com/textileio/powergate/proto/powergate/v1"
-	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -92,7 +91,7 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	}
 	powClient := proto.NewPowergateServiceClient(conn)
 	client := &Client{
-		Wallet:    &Wallet{walletClient: walletRpc.NewRPCServiceClient(conn), powergateClient: powClient},
+		Wallet:    &Wallet{powergateClient: powClient},
 		FFS:       &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
 		Jobs:      &Jobs{client: powClient},
 		Admin:     &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},

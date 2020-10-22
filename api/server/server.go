@@ -52,7 +52,6 @@ import (
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 	walletModule "github.com/textileio/powergate/wallet/module"
-	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -389,7 +388,6 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
-	walletService := walletRpc.New(s.wm)
 	ffsService := ffsRpc.New(s.ffsManager, s.wm, s.hs)
 	powergateService := powergateService.New(s.ffsManager, s.wm)
 	adminService := adminService.New(s.ffsManager, s.sched)
@@ -403,7 +401,6 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		walletRpc.RegisterRPCServiceServer(server, walletService)
 		ffsRpc.RegisterRPCServiceServer(server, ffsService)
 		powergateProto.RegisterPowergateServiceServer(server, powergateService)
 		adminProto.RegisterPowergateAdminServiceServer(server, adminService)

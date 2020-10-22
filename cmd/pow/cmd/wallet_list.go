@@ -1,12 +1,8 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
@@ -22,15 +18,15 @@ var listCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
-		defer cancel()
+		// ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		// defer cancel()
 
-		res, err := fcClient.Wallet.List(ctx)
-		checkErr(err)
+		// res, err := fcClient.Wallet.List(ctx)
+		// checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		// json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		// checkErr(err)
 
-		fmt.Println(string(json))
+		// fmt.Println(string(json))
 	},
 }

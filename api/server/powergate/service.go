@@ -9,7 +9,7 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
 	proto "github.com/textileio/powergate/proto/powergate/v1"
-	walletModule "github.com/textileio/powergate/wallet/module"
+	"github.com/textileio/powergate/wallet"
 )
 
 var (
@@ -20,11 +20,11 @@ var (
 // Service implements the Powergate API.
 type Service struct {
 	m *manager.Manager
-	w *walletModule.Module
+	w wallet.Module
 }
 
 // New creates a new powergate Service.
-func New(m *manager.Manager, w *walletModule.Module) *Service {
+func New(m *manager.Manager, w wallet.Module) *Service {
 	return &Service{
 		m: m,
 		w: w,
