@@ -11,6 +11,29 @@ type Admin struct {
 	client proto.PowergateAdminServiceClient
 }
 
+// NewAddress creates a new address.
+func (a *Admin) NewAddress(ctx context.Context, addrType string) (*proto.NewAddressResponse, error) {
+	req := &proto.NewAddressRequest{
+		Type: addrType,
+	}
+	return a.client.NewAddress(ctx, req)
+}
+
+// ListAddresses lists all addresses associated with this Powergate.
+func (a *Admin) ListAddresses(ctx context.Context) (*proto.ListAddressesResponse, error) {
+	return a.client.ListAddresses(ctx, &proto.ListAddressesRequest{})
+}
+
+// SendFil sends FIL from an address associated with this Powergate to any other address.
+func (a *Admin) SendFil(ctx context.Context, from, to string, amount int64) (*proto.SendFilResponse, error) {
+	req := &proto.SendFilRequest{
+		From:   from,
+		To:     to,
+		Amount: amount,
+	}
+	return a.client.SendFil(ctx, req)
+}
+
 // CreateStorageProfile creates a new Powergate storage profile, returning the instance ID and auth token.
 func (a *Admin) CreateStorageProfile(ctx context.Context) (*proto.CreateStorageProfileResponse, error) {
 	return a.client.CreateStorageProfile(ctx, &proto.CreateStorageProfileRequest{})
