@@ -616,52 +616,6 @@ func (s *RPC) Stage(srv RPCService_StageServer) error {
 	return srv.SendAndClose(&StageResponse{Cid: util.CidToString(c)})
 }
 
-// ListPayChannels lists all pay channels.
-func (s *RPC) ListPayChannels(ctx context.Context, req *ListPayChannelsRequest) (*ListPayChannelsResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	infos, err := i.ListPayChannels(ctx)
-	if err != nil {
-		return nil, err
-	}
-	respInfos := make([]*PaychInfo, len(infos))
-	for i, info := range infos {
-		respInfos[i] = toRPCPaychInfo(info)
-	}
-	return &ListPayChannelsResponse{PayChannels: respInfos}, nil
-}
-
-// CreatePayChannel creates a payment channel.
-func (s *RPC) CreatePayChannel(ctx context.Context, req *CreatePayChannelRequest) (*CreatePayChannelResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	info, cid, err := i.CreatePayChannel(ctx, req.From, req.To, req.Amount)
-	if err != nil {
-		return nil, err
-	}
-	respInfo := toRPCPaychInfo(info)
-	return &CreatePayChannelResponse{
-		PayChannel:        respInfo,
-		ChannelMessageCid: util.CidToString(cid),
-	}, nil
-}
-
-// RedeemPayChannel redeems a payment channel.
-func (s *RPC) RedeemPayChannel(ctx context.Context, req *RedeemPayChannelRequest) (*RedeemPayChannelResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := i.RedeemPayChannel(ctx, req.PayChannelAddr); err != nil {
-		return nil, err
-	}
-	return &RedeemPayChannelResponse{}, nil
-}
-
 // ListStorageDealRecords calls ffs.ListStorageDealRecords.
 func (s *RPC) ListStorageDealRecords(ctx context.Context, req *ListStorageDealRecordsRequest) (*ListStorageDealRecordsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
@@ -863,23 +817,6 @@ func toRPCStorageInfo(info ffs.StorageInfo) *StorageInfo {
 		}
 	}
 	return storageInfo
-}
-
-func toRPCPaychInfo(info ffs.PaychInfo) *PaychInfo {
-	var direction Direction
-	switch info.Direction {
-	case ffs.PaychDirInbound:
-		direction = Direction_DIRECTION_INBOUND
-	case ffs.PaychDirOutbound:
-		direction = Direction_DIRECTION_OUTBOUND
-	default:
-		direction = Direction_DIRECTION_UNSPECIFIED
-	}
-	return &PaychInfo{
-		CtlAddr:   info.CtlAddr,
-		Addr:      info.Addr,
-		Direction: direction,
-	}
 }
 
 func buildListDealRecordsOptions(conf *ListDealRecordsConfig) []deals.ListDealRecordsOption {

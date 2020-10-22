@@ -68,7 +68,6 @@ var (
 // Manager creates Api instances, or loads existing ones them from an auth-token.
 type Manager struct {
 	wm    ffs.WalletManager
-	pm    ffs.PaychManager
 	drm   ffs.DealRecordsManager
 	sched *scheduler.Scheduler
 
@@ -83,7 +82,7 @@ type Manager struct {
 }
 
 // New returns a new Manager.
-func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool, onLocalnet bool) (*Manager, error) {
+func New(ds datastore.Datastore, wm ffs.WalletManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool, onLocalnet bool) (*Manager, error) {
 	if ffsUseMasterAddr && wm.MasterAddr() == address.Undef {
 		return nil, fmt.Errorf("ffsUseMasterAddr requires that master address is defined")
 	}
@@ -95,7 +94,6 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm 
 		auth:             auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
 		ds:               ds,
 		wm:               wm,
-		pm:               pm,
 		drm:              drm,
 		sched:            sched,
 		instances:        make(map[ffs.APIID]*api.API),
@@ -140,7 +138,7 @@ func (m *Manager) Create(ctx context.Context) (ffs.AuthEntry, error) {
 
 	iid := ffs.NewAPIID()
 
-	fapi, err := api.New(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm, m.defaultConfig, addrInfo)
+	fapi, err := api.New(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.drm, m.defaultConfig, addrInfo)
 	if err != nil {
 		return ffs.AuthEntry{}, fmt.Errorf("creating new instance: %s", err)
 	}
@@ -194,7 +192,7 @@ func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 	i, ok := m.instances[iid]
 	if !ok {
 		log.Debugf("loading uncached instance %s", iid)
-		i, err = api.Load(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm)
+		i, err = api.Load(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.drm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)
 		}

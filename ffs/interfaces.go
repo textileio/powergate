@@ -28,16 +28,6 @@ type WalletManager interface {
 	Verify(context.Context, string, []byte, []byte) (bool, error)
 }
 
-// PaychManager provides access to payment channels.
-type PaychManager interface {
-	// List lists all payment channels involving the specified addresses.
-	List(ctx context.Context, addrs ...string) ([]PaychInfo, error)
-	// Create creates a new payment channel.
-	Create(ctx context.Context, from string, to string, amount uint64) (PaychInfo, cid.Cid, error)
-	// Redeem redeems a payment channel.
-	Redeem(ctx context.Context, ch string) error
-}
-
 // DealRecordsManager provides access to deal records.
 type DealRecordsManager interface {
 	ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error)

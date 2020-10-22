@@ -433,27 +433,6 @@ func (f *FFS) StageFolder(ctx context.Context, ipfsRevProxyAddr string, folderPa
 	return pth.Cid().String(), nil
 }
 
-// ListPayChannels returns a list of payment channels.
-func (f *FFS) ListPayChannels(ctx context.Context) (*rpc.ListPayChannelsResponse, error) {
-	return f.client.ListPayChannels(ctx, &rpc.ListPayChannelsRequest{})
-}
-
-// CreatePayChannel creates a new payment channel.
-func (f *FFS) CreatePayChannel(ctx context.Context, from, to string, amount uint64) (*rpc.CreatePayChannelResponse, error) {
-	req := &rpc.CreatePayChannelRequest{
-		From:   from,
-		To:     to,
-		Amount: amount,
-	}
-	return f.client.CreatePayChannel(ctx, req)
-}
-
-// RedeemPayChannel redeems a payment channel.
-func (f *FFS) RedeemPayChannel(ctx context.Context, addr string) (*rpc.RedeemPayChannelResponse, error) {
-	req := &rpc.RedeemPayChannelRequest{PayChannelAddr: addr}
-	return f.client.RedeemPayChannel(ctx, req)
-}
-
 // ListStorageDealRecords returns a list of storage deals for the FFS instance according to the provided options.
 func (f *FFS) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) (*rpc.ListStorageDealRecordsResponse, error) {
 	conf := &rpc.ListDealRecordsConfig{}

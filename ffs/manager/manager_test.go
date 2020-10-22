@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/lotus"
-	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -199,12 +198,11 @@ func newManager(clientBuilder lotus.ClientBuilder, ds datastore.TxnDatastore, ma
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}
-	pm := paych.New(clientBuilder)
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, util.AvgBlockTime, time.Minute*10)
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}
-	m, err := New(ds, wm, pm, dm, nil, ffsUseMasterAddr, true)
+	m, err := New(ds, wm, dm, nil, ffsUseMasterAddr, true)
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}

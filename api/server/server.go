@@ -46,7 +46,6 @@ import (
 	minerModule "github.com/textileio/powergate/index/miner/module"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
-	paychLotus "github.com/textileio/powergate/paych/lotus"
 	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	powergateProto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/reputation"
@@ -224,7 +223,6 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
-	pm := paychLotus.New(clientBuilder)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
@@ -258,7 +256,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}
 
-	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, pm, dm, sched, conf.FFSUseMasterAddr, conf.Devnet)
+	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, dm, sched, conf.FFSUseMasterAddr, conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}
