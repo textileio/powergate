@@ -46,9 +46,6 @@ import (
 	minerModule "github.com/textileio/powergate/index/miner/module"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
-	pgnet "github.com/textileio/powergate/net"
-	pgnetlotus "github.com/textileio/powergate/net/lotus"
-	pgnetRpc "github.com/textileio/powergate/net/rpc"
 	paychLotus "github.com/textileio/powergate/paych/lotus"
 	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	powergateProto "github.com/textileio/powergate/proto/powergate/v1"
@@ -86,7 +83,6 @@ type Server struct {
 	dm *dealsModule.Module
 	wm *walletModule.Module
 	rm *reputation.Module
-	nm pgnet.Module
 
 	ffsManager *manager.Manager
 	sched      *scheduler.Scheduler
@@ -230,7 +226,6 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	pm := paychLotus.New(clientBuilder)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
-	nm := pgnetlotus.New(clientBuilder, mm)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
 	if err != nil {
@@ -299,7 +294,6 @@ func NewServer(conf Config) (*Server, error) {
 		dm: dm,
 		wm: wm,
 		rm: rm,
-		nm: nm,
 
 		ffsManager: ffsManager,
 		sched:      sched,
@@ -397,7 +391,6 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
-	netService := pgnetRpc.New(s.nm)
 	walletService := walletRpc.New(s.wm)
 	ffsService := ffsRpc.New(s.ffsManager, s.wm, s.hs)
 	powergateService := powergateService.New(s.ffsManager, s.wm)
@@ -412,7 +405,6 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		pgnetRpc.RegisterRPCServiceServer(server, netService)
 		walletRpc.RegisterRPCServiceServer(server, walletService)
 		ffsRpc.RegisterRPCServiceServer(server, ffsService)
 		powergateProto.RegisterPowergateServiceServer(server, powergateService)
