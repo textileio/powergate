@@ -14,9 +14,10 @@ type Service struct {
 }
 
 // New creates a new AdminService.
-func New(m *manager.Manager, s *scheduler.Scheduler) *Service {
+func New(m *manager.Manager, s *scheduler.Scheduler, wm wallet.Module) *Service {
 	return &Service{
-		m: m,
-		s: s,
+		m:  m,
+		s:  s,
+		wm: wm,
 	}
 }
