@@ -12,11 +12,11 @@ message BuildInfoRequest {
 
 message BuildInfoResponse {
   string git_commit = 1;
-	string git_branch = 2;
-	string git_state = 3;
-	string git_summary = 4;
-	string build_date = 5;
-	string version = 6;
+  string git_branch = 2;
+  string git_state = 3;
+  string git_summary = 4;
+  string build_date = 5;
+  string version = 6;
 }
 
 // Wallet
@@ -42,7 +42,7 @@ message StorageConfigForJobResponse {
 service PowergateService {
   // General
   rpc BuildInfo(BuildInfoRequest) returns (BuildInfoResponse) {}
-  
+
   // Wallet
   rpc Balance(BalanceRequest) returns (BalanceResponse) {}
 
