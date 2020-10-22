@@ -6,13 +6,9 @@ import (
 	"strings"
 
 	ffsRpc "github.com/textileio/powergate/ffs/rpc"
-	askRpc "github.com/textileio/powergate/index/ask/rpc"
-	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
-	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	netRpc "github.com/textileio/powergate/net/rpc"
 	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	proto "github.com/textileio/powergate/proto/powergate/v1"
-	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -20,17 +16,13 @@ import (
 
 // Client provides the client api.
 type Client struct {
-	Asks       *Asks
-	Miners     *Miners
-	Faults     *Faults
-	Wallet     *Wallet
-	Reputation *Reputation
-	FFS        *FFS
-	Net        *Net
-	Jobs       *Jobs
-	Admin      *Admin
-	conn       *grpc.ClientConn
-	powClient  proto.PowergateServiceClient
+	Wallet    *Wallet
+	FFS       *FFS
+	Net       *Net
+	Jobs      *Jobs
+	Admin     *Admin
+	conn      *grpc.ClientConn
+	powClient proto.PowergateServiceClient
 }
 
 type ctxKey string
@@ -102,17 +94,13 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	}
 	powClient := proto.NewPowergateServiceClient(conn)
 	client := &Client{
-		Asks:       &Asks{client: askRpc.NewRPCServiceClient(conn)},
-		Miners:     &Miners{client: minerRpc.NewRPCServiceClient(conn)},
-		Faults:     &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
-		Wallet:     &Wallet{walletClient: walletRpc.NewRPCServiceClient(conn), powergateClient: powClient},
-		Reputation: &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
-		FFS:        &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
-		Net:        &Net{client: netRpc.NewRPCServiceClient(conn)},
-		Jobs:       &Jobs{client: powClient},
-		Admin:      &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
-		conn:       conn,
-		powClient:  proto.NewPowergateServiceClient(conn),
+		Wallet:    &Wallet{walletClient: walletRpc.NewRPCServiceClient(conn), powergateClient: powClient},
+		FFS:       &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
+		Net:       &Net{client: netRpc.NewRPCServiceClient(conn)},
+		Jobs:      &Jobs{client: powClient},
+		Admin:     &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
+		conn:      conn,
+		powClient: proto.NewPowergateServiceClient(conn),
 	}
 	return client, nil
 }

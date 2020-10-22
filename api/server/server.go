@@ -41,12 +41,9 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/gateway"
-	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	ask "github.com/textileio/powergate/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/index/faults/module"
-	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	minerModule "github.com/textileio/powergate/index/miner/module"
-	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
 	pgnet "github.com/textileio/powergate/net"
@@ -56,7 +53,6 @@ import (
 	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	powergateProto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/reputation"
-	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 	walletModule "github.com/textileio/powergate/wallet/module"
@@ -403,10 +399,6 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
 	netService := pgnetRpc.New(s.nm)
 	walletService := walletRpc.New(s.wm)
-	reputationService := reputationRpc.New(s.rm)
-	askService := askRpc.New(s.ai)
-	minerService := minerRpc.New(s.mi)
-	faultsService := faultsRpc.New(s.fi)
 	ffsService := ffsRpc.New(s.ffsManager, s.wm, s.hs)
 	powergateService := powergateService.New(s.ffsManager, s.wm)
 	adminService := adminService.New(s.ffsManager, s.sched)
@@ -422,10 +414,6 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 	go func() {
 		pgnetRpc.RegisterRPCServiceServer(server, netService)
 		walletRpc.RegisterRPCServiceServer(server, walletService)
-		reputationRpc.RegisterRPCServiceServer(server, reputationService)
-		askRpc.RegisterRPCServiceServer(server, askService)
-		minerRpc.RegisterRPCServiceServer(server, minerService)
-		faultsRpc.RegisterRPCServiceServer(server, faultsService)
 		ffsRpc.RegisterRPCServiceServer(server, ffsService)
 		powergateProto.RegisterPowergateServiceServer(server, powergateService)
 		adminProto.RegisterPowergateAdminServiceServer(server, adminService)
