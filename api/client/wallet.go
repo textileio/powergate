@@ -38,7 +38,7 @@ func (w *Wallet) Balance(ctx context.Context, address string) (*proto.BalanceRes
 	return w.client.Balance(ctx, &proto.BalanceRequest{Address: address})
 }
 
-// NewAddr created a new wallet address managed by the FFS instance.
+// NewAddr created a new wallet address managed by the storage profile.
 func (w *Wallet) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (*proto.NewAddrResponse, error) {
 	r := &proto.NewAddrRequest{Name: name}
 	for _, opt := range options {
@@ -47,7 +47,7 @@ func (w *Wallet) NewAddr(ctx context.Context, name string, options ...NewAddress
 	return w.client.NewAddr(ctx, r)
 }
 
-// Addrs returns a list of addresses managed by the FFS instance.
+// Addrs returns a list of addresses managed by the storage profile.
 func (w *Wallet) Addrs(ctx context.Context) (*proto.AddrsResponse, error) {
 	return w.client.Addrs(ctx, &proto.AddrsRequest{})
 }
@@ -62,7 +62,7 @@ func (w *Wallet) SendFil(ctx context.Context, from string, to string, amount int
 	return w.client.SendFil(ctx, req)
 }
 
-// SignMessage signs a message with a FFS managed wallet address.
+// SignMessage signs a message with a stprage profile wallet address.
 func (w *Wallet) SignMessage(ctx context.Context, addr string, message []byte) (*proto.SignMessageResponse, error) {
 	r := &proto.SignMessageRequest{Addr: addr, Msg: message}
 	return w.client.SignMessage(ctx, r)

@@ -167,7 +167,7 @@ func (c *Client) BuildInfo(ctx context.Context) (*proto.BuildInfoResponse, error
 	return c.powClient.BuildInfo(ctx, &proto.BuildInfoRequest{})
 }
 
-// ID returns the FFS instance ID.
+// ID returns the storage profile ID.
 func (c *Client) ID(ctx context.Context) (*proto.IDResponse, error) {
 	return c.powClient.ID(ctx, &proto.IDRequest{})
 }
@@ -346,7 +346,7 @@ func (c *Client) WatchLogs(ctx context.Context, ch chan<- WatchLogsEvent, cid st
 	return nil
 }
 
-// CidInfo returns information about cids managed by the FFS instance.
+// CidInfo returns information about cids managed by the storage profile.
 func (c *Client) CidInfo(ctx context.Context, cids ...string) (*proto.CidInfoResponse, error) {
 	return c.powClient.CidInfo(ctx, &proto.CidInfoRequest{Cids: cids})
 }

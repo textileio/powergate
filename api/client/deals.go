@@ -54,7 +54,7 @@ func WithAscending(ascending bool) ListDealRecordsOption {
 	}
 }
 
-// ListStorageDealRecords returns a list of storage deals for the FFS instance according to the provided options.
+// ListStorageDealRecords returns a list of storage deals for the storage profile according to the provided options.
 func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) (*proto.ListStorageDealRecordsResponse, error) {
 	conf := &proto.ListDealRecordsConfig{}
 	for _, opt := range opts {
@@ -63,7 +63,7 @@ func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealReco
 	return d.client.ListStorageDealRecords(ctx, &proto.ListStorageDealRecordsRequest{Config: conf})
 }
 
-// ListRetrievalDealRecords returns a list of retrieval deals for the FFS instance according to the provided options.
+// ListRetrievalDealRecords returns a list of retrieval deals for the storage profile according to the provided options.
 func (d *Deals) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealRecordsOption) (*proto.ListRetrievalDealRecordsResponse, error) {
 	conf := &proto.ListDealRecordsConfig{}
 	for _, opt := range opts {
