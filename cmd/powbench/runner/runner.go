@@ -52,7 +52,7 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
 	ctx = context.WithValue(ctx, client.AuthKey, res.AuthEntry.Token)
-	res2, err := c.FFS.Addrs(ctx)
+	res2, err := c.Wallet.Addrs(ctx)
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)
 	}
@@ -87,7 +87,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	lr := io.LimitReader(ra, size)
 
 	log.Infof("[%d] Adding to hot layer...", id)
-	statgeRes, err := c.FFS.Stage(ctx, lr)
+	statgeRes, err := c.Stage(ctx, lr)
 	if err != nil {
 		return fmt.Errorf("importing data to hot storage (ipfs node): %s", err)
 	}
@@ -123,7 +123,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		},
 	}
 
-	pushRes, err := c.FFS.PushStorageConfig(ctx, statgeRes.Cid, client.WithStorageConfig(storageConfig))
+	pushRes, err := c.PushStorageConfig(ctx, statgeRes.Cid, client.WithStorageConfig(storageConfig))
 	if err != nil {
 		return fmt.Errorf("pushing to FFS: %s", err)
 	}
@@ -132,7 +132,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	chJob := make(chan client.WatchJobsEvent, 1)
 	ctxWatch, cancel := context.WithCancel(ctx)
 	defer cancel()
-	err = c.FFS.WatchJobs(ctxWatch, chJob, pushRes.JobId)
+	err = c.Jobs.WatchJobs(ctxWatch, chJob, pushRes.JobId)
 	if err != nil {
 		return fmt.Errorf("opening listening job status: %s", err)
 	}
