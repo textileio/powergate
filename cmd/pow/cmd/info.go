@@ -16,8 +16,8 @@ func init() {
 
 var infoCmd = &cobra.Command{
 	Use:   "info [optional cid1,cid2,...]",
-	Short: "Get information about the current state of cid storage",
-	Long:  `Get information about the current state of cid storage`,
+	Short: "Get information about the current storate state of a cid",
+	Long:  `Get information about the current storate state of a cid`,
 	Args:  cobra.MaximumNArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())

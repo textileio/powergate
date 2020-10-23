@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(dealsCmd)
 }
 
 var dealsCmd = &cobra.Command{

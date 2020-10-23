@@ -16,15 +16,15 @@ import (
 )
 
 func init() {
-	configApplyCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
-	configApplyCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
-	configApplyCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
+	applyConfigCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
+	applyConfigCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
+	applyConfigCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
-	configCmd.AddCommand(configApplyCmd)
+	rootCmd.AddCommand(applyConfigCmd)
 }
 
-var configApplyCmd = &cobra.Command{
-	Use:   "apply [cid]",
+var applyConfigCmd = &cobra.Command{
+	Use:   "apply-config [cid]",
 	Short: "Apply the default or provided storage config to the specified cid",
 	Long:  `Apply the default or provided storage config to the specified cid`,
 	Args:  cobra.ExactArgs(1),

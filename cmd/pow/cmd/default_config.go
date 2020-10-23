@@ -11,11 +11,11 @@ import (
 )
 
 func init() {
-	configCmd.AddCommand(configDefaultCmd)
+	rootCmd.AddCommand(defaultConfigCmd)
 }
 
-var configDefaultCmd = &cobra.Command{
-	Use:   "default",
+var defaultConfigCmd = &cobra.Command{
+	Use:   "default-config",
 	Short: "Returns the default storage config",
 	Long:  `Returns the default storage config`,
 	PreRun: func(cmd *cobra.Command, args []string) {

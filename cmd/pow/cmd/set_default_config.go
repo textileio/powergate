@@ -19,11 +19,11 @@ var (
 )
 
 func init() {
-	configCmd.AddCommand(configSetDefaultCmd)
+	rootCmd.AddCommand(setDefaultConfigCmd)
 }
 
-var configSetDefaultCmd = &cobra.Command{
-	Use:   "set-default [optional file]",
+var setDefaultConfigCmd = &cobra.Command{
+	Use:   "set-default-config [optional file]",
 	Short: "Sets the default storage config from stdin or a file",
 	Long:  `Sets the default storage config from stdin or a file`,
 	Args:  cobra.MaximumNArgs(1),

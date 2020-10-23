@@ -23,8 +23,8 @@ func init() {
 
 var stageCmd = &cobra.Command{
 	Use:   "stage [path|url]",
-	Short: "Temporarily stage data in the Hot layer in preparation for pushing a cid storage config",
-	Long:  `Temporarily stage data in the Hot layer in preparation for pushing a cid storage config`,
+	Short: "Temporarily stage data in the Hot layer in preparation for applying a cid storage config",
+	Long:  `Temporarily stage data in the Hot layer in preparation for applying a cid storage config`,
 	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
