@@ -9,7 +9,7 @@ import (
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/api/client"
-	ffsRpc "github.com/textileio/powergate/ffs/rpc"
+	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/util"
 )
 
@@ -99,26 +99,26 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	// existence.
 	// This configuration will stop being static when we incorporate
 	// other test cases.
-	storageConfig := &ffsRpc.StorageConfig{
+	storageConfig := &proto.StorageConfig{
 		Repairable: false,
-		Hot: &ffsRpc.HotConfig{
+		Hot: &proto.HotConfig{
 			Enabled:          true,
 			AllowUnfreeze:    false,
 			UnfreezeMaxPrice: 0,
-			Ipfs: &ffsRpc.IpfsConfig{
+			Ipfs: &proto.IpfsConfig{
 				AddTimeout: 30,
 			},
 		},
-		Cold: &ffsRpc.ColdConfig{
+		Cold: &proto.ColdConfig{
 			Enabled: true,
-			Filecoin: &ffsRpc.FilConfig{
+			Filecoin: &proto.FilConfig{
 				RepFactor:       1,
 				DealMinDuration: util.MinDealDuration,
 				Addr:            addr,
 				CountryCodes:    nil,
 				ExcludedMiners:  nil,
 				TrustedMiners:   []string{minerAddr},
-				Renew:           &ffsRpc.FilRenew{},
+				Renew:           &proto.FilRenew{},
 			},
 		},
 	}
@@ -142,10 +142,10 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 			return fmt.Errorf("job watching: %s", s.Err)
 		}
 		log.Infof("[%d] Job changed to status %s", id, s.Res.Job.Status.String())
-		if s.Res.Job.Status == ffsRpc.JobStatus_JOB_STATUS_FAILED || s.Res.Job.Status == ffsRpc.JobStatus_JOB_STATUS_CANCELED {
+		if s.Res.Job.Status == proto.JobStatus_JOB_STATUS_FAILED || s.Res.Job.Status == proto.JobStatus_JOB_STATUS_CANCELED {
 			return fmt.Errorf("job execution failed or was canceled")
 		}
-		if s.Res.Job.Status == ffsRpc.JobStatus_JOB_STATUS_SUCCESS {
+		if s.Res.Job.Status == proto.JobStatus_JOB_STATUS_SUCCESS {
 			return nil
 		}
 	}

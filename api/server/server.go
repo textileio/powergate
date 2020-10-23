@@ -37,7 +37,6 @@ import (
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	"github.com/textileio/powergate/ffs/minerselector/sr2"
-	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/gateway"
@@ -388,8 +387,7 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
-	ffsService := ffsRpc.New(s.ffsManager, s.wm, s.hs)
-	powergateService := powergateService.New(s.ffsManager, s.wm)
+	powergateService := powergateService.New(s.ffsManager, s.wm, s.hs)
 	adminService := adminService.New(s.ffsManager, s.sched, s.wm)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
@@ -401,7 +399,6 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		ffsRpc.RegisterRPCServiceServer(server, ffsService)
 		powergateProto.RegisterPowergateServiceServer(server, powergateService)
 		adminProto.RegisterPowergateAdminServiceServer(server, adminService)
 		if err := server.Serve(listener); err != nil {
