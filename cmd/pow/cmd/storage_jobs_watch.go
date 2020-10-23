@@ -37,7 +37,7 @@ var storageJobsWatchCmd = &cobra.Command{
 }
 
 func watchJobIds(jobIds ...string) {
-	state := make(map[string]*client.WatchJobsEvent, len(jobIds))
+	state := make(map[string]*client.WatchStorageJobsEvent, len(jobIds))
 	for _, jobID := range jobIds {
 		state[jobID] = nil
 	}
@@ -46,11 +46,11 @@ func watchJobIds(jobIds ...string) {
 
 	updateJobsOutput(writer, state)
 
-	ch := make(chan client.WatchJobsEvent)
+	ch := make(chan client.WatchStorageJobsEvent)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := powClient.StorageJobs.WatchJobs(mustAuthCtx(ctx), ch, jobIds...)
+	err := powClient.StorageJobs.WatchStorageJobs(mustAuthCtx(ctx), ch, jobIds...)
 	checkErr(err)
 
 	c := make(chan os.Signal)
@@ -74,7 +74,7 @@ func watchJobIds(jobIds ...string) {
 	}
 }
 
-func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.WatchJobsEvent) {
+func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.WatchStorageJobsEvent) {
 	keys := make([]string, 0, len(state))
 	for k := range state {
 		keys = append(keys, k)
@@ -107,7 +107,7 @@ func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.WatchJ
 	_ = writer.Print()
 }
 
-func jobsComplete(state map[string]*client.WatchJobsEvent) bool {
+func jobsComplete(state map[string]*client.WatchStorageJobsEvent) bool {
 	for _, event := range state {
 		processing := false
 		if event == nil ||

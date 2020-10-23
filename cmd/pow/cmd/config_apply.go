@@ -16,17 +16,17 @@ import (
 )
 
 func init() {
-	configPushCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
-	configPushCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
-	configPushCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
+	configApplyCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
+	configApplyCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
+	configApplyCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
-	configCmd.AddCommand(configPushCmd)
+	configCmd.AddCommand(configApplyCmd)
 }
 
-var configPushCmd = &cobra.Command{
-	Use:   "push [cid]",
-	Short: "Add data to FFS via cid",
-	Long:  `Add data to FFS via a cid already in IPFS`,
+var configApplyCmd = &cobra.Command{
+	Use:   "apply [cid]",
+	Short: "Apply the default or provided storage config to the specified cid",
+	Long:  `Apply the default or provided storage config to the specified cid`,
 	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -56,7 +56,7 @@ var configPushCmd = &cobra.Command{
 			}
 		}
 
-		options := []client.PushStorageConfigOption{}
+		options := []client.ApplyStorageConfigOption{}
 
 		if reader != nil {
 			buf := new(bytes.Buffer)
@@ -74,7 +74,7 @@ var configPushCmd = &cobra.Command{
 			options = append(options, client.WithOverride(viper.GetBool("override")))
 		}
 
-		res, err := powClient.PushStorageConfig(mustAuthCtx(ctx), args[0], options...)
+		res, err := powClient.ApplyStorageConfig(mustAuthCtx(ctx), args[0], options...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

@@ -25,7 +25,7 @@ var ffsCancelCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 
-		_, err := powClient.StorageJobs.CancelJob(mustAuthCtx(ctx), args[0])
+		_, err := powClient.StorageJobs.CancelStorageJob(mustAuthCtx(ctx), args[0])
 		checkErr(err)
 	},
 }

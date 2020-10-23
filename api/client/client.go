@@ -112,12 +112,12 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	return client, nil
 }
 
-// PushStorageConfigOption mutates a push request.
-type PushStorageConfigOption func(r *proto.PushStorageConfigRequest)
+// ApplyStorageConfigOption mutates a push request.
+type ApplyStorageConfigOption func(r *proto.ApplyStorageConfigRequest)
 
 // WithStorageConfig overrides the Api default Cid configuration.
-func WithStorageConfig(c *proto.StorageConfig) PushStorageConfigOption {
-	return func(r *proto.PushStorageConfigRequest) {
+func WithStorageConfig(c *proto.StorageConfig) ApplyStorageConfigOption {
+	return func(r *proto.ApplyStorageConfigRequest) {
 		r.HasConfig = true
 		r.Config = c
 	}
@@ -125,8 +125,8 @@ func WithStorageConfig(c *proto.StorageConfig) PushStorageConfigOption {
 
 // WithOverride allows a new push configuration to override an existing one.
 // It's used as an extra security measure to avoid unwanted configuration changes.
-func WithOverride(override bool) PushStorageConfigOption {
-	return func(r *proto.PushStorageConfigRequest) {
+func WithOverride(override bool) ApplyStorageConfigOption {
+	return func(r *proto.ApplyStorageConfigRequest) {
 		r.HasOverrideConfig = true
 		r.OverrideConfig = override
 	}
@@ -243,19 +243,19 @@ func (c *Client) StageFolder(ctx context.Context, ipfsRevProxyAddr string, folde
 	return pth.Cid().String(), nil
 }
 
-// PushStorageConfig push a new configuration for the Cid in the Hot and Cold layers.
-func (c *Client) PushStorageConfig(ctx context.Context, cid string, opts ...PushStorageConfigOption) (*proto.PushStorageConfigResponse, error) {
-	req := &proto.PushStorageConfigRequest{Cid: cid}
+// ApplyStorageConfig push a new configuration for the Cid in the Hot and Cold layers.
+func (c *Client) ApplyStorageConfig(ctx context.Context, cid string, opts ...ApplyStorageConfigOption) (*proto.ApplyStorageConfigResponse, error) {
+	req := &proto.ApplyStorageConfigRequest{Cid: cid}
 	for _, opt := range opts {
 		opt(req)
 	}
-	return c.powClient.PushStorageConfig(ctx, req)
+	return c.powClient.ApplyStorageConfig(ctx, req)
 }
 
-// Replace pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation
+// ReplaceData pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
-func (c *Client) Replace(ctx context.Context, cid1, cid2 string) (*proto.ReplaceResponse, error) {
-	return c.powClient.Replace(ctx, &proto.ReplaceRequest{Cid1: cid1, Cid2: cid2})
+func (c *Client) ReplaceData(ctx context.Context, cid1, cid2 string) (*proto.ReplaceDataResponse, error) {
+	return c.powClient.ReplaceData(ctx, &proto.ReplaceDataRequest{Cid1: cid1, Cid2: cid2})
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.

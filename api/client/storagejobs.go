@@ -14,9 +14,9 @@ type StorageJobs struct {
 	client proto.PowergateServiceClient
 }
 
-// WatchJobsEvent represents an event for Watching a job.
-type WatchJobsEvent struct {
-	Res *proto.WatchJobsResponse
+// WatchStorageJobsEvent represents an event for Watching a job.
+type WatchStorageJobsEvent struct {
+	Res *proto.WatchStorageJobsResponse
 	Err error
 }
 
@@ -70,12 +70,12 @@ func (j *StorageJobs) StorageJobsSummary(ctx context.Context, cids ...string) (*
 	return j.client.StorageJobsSummary(ctx, req)
 }
 
-// WatchJobs pushes JobEvents to the provided channel. The provided channel will be owned
+// WatchStorageJobs pushes JobEvents to the provided channel. The provided channel will be owned
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
 // events, the provided ctx should be canceled. If an error occurs, it will be returned
 // in the Err field of JobEvent and the channel will be closed.
-func (j *StorageJobs) WatchJobs(ctx context.Context, ch chan<- WatchJobsEvent, jids ...string) error {
-	stream, err := j.client.WatchJobs(ctx, &proto.WatchJobsRequest{Jids: jids})
+func (j *StorageJobs) WatchStorageJobs(ctx context.Context, ch chan<- WatchStorageJobsEvent, jids ...string) error {
+	stream, err := j.client.WatchStorageJobs(ctx, &proto.WatchStorageJobsRequest{Jids: jids})
 	if err != nil {
 		return err
 	}
@@ -87,18 +87,18 @@ func (j *StorageJobs) WatchJobs(ctx context.Context, ch chan<- WatchJobsEvent, j
 				break
 			}
 			if err != nil {
-				ch <- WatchJobsEvent{Err: err}
+				ch <- WatchStorageJobsEvent{Err: err}
 				close(ch)
 				break
 			}
-			ch <- WatchJobsEvent{Res: res}
+			ch <- WatchStorageJobsEvent{Res: res}
 		}
 	}()
 	return nil
 }
 
-// CancelJob signals that the executing Job with JobID jid should be
+// CancelStorageJob signals that the executing Job with JobID jid should be
 // canceled.
-func (j *StorageJobs) CancelJob(ctx context.Context, jid string) (*proto.CancelJobResponse, error) {
-	return j.client.CancelJob(ctx, &proto.CancelJobRequest{Jid: jid})
+func (j *StorageJobs) CancelStorageJob(ctx context.Context, jid string) (*proto.CancelStorageJobResponse, error) {
+	return j.client.CancelStorageJob(ctx, &proto.CancelStorageJobRequest{Jid: jid})
 }

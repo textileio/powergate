@@ -29,7 +29,7 @@ var replaceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := powClient.Replace(mustAuthCtx(ctx), args[0], args[1])
+		res, err := powClient.ReplaceData(mustAuthCtx(ctx), args[0], args[1])
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

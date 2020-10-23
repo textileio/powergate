@@ -185,8 +185,8 @@ func (s *Service) StorageJobsSummary(ctx context.Context, req *proto.StorageJobs
 	}, nil
 }
 
-// WatchJobs calls API.WatchJobs.
-func (s *Service) WatchJobs(req *proto.WatchJobsRequest, srv proto.PowergateService_WatchJobsServer) error {
+// WatchStorageJobs calls API.WatchJobs.
+func (s *Service) WatchStorageJobs(req *proto.WatchStorageJobsRequest, srv proto.PowergateService_WatchStorageJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -207,7 +207,7 @@ func (s *Service) WatchJobs(req *proto.WatchJobsRequest, srv proto.PowergateServ
 		if err != nil {
 			return err
 		}
-		reply := &proto.WatchJobsResponse{
+		reply := &proto.WatchStorageJobsResponse{
 			Job: rpcJob,
 		}
 		if err := srv.Send(reply); err != nil {
@@ -220,8 +220,8 @@ func (s *Service) WatchJobs(req *proto.WatchJobsRequest, srv proto.PowergateServ
 	return nil
 }
 
-// CancelJob calls API.CancelJob.
-func (s *Service) CancelJob(ctx context.Context, req *proto.CancelJobRequest) (*proto.CancelJobResponse, error) {
+// CancelStorageJob calls API.CancelJob.
+func (s *Service) CancelStorageJob(ctx context.Context, req *proto.CancelStorageJobRequest) (*proto.CancelStorageJobResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -230,5 +230,5 @@ func (s *Service) CancelJob(ctx context.Context, req *proto.CancelJobRequest) (*
 	if err := i.CancelJob(jid); err != nil {
 		return nil, err
 	}
-	return &proto.CancelJobResponse{}, nil
+	return &proto.CancelStorageJobResponse{}, nil
 }

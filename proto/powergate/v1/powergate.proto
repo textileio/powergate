@@ -46,7 +46,7 @@ message StageResponse {
   string cid = 1;
 }
 
-message PushStorageConfigRequest {
+message ApplyStorageConfigRequest {
   string cid = 1;
   StorageConfig config = 2;
   bool has_config = 3;
@@ -54,16 +54,16 @@ message PushStorageConfigRequest {
   bool has_override_config = 5;
 }
 
-message PushStorageConfigResponse {
+message ApplyStorageConfigResponse {
   string job_id = 1;
 }
 
-message ReplaceRequest {
+message ReplaceDataRequest {
   string cid1 = 1;
   string cid2 = 2;
 }
 
-message ReplaceResponse {
+message ReplaceDataResponse {
   string job_id = 1;
 }
 
@@ -158,11 +158,11 @@ message VerifyMessageResponse {
 
 // Jobs
 
-message CancelJobRequest {
+message CancelStorageJobRequest {
    string jid = 1;
 }
 
-message CancelJobResponse {
+message CancelStorageJobResponse {
 }
 
 message StorageJobRequest {
@@ -225,11 +225,11 @@ message StorageJobsSummaryResponse {
    repeated Job latest_successful_storage_jobs = 5;
 }
 
-message WatchJobsRequest {
+message WatchStorageJobsRequest {
    repeated string jids = 1;
 }
 
-message WatchJobsResponse {
+message WatchStorageJobsResponse {
    Job job = 1;
 }
 
@@ -258,8 +258,8 @@ service PowergateService {
   rpc DefaultStorageConfig(DefaultStorageConfigRequest) returns (DefaultStorageConfigResponse) {}
   rpc SetDefaultStorageConfig(SetDefaultStorageConfigRequest) returns (SetDefaultStorageConfigResponse) {}
   rpc Stage(stream StageRequest) returns (StageResponse) {}
-  rpc PushStorageConfig(PushStorageConfigRequest) returns (PushStorageConfigResponse) {}
-  rpc Replace(ReplaceRequest) returns (ReplaceResponse) {}
+  rpc ApplyStorageConfig(ApplyStorageConfigRequest) returns (ApplyStorageConfigResponse) {}
+  rpc ReplaceData(ReplaceDataRequest) returns (ReplaceDataResponse) {}
   rpc Get(GetRequest) returns (stream GetResponse) {}
   rpc Remove(RemoveRequest) returns (RemoveResponse) {}
   rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
@@ -281,8 +281,8 @@ service PowergateService {
   rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
   rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
   rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
-  rpc WatchJobs(WatchJobsRequest) returns (stream WatchJobsResponse) {}
-  rpc CancelJob(CancelJobRequest) returns (CancelJobResponse) {}
+  rpc WatchStorageJobs(WatchStorageJobsRequest) returns (stream WatchStorageJobsResponse) {}
+  rpc CancelStorageJob(CancelStorageJobRequest) returns (CancelStorageJobResponse) {}
   
 
   // Deals

@@ -59,7 +59,6 @@ require (
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
-	gopkg.in/src-d/go-log.v1 v1.0.1 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )
 

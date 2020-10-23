@@ -117,8 +117,8 @@ func (s *Service) Stage(srv proto.PowergateService_StageServer) error {
 	return srv.SendAndClose(&proto.StageResponse{Cid: util.CidToString(c)})
 }
 
-// PushStorageConfig applies the provided cid storage config.
-func (s *Service) PushStorageConfig(ctx context.Context, req *proto.PushStorageConfigRequest) (*proto.PushStorageConfigResponse, error) {
+// ApplyStorageConfig applies the provided cid storage config.
+func (s *Service) ApplyStorageConfig(ctx context.Context, req *proto.ApplyStorageConfigRequest) (*proto.ApplyStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -149,13 +149,13 @@ func (s *Service) PushStorageConfig(ctx context.Context, req *proto.PushStorageC
 		return nil, err
 	}
 
-	return &proto.PushStorageConfigResponse{
+	return &proto.ApplyStorageConfigResponse{
 		JobId: jid.String(),
 	}, nil
 }
 
-// Replace calls ffs.Replace.
-func (s *Service) Replace(ctx context.Context, req *proto.ReplaceRequest) (*proto.ReplaceResponse, error) {
+// ReplaceData calls ffs.Replace.
+func (s *Service) ReplaceData(ctx context.Context, req *proto.ReplaceDataRequest) (*proto.ReplaceDataResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -175,7 +175,7 @@ func (s *Service) Replace(ctx context.Context, req *proto.ReplaceRequest) (*prot
 		return nil, err
 	}
 
-	return &proto.ReplaceResponse{JobId: jid.String()}, nil
+	return &proto.ReplaceDataResponse{JobId: jid.String()}, nil
 }
 
 // Get gets the data for a stored Cid.

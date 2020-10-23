@@ -123,20 +123,20 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		},
 	}
 
-	pushRes, err := c.PushStorageConfig(ctx, statgeRes.Cid, client.WithStorageConfig(storageConfig))
+	applyRes, err := c.ApplyStorageConfig(ctx, statgeRes.Cid, client.WithStorageConfig(storageConfig))
 	if err != nil {
 		return fmt.Errorf("pushing to FFS: %s", err)
 	}
 
-	log.Infof("[%d] Pushed successfully, queued job %s. Waiting for termination...", id, pushRes.JobId)
-	chJob := make(chan client.WatchJobsEvent, 1)
+	log.Infof("[%d] Pushed successfully, queued job %s. Waiting for termination...", id, applyRes.JobId)
+	chJob := make(chan client.WatchStorageJobsEvent, 1)
 	ctxWatch, cancel := context.WithCancel(ctx)
 	defer cancel()
-	err = c.StorageJobs.WatchJobs(ctxWatch, chJob, pushRes.JobId)
+	err = c.StorageJobs.WatchStorageJobs(ctxWatch, chJob, applyRes.JobId)
 	if err != nil {
 		return fmt.Errorf("opening listening job status: %s", err)
 	}
-	var s client.WatchJobsEvent
+	var s client.WatchStorageJobsEvent
 	for s = range chJob {
 		if s.Err != nil {
 			return fmt.Errorf("job watching: %s", s.Err)
