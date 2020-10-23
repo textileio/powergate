@@ -9,10 +9,10 @@ import (
 )
 
 func init() {
-	storageJobsCmd.AddCommand(ffsCancelCmd)
+	storageJobsCmd.AddCommand(storageJobsCancelCmd)
 }
 
-var ffsCancelCmd = &cobra.Command{
+var storageJobsCancelCmd = &cobra.Command{
 	Use:   "cancel [jobid]",
 	Short: "Cancel an executing storage job",
 	Long:  `Cancel an executing storage job`,

@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	applyConfigCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
+	applyConfigCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses storage profile default by default")
 	applyConfigCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
 	applyConfigCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
