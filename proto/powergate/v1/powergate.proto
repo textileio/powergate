@@ -284,7 +284,6 @@ service PowergateService {
   rpc WatchStorageJobs(WatchStorageJobsRequest) returns (stream WatchStorageJobsResponse) {}
   rpc CancelStorageJob(CancelStorageJobRequest) returns (CancelStorageJobResponse) {}
   
-
   // Deals
   rpc ListStorageDealRecords(ListStorageDealRecordsRequest) returns (ListStorageDealRecordsResponse) {}
   rpc ListRetrievalDealRecords(ListRetrievalDealRecordsRequest) returns (ListRetrievalDealRecordsResponse) {}
