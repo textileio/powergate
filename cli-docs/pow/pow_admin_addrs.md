@@ -1,21 +1,19 @@
-## pow admin latest-final
+## pow admin addrs
 
-List the latest final storage jobs
+List all addresses associated with this Powergate.
 
 ### Synopsis
 
-List the latest final storage jobs
+List all addresses associated with this Powergate.
 
 ```
-pow admin latest-final [flags]
+pow admin addrs [flags]
 ```
 
 ### Options
 
 ```
-  -c, --cids strings         optional cids filter to apply
-  -h, --help                 help for latest-final
-  -i, --instance-id string   optional instance id filter to apply
+  -h, --help   help for addrs
 ```
 
 ### Options inherited from parent commands

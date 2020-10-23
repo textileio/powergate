@@ -1,21 +1,19 @@
-## pow admin latest-final
+## pow admin send-fil
 
-List the latest final storage jobs
+Sends FIL from an address associated with this Powergate to any other address.
 
 ### Synopsis
 
-List the latest final storage jobs
+Sends FIL from an address associated with this Powergate to any other address.
 
 ```
-pow admin latest-final [flags]
+pow admin send-fil [from] [to] [amount] [flags]
 ```
 
 ### Options
 
 ```
-  -c, --cids strings         optional cids filter to apply
-  -h, --help                 help for latest-final
-  -i, --instance-id string   optional instance id filter to apply
+  -h, --help   help for send-fil
 ```
 
 ### Options inherited from parent commands

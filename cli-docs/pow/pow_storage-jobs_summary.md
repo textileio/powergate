@@ -1,4 +1,4 @@
-## pow admin summary
+## pow storage-jobs summary
 
 Give a summary of storage jobs in all states
 
@@ -7,26 +7,23 @@ Give a summary of storage jobs in all states
 Give a summary of storage jobs in all states
 
 ```
-pow admin summary [flags]
+pow storage-jobs summary [optional cid1,cid2,...] [flags]
 ```
 
 ### Options
 
 ```
-  -c, --cids strings         optional cids filter to apply
-  -h, --help                 help for summary
-  -i, --instance-id string   optional instance id filter to apply
+  -h, --help   help for summary
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --admin-token string     admin auth token
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
   -t, --token string           storage profile auth token
 ```
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow storage-jobs](pow_storage-jobs.md)	 - Provides commands to query for storage jobs in various states
 

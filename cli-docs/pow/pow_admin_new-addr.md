@@ -1,21 +1,20 @@
-## pow admin latest-final
+## pow admin new-addr
 
-List the latest final storage jobs
+Creates a new address.
 
 ### Synopsis
 
-List the latest final storage jobs
+Creates a new address.
 
 ```
-pow admin latest-final [flags]
+pow admin new-addr [flags]
 ```
 
 ### Options
 
 ```
-  -c, --cids strings         optional cids filter to apply
-  -h, --help                 help for latest-final
-  -i, --instance-id string   optional instance id filter to apply
+  -f, --format string   Optionally specify address format bls or secp256k1
+  -h, --help            help for new-addr
 ```
 
 ### Options inherited from parent commands

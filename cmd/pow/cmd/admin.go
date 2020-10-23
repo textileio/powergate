@@ -13,7 +13,7 @@ import (
 func init() {
 	adminCmd.PersistentFlags().String("admin-token", "", "admin auth token")
 
-	adminNewAddrCmd.Flags().StringP("type", "t", "bls", "the type of address to create")
+	adminNewAddrCmd.Flags().StringP("format", "f", "", "Optionally specify address format bls or secp256k1")
 
 	adminQueuedStorageJobsCmd.Flags().StringP("instance-id", "i", "", "optional instance id filter to apply")
 	adminQueuedStorageJobsCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
@@ -64,9 +64,9 @@ var adminNewAddrCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		t := viper.GetString("type")
+		format := viper.GetString("format")
 
-		res, err := powClient.Admin.NewAddress(adminAuthCtx(ctx), t)
+		res, err := powClient.Admin.NewAddress(adminAuthCtx(ctx), format)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

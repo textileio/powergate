@@ -1,19 +1,19 @@
-## pow version
+## pow remove
 
-Display version information for pow and the connected server
+Removes a Cid from being tracked as an active storage
 
 ### Synopsis
 
-Display version information for pow and the connected server
+Removes a Cid from being tracked as an active storage. The Cid should have both Hot and Cold storage disabled, if that isn't the case it will return ErrActiveInStorage
 
 ```
-pow version [flags]
+pow remove [cid] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help   help for remove
 ```
 
 ### Options inherited from parent commands

@@ -1,30 +1,29 @@
-## pow admin profiles
+## pow info
 
-List all Powergate storage profiles.
+Get information about the current storate state of a cid
 
 ### Synopsis
 
-List all Powergate storage profiles.
+Get information about the current storate state of a cid
 
 ```
-pow admin profiles [flags]
+pow info [optional cid1,cid2,...] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for profiles
+  -h, --help   help for info
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --admin-token string     admin auth token
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
   -t, --token string           storage profile auth token
 ```
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow](pow.md)	 - A client for storage and retreival of powergate data
 

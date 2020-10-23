@@ -1,19 +1,19 @@
-## pow wallet balance
+## pow wallet verify
 
-Print the balance of the specified wallet address
+Verifies the signature of a message signed with a storage profile wallet address.
 
 ### Synopsis
 
-Print the balance of the specified wallet address
+Verifies the signature of a message signed with a storage profile wallet address.
 
 ```
-pow wallet balance [address] [flags]
+pow wallet verify [addr] [hex-encoded-message] [hex-encoded-signature] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for balance
+  -h, --help   help for verify
 ```
 
 ### Options inherited from parent commands

@@ -1,30 +1,29 @@
-## pow admin profiles
+## pow storage-jobs cancel
 
-List all Powergate storage profiles.
+Cancel an executing storage job
 
 ### Synopsis
 
-List all Powergate storage profiles.
+Cancel an executing storage job
 
 ```
-pow admin profiles [flags]
+pow storage-jobs cancel [jobid] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for profiles
+  -h, --help   help for cancel
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --admin-token string     admin auth token
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
   -t, --token string           storage profile auth token
 ```
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow storage-jobs](pow_storage-jobs.md)	 - Provides commands to query for storage jobs in various states
 

@@ -1,19 +1,19 @@
-## pow wallet balance
+## pow wallet send
 
-Print the balance of the specified wallet address
+Send fil from one managed address to any other address
 
 ### Synopsis
 
-Print the balance of the specified wallet address
+Send fil from one managed address to any other address
 
 ```
-pow wallet balance [address] [flags]
+pow wallet send [from address] [to address] [amount] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for balance
+  -h, --help   help for send
 ```
 
 ### Options inherited from parent commands

@@ -1,30 +1,29 @@
-## pow admin profiles
+## pow id
 
-List all Powergate storage profiles.
+Returns the storage profile id
 
 ### Synopsis
 
-List all Powergate storage profiles.
+Returns the storage profile id
 
 ```
-pow admin profiles [flags]
+pow id [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for profiles
+  -h, --help   help for id
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --admin-token string     admin auth token
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
   -t, --token string           storage profile auth token
 ```
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow](pow.md)	 - A client for storage and retreival of powergate data
 

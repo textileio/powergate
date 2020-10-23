@@ -1,19 +1,19 @@
-## pow version
+## pow set-default-config
 
-Display version information for pow and the connected server
+Sets the default storage config from stdin or a file
 
 ### Synopsis
 
-Display version information for pow and the connected server
+Sets the default storage config from stdin or a file
 
 ```
-pow version [flags]
+pow set-default-config [optional file] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help   help for set-default-config
 ```
 
 ### Options inherited from parent commands

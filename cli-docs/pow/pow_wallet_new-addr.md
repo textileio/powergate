@@ -1,19 +1,21 @@
-## pow wallet balance
+## pow wallet new-addr
 
-Print the balance of the specified wallet address
+Create a new wallet address
 
 ### Synopsis
 
-Print the balance of the specified wallet address
+Create a new wallet address
 
 ```
-pow wallet balance [address] [flags]
+pow wallet new-addr [name] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for balance
+  -d, --default         Make the new address the storage profile default
+  -f, --format string   Optionally specify address format bls or secp256k1
+  -h, --help            help for new-addr
 ```
 
 ### Options inherited from parent commands

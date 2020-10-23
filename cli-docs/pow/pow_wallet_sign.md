@@ -1,19 +1,19 @@
-## pow wallet balance
+## pow wallet sign
 
-Print the balance of the specified wallet address
+Signs a message with storage profile wallet addresses.
 
 ### Synopsis
 
-Print the balance of the specified wallet address
+Signs a message using all wallet addresses associated with the storage profile
 
 ```
-pow wallet balance [address] [flags]
+pow wallet sign [hex-encoded-message] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for balance
+  -h, --help   help for sign
 ```
 
 ### Options inherited from parent commands
