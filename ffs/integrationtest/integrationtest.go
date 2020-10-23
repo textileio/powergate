@@ -28,7 +28,6 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/lotus"
-	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -148,9 +147,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBu
 	wm, err := walletModule.New(clientBuilder, masterAddr, *big.NewInt(iWalletBal), false, "")
 	require.NoError(t, err)
 
-	pm := paych.New(clientBuilder)
-
-	manager, err := manager.New(ds, wm, pm, dm, sched, false, true)
+	manager, err := manager.New(ds, wm, dm, sched, false, true)
 	require.NoError(t, err)
 	err = manager.SetDefaultStorageConfig(ffs.StorageConfig{
 		Hot: ffs.HotConfig{

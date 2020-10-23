@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -10,23 +11,22 @@ import (
 )
 
 func init() {
-	walletCmd.AddCommand(balanceCmd)
+	rootCmd.AddCommand(idCmd)
 }
 
-var balanceCmd = &cobra.Command{
-	Use:   "balance [address]",
-	Short: "Print the balance of the specified wallet address",
-	Long:  `Print the balance of the specified wallet address`,
-	Args:  cobra.ExactArgs(1),
+var idCmd = &cobra.Command{
+	Use:   "id",
+	Short: "Returns the storage profile id",
+	Long:  `Returns the storage profile id`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := powClient.Wallet.Balance(ctx, args[0])
+		res, err := powClient.ID(mustAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

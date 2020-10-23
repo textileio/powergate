@@ -38,7 +38,6 @@ var (
 type API struct {
 	is  *instanceStore
 	wm  ffs.WalletManager
-	pm  ffs.PaychManager
 	drm ffs.DealRecordsManager
 
 	sched *scheduler.Scheduler
@@ -51,7 +50,7 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.StorageConfig, addrInfo AddrInfo) (*API, error) {
+func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, drm ffs.DealRecordsManager, dc ffs.StorageConfig, addrInfo AddrInfo) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 
 	dc.Cold.Filecoin.Addr = addrInfo.Addr
@@ -67,7 +66,7 @@ func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	i := new(ctx, is, wm, pm, drm, config, sch, cancel)
+	i := new(ctx, is, wm, drm, config, sch, cancel)
 	if err := i.is.putInstanceConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.cfg.ID, err)
 	}
@@ -75,21 +74,20 @@ func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager) (*API, error) {
+func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, drm ffs.DealRecordsManager) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 	c, err := is.getInstanceConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return new(ctx, is, wm, pm, drm, c, sched, cancel), nil
+	return new(ctx, is, wm, drm, c, sched, cancel), nil
 }
 
-func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, config InstanceConfig, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
+func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, drm ffs.DealRecordsManager, config InstanceConfig, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:     is,
 		wm:     wm,
-		pm:     pm,
 		drm:    drm,
 		cfg:    config,
 		sched:  sch,

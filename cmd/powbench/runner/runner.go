@@ -9,8 +9,7 @@ import (
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/api/client"
-	ffsRpc "github.com/textileio/powergate/ffs/rpc"
-	healthRpc "github.com/textileio/powergate/health/rpc"
+	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/util"
 )
 
@@ -40,25 +39,10 @@ func Run(ctx context.Context, ts TestSetup) error {
 		return fmt.Errorf("creating client: %s", err)
 	}
 
-	if err := sanityCheck(ctx, c); err != nil {
-		return fmt.Errorf("sanity check with client: %s", err)
-	}
-
 	if err := runSetup(ctx, c, ts); err != nil {
 		return fmt.Errorf("running test setup: %s", err)
 	}
 
-	return nil
-}
-
-func sanityCheck(ctx context.Context, c *client.Client) error {
-	res, err := c.Health.Check(ctx)
-	if err != nil {
-		return fmt.Errorf("health check call: %s", err)
-	}
-	if res.Status != healthRpc.Status_STATUS_OK {
-		return fmt.Errorf("reported health check not Ok: %s", res.Status.String())
-	}
 	return nil
 }
 
@@ -68,7 +52,7 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
 	ctx = context.WithValue(ctx, client.AuthKey, res.AuthEntry.Token)
-	res2, err := c.FFS.Addrs(ctx)
+	res2, err := c.Wallet.Addrs(ctx)
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)
 	}
@@ -103,7 +87,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	lr := io.LimitReader(ra, size)
 
 	log.Infof("[%d] Adding to hot layer...", id)
-	statgeRes, err := c.FFS.Stage(ctx, lr)
+	statgeRes, err := c.Stage(ctx, lr)
 	if err != nil {
 		return fmt.Errorf("importing data to hot storage (ipfs node): %s", err)
 	}
@@ -115,53 +99,53 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	// existence.
 	// This configuration will stop being static when we incorporate
 	// other test cases.
-	storageConfig := &ffsRpc.StorageConfig{
+	storageConfig := &proto.StorageConfig{
 		Repairable: false,
-		Hot: &ffsRpc.HotConfig{
+		Hot: &proto.HotConfig{
 			Enabled:          true,
 			AllowUnfreeze:    false,
 			UnfreezeMaxPrice: 0,
-			Ipfs: &ffsRpc.IpfsConfig{
+			Ipfs: &proto.IpfsConfig{
 				AddTimeout: 30,
 			},
 		},
-		Cold: &ffsRpc.ColdConfig{
+		Cold: &proto.ColdConfig{
 			Enabled: true,
-			Filecoin: &ffsRpc.FilConfig{
+			Filecoin: &proto.FilConfig{
 				RepFactor:       1,
 				DealMinDuration: util.MinDealDuration,
 				Addr:            addr,
 				CountryCodes:    nil,
 				ExcludedMiners:  nil,
 				TrustedMiners:   []string{minerAddr},
-				Renew:           &ffsRpc.FilRenew{},
+				Renew:           &proto.FilRenew{},
 			},
 		},
 	}
 
-	pushRes, err := c.FFS.PushStorageConfig(ctx, statgeRes.Cid, client.WithStorageConfig(storageConfig))
+	applyRes, err := c.ApplyStorageConfig(ctx, statgeRes.Cid, client.WithStorageConfig(storageConfig))
 	if err != nil {
 		return fmt.Errorf("pushing to FFS: %s", err)
 	}
 
-	log.Infof("[%d] Pushed successfully, queued job %s. Waiting for termination...", id, pushRes.JobId)
-	chJob := make(chan client.WatchJobsEvent, 1)
+	log.Infof("[%d] Pushed successfully, queued job %s. Waiting for termination...", id, applyRes.JobId)
+	chJob := make(chan client.WatchStorageJobsEvent, 1)
 	ctxWatch, cancel := context.WithCancel(ctx)
 	defer cancel()
-	err = c.FFS.WatchJobs(ctxWatch, chJob, pushRes.JobId)
+	err = c.StorageJobs.WatchStorageJobs(ctxWatch, chJob, applyRes.JobId)
 	if err != nil {
 		return fmt.Errorf("opening listening job status: %s", err)
 	}
-	var s client.WatchJobsEvent
+	var s client.WatchStorageJobsEvent
 	for s = range chJob {
 		if s.Err != nil {
 			return fmt.Errorf("job watching: %s", s.Err)
 		}
 		log.Infof("[%d] Job changed to status %s", id, s.Res.Job.Status.String())
-		if s.Res.Job.Status == ffsRpc.JobStatus_JOB_STATUS_FAILED || s.Res.Job.Status == ffsRpc.JobStatus_JOB_STATUS_CANCELED {
+		if s.Res.Job.Status == proto.JobStatus_JOB_STATUS_FAILED || s.Res.Job.Status == proto.JobStatus_JOB_STATUS_CANCELED {
 			return fmt.Errorf("job execution failed or was canceled")
 		}
-		if s.Res.Job.Status == ffsRpc.JobStatus_JOB_STATUS_SUCCESS {
+		if s.Res.Job.Status == proto.JobStatus_JOB_STATUS_SUCCESS {
 			return nil
 		}
 	}

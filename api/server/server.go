@@ -27,7 +27,6 @@ import (
 	mongods "github.com/textileio/go-ds-mongo"
 	adminService "github.com/textileio/powergate/api/server/admin"
 	powergateService "github.com/textileio/powergate/api/server/powergate"
-	buildinfoRpc "github.com/textileio/powergate/buildinfo/rpc"
 	"github.com/textileio/powergate/deals"
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/fchost"
@@ -38,32 +37,20 @@ import (
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	"github.com/textileio/powergate/ffs/minerselector/sr2"
-	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/gateway"
-	"github.com/textileio/powergate/health"
-	healthRpc "github.com/textileio/powergate/health/rpc"
-	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	ask "github.com/textileio/powergate/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/index/faults/module"
-	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	minerModule "github.com/textileio/powergate/index/miner/module"
-	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
-	pgnet "github.com/textileio/powergate/net"
-	pgnetlotus "github.com/textileio/powergate/net/lotus"
-	pgnetRpc "github.com/textileio/powergate/net/rpc"
-	paychLotus "github.com/textileio/powergate/paych/lotus"
 	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	powergateProto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/reputation"
-	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 	walletModule "github.com/textileio/powergate/wallet/module"
-	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -93,8 +80,6 @@ type Server struct {
 	dm *dealsModule.Module
 	wm *walletModule.Module
 	rm *reputation.Module
-	nm pgnet.Module
-	hm *health.Module
 
 	ffsManager *manager.Manager
 	sched      *scheduler.Scheduler
@@ -236,10 +221,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
-	pm := paychLotus.New(clientBuilder)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
-	nm := pgnetlotus.New(clientBuilder, mm)
-	hm := health.New(nm)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
 	if err != nil {
@@ -272,7 +254,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}
 
-	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, pm, dm, sched, conf.FFSUseMasterAddr, conf.Devnet)
+	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, dm, sched, conf.FFSUseMasterAddr, conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}
@@ -308,8 +290,6 @@ func NewServer(conf Config) (*Server, error) {
 		dm: dm,
 		wm: wm,
 		rm: rm,
-		nm: nm,
-		hm: hm,
 
 		ffsManager: ffsManager,
 		sched:      sched,
@@ -407,17 +387,8 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
-	buildinfoService := buildinfoRpc.New()
-	netService := pgnetRpc.New(s.nm)
-	healthService := healthRpc.New(s.hm)
-	walletService := walletRpc.New(s.wm)
-	reputationService := reputationRpc.New(s.rm)
-	askService := askRpc.New(s.ai)
-	minerService := minerRpc.New(s.mi)
-	faultsService := faultsRpc.New(s.fi)
-	ffsService := ffsRpc.New(s.ffsManager, s.wm, s.hs)
-	powergateService := powergateService.New(s.ffsManager, s.wm)
-	adminService := adminService.New(s.ffsManager, s.sched)
+	powergateService := powergateService.New(s.ffsManager, s.wm, s.hs)
+	adminService := adminService.New(s.ffsManager, s.sched, s.wm)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {
@@ -428,15 +399,6 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		buildinfoRpc.RegisterRPCServiceServer(server, buildinfoService)
-		pgnetRpc.RegisterRPCServiceServer(server, netService)
-		healthRpc.RegisterRPCServiceServer(server, healthService)
-		walletRpc.RegisterRPCServiceServer(server, walletService)
-		reputationRpc.RegisterRPCServiceServer(server, reputationService)
-		askRpc.RegisterRPCServiceServer(server, askService)
-		minerRpc.RegisterRPCServiceServer(server, minerService)
-		faultsRpc.RegisterRPCServiceServer(server, faultsService)
-		ffsRpc.RegisterRPCServiceServer(server, ffsService)
 		powergateProto.RegisterPowergateServiceServer(server, powergateService)
 		adminProto.RegisterPowergateAdminServiceServer(server, adminService)
 		if err := server.Serve(listener); err != nil {

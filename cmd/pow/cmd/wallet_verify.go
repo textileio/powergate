@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -10,14 +11,14 @@ import (
 )
 
 func init() {
-	walletCmd.AddCommand(balanceCmd)
+	walletCmd.AddCommand(walletVerifyCmd)
 }
 
-var balanceCmd = &cobra.Command{
-	Use:   "balance [address]",
-	Short: "Print the balance of the specified wallet address",
-	Long:  `Print the balance of the specified wallet address`,
-	Args:  cobra.ExactArgs(1),
+var walletVerifyCmd = &cobra.Command{
+	Use:   "verify [addr] [hex-encoded-message] [hex-encoded-signature]",
+	Short: "Verifies the signature of a message signed with a storage profile wallet address.",
+	Long:  "Verifies the signature of a message signed with a storage profile wallet address.",
+	Args:  cobra.ExactArgs(3),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -26,7 +27,12 @@ var balanceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Wallet.Balance(ctx, args[0])
+		mb, err := hex.DecodeString(args[1])
+		checkErr(err)
+		sb, err := hex.DecodeString(args[2])
+		checkErr(err)
+
+		res, err := powClient.Wallet.VerifyMessage(mustAuthCtx(ctx), args[0], mb, sb)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

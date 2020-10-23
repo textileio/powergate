@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -10,14 +11,14 @@ import (
 )
 
 func init() {
-	walletCmd.AddCommand(balanceCmd)
+	rootCmd.AddCommand(infoCmd)
 }
 
-var balanceCmd = &cobra.Command{
-	Use:   "balance [address]",
-	Short: "Print the balance of the specified wallet address",
-	Long:  `Print the balance of the specified wallet address`,
-	Args:  cobra.ExactArgs(1),
+var infoCmd = &cobra.Command{
+	Use:   "info [optional cid1,cid2,...]",
+	Short: "Get information about the current storate state of a cid",
+	Long:  `Get information about the current storate state of a cid`,
+	Args:  cobra.MaximumNArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -26,7 +27,12 @@ var balanceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Wallet.Balance(ctx, args[0])
+		var cids []string
+		if len(args) > 0 {
+			cids = strings.Split(args[0], ",")
+		}
+
+		res, err := powClient.CidInfo(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

@@ -10,14 +10,13 @@ import (
 )
 
 func init() {
-	walletCmd.AddCommand(balanceCmd)
+	walletCmd.AddCommand(walletAddrsCmd)
 }
 
-var balanceCmd = &cobra.Command{
-	Use:   "balance [address]",
-	Short: "Print the balance of the specified wallet address",
-	Long:  `Print the balance of the specified wallet address`,
-	Args:  cobra.ExactArgs(1),
+var walletAddrsCmd = &cobra.Command{
+	Use:   "addrs",
+	Short: "Print all wallet addresses for the current storage profile",
+	Long:  `Print all wallet addresses for the current storage profile`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -26,7 +25,7 @@ var balanceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Wallet.Balance(ctx, args[0])
+		res, err := powClient.Wallet.Addrs(ctx)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
