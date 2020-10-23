@@ -11,28 +11,28 @@ import (
 )
 
 func init() {
-	ffsCmd.AddCommand(ffsInfoCmd)
+	storageJobsCmd.AddCommand(storageJobsLatestSuccessfulCmd)
 }
 
-var ffsInfoCmd = &cobra.Command{
-	Use:   "info [optional cid1,cid2,...]",
-	Short: "Get information about the current state of cid storage",
-	Long:  `Get information about the current state of cid storage`,
-	Args:  cobra.MaximumNArgs(1),
+var storageJobsLatestSuccessfulCmd = &cobra.Command{
+	Use:   "latest-successful [optional cid1,cid2,...]",
+	Short: "List the latest successful storage jobs",
+	Long:  `List the latest successful storage jobs`,
+	Args:  cobra.RangeArgs(0, 1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
-		defer cancel()
-
 		var cids []string
 		if len(args) > 0 {
 			cids = strings.Split(args[0], ",")
 		}
 
-		res, err := fcClient.FFS.CidInfo(mustAuthCtx(ctx), cids...)
+		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		defer cancel()
+
+		res, err := powClient.StorageJobs.LatestSuccessfulStorageJobs(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

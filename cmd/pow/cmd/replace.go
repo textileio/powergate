@@ -11,12 +11,12 @@ import (
 )
 
 func init() {
-	ffsReplaceCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
+	replaceCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
-	ffsCmd.AddCommand(ffsReplaceCmd)
+	rootCmd.AddCommand(replaceCmd)
 }
 
-var ffsReplaceCmd = &cobra.Command{
+var replaceCmd = &cobra.Command{
 	Use:   "replace [cid1] [cid2]",
 	Short: "Pushes a StorageConfig for c2 equal to that of c1, and removes c1",
 	Long:  `Pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation is more efficient than manually removing and adding in two separate operations`,
@@ -29,7 +29,7 @@ var ffsReplaceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := fcClient.FFS.Replace(mustAuthCtx(ctx), args[0], args[1])
+		res, err := powClient.Replace(mustAuthCtx(ctx), args[0], args[1])
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

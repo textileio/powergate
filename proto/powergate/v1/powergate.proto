@@ -273,7 +273,7 @@ service PowergateService {
   rpc SignMessage(SignMessageRequest) returns (SignMessageResponse) {}
   rpc VerifyMessage(VerifyMessageRequest) returns (VerifyMessageResponse) {}
 
-  // Jobs
+  // Storage Jobs
   rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}
   rpc StorageConfigForJob(StorageConfigForJobRequest) returns (StorageConfigForJobResponse) {}
   rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}

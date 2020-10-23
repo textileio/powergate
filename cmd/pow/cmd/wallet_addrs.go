@@ -10,13 +10,13 @@ import (
 )
 
 func init() {
-	ffsAddrsCmd.AddCommand(ffsAddrsListCmd)
+	walletCmd.AddCommand(walletAddrsCmd)
 }
 
-var ffsAddrsListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List the wallet adresses for the ffs instance",
-	Long:  `List the wallet adresses for the ffs instance`,
+var walletAddrsCmd = &cobra.Command{
+	Use:   "addrs",
+	Short: "Print all wallet addresses for the current storage profile",
+	Long:  `Print all wallet addresses for the current storage profile`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -25,7 +25,7 @@ var ffsAddrsListCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.FFS.Addrs(mustAuthCtx(ctx))
+		res, err := powClient.Wallet.Addrs(ctx)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

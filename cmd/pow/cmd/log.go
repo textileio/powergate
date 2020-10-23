@@ -13,12 +13,12 @@ import (
 )
 
 func init() {
-	ffsLogCmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
+	logCmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
 
-	ffsCmd.AddCommand(ffsLogCmd)
+	rootCmd.AddCommand(logCmd)
 }
 
-var ffsLogCmd = &cobra.Command{
+var logCmd = &cobra.Command{
 	Use:   "log [cid]",
 	Short: "Display logs for specified cid",
 	Long:  `Display logs for specified cid`,
@@ -38,7 +38,7 @@ var ffsLogCmd = &cobra.Command{
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		err := fcClient.FFS.WatchLogs(mustAuthCtx(ctx), ch, args[0], opts...)
+		err := powClient.WatchLogs(mustAuthCtx(ctx), ch, args[0], opts...)
 		checkErr(err)
 
 		c := make(chan os.Signal)

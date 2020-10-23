@@ -11,17 +11,17 @@ import (
 )
 
 func init() {
-	ffsRetrievalsCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is descending")
-	ffsRetrievalsCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids")
-	ffsRetrievalsCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses")
+	dealsRetrievalsCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is descending")
+	dealsRetrievalsCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids")
+	dealsRetrievalsCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses")
 
-	ffsCmd.AddCommand(ffsRetrievalsCmd)
+	dealsCmd.AddCommand(dealsRetrievalsCmd)
 }
 
-var ffsRetrievalsCmd = &cobra.Command{
+var dealsRetrievalsCmd = &cobra.Command{
 	Use:   "retrievals",
-	Short: "List retrieval deal records for an FFS instance",
-	Long:  `List retrieval deal records for an FFS instance`,
+	Short: "List retrieval deal records for the storage profile",
+	Long:  `List retrieval deal records for the storage profile`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -42,7 +42,7 @@ var ffsRetrievalsCmd = &cobra.Command{
 			opts = append(opts, client.WithFromAddrs(viper.GetStringSlice("addrs")...))
 		}
 
-		res, err := fcClient.FFS.ListRetrievalDealRecords(mustAuthCtx(ctx), opts...)
+		res, err := powClient.Deals.ListRetrievalDealRecords(mustAuthCtx(ctx), opts...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

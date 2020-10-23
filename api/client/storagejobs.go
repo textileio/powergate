@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Jobs provides access to Powergate jobs APIs.
-type Jobs struct {
+// StorageJobs provides access to Powergate jobs APIs.
+type StorageJobs struct {
 	client proto.PowergateServiceClient
 }
 
@@ -21,17 +21,17 @@ type WatchJobsEvent struct {
 }
 
 // StorageJob returns the current state of the specified job.
-func (j *Jobs) StorageJob(ctx context.Context, jid string) (*proto.StorageJobResponse, error) {
+func (j *StorageJobs) StorageJob(ctx context.Context, jid string) (*proto.StorageJobResponse, error) {
 	return j.client.StorageJob(ctx, &proto.StorageJobRequest{Jid: jid})
 }
 
 // StorageConfigForJob returns the StorageConfig associated with the specified job.
-func (j *Jobs) StorageConfigForJob(ctx context.Context, jobID string) (*proto.StorageConfigForJobResponse, error) {
+func (j *StorageJobs) StorageConfigForJob(ctx context.Context, jobID string) (*proto.StorageConfigForJobResponse, error) {
 	return j.client.StorageConfigForJob(ctx, &proto.StorageConfigForJobRequest{JobId: jobID})
 }
 
 // QueuedStorageJobs returns a list of queued storage jobs.
-func (j *Jobs) QueuedStorageJobs(ctx context.Context, cids ...string) (*proto.QueuedStorageJobsResponse, error) {
+func (j *StorageJobs) QueuedStorageJobs(ctx context.Context, cids ...string) (*proto.QueuedStorageJobsResponse, error) {
 	req := &proto.QueuedStorageJobsRequest{
 		Cids: cids,
 	}
@@ -39,7 +39,7 @@ func (j *Jobs) QueuedStorageJobs(ctx context.Context, cids ...string) (*proto.Qu
 }
 
 // ExecutingStorageJobs returns a list of executing storage jobs.
-func (j *Jobs) ExecutingStorageJobs(ctx context.Context, cids ...string) (*proto.ExecutingStorageJobsResponse, error) {
+func (j *StorageJobs) ExecutingStorageJobs(ctx context.Context, cids ...string) (*proto.ExecutingStorageJobsResponse, error) {
 	req := &proto.ExecutingStorageJobsRequest{
 		Cids: cids,
 	}
@@ -47,7 +47,7 @@ func (j *Jobs) ExecutingStorageJobs(ctx context.Context, cids ...string) (*proto
 }
 
 // LatestFinalStorageJobs returns a list of latest final storage jobs.
-func (j *Jobs) LatestFinalStorageJobs(ctx context.Context, cids ...string) (*proto.LatestFinalStorageJobsResponse, error) {
+func (j *StorageJobs) LatestFinalStorageJobs(ctx context.Context, cids ...string) (*proto.LatestFinalStorageJobsResponse, error) {
 	req := &proto.LatestFinalStorageJobsRequest{
 		Cids: cids,
 	}
@@ -55,7 +55,7 @@ func (j *Jobs) LatestFinalStorageJobs(ctx context.Context, cids ...string) (*pro
 }
 
 // LatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
-func (j *Jobs) LatestSuccessfulStorageJobs(ctx context.Context, cids ...string) (*proto.LatestSuccessfulStorageJobsResponse, error) {
+func (j *StorageJobs) LatestSuccessfulStorageJobs(ctx context.Context, cids ...string) (*proto.LatestSuccessfulStorageJobsResponse, error) {
 	req := &proto.LatestSuccessfulStorageJobsRequest{
 		Cids: cids,
 	}
@@ -63,7 +63,7 @@ func (j *Jobs) LatestSuccessfulStorageJobs(ctx context.Context, cids ...string) 
 }
 
 // StorageJobsSummary returns a summary of storage jobs.
-func (j *Jobs) StorageJobsSummary(ctx context.Context, cids ...string) (*proto.StorageJobsSummaryResponse, error) {
+func (j *StorageJobs) StorageJobsSummary(ctx context.Context, cids ...string) (*proto.StorageJobsSummaryResponse, error) {
 	req := &proto.StorageJobsSummaryRequest{
 		Cids: cids,
 	}
@@ -74,7 +74,7 @@ func (j *Jobs) StorageJobsSummary(ctx context.Context, cids ...string) (*proto.S
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
 // events, the provided ctx should be canceled. If an error occurs, it will be returned
 // in the Err field of JobEvent and the channel will be closed.
-func (j *Jobs) WatchJobs(ctx context.Context, ch chan<- WatchJobsEvent, jids ...string) error {
+func (j *StorageJobs) WatchJobs(ctx context.Context, ch chan<- WatchJobsEvent, jids ...string) error {
 	stream, err := j.client.WatchJobs(ctx, &proto.WatchJobsRequest{Jids: jids})
 	if err != nil {
 		return err
@@ -99,6 +99,6 @@ func (j *Jobs) WatchJobs(ctx context.Context, ch chan<- WatchJobsEvent, jids ...
 
 // CancelJob signals that the executing Job with JobID jid should be
 // canceled.
-func (j *Jobs) CancelJob(ctx context.Context, jid string) (*proto.CancelJobResponse, error) {
+func (j *StorageJobs) CancelJob(ctx context.Context, jid string) (*proto.CancelJobResponse, error) {
 	return j.client.CancelJob(ctx, &proto.CancelJobRequest{Jid: jid})
 }

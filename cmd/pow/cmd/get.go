@@ -13,12 +13,12 @@ import (
 )
 
 func init() {
-	ffsGetCmd.Flags().String("ipfsrevproxy", "localhost:6002", "Powergate IPFS reverse proxy DNS address. If port 443, is assumed is a HTTPS endpoint.")
-	ffsGetCmd.Flags().BoolP("folder", "f", false, "Indicates that the retrieved Cid is a folder")
-	ffsCmd.AddCommand(ffsGetCmd)
+	getCmd.Flags().String("ipfsrevproxy", "localhost:6002", "Powergate IPFS reverse proxy DNS address. If port 443, is assumed is a HTTPS endpoint.")
+	getCmd.Flags().BoolP("folder", "f", false, "Indicates that the retrieved Cid is a folder")
+	rootCmd.AddCommand(getCmd)
 }
 
-var ffsGetCmd = &cobra.Command{
+var getCmd = &cobra.Command{
 	Use:   "get [cid] [output file path]",
 	Short: "Get data by cid from ffs",
 	Long:  `Get data by cid from ffs`,
@@ -36,10 +36,10 @@ var ffsGetCmd = &cobra.Command{
 
 		isFolder := viper.GetBool("folder")
 		if isFolder {
-			err := fcClient.FFS.GetFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), args[0], args[1])
+			err := powClient.GetFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), args[0], args[1])
 			checkErr(err)
 		} else {
-			reader, err := fcClient.FFS.Get(mustAuthCtx(ctx), args[0])
+			reader, err := powClient.Get(mustAuthCtx(ctx), args[0])
 			checkErr(err)
 
 			dir := path.Dir(args[1])

@@ -13,14 +13,14 @@ import (
 )
 
 func init() {
-	ffsAddrsNewCmd.Flags().StringP("format", "f", "", "Optionally specify address format bls or secp256k1")
-	ffsAddrsNewCmd.Flags().BoolP("default", "d", false, "Make the new address the ffs default")
+	newAddrCmd.Flags().StringP("format", "f", "", "Optionally specify address format bls or secp256k1")
+	newAddrCmd.Flags().BoolP("default", "d", false, "Make the new address the ffs default")
 
-	ffsAddrsCmd.AddCommand(ffsAddrsNewCmd)
+	walletCmd.AddCommand(newAddrCmd)
 }
 
-var ffsAddrsNewCmd = &cobra.Command{
-	Use:   "new [name]",
+var newAddrCmd = &cobra.Command{
+	Use:   "new-addr [name]",
 	Short: "Create a new wallet address",
 	Long:  `Create a new wallet address`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -46,7 +46,7 @@ var ffsAddrsNewCmd = &cobra.Command{
 			opts = append(opts, client.WithMakeDefault(makeDefault))
 		}
 
-		res, err := fcClient.FFS.NewAddr(mustAuthCtx(ctx), args[0], opts...)
+		res, err := powClient.Wallet.NewAddr(mustAuthCtx(ctx), args[0], opts...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

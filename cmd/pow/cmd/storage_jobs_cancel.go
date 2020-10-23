@@ -9,13 +9,13 @@ import (
 )
 
 func init() {
-	ffsCmd.AddCommand(ffsCancelCmd)
+	storageJobsCmd.AddCommand(ffsCancelCmd)
 }
 
 var ffsCancelCmd = &cobra.Command{
 	Use:   "cancel [jobid]",
-	Short: "Cancel an executing job",
-	Long:  `Cancel an executing job`,
+	Short: "Cancel an executing storage job",
+	Long:  `Cancel an executing storage job`,
 	Args:  cobra.ExactArgs(0),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -25,7 +25,7 @@ var ffsCancelCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 
-		_, err := fcClient.FFS.CancelJob(mustAuthCtx(ctx), args[0])
+		_, err := powClient.StorageJobs.CancelJob(mustAuthCtx(ctx), args[0])
 		checkErr(err)
 	},
 }

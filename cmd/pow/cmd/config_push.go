@@ -11,19 +11,19 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/ffs/rpc"
+	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
-	ffsConfigPushCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
-	ffsConfigPushCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
-	ffsConfigPushCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
+	configPushCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses FFS default by default")
+	configPushCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
+	configPushCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
-	ffsConfigCmd.AddCommand(ffsConfigPushCmd)
+	configCmd.AddCommand(configPushCmd)
 }
 
-var ffsConfigPushCmd = &cobra.Command{
+var configPushCmd = &cobra.Command{
 	Use:   "push [cid]",
 	Short: "Add data to FFS via cid",
 	Long:  `Add data to FFS via a cid already in IPFS`,
@@ -63,7 +63,7 @@ var ffsConfigPushCmd = &cobra.Command{
 			_, err := buf.ReadFrom(reader)
 			checkErr(err)
 
-			config := &rpc.StorageConfig{}
+			config := &proto.StorageConfig{}
 			err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
 			checkErr(err)
 
@@ -74,7 +74,7 @@ var ffsConfigPushCmd = &cobra.Command{
 			options = append(options, client.WithOverride(viper.GetBool("override")))
 		}
 
-		res, err := fcClient.FFS.PushStorageConfig(mustAuthCtx(ctx), args[0], options...)
+		res, err := powClient.PushStorageConfig(mustAuthCtx(ctx), args[0], options...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

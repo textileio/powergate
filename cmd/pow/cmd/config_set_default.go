@@ -10,7 +10,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/ffs/rpc"
+	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -19,13 +19,13 @@ var (
 )
 
 func init() {
-	ffsConfigCmd.AddCommand(ffsConfigSetCmd)
+	configCmd.AddCommand(configSetDefaultCmd)
 }
 
-var ffsConfigSetCmd = &cobra.Command{
+var configSetDefaultCmd = &cobra.Command{
 	Use:   "set-default [optional file]",
-	Short: "Sets the default cid storage config from stdin or a file",
-	Long:  `Sets the default cid storage config from stdin or a file`,
+	Short: "Sets the default storage config from stdin or a file",
+	Long:  `Sets the default storage config from stdin or a file`,
 	Args:  cobra.MaximumNArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -53,11 +53,11 @@ var ffsConfigSetCmd = &cobra.Command{
 		_, err := buf.ReadFrom(reader)
 		checkErr(err)
 
-		config := &rpc.StorageConfig{}
+		config := &proto.StorageConfig{}
 		err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
 		checkErr(err)
 
-		_, err = fcClient.FFS.SetDefaultStorageConfig(mustAuthCtx(ctx), config)
+		_, err = powClient.SetDefaultStorageConfig(mustAuthCtx(ctx), config)
 		checkErr(err)
 	},
 }

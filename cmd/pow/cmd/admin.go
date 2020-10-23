@@ -66,7 +66,7 @@ var adminNewAddrCmd = &cobra.Command{
 
 		t := viper.GetString("type")
 
-		res, err := fcClient.Admin.NewAddress(adminAuthCtx(ctx), t)
+		res, err := powClient.Admin.NewAddress(adminAuthCtx(ctx), t)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -89,7 +89,7 @@ var adminAddrsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.ListAddresses(adminAuthCtx(ctx))
+		res, err := powClient.Admin.ListAddresses(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -115,7 +115,7 @@ var adminSendFilCmd = &cobra.Command{
 		amount, err := strconv.ParseInt(args[2], 10, 64)
 		checkErr(err)
 
-		_, err = fcClient.Admin.SendFil(adminAuthCtx(ctx), args[0], args[1], amount)
+		_, err = powClient.Admin.SendFil(adminAuthCtx(ctx), args[0], args[1], amount)
 		checkErr(err)
 	},
 }
@@ -133,7 +133,7 @@ var adminCreateInstanceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.CreateStorageProfile(adminAuthCtx(ctx))
+		res, err := powClient.Admin.CreateStorageProfile(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -156,7 +156,7 @@ var adminInstancesCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.ListStorageProfiles(adminAuthCtx(ctx))
+		res, err := powClient.Admin.ListStorageProfiles(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -179,7 +179,7 @@ var adminQueuedStorageJobsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.QueuedStorageJobs(
+		res, err := powClient.Admin.QueuedStorageJobs(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
@@ -206,7 +206,7 @@ var adminExecutingStorageJobsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.ExecutingStorageJobs(
+		res, err := powClient.Admin.ExecutingStorageJobs(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
@@ -233,7 +233,7 @@ var adminLatestFinalStorageJobsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.LatestFinalStorageJobs(
+		res, err := powClient.Admin.LatestFinalStorageJobs(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
@@ -260,7 +260,7 @@ var adminLatestSuccessfulStorageJobsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.LatestSuccessfulStorageJobs(
+		res, err := powClient.Admin.LatestSuccessfulStorageJobs(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
@@ -287,7 +287,7 @@ var adminStorageJobsSummaryCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := fcClient.Admin.StorageJobsSummary(
+		res, err := powClient.Admin.StorageJobsSummary(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,

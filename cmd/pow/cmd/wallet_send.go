@@ -9,10 +9,10 @@ import (
 )
 
 func init() {
-	ffsCmd.AddCommand(ffsSendCmd)
+	walletCmd.AddCommand(walletSendCmd)
 }
 
-var ffsSendCmd = &cobra.Command{
+var walletSendCmd = &cobra.Command{
 	Use:   "send [from address] [to address] [amount]",
 	Short: "Send fil from one managed address to any other address",
 	Long:  `Send fil from one managed address to any other address`,
@@ -31,7 +31,7 @@ var ffsSendCmd = &cobra.Command{
 		amount, err := strconv.ParseInt(args[2], 10, 64)
 		checkErr(err)
 
-		_, err = fcClient.FFS.SendFil(mustAuthCtx(ctx), from, to, amount)
+		_, err = powClient.Wallet.SendFil(mustAuthCtx(ctx), from, to, amount)
 		checkErr(err)
 	},
 }

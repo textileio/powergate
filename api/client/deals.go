@@ -55,19 +55,19 @@ func WithAscending(ascending bool) ListDealRecordsOption {
 }
 
 // ListStorageDealRecords returns a list of storage deals for the FFS instance according to the provided options.
-func (j *Jobs) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) (*proto.ListStorageDealRecordsResponse, error) {
+func (d *Deals) ListStorageDealRecords(ctx context.Context, opts ...ListDealRecordsOption) (*proto.ListStorageDealRecordsResponse, error) {
 	conf := &proto.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(conf)
 	}
-	return j.client.ListStorageDealRecords(ctx, &proto.ListStorageDealRecordsRequest{Config: conf})
+	return d.client.ListStorageDealRecords(ctx, &proto.ListStorageDealRecordsRequest{Config: conf})
 }
 
 // ListRetrievalDealRecords returns a list of retrieval deals for the FFS instance according to the provided options.
-func (j *Jobs) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealRecordsOption) (*proto.ListRetrievalDealRecordsResponse, error) {
+func (d *Deals) ListRetrievalDealRecords(ctx context.Context, opts ...ListDealRecordsOption) (*proto.ListRetrievalDealRecordsResponse, error) {
 	conf := &proto.ListDealRecordsConfig{}
 	for _, opt := range opts {
 		opt(conf)
 	}
-	return j.client.ListRetrievalDealRecords(ctx, &proto.ListRetrievalDealRecordsRequest{Config: conf})
+	return d.client.ListRetrievalDealRecords(ctx, &proto.ListRetrievalDealRecordsRequest{Config: conf})
 }

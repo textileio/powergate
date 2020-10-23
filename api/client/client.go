@@ -25,12 +25,12 @@ import (
 
 // Client provides the client api.
 type Client struct {
-	Wallet    *Wallet
-	Deals     *Deals
-	Jobs      *Jobs
-	Admin     *Admin
-	conn      *grpc.ClientConn
-	powClient proto.PowergateServiceClient
+	Wallet      *Wallet
+	Deals       *Deals
+	StorageJobs *StorageJobs
+	Admin       *Admin
+	conn        *grpc.ClientConn
+	powClient   proto.PowergateServiceClient
 }
 
 type ctxKey string
@@ -102,12 +102,12 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	}
 	powClient := proto.NewPowergateServiceClient(conn)
 	client := &Client{
-		Wallet:    &Wallet{client: powClient},
-		Deals:     &Deals{client: powClient},
-		Jobs:      &Jobs{client: powClient},
-		Admin:     &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
-		conn:      conn,
-		powClient: proto.NewPowergateServiceClient(conn),
+		Wallet:      &Wallet{client: powClient},
+		Deals:       &Deals{client: powClient},
+		StorageJobs: &StorageJobs{client: powClient},
+		Admin:       &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
+		conn:        conn,
+		powClient:   proto.NewPowergateServiceClient(conn),
 	}
 	return client, nil
 }

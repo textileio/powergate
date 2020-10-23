@@ -11,19 +11,19 @@ import (
 )
 
 func init() {
-	ffsStorageCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is sort descending")
-	ffsStorageCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids, treated as and AND operation if --addrs is also provided")
-	ffsStorageCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses, treated as and AND operation if --cids is also provided")
-	ffsStorageCmd.Flags().BoolP("include-pending", "p", false, "include pending deals")
-	ffsStorageCmd.Flags().BoolP("include-final", "f", false, "include final deals")
+	dealsStorageCmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is sort descending")
+	dealsStorageCmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids, treated as and AND operation if --addrs is also provided")
+	dealsStorageCmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses, treated as and AND operation if --cids is also provided")
+	dealsStorageCmd.Flags().BoolP("include-pending", "p", false, "include pending deals")
+	dealsStorageCmd.Flags().BoolP("include-final", "f", false, "include final deals")
 
-	ffsCmd.AddCommand(ffsStorageCmd)
+	dealsCmd.AddCommand(dealsStorageCmd)
 }
 
-var ffsStorageCmd = &cobra.Command{
+var dealsStorageCmd = &cobra.Command{
 	Use:   "storage",
-	Short: "List storage deal records for an FFS instance",
-	Long:  `List storage deal records for an FFS instance`,
+	Short: "List storage deal records for the storage profile",
+	Long:  `List storage deal records for the storage profile`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -50,7 +50,7 @@ var ffsStorageCmd = &cobra.Command{
 			opts = append(opts, client.WithIncludeFinal(viper.GetBool("include-final")))
 		}
 
-		res, err := fcClient.FFS.ListStorageDealRecords(mustAuthCtx(ctx), opts...)
+		res, err := powClient.Deals.ListStorageDealRecords(mustAuthCtx(ctx), opts...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

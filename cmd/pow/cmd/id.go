@@ -11,13 +11,13 @@ import (
 )
 
 func init() {
-	ffsConfigCmd.AddCommand(ffsConfigDefaultCmd)
+	rootCmd.AddCommand(idCmd)
 }
 
-var ffsConfigDefaultCmd = &cobra.Command{
-	Use:   "default",
-	Short: "Returns the default storage config",
-	Long:  `Returns the default storage config`,
+var idCmd = &cobra.Command{
+	Use:   "id",
+	Short: "Returns the storage profile id",
+	Long:  `Returns the storage profile id`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -26,10 +26,10 @@ var ffsConfigDefaultCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := fcClient.FFS.DefaultStorageConfig(mustAuthCtx(ctx))
+		res, err := powClient.ID(mustAuthCtx(ctx))
 		checkErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.DefaultStorageConfig)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		checkErr(err)
 
 		fmt.Println(string(json))

@@ -5,10 +5,10 @@ import (
 )
 
 func init() {
-	ffsCmd.AddCommand(ffsConfigCmd)
+	rootCmd.AddCommand(configCmd)
 }
 
-var ffsConfigCmd = &cobra.Command{
+var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Provides commands to manage storage configuration",
 	Long:  `Provides commands to manage storage configuration`,
