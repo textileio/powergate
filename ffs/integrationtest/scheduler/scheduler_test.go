@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestJobCancellation(t *testing.T) {
+func TestJobCancelation(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
 	defer cls()

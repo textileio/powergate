@@ -407,11 +407,17 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	ctx, cancel := context.WithCancel(context.WithValue(context.Background(), ffs.CtxKeyJid, j.ID))
 	defer cancel()
 	ctx = context.WithValue(ctx, ffs.CtxStorageCid, j.Cid)
+
+	var cancelLock sync.Mutex
+	var canceled bool
 	go func() {
 		// If the user called Cancel to cancel Job execution,
 		// we cancel the context to finish.
 		<-cancelChan
 		cancel()
+		cancelLock.Lock()
+		canceled = true
+		cancelLock.Unlock()
 	}()
 
 	// Get
@@ -446,11 +452,11 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 
 	finalStatus := ffs.Success
 	// Detect if user-cancelation was triggered
-	select {
-	case <-cancelChan:
+	cancelLock.Lock()
+	if canceled {
 		finalStatus = ffs.Canceled
-	default:
 	}
+	cancelLock.Unlock()
 
 	// Finalize Job, saving any deals errors happened during execution.
 	if err := s.sjs.Finalize(j.ID, finalStatus, nil, dealErrors); err != nil {
