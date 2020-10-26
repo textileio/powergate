@@ -154,7 +154,12 @@ func (s *Scheduler) Cancel(jid ffs.JobID) error {
 	}
 	// The main scheduler loop is responsible for
 	// deleting cancelChan from the map.
-	close(cancelChan)
+	select {
+	case cancelChan <- struct{}{}:
+	default:
+		// If this channel was already signaled,
+		// don't block, this is just a cancel retry.
+	}
 	return nil
 }
 
@@ -388,7 +393,7 @@ forLoop:
 }
 
 func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
-	cancelChan := make(chan struct{})
+	cancelChan := make(chan struct{}, 1)
 	// Create chan to allow Job cancellation.
 	s.cancelLock.Lock()
 	s.cancelChans[j.ID] = cancelChan
