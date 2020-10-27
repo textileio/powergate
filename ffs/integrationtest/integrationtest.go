@@ -88,7 +88,7 @@ func NewAPI(t tests.TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apis
 	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 	fapi, err := manager.GetByAuthToken(auth)
 	require.NoError(t, err)
-	client, cls, err := clientBuilder()
+	client, cls, err := clientBuilder(context.Background())
 	require.NoError(t, err)
 	return ipfs, client, fapi, func() {
 		err := fapi.Close()

@@ -62,7 +62,7 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 		return nil, fmt.Errorf("getting miners from url: %s", err)
 	}
 
-	c, cls, err := ms.cb()
+	c, cls, err := ms.cb(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}

@@ -28,7 +28,7 @@ const (
 // updateOnChainIndex updates on-chain index information in the direction of heaviest tipset
 // with some height offset to reduce sensibility to reorgs.
 func (mi *Index) updateOnChainIndex() error {
-	client, cls, err := mi.clientBuilder()
+	client, cls, err := mi.clientBuilder(context.Background())
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}

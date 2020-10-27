@@ -34,7 +34,7 @@ func (m *Module) List(ctx context.Context, addrs ...string) ([]ffs.PaychInfo, er
 		filter[addr] = struct{}{}
 	}
 
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -130,7 +130,7 @@ func (m *Module) Redeem(ctx context.Context, ch string) error {
 		return err
 	}
 
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}

@@ -42,7 +42,7 @@ func TestCustom(t *testing.T) {
 	cb, err := lotus.NewBuilder(lotusHost, lotusToken, 1)
 	require.NoError(t, err)
 
-	c, cls, err := cb()
+	c, cls, err := cb(context.Background())
 	require.NoError(t, err)
 	defer cls()
 

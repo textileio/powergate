@@ -19,7 +19,7 @@ var (
 )
 
 // ClientBuilder creates a new Lotus client.
-type ClientBuilder func() (*apistruct.FullNodeStruct, func(), error)
+type ClientBuilder func(ctx context.Context) (*apistruct.FullNodeStruct, func(), error)
 
 // NewBuilder creates a new ClientBuilder.
 func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBuilder, error) {
@@ -31,11 +31,14 @@ func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBu
 		"Authorization": []string{"Bearer " + authToken},
 	}
 
-	return func() (*apistruct.FullNodeStruct, func(), error) {
+	return func(ctx context.Context) (*apistruct.FullNodeStruct, func(), error) {
 		var api apistruct.FullNodeStruct
 		var closer jsonrpc.ClientCloser
 		var err error
 		for i := 0; i < connRetries; i++ {
+			if ctx.Err() != nil {
+				return nil, nil, fmt.Errorf("canceled by context")
+			}
 			closer, err = jsonrpc.NewMergeClient(context.Background(), "ws://"+addr+"/rpc/v0", "Filecoin",
 				[]interface{}{
 					&api.Internal,

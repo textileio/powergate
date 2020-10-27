@@ -159,7 +159,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 	lotus.MonitorLotusSync(clientBuilder)
 
-	c, cls, err := clientBuilder()
+	c, cls, err := clientBuilder(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}

@@ -38,7 +38,7 @@ func MonitorLotusSync(clientBuilder ClientBuilder) {
 }
 
 func evaluate(cb ClientBuilder) {
-	c, cls, err := cb()
+	c, cls, err := cb(context.Background())
 	if err != nil {
 		log.Errorf("creating lotus client for monitoring: %s", err)
 		return
@@ -81,7 +81,7 @@ func checkSyncStatus(c *apistruct.FullNodeStruct) error {
 			}
 
 			if heightDiff > 10 {
-				log.Warnf("Louts node behind with height difference %d", heightDiff)
+				log.Warnf("Louts behind in syncing with height diff %d, todo: %d", heightDiff, as.Target.Height()-as.Height)
 				return nil // Only report one worker falling behind
 			}
 		}

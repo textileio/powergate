@@ -182,7 +182,7 @@ func (ai *Runner) update() error {
 	log.Info("updating ask index...")
 	defer log.Info("ask index updated")
 
-	client, cls, err := ai.clientBuilder()
+	client, cls, err := ai.clientBuilder(context.Background())
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}
