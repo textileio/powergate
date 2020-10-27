@@ -45,6 +45,7 @@ func setupServer(t *testing.T) func() {
 		LotusAddress:            devnetAddr,
 		LotusAuthToken:          "",
 		LotusMasterAddr:         "",
+		LotusConnectionRetries:  5,
 		Devnet:                  true,
 		GrpcHostNetwork:         grpcHostNetwork,
 		GrpcHostAddress:         grpcMaddr,
