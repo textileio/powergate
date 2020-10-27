@@ -658,7 +658,7 @@ func robustClientGetDealInfo(ctx context.Context, lapi *apistruct.FullNodeStruct
 
 	// Workaround ClientGetDealInfo giving unreliable status.
 	// If the state isn't Active, double-check with on-chain API.
-	if di.State != storagemarket.StorageDealActive {
+	if di.DealID != 0 && di.State != storagemarket.StorageDealActive {
 		smd, err := lapi.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
 		if err != nil {
 			return nil, fmt.Errorf("state market storage deal: %s", err)
