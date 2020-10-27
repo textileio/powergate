@@ -8,6 +8,7 @@ import (
 
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	iface "github.com/ipfs/interface-go-ipfs-core"
@@ -73,21 +74,39 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
 }
 
+func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (api.DataSize, error) {
+	// Limiting deal size calculation since is very resource intensive.
+	// In the next Lotus version (v1.1.3) a new API will be used which also calculates
+	// CommP, so we can help Lotus avoid recalculating size and CommP when deals are made.
+	select {
+	case fc.semaphDealPrep <- struct{}{}:
+	case <-ctx.Done():
+		return api.DataSize{}, fmt.Errorf("canceled by context")
+	}
+	defer func() { <-fc.semaphDealPrep }()
+
+	size, err := fc.dm.CalculatePieceSize(ctx, c)
+	if err != nil {
+		return api.DataSize{}, fmt.Errorf("getting cid cummulative size: %s", err)
+	}
+	return size, nil
+}
+
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation. It returns a slice of ProposalCids that were correctly
 // started, and a slice of with Proposal Cids rejected. Returned proposed deals can be tracked
 // with the WaitForDeal API.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, uint64, error) {
 	fc.l.Log(ctx, "Calculating piece size...")
-	size, err := fc.dm.CalculatePieceSize(ctx, c)
+	size, err := fc.calculatePieceSize(ctx, c)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
-	fc.l.Log(ctx, "Calculated piece size is %d bytes.", size)
+	fc.l.Log(ctx, "Calculated piece size is %d MiB.", size.PieceSize/1024/1024)
 	pieceSize := uint64(size.PieceSize)
 
 	if pieceSize < fc.minPieceSize {
-		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d", fc.minPieceSize)
+		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d MiB", fc.minPieceSize/1024/1024)
 	}
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
@@ -180,7 +199,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	// Manually imported doesn't provide the piece size.
 	// Re-calculate it if necessary. If present, just re-use that value.
 	if inf.Size == 0 {
-		pieceSize, err := fc.dm.CalculatePieceSize(ctx, inf.DataCid)
+		pieceSize, err := fc.calculatePieceSize(ctx, inf.DataCid)
 		if err != nil {
 			return ffs.FilInfo{}, nil, fmt.Errorf("can't recalculate piece size: %s", err)
 		}
@@ -246,10 +265,9 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 		fc.l.Log(ctx, "Proposing deal to miner %s with %d attoFIL per epoch...", cfg.Miner, cfg.EpochPrice)
 	}
 
-	// This puts a cap on how many deals will be fired to the Lotus node.
-	// Firing a deal to Louts is very resource intensive. Most probably in the
-	// next release of Lotus (v1.1.3) a new API will make this code move to
-	// another place.
+	// In the next Lotus release (v1.1.3), we'll be able to remove this limiting
+	// since we can avoid creating deals recompute the deal size and CommP. Since
+	// that isn't ready yet, starting a deal is very resource intensive so put a cap for now.
 	select {
 	case fc.semaphDealPrep <- struct{}{}:
 	case <-ctx.Done():
