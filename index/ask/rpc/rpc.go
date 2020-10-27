@@ -28,6 +28,7 @@ func (s *RPC) Get(ctx context.Context, req *GetRequest) (*GetResponse, error) {
 		storage[key] = &StorageAsk{
 			Price:        ask.Price,
 			MinPieceSize: ask.MinPieceSize,
+			MaxPieceSize: ask.MaxPieceSize,
 			Miner:        ask.Miner,
 			Timestamp:    ask.Timestamp,
 			Expiry:       ask.Expiry,
@@ -58,6 +59,7 @@ func (s *RPC) Query(ctx context.Context, req *QueryRequest) (*QueryResponse, err
 		replyAsks[i] = &StorageAsk{
 			Price:        ask.Price,
 			MinPieceSize: ask.MinPieceSize,
+			MaxPieceSize: ask.MaxPieceSize,
 			Miner:        ask.Miner,
 			Timestamp:    ask.Timestamp,
 			Expiry:       ask.Expiry,

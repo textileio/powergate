@@ -67,6 +67,7 @@ var queryCmd = &cobra.Command{
 					a.Miner,
 					strconv.Itoa(int(a.Price)),
 					strconv.Itoa(int(a.MinPieceSize)),
+					strconv.Itoa(int(a.MaxPieceSize)),
 					strconv.FormatInt(a.Timestamp, 10),
 					strconv.FormatInt(a.Expiry, 10),
 				}

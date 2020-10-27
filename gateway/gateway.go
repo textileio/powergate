@@ -162,6 +162,7 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 			ask.Miner,
 			ask.Price,
 			ask.MinPieceSize,
+			ask.MaxPieceSize,
 			ask.Timestamp,
 			ask.Expiry,
 		}

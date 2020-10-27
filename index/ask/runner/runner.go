@@ -106,7 +106,10 @@ func (ai *Runner) Query(q ask.Query) ([]ask.StorageAsk, error) {
 		if q.MaxPrice != 0 && sa.Price > q.MaxPrice {
 			break
 		}
-		if q.PieceSize != 0 && sa.MinPieceSize > q.PieceSize {
+		if sa.MinPieceSize > q.PieceSize {
+			continue
+		}
+		if sa.MaxPieceSize < q.PieceSize {
 			continue
 		}
 		if offset > 0 {
@@ -290,6 +293,7 @@ func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr
 		Miner:        sask.Miner.String(),
 		Price:        sask.Price.Uint64(),
 		MinPieceSize: uint64(sask.MinPieceSize),
+		MaxPieceSize: uint64(sask.MaxPieceSize),
 		Timestamp:    int64(sask.Timestamp),
 		Expiry:       int64(sask.Expiry),
 	}, true, nil
