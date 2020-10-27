@@ -2,21 +2,15 @@ package filcold
 
 import (
 	"context"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/go-padreader"
 	"github.com/ipfs/go-cid"
-	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
-	dag "github.com/ipfs/go-merkledag"
 	iface "github.com/ipfs/interface-go-ipfs-core"
-	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/ipld/go-car"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/deals/module"
 	dealsModule "github.com/textileio/powergate/deals/module"
@@ -82,6 +76,17 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 // started, and a slice of with Proposal Cids rejected. Returned proposed deals can be tracked
 // with the WaitForDeal API.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, uint64, error) {
+	fc.l.Log(ctx, "Calculating piece size...")
+	size, err := fc.dm.CalculatePieceSize(ctx, c)
+	if err != nil {
+		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
+	}
+	fc.l.Log(ctx, "Calculated piece size is %d bytes.", size)
+	pieceSize := uint64(size.PieceSize)
+
+	if pieceSize < fc.minimumPieceSize {
+		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d", fc.minimumPieceSize)
+	}
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
 		CountryCodes:   cfg.CountryCodes,
@@ -93,22 +98,11 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		return nil, nil, 0, fmt.Errorf("making deal configs: %s", err)
 	}
 
-	fc.l.Log(ctx, "Calculating piece size...")
-	size, err := fc.calculatePieceSize(ctx, c)
-	if err != nil {
-		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
-	}
-	fc.l.Log(ctx, "Estimated piece size is %d bytes.", size)
-
-	if size < fc.minimumPieceSize {
-		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d", fc.minimumPieceSize)
-	}
-
-	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, size, cfgs, cfg)
+	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, pieceSize, cfgs, cfg)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("starting deals: %s", err)
 	}
-	return okDeals, failedStartingDeals, size, nil
+	return okDeals, failedStartingDeals, pieceSize, nil
 }
 
 // IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
@@ -183,11 +177,11 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	// Manually imported doesn't provide the piece size.
 	// Re-calculate it if necessary. If present, just re-use that value.
 	if inf.Size == 0 {
-		size, err := fc.calculatePieceSize(ctx, inf.DataCid)
+		size, err := fc.dm.CalculatePieceSize(ctx, inf.DataCid)
 		if err != nil {
 			return ffs.FilInfo{}, nil, fmt.Errorf("can't recalculate piece size: %s", err)
 		}
-		inf.Size = size
+		inf.Size = uint64(size.PieceSize)
 	}
 
 	toRenew := renewable[:numToBeRenewed]
@@ -324,53 +318,6 @@ Loop:
 		}
 	}
 	return ffs.FilStorage{}, fmt.Errorf("aborted due to cancellation")
-}
-
-// estimatePieceSize estimates the size of the Piece that will be built by the filecoin client
-// when making the deal. This calculation should consider the unique node sizes of the DAG, and
-// padding. It's important to not underestimate the size since that would lead to deal rejection
-// since the miner won't accept the further calculated PricePerEpoch.
-func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (uint64, error) {
-	// Get unique nodes.
-	seen := cid.NewSet()
-	if err := dag.Walk(ctx, fc.getLinks, c, seen.Visit); err != nil {
-		return 0, fmt.Errorf("walking dag for size calculation: %s", err)
-	}
-
-	// Account for CAR header size.
-	carHeader := car.CarHeader{
-		Roots:   []cid.Cid{c},
-		Version: 1,
-	}
-	totalSize, err := car.HeaderSize(&carHeader)
-	if err != nil {
-		return 0, fmt.Errorf("calculating car header size: %s", err)
-	}
-
-	// Calculate total unique node sizes.
-	buf := make([]byte, 8)
-	f := func(c cid.Cid) error {
-		s, err := fc.ipfs.Block().Stat(ctx, path.IpfsPath(c))
-		if err != nil {
-			return fmt.Errorf("getting stats from DAG node: %s", err)
-		}
-		size := uint64(s.Size())
-		carBlockHeaderSize := uint64(binary.PutUvarint(buf, size))
-		totalSize += carBlockHeaderSize + size
-		return nil
-	}
-	if err := seen.ForEach(f); err != nil {
-		return 0, fmt.Errorf("aggregating unique nodes size: %s", err)
-	}
-
-	// Consider padding.
-	paddedSize := padreader.PaddedSize(totalSize).Padded()
-
-	return uint64(paddedSize), nil
-}
-
-func (fc *FilCold) getLinks(ctx context.Context, c cid.Cid) ([]*format.Link, error) {
-	return fc.ipfs.Object().Links(ctx, path.IpfsPath(c))
 }
 
 func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter, fastRetrieval bool, dealStartOffset int64) ([]deals.StorageDealConfig, error) {

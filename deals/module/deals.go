@@ -173,6 +173,22 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 	return res, nil
 }
 
+// CalculatePieceSize calculates the data and piece size of a Cid accesible
+// by the underlying Lotus node.
+func (m *Module) CalculatePieceSize(ctx context.Context, c cid.Cid) (api.DataSize, error) {
+	lapi, cls, err := m.clientBuilder()
+	if err != nil {
+		return api.DataSize{}, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
+	dsz, err := lapi.ClientDealSize(ctx, c)
+	if err != nil {
+		return api.DataSize{}, fmt.Errorf("calculating data size: %s", err)
+	}
+	return dsz, nil
+}
+
 // Fetch fetches deal data to the underlying blockstore of the Filecoin client.
 // This API is meant for clients that use external implementations of blockstores with
 // their own API, e.g: IPFS.
