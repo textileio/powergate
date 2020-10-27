@@ -314,23 +314,21 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 	return o.Miner.String(), out, nil
 }
 
-// GetDealStatus returns the current status of the deal, and a flag indicating if the miner of the deal was slashed.
-// If the deal doesn't exist, *or has expired* it will return ErrDealNotFound. There's not actual way of distinguishing
-// both scenarios in Lotus.
-func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error) {
+// GetDealStatus returns the current status of the deal.
+func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, error) {
 	lapi, cls, err := m.clientBuilder()
 	if err != nil {
-		return storagemarket.StorageDealUnknown, false, fmt.Errorf("creating lotus client: %s", err)
+		return storagemarket.StorageDealUnknown, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
 	di, err := lapi.ClientGetDealInfo(ctx, pcid)
 	if err != nil {
 		if strings.Contains(err.Error(), "datastore: key not found") {
-			return storagemarket.StorageDealUnknown, false, ErrDealNotFound
+			return storagemarket.StorageDealUnknown, ErrDealNotFound
 		}
-		return storagemarket.StorageDealUnknown, false, fmt.Errorf("getting deal info: %s", err)
+		return storagemarket.StorageDealUnknown, fmt.Errorf("getting deal info: %s", err)
 	}
-	return di.State, di.State == storagemarket.StorageDealSlashed, nil
+	return di.State, nil
 }
 
 // Watch returns a channel with state changes of indicated proposals.

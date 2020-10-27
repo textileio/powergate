@@ -108,14 +108,14 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 
 // IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
 func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bool, error) {
-	status, slashed, err := fc.dm.GetDealStatus(ctx, proposalCid)
+	status, err := fc.dm.GetDealStatus(ctx, proposalCid)
 	if err == module.ErrDealNotFound {
 		return false, nil
 	}
 	if err != nil {
 		return false, fmt.Errorf("getting deal state for %s: %s", proposalCid, err)
 	}
-	return !slashed && status == storagemarket.StorageDealActive, nil
+	return status == storagemarket.StorageDealActive, nil
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
