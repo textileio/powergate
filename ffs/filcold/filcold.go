@@ -24,12 +24,13 @@ var (
 // FilCold is a ColdStorage implementation which saves data in the Filecoin network.
 // It assumes the underlying Filecoin client has access to an IPFS node where data is stored.
 type FilCold struct {
-	ms               ffs.MinerSelector
-	dm               *dealsModule.Module
-	ipfs             iface.CoreAPI
-	chain            FilChain
-	l                ffs.JobLogger
-	minimumPieceSize uint64
+	ms             ffs.MinerSelector
+	dm             *dealsModule.Module
+	ipfs           iface.CoreAPI
+	chain          FilChain
+	l              ffs.JobLogger
+	minPieceSize   uint64
+	semaphDealPrep chan struct{}
 }
 
 var _ ffs.ColdStorage = (*FilCold)(nil)
@@ -40,14 +41,15 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, minimumPieceSize uint64) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
 	return &FilCold{
-		ms:               ms,
-		dm:               dm,
-		ipfs:             ipfs,
-		chain:            chain,
-		l:                l,
-		minimumPieceSize: minimumPieceSize,
+		ms:             ms,
+		dm:             dm,
+		ipfs:           ipfs,
+		chain:          chain,
+		l:              l,
+		minPieceSize:   minPieceSize,
+		semaphDealPrep: make(chan struct{}, maxParallelDealPreparing),
 	}
 }
 
@@ -84,8 +86,8 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 	fc.l.Log(ctx, "Calculated piece size is %d bytes.", size)
 	pieceSize := uint64(size.PieceSize)
 
-	if pieceSize < fc.minimumPieceSize {
-		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d", fc.minimumPieceSize)
+	if pieceSize < fc.minPieceSize {
+		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d", fc.minPieceSize)
 	}
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
@@ -243,6 +245,17 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 	for _, cfg := range cfgs {
 		fc.l.Log(ctx, "Proposing deal to miner %s with %d attoFIL per epoch...", cfg.Miner, cfg.EpochPrice)
 	}
+
+	// This puts a cap on how many deals will be fired to the Lotus node.
+	// Firing a deal to Louts is very resource intensive. Most probably in the
+	// next release of Lotus (v1.1.3) a new API will make this code move to
+	// another place.
+	select {
+	case fc.semaphDealPrep <- struct{}{}:
+	case <-ctx.Done():
+		return nil, nil, fmt.Errorf("canceled by context")
+	}
+	defer func() { <-fc.semaphDealPrep }()
 
 	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, size, cfgs, uint64(fcfg.DealMinDuration))
 	if err != nil {

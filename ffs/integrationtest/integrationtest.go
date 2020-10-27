@@ -139,7 +139,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBu
 
 	fchain := filchain.New(clientBuilder)
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
-	cl := filcold.New(ms, dm, ipfsClient, fchain, l, minimumPieceSize)
+	cl := filcold.New(ms, dm, ipfsClient, fchain, l, minimumPieceSize, 1)
 	hl, err := coreipfs.New(ipfsClient, l)
 	require.NoError(t, err)
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil)
