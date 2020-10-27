@@ -88,17 +88,20 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 				log.Warnf("sr2 miner %s query-ask errored: %s", miners[i], err)
 				continue
 			}
-			if sask > maxSR2Price {
+			if sask.Price.Uint64() > maxSR2Price {
 				log.Warnf("skipping miner %s since has price %d above maximum allowed for SR2", miners[i], sask)
 				continue
 			}
-			if f.MaxPrice > 0 && sask > f.MaxPrice {
+			if f.MaxPrice > 0 && sask.Price.Uint64() > f.MaxPrice {
 				log.Warnf("skipping miner %s with price %d higher than max-price %d", miners[i], sask, f.MaxPrice)
 				continue
 			}
+			if f.PieceSize < uint64(sask.MinPieceSize) || f.PieceSize > uint64(sask.MaxPieceSize) {
+				log.Warnf("skipping miner %s since needed piece size %d doesn't fit bounds (%d, %d)", f.PieceSize, sask.MinPieceSize, sask.MaxPieceSize)
+			}
 			selected = append(selected, ffs.MinerProposal{
 				Addr:       miners[i],
-				EpochPrice: sask,
+				EpochPrice: sask.Price.Uint64(),
 			})
 			regionSelected++
 		}
@@ -147,16 +150,16 @@ func (ms *MinerSelector) getMiners() (minersBuckets, error) {
 	return res, nil
 }
 
-func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (uint64, error) {
+func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (*storagemarket.StorageAsk, error) {
 	addr, err := address.NewFromString(addrStr)
 	if err != nil {
-		return 0, fmt.Errorf("miner address is invalid: %s", err)
+		return nil, fmt.Errorf("miner address is invalid: %s", err)
 	}
 	ctx, cls := context.WithTimeout(context.Background(), time.Second*10)
 	defer cls()
 	mi, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
 	if err != nil {
-		return 0, fmt.Errorf("getting miner %s info: %s", addr, err)
+		return nil, fmt.Errorf("getting miner %s info: %s", addr, err)
 	}
 
 	type chAskRes struct {
@@ -175,11 +178,11 @@ func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (uint64, erro
 
 	select {
 	case <-time.After(time.Second * 10):
-		return 0, fmt.Errorf("query asking timed out")
+		return nil, fmt.Errorf("query asking timed out")
 	case r := <-chAsk:
 		if r.Error != "" {
-			return 0, fmt.Errorf("query ask had controlled error: %s", r.Error)
+			return nil, fmt.Errorf("query ask had controlled error: %s", r.Error)
 		}
-		return r.Ask.Price.Uint64(), nil
+		return r.Ask, nil
 	}
 }

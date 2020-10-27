@@ -92,6 +92,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		CountryCodes:   cfg.CountryCodes,
 		TrustedMiners:  cfg.TrustedMiners,
 		MaxPrice:       cfg.MaxPrice,
+		PieceSize:      pieceSize,
 	}
 	cfgs, err := makeDealConfigs(fc.ms, cfg.RepFactor, f, cfg.FastRetrieval, cfg.DealStartOffset)
 	if err != nil {
@@ -177,11 +178,11 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	// Manually imported doesn't provide the piece size.
 	// Re-calculate it if necessary. If present, just re-use that value.
 	if inf.Size == 0 {
-		size, err := fc.dm.CalculatePieceSize(ctx, inf.DataCid)
+		pieceSize, err := fc.dm.CalculatePieceSize(ctx, inf.DataCid)
 		if err != nil {
 			return ffs.FilInfo{}, nil, fmt.Errorf("can't recalculate piece size: %s", err)
 		}
-		inf.Size = uint64(size.PieceSize)
+		inf.Size = uint64(pieceSize.PieceSize)
 	}
 
 	toRenew := renewable[:numToBeRenewed]
@@ -203,19 +204,20 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return newInf, newDealErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration) (ffs.FilStorage, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, pieceSize uint64, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration) (ffs.FilStorage, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: fcfg.ExcludedMiners,
 		CountryCodes:   fcfg.CountryCodes,
 		TrustedMiners:  []string{p.Miner},
 		MaxPrice:       fcfg.MaxPrice,
+		PieceSize:      pieceSize,
 	}
 	dealConfig, err := makeDealConfigs(fc.ms, 1, f, fcfg.FastRetrieval, fcfg.DealStartOffset)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
 	}
 
-	okDeals, failedStartedDeals, err := fc.makeDeals(ctx, c, size, dealConfig, fcfg)
+	okDeals, failedStartedDeals, err := fc.makeDeals(ctx, c, pieceSize, dealConfig, fcfg)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("executing renewed deal: %s", err)
 	}
