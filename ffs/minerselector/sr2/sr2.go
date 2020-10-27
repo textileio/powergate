@@ -97,7 +97,7 @@ func (ms *MinerSelector) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.Mine
 				continue
 			}
 			if f.PieceSize < uint64(sask.MinPieceSize) || f.PieceSize > uint64(sask.MaxPieceSize) {
-				log.Warnf("skipping miner %s since needed piece size %d doesn't fit bounds (%d, %d)", f.PieceSize, sask.MinPieceSize, sask.MaxPieceSize)
+				log.Warnf("skipping miner %s since needed piece size %d doesn't fit bounds (%d, %d)", miners[i], f.PieceSize, sask.MinPieceSize, sask.MaxPieceSize)
 			}
 			selected = append(selected, ffs.MinerProposal{
 				Addr:       miners[i],
