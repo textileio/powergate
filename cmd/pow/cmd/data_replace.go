@@ -11,12 +11,12 @@ import (
 )
 
 func init() {
-	replaceCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
+	dataReplaceCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
-	rootCmd.AddCommand(replaceCmd)
+	dataCmd.AddCommand(dataReplaceCmd)
 }
 
-var replaceCmd = &cobra.Command{
+var dataReplaceCmd = &cobra.Command{
 	Use:   "replace [cid1] [cid2]",
 	Short: "Applies a StorageConfig for c2 equal to that of c1, and removes c1",
 	Long:  `Applies a StorageConfig for c2 equal to that of c1, and removes c1. This operation is more efficient than manually removing and adding in two separate operations`,
@@ -29,7 +29,7 @@ var replaceCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := powClient.ReplaceData(mustAuthCtx(ctx), args[0], args[1])
+		res, err := powClient.Data.ReplaceData(mustAuthCtx(ctx), args[0], args[1])
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

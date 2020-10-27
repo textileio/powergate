@@ -1,4 +1,4 @@
-## pow stage
+## pow data stage
 
 Temporarily stage data in the Hot layer in preparation for applying a cid storage config
 
@@ -7,7 +7,7 @@ Temporarily stage data in the Hot layer in preparation for applying a cid storag
 Temporarily stage data in the Hot layer in preparation for applying a cid storage config
 
 ```
-pow stage [path|url] [flags]
+pow data stage [path|url] [flags]
 ```
 
 ### Options
@@ -26,5 +26,5 @@ pow stage [path|url] [flags]
 
 ### SEE ALSO
 
-* [pow](pow.md)	 - A client for storage and retreival of powergate data
+* [pow data](pow_data.md)	 - Provides commands to interact with general data APIs
 

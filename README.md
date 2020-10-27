@@ -75,7 +75,6 @@ The binary will be placed automatically in `$GOPATH/bin` which in general is in 
 You can read the [generated CLI docs](https://github.com/textileio/powergate/blob/master/cli-docs/pow/pow.md) in this repo, or run `pow` with the `--help` flag to see the available commands:
 
 ```
-
 $ pow --help
 A client for storage and retreival of powergate data
 
@@ -84,22 +83,15 @@ Usage:
   pow [command]
 
 Available Commands:
-  admin              Provides admin commands
-  apply-config       Apply the default or provided storage config to the specified cid
-  deals              Provides commands to view Filecoin deal information
-  default-config     Returns the default storage config
-  get                Get data by cid from the storage profile
-  help               Help about any command
-  id                 Returns the storage profile id
-  info               Get information about the current storate state of a cid
-  log                Display logs for specified cid
-  remove             Removes a Cid from being tracked as an active storage
-  replace            Applies a StorageConfig for c2 equal to that of c1, and removes c1
-  set-default-config Sets the default storage config from stdin or a file
-  stage              Temporarily stage data in the Hot layer in preparation for applying a cid storage config
-  storage-jobs       Provides commands to query for storage jobs in various states
-  version            Display version information for pow and the connected server
-  wallet             Provides commands about filecoin wallets
+  admin        Provides admin commands
+  config       Provides commands to interact with cid storage configs
+  data         Provides commands to interact with general data APIs
+  deals        Provides commands to view Filecoin deal information
+  help         Help about any command
+  id           Returns the storage profile id
+  storage-jobs Provides commands to query for storage jobs in various states
+  version      Display version information for pow and the connected server
+  wallet       Provides commands about filecoin wallets
 
 Flags:
   -h, --help                   help for pow
@@ -218,11 +210,11 @@ make build
     "token":  "883f57b1-4e66-47f8-b291-7cf8b10f6370"
   }
 }
-❯ pow stage -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 myfile
+❯ pow data stage -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 myfile
 {
   "cid":  "QmQJxVtp61Y7UrdjUKuWvse3TxGHaPDyA7RobrBhFwqcBM"
 }
-❯ pow apply-config -w -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
+❯ pow config apply -w -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
 {
   "jobId":  "b4110048-5367-4ae5-8508-709bf7969748"
 }
@@ -230,7 +222,7 @@ make build
 ---------------------------------------+--------------------+--------+----------+--------------------
   b4110048-5367-4ae5-8508-709bf7969748 | JOB_STATUS_SUCCESS |        |          |                    
                                        |                    | f01000 | 62500000 | StorageDealActive
-❯ pow get -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm myfile2
+❯ pow data get -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm myfile2
 > Success! Data written to myfile2
 ```
 

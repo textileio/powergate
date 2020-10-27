@@ -1,4 +1,4 @@
-## pow default-config
+## pow config default
 
 Returns the default storage config
 
@@ -7,13 +7,13 @@ Returns the default storage config
 Returns the default storage config
 
 ```
-pow default-config [flags]
+pow config default [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for default-config
+  -h, --help   help for default
 ```
 
 ### Options inherited from parent commands
@@ -25,5 +25,5 @@ pow default-config [flags]
 
 ### SEE ALSO
 
-* [pow](pow.md)	 - A client for storage and retreival of powergate data
+* [pow config](pow_config.md)	 - Provides commands to interact with cid storage configs
 

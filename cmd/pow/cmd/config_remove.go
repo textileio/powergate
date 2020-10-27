@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(removeCmd)
+	configCmd.AddCommand(removeCmd)
 }
 
 var removeCmd = &cobra.Command{
@@ -24,7 +24,7 @@ var removeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
-		_, err := powClient.Remove(mustAuthCtx(ctx), args[0])
+		_, err := powClient.StorageConfig.Remove(mustAuthCtx(ctx), args[0])
 		checkErr(err)
 	},
 }

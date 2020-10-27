@@ -1,4 +1,4 @@
-## pow get
+## pow data get
 
 Get data by cid from the storage profile
 
@@ -7,7 +7,7 @@ Get data by cid from the storage profile
 Get data by cid from the storage profile
 
 ```
-pow get [cid] [output file path] [flags]
+pow data get [cid] [output file path] [flags]
 ```
 
 ### Options
@@ -27,5 +27,5 @@ pow get [cid] [output file path] [flags]
 
 ### SEE ALSO
 
-* [pow](pow.md)	 - A client for storage and retreival of powergate data
+* [pow data](pow_data.md)	 - Provides commands to interact with general data APIs
 

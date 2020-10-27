@@ -5286,36 +5286,36 @@ var file_proto_powergate_v1_powergate_proto_rawDesc = []byte{
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x33, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70,
 	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x74, 0x44,
 	0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x50, 0x0a,
-	0x05, 0x53, 0x74, 0x61, 0x67, 0x65, 0x12, 0x20, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70,
-	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x61, 0x67,
-	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74,
-	0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x12,
-	0x75, 0x0a, 0x12, 0x41, 0x70, 0x70, 0x6c, 0x79, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x2d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f,
-	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x79,
-	0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77,
-	0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x79, 0x53,
-	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x60, 0x0a, 0x0b, 0x52, 0x65, 0x70, 0x6c, 0x61, 0x63,
-	0x65, 0x44, 0x61, 0x74, 0x61, 0x12, 0x26, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f,
-	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x61,
-	0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x27, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
-	0x76, 0x31, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4a, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12,
-	0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
-	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x1f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
-	0x65, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x30, 0x01, 0x12, 0x51, 0x0a, 0x06, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x12, 0x21,
+	0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x75, 0x0a,
+	0x12, 0x41, 0x70, 0x70, 0x6c, 0x79, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x12, 0x2d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x79, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
+	0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x79, 0x53, 0x74, 0x6f,
+	0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x51, 0x0a, 0x06, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x12, 0x21,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65,
 	0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x1a, 0x22, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
 	0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5c, 0x0a, 0x09, 0x57, 0x61, 0x74, 0x63, 0x68,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x50, 0x0a, 0x05, 0x53, 0x74, 0x61, 0x67, 0x65,
+	0x12, 0x20, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
+	0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x21, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
+	0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x12, 0x60, 0x0a, 0x0b, 0x52, 0x65, 0x70,
+	0x6c, 0x61, 0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x12, 0x26, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65,
+	0x70, 0x6c, 0x61, 0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x27, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
+	0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x44, 0x61, 0x74,
+	0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4a, 0x0a, 0x03, 0x47,
+	0x65, 0x74, 0x12, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
+	0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
+	0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x5c, 0x0a, 0x09, 0x57, 0x61, 0x74, 0x63, 0x68,
 	0x4c, 0x6f, 0x67, 0x73, 0x12, 0x24, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x70, 0x6f, 0x77,
 	0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4c,
 	0x6f, 0x67, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x70, 0x72, 0x6f,
@@ -5596,11 +5596,11 @@ var file_proto_powergate_v1_powergate_proto_depIdxs = []int32{
 	3,  // 44: proto.powergate.v1.PowergateService.ID:input_type -> proto.powergate.v1.IDRequest
 	5,  // 45: proto.powergate.v1.PowergateService.DefaultStorageConfig:input_type -> proto.powergate.v1.DefaultStorageConfigRequest
 	7,  // 46: proto.powergate.v1.PowergateService.SetDefaultStorageConfig:input_type -> proto.powergate.v1.SetDefaultStorageConfigRequest
-	9,  // 47: proto.powergate.v1.PowergateService.Stage:input_type -> proto.powergate.v1.StageRequest
-	11, // 48: proto.powergate.v1.PowergateService.ApplyStorageConfig:input_type -> proto.powergate.v1.ApplyStorageConfigRequest
-	13, // 49: proto.powergate.v1.PowergateService.ReplaceData:input_type -> proto.powergate.v1.ReplaceDataRequest
-	15, // 50: proto.powergate.v1.PowergateService.Get:input_type -> proto.powergate.v1.GetRequest
-	17, // 51: proto.powergate.v1.PowergateService.Remove:input_type -> proto.powergate.v1.RemoveRequest
+	11, // 47: proto.powergate.v1.PowergateService.ApplyStorageConfig:input_type -> proto.powergate.v1.ApplyStorageConfigRequest
+	17, // 48: proto.powergate.v1.PowergateService.Remove:input_type -> proto.powergate.v1.RemoveRequest
+	9,  // 49: proto.powergate.v1.PowergateService.Stage:input_type -> proto.powergate.v1.StageRequest
+	13, // 50: proto.powergate.v1.PowergateService.ReplaceData:input_type -> proto.powergate.v1.ReplaceDataRequest
+	15, // 51: proto.powergate.v1.PowergateService.Get:input_type -> proto.powergate.v1.GetRequest
 	19, // 52: proto.powergate.v1.PowergateService.WatchLogs:input_type -> proto.powergate.v1.WatchLogsRequest
 	21, // 53: proto.powergate.v1.PowergateService.CidInfo:input_type -> proto.powergate.v1.CidInfoRequest
 	23, // 54: proto.powergate.v1.PowergateService.Balance:input_type -> proto.powergate.v1.BalanceRequest
@@ -5624,11 +5624,11 @@ var file_proto_powergate_v1_powergate_proto_depIdxs = []int32{
 	4,  // 72: proto.powergate.v1.PowergateService.ID:output_type -> proto.powergate.v1.IDResponse
 	6,  // 73: proto.powergate.v1.PowergateService.DefaultStorageConfig:output_type -> proto.powergate.v1.DefaultStorageConfigResponse
 	8,  // 74: proto.powergate.v1.PowergateService.SetDefaultStorageConfig:output_type -> proto.powergate.v1.SetDefaultStorageConfigResponse
-	10, // 75: proto.powergate.v1.PowergateService.Stage:output_type -> proto.powergate.v1.StageResponse
-	12, // 76: proto.powergate.v1.PowergateService.ApplyStorageConfig:output_type -> proto.powergate.v1.ApplyStorageConfigResponse
-	14, // 77: proto.powergate.v1.PowergateService.ReplaceData:output_type -> proto.powergate.v1.ReplaceDataResponse
-	16, // 78: proto.powergate.v1.PowergateService.Get:output_type -> proto.powergate.v1.GetResponse
-	18, // 79: proto.powergate.v1.PowergateService.Remove:output_type -> proto.powergate.v1.RemoveResponse
+	12, // 75: proto.powergate.v1.PowergateService.ApplyStorageConfig:output_type -> proto.powergate.v1.ApplyStorageConfigResponse
+	18, // 76: proto.powergate.v1.PowergateService.Remove:output_type -> proto.powergate.v1.RemoveResponse
+	10, // 77: proto.powergate.v1.PowergateService.Stage:output_type -> proto.powergate.v1.StageResponse
+	14, // 78: proto.powergate.v1.PowergateService.ReplaceData:output_type -> proto.powergate.v1.ReplaceDataResponse
+	16, // 79: proto.powergate.v1.PowergateService.Get:output_type -> proto.powergate.v1.GetResponse
 	20, // 80: proto.powergate.v1.PowergateService.WatchLogs:output_type -> proto.powergate.v1.WatchLogsResponse
 	22, // 81: proto.powergate.v1.PowergateService.CidInfo:output_type -> proto.powergate.v1.CidInfoResponse
 	24, // 82: proto.powergate.v1.PowergateService.Balance:output_type -> proto.powergate.v1.BalanceResponse
@@ -6658,13 +6658,15 @@ type PowergateServiceClient interface {
 	// Top level
 	BuildInfo(ctx context.Context, in *BuildInfoRequest, opts ...grpc.CallOption) (*BuildInfoResponse, error)
 	ID(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*IDResponse, error)
+	// Config
 	DefaultStorageConfig(ctx context.Context, in *DefaultStorageConfigRequest, opts ...grpc.CallOption) (*DefaultStorageConfigResponse, error)
 	SetDefaultStorageConfig(ctx context.Context, in *SetDefaultStorageConfigRequest, opts ...grpc.CallOption) (*SetDefaultStorageConfigResponse, error)
-	Stage(ctx context.Context, opts ...grpc.CallOption) (PowergateService_StageClient, error)
 	ApplyStorageConfig(ctx context.Context, in *ApplyStorageConfigRequest, opts ...grpc.CallOption) (*ApplyStorageConfigResponse, error)
+	Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveResponse, error)
+	// Data
+	Stage(ctx context.Context, opts ...grpc.CallOption) (PowergateService_StageClient, error)
 	ReplaceData(ctx context.Context, in *ReplaceDataRequest, opts ...grpc.CallOption) (*ReplaceDataResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (PowergateService_GetClient, error)
-	Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveResponse, error)
 	WatchLogs(ctx context.Context, in *WatchLogsRequest, opts ...grpc.CallOption) (PowergateService_WatchLogsClient, error)
 	CidInfo(ctx context.Context, in *CidInfoRequest, opts ...grpc.CallOption) (*CidInfoResponse, error)
 	// Wallet
@@ -6733,6 +6735,24 @@ func (c *powergateServiceClient) SetDefaultStorageConfig(ctx context.Context, in
 	return out, nil
 }
 
+func (c *powergateServiceClient) ApplyStorageConfig(ctx context.Context, in *ApplyStorageConfigRequest, opts ...grpc.CallOption) (*ApplyStorageConfigResponse, error) {
+	out := new(ApplyStorageConfigResponse)
+	err := c.cc.Invoke(ctx, "/proto.powergate.v1.PowergateService/ApplyStorageConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powergateServiceClient) Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveResponse, error) {
+	out := new(RemoveResponse)
+	err := c.cc.Invoke(ctx, "/proto.powergate.v1.PowergateService/Remove", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *powergateServiceClient) Stage(ctx context.Context, opts ...grpc.CallOption) (PowergateService_StageClient, error) {
 	stream, err := c.cc.NewStream(ctx, &_PowergateService_serviceDesc.Streams[0], "/proto.powergate.v1.PowergateService/Stage", opts...)
 	if err != nil {
@@ -6765,15 +6785,6 @@ func (x *powergateServiceStageClient) CloseAndRecv() (*StageResponse, error) {
 		return nil, err
 	}
 	return m, nil
-}
-
-func (c *powergateServiceClient) ApplyStorageConfig(ctx context.Context, in *ApplyStorageConfigRequest, opts ...grpc.CallOption) (*ApplyStorageConfigResponse, error) {
-	out := new(ApplyStorageConfigResponse)
-	err := c.cc.Invoke(ctx, "/proto.powergate.v1.PowergateService/ApplyStorageConfig", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *powergateServiceClient) ReplaceData(ctx context.Context, in *ReplaceDataRequest, opts ...grpc.CallOption) (*ReplaceDataResponse, error) {
@@ -6815,15 +6826,6 @@ func (x *powergateServiceGetClient) Recv() (*GetResponse, error) {
 		return nil, err
 	}
 	return m, nil
-}
-
-func (c *powergateServiceClient) Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveResponse, error) {
-	out := new(RemoveResponse)
-	err := c.cc.Invoke(ctx, "/proto.powergate.v1.PowergateService/Remove", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *powergateServiceClient) WatchLogs(ctx context.Context, in *WatchLogsRequest, opts ...grpc.CallOption) (PowergateService_WatchLogsClient, error) {
@@ -7048,13 +7050,15 @@ type PowergateServiceServer interface {
 	// Top level
 	BuildInfo(context.Context, *BuildInfoRequest) (*BuildInfoResponse, error)
 	ID(context.Context, *IDRequest) (*IDResponse, error)
+	// Config
 	DefaultStorageConfig(context.Context, *DefaultStorageConfigRequest) (*DefaultStorageConfigResponse, error)
 	SetDefaultStorageConfig(context.Context, *SetDefaultStorageConfigRequest) (*SetDefaultStorageConfigResponse, error)
-	Stage(PowergateService_StageServer) error
 	ApplyStorageConfig(context.Context, *ApplyStorageConfigRequest) (*ApplyStorageConfigResponse, error)
+	Remove(context.Context, *RemoveRequest) (*RemoveResponse, error)
+	// Data
+	Stage(PowergateService_StageServer) error
 	ReplaceData(context.Context, *ReplaceDataRequest) (*ReplaceDataResponse, error)
 	Get(*GetRequest, PowergateService_GetServer) error
-	Remove(context.Context, *RemoveRequest) (*RemoveResponse, error)
 	WatchLogs(*WatchLogsRequest, PowergateService_WatchLogsServer) error
 	CidInfo(context.Context, *CidInfoRequest) (*CidInfoResponse, error)
 	// Wallet
@@ -7095,20 +7099,20 @@ func (*UnimplementedPowergateServiceServer) DefaultStorageConfig(context.Context
 func (*UnimplementedPowergateServiceServer) SetDefaultStorageConfig(context.Context, *SetDefaultStorageConfigRequest) (*SetDefaultStorageConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetDefaultStorageConfig not implemented")
 }
-func (*UnimplementedPowergateServiceServer) Stage(PowergateService_StageServer) error {
-	return status.Errorf(codes.Unimplemented, "method Stage not implemented")
-}
 func (*UnimplementedPowergateServiceServer) ApplyStorageConfig(context.Context, *ApplyStorageConfigRequest) (*ApplyStorageConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApplyStorageConfig not implemented")
+}
+func (*UnimplementedPowergateServiceServer) Remove(context.Context, *RemoveRequest) (*RemoveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
+}
+func (*UnimplementedPowergateServiceServer) Stage(PowergateService_StageServer) error {
+	return status.Errorf(codes.Unimplemented, "method Stage not implemented")
 }
 func (*UnimplementedPowergateServiceServer) ReplaceData(context.Context, *ReplaceDataRequest) (*ReplaceDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReplaceData not implemented")
 }
 func (*UnimplementedPowergateServiceServer) Get(*GetRequest, PowergateService_GetServer) error {
 	return status.Errorf(codes.Unimplemented, "method Get not implemented")
-}
-func (*UnimplementedPowergateServiceServer) Remove(context.Context, *RemoveRequest) (*RemoveResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
 }
 func (*UnimplementedPowergateServiceServer) WatchLogs(*WatchLogsRequest, PowergateService_WatchLogsServer) error {
 	return status.Errorf(codes.Unimplemented, "method WatchLogs not implemented")
@@ -7244,6 +7248,42 @@ func _PowergateService_SetDefaultStorageConfig_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PowergateService_ApplyStorageConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyStorageConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowergateServiceServer).ApplyStorageConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.powergate.v1.PowergateService/ApplyStorageConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowergateServiceServer).ApplyStorageConfig(ctx, req.(*ApplyStorageConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowergateService_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowergateServiceServer).Remove(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.powergate.v1.PowergateService/Remove",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowergateServiceServer).Remove(ctx, req.(*RemoveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PowergateService_Stage_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(PowergateServiceServer).Stage(&powergateServiceStageServer{stream})
 }
@@ -7268,24 +7308,6 @@ func (x *powergateServiceStageServer) Recv() (*StageRequest, error) {
 		return nil, err
 	}
 	return m, nil
-}
-
-func _PowergateService_ApplyStorageConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ApplyStorageConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PowergateServiceServer).ApplyStorageConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.powergate.v1.PowergateService/ApplyStorageConfig",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowergateServiceServer).ApplyStorageConfig(ctx, req.(*ApplyStorageConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _PowergateService_ReplaceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -7325,24 +7347,6 @@ type powergateServiceGetServer struct {
 
 func (x *powergateServiceGetServer) Send(m *GetResponse) error {
 	return x.ServerStream.SendMsg(m)
-}
-
-func _PowergateService_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PowergateServiceServer).Remove(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.powergate.v1.PowergateService/Remove",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowergateServiceServer).Remove(ctx, req.(*RemoveRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _PowergateService_WatchLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -7718,12 +7722,12 @@ var _PowergateService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _PowergateService_ApplyStorageConfig_Handler,
 		},
 		{
-			MethodName: "ReplaceData",
-			Handler:    _PowergateService_ReplaceData_Handler,
-		},
-		{
 			MethodName: "Remove",
 			Handler:    _PowergateService_Remove_Handler,
+		},
+		{
+			MethodName: "ReplaceData",
+			Handler:    _PowergateService_ReplaceData_Handler,
 		},
 		{
 			MethodName: "CidInfo",

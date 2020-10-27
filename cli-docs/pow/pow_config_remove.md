@@ -1,4 +1,4 @@
-## pow remove
+## pow config remove
 
 Removes a Cid from being tracked as an active storage
 
@@ -7,7 +7,7 @@ Removes a Cid from being tracked as an active storage
 Removes a Cid from being tracked as an active storage. The Cid should have both Hot and Cold storage disabled, if that isn't the case it will return ErrActiveInStorage
 
 ```
-pow remove [cid] [flags]
+pow config remove [cid] [flags]
 ```
 
 ### Options
@@ -25,5 +25,5 @@ pow remove [cid] [flags]
 
 ### SEE ALSO
 
-* [pow](pow.md)	 - A client for storage and retreival of powergate data
+* [pow config](pow_config.md)	 - Provides commands to interact with cid storage configs
 

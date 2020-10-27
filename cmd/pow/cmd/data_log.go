@@ -13,12 +13,12 @@ import (
 )
 
 func init() {
-	logCmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
+	dataLogCmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
 
-	rootCmd.AddCommand(logCmd)
+	dataCmd.AddCommand(dataLogCmd)
 }
 
-var logCmd = &cobra.Command{
+var dataLogCmd = &cobra.Command{
 	Use:   "log [cid]",
 	Short: "Display logs for specified cid",
 	Long:  `Display logs for specified cid`,
@@ -38,7 +38,7 @@ var logCmd = &cobra.Command{
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		err := powClient.WatchLogs(mustAuthCtx(ctx), ch, args[0], opts...)
+		err := powClient.Data.WatchLogs(mustAuthCtx(ctx), ch, args[0], opts...)
 		checkErr(err)
 
 		c := make(chan os.Signal)

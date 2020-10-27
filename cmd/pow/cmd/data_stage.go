@@ -16,12 +16,12 @@ import (
 )
 
 func init() {
-	stageCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
+	dataStageCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
 
-	rootCmd.AddCommand(stageCmd)
+	dataCmd.AddCommand(dataStageCmd)
 }
 
-var stageCmd = &cobra.Command{
+var dataStageCmd = &cobra.Command{
 	Use:   "stage [path|url]",
 	Short: "Temporarily stage data in the Hot layer in preparation for applying a cid storage config",
 	Long:  `Temporarily stage data in the Hot layer in preparation for applying a cid storage config`,
@@ -50,7 +50,7 @@ var stageCmd = &cobra.Command{
 			Fatal(fmt.Errorf("getting file/folder information: %s", err))
 		}
 		if fi.IsDir() {
-			c, err := powClient.StageFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), args[0])
+			c, err := powClient.Data.StageFolder(mustAuthCtx(ctx), viper.GetString("ipfsrevproxy"), args[0])
 			checkErr(err)
 			Success("Staged folder with cid: %s", c)
 		} else {
@@ -63,7 +63,7 @@ var stageCmd = &cobra.Command{
 }
 
 func stageReader(ctx context.Context, reader io.Reader) {
-	res, err := powClient.Stage(mustAuthCtx(ctx), reader)
+	res, err := powClient.Data.Stage(mustAuthCtx(ctx), reader)
 	checkErr(err)
 
 	json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

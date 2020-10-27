@@ -1,4 +1,4 @@
-## pow replace
+## pow data replace
 
 Applies a StorageConfig for c2 equal to that of c1, and removes c1
 
@@ -7,7 +7,7 @@ Applies a StorageConfig for c2 equal to that of c1, and removes c1
 Applies a StorageConfig for c2 equal to that of c1, and removes c1. This operation is more efficient than manually removing and adding in two separate operations
 
 ```
-pow replace [cid1] [cid2] [flags]
+pow data replace [cid1] [cid2] [flags]
 ```
 
 ### Options
@@ -26,5 +26,5 @@ pow replace [cid1] [cid2] [flags]
 
 ### SEE ALSO
 
-* [pow](pow.md)	 - A client for storage and retreival of powergate data
+* [pow data](pow_data.md)	 - Provides commands to interact with general data APIs
 

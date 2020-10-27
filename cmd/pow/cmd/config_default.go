@@ -11,11 +11,11 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(defaultConfigCmd)
+	configCmd.AddCommand(configDefaultCmd)
 }
 
-var defaultConfigCmd = &cobra.Command{
-	Use:   "default-config",
+var configDefaultCmd = &cobra.Command{
+	Use:   "default",
 	Short: "Returns the default storage config",
 	Long:  `Returns the default storage config`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -26,7 +26,7 @@ var defaultConfigCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := powClient.DefaultStorageConfig(mustAuthCtx(ctx))
+		res, err := powClient.StorageConfig.Default(mustAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.DefaultStorageConfig)

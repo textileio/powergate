@@ -1,4 +1,4 @@
-## pow info
+## pow data info
 
 Get information about the current storate state of a cid
 
@@ -7,7 +7,7 @@ Get information about the current storate state of a cid
 Get information about the current storate state of a cid
 
 ```
-pow info [optional cid1,cid2,...] [flags]
+pow data info [optional cid1,cid2,...] [flags]
 ```
 
 ### Options
@@ -25,5 +25,5 @@ pow info [optional cid1,cid2,...] [flags]
 
 ### SEE ALSO
 
-* [pow](pow.md)	 - A client for storage and retreival of powergate data
+* [pow data](pow_data.md)	 - Provides commands to interact with general data APIs
 

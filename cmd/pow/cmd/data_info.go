@@ -11,10 +11,10 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(infoCmd)
+	dataCmd.AddCommand(dataInfoCmd)
 }
 
-var infoCmd = &cobra.Command{
+var dataInfoCmd = &cobra.Command{
 	Use:   "info [optional cid1,cid2,...]",
 	Short: "Get information about the current storate state of a cid",
 	Long:  `Get information about the current storate state of a cid`,
@@ -32,7 +32,7 @@ var infoCmd = &cobra.Command{
 			cids = strings.Split(args[0], ",")
 		}
 
-		res, err := powClient.CidInfo(mustAuthCtx(ctx), cids...)
+		res, err := powClient.Data.CidInfo(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

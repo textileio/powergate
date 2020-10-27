@@ -19,11 +19,11 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(setDefaultConfigCmd)
+	configCmd.AddCommand(configSetDefaultCmd)
 }
 
-var setDefaultConfigCmd = &cobra.Command{
-	Use:   "set-default-config [optional file]",
+var configSetDefaultCmd = &cobra.Command{
+	Use:   "set-default [optional file]",
 	Short: "Sets the default storage config from stdin or a file",
 	Long:  `Sets the default storage config from stdin or a file`,
 	Args:  cobra.MaximumNArgs(1),
@@ -57,7 +57,7 @@ var setDefaultConfigCmd = &cobra.Command{
 		err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
 		checkErr(err)
 
-		_, err = powClient.SetDefaultStorageConfig(mustAuthCtx(ctx), config)
+		_, err = powClient.StorageConfig.SetDefault(mustAuthCtx(ctx), config)
 		checkErr(err)
 	},
 }

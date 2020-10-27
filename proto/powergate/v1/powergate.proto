@@ -255,13 +255,17 @@ service PowergateService {
   // Top level
   rpc BuildInfo(BuildInfoRequest) returns (BuildInfoResponse) {}
   rpc ID(IDRequest) returns (IDResponse) {}
+
+  // Storage config
   rpc DefaultStorageConfig(DefaultStorageConfigRequest) returns (DefaultStorageConfigResponse) {}
   rpc SetDefaultStorageConfig(SetDefaultStorageConfigRequest) returns (SetDefaultStorageConfigResponse) {}
-  rpc Stage(stream StageRequest) returns (StageResponse) {}
   rpc ApplyStorageConfig(ApplyStorageConfigRequest) returns (ApplyStorageConfigResponse) {}
+  rpc Remove(RemoveRequest) returns (RemoveResponse) {}
+
+  // Data
+  rpc Stage(stream StageRequest) returns (StageResponse) {}
   rpc ReplaceData(ReplaceDataRequest) returns (ReplaceDataResponse) {}
   rpc Get(GetRequest) returns (stream GetResponse) {}
-  rpc Remove(RemoveRequest) returns (RemoveResponse) {}
   rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
   rpc CidInfo(CidInfoRequest) returns (CidInfoResponse) {}
 

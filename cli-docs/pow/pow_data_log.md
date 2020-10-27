@@ -1,4 +1,4 @@
-## pow log
+## pow data log
 
 Display logs for specified cid
 
@@ -7,7 +7,7 @@ Display logs for specified cid
 Display logs for specified cid
 
 ```
-pow log [cid] [flags]
+pow data log [cid] [flags]
 ```
 
 ### Options
@@ -26,5 +26,5 @@ pow log [cid] [flags]
 
 ### SEE ALSO
 
-* [pow](pow.md)	 - A client for storage and retreival of powergate data
+* [pow data](pow_data.md)	 - Provides commands to interact with general data APIs
 

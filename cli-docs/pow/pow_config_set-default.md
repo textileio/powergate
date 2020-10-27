@@ -1,4 +1,4 @@
-## pow set-default-config
+## pow config set-default
 
 Sets the default storage config from stdin or a file
 
@@ -7,13 +7,13 @@ Sets the default storage config from stdin or a file
 Sets the default storage config from stdin or a file
 
 ```
-pow set-default-config [optional file] [flags]
+pow config set-default [optional file] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for set-default-config
+  -h, --help   help for set-default
 ```
 
 ### Options inherited from parent commands
@@ -25,5 +25,5 @@ pow set-default-config [optional file] [flags]
 
 ### SEE ALSO
 
-* [pow](pow.md)	 - A client for storage and retreival of powergate data
+* [pow config](pow_config.md)	 - Provides commands to interact with cid storage configs
 
