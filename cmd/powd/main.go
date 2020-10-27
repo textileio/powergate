@@ -354,7 +354,7 @@ func setupFlags() error {
 	pflag.String("ffsminimumpiecesize", "67108864", "Minimum piece size in bytes allowed to be stored in Filecoin")
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel")
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
-	pflag.String("ffsmaxparalleldealpreparing", "1", "Max parallel deal preparing tasks")
+	pflag.String("ffsmaxparalleldealpreparing", "2", "Max parallel deal preparing tasks")
 	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes")
 
 	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask")
