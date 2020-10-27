@@ -53,14 +53,14 @@ func TestQueryAsk(t *testing.T) {
 	dm := Runner{}
 	dm.orderedAsks = []*ask.StorageAsk{
 		{Price: uint64(20), MinPieceSize: 128, Miner: "t01"},
-		{Price: uint64(30), MinPieceSize: 64, Miner: "t02"},
+		{Price: uint64(30), MinPieceSize: 64, MaxPieceSize: 128, Miner: "t02"},
 		{Price: uint64(40), MinPieceSize: 256, Miner: "t03"},
 		{Price: uint64(50), MinPieceSize: 16, Miner: "t04"},
 	}
 
 	facr := []ask.StorageAsk{
 		{Price: 20, MinPieceSize: 128, Miner: "t01"},
-		{Price: 30, MinPieceSize: 64, Miner: "t02"},
+		{Price: 30, MinPieceSize: 64, MaxPieceSize: 128, Miner: "t02"},
 		{Price: 40, MinPieceSize: 256, Miner: "t03"},
 		{Price: 50, MinPieceSize: 16, Miner: "t04"},
 	}

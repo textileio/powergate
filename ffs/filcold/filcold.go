@@ -306,7 +306,7 @@ Loop:
 				fc.l.Log(ctx, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
 				return activeProposal, nil
 			case storagemarket.StorageDealError, storagemarket.StorageDealFailing:
-				log.Errorf("deal %d failed with state %s: %s", di.DealID, storagemarket.DealStates[di.StateID], di.Message)
+				log.Errorf("deal %d & proposal %s failed with state %s: %s", di.DealID, proposal, storagemarket.DealStates[di.StateID], di.Message)
 				fc.l.Log(ctx, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
 
 				return ffs.FilStorage{}, ffs.DealError{ProposalCid: di.ProposalCid, Miner: di.Miner, Message: di.Message}
