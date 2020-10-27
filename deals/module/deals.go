@@ -31,7 +31,7 @@ import (
 const (
 	chanWriteTimeout = time.Second
 
-	defaultDealStartOffset = 72 * 60 * 60 / util.EpochDurationSeconds // 72hs
+	defaultDealStartOffset = 48 * 60 * 60 / util.EpochDurationSeconds // 48hs
 )
 
 var (
