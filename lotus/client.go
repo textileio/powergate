@@ -12,13 +12,10 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 
 	"github.com/textileio/powergate/util"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/stats/view"
 )
 
 var (
-	heightProbingInterval = time.Second * 10
-	log                   = logging.Logger("lotus-client")
+	log = logging.Logger("lotus-client")
 )
 
 // ClientBuilder creates a new Lotus client.
@@ -56,33 +53,4 @@ func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBu
 
 		return &api, closer, nil
 	}, nil
-}
-
-// MonitorLotusSync fires a goroutine that will generate
-// metrics with Lotus node height.
-func MonitorLotusSync(clientBuilder ClientBuilder) {
-	if err := view.Register(vHeight); err != nil {
-		log.Fatalf("register metrics views: %v", err)
-	}
-	go func() {
-		for {
-			refreshHeightMetric(clientBuilder)
-			time.Sleep(heightProbingInterval)
-		}
-	}()
-}
-
-func refreshHeightMetric(clientBuilder ClientBuilder) {
-	c, cls, err := clientBuilder()
-	if err != nil {
-		log.Errorf("creating lotus client for monitoring: %s", err)
-		return
-	}
-	defer cls()
-	heaviest, err := c.ChainHead(context.Background())
-	if err != nil {
-		log.Errorf("get lotus sync status: %s", err)
-		return
-	}
-	stats.Record(context.Background(), mLotusHeight.M(int64(heaviest.Height())))
 }
