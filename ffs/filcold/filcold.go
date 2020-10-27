@@ -261,10 +261,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, pieceSize uint64, p
 // makeDeals starts deals with the specified miners. It returns a slice with all the ProposalCids
 // that were started successfully, and a slice of DealError with deals that failed to be started.
 func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, error) {
-	for _, cfg := range cfgs {
-		fc.l.Log(ctx, "Proposing deal to miner %s with %d attoFIL per epoch...", cfg.Miner, cfg.EpochPrice)
-	}
-
+	fc.l.Log(ctx, "Entering deal execution queue...")
 	// In the next Lotus release (v1.1.3), we'll be able to remove this limiting
 	// since we can avoid creating deals recompute the deal size and CommP. Since
 	// that isn't ready yet, starting a deal is very resource intensive so put a cap for now.
@@ -274,6 +271,10 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 		return nil, nil, fmt.Errorf("canceled by context")
 	}
 	defer func() { <-fc.semaphDealPrep }()
+
+	for _, cfg := range cfgs {
+		fc.l.Log(ctx, "Proposing deal to miner %s with %d attoFIL per epoch...", cfg.Miner, cfg.EpochPrice)
+	}
 
 	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, size, cfgs, uint64(fcfg.DealMinDuration))
 	if err != nil {
