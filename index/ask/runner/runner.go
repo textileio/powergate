@@ -106,10 +106,10 @@ func (ai *Runner) Query(q ask.Query) ([]ask.StorageAsk, error) {
 		if q.MaxPrice != 0 && sa.Price > q.MaxPrice {
 			break
 		}
-		if sa.MinPieceSize > q.PieceSize {
+		if q.PieceSize != 0 && sa.MinPieceSize > q.PieceSize {
 			continue
 		}
-		if sa.MaxPieceSize < q.PieceSize {
+		if q.PieceSize != 0 && sa.MaxPieceSize < q.PieceSize {
 			continue
 		}
 		if offset > 0 {
