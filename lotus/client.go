@@ -48,7 +48,7 @@ func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBu
 				break
 			}
 			log.Warnf("failed to connect to Lotus client %s, retrying...", err)
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 10)
 		}
 		if err != nil {
 			return nil, nil, fmt.Errorf("couldn't connect to Lotus API: %s", err)

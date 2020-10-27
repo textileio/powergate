@@ -64,8 +64,7 @@ import (
 )
 
 const (
-	datastoreFolderName    = "datastore"
-	lotusConnectionRetries = 10
+	datastoreFolderName = "datastore"
 )
 
 var (
@@ -110,9 +109,10 @@ type Config struct {
 	Devnet          bool
 	IpfsAPIAddr     ma.Multiaddr
 
-	LotusAddress    ma.Multiaddr
-	LotusAuthToken  string
-	LotusMasterAddr string
+	LotusAddress           ma.Multiaddr
+	LotusAuthToken         string
+	LotusMasterAddr        string
+	LotusConnectionRetries int
 
 	GrpcHostNetwork     string
 	GrpcHostAddress     ma.Multiaddr
@@ -152,7 +152,7 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	var err error
-	clientBuilder, err := lotus.NewBuilder(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
+	clientBuilder, err := lotus.NewBuilder(conf.LotusAddress, conf.LotusAuthToken, conf.LotusConnectionRetries)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client builder: %s", err)
 	}

@@ -105,7 +105,7 @@ func configFromFlags() (server.Config, error) {
 		return server.Config{}, fmt.Errorf("parsing grpchostaddr: %s", err)
 	}
 
-	maddr, err := ma.NewMultiaddr(config.GetString("lotushost"))
+	lotusHost, err := ma.NewMultiaddr(config.GetString("lotushost"))
 	if err != nil {
 		return server.Config{}, fmt.Errorf("parsing lotus api multiaddr: %s", err)
 	}
@@ -113,6 +113,7 @@ func configFromFlags() (server.Config, error) {
 	walletInitialFunds := *big.NewInt(config.GetInt64("walletinitialfund"))
 	ipfsAPIAddr := util.MustParseAddr(config.GetString("ipfsapiaddr"))
 	lotusMasterAddr := config.GetString("lotusmasteraddr")
+	lotusConnectionRetries := config.GetInt("lotusconnectionretries")
 	autocreateMasterAddr := config.GetBool("autocreatemasteraddr")
 	ffsUseMasterAddr := config.GetBool("ffsusemasteraddr")
 	grpcWebProxyAddr := config.GetString("grpcwebproxyaddr")
@@ -141,8 +142,10 @@ func configFromFlags() (server.Config, error) {
 		RepoPath:           repoPath,
 		MaxMindDBFolder:    maxminddbfolder,
 
-		LotusAddress:   maddr,
-		LotusAuthToken: lotusToken,
+		LotusAddress:           lotusHost,
+		LotusAuthToken:         lotusToken,
+		LotusConnectionRetries: lotusConnectionRetries,
+		LotusMasterAddr:        lotusMasterAddr,
 
 		// ToDo: Support secure gRPC connection
 		GrpcHostNetwork:     "tcp",
@@ -158,7 +161,6 @@ func configFromFlags() (server.Config, error) {
 		FFSUseMasterAddr:       ffsUseMasterAddr,
 		FFSDealFinalityTimeout: ffsDealWatchFinalityTimeout,
 		FFSMinimumPieceSize:    ffsMinimumPieceSize,
-		LotusMasterAddr:        lotusMasterAddr,
 		AutocreateMasterAddr:   autocreateMasterAddr,
 		MinerSelector:          minerSelector,
 		MinerSelectorParams:    minerSelectorParams,
@@ -326,6 +328,7 @@ func setupFlags() error {
 	pflag.String("lotustoken", "", "Lotus API authorization token. This flag or --lotustoken file are mandatory.")
 	pflag.String("lotustokenfile", "", "Path of a file that contains the Lotus API authorization token.")
 	pflag.String("lotusmasteraddr", "", "Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)")
+	pflag.Int64("lotusconnectionretries", 180, "Maximum amount of connection retries when making API calls before considering them a failure. Retries are spaced by 10s. (default ~30min).")
 	pflag.Bool("autocreatemasteraddr", false, "Automatically creates & funds a master address if none is provided.")
 	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
 	pflag.String("repopath", "~/.powergate", "Path of the repository where Powergate state will be saved.")
