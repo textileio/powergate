@@ -102,7 +102,7 @@ func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (api.DataS
 		case <-time.After(time.Minute):
 		}
 	}
-
+	fc.l.Log(ctx, "Calculating piece size...")
 	size, err := fc.dm.CalculatePieceSize(ctx, c)
 	if err != nil {
 		return api.DataSize{}, fmt.Errorf("getting cid cummulative size: %s", err)
@@ -115,7 +115,6 @@ func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (api.DataS
 // started, and a slice of with Proposal Cids rejected. Returned proposed deals can be tracked
 // with the WaitForDeal API.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, uint64, error) {
-	fc.l.Log(ctx, "Calculating piece size...")
 	size, err := fc.calculatePieceSize(ctx, c)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
