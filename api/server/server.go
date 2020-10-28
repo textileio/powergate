@@ -157,7 +157,10 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client builder: %s", err)
 	}
-	lotus.MonitorLotusSync(clientBuilder)
+	lsm, err := lotus.NewLotusSyncMonitor(clientBuilder)
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus sync monitor: %s", err)
+	}
 
 	c, cls, err := clientBuilder(context.Background())
 	if err != nil {
@@ -251,7 +254,7 @@ func NewServer(conf Config) (*Server, error) {
 	if conf.Devnet {
 		conf.FFSMinimumPieceSize = 0
 	}
-	cs := filcold.New(ms, dm, ipfs, chain, l, conf.FFSMinimumPieceSize, conf.FFSMaxParallelDealPreparing)
+	cs := filcold.New(ms, dm, ipfs, chain, l, lsm, conf.FFSMinimumPieceSize, conf.FFSMaxParallelDealPreparing)
 	hs, err := coreipfs.New(ipfs, l)
 	if err != nil {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)

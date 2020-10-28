@@ -3,10 +3,10 @@ package lotus
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 )
@@ -23,36 +23,57 @@ var (
 	metricHeightInterval = time.Second * 120
 )
 
+type LotusSyncMonitor struct {
+	cb ClientBuilder
+
+	lock       sync.Mutex
+	heightDiff int64
+	remaining  int64
+}
+
 // MonitorLotusSync fires a goroutine that will generate
 // metrics with Lotus node height.
-func MonitorLotusSync(clientBuilder ClientBuilder) {
+func NewLotusSyncMonitor(cb ClientBuilder) (*LotusSyncMonitor, error) {
 	if err := view.Register(vHeight); err != nil {
 		log.Fatalf("register metrics views: %v", err)
 	}
+	lsm := &LotusSyncMonitor{cb: cb}
+
+	if err := lsm.refreshSyncDiff(); err != nil {
+		return nil, fmt.Errorf("getting initial sync height diff: %s", err)
+	}
+
 	go func() {
 		for {
-			evaluate(clientBuilder)
+			lsm.evaluate()
 			time.Sleep(metricHeightInterval)
 		}
 	}()
+	return lsm, nil
 }
 
-func evaluate(cb ClientBuilder) {
-	c, cls, err := cb(context.Background())
-	if err != nil {
-		log.Errorf("creating lotus client for monitoring: %s", err)
-		return
-	}
-	defer cls()
-	if err := refreshHeightMetric(c); err != nil {
+func (lsm *LotusSyncMonitor) SyncHeightDiff() int64 {
+	lsm.lock.Lock()
+	defer lsm.lock.Unlock()
+	return lsm.heightDiff
+}
+
+func (lsm *LotusSyncMonitor) evaluate() {
+	if err := lsm.refreshHeightMetric(); err != nil {
 		log.Errorf("refreshing height metric: %s", err)
 	}
-	if err := checkSyncStatus(c); err != nil {
+	if err := lsm.checkSyncStatus(); err != nil {
 		log.Errorf("checking sync status: %s", err)
 	}
 }
 
-func refreshHeightMetric(c *apistruct.FullNodeStruct) error {
+func (lsm *LotusSyncMonitor) refreshHeightMetric() error {
+	c, cls, err := lsm.cb(context.Background())
+	if err != nil {
+		return fmt.Errorf("creating lotus client for monitoring: %s", err)
+	}
+	defer cls()
+
 	heaviest, err := c.ChainHead(context.Background())
 	if err != nil {
 		return fmt.Errorf("getting chain head: %s", err)
@@ -61,13 +82,34 @@ func refreshHeightMetric(c *apistruct.FullNodeStruct) error {
 	return nil
 }
 
-func checkSyncStatus(c *apistruct.FullNodeStruct) error {
+func (lsm *LotusSyncMonitor) checkSyncStatus() error {
+	if err := lsm.refreshSyncDiff(); err != nil {
+		return fmt.Errorf("refreshing height difference: %s", err)
+	}
+
+	lsm.lock.Lock()
+	defer lsm.lock.Unlock()
+	if lsm.heightDiff > 10 {
+		log.Warnf("Louts behind in syncing with height diff %d, todo: %d", lsm.heightDiff, lsm.remaining)
+	}
+	return nil
+}
+
+func (lsm *LotusSyncMonitor) refreshSyncDiff() error {
+	c, cls, err := lsm.cb(context.Background())
+	if err != nil {
+		return fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
 	ctx, cls := context.WithTimeout(context.Background(), time.Second*5)
 	defer cls()
 	ss, err := c.SyncState(ctx)
 	if err != nil {
 		return fmt.Errorf("calling sync state: %s", err)
 	}
+
+	var maxHeightDiff, remaining int64
 	for _, as := range ss.ActiveSyncs {
 		if as.Stage != api.StageSyncComplete {
 			var heightDiff int64
@@ -80,12 +122,17 @@ func checkSyncStatus(c *apistruct.FullNodeStruct) error {
 				heightDiff = 0
 			}
 
-			if heightDiff > 10 {
-				log.Warnf("Louts behind in syncing with height diff %d, todo: %d", heightDiff, as.Target.Height()-as.Height)
-				return nil // Only report one worker falling behind
+			if heightDiff > maxHeightDiff {
+				maxHeightDiff = heightDiff
+				remaining = int64(as.Target.Height() - as.Height)
 			}
 		}
-
 	}
+
+	lsm.lock.Lock()
+	lsm.heightDiff = maxHeightDiff
+	lsm.remaining = remaining
+	lsm.lock.Unlock()
+
 	return nil
 }

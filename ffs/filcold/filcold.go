@@ -16,6 +16,11 @@ import (
 	"github.com/textileio/powergate/deals/module"
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/lotus"
+)
+
+const (
+	unsyncedThreshold = 10
 )
 
 var (
@@ -30,6 +35,7 @@ type FilCold struct {
 	ipfs           iface.CoreAPI
 	chain          FilChain
 	l              ffs.JobLogger
+	lsm            *lotus.LotusSyncMonitor
 	minPieceSize   uint64
 	semaphDealPrep chan struct{}
 }
@@ -42,13 +48,14 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.LotusSyncMonitor, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
 	return &FilCold{
 		ms:             ms,
 		dm:             dm,
 		ipfs:           ipfs,
 		chain:          chain,
 		l:              l,
+		lsm:            lsm,
 		minPieceSize:   minPieceSize,
 		semaphDealPrep: make(chan struct{}, maxParallelDealPreparing),
 	}
@@ -271,6 +278,16 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 		return nil, nil, fmt.Errorf("canceled by context")
 	}
 	defer func() { <-fc.semaphDealPrep }()
+	for {
+		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			return nil, nil, fmt.Errorf("canceled by context")
+		case <-time.After(time.Minute):
+		}
+	}
 
 	for _, cfg := range cfgs {
 		fc.l.Log(ctx, "Proposing deal to miner %s with %d attoFIL per epoch...", cfg.Miner, cfg.EpochPrice)

@@ -133,22 +133,24 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 }
 
 // NewCustomFFSManager returns a new customized FFS manager.
-func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi, minimumPieceSize uint64) (*manager.Manager, func()) {
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, util.AvgBlockTime, time.Minute*10)
+func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi, minimumPieceSize uint64) (*manager.Manager, func()) {
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), cb, util.AvgBlockTime, time.Minute*10)
 	require.NoError(t, err)
 
-	fchain := filchain.New(clientBuilder)
+	fchain := filchain.New(cb)
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
-	cl := filcold.New(ms, dm, ipfsClient, fchain, l, minimumPieceSize, 1)
+	lsm, err := lotus.NewLotusSyncMonitor(cb)
+	require.NoError(t, err)
+	cl := filcold.New(ms, dm, ipfsClient, fchain, l, lsm, minimumPieceSize, 1)
 	hl, err := coreipfs.New(ipfsClient, l)
 	require.NoError(t, err)
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil)
 	require.NoError(t, err)
 
-	wm, err := walletModule.New(clientBuilder, masterAddr, *big.NewInt(iWalletBal), false, "")
+	wm, err := walletModule.New(cb, masterAddr, *big.NewInt(iWalletBal), false, "")
 	require.NoError(t, err)
 
-	pm := paych.New(clientBuilder)
+	pm := paych.New(cb)
 
 	manager, err := manager.New(ds, wm, pm, dm, sched, false, true)
 	require.NoError(t, err)
