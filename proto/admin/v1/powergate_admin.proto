@@ -54,7 +54,7 @@ message StorageProfilesResponse {
 // Jobs
 
 message QueuedStorageJobsRequest {
-  string instance_id = 1;
+  string profile_id = 1;
   repeated string cids = 2;
 }
 
@@ -63,7 +63,7 @@ message QueuedStorageJobsResponse {
 }
 
 message ExecutingStorageJobsRequest {
-  string instance_id = 1;
+  string profile_id = 1;
   repeated string cids = 2;
 }
 
@@ -72,7 +72,7 @@ message ExecutingStorageJobsResponse {
 }
 
 message LatestFinalStorageJobsRequest {
-  string instance_id = 1;
+  string profile_id = 1;
   repeated string cids = 2;
 }
 
@@ -81,7 +81,7 @@ message LatestFinalStorageJobsResponse {
 }
 
 message LatestSuccessfulStorageJobsRequest {
-  string instance_id = 1;
+  string profile_id = 1;
   repeated string cids = 2;
 }
 
@@ -90,7 +90,7 @@ message LatestSuccessfulStorageJobsResponse {
 }
 
 message StorageJobsSummaryRequest {
-  string instance_id = 1;
+  string profile_id = 1;
   repeated string cids = 2;
 }
 

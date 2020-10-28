@@ -19,7 +19,7 @@ func (a *Service) QueuedStorageJobs(ctx context.Context, req *adminProto.QueuedS
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
-	jobs := a.s.QueuedStorageJobs(ffs.APIID(req.InstanceId), cids...)
+	jobs := a.s.QueuedStorageJobs(ffs.APIID(req.ProfileId), cids...)
 	protoJobs, err := powergate.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
@@ -35,7 +35,7 @@ func (a *Service) ExecutingStorageJobs(ctx context.Context, req *adminProto.Exec
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
-	jobs := a.s.ExecutingStorageJobs(ffs.APIID(req.InstanceId), cids...)
+	jobs := a.s.ExecutingStorageJobs(ffs.APIID(req.ProfileId), cids...)
 	protoJobs, err := powergate.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
@@ -51,7 +51,7 @@ func (a *Service) LatestFinalStorageJobs(ctx context.Context, req *adminProto.La
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
-	jobs := a.s.LatestFinalStorageJobs(ffs.APIID(req.InstanceId), cids...)
+	jobs := a.s.LatestFinalStorageJobs(ffs.APIID(req.ProfileId), cids...)
 	protoJobs, err := powergate.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
@@ -67,7 +67,7 @@ func (a *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *adminPro
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
-	jobs := a.s.LatestSuccessfulStorageJobs(ffs.APIID(req.InstanceId), cids...)
+	jobs := a.s.LatestSuccessfulStorageJobs(ffs.APIID(req.ProfileId), cids...)
 	protoJobs, err := powergate.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
@@ -84,10 +84,10 @@ func (a *Service) StorageJobsSummary(ctx context.Context, req *adminProto.Storag
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 
-	queuedJobs := a.s.QueuedStorageJobs(ffs.APIID(req.InstanceId), cids...)
-	executingJobs := a.s.ExecutingStorageJobs(ffs.APIID(req.InstanceId), cids...)
-	latestFinalJobs := a.s.LatestFinalStorageJobs(ffs.APIID(req.InstanceId), cids...)
-	latestSuccessfulJobs := a.s.LatestSuccessfulStorageJobs(ffs.APIID(req.InstanceId), cids...)
+	queuedJobs := a.s.QueuedStorageJobs(ffs.APIID(req.ProfileId), cids...)
+	executingJobs := a.s.ExecutingStorageJobs(ffs.APIID(req.ProfileId), cids...)
+	latestFinalJobs := a.s.LatestFinalStorageJobs(ffs.APIID(req.ProfileId), cids...)
+	latestSuccessfulJobs := a.s.LatestSuccessfulStorageJobs(ffs.APIID(req.ProfileId), cids...)
 
 	protoQueuedJobs, err := powergate.ToProtoStorageJobs(queuedJobs)
 	if err != nil {
