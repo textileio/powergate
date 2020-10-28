@@ -11,6 +11,7 @@ type Admin struct {
 	Wallet   *Wallet
 }
 
+// NewAdmin creates a new admin API.
 func NewAdmin(client proto.PowergateAdminServiceClient) *Admin {
 	return &Admin{
 		Jobs:     &Jobs{client: client},

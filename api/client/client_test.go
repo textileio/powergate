@@ -4,11 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/api/client/utils"
 )
 
 func TestClient(t *testing.T) {
-	done := utils.SetupServer(t, utils.DefaultServerConfig(t))
+	done := setupServer(t, defaultServerConfig(t))
 	defer done()
 
 	client, err := NewClient("127.0.0.1:5002")

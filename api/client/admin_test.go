@@ -1,4 +1,4 @@
-package admin
+package client
 
 import (
 	"context"
@@ -6,8 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/api/client/utils"
+	"github.com/textileio/powergate/api/client/admin"
 	proto "github.com/textileio/powergate/proto/admin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -45,7 +44,7 @@ func TestCreate(t *testing.T) {
 				"wrong", // Non-empty
 			}
 			for _, auth := range wrongAuths {
-				ctx := context.WithValue(ctx, client.AdminKey, auth)
+				ctx := context.WithValue(ctx, AdminKey, auth)
 				resp, err := a.Profiles.CreateStorageProfile(ctx)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
@@ -54,7 +53,7 @@ func TestCreate(t *testing.T) {
 			}
 		})
 		t.Run("Authorized", func(t *testing.T) {
-			ctx := context.WithValue(ctx, client.AdminKey, authToken)
+			ctx := context.WithValue(ctx, AdminKey, authToken)
 			resp, err := a.Profiles.CreateStorageProfile(ctx)
 			require.NoError(t, err)
 			require.NotEmpty(t, resp.AuthEntry.Id)
@@ -63,14 +62,14 @@ func TestCreate(t *testing.T) {
 	})
 }
 
-func setupAdmin(t *testing.T, adminAuthToken string) (*Admin, func()) {
-	defConfig := utils.DefaultServerConfig(t)
+func setupAdmin(t *testing.T, adminAuthToken string) (*admin.Admin, func()) {
+	defConfig := defaultServerConfig(t)
 	if adminAuthToken != "" {
 		defConfig.FFSAdminToken = adminAuthToken
 	}
-	serverDone := utils.SetupServer(t, defConfig)
-	conn, done := utils.SetupConnection(t)
-	return NewAdmin(proto.NewPowergateAdminServiceClient(conn)), func() {
+	serverDone := setupServer(t, defConfig)
+	conn, done := setupConnection(t)
+	return admin.NewAdmin(proto.NewPowergateAdminServiceClient(conn)), func() {
 		done()
 		serverDone()
 	}

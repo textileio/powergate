@@ -1,4 +1,4 @@
-package utils
+package client
 
 import (
 	"io/ioutil"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/api/client"
 	"github.com/textileio/powergate/api/server"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
@@ -22,8 +21,7 @@ var (
 	gatewayHostAddr     = "0.0.0.0:7000"
 )
 
-// DefaultServerConfig returns a server config.
-func DefaultServerConfig(t *testing.T) server.Config {
+func defaultServerConfig(t *testing.T) server.Config {
 	repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
 	require.NoError(t, err)
 
@@ -62,8 +60,7 @@ func DefaultServerConfig(t *testing.T) server.Config {
 	return conf
 }
 
-// SetupServer sets up the server.
-func SetupServer(t *testing.T, conf server.Config) func() {
+func setupServer(t *testing.T, conf server.Config) func() {
 	server, err := server.NewServer(conf)
 	require.NoError(t, err)
 
@@ -72,9 +69,8 @@ func SetupServer(t *testing.T, conf server.Config) func() {
 	}
 }
 
-// SetupConnection sets up the connection.
-func SetupConnection(t *testing.T) (*grpc.ClientConn, func()) {
-	auth := client.TokenAuth{}
+func setupConnection(t *testing.T) (*grpc.ClientConn, func()) {
+	auth := TokenAuth{}
 	ma, err := multiaddr.NewMultiaddr(grpcHostAddress)
 	require.NoError(t, err)
 	addr, err := util.TCPAddrFromMultiAddr(ma)
