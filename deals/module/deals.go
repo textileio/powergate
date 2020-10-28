@@ -661,6 +661,13 @@ func robustClientGetDealInfo(ctx context.Context, lapi *apistruct.FullNodeStruct
 	if di.DealID != 0 && di.State != storagemarket.StorageDealActive {
 		smd, err := lapi.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
 		if err != nil {
+			// If the DealID is not found, most probably is because the Lotus
+			// node isn't yet synced. Since all this logis is a workaround
+			// for a problem, make an exception and just return what
+			// ClientGetDealInfo said.
+			if strings.Contains(err.Error(), "not found") {
+				return di, nil
+			}
 			return nil, fmt.Errorf("state market storage deal: %s", err)
 		}
 		if smd.State.SectorStartEpoch > 0 {
