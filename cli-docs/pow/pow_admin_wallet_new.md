@@ -13,7 +13,7 @@ pow admin wallet new [flags]
 ### Options
 
 ```
-  -f, --format string   Optionally specify address format bls or secp256k1
+  -f, --format string   Optionally specify address format bls or secp256k1 (default "bls")
   -h, --help            help for new
 ```
 
