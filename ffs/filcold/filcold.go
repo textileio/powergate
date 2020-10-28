@@ -91,6 +91,17 @@ func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (api.DataS
 		return api.DataSize{}, fmt.Errorf("canceled by context")
 	}
 	defer func() { <-fc.semaphDealPrep }()
+	for {
+		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
+			break
+		}
+		log.Warnf("lotus backpressure from unsynced node")
+		select {
+		case <-ctx.Done():
+			return api.DataSize{}, fmt.Errorf("canceled by context")
+		case <-time.After(time.Minute):
+		}
+	}
 
 	size, err := fc.dm.CalculatePieceSize(ctx, c)
 	if err != nil {
@@ -282,6 +293,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
 			break
 		}
+		log.Warnf("lotus backpressure from unsynced node")
 		select {
 		case <-ctx.Done():
 			return nil, nil, fmt.Errorf("canceled by context")
