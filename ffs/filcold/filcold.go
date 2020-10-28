@@ -35,7 +35,7 @@ type FilCold struct {
 	ipfs           iface.CoreAPI
 	chain          FilChain
 	l              ffs.JobLogger
-	lsm            *lotus.LotusSyncMonitor
+	lsm            *lotus.SyncMonitor
 	minPieceSize   uint64
 	semaphDealPrep chan struct{}
 }
@@ -48,7 +48,7 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.LotusSyncMonitor, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.SyncMonitor, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
 	return &FilCold{
 		ms:             ms,
 		dm:             dm,

@@ -157,7 +157,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client builder: %s", err)
 	}
-	lsm, err := lotus.NewLotusSyncMonitor(clientBuilder)
+	lsm, err := lotus.NewSyncMonitor(clientBuilder)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus sync monitor: %s", err)
 	}

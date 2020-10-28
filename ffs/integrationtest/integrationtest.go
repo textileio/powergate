@@ -139,7 +139,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus
 
 	fchain := filchain.New(cb)
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
-	lsm, err := lotus.NewLotusSyncMonitor(cb)
+	lsm, err := lotus.NewSyncMonitor(cb)
 	require.NoError(t, err)
 	cl := filcold.New(ms, dm, ipfsClient, fchain, l, lsm, minimumPieceSize, 1)
 	hl, err := coreipfs.New(ipfsClient, l)

@@ -23,7 +23,9 @@ var (
 	metricHeightInterval = time.Second * 120
 )
 
-type LotusSyncMonitor struct {
+// SyncMonitor provides information about the Lotus
+// syncing status.
+type SyncMonitor struct {
 	cb ClientBuilder
 
 	lock       sync.Mutex
@@ -31,13 +33,12 @@ type LotusSyncMonitor struct {
 	remaining  int64
 }
 
-// MonitorLotusSync fires a goroutine that will generate
-// metrics with Lotus node height.
-func NewLotusSyncMonitor(cb ClientBuilder) (*LotusSyncMonitor, error) {
+// NewSyncMonitor creates a new LotusSyncMonitor.
+func NewSyncMonitor(cb ClientBuilder) (*SyncMonitor, error) {
 	if err := view.Register(vHeight); err != nil {
 		log.Fatalf("register metrics views: %v", err)
 	}
-	lsm := &LotusSyncMonitor{cb: cb}
+	lsm := &SyncMonitor{cb: cb}
 
 	if err := lsm.refreshSyncDiff(); err != nil {
 		return nil, fmt.Errorf("getting initial sync height diff: %s", err)
@@ -52,13 +53,15 @@ func NewLotusSyncMonitor(cb ClientBuilder) (*LotusSyncMonitor, error) {
 	return lsm, nil
 }
 
-func (lsm *LotusSyncMonitor) SyncHeightDiff() int64 {
+// SyncHeightDiff returns the height difference between the tip of the chain
+// and the current synced height.
+func (lsm *SyncMonitor) SyncHeightDiff() int64 {
 	lsm.lock.Lock()
 	defer lsm.lock.Unlock()
 	return lsm.heightDiff
 }
 
-func (lsm *LotusSyncMonitor) evaluate() {
+func (lsm *SyncMonitor) evaluate() {
 	if err := lsm.refreshHeightMetric(); err != nil {
 		log.Errorf("refreshing height metric: %s", err)
 	}
@@ -67,7 +70,7 @@ func (lsm *LotusSyncMonitor) evaluate() {
 	}
 }
 
-func (lsm *LotusSyncMonitor) refreshHeightMetric() error {
+func (lsm *SyncMonitor) refreshHeightMetric() error {
 	c, cls, err := lsm.cb(context.Background())
 	if err != nil {
 		return fmt.Errorf("creating lotus client for monitoring: %s", err)
@@ -82,7 +85,7 @@ func (lsm *LotusSyncMonitor) refreshHeightMetric() error {
 	return nil
 }
 
-func (lsm *LotusSyncMonitor) checkSyncStatus() error {
+func (lsm *SyncMonitor) checkSyncStatus() error {
 	if err := lsm.refreshSyncDiff(); err != nil {
 		return fmt.Errorf("refreshing height difference: %s", err)
 	}
@@ -95,7 +98,7 @@ func (lsm *LotusSyncMonitor) checkSyncStatus() error {
 	return nil
 }
 
-func (lsm *LotusSyncMonitor) refreshSyncDiff() error {
+func (lsm *SyncMonitor) refreshSyncDiff() error {
 	c, cls, err := lsm.cb(context.Background())
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
