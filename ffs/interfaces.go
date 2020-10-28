@@ -129,6 +129,8 @@ type MinerSelectorFilter struct {
 	CountryCodes []string
 	// MaxPrice is the max ask price to consider when selecting miner deals
 	MaxPrice uint64
+	// PieceSize is the piece size of the data.
+	PieceSize uint64
 }
 
 // MinerProposal contains a miners address and storage ask information

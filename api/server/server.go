@@ -57,8 +57,7 @@ import (
 )
 
 const (
-	datastoreFolderName    = "datastore"
-	lotusConnectionRetries = 10
+	datastoreFolderName = "datastore"
 )
 
 var (
@@ -101,9 +100,10 @@ type Config struct {
 	Devnet          bool
 	IpfsAPIAddr     ma.Multiaddr
 
-	LotusAddress    ma.Multiaddr
-	LotusAuthToken  string
-	LotusMasterAddr string
+	LotusAddress           ma.Multiaddr
+	LotusAuthToken         string
+	LotusMasterAddr        string
+	LotusConnectionRetries int
 
 	GrpcHostNetwork     string
 	GrpcHostAddress     ma.Multiaddr
@@ -116,16 +116,17 @@ type Config struct {
 	MongoURI string
 	MongoDB  string
 
-	FFSUseMasterAddr       bool
-	FFSDealFinalityTimeout time.Duration
-	FFSMinimumPieceSize    uint64
-	FFSAdminToken          string
-	SchedMaxParallel       int
-	MinerSelector          string
-	MinerSelectorParams    string
-	DealWatchPollDuration  time.Duration
-	AutocreateMasterAddr   bool
-	WalletInitialFunds     big.Int
+	FFSAdminToken               string
+	FFSUseMasterAddr            bool
+	FFSDealFinalityTimeout      time.Duration
+	FFSMinimumPieceSize         uint64
+	FFSMaxParallelDealPreparing int
+	SchedMaxParallel            int
+	MinerSelector               string
+	MinerSelectorParams         string
+	DealWatchPollDuration       time.Duration
+	AutocreateMasterAddr        bool
+	WalletInitialFunds          big.Int
 
 	AskIndexQueryAskTimeout time.Duration
 	AskindexMaxParallel     int
@@ -144,13 +145,16 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	var err error
-	clientBuilder, err := lotus.NewBuilder(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
+	clientBuilder, err := lotus.NewBuilder(conf.LotusAddress, conf.LotusAuthToken, conf.LotusConnectionRetries)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client builder: %s", err)
 	}
-	lotus.MonitorLotusSync(clientBuilder)
+	lsm, err := lotus.NewSyncMonitor(clientBuilder)
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus sync monitor: %s", err)
+	}
 
-	c, cls, err := clientBuilder()
+	c, cls, err := clientBuilder(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
@@ -239,7 +243,7 @@ func NewServer(conf Config) (*Server, error) {
 	if conf.Devnet {
 		conf.FFSMinimumPieceSize = 0
 	}
-	cs := filcold.New(ms, dm, ipfs, chain, l, conf.FFSMinimumPieceSize)
+	cs := filcold.New(ms, dm, ipfs, chain, l, lsm, conf.FFSMinimumPieceSize, conf.FFSMaxParallelDealPreparing)
 	hs, err := coreipfs.New(ipfs, l)
 	if err != nil {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)

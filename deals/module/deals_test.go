@@ -51,7 +51,7 @@ func TestStore(t *testing.T) {
 				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm)
 				m, err := New(tests.NewTxMapDatastore(), clientBuilder, util.AvgBlockTime, time.Minute*10, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 				require.NoError(t, err)
-				c, cls, err := clientBuilder()
+				c, cls, err := clientBuilder(context.Background())
 				require.NoError(t, err)
 				defer cls()
 				cid, pcids, err := storeMultiMiner(m, c, nm, randomBytes(600))
@@ -98,7 +98,7 @@ func TestRetrieve(t *testing.T) {
 				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm)
 				m, err := New(tests.NewTxMapDatastore(), clientBuilder, util.AvgBlockTime, time.Minute*10, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 				require.NoError(t, err)
-				c, cls, err := clientBuilder()
+				c, cls, err := clientBuilder(context.Background())
 				require.NoError(t, err)
 				defer cls()
 

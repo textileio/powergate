@@ -105,7 +105,7 @@ func configFromFlags() (server.Config, error) {
 		return server.Config{}, fmt.Errorf("parsing grpchostaddr: %s", err)
 	}
 
-	maddr, err := ma.NewMultiaddr(config.GetString("lotushost"))
+	lotusHost, err := ma.NewMultiaddr(config.GetString("lotushost"))
 	if err != nil {
 		return server.Config{}, fmt.Errorf("parsing lotus api multiaddr: %s", err)
 	}
@@ -113,6 +113,7 @@ func configFromFlags() (server.Config, error) {
 	walletInitialFunds := *big.NewInt(config.GetInt64("walletinitialfund"))
 	ipfsAPIAddr := util.MustParseAddr(config.GetString("ipfsapiaddr"))
 	lotusMasterAddr := config.GetString("lotusmasteraddr")
+	lotusConnectionRetries := config.GetInt("lotusconnectionretries")
 	autocreateMasterAddr := config.GetBool("autocreatemasteraddr")
 	ffsUseMasterAddr := config.GetBool("ffsusemasteraddr")
 	grpcWebProxyAddr := config.GetString("grpcwebproxyaddr")
@@ -123,10 +124,11 @@ func configFromFlags() (server.Config, error) {
 	mongoDB := config.GetString("mongodb")
 	minerSelector := config.GetString("ffsminerselector")
 	minerSelectorParams := config.GetString("ffsminerselectorparams")
+	ffsAdminToken := config.GetString("ffsadmintoken")
 	ffsSchedMaxParallel := config.GetInt("ffsschedmaxparallel")
 	ffsDealWatchFinalityTimeout := time.Minute * time.Duration(config.GetInt("ffsdealfinalitytimeout"))
 	ffsMinimumPieceSize := config.GetUint64("ffsminimumpiecesize")
-	ffsAdminToken := config.GetString("ffsadmintoken")
+	ffsMaxParallelDealPreparing := config.GetInt("ffsmaxparalleldealpreparing")
 	dealWatchPollDuration := time.Second * time.Duration(config.GetInt("dealwatchpollduration"))
 	askIndexQueryAskTimeout := time.Second * time.Duration(config.GetInt("askindexqueryasktimeout"))
 	askIndexRefreshInterval := time.Minute * time.Duration(config.GetInt("askindexrefreshinterval"))
@@ -142,8 +144,10 @@ func configFromFlags() (server.Config, error) {
 		RepoPath:           repoPath,
 		MaxMindDBFolder:    maxminddbfolder,
 
-		LotusAddress:   maddr,
-		LotusAuthToken: lotusToken,
+		LotusAddress:           lotusHost,
+		LotusAuthToken:         lotusToken,
+		LotusConnectionRetries: lotusConnectionRetries,
+		LotusMasterAddr:        lotusMasterAddr,
 
 		// ToDo: Support secure gRPC connection
 		GrpcHostNetwork:     "tcp",
@@ -156,16 +160,16 @@ func configFromFlags() (server.Config, error) {
 		MongoURI: mongoURI,
 		MongoDB:  mongoDB,
 
-		FFSUseMasterAddr:       ffsUseMasterAddr,
-		FFSDealFinalityTimeout: ffsDealWatchFinalityTimeout,
-		FFSMinimumPieceSize:    ffsMinimumPieceSize,
-		FFSAdminToken:          ffsAdminToken,
-		LotusMasterAddr:        lotusMasterAddr,
-		AutocreateMasterAddr:   autocreateMasterAddr,
-		MinerSelector:          minerSelector,
-		MinerSelectorParams:    minerSelectorParams,
-		SchedMaxParallel:       ffsSchedMaxParallel,
-		DealWatchPollDuration:  dealWatchPollDuration,
+		FFSAdminToken:               ffsAdminToken,
+		FFSUseMasterAddr:            ffsUseMasterAddr,
+		FFSDealFinalityTimeout:      ffsDealWatchFinalityTimeout,
+		FFSMinimumPieceSize:         ffsMinimumPieceSize,
+		FFSMaxParallelDealPreparing: ffsMaxParallelDealPreparing,
+		AutocreateMasterAddr:        autocreateMasterAddr,
+		MinerSelector:               minerSelector,
+		MinerSelectorParams:         minerSelectorParams,
+		SchedMaxParallel:            ffsSchedMaxParallel,
+		DealWatchPollDuration:       dealWatchPollDuration,
 
 		AskIndexQueryAskTimeout: askIndexQueryAskTimeout,
 		AskIndexRefreshInterval: askIndexRefreshInterval,
@@ -322,34 +326,45 @@ func getLotusToken(devnet bool) (string, error) {
 
 func setupFlags() error {
 	pflag.Bool("debug", false, "Enable debug log level in all loggers.")
+
+	pflag.Bool("autocreatemasteraddr", false, "Automatically creates & funds a master address if none is provided.")
+	pflag.Int64("walletinitialfund", 250_000_000_000_000_000, "FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set)")
+
 	pflag.String("grpchostaddr", "/ip4/0.0.0.0/tcp/5002", "gRPC host listening address.")
 	pflag.String("grpcwebproxyaddr", "0.0.0.0:6002", "gRPC webproxy listening address.")
+
 	pflag.String("lotushost", "/ip4/127.0.0.1/tcp/1234", "Lotus client API endpoint multiaddress.")
 	pflag.String("lotustoken", "", "Lotus API authorization token. This flag or --lotustoken file are mandatory.")
 	pflag.String("lotustokenfile", "", "Path of a file that contains the Lotus API authorization token.")
 	pflag.String("lotusmasteraddr", "", "Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)")
-	pflag.Bool("autocreatemasteraddr", false, "Automatically creates & funds a master address if none is provided.")
-	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
+	pflag.Int64("lotusconnectionretries", 180, "Maximum amount of connection retries when making API calls before considering them a failure. Retries are spaced by 10s. (default ~30min).")
+
+	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "Gateway host listening address.")
+	pflag.String("gatewaybasepath", "/", "Gateway base path.")
+
 	pflag.String("repopath", "~/.powergate", "Path of the repository where Powergate state will be saved.")
 	pflag.Bool("devnet", false, "Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "IPFS API endpoint multiaddress. (Optional, only needed if FFS is used)")
-	pflag.Int64("walletinitialfund", 250_000_000_000_000_000, "FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set)")
-	pflag.String("gatewayhostaddr", "0.0.0.0:7000", "Gateway host listening address.")
-	pflag.String("gatewaybasepath", "/", "Gateway base path.")
 	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb")
+
 	pflag.String("mongouri", "", "Mongo URI to connect to MongoDB database. (Optional: if empty, will use Badger)")
 	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory")
+
+	pflag.String("ffsadmintoken", "", "FFS admin token for authorized APIs. If empty, the APIs will be open to the public.")
+	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
 	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'")
 	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
 	pflag.String("ffsminimumpiecesize", "67108864", "Minimum piece size in bytes allowed to be stored in Filecoin")
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel")
-	pflag.String("ffsadmintoken", "", "FFS admin token for authorized APIs. If empty, the APIs will be open to the public.")
-	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes")
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
+	pflag.String("ffsmaxparalleldealpreparing", "2", "Max parallel deal preparing tasks")
+	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes")
+
 	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask")
 	pflag.String("askindexrefreshinterval", "60", "Refresh interval measured in minutes")
 	pflag.Bool("askindexrefreshonstart", false, "If true it will refresh the index on start")
 	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index")
+
 	pflag.Bool("disableindices", false, "Disable all indices updates, useful to help Lotus syncing process")
 	pflag.Bool("disablenoncompliantapis", false, "Disable APIs that may not easily comply with US law")
 

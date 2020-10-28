@@ -31,7 +31,7 @@ func New(clientBuilder lotus.ClientBuilder) *ChainSync {
 // Precedes returns true if from and to don't live in different chain forks, and
 // from is at a lower epoch than to.
 func (cs *ChainSync) Precedes(ctx context.Context, from, to types.TipSetKey) (bool, error) {
-	client, cls, err := cs.clientBuilder()
+	client, cls, err := cs.clientBuilder(ctx)
 	if err != nil {
 		return false, fmt.Errorf("creating lotus client: %s", err)
 	}

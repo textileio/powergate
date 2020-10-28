@@ -21,7 +21,7 @@ func New(clientBuilder lotus.ClientBuilder) *FilChain {
 
 // GetHeight returns the current height of the chain for the targeted Lotus node.
 func (lc *FilChain) GetHeight(ctx context.Context) (uint64, error) {
-	client, cls, err := lc.clientBuilder()
+	client, cls, err := lc.clientBuilder(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("creating lotus client: %s", err)
 	}

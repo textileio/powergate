@@ -87,7 +87,7 @@ func NewAPI(t tests.TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apis
 	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 	fapi, err := manager.GetByAuthToken(auth.Token)
 	require.NoError(t, err)
-	client, cls, err := clientBuilder()
+	client, cls, err := clientBuilder(context.Background())
 	require.NoError(t, err)
 	return ipfs, client, fapi, func() {
 		err := fapi.Close()
@@ -132,19 +132,21 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 }
 
 // NewCustomFFSManager returns a new customized FFS manager.
-func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi, minimumPieceSize uint64) (*manager.Manager, func()) {
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, util.AvgBlockTime, time.Minute*10)
+func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi, minimumPieceSize uint64) (*manager.Manager, func()) {
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), cb, util.AvgBlockTime, time.Minute*10)
 	require.NoError(t, err)
 
-	fchain := filchain.New(clientBuilder)
+	fchain := filchain.New(cb)
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
-	cl := filcold.New(ms, dm, ipfsClient, fchain, l, minimumPieceSize)
+	lsm, err := lotus.NewSyncMonitor(cb)
+	require.NoError(t, err)
+	cl := filcold.New(ms, dm, ipfsClient, fchain, l, lsm, minimumPieceSize, 1)
 	hl, err := coreipfs.New(ipfsClient, l)
 	require.NoError(t, err)
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil)
 	require.NoError(t, err)
 
-	wm, err := walletModule.New(clientBuilder, masterAddr, *big.NewInt(iWalletBal), false, "")
+	wm, err := walletModule.New(cb, masterAddr, *big.NewInt(iWalletBal), false, "")
 	require.NoError(t, err)
 
 	manager, err := manager.New(ds, wm, dm, sched, false, true)

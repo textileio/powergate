@@ -49,6 +49,9 @@ func (rt *RepTop) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerPropos
 		if f.MaxPrice > 0 && sa.Price > f.MaxPrice {
 			continue
 		}
+		if f.PieceSize < sa.MinPieceSize || f.PieceSize > sa.MaxPieceSize {
+			continue
+		}
 		res = append(res, ffs.MinerProposal{
 			Addr:       sa.Miner,
 			EpochPrice: sa.Price,
