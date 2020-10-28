@@ -32,7 +32,7 @@ var storageJobsLatestFinalCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.StorageJobs.LatestFinalStorageJobs(mustAuthCtx(ctx), cids...)
+		res, err := powClient.StorageJobs.LatestFinal(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

@@ -50,7 +50,7 @@ func watchJobIds(jobIds ...string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := powClient.StorageJobs.WatchStorageJobs(mustAuthCtx(ctx), ch, jobIds...)
+	err := powClient.StorageJobs.Watch(mustAuthCtx(ctx), ch, jobIds...)
 	checkErr(err)
 
 	c := make(chan os.Signal)

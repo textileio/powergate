@@ -132,7 +132,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	chJob := make(chan client.WatchStorageJobsEvent, 1)
 	ctxWatch, cancel := context.WithCancel(ctx)
 	defer cancel()
-	err = c.StorageJobs.WatchStorageJobs(ctxWatch, chJob, applyRes.JobId)
+	err = c.StorageJobs.Watch(ctxWatch, chJob, applyRes.JobId)
 	if err != nil {
 		return fmt.Errorf("opening listening job status: %s", err)
 	}

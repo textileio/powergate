@@ -32,7 +32,7 @@ var storageJobsExecutingCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.StorageJobs.ExecutingStorageJobs(mustAuthCtx(ctx), cids...)
+		res, err := powClient.StorageJobs.Executing(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

@@ -47,7 +47,7 @@ var adminJobsQueuedCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Jobs.QueuedStorageJobs(
+		res, err := powClient.Admin.StorageJobs.Queued(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
@@ -74,7 +74,7 @@ var adminJobsExecutingCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Jobs.ExecutingStorageJobs(
+		res, err := powClient.Admin.StorageJobs.Executing(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
@@ -101,7 +101,7 @@ var adminJobsLatestFinalCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Jobs.LatestFinalStorageJobs(
+		res, err := powClient.Admin.StorageJobs.LatestFinal(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
@@ -128,7 +128,7 @@ var adminJobsLatestSuccessfulCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Jobs.LatestSuccessfulStorageJobs(
+		res, err := powClient.Admin.StorageJobs.LatestSuccessful(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
@@ -155,7 +155,7 @@ var adminJobsSummaryCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Jobs.StorageJobsSummary(
+		res, err := powClient.Admin.StorageJobs.Summary(
 			adminAuthCtx(ctx),
 			viper.GetString("instance-id"),
 			viper.GetStringSlice("cids")...,
