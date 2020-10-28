@@ -1,19 +1,20 @@
-## pow admin create-profile
+## pow admin wallet new
 
-Create a Powergate storage profile.
+Creates a new walllet address.
 
 ### Synopsis
 
-Create a Powergate storage profile.
+Creates a new wallet address.
 
 ```
-pow admin create-profile [flags]
+pow admin wallet new [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for create-profile
+  -f, --format string   Optionally specify address format bls or secp256k1
+  -h, --help            help for new
 ```
 
 ### Options inherited from parent commands
@@ -26,5 +27,5 @@ pow admin create-profile [flags]
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin wallet](pow_admin_wallet.md)	 - Provides admin wallet commands
 

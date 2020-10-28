@@ -203,7 +203,7 @@ Terminal 2:
 ```bash
 make build
 ❯ head -c 700 </dev/urandom > myfile
-❯ pow admin create-profile
+❯ pow admin profile create
 {
   "authEntry":  {
     "id":  "c06382e0-2021-4234-be53-6e07a8d40065",

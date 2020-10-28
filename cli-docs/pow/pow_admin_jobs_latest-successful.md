@@ -1,4 +1,4 @@
-## pow admin latest-successful
+## pow admin jobs latest-successful
 
 List the latest successful storage jobs
 
@@ -7,7 +7,7 @@ List the latest successful storage jobs
 List the latest successful storage jobs
 
 ```
-pow admin latest-successful [flags]
+pow admin jobs latest-successful [flags]
 ```
 
 ### Options
@@ -28,5 +28,5 @@ pow admin latest-successful [flags]
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin jobs](pow_admin_jobs.md)	 - Provides admin jobs commands
 

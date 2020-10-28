@@ -108,7 +108,7 @@ service PowergateAdminService {
   rpc ListAddresses(ListAddressesRequest) returns (ListAddressesResponse) {}
   rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
 
-  // Instances
+  // Profiles
   rpc CreateStorageProfile(CreateStorageProfileRequest) returns (CreateStorageProfileResponse) {}
   rpc ListStorageProfiles(ListStorageProfilesRequest) returns (ListStorageProfilesResponse) {}
 

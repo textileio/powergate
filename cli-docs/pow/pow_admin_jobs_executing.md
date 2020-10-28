@@ -1,4 +1,4 @@
-## pow admin executing
+## pow admin jobs executing
 
 List executing storage jobs
 
@@ -7,7 +7,7 @@ List executing storage jobs
 List executing storage jobs
 
 ```
-pow admin executing [flags]
+pow admin jobs executing [flags]
 ```
 
 ### Options
@@ -28,5 +28,5 @@ pow admin executing [flags]
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin jobs](pow_admin_jobs.md)	 - Provides admin jobs commands
 

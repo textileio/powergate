@@ -1,4 +1,4 @@
-## pow admin send-fil
+## pow admin wallet send
 
 Sends FIL from an address associated with this Powergate to any other address.
 
@@ -7,13 +7,13 @@ Sends FIL from an address associated with this Powergate to any other address.
 Sends FIL from an address associated with this Powergate to any other address.
 
 ```
-pow admin send-fil [from] [to] [amount] [flags]
+pow admin wallet send [from] [to] [amount] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for send-fil
+  -h, --help   help for send
 ```
 
 ### Options inherited from parent commands
@@ -26,5 +26,5 @@ pow admin send-fil [from] [to] [amount] [flags]
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin wallet](pow_admin_wallet.md)	 - Provides admin wallet commands
 

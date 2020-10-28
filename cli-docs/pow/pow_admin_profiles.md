@@ -1,14 +1,10 @@
 ## pow admin profiles
 
-List all Powergate storage profiles.
+Provides admin storage profile commands
 
 ### Synopsis
 
-List all Powergate storage profiles.
-
-```
-pow admin profiles [flags]
-```
+Provides admin storage profile commands
 
 ### Options
 
@@ -27,4 +23,6 @@ pow admin profiles [flags]
 ### SEE ALSO
 
 * [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin profiles create](pow_admin_profiles_create.md)	 - Create a Powergate storage profile.
+* [pow admin profiles list](pow_admin_profiles_list.md)	 - List all Powergate storage profiles.
 

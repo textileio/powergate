@@ -6658,7 +6658,7 @@ type PowergateServiceClient interface {
 	// Top level
 	BuildInfo(ctx context.Context, in *BuildInfoRequest, opts ...grpc.CallOption) (*BuildInfoResponse, error)
 	ID(ctx context.Context, in *IDRequest, opts ...grpc.CallOption) (*IDResponse, error)
-	// Config
+	// Storage config
 	DefaultStorageConfig(ctx context.Context, in *DefaultStorageConfigRequest, opts ...grpc.CallOption) (*DefaultStorageConfigResponse, error)
 	SetDefaultStorageConfig(ctx context.Context, in *SetDefaultStorageConfigRequest, opts ...grpc.CallOption) (*SetDefaultStorageConfigResponse, error)
 	ApplyStorageConfig(ctx context.Context, in *ApplyStorageConfigRequest, opts ...grpc.CallOption) (*ApplyStorageConfigResponse, error)
@@ -7050,7 +7050,7 @@ type PowergateServiceServer interface {
 	// Top level
 	BuildInfo(context.Context, *BuildInfoRequest) (*BuildInfoResponse, error)
 	ID(context.Context, *IDRequest) (*IDResponse, error)
-	// Config
+	// Storage config
 	DefaultStorageConfig(context.Context, *DefaultStorageConfigRequest) (*DefaultStorageConfigResponse, error)
 	SetDefaultStorageConfig(context.Context, *SetDefaultStorageConfigRequest) (*SetDefaultStorageConfigResponse, error)
 	ApplyStorageConfig(context.Context, *ApplyStorageConfigRequest) (*ApplyStorageConfigResponse, error)

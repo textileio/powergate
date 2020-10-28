@@ -1,20 +1,20 @@
-## pow admin summary
+## pow admin jobs queued
 
-Give a summary of storage jobs in all states
+List queued storage jobs
 
 ### Synopsis
 
-Give a summary of storage jobs in all states
+List queued storage jobs
 
 ```
-pow admin summary [flags]
+pow admin jobs queued [flags]
 ```
 
 ### Options
 
 ```
   -c, --cids strings         optional cids filter to apply
-  -h, --help                 help for summary
+  -h, --help                 help for queued
   -i, --instance-id string   optional instance id filter to apply
 ```
 
@@ -28,5 +28,5 @@ pow admin summary [flags]
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin jobs](pow_admin_jobs.md)	 - Provides admin jobs commands
 

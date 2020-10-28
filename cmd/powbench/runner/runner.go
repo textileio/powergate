@@ -47,7 +47,7 @@ func Run(ctx context.Context, ts TestSetup) error {
 }
 
 func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
-	res, err := c.Admin.CreateStorageProfile(ctx)
+	res, err := c.Admin.Profiles.CreateStorageProfile(ctx)
 	if err != nil {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}

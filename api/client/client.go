@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"strings"
 
+	"github.com/textileio/powergate/api/client/admin"
 	adminProto "github.com/textileio/powergate/proto/admin/v1"
 	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"google.golang.org/grpc"
@@ -18,9 +19,9 @@ type Client struct {
 	Wallet        *Wallet
 	Deals         *Deals
 	StorageJobs   *StorageJobs
-	Admin         *Admin
+	Admin         *admin.Admin
 	conn          *grpc.ClientConn
-	powClient     proto.PowergateServiceClient
+	client        proto.PowergateServiceClient
 }
 
 type ctxKey string
@@ -90,18 +91,17 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	powClient := proto.NewPowergateServiceClient(conn)
-	client := &Client{
-		StorageConfig: &StorageConfig{client: powClient},
-		Data:          &Data{client: powClient},
-		Wallet:        &Wallet{client: powClient},
-		Deals:         &Deals{client: powClient},
-		StorageJobs:   &StorageJobs{client: powClient},
-		Admin:         &Admin{client: adminProto.NewPowergateAdminServiceClient(conn)},
+	client := proto.NewPowergateServiceClient(conn)
+	return &Client{
+		StorageConfig: &StorageConfig{client: client},
+		Data:          &Data{client: client},
+		Wallet:        &Wallet{client: client},
+		Deals:         &Deals{client: client},
+		StorageJobs:   &StorageJobs{client: client},
+		Admin:         admin.NewAdmin(adminProto.NewPowergateAdminServiceClient(conn)),
 		conn:          conn,
-		powClient:     proto.NewPowergateServiceClient(conn),
-	}
-	return client, nil
+		client:        client,
+	}, nil
 }
 
 // Host returns the client host address.
@@ -111,12 +111,12 @@ func (c *Client) Host() string {
 
 // BuildInfo returns build info about the server.
 func (c *Client) BuildInfo(ctx context.Context) (*proto.BuildInfoResponse, error) {
-	return c.powClient.BuildInfo(ctx, &proto.BuildInfoRequest{})
+	return c.client.BuildInfo(ctx, &proto.BuildInfoRequest{})
 }
 
 // ID returns the storage profile ID.
 func (c *Client) ID(ctx context.Context) (*proto.IDResponse, error) {
-	return c.powClient.ID(ctx, &proto.IDRequest{})
+	return c.client.ID(ctx, &proto.IDRequest{})
 }
 
 // Close closes the client's grpc connection and cancels any active requests.

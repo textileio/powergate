@@ -1,19 +1,19 @@
-## pow admin addrs
+## pow admin profiles list
 
-List all addresses associated with this Powergate.
+List all Powergate storage profiles.
 
 ### Synopsis
 
-List all addresses associated with this Powergate.
+List all Powergate storage profiles.
 
 ```
-pow admin addrs [flags]
+pow admin profiles list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for addrs
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands
@@ -26,5 +26,5 @@ pow admin addrs [flags]
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin profiles](pow_admin_profiles.md)	 - Provides admin storage profile commands
 

@@ -1646,7 +1646,7 @@ type PowergateAdminServiceClient interface {
 	NewAddress(ctx context.Context, in *NewAddressRequest, opts ...grpc.CallOption) (*NewAddressResponse, error)
 	ListAddresses(ctx context.Context, in *ListAddressesRequest, opts ...grpc.CallOption) (*ListAddressesResponse, error)
 	SendFil(ctx context.Context, in *SendFilRequest, opts ...grpc.CallOption) (*SendFilResponse, error)
-	// Instances
+	// Profiles
 	CreateStorageProfile(ctx context.Context, in *CreateStorageProfileRequest, opts ...grpc.CallOption) (*CreateStorageProfileResponse, error)
 	ListStorageProfiles(ctx context.Context, in *ListStorageProfilesRequest, opts ...grpc.CallOption) (*ListStorageProfilesResponse, error)
 	// Jobs
@@ -1761,7 +1761,7 @@ type PowergateAdminServiceServer interface {
 	NewAddress(context.Context, *NewAddressRequest) (*NewAddressResponse, error)
 	ListAddresses(context.Context, *ListAddressesRequest) (*ListAddressesResponse, error)
 	SendFil(context.Context, *SendFilRequest) (*SendFilResponse, error)
-	// Instances
+	// Profiles
 	CreateStorageProfile(context.Context, *CreateStorageProfileRequest) (*CreateStorageProfileResponse, error)
 	ListStorageProfiles(context.Context, *ListStorageProfilesRequest) (*ListStorageProfilesResponse, error)
 	// Jobs

@@ -1,4 +1,4 @@
-## pow admin latest-final
+## pow admin jobs latest-final
 
 List the latest final storage jobs
 
@@ -7,7 +7,7 @@ List the latest final storage jobs
 List the latest final storage jobs
 
 ```
-pow admin latest-final [flags]
+pow admin jobs latest-final [flags]
 ```
 
 ### Options
@@ -28,5 +28,5 @@ pow admin latest-final [flags]
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin jobs](pow_admin_jobs.md)	 - Provides admin jobs commands
 

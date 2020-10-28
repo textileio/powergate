@@ -1,20 +1,19 @@
-## pow admin new-addr
+## pow admin profiles create
 
-Creates a new address.
+Create a Powergate storage profile.
 
 ### Synopsis
 
-Creates a new address.
+Create a Powergate storage profile.
 
 ```
-pow admin new-addr [flags]
+pow admin profiles create [flags]
 ```
 
 ### Options
 
 ```
-  -f, --format string   Optionally specify address format bls or secp256k1
-  -h, --help            help for new-addr
+  -h, --help   help for create
 ```
 
 ### Options inherited from parent commands
@@ -27,5 +26,5 @@ pow admin new-addr [flags]
 
 ### SEE ALSO
 
-* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow admin profiles](pow_admin_profiles.md)	 - Provides admin storage profile commands
 
