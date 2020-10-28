@@ -143,7 +143,7 @@ func (s *Index) start(disabled bool) {
 
 // updateIndex updates current index.
 func (s *Index) updateIndex() error {
-	client, cls, err := s.clientBuilder()
+	client, cls, err := s.clientBuilder(context.Background())
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}

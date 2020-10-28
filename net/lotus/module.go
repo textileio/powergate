@@ -35,7 +35,7 @@ func New(clientBuilder lotus.ClientBuilder, lr iplocation.LocationResolver) *Mod
 
 // ListenAddr implements ListenAddr.
 func (m *Module) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(context.Background())
 	if err != nil {
 		return peer.AddrInfo{}, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -45,7 +45,7 @@ func (m *Module) ListenAddr(ctx context.Context) (peer.AddrInfo, error) {
 
 // ConnectPeer implements ConnectPeer.
 func (m *Module) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(context.Background())
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -56,7 +56,7 @@ func (m *Module) ConnectPeer(ctx context.Context, addrInfo peer.AddrInfo) error 
 
 // DisconnectPeer implements DisconnectPeer.
 func (m *Module) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(context.Background())
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -67,7 +67,7 @@ func (m *Module) DisconnectPeer(ctx context.Context, peerID peer.ID) error {
 
 // FindPeer implements FindPeer.
 func (m *Module) FindPeer(ctx context.Context, peerID peer.ID) (net.PeerInfo, error) {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(context.Background())
 	if err != nil {
 		return net.PeerInfo{}, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -94,7 +94,7 @@ func (m *Module) FindPeer(ctx context.Context, peerID peer.ID) (net.PeerInfo, er
 
 // Peers implements Peers.
 func (m *Module) Peers(ctx context.Context) ([]net.PeerInfo, error) {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -126,7 +126,7 @@ func (m *Module) Peers(ctx context.Context) ([]net.PeerInfo, error) {
 
 // Connectedness implements Connectedness.
 func (m *Module) Connectedness(ctx context.Context, peerID peer.ID) (net.Connectedness, error) {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(context.Background())
 	if err != nil {
 		return net.Error, fmt.Errorf("creating lotus client: %s", err)
 	}

@@ -54,6 +54,7 @@ func askFromPbAsk(a *rpc.StorageAsk) ask.StorageAsk {
 	return ask.StorageAsk{
 		Price:        a.GetPrice(),
 		MinPieceSize: a.GetMinPieceSize(),
+		MaxPieceSize: a.GetMaxPieceSize(),
 		Miner:        a.GetMiner(),
 		Timestamp:    a.GetTimestamp(),
 		Expiry:       a.GetExpiry(),
