@@ -16,7 +16,7 @@ func (p *Profiles) CreateStorageProfile(ctx context.Context) (*proto.CreateStora
 	return p.client.CreateStorageProfile(ctx, &proto.CreateStorageProfileRequest{})
 }
 
-// ListStorageProfiles returns a list of existing API instances.
-func (p *Profiles) ListStorageProfiles(ctx context.Context) (*proto.ListStorageProfilesResponse, error) {
-	return p.client.ListStorageProfiles(ctx, &proto.ListStorageProfilesRequest{})
+// StorageProfiles returns a list of existing API instances.
+func (p *Profiles) StorageProfiles(ctx context.Context) (*proto.StorageProfilesResponse, error) {
+	return p.client.StorageProfiles(ctx, &proto.StorageProfilesRequest{})
 }

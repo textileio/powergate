@@ -30,7 +30,7 @@ var dealsRetrievalsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		var opts []client.ListDealRecordsOption
+		var opts []client.DealRecordsOption
 
 		if viper.IsSet("ascending") {
 			opts = append(opts, client.WithAscending(viper.GetBool("ascending")))
@@ -42,7 +42,7 @@ var dealsRetrievalsCmd = &cobra.Command{
 			opts = append(opts, client.WithFromAddrs(viper.GetStringSlice("addrs")...))
 		}
 
-		res, err := powClient.Deals.ListRetrievalDealRecords(mustAuthCtx(ctx), opts...)
+		res, err := powClient.Deals.RetrievalDealRecords(mustAuthCtx(ctx), opts...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

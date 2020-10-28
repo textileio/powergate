@@ -235,19 +235,19 @@ message WatchStorageJobsResponse {
 
 // Storage
 
-message ListStorageDealRecordsRequest {
-  ListDealRecordsConfig config = 1;
+message StorageDealRecordsRequest {
+  DealRecordsConfig config = 1;
 }
 
-message ListStorageDealRecordsResponse {
+message StorageDealRecordsResponse {
   repeated StorageDealRecord records = 1;
 }
 
-message ListRetrievalDealRecordsRequest {
-  ListDealRecordsConfig config = 1;
+message RetrievalDealRecordsRequest {
+  DealRecordsConfig config = 1;
 }
 
-message ListRetrievalDealRecordsResponse {
+message RetrievalDealRecordsResponse {
   repeated RetrievalDealRecord records = 1;
 }
 
@@ -289,8 +289,8 @@ service PowergateService {
   rpc CancelStorageJob(CancelStorageJobRequest) returns (CancelStorageJobResponse) {}
   
   // Deals
-  rpc ListStorageDealRecords(ListStorageDealRecordsRequest) returns (ListStorageDealRecordsResponse) {}
-  rpc ListRetrievalDealRecords(ListRetrievalDealRecordsRequest) returns (ListRetrievalDealRecordsResponse) {}
+  rpc StorageDealRecords(StorageDealRecordsRequest) returns (StorageDealRecordsResponse) {}
+  rpc RetrievalDealRecords(RetrievalDealRecordsRequest) returns (RetrievalDealRecordsResponse) {}
 }
 
 
@@ -448,7 +448,7 @@ message LogEntry {
   string msg = 4;
 }
 
-message ListDealRecordsConfig {
+message DealRecordsConfig {
   repeated string from_addrs = 1;
   repeated string data_cids = 2;
   bool include_pending = 3;

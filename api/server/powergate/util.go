@@ -156,10 +156,10 @@ func toRPCStorageInfo(info ffs.StorageInfo) *proto.StorageInfo {
 	return storageInfo
 }
 
-func buildListDealRecordsOptions(conf *proto.ListDealRecordsConfig) []deals.ListDealRecordsOption {
-	var opts []deals.ListDealRecordsOption
+func buildListDealRecordsOptions(conf *proto.DealRecordsConfig) []deals.DealRecordsOption {
+	var opts []deals.DealRecordsOption
 	if conf != nil {
-		opts = []deals.ListDealRecordsOption{
+		opts = []deals.DealRecordsOption{
 			deals.WithAscending(conf.Ascending),
 			deals.WithDataCids(conf.DataCids...),
 			deals.WithFromAddrs(conf.FromAddrs...),

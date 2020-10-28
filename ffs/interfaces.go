@@ -30,8 +30,8 @@ type WalletManager interface {
 
 // DealRecordsManager provides access to deal records.
 type DealRecordsManager interface {
-	ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error)
-	ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error)
+	ListStorageDealRecords(opts ...deals.DealRecordsOption) ([]deals.StorageDealRecord, error)
+	ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]deals.RetrievalDealRecord, error)
 }
 
 // HotStorage is a fast storage layer for Cid data.

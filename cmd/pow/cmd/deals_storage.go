@@ -32,7 +32,7 @@ var dealsStorageCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		var opts []client.ListDealRecordsOption
+		var opts []client.DealRecordsOption
 
 		if viper.IsSet("ascending") {
 			opts = append(opts, client.WithAscending(viper.GetBool("ascending")))
@@ -50,7 +50,7 @@ var dealsStorageCmd = &cobra.Command{
 			opts = append(opts, client.WithIncludeFinal(viper.GetBool("include-final")))
 		}
 
-		res, err := powClient.Deals.ListStorageDealRecords(mustAuthCtx(ctx), opts...)
+		res, err := powClient.Deals.StorageDealRecords(mustAuthCtx(ctx), opts...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

@@ -6,12 +6,12 @@ import (
 	"github.com/textileio/powergate/deals"
 )
 
-// ListStorageDealRecords lists storage deals for this FFS instance according to the provided options.
-func (i *API) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
+// StorageDealRecords lists storage deals for this FFS instance according to the provided options.
+func (i *API) StorageDealRecords(opts ...deals.DealRecordsOption) ([]deals.StorageDealRecord, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	c := deals.ListDealRecordsConfig{}
+	c := deals.DealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -32,12 +32,12 @@ func (i *API) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]dea
 	return recs, nil
 }
 
-// ListRetrievalDealRecords returns a list of retrieval deals for this FFS instance according to the provided options.
-func (i *API) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
+// RetrievalDealRecords returns a list of retrieval deals for this FFS instance according to the provided options.
+func (i *API) RetrievalDealRecords(opts ...deals.DealRecordsOption) ([]deals.RetrievalDealRecord, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	c := deals.ListDealRecordsConfig{}
+	c := deals.DealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}

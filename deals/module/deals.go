@@ -377,8 +377,8 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 }
 
 // ListStorageDealRecords lists storage deals according to the provided options.
-func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
-	c := deals.ListDealRecordsConfig{}
+func (m *Module) ListStorageDealRecords(opts ...deals.DealRecordsOption) ([]deals.StorageDealRecord, error) {
+	c := deals.DealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -445,8 +445,8 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 }
 
 // ListRetrievalDealRecords returns a list of retrieval deals according to the provided options.
-func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
-	c := deals.ListDealRecordsConfig{}
+func (m *Module) ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]deals.RetrievalDealRecord, error) {
+	c := deals.DealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}

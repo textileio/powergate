@@ -30,7 +30,7 @@ message SendFilRequest {
 message SendFilResponse {
 }
 
-// Instances
+// Storage profiles
 
 message AuthEntry {
   string id = 1;
@@ -44,10 +44,10 @@ message CreateStorageProfileResponse {
   AuthEntry auth_entry = 1;
 }
 
-message ListStorageProfilesRequest {
+message StorageProfilesRequest {
 }
 
-message ListStorageProfilesResponse {
+message StorageProfilesResponse {
   repeated AuthEntry auth_entries = 1;
 }
 
@@ -110,7 +110,7 @@ service PowergateAdminService {
 
   // Profiles
   rpc CreateStorageProfile(CreateStorageProfileRequest) returns (CreateStorageProfileResponse) {}
-  rpc ListStorageProfiles(ListStorageProfilesRequest) returns (ListStorageProfilesResponse) {}
+  rpc StorageProfiles(StorageProfilesRequest) returns (StorageProfilesResponse) {}
 
   // Jobs
   rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}

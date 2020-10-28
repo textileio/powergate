@@ -244,7 +244,7 @@ func RequireStorageConfig(t require.TestingT, fapi *api.API, c cid.Cid, config *
 // RequireStorageDealRecord checks that a storage deal record exist for a cid.
 func RequireStorageDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
 	time.Sleep(time.Second)
-	recs, err := fapi.ListStorageDealRecords(deals.WithIncludeFinal(true))
+	recs, err := fapi.StorageDealRecords(deals.WithIncludeFinal(true))
 	require.NoError(t, err)
 	require.Len(t, recs, 1)
 	require.Equal(t, c, recs[0].RootCid)
@@ -252,7 +252,7 @@ func RequireStorageDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
 
 // RequireRetrievalDealRecord checks that a retrieval deal record exits for a cid.
 func RequireRetrievalDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
-	recs, err := fapi.ListRetrievalDealRecords()
+	recs, err := fapi.RetrievalDealRecords()
 	require.NoError(t, err)
 	require.Len(t, recs, 1)
 	require.Equal(t, c, recs[0].DealInfo.RootCid)

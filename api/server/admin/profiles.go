@@ -22,8 +22,8 @@ func (a *Service) CreateStorageProfile(ctx context.Context, req *proto.CreateSto
 	}, nil
 }
 
-// ListStorageProfiles lists all managed instances.
-func (a *Service) ListStorageProfiles(ctx context.Context, req *proto.ListStorageProfilesRequest) (*proto.ListStorageProfilesResponse, error) {
+// StorageProfiles lists all managed instances.
+func (a *Service) StorageProfiles(ctx context.Context, req *proto.StorageProfilesRequest) (*proto.StorageProfilesResponse, error) {
 	lst, err := a.m.List()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "listing storage profiles: %v", err)
@@ -35,7 +35,7 @@ func (a *Service) ListStorageProfiles(ctx context.Context, req *proto.ListStorag
 			Token: v.Token,
 		}
 	}
-	return &proto.ListStorageProfilesResponse{
+	return &proto.StorageProfilesResponse{
 		AuthEntries: ins,
 	}, nil
 }
