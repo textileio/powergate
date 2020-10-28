@@ -95,7 +95,7 @@ func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (api.DataS
 		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
 			break
 		}
-		log.Warnf("lotus backpressure from unsynced node")
+		log.Warnf("backpressure from unsynced Lotus node")
 		select {
 		case <-ctx.Done():
 			return api.DataSize{}, fmt.Errorf("canceled by context")
