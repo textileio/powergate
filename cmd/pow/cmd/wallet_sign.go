@@ -29,11 +29,11 @@ var walletSignCmd = &cobra.Command{
 		b, err := hex.DecodeString(args[0])
 		checkErr(err)
 
-		res, err := powClient.Wallet.Addrs(mustAuthCtx(ctx))
+		res, err := powClient.Wallet.Addresses(mustAuthCtx(ctx))
 		checkErr(err)
 
-		data := make([][]string, len(res.Addrs))
-		for i, a := range res.Addrs {
+		data := make([][]string, len(res.Addresses))
+		for i, a := range res.Addresses {
 			signRes, err := powClient.Wallet.SignMessage(mustAuthCtx(ctx), a.Addr, b)
 			checkErr(err)
 			data[i] = []string{a.Addr, hex.EncodeToString(signRes.Signature)}

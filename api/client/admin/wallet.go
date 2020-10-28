@@ -19,9 +19,9 @@ func (w *Wallet) NewAddress(ctx context.Context, addrType string) (*proto.NewAdd
 	return w.client.NewAddress(ctx, req)
 }
 
-// ListAddresses lists all addresses associated with this Powergate.
-func (w *Wallet) ListAddresses(ctx context.Context) (*proto.ListAddressesResponse, error) {
-	return w.client.ListAddresses(ctx, &proto.ListAddressesRequest{})
+// Addresses lists all addresses associated with this Powergate.
+func (w *Wallet) Addresses(ctx context.Context) (*proto.AddressesResponse, error) {
+	return w.client.Addresses(ctx, &proto.AddressesRequest{})
 }
 
 // SendFil sends FIL from an address associated with this Powergate to any other address.

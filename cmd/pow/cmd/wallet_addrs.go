@@ -25,7 +25,7 @@ var walletAddrsCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Wallet.Addrs(mustAuthCtx(ctx))
+		res, err := powClient.Wallet.Addresses(mustAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

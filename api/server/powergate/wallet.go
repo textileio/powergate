@@ -20,8 +20,8 @@ func (s *Service) Balance(ctx context.Context, req *proto.BalanceRequest) (*prot
 	return &proto.BalanceResponse{Balance: bal}, nil
 }
 
-// NewAddr calls ffs.NewAddr.
-func (s *Service) NewAddr(ctx context.Context, req *proto.NewAddrRequest) (*proto.NewAddrResponse, error) {
+// NewAddress calls ffs.NewAddr.
+func (s *Service) NewAddress(ctx context.Context, req *proto.NewAddressRequest) (*proto.NewAddressResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -39,11 +39,11 @@ func (s *Service) NewAddr(ctx context.Context, req *proto.NewAddrRequest) (*prot
 	if err != nil {
 		return nil, err
 	}
-	return &proto.NewAddrResponse{Addr: addr}, nil
+	return &proto.NewAddressResponse{Address: addr}, nil
 }
 
-// Addrs calls ffs.Addrs.
-func (s *Service) Addrs(ctx context.Context, req *proto.AddrsRequest) (*proto.AddrsResponse, error) {
+// Addresses calls ffs.Addrs.
+func (s *Service) Addresses(ctx context.Context, req *proto.AddressesRequest) (*proto.AddressesResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -62,7 +62,7 @@ func (s *Service) Addrs(ctx context.Context, req *proto.AddrsRequest) (*proto.Ad
 			Balance: bal,
 		}
 	}
-	return &proto.AddrsResponse{Addrs: res}, nil
+	return &proto.AddressesResponse{Addresses: res}, nil
 }
 
 // SendFil sends fil from a managed address to any other address.

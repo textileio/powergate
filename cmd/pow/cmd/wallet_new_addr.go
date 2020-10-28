@@ -46,7 +46,7 @@ var newAddrCmd = &cobra.Command{
 			opts = append(opts, client.WithMakeDefault(makeDefault))
 		}
 
-		res, err := powClient.Wallet.NewAddr(mustAuthCtx(ctx), args[0], opts...)
+		res, err := powClient.Wallet.NewAddress(mustAuthCtx(ctx), args[0], opts...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

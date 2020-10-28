@@ -14,10 +14,10 @@ message NewAddressResponse {
   string address = 1;
 }
 
-message ListAddressesRequest {
+message AddressesRequest {
 }
 
-message ListAddressesResponse {
+message AddressesResponse {
   repeated string addresses = 1;
 }
 
@@ -105,7 +105,7 @@ message StorageJobsSummaryResponse {
 service PowergateAdminService {
   // Wallet
   rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
-  rpc ListAddresses(ListAddressesRequest) returns (ListAddressesResponse) {}
+  rpc Addresses(AddressesRequest) returns (AddressesResponse) {}
   rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
 
   // Profiles

@@ -111,21 +111,21 @@ message BalanceResponse {
   uint64 balance = 1;
 }
 
-message NewAddrRequest {
+message NewAddressRequest {
   string name = 1;
   string address_type = 2;
   bool make_default = 3;
 }
 
-message NewAddrResponse {
-  string addr = 1;
+message NewAddressResponse {
+  string address = 1;
 }
 
-message AddrsRequest {
+message AddressesRequest {
 }
 
-message AddrsResponse {
-   repeated AddrInfo addrs = 1;
+message AddressesResponse {
+   repeated AddrInfo addresses = 1;
 }
 
 message SendFilRequest {		
@@ -271,8 +271,8 @@ service PowergateService {
 
   // Wallet
   rpc Balance(BalanceRequest) returns (BalanceResponse) {}
-  rpc NewAddr(NewAddrRequest) returns (NewAddrResponse) {}
-  rpc Addrs(AddrsRequest) returns (AddrsResponse) {}
+  rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
+  rpc Addresses(AddressesRequest) returns (AddressesResponse) {}
   rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
   rpc SignMessage(SignMessageRequest) returns (SignMessageResponse) {}
   rpc VerifyMessage(VerifyMessageRequest) returns (VerifyMessageResponse) {}

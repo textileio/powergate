@@ -20,13 +20,13 @@ func (a *Service) NewAddress(ctx context.Context, req *proto.NewAddressRequest) 
 	}, nil
 }
 
-// ListAddresses lists all addresses associated with this Powergate.
-func (a *Service) ListAddresses(ctx context.Context, req *proto.ListAddressesRequest) (*proto.ListAddressesResponse, error) {
+// Addresses lists all addresses associated with this Powergate.
+func (a *Service) Addresses(ctx context.Context, req *proto.AddressesRequest) (*proto.AddressesResponse, error) {
 	addrs, err := a.wm.List(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "listing addrs: %v", err)
 	}
-	return &proto.ListAddressesResponse{
+	return &proto.AddressesResponse{
 		Addresses: addrs,
 	}, nil
 }

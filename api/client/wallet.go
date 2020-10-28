@@ -12,44 +12,39 @@ type Wallet struct {
 }
 
 // NewAddressOption is a function that changes a NewAddressConfig.
-type NewAddressOption func(r *proto.NewAddrRequest)
+type NewAddressOption func(r *proto.NewAddressRequest)
 
 // WithMakeDefault specifies if the new address should become the default.
 func WithMakeDefault(makeDefault bool) NewAddressOption {
-	return func(r *proto.NewAddrRequest) {
+	return func(r *proto.NewAddressRequest) {
 		r.MakeDefault = makeDefault
 	}
 }
 
 // WithAddressType specifies the type of address to create.
 func WithAddressType(addressType string) NewAddressOption {
-	return func(r *proto.NewAddrRequest) {
+	return func(r *proto.NewAddressRequest) {
 		r.AddressType = addressType
 	}
 }
-
-// // List returns all wallet addresses.
-// func (w *Wallet) List(ctx context.Context) (*walletRpc.ListResponse, error) {
-// 	return w.walletClient.List(ctx, &walletRpc.ListRequest{})
-// }
 
 // Balance gets a filecoin wallet's balance.
 func (w *Wallet) Balance(ctx context.Context, address string) (*proto.BalanceResponse, error) {
 	return w.client.Balance(ctx, &proto.BalanceRequest{Address: address})
 }
 
-// NewAddr created a new wallet address managed by the storage profile.
-func (w *Wallet) NewAddr(ctx context.Context, name string, options ...NewAddressOption) (*proto.NewAddrResponse, error) {
-	r := &proto.NewAddrRequest{Name: name}
+// NewAddress created a new wallet address managed by the storage profile.
+func (w *Wallet) NewAddress(ctx context.Context, name string, options ...NewAddressOption) (*proto.NewAddressResponse, error) {
+	r := &proto.NewAddressRequest{Name: name}
 	for _, opt := range options {
 		opt(r)
 	}
-	return w.client.NewAddr(ctx, r)
+	return w.client.NewAddress(ctx, r)
 }
 
-// Addrs returns a list of addresses managed by the storage profile.
-func (w *Wallet) Addrs(ctx context.Context) (*proto.AddrsResponse, error) {
-	return w.client.Addrs(ctx, &proto.AddrsRequest{})
+// Addresses returns a list of addresses managed by the storage profile.
+func (w *Wallet) Addresses(ctx context.Context) (*proto.AddressesResponse, error) {
+	return w.client.Addresses(ctx, &proto.AddressesRequest{})
 }
 
 // SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously.
