@@ -11,7 +11,6 @@ require (
 	github.com/filecoin-project/go-address v0.0.4
 	github.com/filecoin-project/go-fil-markets v1.0.0
 	github.com/filecoin-project/go-jsonrpc v0.1.2-0.20201008195726-68c6a2704e49
-	github.com/filecoin-project/go-padreader v0.0.0-20200903213702-ed5fae088b20
 	github.com/filecoin-project/go-state-types v0.0.0-20201013222834-41ea465f274f
 	github.com/filecoin-project/lotus v1.1.2
 	github.com/filecoin-project/specs-actors v0.9.12
@@ -32,9 +31,7 @@ require (
 	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200428170625-a0bd04d3cbdf
 	github.com/ipfs/go-ipld-format v0.2.0
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4
-	github.com/ipfs/go-merkledag v0.3.2
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
-	github.com/ipld/go-car v0.1.1-0.20200923150018-8cdef32e2da4
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/kyokomi/emoji v2.2.4+incompatible
 	github.com/libp2p/go-libp2p v0.11.0
