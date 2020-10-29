@@ -21,8 +21,8 @@ type WatchStorageJobsEvent struct {
 }
 
 // StorageJob returns the current state of the specified job.
-func (j *StorageJobs) StorageJob(ctx context.Context, jid string) (*proto.StorageJobResponse, error) {
-	return j.client.StorageJob(ctx, &proto.StorageJobRequest{Jid: jid})
+func (j *StorageJobs) StorageJob(ctx context.Context, jobID string) (*proto.StorageJobResponse, error) {
+	return j.client.StorageJob(ctx, &proto.StorageJobRequest{JobId: jobID})
 }
 
 // StorageConfigForJob returns the StorageConfig associated with the specified job.
@@ -74,8 +74,8 @@ func (j *StorageJobs) Summary(ctx context.Context, cids ...string) (*proto.Stora
 // by the client after the call, so it shouldn't be closed by the client. To stop receiving
 // events, the provided ctx should be canceled. If an error occurs, it will be returned
 // in the Err field of JobEvent and the channel will be closed.
-func (j *StorageJobs) Watch(ctx context.Context, ch chan<- WatchStorageJobsEvent, jids ...string) error {
-	stream, err := j.client.WatchStorageJobs(ctx, &proto.WatchStorageJobsRequest{Jids: jids})
+func (j *StorageJobs) Watch(ctx context.Context, ch chan<- WatchStorageJobsEvent, jobIDs ...string) error {
+	stream, err := j.client.WatchStorageJobs(ctx, &proto.WatchStorageJobsRequest{JobIds: jobIDs})
 	if err != nil {
 		return err
 	}
@@ -99,6 +99,6 @@ func (j *StorageJobs) Watch(ctx context.Context, ch chan<- WatchStorageJobsEvent
 
 // Cancel signals that the executing Job with JobID jid should be
 // canceled.
-func (j *StorageJobs) Cancel(ctx context.Context, jid string) (*proto.CancelStorageJobResponse, error) {
-	return j.client.CancelStorageJob(ctx, &proto.CancelStorageJobRequest{Jid: jid})
+func (j *StorageJobs) Cancel(ctx context.Context, jobID string) (*proto.CancelStorageJobResponse, error) {
+	return j.client.CancelStorageJob(ctx, &proto.CancelStorageJobRequest{JobId: jobID})
 }

@@ -27,11 +27,11 @@ type Data struct {
 // WatchLogsOption is a function that changes GetLogsConfig.
 type WatchLogsOption func(r *proto.WatchLogsRequest)
 
-// WithJidFilter filters only log messages of a Cid related to
+// WithJobIDFilter filters only log messages of a Cid related to
 // the Job with id jid.
-func WithJidFilter(jid string) WatchLogsOption {
+func WithJobIDFilter(jobID string) WatchLogsOption {
 	return func(r *proto.WatchLogsRequest) {
-		r.Jid = jid
+		r.JobId = jobID
 	}
 }
 

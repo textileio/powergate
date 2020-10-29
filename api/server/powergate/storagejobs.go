@@ -17,7 +17,7 @@ func (s *Service) StorageJob(ctx context.Context, req *proto.StorageJobRequest) 
 	if err != nil {
 		return nil, err
 	}
-	jid := ffs.JobID(req.Jid)
+	jid := ffs.JobID(req.JobId)
 	job, err := i.GetStorageJob(jid)
 	if err != nil {
 		return nil, err
@@ -192,8 +192,8 @@ func (s *Service) WatchStorageJobs(req *proto.WatchStorageJobsRequest, srv proto
 		return err
 	}
 
-	jids := make([]ffs.JobID, len(req.Jids))
-	for i, jid := range req.Jids {
+	jids := make([]ffs.JobID, len(req.JobIds))
+	for i, jid := range req.JobIds {
 		jids[i] = ffs.JobID(jid)
 	}
 
@@ -226,7 +226,7 @@ func (s *Service) CancelStorageJob(ctx context.Context, req *proto.CancelStorage
 	if err != nil {
 		return nil, err
 	}
-	jid := ffs.JobID(req.Jid)
+	jid := ffs.JobID(req.JobId)
 	if err := i.CancelJob(jid); err != nil {
 		return nil, err
 	}

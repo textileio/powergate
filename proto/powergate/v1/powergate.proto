@@ -84,7 +84,7 @@ message RemoveResponse {
 
 message WatchLogsRequest {
   string cid = 1;
-  string jid = 2;
+  string job_id = 2;
   bool history = 3;
 }
 
@@ -159,14 +159,14 @@ message VerifyMessageResponse {
 // Jobs
 
 message CancelStorageJobRequest {
-   string jid = 1;
+   string job_id = 1;
 }
 
 message CancelStorageJobResponse {
 }
 
 message StorageJobRequest {
-   string jid = 1;
+   string job_id = 1;
 }
 
 message StorageJobResponse {
@@ -226,7 +226,7 @@ message StorageJobsSummaryResponse {
 }
 
 message WatchStorageJobsRequest {
-   repeated string jids = 1;
+   repeated string job_ids = 1;
 }
 
 message WatchStorageJobsResponse {
@@ -443,7 +443,7 @@ message DealError {
 
 message LogEntry {
   string cid = 1;
-  string jid = 2;
+  string job_id = 2;
   int64 time = 3;
   string msg = 4;
 }

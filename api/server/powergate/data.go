@@ -100,8 +100,8 @@ func (s *Service) WatchLogs(req *proto.WatchLogsRequest, srv proto.PowergateServ
 	}
 
 	opts := []api.GetLogsOption{api.WithHistory(req.History)}
-	if req.Jid != ffs.EmptyJobID.String() {
-		opts = append(opts, api.WithJidFilter(ffs.JobID(req.Jid)))
+	if req.JobId != ffs.EmptyJobID.String() {
+		opts = append(opts, api.WithJidFilter(ffs.JobID(req.JobId)))
 	}
 
 	c, err := util.CidFromString(req.Cid)
@@ -116,10 +116,10 @@ func (s *Service) WatchLogs(req *proto.WatchLogsRequest, srv proto.PowergateServ
 	for l := range ch {
 		reply := &proto.WatchLogsResponse{
 			LogEntry: &proto.LogEntry{
-				Cid:  util.CidToString(c),
-				Jid:  l.Jid.String(),
-				Time: l.Timestamp.Unix(),
-				Msg:  l.Msg,
+				Cid:   util.CidToString(c),
+				JobId: l.Jid.String(),
+				Time:  l.Timestamp.Unix(),
+				Msg:   l.Msg,
 			},
 		}
 		if err := srv.Send(reply); err != nil {

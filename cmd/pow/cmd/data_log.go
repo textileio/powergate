@@ -31,7 +31,7 @@ var dataLogCmd = &cobra.Command{
 		opts := []client.WatchLogsOption{client.WithHistory(true)}
 		jid := viper.GetString("jid")
 		if jid != "" {
-			opts = append(opts, client.WithJidFilter(jid))
+			opts = append(opts, client.WithJobIDFilter(jid))
 		}
 
 		ch := make(chan client.WatchLogsEvent)
