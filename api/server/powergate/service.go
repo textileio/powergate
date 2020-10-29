@@ -49,14 +49,14 @@ func (s *Service) BuildInfo(ctx context.Context, req *proto.BuildInfoRequest) (*
 	}, nil
 }
 
-// ID returns the API instance id.
-func (s *Service) ID(ctx context.Context, req *proto.IDRequest) (*proto.IDResponse, error) {
+// StorageProfileIdentifier returns the API instance id.
+func (s *Service) StorageProfileIdentifier(ctx context.Context, req *proto.StorageProfileIdentifierRequest) (*proto.StorageProfileIdentifierResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 	id := i.ID()
-	return &proto.IDResponse{Id: id.String()}, nil
+	return &proto.StorageProfileIdentifierResponse{Id: id.String()}, nil
 }
 
 func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {

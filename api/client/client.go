@@ -114,9 +114,9 @@ func (c *Client) BuildInfo(ctx context.Context) (*proto.BuildInfoResponse, error
 	return c.client.BuildInfo(ctx, &proto.BuildInfoRequest{})
 }
 
-// ID returns the storage profile ID.
-func (c *Client) ID(ctx context.Context) (*proto.IDResponse, error) {
-	return c.client.ID(ctx, &proto.IDRequest{})
+// StorageProfileID returns the storage profile StorageProfileID.
+func (c *Client) StorageProfileID(ctx context.Context) (*proto.StorageProfileIdentifierResponse, error) {
+	return c.client.StorageProfileIdentifier(ctx, &proto.StorageProfileIdentifierRequest{})
 }
 
 // Close closes the client's grpc connection and cancels any active requests.

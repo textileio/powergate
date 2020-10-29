@@ -26,7 +26,7 @@ var idCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := powClient.ID(mustAuthCtx(ctx))
+		res, err := powClient.StorageProfileID(mustAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

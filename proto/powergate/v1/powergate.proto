@@ -17,10 +17,10 @@ message BuildInfoResponse {
   string version = 6;
 }
 
-message IDRequest {
+message StorageProfileIdentifierRequest {
 }
 
-message IDResponse {
+message StorageProfileIdentifierResponse {
    string id = 1;
 }
 
@@ -254,7 +254,7 @@ message RetrievalDealRecordsResponse {
 service PowergateService {
   // Top level
   rpc BuildInfo(BuildInfoRequest) returns (BuildInfoResponse) {}
-  rpc ID(IDRequest) returns (IDResponse) {}
+  rpc StorageProfileIdentifier(StorageProfileIdentifierRequest) returns (StorageProfileIdentifierResponse) {}
 
   // Storage config
   rpc DefaultStorageConfig(DefaultStorageConfigRequest) returns (DefaultStorageConfigResponse) {}
