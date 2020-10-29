@@ -34,16 +34,16 @@ func toRPCColdConfig(config ffs.ColdConfig) *proto.ColdConfig {
 	return &proto.ColdConfig{
 		Enabled: config.Enabled,
 		Filecoin: &proto.FilConfig{
-			RepFactor:       int64(config.Filecoin.RepFactor),
-			DealMinDuration: config.Filecoin.DealMinDuration,
-			ExcludedMiners:  config.Filecoin.ExcludedMiners,
-			TrustedMiners:   config.Filecoin.TrustedMiners,
-			CountryCodes:    config.Filecoin.CountryCodes,
+			ReplicationFactor: int64(config.Filecoin.RepFactor),
+			DealMinDuration:   config.Filecoin.DealMinDuration,
+			ExcludedMiners:    config.Filecoin.ExcludedMiners,
+			TrustedMiners:     config.Filecoin.TrustedMiners,
+			CountryCodes:      config.Filecoin.CountryCodes,
 			Renew: &proto.FilRenew{
 				Enabled:   config.Filecoin.Renew.Enabled,
 				Threshold: int64(config.Filecoin.Renew.Threshold),
 			},
-			Addr:            config.Filecoin.Addr,
+			Address:         config.Filecoin.Addr,
 			MaxPrice:        config.Filecoin.MaxPrice,
 			FastRetrieval:   config.Filecoin.FastRetrieval,
 			DealStartOffset: config.Filecoin.DealStartOffset,
@@ -89,12 +89,12 @@ func fromRPCColdConfig(config *proto.ColdConfig) ffs.ColdConfig {
 		res.Enabled = config.Enabled
 		if config.Filecoin != nil {
 			filecoin := ffs.FilConfig{
-				RepFactor:       int(config.Filecoin.RepFactor),
+				RepFactor:       int(config.Filecoin.ReplicationFactor),
 				DealMinDuration: config.Filecoin.DealMinDuration,
 				ExcludedMiners:  config.Filecoin.ExcludedMiners,
 				CountryCodes:    config.Filecoin.CountryCodes,
 				TrustedMiners:   config.Filecoin.TrustedMiners,
-				Addr:            config.Filecoin.Addr,
+				Addr:            config.Filecoin.Address,
 				MaxPrice:        config.Filecoin.MaxPrice,
 				FastRetrieval:   config.Filecoin.FastRetrieval,
 				DealStartOffset: config.Filecoin.DealStartOffset,
@@ -175,7 +175,7 @@ func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*proto.Storage
 	for i, r := range records {
 		ret[i] = &proto.StorageDealRecord{
 			RootCid: util.CidToString(r.RootCid),
-			Addr:    r.Addr,
+			Address: r.Addr,
 			Time:    r.Time,
 			Pending: r.Pending,
 			DealInfo: &proto.StorageDealInfo{
@@ -190,7 +190,7 @@ func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*proto.Storage
 				Duration:        r.DealInfo.Duration,
 				DealId:          r.DealInfo.DealID,
 				ActivationEpoch: r.DealInfo.ActivationEpoch,
-				Msg:             r.DealInfo.Message,
+				Message:         r.DealInfo.Message,
 			},
 		}
 	}
@@ -201,8 +201,8 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*proto.Ret
 	ret := make([]*proto.RetrievalDealRecord, len(records))
 	for i, r := range records {
 		ret[i] = &proto.RetrievalDealRecord{
-			Addr: r.Addr,
-			Time: r.Time,
+			Address: r.Addr,
+			Time:    r.Time,
 			DealInfo: &proto.RetrievalDealInfo{
 				RootCid:                 util.CidToString(r.DealInfo.RootCid),
 				Size:                    r.DealInfo.Size,
@@ -272,7 +272,7 @@ func toRPCJob(job ffs.StorageJob) (*proto.Job, error) {
 		ApiId:      job.APIID.String(),
 		Cid:        util.CidToString(job.Cid),
 		Status:     status,
-		ErrCause:   job.ErrCause,
+		ErrorCause: job.ErrCause,
 		DealErrors: toRPCDealErrors(job.DealErrors),
 		CreatedAt:  job.CreatedAt,
 		DealInfo:   dealInfo,

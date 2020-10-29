@@ -57,7 +57,7 @@ func (s *Service) Addresses(ctx context.Context, req *proto.AddressesRequest) (*
 		}
 		res[i] = &proto.AddrInfo{
 			Name:    addr.Name,
-			Addr:    addr.Addr,
+			Address: addr.Addr,
 			Type:    addr.Type,
 			Balance: bal,
 		}
@@ -83,7 +83,7 @@ func (s *Service) SignMessage(ctx context.Context, req *proto.SignMessageRequest
 	if err != nil {
 		return nil, err
 	}
-	signature, err := i.SignMessage(ctx, req.Addr, req.Msg)
+	signature, err := i.SignMessage(ctx, req.Address, req.Message)
 	if err != nil {
 		return nil, fmt.Errorf("signing message: %s", err)
 	}
@@ -97,7 +97,7 @@ func (s *Service) VerifyMessage(ctx context.Context, req *proto.VerifyMessageReq
 	if err != nil {
 		return nil, err
 	}
-	ok, err := i.VerifyMessage(ctx, req.Addr, req.Msg, req.Signature)
+	ok, err := i.VerifyMessage(ctx, req.Address, req.Message, req.Signature)
 	if err != nil {
 		return nil, fmt.Errorf("verifying signature: %s", err)
 	}

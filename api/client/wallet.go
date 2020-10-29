@@ -58,13 +58,13 @@ func (w *Wallet) SendFil(ctx context.Context, from string, to string, amount int
 }
 
 // SignMessage signs a message with a stprage profile wallet address.
-func (w *Wallet) SignMessage(ctx context.Context, addr string, message []byte) (*proto.SignMessageResponse, error) {
-	r := &proto.SignMessageRequest{Addr: addr, Msg: message}
+func (w *Wallet) SignMessage(ctx context.Context, address string, message []byte) (*proto.SignMessageResponse, error) {
+	r := &proto.SignMessageRequest{Address: address, Message: message}
 	return w.client.SignMessage(ctx, r)
 }
 
 // VerifyMessage verifies a message signature from a wallet address.
-func (w *Wallet) VerifyMessage(ctx context.Context, addr string, message, signature []byte) (*proto.VerifyMessageResponse, error) {
-	r := &proto.VerifyMessageRequest{Addr: addr, Msg: message, Signature: signature}
+func (w *Wallet) VerifyMessage(ctx context.Context, address string, message, signature []byte) (*proto.VerifyMessageResponse, error) {
+	r := &proto.VerifyMessageRequest{Address: address, Message: message, Signature: signature}
 	return w.client.VerifyMessage(ctx, r)
 }

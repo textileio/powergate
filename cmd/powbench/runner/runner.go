@@ -56,7 +56,7 @@ func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)
 	}
-	addr := res2.Addresses[0].Addr
+	addr := res2.Addresses[0].Address
 	time.Sleep(time.Second * 5)
 
 	chLimit := make(chan struct{}, ts.MaxParallel)
@@ -112,13 +112,13 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		Cold: &proto.ColdConfig{
 			Enabled: true,
 			Filecoin: &proto.FilConfig{
-				RepFactor:       1,
-				DealMinDuration: util.MinDealDuration,
-				Addr:            addr,
-				CountryCodes:    nil,
-				ExcludedMiners:  nil,
-				TrustedMiners:   []string{minerAddr},
-				Renew:           &proto.FilRenew{},
+				ReplicationFactor: 1,
+				DealMinDuration:   util.MinDealDuration,
+				Address:           addr,
+				CountryCodes:      nil,
+				ExcludedMiners:    nil,
+				TrustedMiners:     []string{minerAddr},
+				Renew:             &proto.FilRenew{},
 			},
 		},
 	}

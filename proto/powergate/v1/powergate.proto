@@ -138,8 +138,8 @@ message SendFilResponse {
 }
 
 message SignMessageRequest {
-  string addr = 1;
-  bytes msg =2;
+  string address = 1;
+  bytes message =2;
 }
 
 message SignMessageResponse {
@@ -147,8 +147,8 @@ message SignMessageResponse {
 }
 
 message VerifyMessageRequest {
-  string addr = 1;
-  bytes msg = 2;
+  string address = 1;
+  bytes message = 2;
   bytes signature = 3;
 }
 
@@ -305,7 +305,7 @@ message JobCounts {
 
 message AddrInfo {
   string name = 1;
-  string addr = 2;
+  string address = 2;
   string type = 3;
   uint64 balance = 4;
 }
@@ -327,13 +327,13 @@ message FilRenew {
 }
 
 message FilConfig {
-  int64 rep_factor = 1;
+  int64 replication_factor = 1;
   int64 deal_min_duration = 2;
   repeated string excluded_miners = 3;
   repeated string trusted_miners = 4;
   repeated string country_codes = 5;
   FilRenew renew = 6;
-  string addr = 7;
+  string address = 7;
   uint64 max_price = 8;
   bool fast_retrieval = 9;
   int64 deal_start_offset = 10;
@@ -429,7 +429,7 @@ message Job {
   string api_id = 2;
   string cid = 3;
   JobStatus status = 4;
-  string err_cause = 5;
+  string error_cause = 5;
   repeated DealInfo deal_info = 6;
   repeated DealError deal_errors = 7;
   int64 created_at = 8;
@@ -445,7 +445,7 @@ message LogEntry {
   string cid = 1;
   string job_id = 2;
   int64 time = 3;
-  string msg = 4;
+  string message = 4;
 }
 
 message DealRecordsConfig {
@@ -471,12 +471,12 @@ message StorageDealInfo {
 
   uint64 deal_id = 10;
   int64 activation_epoch = 11;
-  string msg = 12;
+  string message = 12;
 }
 
 message StorageDealRecord {
   string root_cid = 1;
-  string addr = 2;
+  string address = 2;
   int64 time = 3;
   bool pending = 4;
   StorageDealInfo deal_info = 5;
@@ -493,7 +493,7 @@ message RetrievalDealInfo {
 }
 
 message RetrievalDealRecord {
-   string addr = 1;
+   string address = 1;
    int64 time = 2;
    RetrievalDealInfo deal_info = 3;
 }

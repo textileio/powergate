@@ -116,10 +116,10 @@ func (s *Service) WatchLogs(req *proto.WatchLogsRequest, srv proto.PowergateServ
 	for l := range ch {
 		reply := &proto.WatchLogsResponse{
 			LogEntry: &proto.LogEntry{
-				Cid:   util.CidToString(c),
-				JobId: l.Jid.String(),
-				Time:  l.Timestamp.Unix(),
-				Msg:   l.Msg,
+				Cid:     util.CidToString(c),
+				JobId:   l.Jid.String(),
+				Time:    l.Timestamp.Unix(),
+				Message: l.Msg,
 			},
 		}
 		if err := srv.Send(reply); err != nil {

@@ -86,7 +86,7 @@ func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.WatchS
 		if state[k] != nil {
 			var val string
 			if state[k].Res.Job.Status == proto.JobStatus_JOB_STATUS_FAILED {
-				val = fmt.Sprintf("%v %v", state[k].Res.Job.Status.String(), state[k].Res.Job.ErrCause)
+				val = fmt.Sprintf("%v %v", state[k].Res.Job.Status.String(), state[k].Res.Job.ErrorCause)
 			} else if state[k].Err != nil {
 				val = fmt.Sprintf("Error: %v", state[k].Err.Error())
 			} else {

@@ -59,7 +59,7 @@ var dataLogCmd = &cobra.Command{
 				break
 			}
 			ts := time.Unix(event.Res.LogEntry.Time, 0)
-			Message("%v - %v", ts.Format("2006-01-02T15:04:05"), event.Res.LogEntry.Msg)
+			Message("%v - %v", ts.Format("2006-01-02T15:04:05"), event.Res.LogEntry.Message)
 		}
 	},
 }
