@@ -258,11 +258,13 @@ func setupLogging(repoPath string) error {
 		"ffs-auth",
 		"ffs-api",
 		"ffs-coreipfs",
-		"ffs-grpc-service",
 		"ffs-filcold",
 		"ffs-sched-sjstore",
 		"ffs-sched-rjstore",
 		"ffs-cidlogger",
+
+		// gRPC Services
+		"powergate-service",
 	}
 
 	// powd registered loggers get info level by default.
