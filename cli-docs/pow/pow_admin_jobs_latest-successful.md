@@ -13,9 +13,9 @@ pow admin jobs latest-successful [flags]
 ### Options
 
 ```
-  -c, --cids strings         optional cids filter to apply
-  -h, --help                 help for latest-successful
-  -i, --instance-id string   optional instance id filter to apply
+  -c, --cids strings        optional cids filter to apply
+  -h, --help                help for latest-successful
+  -i, --profile-id string   optional instance id filter to apply
 ```
 
 ### Options inherited from parent commands

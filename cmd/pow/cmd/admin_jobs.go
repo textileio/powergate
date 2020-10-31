@@ -6,23 +6,24 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/textileio/powergate/api/client/admin"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
-	adminJobsQueuedCmd.Flags().StringP("instance-id", "i", "", "optional instance id filter to apply")
+	adminJobsQueuedCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
 	adminJobsQueuedCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
-	adminJobsExecutingCmd.Flags().StringP("instance-id", "i", "", "optional instance id filter to apply")
+	adminJobsExecutingCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
 	adminJobsExecutingCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
-	adminJobsLatestFinalCmd.Flags().StringP("instance-id", "i", "", "optional instance id filter to apply")
+	adminJobsLatestFinalCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
 	adminJobsLatestFinalCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
-	adminJobsLatestSuccessfulCmd.Flags().StringP("instance-id", "i", "", "optional instance id filter to apply")
+	adminJobsLatestSuccessfulCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
 	adminJobsLatestSuccessfulCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
-	adminJobsSummaryCmd.Flags().StringP("instance-id", "i", "", "optional instance id filter to apply")
+	adminJobsSummaryCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
 	adminJobsSummaryCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
 	adminJobsCmd.AddCommand(
@@ -47,11 +48,7 @@ var adminJobsQueuedCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.Queued(
-			adminAuthCtx(ctx),
-			viper.GetString("instance-id"),
-			viper.GetStringSlice("cids")...,
-		)
+		res, err := powClient.Admin.StorageJobs.Queued(adminAuthCtx(ctx), storageJobsOpts()...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -74,11 +71,7 @@ var adminJobsExecutingCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.Executing(
-			adminAuthCtx(ctx),
-			viper.GetString("instance-id"),
-			viper.GetStringSlice("cids")...,
-		)
+		res, err := powClient.Admin.StorageJobs.Executing(adminAuthCtx(ctx), storageJobsOpts()...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -101,11 +94,7 @@ var adminJobsLatestFinalCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.LatestFinal(
-			adminAuthCtx(ctx),
-			viper.GetString("instance-id"),
-			viper.GetStringSlice("cids")...,
-		)
+		res, err := powClient.Admin.StorageJobs.LatestFinal(adminAuthCtx(ctx), storageJobsOpts()...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -128,11 +117,7 @@ var adminJobsLatestSuccessfulCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.LatestSuccessful(
-			adminAuthCtx(ctx),
-			viper.GetString("instance-id"),
-			viper.GetStringSlice("cids")...,
-		)
+		res, err := powClient.Admin.StorageJobs.LatestSuccessful(adminAuthCtx(ctx), storageJobsOpts()...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -155,11 +140,7 @@ var adminJobsSummaryCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.Summary(
-			adminAuthCtx(ctx),
-			viper.GetString("instance-id"),
-			viper.GetStringSlice("cids")...,
-		)
+		res, err := powClient.Admin.StorageJobs.Summary(adminAuthCtx(ctx), storageJobsOpts()...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -167,4 +148,15 @@ var adminJobsSummaryCmd = &cobra.Command{
 
 		fmt.Println(string(json))
 	},
+}
+
+func storageJobsOpts() []admin.StorageJobsOption {
+	var opts []admin.StorageJobsOption
+	if viper.IsSet("profile-id") {
+		opts = append(opts, admin.WithProfileID(viper.GetString("profile-id")))
+	}
+	if viper.IsSet("cids") {
+		opts = append(opts, admin.WithCids(viper.GetStringSlice("cids")...))
+	}
+	return opts
 }

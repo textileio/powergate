@@ -13,9 +13,9 @@ pow admin jobs summary [flags]
 ### Options
 
 ```
-  -c, --cids strings         optional cids filter to apply
-  -h, --help                 help for summary
-  -i, --instance-id string   optional instance id filter to apply
+  -c, --cids strings        optional cids filter to apply
+  -h, --help                help for summary
+  -i, --profile-id string   optional instance id filter to apply
 ```
 
 ### Options inherited from parent commands
