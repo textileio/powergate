@@ -308,6 +308,7 @@ github.com/filecoin-project/lotus v1.1.2/go.mod h1:jSlQv+/+WGox3TdEzBEfmXzvbot4O
 github.com/filecoin-project/specs-actors v0.9.4/go.mod h1:BStZQzx5x7TmCkLv0Bpa07U6cPKol6fd3w9KjMPZ6Z4=
 github.com/filecoin-project/specs-actors v0.9.12 h1:iIvk58tuMtmloFNHhAOQHG+4Gci6Lui0n7DYQGi3cJk=
 github.com/filecoin-project/specs-actors v0.9.12/go.mod h1:TS1AW/7LbG+615j4NsjMK1qlpAwaFsG9w0V2tg2gSao=
+github.com/filecoin-project/specs-actors v0.9.13/go.mod h1:TS1AW/7LbG+615j4NsjMK1qlpAwaFsG9w0V2tg2gSao=
 github.com/filecoin-project/specs-actors/v2 v2.0.1/go.mod h1:v2NZVYinNIKA9acEMBm5wWXxqv5+frFEbekBFemYghY=
 github.com/filecoin-project/specs-actors/v2 v2.2.0 h1:IyCICb0NHYeD0sdSqjVGwWydn/7r7xXuxdpvGAcRCGY=
 github.com/filecoin-project/specs-actors/v2 v2.2.0/go.mod h1:rlv5Mx9wUhV8Qsz+vUezZNm+zL4tK08O0HreKKPB2Wc=
