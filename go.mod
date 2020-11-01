@@ -54,7 +54,7 @@ require (
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/textileio/go-ds-mongo v0.1.2
-	go.opencensus.io v0.22.4
+	go.opencensus.io v0.22.5
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
