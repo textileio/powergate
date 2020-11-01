@@ -48,7 +48,7 @@ require (
 	github.com/ory/dockertest/v3 v3.6.2
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/rs/cors v1.7.0
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/objx v0.2.0 // indirect
