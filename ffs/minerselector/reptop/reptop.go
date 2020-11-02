@@ -61,7 +61,7 @@ func (rt *RepTop) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerPropos
 		}
 	}
 	if len(res) < n {
-		return nil, fmt.Errorf("not enough miner asks that satisfy the max price constraint")
+		return nil, fmt.Errorf("not enough miners satisfy the miner selector constraints")
 	}
 	return res, nil
 }
