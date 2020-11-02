@@ -34,7 +34,7 @@ var walletSendCmd = &cobra.Command{
 			checkErr(fmt.Errorf("parsing amount %v", args[2]))
 		}
 
-		_, err := powClient.Wallet.SendFil(mustAuthCtx(ctx), from, to, *amount)
+		_, err := powClient.Wallet.SendFil(mustAuthCtx(ctx), from, to, amount)
 		checkErr(err)
 	},
 }

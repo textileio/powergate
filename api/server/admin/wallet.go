@@ -33,7 +33,11 @@ func (a *Service) Addresses(ctx context.Context, req *proto.AddressesRequest) (*
 
 // SendFil sends FIL from an address associated with this Powergate to any other address.
 func (a *Service) SendFil(ctx context.Context, req *proto.SendFilRequest) (*proto.SendFilResponse, error) {
-	err := a.wm.SendFil(ctx, req.From, req.To, big.NewInt(req.Amount))
+	amt, ok := new(big.Int).SetString(req.Amount, 10)
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing amount %v", req.Amount)
+	}
+	err := a.wm.SendFil(ctx, req.From, req.To, amt)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "sending fil: %v", err)
 	}

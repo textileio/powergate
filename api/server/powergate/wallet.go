@@ -17,7 +17,7 @@ func (s *Service) Balance(ctx context.Context, req *proto.BalanceRequest) (*prot
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting balance: %v", err)
 	}
-	return &proto.BalanceResponse{Balance: fmt.Sprintf("%v", bal)}, nil
+	return &proto.BalanceResponse{Balance: bal.String()}, nil
 }
 
 // NewAddress calls ffs.NewAddr.
@@ -59,7 +59,7 @@ func (s *Service) Addresses(ctx context.Context, req *proto.AddressesRequest) (*
 			Name:    addr.Name,
 			Address: addr.Addr,
 			Type:    addr.Type,
-			Balance: fmt.Sprintf("%v", bal),
+			Balance: bal.String(),
 		}
 	}
 	return &proto.AddressesResponse{Addresses: res}, nil

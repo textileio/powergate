@@ -24,7 +24,7 @@ message AddressesResponse {
 message SendFilRequest {
   string from = 1;
   string to = 2;	
-  int64 amount = 3;
+  string amount = 3;
 }
 
 message SendFilResponse {

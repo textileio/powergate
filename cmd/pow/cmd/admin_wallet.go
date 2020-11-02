@@ -3,7 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"math/big"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -81,10 +81,12 @@ var adminWalletSendCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		amount, err := strconv.ParseInt(args[2], 10, 64)
-		checkErr(err)
+		amount, ok := new(big.Int).SetString(args[2], 10)
+		if !ok {
+			checkErr(fmt.Errorf("parsing amount %v", args[2]))
+		}
 
-		_, err = powClient.Admin.Wallet.SendFil(adminAuthCtx(ctx), args[0], args[1], amount)
+		_, err := powClient.Admin.Wallet.SendFil(adminAuthCtx(ctx), args[0], args[1], amount)
 		checkErr(err)
 	},
 }

@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"math/big"
 
 	proto "github.com/textileio/powergate/proto/admin/v1"
 )
@@ -25,11 +26,11 @@ func (w *Wallet) Addresses(ctx context.Context) (*proto.AddressesResponse, error
 }
 
 // SendFil sends FIL from an address associated with this Powergate to any other address.
-func (w *Wallet) SendFil(ctx context.Context, from, to string, amount int64) (*proto.SendFilResponse, error) {
+func (w *Wallet) SendFil(ctx context.Context, from, to string, amount *big.Int) (*proto.SendFilResponse, error) {
 	req := &proto.SendFilRequest{
 		From:   from,
 		To:     to,
-		Amount: amount,
+		Amount: amount.String(),
 	}
 	return w.client.SendFil(ctx, req)
 }
