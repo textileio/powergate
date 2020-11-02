@@ -153,7 +153,7 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 
 	subtitle := fmt.Sprintf("Last updated: %v, storage median price: %v", timeToString(index.LastUpdated), index.StorageMedianPrice)
 
-	headers := []string{"Miner", "Price", "Min Piece Size", "Timestamp", "Expiry"}
+	headers := []string{"Miner", "Price", "Min Piece Size", "Max Piece Size", "Timestamp", "Expiry"}
 
 	rows := make([][]interface{}, len(index.Storage))
 	i := 0
