@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"context"
-	"strconv"
+	"fmt"
+	"math/big"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,10 +29,12 @@ var walletSendCmd = &cobra.Command{
 		from := args[0]
 		to := args[1]
 
-		amount, err := strconv.ParseInt(args[2], 10, 64)
-		checkErr(err)
+		amount, ok := new(big.Int).SetString(args[2], 10)
+		if !ok {
+			checkErr(fmt.Errorf("parsing amount %v", args[2]))
+		}
 
-		_, err = powClient.Wallet.SendFil(mustAuthCtx(ctx), from, to, amount)
+		_, err := powClient.Wallet.SendFil(mustAuthCtx(ctx), from, to, *amount)
 		checkErr(err)
 	},
 }

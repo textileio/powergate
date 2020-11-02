@@ -108,7 +108,7 @@ message BalanceRequest {
 }
 
 message BalanceResponse {
-  uint64 balance = 1;
+  string balance = 1;
 }
 
 message NewAddressRequest {
@@ -131,7 +131,7 @@ message AddressesResponse {
 message SendFilRequest {		
   string from = 1;		
   string to = 2;		
-  int64 amount = 3;		
+  string amount = 3;		
 }		
 
 message SendFilResponse {		
@@ -307,7 +307,7 @@ message AddrInfo {
   string name = 1;
   string address = 2;
   string type = 3;
-  uint64 balance = 4;
+  string balance = 4;
 }
 
 message IpfsConfig {

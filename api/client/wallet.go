@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"math/big"
 
 	proto "github.com/textileio/powergate/proto/powergate/v1"
 )
@@ -48,11 +49,11 @@ func (w *Wallet) Addresses(ctx context.Context) (*proto.AddressesResponse, error
 }
 
 // SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously.
-func (w *Wallet) SendFil(ctx context.Context, from string, to string, amount int64) (*proto.SendFilResponse, error) {
+func (w *Wallet) SendFil(ctx context.Context, from string, to string, amount big.Int) (*proto.SendFilResponse, error) {
 	req := &proto.SendFilRequest{
 		From:   from,
 		To:     to,
-		Amount: amount,
+		Amount: amount.String(),
 	}
 	return w.client.SendFil(ctx, req)
 }

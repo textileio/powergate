@@ -17,7 +17,7 @@ func (s *Service) Balance(ctx context.Context, req *proto.BalanceRequest) (*prot
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting balance: %v", err)
 	}
-	return &proto.BalanceResponse{Balance: bal}, nil
+	return &proto.BalanceResponse{Balance: fmt.Sprintf("%v", bal)}, nil
 }
 
 // NewAddress calls ffs.NewAddr.
@@ -59,7 +59,7 @@ func (s *Service) Addresses(ctx context.Context, req *proto.AddressesRequest) (*
 			Name:    addr.Name,
 			Address: addr.Addr,
 			Type:    addr.Type,
-			Balance: bal,
+			Balance: fmt.Sprintf("%v", bal),
 		}
 	}
 	return &proto.AddressesResponse{Addresses: res}, nil
@@ -71,7 +71,11 @@ func (s *Service) SendFil(ctx context.Context, req *proto.SendFilRequest) (*prot
 	if err != nil {
 		return nil, err
 	}
-	if err := i.SendFil(ctx, req.From, req.To, big.NewInt(req.Amount)); err != nil {
+	amt, ok := new(big.Int).SetString(req.Amount, 10)
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing amount %v", req.Amount)
+	}
+	if err := i.SendFil(ctx, req.From, req.To, amt); err != nil {
 		return nil, err
 	}
 	return &proto.SendFilResponse{}, nil
