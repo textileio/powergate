@@ -44,7 +44,7 @@ var getCmd = &cobra.Command{
 				}
 				i++
 			}
-			RenderTable(os.Stdout, []string{"miner", "price", "min piece size", "timestamp", "expiry"}, data)
+			RenderTable(os.Stdout, []string{"miner", "price", "min piece size", "max piece size", "timestamp", "expiry"}, data)
 		}
 
 		Message("Found %d asks", aurora.White(len(index.Storage)).Bold())
