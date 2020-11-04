@@ -11,7 +11,7 @@ import (
 
 // NewAddress creates a new address.
 func (a *Service) NewAddress(ctx context.Context, req *proto.NewAddressRequest) (*proto.NewAddressResponse, error) {
-	addr, err := a.wm.NewAddress(ctx, req.Type)
+	addr, err := a.wm.NewAddress(ctx, req.AddressType)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "creating address: %v", err)
 	}

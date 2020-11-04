@@ -15,7 +15,7 @@ type Wallet struct {
 // NewAddress creates a new address.
 func (w *Wallet) NewAddress(ctx context.Context, addrType string) (*proto.NewAddressResponse, error) {
 	req := &proto.NewAddressRequest{
-		Type: addrType,
+		AddressType: addrType,
 	}
 	return w.client.NewAddress(ctx, req)
 }

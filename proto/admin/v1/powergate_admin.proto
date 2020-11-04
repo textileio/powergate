@@ -7,7 +7,7 @@ option go_package = "github.com/textileio/powergate/proto/admin/v1";
 
 // Wallet
 message NewAddressRequest {
-  string type = 1;
+  string address_type = 1;
 }
 
 message NewAddressResponse {
