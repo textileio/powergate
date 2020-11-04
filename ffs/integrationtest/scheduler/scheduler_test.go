@@ -83,10 +83,10 @@ func TestResumeScheduler(t *testing.T) {
 	ipfs, ipfsMAddr := it.CreateIPFS(t)
 	addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
 	manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
-	_, auth, err := manager.Create(context.Background())
+	auth, err := manager.Create(context.Background())
 	require.NoError(t, err)
 	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
-	fapi, err := manager.GetByAuthToken(auth)
+	fapi, err := manager.GetByAuthToken(auth.Token)
 	require.NoError(t, err)
 
 	r := rand.New(rand.NewSource(22))
@@ -101,7 +101,7 @@ func TestResumeScheduler(t *testing.T) {
 
 	manager, closeManager = it.NewFFSManager(t, ds2, client, addr, ms, ipfs)
 	defer closeManager()
-	fapi, err = manager.GetByAuthToken(auth) // Get same FFS instance again
+	fapi, err = manager.GetByAuthToken(auth.Token) // Get same FFS instance again
 	require.NoError(t, err)
 	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 

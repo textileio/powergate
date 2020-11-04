@@ -38,7 +38,6 @@ var (
 type API struct {
 	is  *instanceStore
 	wm  ffs.WalletManager
-	pm  ffs.PaychManager
 	drm ffs.DealRecordsManager
 
 	sched *scheduler.Scheduler
@@ -51,7 +50,7 @@ type API struct {
 }
 
 // New returns a new Api instance.
-func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, dc ffs.StorageConfig, addrInfo AddrInfo) (*API, error) {
+func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs.WalletManager, drm ffs.DealRecordsManager, dc ffs.StorageConfig, addrInfo AddrInfo) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 
 	dc.Cold.Filecoin.Addr = addrInfo.Addr
@@ -67,7 +66,7 @@ func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	i := new(ctx, is, wm, pm, drm, config, sch, cancel)
+	i := new(ctx, is, wm, drm, config, sch, cancel)
 	if err := i.is.putInstanceConfig(config); err != nil {
 		return nil, fmt.Errorf("saving new instance %s: %s", i.cfg.ID, err)
 	}
@@ -75,21 +74,20 @@ func New(ds datastore.Datastore, iid ffs.APIID, sch *scheduler.Scheduler, wm ffs
 }
 
 // Load loads a saved Api instance from its ConfigStore.
-func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager) (*API, error) {
+func Load(ds datastore.Datastore, iid ffs.APIID, sched *scheduler.Scheduler, wm ffs.WalletManager, drm ffs.DealRecordsManager) (*API, error) {
 	is := newInstanceStore(namespace.Wrap(ds, datastore.NewKey("istore")))
 	c, err := is.getInstanceConfig()
 	if err != nil {
 		return nil, fmt.Errorf("loading instance: %s", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return new(ctx, is, wm, pm, drm, c, sched, cancel), nil
+	return new(ctx, is, wm, drm, c, sched, cancel), nil
 }
 
-func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, config InstanceConfig, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
+func new(ctx context.Context, is *instanceStore, wm ffs.WalletManager, drm ffs.DealRecordsManager, config InstanceConfig, sch *scheduler.Scheduler, cancel context.CancelFunc) *API {
 	i := &API{
 		is:     is,
 		wm:     wm,
-		pm:     pm,
 		drm:    drm,
 		cfg:    config,
 		sched:  sch,
@@ -109,18 +107,6 @@ func (i *API) DefaultStorageConfig() ffs.StorageConfig {
 	return i.cfg.DefaultStorageConfig
 }
 
-// GetStorageConfig returns the current StorageConfig for a Cid.
-func (i *API) GetStorageConfig(c cid.Cid) (ffs.StorageConfig, error) {
-	conf, err := i.is.getStorageConfig(c)
-	if err == ErrNotFound {
-		return ffs.StorageConfig{}, err
-	}
-	if err != nil {
-		return ffs.StorageConfig{}, fmt.Errorf("getting cid config from store: %s", err)
-	}
-	return conf, nil
-}
-
 // SetDefaultStorageConfig sets a new default StorageConfig.
 func (i *API) SetDefaultStorageConfig(c ffs.StorageConfig) error {
 	i.lock.Lock()
@@ -132,35 +118,29 @@ func (i *API) SetDefaultStorageConfig(c ffs.StorageConfig) error {
 	return i.is.putInstanceConfig(i.cfg)
 }
 
-// Info returns instance information.
-func (i *API) Info(ctx context.Context) (InstanceInfo, error) {
-	i.lock.Lock()
-	defer i.lock.Unlock()
-
-	pins, err := i.is.getCids()
+// GetStorageConfigs returns the current StorageConfigs for a FFS instance, filtered by cids, if provided.
+func (i *API) GetStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.StorageConfig, error) {
+	configs, err := i.is.getStorageConfigs(cids...)
+	if err == ErrNotFound {
+		return nil, err
+	}
 	if err != nil {
-		return InstanceInfo{}, fmt.Errorf("getting pins from instance: %s", err)
+		return nil, fmt.Errorf("getting cid config from store: %s", err)
 	}
+	return configs, nil
+}
 
-	var balances []BalanceInfo
-	for _, addr := range i.cfg.Addrs {
-		balance, err := i.wm.Balance(ctx, addr.Addr)
-		if err != nil {
-			return InstanceInfo{}, fmt.Errorf("getting balance of %s: %s", addr.Addr, err)
-		}
-		info := BalanceInfo{
-			AddrInfo: addr,
-			Balance:  balance,
-		}
-		balances = append(balances, info)
+// Show returns the information about a stored Cid. If no information is available,
+// since the Cid was never stored, it returns ErrNotFound.
+func (i *API) Show(cid cid.Cid) (ffs.StorageInfo, error) {
+	inf, err := i.sched.GetStorageInfo(cid)
+	if err == scheduler.ErrNotFound {
+		return inf, ErrNotFound
 	}
-
-	return InstanceInfo{
-		ID:                   i.cfg.ID,
-		DefaultStorageConfig: i.cfg.DefaultStorageConfig,
-		Balances:             balances,
-		Pins:                 pins,
-	}, nil
+	if err != nil {
+		return inf, fmt.Errorf("getting cid storage info: %s", err)
+	}
+	return inf, nil
 }
 
 // Close terminates the running Api.

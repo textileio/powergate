@@ -84,51 +84,74 @@ func (s *instanceStore) removeStorageConfig(c cid.Cid) error {
 	return nil
 }
 
-func (s *instanceStore) getStorageConfig(c cid.Cid) (ffs.StorageConfig, error) {
-	buf, err := s.ds.Get(makeStorageConfigKey(c))
-	if err != nil {
-		if err == datastore.ErrNotFound {
-			return ffs.StorageConfig{}, ErrNotFound
-		}
-		return ffs.StorageConfig{}, err
-	}
-	var conf ffs.StorageConfig
-	if err := json.Unmarshal(buf, &conf); err != nil {
-		return ffs.StorageConfig{}, fmt.Errorf("unmarshaling cid config from datastore: %s", err)
-	}
-	return conf, nil
-}
-
-func (s *instanceStore) getCids() ([]cid.Cid, error) {
+func (s *instanceStore) getStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.StorageConfig, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	q := query.Query{
-		Prefix:   dsBaseCidStorageConfig.String(),
-		KeysOnly: true,
-	}
-	res, err := s.ds.Query(q)
-	if err != nil {
-		return nil, fmt.Errorf("querying for all cids in instance: %s", err)
-	}
-	defer func() {
-		if err := res.Close(); err != nil {
-			log.Errorf("closing query result: %s", err)
-		}
-	}()
 
-	var cids []cid.Cid
-	for r := range res.Next() {
-		if r.Error != nil {
-			return nil, fmt.Errorf("iter next: %s", r.Error)
-		}
-		strCid := datastore.RawKey(r.Key).Name()
-		c, err := util.CidFromString(strCid)
-		if err != nil {
-			return nil, fmt.Errorf("decoding cid: %s", err)
-		}
-		cids = append(cids, c)
+	rawRes := make(map[cid.Cid][]byte)
+	for _, cid := range cids {
+		rawRes[cid] = nil
 	}
-	return cids, nil
+
+	if len(cids) == 1 {
+		// just getting a single value, do an explicit query for it
+		buf, err := s.ds.Get(makeStorageConfigKey(cids[0]))
+		if err != nil {
+			if err == datastore.ErrNotFound {
+				return nil, ErrNotFound
+			}
+			return nil, err
+		}
+		rawRes[cids[0]] = buf
+	} else {
+		// getting many or all values, so we have to query everything
+		q := query.Query{
+			Prefix: dsBaseCidStorageConfig.String(),
+		}
+		res, err := s.ds.Query(q)
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if err := res.Close(); err != nil {
+				log.Errorf("closing query result: %s", err)
+			}
+		}()
+		for r := range res.Next() {
+			if r.Error != nil {
+				return nil, fmt.Errorf("iter next: %s", r.Error)
+			}
+			strCid := datastore.RawKey(r.Key).Name()
+			c, err := util.CidFromString(strCid)
+			if err != nil {
+				return nil, fmt.Errorf("decoding cid: %s", err)
+			}
+			if len(rawRes) > 0 {
+				// we have a filter, check it
+				if _, ok := rawRes[c]; ok {
+					rawRes[c] = r.Value
+				}
+			} else {
+				// no filter, include everything
+				rawRes[c] = r.Value
+			}
+		}
+	}
+
+	res := make(map[cid.Cid]ffs.StorageConfig, len(rawRes))
+	for cid, buf := range rawRes {
+		if buf == nil {
+			// one of the provided filter cids wasn't found
+			return nil, ErrNotFound
+		}
+		var conf ffs.StorageConfig
+		if err := json.Unmarshal(buf, &conf); err != nil {
+			return nil, fmt.Errorf("unmarshaling cid config from datastore: %s", err)
+		}
+		res[cid] = conf
+	}
+
+	return res, nil
 }
 
 func makeStorageConfigKey(c cid.Cid) datastore.Key {

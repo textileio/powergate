@@ -15,18 +15,18 @@ pow [flags]
 ```
   -h, --help                   help for pow
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           storage profile auth token
   -v, --version                display version information for pow and the connected server
 ```
 
 ### SEE ALSO
 
-* [pow asks](pow_asks.md)	 - Provides commands to view asks data
-* [pow faults](pow_faults.md)	 - Provides commands to view faults data
-* [pow ffs](pow_ffs.md)	 - Provides commands to manage ffs
-* [pow health](pow_health.md)	 - Display the node health status
-* [pow miners](pow_miners.md)	 - Provides commands to view miners data
-* [pow net](pow_net.md)	 - Provides commands related to peers and network
-* [pow reputation](pow_reputation.md)	 - Provides commands to view miner reputation data
+* [pow admin](pow_admin.md)	 - Provides admin commands
+* [pow config](pow_config.md)	 - Provides commands to interact with cid storage configs
+* [pow data](pow_data.md)	 - Provides commands to interact with general data APIs
+* [pow deals](pow_deals.md)	 - Provides commands to view Filecoin deal information
+* [pow id](pow_id.md)	 - Returns the storage profile id
+* [pow storage-jobs](pow_storage-jobs.md)	 - Provides commands to query for storage jobs in various states
 * [pow version](pow_version.md)	 - Display version information for pow and the connected server
 * [pow wallet](pow_wallet.md)	 - Provides commands about filecoin wallets
 

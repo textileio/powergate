@@ -10,7 +10,6 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/health"
 )
 
 var (
@@ -75,13 +74,6 @@ func spinup(t *testing.T) *client.Client {
 	for retries < limit {
 		c, err = client.NewClient(powergateAddr)
 		require.NoError(t, err)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-		s, _, err := c.Health.Check(ctx)
-		if err == nil {
-			require.Equal(t, health.Ok, s)
-			break
-		}
 		time.Sleep(time.Second)
 		retries++
 	}

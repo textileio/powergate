@@ -339,21 +339,37 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 	ch := make(chan deals.StorageDealInfo)
 	go func() {
 		defer close(ch)
+
 		currentState := make(map[cid.Cid]*api.DealInfo)
+
+		makeClientAndNotify := func() error {
+			client, cls, err := m.clientBuilder(ctx)
+			if err != nil {
+				return fmt.Errorf("creating lotus client: %s", err)
+			}
+			if err := notifyChanges(ctx, client, currentState, proposals, ch); err != nil {
+				return fmt.Errorf("pushing new proposal states: %s", err)
+			}
+			cls()
+			return nil
+		}
+
+		// Notify once so that subscribers get a result quickly
+		if err := makeClientAndNotify(); err != nil {
+			log.Errorf("creating lotus client and notifying: %s", err)
+			return
+		}
+
+		// Then notify every m.pollDuration
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-time.After(m.pollDuration):
-				api, cls, err := m.clientBuilder(ctx)
-				if err != nil {
-					log.Errorf("creating lotus client: %s", err)
-					continue
+				if err := makeClientAndNotify(); err != nil {
+					log.Errorf("creating lotus client and notifying: %s", err)
+					return
 				}
-				if err := notifyChanges(ctx, api, currentState, proposals, ch); err != nil {
-					log.Errorf("pushing new proposal states: %s", err)
-				}
-				cls()
 			}
 		}
 	}()
@@ -361,8 +377,8 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 }
 
 // ListStorageDealRecords lists storage deals according to the provided options.
-func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
-	c := deals.ListDealRecordsConfig{}
+func (m *Module) ListStorageDealRecords(opts ...deals.DealRecordsOption) ([]deals.StorageDealRecord, error) {
+	c := deals.DealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -429,8 +445,8 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 }
 
 // ListRetrievalDealRecords returns a list of retrieval deals according to the provided options.
-func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
-	c := deals.ListDealRecordsConfig{}
+func (m *Module) ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]deals.RetrievalDealRecord, error) {
+	c := deals.DealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}

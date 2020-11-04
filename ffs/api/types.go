@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 
-	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
 )
 
@@ -24,20 +23,6 @@ type AddrInfo struct {
 	Name string
 	Addr string
 	Type string
-}
-
-// InstanceInfo has general information about a running Api instance.
-type InstanceInfo struct {
-	ID                   ffs.APIID
-	DefaultStorageConfig ffs.StorageConfig
-	Balances             []BalanceInfo
-	Pins                 []cid.Cid
-}
-
-// BalanceInfo contains the balance for the associated wallet address.
-type BalanceInfo struct {
-	AddrInfo
-	Balance uint64
 }
 
 // NewAddressConfig contains options for creating a new wallet address.

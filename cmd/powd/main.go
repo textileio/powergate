@@ -124,6 +124,7 @@ func configFromFlags() (server.Config, error) {
 	mongoDB := config.GetString("mongodb")
 	minerSelector := config.GetString("ffsminerselector")
 	minerSelectorParams := config.GetString("ffsminerselectorparams")
+	ffsAdminToken := config.GetString("ffsadmintoken")
 	ffsSchedMaxParallel := config.GetInt("ffsschedmaxparallel")
 	ffsDealWatchFinalityTimeout := time.Minute * time.Duration(config.GetInt("ffsdealfinalitytimeout"))
 	ffsMinimumPieceSize := config.GetUint64("ffsminimumpiecesize")
@@ -159,6 +160,7 @@ func configFromFlags() (server.Config, error) {
 		MongoURI: mongoURI,
 		MongoDB:  mongoDB,
 
+		FFSAdminToken:               ffsAdminToken,
 		FFSUseMasterAddr:            ffsUseMasterAddr,
 		FFSDealFinalityTimeout:      ffsDealWatchFinalityTimeout,
 		FFSMinimumPieceSize:         ffsMinimumPieceSize,
@@ -256,11 +258,13 @@ func setupLogging(repoPath string) error {
 		"ffs-auth",
 		"ffs-api",
 		"ffs-coreipfs",
-		"ffs-grpc-service",
 		"ffs-filcold",
 		"ffs-sched-sjstore",
 		"ffs-sched-rjstore",
 		"ffs-cidlogger",
+
+		// gRPC Services
+		"powergate-service",
 	}
 
 	// powd registered loggers get info level by default.
@@ -348,6 +352,7 @@ func setupFlags() error {
 	pflag.String("mongouri", "", "Mongo URI to connect to MongoDB database. (Optional: if empty, will use Badger)")
 	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory")
 
+	pflag.String("ffsadmintoken", "", "FFS admin token for authorized APIs. If empty, the APIs will be open to the public.")
 	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
 	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'")
 	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")

@@ -259,7 +259,7 @@ func (s *Scheduler) printStats() {
 }
 
 func (s *Scheduler) resumeStartedDeals() error {
-	ejids := s.sjs.GetExecutingJobs()
+	ejids := s.sjs.GetExecutingJobIDs()
 	// No need for rate limit since the number of "Executing"
 	// jobs is always rate-limited on creation.
 	for _, jid := range ejids {
@@ -433,7 +433,9 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
-	info, dealErrors, err := s.executeStorage(ctx, a, j)
+	dealUpdates := s.sjs.MonitorJob(j)
+	info, dealErrors, err := s.executeStorage(ctx, a, j, dealUpdates)
+	close(dealUpdates)
 	// Something bad-enough happened to make Job
 	// execution fail.
 	if err != nil {

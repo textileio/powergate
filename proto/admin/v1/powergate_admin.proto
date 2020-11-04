@@ -1,0 +1,121 @@
+syntax = "proto3";
+package proto.admin.v1;
+
+import "proto/powergate/v1/powergate.proto";
+
+option go_package = "github.com/textileio/powergate/proto/admin/v1";
+
+// Wallet
+message NewAddressRequest {
+  string address_type = 1;
+}
+
+message NewAddressResponse {
+  string address = 1;
+}
+
+message AddressesRequest {
+}
+
+message AddressesResponse {
+  repeated string addresses = 1;
+}
+
+message SendFilRequest {
+  string from = 1;
+  string to = 2;	
+  string amount = 3;
+}
+
+message SendFilResponse {
+}
+
+// Storage profiles
+
+message AuthEntry {
+  string id = 1;
+  string token = 2;
+}
+
+message CreateStorageProfileRequest {
+}
+
+message CreateStorageProfileResponse {
+  AuthEntry auth_entry = 1;
+}
+
+message StorageProfilesRequest {
+}
+
+message StorageProfilesResponse {
+  repeated AuthEntry auth_entries = 1;
+}
+
+// Jobs
+
+message QueuedStorageJobsRequest {
+  string profile_id = 1;
+  repeated string cids = 2;
+}
+
+message QueuedStorageJobsResponse {
+  repeated proto.powergate.v1.Job storage_jobs = 1;
+}
+
+message ExecutingStorageJobsRequest {
+  string profile_id = 1;
+  repeated string cids = 2;
+}
+
+message ExecutingStorageJobsResponse {
+  repeated proto.powergate.v1.Job storage_jobs = 1;
+}
+
+message LatestFinalStorageJobsRequest {
+  string profile_id = 1;
+  repeated string cids = 2;
+}
+
+message LatestFinalStorageJobsResponse {
+  repeated proto.powergate.v1.Job storage_jobs = 1;
+}
+
+message LatestSuccessfulStorageJobsRequest {
+  string profile_id = 1;
+  repeated string cids = 2;
+}
+
+message LatestSuccessfulStorageJobsResponse {
+  repeated proto.powergate.v1.Job storage_jobs = 1;
+}
+
+message StorageJobsSummaryRequest {
+  string profile_id = 1;
+  repeated string cids = 2;
+}
+
+message StorageJobsSummaryResponse {
+  proto.powergate.v1.JobCounts job_counts = 1;
+  repeated proto.powergate.v1.Job queued_storage_jobs = 2;
+  repeated proto.powergate.v1.Job executing_storage_jobs = 3;
+  repeated proto.powergate.v1.Job latest_final_storage_jobs = 4;
+  repeated proto.powergate.v1.Job latest_successful_storage_jobs = 5;
+}
+
+service PowergateAdminService {
+  // Wallet
+  rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
+  rpc Addresses(AddressesRequest) returns (AddressesResponse) {}
+  rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
+
+  // Profiles
+  rpc CreateStorageProfile(CreateStorageProfileRequest) returns (CreateStorageProfileResponse) {}
+  rpc StorageProfiles(StorageProfilesRequest) returns (StorageProfilesResponse) {}
+
+  // Jobs
+  rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
+  rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
+  rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
+  rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
+  rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
+}

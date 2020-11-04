@@ -1,0 +1,499 @@
+syntax = "proto3";
+package proto.powergate.v1;
+
+option go_package = "github.com/textileio/powergate/proto/powergate/v1";
+
+// Top level
+
+message BuildInfoRequest {
+}
+
+message BuildInfoResponse {
+  string git_commit = 1;
+  string git_branch = 2;
+  string git_state = 3;
+  string git_summary = 4;
+  string build_date = 5;
+  string version = 6;
+}
+
+message StorageProfileIdentifierRequest {
+}
+
+message StorageProfileIdentifierResponse {
+   string id = 1;
+}
+
+message DefaultStorageConfigRequest {
+}
+
+message DefaultStorageConfigResponse {
+  StorageConfig default_storage_config = 1;
+}
+
+message SetDefaultStorageConfigRequest {
+  StorageConfig config = 1;
+}
+
+message SetDefaultStorageConfigResponse {
+}
+
+message StageRequest {
+  bytes chunk = 1;
+}
+
+message StageResponse {
+  string cid = 1;
+}
+
+message ApplyStorageConfigRequest {
+  string cid = 1;
+  StorageConfig config = 2;
+  bool has_config = 3;
+  bool override_config = 4;
+  bool has_override_config = 5;
+}
+
+message ApplyStorageConfigResponse {
+  string job_id = 1;
+}
+
+message ReplaceDataRequest {
+  string cid1 = 1;
+  string cid2 = 2;
+}
+
+message ReplaceDataResponse {
+  string job_id = 1;
+}
+
+message GetRequest {
+  string cid = 1;
+}
+
+message GetResponse {
+  bytes chunk = 1;
+}
+
+message RemoveRequest {
+  string cid = 1;
+}
+
+message RemoveResponse {
+}
+
+message WatchLogsRequest {
+  string cid = 1;
+  string job_id = 2;
+  bool history = 3;
+}
+
+message WatchLogsResponse {
+  LogEntry log_entry = 1;
+}
+
+message CidInfoRequest {
+  repeated string cids = 1;
+}
+
+message CidInfoResponse {
+  repeated CidInfo cid_infos = 1;
+}
+
+
+// Wallet
+
+message BalanceRequest {
+  string address = 1;
+}
+
+message BalanceResponse {
+  string balance = 1;
+}
+
+message NewAddressRequest {
+  string name = 1;
+  string address_type = 2;
+  bool make_default = 3;
+}
+
+message NewAddressResponse {
+  string address = 1;
+}
+
+message AddressesRequest {
+}
+
+message AddressesResponse {
+   repeated AddrInfo addresses = 1;
+}
+
+message SendFilRequest {		
+  string from = 1;		
+  string to = 2;		
+  string amount = 3;		
+}		
+
+message SendFilResponse {		
+}
+
+message SignMessageRequest {
+  string address = 1;
+  bytes message =2;
+}
+
+message SignMessageResponse {
+  bytes signature = 1;
+}
+
+message VerifyMessageRequest {
+  string address = 1;
+  bytes message = 2;
+  bytes signature = 3;
+}
+
+message VerifyMessageResponse {
+  bool ok = 1;
+}
+
+// Jobs
+
+message CancelStorageJobRequest {
+   string job_id = 1;
+}
+
+message CancelStorageJobResponse {
+}
+
+message StorageJobRequest {
+   string job_id = 1;
+}
+
+message StorageJobResponse {
+   Job job = 1;
+}
+
+message StorageConfigForJobRequest {
+  string job_id = 1;
+}
+
+message StorageConfigForJobResponse {
+  StorageConfig storage_config = 1;
+}
+
+message QueuedStorageJobsRequest {
+   repeated string cids = 1;
+}
+
+message QueuedStorageJobsResponse {
+   repeated Job storage_jobs = 1;
+}
+
+message ExecutingStorageJobsRequest {
+   repeated string cids = 1;
+}
+
+message ExecutingStorageJobsResponse {
+   repeated Job storage_jobs = 1;
+}
+
+message LatestFinalStorageJobsRequest {
+   repeated string cids = 1;
+}
+
+message LatestFinalStorageJobsResponse {
+   repeated Job storage_jobs = 1;
+}
+
+message LatestSuccessfulStorageJobsRequest {
+   repeated string cids = 1;
+}
+
+message LatestSuccessfulStorageJobsResponse {
+   repeated Job storage_jobs = 1;
+}
+
+message StorageJobsSummaryRequest {
+   repeated string cids = 1;
+}
+ 
+message StorageJobsSummaryResponse {
+   JobCounts job_counts = 1;
+   repeated Job queued_storage_jobs = 2;
+   repeated Job executing_storage_jobs = 3;
+   repeated Job latest_final_storage_jobs = 4;
+   repeated Job latest_successful_storage_jobs = 5;
+}
+
+message WatchStorageJobsRequest {
+   repeated string job_ids = 1;
+}
+
+message WatchStorageJobsResponse {
+   Job job = 1;
+}
+
+// Storage
+
+message StorageDealRecordsRequest {
+  DealRecordsConfig config = 1;
+}
+
+message StorageDealRecordsResponse {
+  repeated StorageDealRecord records = 1;
+}
+
+message RetrievalDealRecordsRequest {
+  DealRecordsConfig config = 1;
+}
+
+message RetrievalDealRecordsResponse {
+  repeated RetrievalDealRecord records = 1;
+}
+
+service PowergateService {
+  // Top level
+  rpc BuildInfo(BuildInfoRequest) returns (BuildInfoResponse) {}
+  rpc StorageProfileIdentifier(StorageProfileIdentifierRequest) returns (StorageProfileIdentifierResponse) {}
+
+  // Storage config
+  rpc DefaultStorageConfig(DefaultStorageConfigRequest) returns (DefaultStorageConfigResponse) {}
+  rpc SetDefaultStorageConfig(SetDefaultStorageConfigRequest) returns (SetDefaultStorageConfigResponse) {}
+  rpc ApplyStorageConfig(ApplyStorageConfigRequest) returns (ApplyStorageConfigResponse) {}
+  rpc Remove(RemoveRequest) returns (RemoveResponse) {}
+
+  // Data
+  rpc Stage(stream StageRequest) returns (StageResponse) {}
+  rpc ReplaceData(ReplaceDataRequest) returns (ReplaceDataResponse) {}
+  rpc Get(GetRequest) returns (stream GetResponse) {}
+  rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
+  rpc CidInfo(CidInfoRequest) returns (CidInfoResponse) {}
+
+  // Wallet
+  rpc Balance(BalanceRequest) returns (BalanceResponse) {}
+  rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
+  rpc Addresses(AddressesRequest) returns (AddressesResponse) {}
+  rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
+  rpc SignMessage(SignMessageRequest) returns (SignMessageResponse) {}
+  rpc VerifyMessage(VerifyMessageRequest) returns (VerifyMessageResponse) {}
+
+  // Storage Jobs
+  rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}
+  rpc StorageConfigForJob(StorageConfigForJobRequest) returns (StorageConfigForJobResponse) {}
+  rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
+  rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
+  rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
+  rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
+  rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
+  rpc WatchStorageJobs(WatchStorageJobsRequest) returns (stream WatchStorageJobsResponse) {}
+  rpc CancelStorageJob(CancelStorageJobRequest) returns (CancelStorageJobResponse) {}
+  
+  // Deals
+  rpc StorageDealRecords(StorageDealRecordsRequest) returns (StorageDealRecordsResponse) {}
+  rpc RetrievalDealRecords(RetrievalDealRecordsRequest) returns (RetrievalDealRecordsResponse) {}
+}
+
+
+// model messages
+
+message JobCounts {
+  int32 queued = 1;
+  int32 executing = 2;
+  int32 latest_final = 3;
+  int32 latest_successful = 4;
+}
+
+message AddrInfo {
+  string name = 1;
+  string address = 2;
+  string type = 3;
+  string balance = 4;
+}
+
+message IpfsConfig {
+  int64 add_timeout = 1;
+}
+
+message HotConfig {
+  bool enabled = 1;
+  bool allow_unfreeze = 2;
+  uint64  unfreeze_max_price = 3;
+  IpfsConfig ipfs = 4;
+}
+
+message FilRenew {
+  bool enabled = 1;
+  int64 threshold = 2;
+}
+
+message FilConfig {
+  int64 replication_factor = 1;
+  int64 deal_min_duration = 2;
+  repeated string excluded_miners = 3;
+  repeated string trusted_miners = 4;
+  repeated string country_codes = 5;
+  FilRenew renew = 6;
+  string address = 7;
+  uint64 max_price = 8;
+  bool fast_retrieval = 9;
+  int64 deal_start_offset = 10;
+}
+
+message ColdConfig {
+  bool enabled = 1;
+  FilConfig filecoin = 2;
+}
+
+message StorageConfig {
+  HotConfig hot = 1;
+  ColdConfig cold = 2;
+  bool repairable = 3;
+}
+
+message IpfsHotInfo {
+  int64 created = 1;
+}
+
+message HotInfo {
+  bool enabled = 1;
+  int64 size = 2;
+  IpfsHotInfo ipfs = 3;
+}
+
+message FilStorage {
+  string proposal_cid = 1;
+  bool renewed = 2;
+  int64 duration = 3;
+  int64 activation_epoch = 4;
+  uint64 start_epoch = 5;
+  string miner = 6;
+  uint64 epoch_price = 7;
+  string piece_cid = 8;
+}
+
+message FilInfo {
+  string data_cid = 1;
+  uint64 size = 2;
+  repeated FilStorage proposals = 3;
+}
+
+message ColdInfo {
+  bool enabled = 1;
+  FilInfo filecoin = 2;
+}
+
+message StorageInfo {
+  string job_id = 1;
+  string cid = 2;
+  int64 created = 3;
+  HotInfo hot = 4; 
+  ColdInfo cold = 5;
+}
+
+message CidInfo {
+  string cid = 1;
+  StorageConfig latest_pushed_storage_config = 2;
+  StorageInfo current_storage_info = 3;
+  repeated Job queued_storage_jobs = 4;
+  Job executing_storage_job = 5;
+  Job latest_final_storage_job = 6;
+  Job latest_successful_storage_job = 7;
+}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  JOB_STATUS_QUEUED = 1;
+  JOB_STATUS_EXECUTING = 2;
+  JOB_STATUS_FAILED = 3;
+  JOB_STATUS_CANCELED = 4;
+  JOB_STATUS_SUCCESS = 5;
+}
+
+message DealInfo {
+  string proposal_cid = 1;
+  uint64 state_id = 2;
+  string state_name = 3;
+  string miner = 4;
+  string piece_cid = 5;
+  uint64 size = 6;
+  uint64 price_per_epoch  = 7;
+  uint64 start_epoch = 8;
+  uint64 duration = 9;
+  uint64 deal_id = 10;
+  int64 activation_epoch = 11;
+  string message = 12;
+}
+
+message Job {
+  string id = 1; 
+  string api_id = 2;
+  string cid = 3;
+  JobStatus status = 4;
+  string error_cause = 5;
+  repeated DealInfo deal_info = 6;
+  repeated DealError deal_errors = 7;
+  int64 created_at = 8;
+}
+
+message DealError {
+  string proposal_cid = 1;
+  string miner = 2;
+  string message = 3;
+}
+
+message LogEntry {
+  string cid = 1;
+  string job_id = 2;
+  int64 time = 3;
+  string message = 4;
+}
+
+message DealRecordsConfig {
+  repeated string from_addrs = 1;
+  repeated string data_cids = 2;
+  bool include_pending = 3;
+  bool include_final = 4;
+  bool ascending = 5;
+}
+
+message StorageDealInfo {
+  string proposal_cid = 1;
+  uint64 state_id = 2;
+  string state_name = 3;
+  string miner = 4;
+
+  string piece_cid = 5;
+  uint64 size = 6;
+
+  uint64 price_per_epoch = 7;
+  uint64 start_epoch = 8;
+  uint64 duration = 9;
+
+  uint64 deal_id = 10;
+  int64 activation_epoch = 11;
+  string message = 12;
+}
+
+message StorageDealRecord {
+  string root_cid = 1;
+  string address = 2;
+  int64 time = 3;
+  bool pending = 4;
+  StorageDealInfo deal_info = 5;
+}
+
+message RetrievalDealInfo {
+ string root_cid = 1;
+ uint64 size = 2;
+ uint64 min_price = 3;
+ uint64 payment_interval = 4;
+ uint64 payment_interval_increase = 5;
+ string miner = 6;
+ string miner_peer_id = 7;
+}
+
+message RetrievalDealRecord {
+   string address = 1;
+   int64 time = 2;
+   RetrievalDealInfo deal_info = 3;
+}

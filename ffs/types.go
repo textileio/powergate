@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/util"
 )
 
@@ -71,6 +72,12 @@ func (i APIID) String() string {
 	return string(i)
 }
 
+// AuthEntry encapsulates auth info for a FFS instance.
+type AuthEntry struct {
+	Token string
+	APIID APIID
+}
+
 // JobStatus is a type for Job statuses.
 type JobStatus int
 
@@ -109,6 +116,7 @@ type StorageJob struct {
 	Cid        cid.Cid
 	Status     JobStatus
 	ErrCause   string
+	DealInfo   []deals.StorageDealInfo
 	DealErrors []DealError
 	CreatedAt  int64
 }
@@ -401,9 +409,9 @@ type RetrievalInfo struct {
 	CreatedAt time.Time
 }
 
-// CidInfo contains information about the current storage state
+// StorageInfo contains information about the current storage state
 // of a Cid.
-type CidInfo struct {
+type StorageInfo struct {
 	// JobID indicates the Job ID which updated
 	// the current information. It *may be empty* if
 	// the data was imported manually.

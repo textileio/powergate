@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"io/ioutil"
 	"math/big"
 	"testing"
@@ -20,14 +19,11 @@ var (
 	grpcHostAddress     = "/ip4/127.0.0.1/tcp/5002"
 	grpcWebProxyAddress = "127.0.0.1:6002"
 	gatewayHostAddr     = "0.0.0.0:7000"
-	ctx                 = context.Background()
 )
 
-func setupServer(t *testing.T) func() {
+func defaultServerConfig(t *testing.T) server.Config {
 	repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	dipfs, cls := tests.LaunchIPFSDocker(t)
 	t.Cleanup(func() { cls() })
@@ -63,8 +59,12 @@ func setupServer(t *testing.T) func() {
 		AskIndexRefreshOnStart:      true,
 		AskindexMaxParallel:         2,
 	}
+	return conf
+}
+
+func setupServer(t *testing.T, conf server.Config) func() {
 	server, err := server.NewServer(conf)
-	checkErr(t, err)
+	require.NoError(t, err)
 
 	return func() {
 		server.Close()
@@ -74,25 +74,12 @@ func setupServer(t *testing.T) func() {
 func setupConnection(t *testing.T) (*grpc.ClientConn, func()) {
 	auth := TokenAuth{}
 	ma, err := multiaddr.NewMultiaddr(grpcHostAddress)
-	checkErr(t, err)
+	require.NoError(t, err)
 	addr, err := util.TCPAddrFromMultiAddr(ma)
-	checkErr(t, err)
+	require.NoError(t, err)
 	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(auth))
-	checkErr(t, err)
+	require.NoError(t, err)
 	return conn, func() {
 		require.NoError(t, conn.Close())
-	}
-}
-
-func checkErr(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func skipIfShort(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping since is a short test run")
 	}
 }

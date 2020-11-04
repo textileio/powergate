@@ -28,7 +28,6 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/lotus"
-	paych "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/tests"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -83,10 +82,10 @@ func NewAPI(t tests.TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apis
 	ipfs, ipfsMAddr := CreateIPFS(t)
 	addr, clientBuilder, ms := NewDevnet(t, numMiners, ipfsMAddr)
 	manager, closeManager := NewFFSManager(t, ds, clientBuilder, addr, ms, ipfs)
-	_, auth, err := manager.Create(context.Background())
+	auth, err := manager.Create(context.Background())
 	require.NoError(t, err)
 	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
-	fapi, err := manager.GetByAuthToken(auth)
+	fapi, err := manager.GetByAuthToken(auth.Token)
 	require.NoError(t, err)
 	client, cls, err := clientBuilder(context.Background())
 	require.NoError(t, err)
@@ -150,9 +149,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus
 	wm, err := walletModule.New(cb, masterAddr, *big.NewInt(iWalletBal), false, "")
 	require.NoError(t, err)
 
-	pm := paych.New(cb)
-
-	manager, err := manager.New(ds, wm, pm, dm, sched, false, true)
+	manager, err := manager.New(ds, wm, dm, sched, false, true)
 	require.NoError(t, err)
 	err = manager.SetDefaultStorageConfig(ffs.StorageConfig{
 		Hot: ffs.HotConfig{
@@ -191,9 +188,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus
 
 // RequireStorageJobState checks if the current status of a job matches one of the specified statuses.
 func RequireStorageJobState(t require.TestingT, fapi *api.API, jid ffs.JobID, statuses ...ffs.JobStatus) ffs.StorageJob {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	job, err := fapi.GetStorageJob(ctx, jid)
+	job, err := fapi.GetStorageJob(jid)
 	require.NoError(t, err)
 	require.Contains(t, statuses, job.Status)
 	return job
@@ -241,15 +236,15 @@ func RequireStorageConfig(t require.TestingT, fapi *api.API, c cid.Cid, config *
 		defConfig := fapi.DefaultStorageConfig()
 		config = &defConfig
 	}
-	currentConfig, err := fapi.GetStorageConfig(c)
+	currentConfigs, err := fapi.GetStorageConfigs(c)
 	require.NoError(t, err)
-	require.Equal(t, *config, currentConfig)
+	require.Equal(t, *config, currentConfigs[c])
 }
 
 // RequireStorageDealRecord checks that a storage deal record exist for a cid.
 func RequireStorageDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
 	time.Sleep(time.Second)
-	recs, err := fapi.ListStorageDealRecords(deals.WithIncludeFinal(true))
+	recs, err := fapi.StorageDealRecords(deals.WithIncludeFinal(true))
 	require.NoError(t, err)
 	require.Len(t, recs, 1)
 	require.Equal(t, c, recs[0].RootCid)
@@ -257,7 +252,7 @@ func RequireStorageDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
 
 // RequireRetrievalDealRecord checks that a retrieval deal record exits for a cid.
 func RequireRetrievalDealRecord(t require.TestingT, fapi *api.API, c cid.Cid) {
-	recs, err := fapi.ListRetrievalDealRecords()
+	recs, err := fapi.RetrievalDealRecords()
 	require.NoError(t, err)
 	require.Len(t, recs, 1)
 	require.Equal(t, c, recs[0].DealInfo.RootCid)
