@@ -10,6 +10,8 @@ jobs:
     name: Docker publishing
     runs-on: self-hosted
     steps:
+      - name: Check out code
+        uses: actions/checkout@v1
       - name: Publish
         uses: docker/build-push-action@v1
         with:
