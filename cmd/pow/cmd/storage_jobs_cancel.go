@@ -16,7 +16,7 @@ var storageJobsCancelCmd = &cobra.Command{
 	Use:   "cancel [jobid]",
 	Short: "Cancel an executing storage job",
 	Long:  `Cancel an executing storage job`,
-	Args:  cobra.ExactArgs(0),
+	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
