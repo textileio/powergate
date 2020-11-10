@@ -167,7 +167,7 @@ func (s *Service) CidInfo(ctx context.Context, req *proto.CidInfoRequest) (*prot
 			cidInfo.CurrentStorageInfo = toRPCStorageInfo(info)
 		}
 		queuedJobs := i.QueuedStorageJobs(cid)
-		rpcQueudJobs := make([]*proto.Job, len(queuedJobs))
+		rpcQueudJobs := make([]*proto.StorageJob, len(queuedJobs))
 		for i, job := range queuedJobs {
 			rpcJob, err := toRPCJob(job)
 			if err != nil {

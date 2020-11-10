@@ -27,7 +27,7 @@ func (s *Service) StorageJob(ctx context.Context, req *proto.StorageJobRequest) 
 		return nil, status.Errorf(codes.Internal, "building job response: %v", err.Error())
 	}
 	return &proto.StorageJobResponse{
-		Job: rpcJob,
+		StorageJob: rpcJob,
 	}, nil
 }
 
@@ -208,7 +208,7 @@ func (s *Service) WatchStorageJobs(req *proto.WatchStorageJobsRequest, srv proto
 			return err
 		}
 		reply := &proto.WatchStorageJobsResponse{
-			Job: rpcJob,
+			StorageJob: rpcJob,
 		}
 		if err := srv.Send(reply); err != nil {
 			return err

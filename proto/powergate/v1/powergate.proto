@@ -170,7 +170,7 @@ message StorageJobRequest {
 }
 
 message StorageJobResponse {
-   Job job = 1;
+   StorageJob storage_job = 1;
 }
 
 message StorageConfigForJobRequest {
@@ -186,7 +186,7 @@ message QueuedStorageJobsRequest {
 }
 
 message QueuedStorageJobsResponse {
-   repeated Job storage_jobs = 1;
+   repeated StorageJob storage_jobs = 1;
 }
 
 message ExecutingStorageJobsRequest {
@@ -194,7 +194,7 @@ message ExecutingStorageJobsRequest {
 }
 
 message ExecutingStorageJobsResponse {
-   repeated Job storage_jobs = 1;
+   repeated StorageJob storage_jobs = 1;
 }
 
 message LatestFinalStorageJobsRequest {
@@ -202,7 +202,7 @@ message LatestFinalStorageJobsRequest {
 }
 
 message LatestFinalStorageJobsResponse {
-   repeated Job storage_jobs = 1;
+   repeated StorageJob storage_jobs = 1;
 }
 
 message LatestSuccessfulStorageJobsRequest {
@@ -210,7 +210,7 @@ message LatestSuccessfulStorageJobsRequest {
 }
 
 message LatestSuccessfulStorageJobsResponse {
-   repeated Job storage_jobs = 1;
+   repeated StorageJob storage_jobs = 1;
 }
 
 message StorageJobsSummaryRequest {
@@ -219,10 +219,10 @@ message StorageJobsSummaryRequest {
  
 message StorageJobsSummaryResponse {
    JobCounts job_counts = 1;
-   repeated Job queued_storage_jobs = 2;
-   repeated Job executing_storage_jobs = 3;
-   repeated Job latest_final_storage_jobs = 4;
-   repeated Job latest_successful_storage_jobs = 5;
+   repeated StorageJob queued_storage_jobs = 2;
+   repeated StorageJob executing_storage_jobs = 3;
+   repeated StorageJob latest_final_storage_jobs = 4;
+   repeated StorageJob latest_successful_storage_jobs = 5;
 }
 
 message WatchStorageJobsRequest {
@@ -230,7 +230,7 @@ message WatchStorageJobsRequest {
 }
 
 message WatchStorageJobsResponse {
-   Job job = 1;
+   StorageJob storage_job = 1;
 }
 
 // Storage
@@ -394,10 +394,10 @@ message CidInfo {
   string cid = 1;
   StorageConfig latest_pushed_storage_config = 2;
   StorageInfo current_storage_info = 3;
-  repeated Job queued_storage_jobs = 4;
-  Job executing_storage_job = 5;
-  Job latest_final_storage_job = 6;
-  Job latest_successful_storage_job = 7;
+  repeated StorageJob queued_storage_jobs = 4;
+  StorageJob executing_storage_job = 5;
+  StorageJob latest_final_storage_job = 6;
+  StorageJob latest_successful_storage_job = 7;
 }
 
 enum JobStatus {
@@ -424,7 +424,7 @@ message DealInfo {
   string message = 12;
 }
 
-message Job {
+message StorageJob {
   string id = 1; 
   string api_id = 2;
   string cid = 3;

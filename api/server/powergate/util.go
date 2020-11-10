@@ -218,8 +218,8 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*proto.Ret
 }
 
 // ToProtoStorageJobs converts a slice of ffs.StorageJobs to proto Jobs.
-func ToProtoStorageJobs(jobs []ffs.StorageJob) ([]*proto.Job, error) {
-	var res []*proto.Job
+func ToProtoStorageJobs(jobs []ffs.StorageJob) ([]*proto.StorageJob, error) {
+	var res []*proto.StorageJob
 	for _, job := range jobs {
 		j, err := toRPCJob(job)
 		if err != nil {
@@ -230,7 +230,7 @@ func ToProtoStorageJobs(jobs []ffs.StorageJob) ([]*proto.Job, error) {
 	return res, nil
 }
 
-func toRPCJob(job ffs.StorageJob) (*proto.Job, error) {
+func toRPCJob(job ffs.StorageJob) (*proto.StorageJob, error) {
 	var dealInfo []*proto.DealInfo
 	for _, item := range job.DealInfo {
 		info := &proto.DealInfo{
@@ -267,7 +267,7 @@ func toRPCJob(job ffs.StorageJob) (*proto.Job, error) {
 	default:
 		return nil, fmt.Errorf("unknown job status: %v", job.Status)
 	}
-	return &proto.Job{
+	return &proto.StorageJob{
 		Id:         job.ID.String(),
 		ApiId:      job.APIID.String(),
 		Cid:        util.CidToString(job.Cid),

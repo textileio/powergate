@@ -47,7 +47,7 @@ func Run(ctx context.Context, ts TestSetup) error {
 }
 
 func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
-	res, err := c.Admin.Profiles.CreateStorageProfile(ctx)
+	res, err := c.Admin.Profiles.Create(ctx)
 	if err != nil {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
@@ -141,11 +141,11 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 		if s.Err != nil {
 			return fmt.Errorf("job watching: %s", s.Err)
 		}
-		log.Infof("[%d] Job changed to status %s", id, s.Res.Job.Status.String())
-		if s.Res.Job.Status == proto.JobStatus_JOB_STATUS_FAILED || s.Res.Job.Status == proto.JobStatus_JOB_STATUS_CANCELED {
+		log.Infof("[%d] Job changed to status %s", id, s.Res.StorageJob.Status.String())
+		if s.Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_FAILED || s.Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_CANCELED {
 			return fmt.Errorf("job execution failed or was canceled")
 		}
-		if s.Res.Job.Status == proto.JobStatus_JOB_STATUS_SUCCESS {
+		if s.Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_SUCCESS {
 			return nil
 		}
 	}

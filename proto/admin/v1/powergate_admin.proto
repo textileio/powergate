@@ -59,7 +59,7 @@ message QueuedStorageJobsRequest {
 }
 
 message QueuedStorageJobsResponse {
-  repeated proto.powergate.v1.Job storage_jobs = 1;
+  repeated proto.powergate.v1.StorageJob storage_jobs = 1;
 }
 
 message ExecutingStorageJobsRequest {
@@ -68,7 +68,7 @@ message ExecutingStorageJobsRequest {
 }
 
 message ExecutingStorageJobsResponse {
-  repeated proto.powergate.v1.Job storage_jobs = 1;
+  repeated proto.powergate.v1.StorageJob storage_jobs = 1;
 }
 
 message LatestFinalStorageJobsRequest {
@@ -77,7 +77,7 @@ message LatestFinalStorageJobsRequest {
 }
 
 message LatestFinalStorageJobsResponse {
-  repeated proto.powergate.v1.Job storage_jobs = 1;
+  repeated proto.powergate.v1.StorageJob storage_jobs = 1;
 }
 
 message LatestSuccessfulStorageJobsRequest {
@@ -86,7 +86,7 @@ message LatestSuccessfulStorageJobsRequest {
 }
 
 message LatestSuccessfulStorageJobsResponse {
-  repeated proto.powergate.v1.Job storage_jobs = 1;
+  repeated proto.powergate.v1.StorageJob storage_jobs = 1;
 }
 
 message StorageJobsSummaryRequest {
@@ -96,10 +96,10 @@ message StorageJobsSummaryRequest {
 
 message StorageJobsSummaryResponse {
   proto.powergate.v1.JobCounts job_counts = 1;
-  repeated proto.powergate.v1.Job queued_storage_jobs = 2;
-  repeated proto.powergate.v1.Job executing_storage_jobs = 3;
-  repeated proto.powergate.v1.Job latest_final_storage_jobs = 4;
-  repeated proto.powergate.v1.Job latest_successful_storage_jobs = 5;
+  repeated proto.powergate.v1.StorageJob queued_storage_jobs = 2;
+  repeated proto.powergate.v1.StorageJob executing_storage_jobs = 3;
+  repeated proto.powergate.v1.StorageJob latest_final_storage_jobs = 4;
+  repeated proto.powergate.v1.StorageJob latest_successful_storage_jobs = 5;
 }
 
 service PowergateAdminService {

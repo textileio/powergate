@@ -29,7 +29,7 @@ var adminProfilesCreateCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Profiles.CreateStorageProfile(adminAuthCtx(ctx))
+		res, err := powClient.Admin.Profiles.Create(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -52,7 +52,7 @@ var adminProfilesListCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Profiles.StorageProfiles(adminAuthCtx(ctx))
+		res, err := powClient.Admin.Profiles.List(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
