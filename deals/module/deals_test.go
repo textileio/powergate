@@ -204,6 +204,7 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 				storagemarket.StorageDealValidating,
 				storagemarket.StorageDealTransferring,
 				storagemarket.StorageDealCheckForAcceptance,
+				storagemarket.StorageDealReserveClientFunds,
 				storagemarket.StorageDealClientFunding,
 				storagemarket.StorageDealPublish,
 				storagemarket.StorageDealPublishing,
