@@ -601,7 +601,7 @@ func adminAuth(conf Config) grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		adminServicePrefix := "/proto.admin.v1.PowergateAdminService"
+		adminServicePrefix := "/powergate.admin.v1.AdminService"
 
 		method, _ := grpc.Method(ctx)
 
