@@ -82,12 +82,8 @@ clean-protos:
 	find . -type f -name '*pb_test.go' -delete
 .PHONY: clean-protos
 
-install-protoc:
-	cd buildtools && ./protocInstall.sh
-	
-PROTOCGENGO=$(shell pwd)/buildtools/protoc-gen-go
-protos: install-protoc clean-protos
-	PATH=$(PROTOCGENGO):$(PATH) ./scripts/protoc_gen_plugin.bash --proto_path=. --plugin_name=go --plugin_out=. --plugin_opt=plugins=grpc,paths=source_relative
+protos: $(BUF) $(PROTOC_GEN_GO) $(PROTOC_GEN_GO_GRPC) clean-protos
+	$(BUF) generate --template '{"version":"v1beta1","plugins":[{"name":"go","out":"api/gen","opt":"paths=source_relative","path":$(PROTOC_GEN_GO)},{"name":"go-grpc","out":"api/gen","opt":"paths=source_relative","path":$(PROTOC_GEN_GO_GRPC)}]}'
 .PHONY: protos
 
 # local is what we run when testing locally.

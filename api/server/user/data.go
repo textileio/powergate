@@ -1,20 +1,20 @@
-package powergate
+package user
 
 import (
 	"context"
 	"fmt"
 	"io"
 
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // Stage allows you to temporarily cache data in the Hot layer in preparation for pushing a cid storage config.
-func (s *Service) Stage(srv proto.PowergateService_StageServer) error {
+func (s *Service) Stage(srv userPb.UserService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
 		return err
@@ -34,11 +34,11 @@ func (s *Service) Stage(srv proto.PowergateService_StageServer) error {
 		return fmt.Errorf("adding data to hot storage: %s", err)
 	}
 
-	return srv.SendAndClose(&proto.StageResponse{Cid: util.CidToString(c)})
+	return srv.SendAndClose(&userPb.StageResponse{Cid: util.CidToString(c)})
 }
 
 // ReplaceData calls ffs.Replace.
-func (s *Service) ReplaceData(ctx context.Context, req *proto.ReplaceDataRequest) (*proto.ReplaceDataResponse, error) {
+func (s *Service) ReplaceData(ctx context.Context, req *userPb.ReplaceDataRequest) (*userPb.ReplaceDataResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -58,11 +58,11 @@ func (s *Service) ReplaceData(ctx context.Context, req *proto.ReplaceDataRequest
 		return nil, err
 	}
 
-	return &proto.ReplaceDataResponse{JobId: jid.String()}, nil
+	return &userPb.ReplaceDataResponse{JobId: jid.String()}, nil
 }
 
 // Get gets the data for a stored Cid.
-func (s *Service) Get(req *proto.GetRequest, srv proto.PowergateService_GetServer) error {
+func (s *Service) Get(req *userPb.GetRequest, srv userPb.UserService_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func (s *Service) Get(req *proto.GetRequest, srv proto.PowergateService_GetServe
 		if err != nil && err != io.EOF {
 			return err
 		}
-		if sendErr := srv.Send(&proto.GetResponse{Chunk: buffer[:bytesRead]}); sendErr != nil {
+		if sendErr := srv.Send(&userPb.GetResponse{Chunk: buffer[:bytesRead]}); sendErr != nil {
 			return sendErr
 		}
 		if err == io.EOF {
@@ -93,7 +93,7 @@ func (s *Service) Get(req *proto.GetRequest, srv proto.PowergateService_GetServe
 
 // WatchLogs returns a stream of human-readable messages related to executions of a Cid.
 // The listener is automatically unsubscribed when the client closes the stream.
-func (s *Service) WatchLogs(req *proto.WatchLogsRequest, srv proto.PowergateService_WatchLogsServer) error {
+func (s *Service) WatchLogs(req *userPb.WatchLogsRequest, srv userPb.UserService_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -114,8 +114,8 @@ func (s *Service) WatchLogs(req *proto.WatchLogsRequest, srv proto.PowergateServ
 		close(ch)
 	}()
 	for l := range ch {
-		reply := &proto.WatchLogsResponse{
-			LogEntry: &proto.LogEntry{
+		reply := &userPb.WatchLogsResponse{
+			LogEntry: &userPb.LogEntry{
 				Cid:     util.CidToString(c),
 				JobId:   l.Jid.String(),
 				Time:    l.Timestamp.Unix(),
@@ -134,7 +134,7 @@ func (s *Service) WatchLogs(req *proto.WatchLogsRequest, srv proto.PowergateServ
 }
 
 // CidInfo returns information about cids managed by the FFS instance.
-func (s *Service) CidInfo(ctx context.Context, req *proto.CidInfoRequest) (*proto.CidInfoResponse, error) {
+func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*userPb.CidInfoResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -153,10 +153,10 @@ func (s *Service) CidInfo(ctx context.Context, req *proto.CidInfoRequest) (*prot
 		}
 		return nil, status.Errorf(code, "getting storage configs: %v", err)
 	}
-	res := make([]*proto.CidInfo, 0, len(storageConfigs))
+	res := make([]*userPb.CidInfo, 0, len(storageConfigs))
 	for cid, config := range storageConfigs {
 		rpcConfig := ToRPCStorageConfig(config)
-		cidInfo := &proto.CidInfo{
+		cidInfo := &userPb.CidInfo{
 			Cid:                       cid.String(),
 			LatestPushedStorageConfig: rpcConfig,
 		}
@@ -167,7 +167,7 @@ func (s *Service) CidInfo(ctx context.Context, req *proto.CidInfoRequest) (*prot
 			cidInfo.CurrentStorageInfo = toRPCStorageInfo(info)
 		}
 		queuedJobs := i.QueuedStorageJobs(cid)
-		rpcQueudJobs := make([]*proto.Job, len(queuedJobs))
+		rpcQueudJobs := make([]*userPb.StorageJob, len(queuedJobs))
 		for i, job := range queuedJobs {
 			rpcJob, err := toRPCJob(job)
 			if err != nil {
@@ -202,10 +202,10 @@ func (s *Service) CidInfo(ctx context.Context, req *proto.CidInfoRequest) (*prot
 		}
 		res = append(res, cidInfo)
 	}
-	return &proto.CidInfoResponse{CidInfos: res}, nil
+	return &userPb.CidInfoResponse{CidInfos: res}, nil
 }
 
-func receiveFile(srv proto.PowergateService_StageServer, writer *io.PipeWriter) {
+func receiveFile(srv userPb.UserService_StageServer, writer *io.PipeWriter) {
 	for {
 		req, err := srv.Recv()
 		if err == io.EOF {

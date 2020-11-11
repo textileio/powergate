@@ -1,14 +1,10 @@
+version: v1beta1
 build:
   roots:
-    - .
-  excludes:
-    - buildtools
+    - proto
 lint:
   use:
     - DEFAULT
-  except:
-    - PACKAGE_VERSION_SUFFIX
 breaking:
   use:
     - FILE
-    

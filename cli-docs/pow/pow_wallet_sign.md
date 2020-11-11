@@ -1,10 +1,10 @@
 ## pow wallet sign
 
-Signs a message with storage profile wallet addresses.
+Signs a message with user wallet addresses.
 
 ### Synopsis
 
-Signs a message using all wallet addresses associated with the storage profile
+Signs a message using all wallet addresses associated with the user
 
 ```
 pow wallet sign [hex-encoded-message] [flags]
@@ -20,7 +20,7 @@ pow wallet sign [hex-encoded-message] [flags]
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
 ```
 
 ### SEE ALSO

@@ -16,11 +16,11 @@ GO     ?= $(shell which go)
 #	@echo "Running buf"
 #	@$(BUF) <flags/args..>
 #
-BUF := $(GOBIN)/buf-v0.20.5
+BUF := $(GOBIN)/buf-v0.30.0
 $(BUF): .bingo/buf.mod
 	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.
-	@echo "(re)installing $(GOBIN)/buf-v0.20.5"
-	@cd .bingo && $(GO) build -modfile=buf.mod -o=$(GOBIN)/buf-v0.20.5 "github.com/bufbuild/buf/cmd/buf"
+	@echo "(re)installing $(GOBIN)/buf-v0.30.0"
+	@cd .bingo && $(GO) build -modfile=buf.mod -o=$(GOBIN)/buf-v0.30.0 "github.com/bufbuild/buf/cmd/buf"
 
 GOMPLATE := $(GOBIN)/gomplate-v3.8.0
 $(GOMPLATE): .bingo/gomplate.mod
@@ -51,4 +51,16 @@ $(PROTOC_GEN_BUF_CHECK_LINT): .bingo/protoc-gen-buf-check-lint.mod
 	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.
 	@echo "(re)installing $(GOBIN)/protoc-gen-buf-check-lint-v0.20.5"
 	@cd .bingo && $(GO) build -modfile=protoc-gen-buf-check-lint.mod -o=$(GOBIN)/protoc-gen-buf-check-lint-v0.20.5 "github.com/bufbuild/buf/cmd/protoc-gen-buf-check-lint"
+
+PROTOC_GEN_GO_GRPC := $(GOBIN)/protoc-gen-go-grpc-v1.0.1
+$(PROTOC_GEN_GO_GRPC): .bingo/protoc-gen-go-grpc.mod
+	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.
+	@echo "(re)installing $(GOBIN)/protoc-gen-go-grpc-v1.0.1"
+	@cd .bingo && $(GO) build -modfile=protoc-gen-go-grpc.mod -o=$(GOBIN)/protoc-gen-go-grpc-v1.0.1 "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
+
+PROTOC_GEN_GO := $(GOBIN)/protoc-gen-go-v1.25.0
+$(PROTOC_GEN_GO): .bingo/protoc-gen-go.mod
+	@# Install binary/ries using Go 1.14+ build command. This is using bwplotka/bingo-controlled, separate go module with pinned dependencies.
+	@echo "(re)installing $(GOBIN)/protoc-gen-go-v1.25.0"
+	@cd .bingo && $(GO) build -modfile=protoc-gen-go.mod -o=$(GOBIN)/protoc-gen-go-v1.25.0 "google.golang.org/protobuf/cmd/protoc-gen-go"
 

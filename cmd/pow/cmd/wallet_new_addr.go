@@ -14,7 +14,7 @@ import (
 
 func init() {
 	newAddrCmd.Flags().StringP("format", "f", "", "Optionally specify address format bls or secp256k1")
-	newAddrCmd.Flags().BoolP("default", "d", false, "Make the new address the storage profile default")
+	newAddrCmd.Flags().BoolP("default", "d", false, "Make the new address the user default")
 
 	walletCmd.AddCommand(newAddrCmd)
 }

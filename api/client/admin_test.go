@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/client/admin"
-	proto "github.com/textileio/powergate/proto/admin/v1"
+	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,10 +21,10 @@ func TestCreate(t *testing.T) {
 		a, done := setupAdmin(t, "")
 		defer done()
 
-		resp, err := a.Profiles.CreateStorageProfile(ctx)
+		resp, err := a.Users.Create(ctx)
 		require.NoError(t, err)
-		require.NotEmpty(t, resp.AuthEntry.Id)
-		require.NotEmpty(t, resp.AuthEntry.Token)
+		require.NotEmpty(t, resp.User.Id)
+		require.NotEmpty(t, resp.User.Token)
 	})
 
 	t.Run("WithAdminToken", func(t *testing.T) {
@@ -33,7 +33,7 @@ func TestCreate(t *testing.T) {
 		defer done()
 
 		t.Run("UnauthorizedEmpty", func(t *testing.T) {
-			resp, err := a.Profiles.CreateStorageProfile(ctx)
+			resp, err := a.Users.Create(ctx)
 			require.Error(t, err)
 			require.Nil(t, resp)
 		})
@@ -45,7 +45,7 @@ func TestCreate(t *testing.T) {
 			}
 			for _, auth := range wrongAuths {
 				ctx := context.WithValue(ctx, AdminKey, auth)
-				resp, err := a.Profiles.CreateStorageProfile(ctx)
+				resp, err := a.Users.Create(ctx)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
 				require.Equal(t, codes.PermissionDenied, st.Code())
@@ -54,10 +54,10 @@ func TestCreate(t *testing.T) {
 		})
 		t.Run("Authorized", func(t *testing.T) {
 			ctx := context.WithValue(ctx, AdminKey, authToken)
-			resp, err := a.Profiles.CreateStorageProfile(ctx)
+			resp, err := a.Users.Create(ctx)
 			require.NoError(t, err)
-			require.NotEmpty(t, resp.AuthEntry.Id)
-			require.NotEmpty(t, resp.AuthEntry.Token)
+			require.NotEmpty(t, resp.User.Id)
+			require.NotEmpty(t, resp.User.Token)
 		})
 	})
 }
@@ -69,7 +69,7 @@ func setupAdmin(t *testing.T, adminAuthToken string) (*admin.Admin, func()) {
 	}
 	serverDone := setupServer(t, defConfig)
 	conn, done := setupConnection(t)
-	return admin.NewAdmin(proto.NewPowergateAdminServiceClient(conn)), func() {
+	return admin.NewAdmin(adminPb.NewAdminServiceClient(conn)), func() {
 		done()
 		serverDone()
 	}

@@ -1,4 +1,4 @@
-package powergate
+package user
 
 import (
 	"context"
@@ -6,11 +6,11 @@ import (
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	logger "github.com/ipfs/go-log/v2"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/buildinfo"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/wallet"
 )
 
@@ -23,6 +23,7 @@ var (
 
 // Service implements the Powergate API.
 type Service struct {
+	userPb.UnimplementedUserServiceServer
 	m   *manager.Manager
 	w   wallet.Module
 	hot ffs.HotStorage
@@ -38,8 +39,8 @@ func New(m *manager.Manager, w wallet.Module, hot ffs.HotStorage) *Service {
 }
 
 // BuildInfo returns information about the powergate build.
-func (s *Service) BuildInfo(ctx context.Context, req *proto.BuildInfoRequest) (*proto.BuildInfoResponse, error) {
-	return &proto.BuildInfoResponse{
+func (s *Service) BuildInfo(ctx context.Context, req *userPb.BuildInfoRequest) (*userPb.BuildInfoResponse, error) {
+	return &userPb.BuildInfoResponse{
 		BuildDate:  buildinfo.BuildDate,
 		GitBranch:  buildinfo.GitBranch,
 		GitCommit:  buildinfo.GitCommit,
@@ -49,14 +50,14 @@ func (s *Service) BuildInfo(ctx context.Context, req *proto.BuildInfoRequest) (*
 	}, nil
 }
 
-// StorageProfileIdentifier returns the API instance id.
-func (s *Service) StorageProfileIdentifier(ctx context.Context, req *proto.StorageProfileIdentifierRequest) (*proto.StorageProfileIdentifierResponse, error) {
+// UserIdentifier returns the API instance id.
+func (s *Service) UserIdentifier(ctx context.Context, req *userPb.UserIdentifierRequest) (*userPb.UserIdentifierResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 	id := i.ID()
-	return &proto.StorageProfileIdentifierResponse{Id: id.String()}, nil
+	return &userPb.UserIdentifierResponse{Id: id.String()}, nil
 }
 
 func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {

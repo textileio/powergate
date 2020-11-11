@@ -94,7 +94,7 @@ jobs:
           replace-with: ""
       - name: Generate JS gRPC bindings
         run: |
-          ./scripts/gen-js-protos.sh ${{steps.makeversion.outputs.replaced}} . ./js-grpc
+          ./scripts/gen-js-protos.sh ${{steps.makeversion.outputs.replaced}} ./proto ./js-grpc
       - name: Publish JS gRPC bindings
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

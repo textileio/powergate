@@ -1,10 +1,10 @@
 ## pow wallet verify
 
-Verifies the signature of a message signed with a storage profile wallet address.
+Verifies the signature of a message signed with a user wallet address.
 
 ### Synopsis
 
-Verifies the signature of a message signed with a storage profile wallet address.
+Verifies the signature of a message signed with a user wallet address.
 
 ```
 pow wallet verify [addr] [hex-encoded-message] [hex-encoded-signature] [flags]
@@ -20,7 +20,7 @@ pow wallet verify [addr] [hex-encoded-message] [hex-encoded-signature] [flags]
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
 ```
 
 ### SEE ALSO

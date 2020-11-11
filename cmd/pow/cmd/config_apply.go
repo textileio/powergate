@@ -11,12 +11,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
-	configApplyCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses storage profile default by default")
+	configApplyCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses the user default by default")
 	configApplyCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
 	configApplyCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 
@@ -63,7 +63,7 @@ var configApplyCmd = &cobra.Command{
 			_, err := buf.ReadFrom(reader)
 			checkErr(err)
 
-			config := &proto.StorageConfig{}
+			config := &userPb.StorageConfig{}
 			err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
 			checkErr(err)
 

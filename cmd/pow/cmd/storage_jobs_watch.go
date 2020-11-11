@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
 
 func init() {
@@ -66,7 +66,7 @@ func watchJobIds(jobIds ...string) {
 		if !ok {
 			break
 		}
-		state[event.Res.Job.Id] = &event
+		state[event.Res.StorageJob.Id] = &event
 		updateJobsOutput(writer, state)
 		if jobsComplete(state) {
 			break
@@ -85,15 +85,15 @@ func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.WatchS
 	for _, k := range keys {
 		if state[k] != nil {
 			var val string
-			if state[k].Res.Job.Status == proto.JobStatus_JOB_STATUS_FAILED {
-				val = fmt.Sprintf("%v %v", state[k].Res.Job.Status.String(), state[k].Res.Job.ErrorCause)
+			if state[k].Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_FAILED {
+				val = fmt.Sprintf("%v %v", state[k].Res.StorageJob.Status.String(), state[k].Res.StorageJob.ErrorCause)
 			} else if state[k].Err != nil {
 				val = fmt.Sprintf("Error: %v", state[k].Err.Error())
 			} else {
-				val = state[k].Res.Job.Status.String()
+				val = state[k].Res.StorageJob.Status.String()
 			}
 			data = append(data, []string{k, val, "", "", ""})
-			for _, dealInfo := range state[k].Res.Job.DealInfo {
+			for _, dealInfo := range state[k].Res.StorageJob.DealInfo {
 				data = append(data, []string{"", "", dealInfo.Miner, strconv.FormatUint(dealInfo.PricePerEpoch, 10), dealInfo.StateName})
 			}
 		} else {
@@ -111,8 +111,8 @@ func jobsComplete(state map[string]*client.WatchStorageJobsEvent) bool {
 	for _, event := range state {
 		processing := false
 		if event == nil ||
-			event.Res.Job.Status == proto.JobStatus_JOB_STATUS_EXECUTING ||
-			event.Res.Job.Status == proto.JobStatus_JOB_STATUS_QUEUED {
+			event.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_EXECUTING ||
+			event.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_QUEUED {
 			processing = true
 		}
 		if processing && event != nil && event.Err == nil {

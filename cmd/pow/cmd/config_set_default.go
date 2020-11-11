@@ -10,7 +10,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -53,7 +53,7 @@ var configSetDefaultCmd = &cobra.Command{
 		_, err := buf.ReadFrom(reader)
 		checkErr(err)
 
-		config := &proto.StorageConfig{}
+		config := &userPb.StorageConfig{}
 		err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
 		checkErr(err)
 

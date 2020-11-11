@@ -20,8 +20,8 @@ func init() {
 
 var dataGetCmd = &cobra.Command{
 	Use:   "get [cid] [output file path]",
-	Short: "Get data by cid from the storage profile",
-	Long:  `Get data by cid from the storage profile`,
+	Short: "Get data stored by the user by cid",
+	Long:  `Get data stored by the user by cid`,
 	Args:  cobra.ExactArgs(2),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())

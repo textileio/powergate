@@ -15,8 +15,8 @@ func init() {
 
 var walletSignCmd = &cobra.Command{
 	Use:   "sign [hex-encoded-message]",
-	Short: "Signs a message with storage profile wallet addresses.",
-	Long:  "Signs a message using all wallet addresses associated with the storage profile",
+	Short: "Signs a message with user wallet addresses.",
+	Long:  "Signs a message using all wallet addresses associated with the user",
 	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())

@@ -10,16 +10,16 @@ import (
 )
 
 func init() {
-	adminProfilesCmd.AddCommand(
-		adminProfilesCreateCmd,
-		adminProfilesListCmd,
+	adminUsersCmd.AddCommand(
+		adminUsersCreateCmd,
+		adminUsersListCmd,
 	)
 }
 
-var adminProfilesCreateCmd = &cobra.Command{
+var adminUsersCreateCmd = &cobra.Command{
 	Use:   "create",
-	Short: "Create a Powergate storage profile.",
-	Long:  `Create a Powergate storage profile.`,
+	Short: "Create a Powergate user.",
+	Long:  `Create a Powergate user.`,
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -29,7 +29,7 @@ var adminProfilesCreateCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Profiles.CreateStorageProfile(adminAuthCtx(ctx))
+		res, err := powClient.Admin.Users.Create(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
@@ -39,10 +39,10 @@ var adminProfilesCreateCmd = &cobra.Command{
 	},
 }
 
-var adminProfilesListCmd = &cobra.Command{
+var adminUsersListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all Powergate storage profiles.",
-	Long:  `List all Powergate storage profiles.`,
+	Short: "List all Powergate users.",
+	Long:  `List all Powergate users.`,
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -52,7 +52,7 @@ var adminProfilesListCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Profiles.StorageProfiles(adminAuthCtx(ctx))
+		res, err := powClient.Admin.Users.List(adminAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

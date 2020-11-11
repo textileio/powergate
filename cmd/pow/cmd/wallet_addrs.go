@@ -15,8 +15,8 @@ func init() {
 
 var walletAddrsCmd = &cobra.Command{
 	Use:   "addrs",
-	Short: "Print all wallet addresses for the current storage profile",
-	Long:  `Print all wallet addresses for the current storage profile`,
+	Short: "Print all wallet addresses for the current user",
+	Long:  `Print all wallet addresses for the current user`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)

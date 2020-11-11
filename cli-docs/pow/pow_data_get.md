@@ -1,10 +1,10 @@
 ## pow data get
 
-Get data by cid from the storage profile
+Get data stored by the user by cid
 
 ### Synopsis
 
-Get data by cid from the storage profile
+Get data stored by the user by cid
 
 ```
 pow data get [cid] [output file path] [flags]
@@ -22,7 +22,7 @@ pow data get [cid] [output file path] [flags]
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
 ```
 
 ### SEE ALSO

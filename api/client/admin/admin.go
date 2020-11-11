@@ -1,21 +1,21 @@
 package admin
 
 import (
-	proto "github.com/textileio/powergate/proto/admin/v1"
+	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
 )
 
 // Admin provides access to Powergate admin APIs.
 type Admin struct {
 	StorageJobs *StorageJobs
-	Profiles    *Profiles
+	Users       *Users
 	Wallet      *Wallet
 }
 
 // NewAdmin creates a new admin API.
-func NewAdmin(client proto.PowergateAdminServiceClient) *Admin {
+func NewAdmin(client adminPb.AdminServiceClient) *Admin {
 	return &Admin{
 		StorageJobs: &StorageJobs{client: client},
-		Profiles:    &Profiles{client: client},
+		Users:       &Users{client: client},
 		Wallet:      &Wallet{client: client},
 	}
 }

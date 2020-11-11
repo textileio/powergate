@@ -20,8 +20,8 @@ func init() {
 
 var dealsRetrievalsCmd = &cobra.Command{
 	Use:   "retrievals",
-	Short: "List retrieval deal records for the storage profile",
-	Long:  `List retrieval deal records for the storage profile`,
+	Short: "List retrieval deal records for the user",
+	Long:  `List retrieval deal records for the user`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
