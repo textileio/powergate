@@ -1,7 +1,7 @@
 syntax = "proto3";
-package proto.powergate.v1;
+package powergate.user.v1;
 
-option go_package = "github.com/textileio/powergate/proto/powergate/v1";
+option go_package = "github.com/textileio/powergate/api/gen/powergate/user/v1;userPb";
 
 // Top level
 
@@ -17,10 +17,10 @@ message BuildInfoResponse {
   string version = 6;
 }
 
-message StorageProfileIdentifierRequest {
+message UserIdentifierRequest {
 }
 
-message StorageProfileIdentifierResponse {
+message UserIdentifierResponse {
    string id = 1;
 }
 
@@ -251,10 +251,10 @@ message RetrievalDealRecordsResponse {
   repeated RetrievalDealRecord records = 1;
 }
 
-service PowergateService {
+service UserService {
   // Top level
   rpc BuildInfo(BuildInfoRequest) returns (BuildInfoResponse) {}
-  rpc StorageProfileIdentifier(StorageProfileIdentifierRequest) returns (StorageProfileIdentifierResponse) {}
+  rpc UserIdentifier(UserIdentifierRequest) returns (UserIdentifierResponse) {}
 
   // Storage config
   rpc DefaultStorageConfig(DefaultStorageConfigRequest) returns (DefaultStorageConfigResponse) {}

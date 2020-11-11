@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/textileio/powergate/api/client/admin"
-	adminProto "github.com/textileio/powergate/proto/admin/v1"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
+	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -21,7 +21,7 @@ type Client struct {
 	StorageJobs   *StorageJobs
 	Admin         *admin.Admin
 	conn          *grpc.ClientConn
-	client        proto.PowergateServiceClient
+	client        userPb.UserServiceClient
 }
 
 type ctxKey string
@@ -91,14 +91,14 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := proto.NewPowergateServiceClient(conn)
+	client := userPb.NewUserServiceClient(conn)
 	return &Client{
 		StorageConfig: &StorageConfig{client: client},
 		Data:          &Data{client: client},
 		Wallet:        &Wallet{client: client},
 		Deals:         &Deals{client: client},
 		StorageJobs:   &StorageJobs{client: client},
-		Admin:         admin.NewAdmin(adminProto.NewPowergateAdminServiceClient(conn)),
+		Admin:         admin.NewAdmin(adminPb.NewAdminServiceClient(conn)),
 		conn:          conn,
 		client:        client,
 	}, nil
@@ -110,13 +110,13 @@ func (c *Client) Host() string {
 }
 
 // BuildInfo returns build info about the server.
-func (c *Client) BuildInfo(ctx context.Context) (*proto.BuildInfoResponse, error) {
-	return c.client.BuildInfo(ctx, &proto.BuildInfoRequest{})
+func (c *Client) BuildInfo(ctx context.Context) (*userPb.BuildInfoResponse, error) {
+	return c.client.BuildInfo(ctx, &userPb.BuildInfoRequest{})
 }
 
-// StorageProfileID returns the storage profile StorageProfileID.
-func (c *Client) StorageProfileID(ctx context.Context) (*proto.StorageProfileIdentifierResponse, error) {
-	return c.client.StorageProfileIdentifier(ctx, &proto.StorageProfileIdentifierRequest{})
+// UserID returns the user id.
+func (c *Client) UserID(ctx context.Context) (*userPb.UserIdentifierResponse, error) {
+	return c.client.UserIdentifier(ctx, &userPb.UserIdentifierRequest{})
 }
 
 // Close closes the client's grpc connection and cancels any active requests.

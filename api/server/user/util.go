@@ -1,45 +1,45 @@
-package powergate
+package user
 
 import (
 	"fmt"
 
 	"github.com/ipfs/go-cid"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/util"
 )
 
 // ToRPCStorageConfig converts from a ffs.StorageConfig to a rpc StorageConfig.
-func ToRPCStorageConfig(config ffs.StorageConfig) *proto.StorageConfig {
-	return &proto.StorageConfig{
+func ToRPCStorageConfig(config ffs.StorageConfig) *userPb.StorageConfig {
+	return &userPb.StorageConfig{
 		Repairable: config.Repairable,
 		Hot:        toRPCHotConfig(config.Hot),
 		Cold:       toRPCColdConfig(config.Cold),
 	}
 }
 
-func toRPCHotConfig(config ffs.HotConfig) *proto.HotConfig {
-	return &proto.HotConfig{
+func toRPCHotConfig(config ffs.HotConfig) *userPb.HotConfig {
+	return &userPb.HotConfig{
 		Enabled:          config.Enabled,
 		AllowUnfreeze:    config.AllowUnfreeze,
 		UnfreezeMaxPrice: config.UnfreezeMaxPrice,
-		Ipfs: &proto.IpfsConfig{
+		Ipfs: &userPb.IpfsConfig{
 			AddTimeout: int64(config.Ipfs.AddTimeout),
 		},
 	}
 }
 
-func toRPCColdConfig(config ffs.ColdConfig) *proto.ColdConfig {
-	return &proto.ColdConfig{
+func toRPCColdConfig(config ffs.ColdConfig) *userPb.ColdConfig {
+	return &userPb.ColdConfig{
 		Enabled: config.Enabled,
-		Filecoin: &proto.FilConfig{
+		Filecoin: &userPb.FilConfig{
 			ReplicationFactor: int64(config.Filecoin.RepFactor),
 			DealMinDuration:   config.Filecoin.DealMinDuration,
 			ExcludedMiners:    config.Filecoin.ExcludedMiners,
 			TrustedMiners:     config.Filecoin.TrustedMiners,
 			CountryCodes:      config.Filecoin.CountryCodes,
-			Renew: &proto.FilRenew{
+			Renew: &userPb.FilRenew{
 				Enabled:   config.Filecoin.Renew.Enabled,
 				Threshold: int64(config.Filecoin.Renew.Threshold),
 			},
@@ -51,14 +51,14 @@ func toRPCColdConfig(config ffs.ColdConfig) *proto.ColdConfig {
 	}
 }
 
-func toRPCDealErrors(des []ffs.DealError) []*proto.DealError {
-	ret := make([]*proto.DealError, len(des))
+func toRPCDealErrors(des []ffs.DealError) []*userPb.DealError {
+	ret := make([]*userPb.DealError, len(des))
 	for i, de := range des {
 		var strProposalCid string
 		if de.ProposalCid.Defined() {
 			strProposalCid = util.CidToString(de.ProposalCid)
 		}
-		ret[i] = &proto.DealError{
+		ret[i] = &userPb.DealError{
 			ProposalCid: strProposalCid,
 			Miner:       de.Miner,
 			Message:     de.Message,
@@ -67,7 +67,7 @@ func toRPCDealErrors(des []ffs.DealError) []*proto.DealError {
 	return ret
 }
 
-func fromRPCHotConfig(config *proto.HotConfig) ffs.HotConfig {
+func fromRPCHotConfig(config *userPb.HotConfig) ffs.HotConfig {
 	res := ffs.HotConfig{}
 	if config != nil {
 		res.Enabled = config.Enabled
@@ -83,7 +83,7 @@ func fromRPCHotConfig(config *proto.HotConfig) ffs.HotConfig {
 	return res
 }
 
-func fromRPCColdConfig(config *proto.ColdConfig) ffs.ColdConfig {
+func fromRPCColdConfig(config *userPb.ColdConfig) ffs.ColdConfig {
 	res := ffs.ColdConfig{}
 	if config != nil {
 		res.Enabled = config.Enabled
@@ -112,24 +112,24 @@ func fromRPCColdConfig(config *proto.ColdConfig) ffs.ColdConfig {
 	return res
 }
 
-func toRPCStorageInfo(info ffs.StorageInfo) *proto.StorageInfo {
-	storageInfo := &proto.StorageInfo{
+func toRPCStorageInfo(info ffs.StorageInfo) *userPb.StorageInfo {
+	storageInfo := &userPb.StorageInfo{
 		JobId:   info.JobID.String(),
 		Cid:     util.CidToString(info.Cid),
 		Created: info.Created.UnixNano(),
-		Hot: &proto.HotInfo{
+		Hot: &userPb.HotInfo{
 			Enabled: info.Hot.Enabled,
 			Size:    int64(info.Hot.Size),
-			Ipfs: &proto.IpfsHotInfo{
+			Ipfs: &userPb.IpfsHotInfo{
 				Created: info.Hot.Ipfs.Created.UnixNano(),
 			},
 		},
-		Cold: &proto.ColdInfo{
+		Cold: &userPb.ColdInfo{
 			Enabled: info.Cold.Enabled,
-			Filecoin: &proto.FilInfo{
+			Filecoin: &userPb.FilInfo{
 				DataCid:   util.CidToString(info.Cold.Filecoin.DataCid),
 				Size:      info.Cold.Filecoin.Size,
-				Proposals: make([]*proto.FilStorage, len(info.Cold.Filecoin.Proposals)),
+				Proposals: make([]*userPb.FilStorage, len(info.Cold.Filecoin.Proposals)),
 			},
 		},
 	}
@@ -142,7 +142,7 @@ func toRPCStorageInfo(info ffs.StorageInfo) *proto.StorageInfo {
 		if p.PieceCid.Defined() {
 			strPieceCid = util.CidToString(p.PieceCid)
 		}
-		storageInfo.Cold.Filecoin.Proposals[i] = &proto.FilStorage{
+		storageInfo.Cold.Filecoin.Proposals[i] = &userPb.FilStorage{
 			ProposalCid:     strProposalCid,
 			PieceCid:        strPieceCid,
 			Renewed:         p.Renewed,
@@ -156,7 +156,7 @@ func toRPCStorageInfo(info ffs.StorageInfo) *proto.StorageInfo {
 	return storageInfo
 }
 
-func buildListDealRecordsOptions(conf *proto.DealRecordsConfig) []deals.DealRecordsOption {
+func buildListDealRecordsOptions(conf *userPb.DealRecordsConfig) []deals.DealRecordsOption {
 	var opts []deals.DealRecordsOption
 	if conf != nil {
 		opts = []deals.DealRecordsOption{
@@ -170,15 +170,15 @@ func buildListDealRecordsOptions(conf *proto.DealRecordsConfig) []deals.DealReco
 	return opts
 }
 
-func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*proto.StorageDealRecord {
-	ret := make([]*proto.StorageDealRecord, len(records))
+func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*userPb.StorageDealRecord {
+	ret := make([]*userPb.StorageDealRecord, len(records))
 	for i, r := range records {
-		ret[i] = &proto.StorageDealRecord{
+		ret[i] = &userPb.StorageDealRecord{
 			RootCid: util.CidToString(r.RootCid),
 			Address: r.Addr,
 			Time:    r.Time,
 			Pending: r.Pending,
-			DealInfo: &proto.StorageDealInfo{
+			DealInfo: &userPb.StorageDealInfo{
 				ProposalCid:     util.CidToString(r.DealInfo.ProposalCid),
 				StateId:         r.DealInfo.StateID,
 				StateName:       r.DealInfo.StateName,
@@ -197,13 +197,13 @@ func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*proto.Storage
 	return ret
 }
 
-func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*proto.RetrievalDealRecord {
-	ret := make([]*proto.RetrievalDealRecord, len(records))
+func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*userPb.RetrievalDealRecord {
+	ret := make([]*userPb.RetrievalDealRecord, len(records))
 	for i, r := range records {
-		ret[i] = &proto.RetrievalDealRecord{
+		ret[i] = &userPb.RetrievalDealRecord{
 			Address: r.Addr,
 			Time:    r.Time,
-			DealInfo: &proto.RetrievalDealInfo{
+			DealInfo: &userPb.RetrievalDealInfo{
 				RootCid:                 util.CidToString(r.DealInfo.RootCid),
 				Size:                    r.DealInfo.Size,
 				MinPrice:                r.DealInfo.MinPrice,
@@ -218,8 +218,8 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*proto.Ret
 }
 
 // ToProtoStorageJobs converts a slice of ffs.StorageJobs to proto Jobs.
-func ToProtoStorageJobs(jobs []ffs.StorageJob) ([]*proto.StorageJob, error) {
-	var res []*proto.StorageJob
+func ToProtoStorageJobs(jobs []ffs.StorageJob) ([]*userPb.StorageJob, error) {
+	var res []*userPb.StorageJob
 	for _, job := range jobs {
 		j, err := toRPCJob(job)
 		if err != nil {
@@ -230,10 +230,10 @@ func ToProtoStorageJobs(jobs []ffs.StorageJob) ([]*proto.StorageJob, error) {
 	return res, nil
 }
 
-func toRPCJob(job ffs.StorageJob) (*proto.StorageJob, error) {
-	var dealInfo []*proto.DealInfo
+func toRPCJob(job ffs.StorageJob) (*userPb.StorageJob, error) {
+	var dealInfo []*userPb.DealInfo
 	for _, item := range job.DealInfo {
-		info := &proto.DealInfo{
+		info := &userPb.DealInfo{
 			ActivationEpoch: item.ActivationEpoch,
 			DealId:          item.DealID,
 			Duration:        item.Duration,
@@ -250,24 +250,24 @@ func toRPCJob(job ffs.StorageJob) (*proto.StorageJob, error) {
 		dealInfo = append(dealInfo, info)
 	}
 
-	var status proto.JobStatus
+	var status userPb.JobStatus
 	switch job.Status {
 	case ffs.Unspecified:
-		status = proto.JobStatus_JOB_STATUS_UNSPECIFIED
+		status = userPb.JobStatus_JOB_STATUS_UNSPECIFIED
 	case ffs.Queued:
-		status = proto.JobStatus_JOB_STATUS_QUEUED
+		status = userPb.JobStatus_JOB_STATUS_QUEUED
 	case ffs.Executing:
-		status = proto.JobStatus_JOB_STATUS_EXECUTING
+		status = userPb.JobStatus_JOB_STATUS_EXECUTING
 	case ffs.Failed:
-		status = proto.JobStatus_JOB_STATUS_FAILED
+		status = userPb.JobStatus_JOB_STATUS_FAILED
 	case ffs.Canceled:
-		status = proto.JobStatus_JOB_STATUS_CANCELED
+		status = userPb.JobStatus_JOB_STATUS_CANCELED
 	case ffs.Success:
-		status = proto.JobStatus_JOB_STATUS_SUCCESS
+		status = userPb.JobStatus_JOB_STATUS_SUCCESS
 	default:
 		return nil, fmt.Errorf("unknown job status: %v", job.Status)
 	}
-	return &proto.StorageJob{
+	return &userPb.StorageJob{
 		Id:         job.ID.String(),
 		ApiId:      job.APIID.String(),
 		Cid:        util.CidToString(job.Cid),

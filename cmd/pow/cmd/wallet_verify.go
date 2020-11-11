@@ -16,8 +16,8 @@ func init() {
 
 var walletVerifyCmd = &cobra.Command{
 	Use:   "verify [addr] [hex-encoded-message] [hex-encoded-signature]",
-	Short: "Verifies the signature of a message signed with a storage profile wallet address.",
-	Long:  "Verifies the signature of a message signed with a storage profile wallet address.",
+	Short: "Verifies the signature of a message signed with a user wallet address.",
+	Long:  "Verifies the signature of a message signed with a user wallet address.",
 	Args:  cobra.ExactArgs(3),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())

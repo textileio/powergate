@@ -1,27 +1,27 @@
-package powergate
+package user
 
 import (
 	"context"
 	"fmt"
 	"math/big"
 
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/ffs/api"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // Balance returns the balance for an address.
-func (s *Service) Balance(ctx context.Context, req *proto.BalanceRequest) (*proto.BalanceResponse, error) {
+func (s *Service) Balance(ctx context.Context, req *userPb.BalanceRequest) (*userPb.BalanceResponse, error) {
 	bal, err := s.w.Balance(ctx, req.Address)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting balance: %v", err)
 	}
-	return &proto.BalanceResponse{Balance: bal.String()}, nil
+	return &userPb.BalanceResponse{Balance: bal.String()}, nil
 }
 
 // NewAddress calls ffs.NewAddr.
-func (s *Service) NewAddress(ctx context.Context, req *proto.NewAddressRequest) (*proto.NewAddressResponse, error) {
+func (s *Service) NewAddress(ctx context.Context, req *userPb.NewAddressRequest) (*userPb.NewAddressResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -39,34 +39,34 @@ func (s *Service) NewAddress(ctx context.Context, req *proto.NewAddressRequest) 
 	if err != nil {
 		return nil, err
 	}
-	return &proto.NewAddressResponse{Address: addr}, nil
+	return &userPb.NewAddressResponse{Address: addr}, nil
 }
 
 // Addresses calls ffs.Addrs.
-func (s *Service) Addresses(ctx context.Context, req *proto.AddressesRequest) (*proto.AddressesResponse, error) {
+func (s *Service) Addresses(ctx context.Context, req *userPb.AddressesRequest) (*userPb.AddressesResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
 	}
 	addrs := i.Addrs()
-	res := make([]*proto.AddrInfo, len(addrs))
+	res := make([]*userPb.AddrInfo, len(addrs))
 	for i, addr := range addrs {
 		bal, err := s.w.Balance(ctx, addr.Addr)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "getting address balance: %v", err)
 		}
-		res[i] = &proto.AddrInfo{
+		res[i] = &userPb.AddrInfo{
 			Name:    addr.Name,
 			Address: addr.Addr,
 			Type:    addr.Type,
 			Balance: bal.String(),
 		}
 	}
-	return &proto.AddressesResponse{Addresses: res}, nil
+	return &userPb.AddressesResponse{Addresses: res}, nil
 }
 
 // SendFil sends fil from a managed address to any other address.
-func (s *Service) SendFil(ctx context.Context, req *proto.SendFilRequest) (*proto.SendFilResponse, error) {
+func (s *Service) SendFil(ctx context.Context, req *userPb.SendFilRequest) (*userPb.SendFilResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -78,11 +78,11 @@ func (s *Service) SendFil(ctx context.Context, req *proto.SendFilRequest) (*prot
 	if err := i.SendFil(ctx, req.From, req.To, amt); err != nil {
 		return nil, err
 	}
-	return &proto.SendFilResponse{}, nil
+	return &userPb.SendFilResponse{}, nil
 }
 
 // SignMessage calls ffs.SignMessage.
-func (s *Service) SignMessage(ctx context.Context, req *proto.SignMessageRequest) (*proto.SignMessageResponse, error) {
+func (s *Service) SignMessage(ctx context.Context, req *userPb.SignMessageRequest) (*userPb.SignMessageResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -92,11 +92,11 @@ func (s *Service) SignMessage(ctx context.Context, req *proto.SignMessageRequest
 		return nil, fmt.Errorf("signing message: %s", err)
 	}
 
-	return &proto.SignMessageResponse{Signature: signature}, nil
+	return &userPb.SignMessageResponse{Signature: signature}, nil
 }
 
 // VerifyMessage calls ffs.VerifyMessage.
-func (s *Service) VerifyMessage(ctx context.Context, req *proto.VerifyMessageRequest) (*proto.VerifyMessageResponse, error) {
+func (s *Service) VerifyMessage(ctx context.Context, req *userPb.VerifyMessageRequest) (*userPb.VerifyMessageResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -106,5 +106,5 @@ func (s *Service) VerifyMessage(ctx context.Context, req *proto.VerifyMessageReq
 		return nil, fmt.Errorf("verifying signature: %s", err)
 	}
 
-	return &proto.VerifyMessageResponse{Ok: ok}, nil
+	return &userPb.VerifyMessageResponse{Ok: ok}, nil
 }

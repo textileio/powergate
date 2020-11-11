@@ -3,39 +3,39 @@ package admin
 import (
 	"context"
 
-	proto "github.com/textileio/powergate/proto/admin/v1"
+	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// CreateStorageProfile creates a new managed instance.
-func (a *Service) CreateStorageProfile(ctx context.Context, req *proto.CreateStorageProfileRequest) (*proto.CreateStorageProfileResponse, error) {
+// CreateUser creates a new managed instance.
+func (a *Service) CreateUser(ctx context.Context, req *adminPb.CreateUserRequest) (*adminPb.CreateUserResponse, error) {
 	auth, err := a.m.Create(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "creating instance: %v", err)
 	}
-	return &proto.CreateStorageProfileResponse{
-		AuthEntry: &proto.AuthEntry{
+	return &adminPb.CreateUserResponse{
+		User: &adminPb.User{
 			Id:    auth.APIID.String(),
 			Token: auth.Token,
 		},
 	}, nil
 }
 
-// StorageProfiles lists all managed instances.
-func (a *Service) StorageProfiles(ctx context.Context, req *proto.StorageProfilesRequest) (*proto.StorageProfilesResponse, error) {
+// Users lists all managed instances.
+func (a *Service) Users(ctx context.Context, req *adminPb.UsersRequest) (*adminPb.UsersResponse, error) {
 	lst, err := a.m.List()
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "listing storage profiles: %v", err)
+		return nil, status.Errorf(codes.Internal, "listing users: %v", err)
 	}
-	ins := make([]*proto.AuthEntry, len(lst))
+	ins := make([]*adminPb.User, len(lst))
 	for i, v := range lst {
-		ins[i] = &proto.AuthEntry{
+		ins[i] = &adminPb.User{
 			Id:    v.APIID.String(),
 			Token: v.Token,
 		}
 	}
-	return &proto.StorageProfilesResponse{
-		AuthEntries: ins,
+	return &adminPb.UsersResponse{
+		Users: ins,
 	}, nil
 }

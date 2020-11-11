@@ -153,7 +153,7 @@ var adminJobsSummaryCmd = &cobra.Command{
 func storageJobsOpts() []admin.StorageJobsOption {
 	var opts []admin.StorageJobsOption
 	if viper.IsSet("profile-id") {
-		opts = append(opts, admin.WithProfileID(viper.GetString("profile-id")))
+		opts = append(opts, admin.WithUserID(viper.GetString("profile-id")))
 	}
 	if viper.IsSet("cids") {
 		opts = append(opts, admin.WithCids(viper.GetStringSlice("cids")...))

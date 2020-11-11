@@ -13,7 +13,7 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	ipfspath "github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/multiformats/go-multiaddr"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,16 +21,16 @@ import (
 
 // Data provides access to Powergate general data APIs.
 type Data struct {
-	client proto.PowergateServiceClient
+	client userPb.UserServiceClient
 }
 
 // WatchLogsOption is a function that changes GetLogsConfig.
-type WatchLogsOption func(r *proto.WatchLogsRequest)
+type WatchLogsOption func(r *userPb.WatchLogsRequest)
 
 // WithJobIDFilter filters only log messages of a Cid related to
 // the Job with id jid.
 func WithJobIDFilter(jobID string) WatchLogsOption {
-	return func(r *proto.WatchLogsRequest) {
+	return func(r *userPb.WatchLogsRequest) {
 		r.JobId = jobID
 	}
 }
@@ -38,19 +38,19 @@ func WithJobIDFilter(jobID string) WatchLogsOption {
 // WithHistory indicates that prior history logs should
 // be sent in the channel before getting real time logs.
 func WithHistory(enabled bool) WatchLogsOption {
-	return func(r *proto.WatchLogsRequest) {
+	return func(r *userPb.WatchLogsRequest) {
 		r.History = enabled
 	}
 }
 
 // WatchLogsEvent represents an event for watching cid logs.
 type WatchLogsEvent struct {
-	Res *proto.WatchLogsResponse
+	Res *userPb.WatchLogsResponse
 	Err error
 }
 
 // Stage allows to temporarily stage data in the Hot Storage in preparation for pushing a cid storage config.
-func (d *Data) Stage(ctx context.Context, data io.Reader) (*proto.StageResponse, error) {
+func (d *Data) Stage(ctx context.Context, data io.Reader) (*userPb.StageResponse, error) {
 	stream, err := d.client.Stage(ctx)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (d *Data) Stage(ctx context.Context, data io.Reader) (*proto.StageResponse,
 		if err != nil && err != io.EOF {
 			return nil, err
 		}
-		sendErr := stream.Send(&proto.StageRequest{Chunk: buffer[:bytesRead]})
+		sendErr := stream.Send(&userPb.StageRequest{Chunk: buffer[:bytesRead]})
 		if sendErr != nil {
 			if sendErr == io.EOF {
 				var noOp interface{}
@@ -109,13 +109,13 @@ func (d *Data) StageFolder(ctx context.Context, ipfsRevProxyAddr string, folderP
 
 // ReplaceData pushes a StorageConfig for c2 equal to that of c1, and removes c1. This operation
 // is more efficient than manually removing and adding in two separate operations.
-func (d *Data) ReplaceData(ctx context.Context, cid1, cid2 string) (*proto.ReplaceDataResponse, error) {
-	return d.client.ReplaceData(ctx, &proto.ReplaceDataRequest{Cid1: cid1, Cid2: cid2})
+func (d *Data) ReplaceData(ctx context.Context, cid1, cid2 string) (*userPb.ReplaceDataResponse, error) {
+	return d.client.ReplaceData(ctx, &userPb.ReplaceDataRequest{Cid1: cid1, Cid2: cid2})
 }
 
 // Get returns an io.Reader for reading a stored Cid from the Hot Storage.
 func (d *Data) Get(ctx context.Context, cid string) (io.Reader, error) {
-	stream, err := d.client.Get(ctx, &proto.GetRequest{
+	stream, err := d.client.Get(ctx, &userPb.GetRequest{
 		Cid: cid,
 	})
 	if err != nil {
@@ -169,7 +169,7 @@ func (d *Data) GetFolder(ctx context.Context, ipfsRevProxyAddr, cid, outputDir s
 // and will continue to send messages until the context is canceled. The provided channel
 // is owned by the method and must not be closed.
 func (d *Data) WatchLogs(ctx context.Context, ch chan<- WatchLogsEvent, cid string, opts ...WatchLogsOption) error {
-	r := &proto.WatchLogsRequest{Cid: cid}
+	r := &userPb.WatchLogsRequest{Cid: cid}
 	for _, opt := range opts {
 		opt(r)
 	}
@@ -195,9 +195,9 @@ func (d *Data) WatchLogs(ctx context.Context, ch chan<- WatchLogsEvent, cid stri
 	return nil
 }
 
-// CidInfo returns information about cids managed by the storage profile.
-func (d *Data) CidInfo(ctx context.Context, cids ...string) (*proto.CidInfoResponse, error) {
-	return d.client.CidInfo(ctx, &proto.CidInfoRequest{Cids: cids})
+// CidInfo returns information about cids stored by the user.
+func (d *Data) CidInfo(ctx context.Context, cids ...string) (*userPb.CidInfoResponse, error) {
+	return d.client.CidInfo(ctx, &userPb.CidInfoRequest{Cids: cids})
 }
 
 func newDecoratedIPFSAPI(proxyAddr, ffsToken string) (*httpapi.HttpApi, error) {

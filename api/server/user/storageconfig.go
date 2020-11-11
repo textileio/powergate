@@ -1,28 +1,28 @@
-package powergate
+package user
 
 import (
 	"context"
 
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/util"
 )
 
 // DefaultStorageConfig calls ffs.DefaultStorageConfig.
-func (s *Service) DefaultStorageConfig(ctx context.Context, req *proto.DefaultStorageConfigRequest) (*proto.DefaultStorageConfigResponse, error) {
+func (s *Service) DefaultStorageConfig(ctx context.Context, req *userPb.DefaultStorageConfigRequest) (*userPb.DefaultStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 	conf := i.DefaultStorageConfig()
-	return &proto.DefaultStorageConfigResponse{
+	return &userPb.DefaultStorageConfigResponse{
 		DefaultStorageConfig: ToRPCStorageConfig(conf),
 	}, nil
 }
 
 // SetDefaultStorageConfig sets a new config to be used by default.
-func (s *Service) SetDefaultStorageConfig(ctx context.Context, req *proto.SetDefaultStorageConfigRequest) (*proto.SetDefaultStorageConfigResponse, error) {
+func (s *Service) SetDefaultStorageConfig(ctx context.Context, req *userPb.SetDefaultStorageConfigRequest) (*userPb.SetDefaultStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -35,11 +35,11 @@ func (s *Service) SetDefaultStorageConfig(ctx context.Context, req *proto.SetDef
 	if err := i.SetDefaultStorageConfig(defaultConfig); err != nil {
 		return nil, err
 	}
-	return &proto.SetDefaultStorageConfigResponse{}, nil
+	return &userPb.SetDefaultStorageConfigResponse{}, nil
 }
 
 // ApplyStorageConfig applies the provided cid storage config.
-func (s *Service) ApplyStorageConfig(ctx context.Context, req *proto.ApplyStorageConfigRequest) (*proto.ApplyStorageConfigResponse, error) {
+func (s *Service) ApplyStorageConfig(ctx context.Context, req *userPb.ApplyStorageConfigRequest) (*userPb.ApplyStorageConfigResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -70,13 +70,13 @@ func (s *Service) ApplyStorageConfig(ctx context.Context, req *proto.ApplyStorag
 		return nil, err
 	}
 
-	return &proto.ApplyStorageConfigResponse{
+	return &userPb.ApplyStorageConfigResponse{
 		JobId: jid.String(),
 	}, nil
 }
 
 // Remove calls ffs.Remove.
-func (s *Service) Remove(ctx context.Context, req *proto.RemoveRequest) (*proto.RemoveResponse, error) {
+func (s *Service) Remove(ctx context.Context, req *userPb.RemoveRequest) (*userPb.RemoveResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -91,5 +91,5 @@ func (s *Service) Remove(ctx context.Context, req *proto.RemoveRequest) (*proto.
 		return nil, err
 	}
 
-	return &proto.RemoveResponse{}, nil
+	return &userPb.RemoveResponse{}, nil
 }

@@ -17,9 +17,6 @@
 # vscode config folder
 .vscode/
 
-buildtools/protoc
-buildtools/protoc-gen-go
-
 # File names that can be used for testing.
 new
 myfile

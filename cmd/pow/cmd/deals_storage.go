@@ -22,8 +22,8 @@ func init() {
 
 var dealsStorageCmd = &cobra.Command{
 	Use:   "storage",
-	Short: "List storage deal records for the storage profile",
-	Long:  `List storage deal records for the storage profile`,
+	Short: "List storage deal records for the user",
+	Long:  `List storage deal records for the user`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)

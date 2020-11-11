@@ -1,18 +1,18 @@
-package powergate
+package user
 
 import (
 	"context"
 
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // StorageJob calls API.GetStorageJob.
-func (s *Service) StorageJob(ctx context.Context, req *proto.StorageJobRequest) (*proto.StorageJobResponse, error) {
+func (s *Service) StorageJob(ctx context.Context, req *userPb.StorageJobRequest) (*userPb.StorageJobResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -26,13 +26,13 @@ func (s *Service) StorageJob(ctx context.Context, req *proto.StorageJobRequest) 
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "building job response: %v", err.Error())
 	}
-	return &proto.StorageJobResponse{
+	return &userPb.StorageJobResponse{
 		StorageJob: rpcJob,
 	}, nil
 }
 
 // StorageConfigForJob returns the StorageConfig associated with the job id.
-func (s *Service) StorageConfigForJob(ctx context.Context, req *proto.StorageConfigForJobRequest) (*proto.StorageConfigForJobResponse, error) {
+func (s *Service) StorageConfigForJob(ctx context.Context, req *userPb.StorageConfigForJobRequest) (*userPb.StorageConfigForJobResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		code := codes.Internal
@@ -50,11 +50,11 @@ func (s *Service) StorageConfigForJob(ctx context.Context, req *proto.StorageCon
 		return nil, status.Errorf(code, "getting storage config for job: %v", err)
 	}
 	res := ToRPCStorageConfig(sc)
-	return &proto.StorageConfigForJobResponse{StorageConfig: res}, nil
+	return &userPb.StorageConfigForJobResponse{StorageConfig: res}, nil
 }
 
 // QueuedStorageJobs returns a list of queued storage jobs.
-func (s *Service) QueuedStorageJobs(ctx context.Context, req *proto.QueuedStorageJobsRequest) (*proto.QueuedStorageJobsResponse, error) {
+func (s *Service) QueuedStorageJobs(ctx context.Context, req *userPb.QueuedStorageJobsRequest) (*userPb.QueuedStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -69,13 +69,13 @@ func (s *Service) QueuedStorageJobs(ctx context.Context, req *proto.QueuedStorag
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &proto.QueuedStorageJobsResponse{
+	return &userPb.QueuedStorageJobsResponse{
 		StorageJobs: protoJobs,
 	}, nil
 }
 
 // ExecutingStorageJobs returns a list of executing storage jobs.
-func (s *Service) ExecutingStorageJobs(ctx context.Context, req *proto.ExecutingStorageJobsRequest) (*proto.ExecutingStorageJobsResponse, error) {
+func (s *Service) ExecutingStorageJobs(ctx context.Context, req *userPb.ExecutingStorageJobsRequest) (*userPb.ExecutingStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -90,13 +90,13 @@ func (s *Service) ExecutingStorageJobs(ctx context.Context, req *proto.Executing
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &proto.ExecutingStorageJobsResponse{
+	return &userPb.ExecutingStorageJobsResponse{
 		StorageJobs: protoJobs,
 	}, nil
 }
 
 // LatestFinalStorageJobs returns a list of latest final storage jobs.
-func (s *Service) LatestFinalStorageJobs(ctx context.Context, req *proto.LatestFinalStorageJobsRequest) (*proto.LatestFinalStorageJobsResponse, error) {
+func (s *Service) LatestFinalStorageJobs(ctx context.Context, req *userPb.LatestFinalStorageJobsRequest) (*userPb.LatestFinalStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -111,13 +111,13 @@ func (s *Service) LatestFinalStorageJobs(ctx context.Context, req *proto.LatestF
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &proto.LatestFinalStorageJobsResponse{
+	return &userPb.LatestFinalStorageJobsResponse{
 		StorageJobs: protoJobs,
 	}, nil
 }
 
 // LatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
-func (s *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *proto.LatestSuccessfulStorageJobsRequest) (*proto.LatestSuccessfulStorageJobsResponse, error) {
+func (s *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *userPb.LatestSuccessfulStorageJobsRequest) (*userPb.LatestSuccessfulStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -132,13 +132,13 @@ func (s *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *proto.La
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &proto.LatestSuccessfulStorageJobsResponse{
+	return &userPb.LatestSuccessfulStorageJobsResponse{
 		StorageJobs: protoJobs,
 	}, nil
 }
 
 // StorageJobsSummary returns a summary of all storage jobs.
-func (s *Service) StorageJobsSummary(ctx context.Context, req *proto.StorageJobsSummaryRequest) (*proto.StorageJobsSummaryResponse, error) {
+func (s *Service) StorageJobsSummary(ctx context.Context, req *userPb.StorageJobsSummaryRequest) (*userPb.StorageJobsSummaryResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -171,8 +171,8 @@ func (s *Service) StorageJobsSummary(ctx context.Context, req *proto.StorageJobs
 		return nil, status.Errorf(codes.Internal, "converting latest successful jobs to protos: %v", err)
 	}
 
-	return &proto.StorageJobsSummaryResponse{
-		JobCounts: &proto.JobCounts{
+	return &userPb.StorageJobsSummaryResponse{
+		JobCounts: &userPb.JobCounts{
 			Executing:        int32(len(executingJobs)),
 			LatestFinal:      int32(len(latestFinalJobs)),
 			LatestSuccessful: int32(len(latestSuccessfulJobs)),
@@ -186,7 +186,7 @@ func (s *Service) StorageJobsSummary(ctx context.Context, req *proto.StorageJobs
 }
 
 // WatchStorageJobs calls API.WatchJobs.
-func (s *Service) WatchStorageJobs(req *proto.WatchStorageJobsRequest, srv proto.PowergateService_WatchStorageJobsServer) error {
+func (s *Service) WatchStorageJobs(req *userPb.WatchStorageJobsRequest, srv userPb.UserService_WatchStorageJobsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
 		return err
@@ -207,7 +207,7 @@ func (s *Service) WatchStorageJobs(req *proto.WatchStorageJobsRequest, srv proto
 		if err != nil {
 			return err
 		}
-		reply := &proto.WatchStorageJobsResponse{
+		reply := &userPb.WatchStorageJobsResponse{
 			StorageJob: rpcJob,
 		}
 		if err := srv.Send(reply); err != nil {
@@ -221,7 +221,7 @@ func (s *Service) WatchStorageJobs(req *proto.WatchStorageJobsRequest, srv proto
 }
 
 // CancelStorageJob calls API.CancelJob.
-func (s *Service) CancelStorageJob(ctx context.Context, req *proto.CancelStorageJobRequest) (*proto.CancelStorageJobResponse, error) {
+func (s *Service) CancelStorageJob(ctx context.Context, req *userPb.CancelStorageJobRequest) (*userPb.CancelStorageJobResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -230,5 +230,5 @@ func (s *Service) CancelStorageJob(ctx context.Context, req *proto.CancelStorage
 	if err := i.CancelJob(jid); err != nil {
 		return nil, err
 	}
-	return &proto.CancelStorageJobResponse{}, nil
+	return &userPb.CancelStorageJobResponse{}, nil
 }

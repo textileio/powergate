@@ -16,8 +16,8 @@ func init() {
 
 var idCmd = &cobra.Command{
 	Use:   "id",
-	Short: "Returns the storage profile id",
-	Long:  `Returns the storage profile id`,
+	Short: "Returns the user id",
+	Long:  `Returns the user id`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -26,7 +26,7 @@ var idCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := powClient.StorageProfileID(mustAuthCtx(ctx))
+		res, err := powClient.UserID(mustAuthCtx(ctx))
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

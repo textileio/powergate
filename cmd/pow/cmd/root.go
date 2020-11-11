@@ -55,7 +55,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.Flags().BoolP("version", "v", false, "display version information for pow and the connected server")
 	rootCmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the powergate service api")
-	rootCmd.PersistentFlags().StringP("token", "t", "", "storage profile auth token")
+	rootCmd.PersistentFlags().StringP("token", "t", "", "user auth token")
 }
 
 func initConfig() {

@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
 
 func init() {
@@ -85,7 +85,7 @@ func updateJobsOutput(writer *goterminal.Writer, state map[string]*client.WatchS
 	for _, k := range keys {
 		if state[k] != nil {
 			var val string
-			if state[k].Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_FAILED {
+			if state[k].Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_FAILED {
 				val = fmt.Sprintf("%v %v", state[k].Res.StorageJob.Status.String(), state[k].Res.StorageJob.ErrorCause)
 			} else if state[k].Err != nil {
 				val = fmt.Sprintf("Error: %v", state[k].Err.Error())
@@ -111,8 +111,8 @@ func jobsComplete(state map[string]*client.WatchStorageJobsEvent) bool {
 	for _, event := range state {
 		processing := false
 		if event == nil ||
-			event.Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_EXECUTING ||
-			event.Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_QUEUED {
+			event.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_EXECUTING ||
+			event.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_QUEUED {
 			processing = true
 		}
 		if processing && event != nil && event.Err == nil {

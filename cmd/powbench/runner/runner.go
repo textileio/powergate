@@ -9,7 +9,7 @@ import (
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/api/client"
-	proto "github.com/textileio/powergate/proto/powergate/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/util"
 )
 
@@ -47,11 +47,11 @@ func Run(ctx context.Context, ts TestSetup) error {
 }
 
 func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
-	res, err := c.Admin.Profiles.Create(ctx)
+	res, err := c.Admin.Users.Create(ctx)
 	if err != nil {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
-	ctx = context.WithValue(ctx, client.AuthKey, res.AuthEntry.Token)
+	ctx = context.WithValue(ctx, client.AuthKey, res.User.Token)
 	res2, err := c.Wallet.Addresses(ctx)
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)
@@ -99,26 +99,26 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	// existence.
 	// This configuration will stop being static when we incorporate
 	// other test cases.
-	storageConfig := &proto.StorageConfig{
+	storageConfig := &userPb.StorageConfig{
 		Repairable: false,
-		Hot: &proto.HotConfig{
+		Hot: &userPb.HotConfig{
 			Enabled:          true,
 			AllowUnfreeze:    false,
 			UnfreezeMaxPrice: 0,
-			Ipfs: &proto.IpfsConfig{
+			Ipfs: &userPb.IpfsConfig{
 				AddTimeout: 30,
 			},
 		},
-		Cold: &proto.ColdConfig{
+		Cold: &userPb.ColdConfig{
 			Enabled: true,
-			Filecoin: &proto.FilConfig{
+			Filecoin: &userPb.FilConfig{
 				ReplicationFactor: 1,
 				DealMinDuration:   util.MinDealDuration,
 				Address:           addr,
 				CountryCodes:      nil,
 				ExcludedMiners:    nil,
 				TrustedMiners:     []string{minerAddr},
-				Renew:             &proto.FilRenew{},
+				Renew:             &userPb.FilRenew{},
 			},
 		},
 	}
@@ -142,10 +142,10 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 			return fmt.Errorf("job watching: %s", s.Err)
 		}
 		log.Infof("[%d] Job changed to status %s", id, s.Res.StorageJob.Status.String())
-		if s.Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_FAILED || s.Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_CANCELED {
+		if s.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_FAILED || s.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_CANCELED {
 			return fmt.Errorf("job execution failed or was canceled")
 		}
-		if s.Res.StorageJob.Status == proto.JobStatus_JOB_STATUS_SUCCESS {
+		if s.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_SUCCESS {
 			return nil
 		}
 	}

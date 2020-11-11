@@ -25,8 +25,10 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	mongods "github.com/textileio/go-ds-mongo"
-	adminService "github.com/textileio/powergate/api/server/admin"
-	powergateService "github.com/textileio/powergate/api/server/powergate"
+	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/api/server/admin"
+	"github.com/textileio/powergate/api/server/user"
 	"github.com/textileio/powergate/deals"
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/fchost"
@@ -45,8 +47,6 @@ import (
 	minerModule "github.com/textileio/powergate/index/miner/module"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
-	adminProto "github.com/textileio/powergate/proto/admin/v1"
-	powergateProto "github.com/textileio/powergate/proto/powergate/v1"
 	"github.com/textileio/powergate/reputation"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -391,8 +391,8 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
-	powergateService := powergateService.New(s.ffsManager, s.wm, s.hs)
-	adminService := adminService.New(s.ffsManager, s.sched, s.wm)
+	userService := user.New(s.ffsManager, s.wm, s.hs)
+	adminService := admin.New(s.ffsManager, s.sched, s.wm)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {
@@ -403,8 +403,8 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		powergateProto.RegisterPowergateServiceServer(server, powergateService)
-		adminProto.RegisterPowergateAdminServiceServer(server, adminService)
+		userPb.RegisterUserServiceServer(server, userService)
+		adminPb.RegisterAdminServiceServer(server, adminService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
 		}
