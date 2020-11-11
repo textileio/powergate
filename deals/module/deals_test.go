@@ -148,14 +148,18 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 			EpochPrice: 500000000,
 		}
 	}
-	dataCid, size, err := m.Import(ctx, bytes.NewReader(data), false)
+	dataCid, _, err := m.Import(ctx, bytes.NewReader(data), false)
 	if err != nil {
 		return cid.Undef, nil, err
 	}
 	if !dataCid.Defined() {
 		return cid.Undef, nil, fmt.Errorf("data cid is undefined")
 	}
-	srs, err := m.Store(ctx, addr.String(), dataCid, 2*uint64(size), cfgs, util.MinDealDuration)
+	piece, err := m.CalculateDealPiece(ctx, dataCid)
+	if err != nil {
+		return cid.Undef, nil, err
+	}
+	srs, err := m.Store(ctx, addr.String(), dataCid, piece.PieceSize, piece.PieceCID, cfgs, util.MinDealDuration)
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("calling Store(): %s", err)
 	}
@@ -199,7 +203,6 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 				storagemarket.StorageDealStaged,
 				storagemarket.StorageDealValidating,
 				storagemarket.StorageDealTransferring,
-				storagemarket.StorageDealFundsEnsured,
 				storagemarket.StorageDealCheckForAcceptance,
 				storagemarket.StorageDealClientFunding,
 				storagemarket.StorageDealPublish,

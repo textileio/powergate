@@ -9,11 +9,11 @@ require (
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
-	github.com/filecoin-project/go-address v0.0.4
-	github.com/filecoin-project/go-fil-markets v1.0.0
+	github.com/filecoin-project/go-address v0.0.5-0.20201103152444-f2023ef3f5bb
+	github.com/filecoin-project/go-fil-markets v1.0.4
 	github.com/filecoin-project/go-jsonrpc v0.1.2-0.20201008195726-68c6a2704e49
 	github.com/filecoin-project/go-state-types v0.0.0-20201013222834-41ea465f274f
-	github.com/filecoin-project/lotus v1.1.2
+	github.com/filecoin-project/lotus v1.1.3-pre1
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
@@ -27,7 +27,7 @@ require (
 	github.com/ipfs/go-ds-badger2 v0.1.1-0.20200708190120-187fc06f714e
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.1.0
-	github.com/ipfs/go-ipld-cbor v0.0.5-0.20200428170625-a0bd04d3cbdf
+	github.com/ipfs/go-ipld-cbor v0.0.5
 	github.com/ipfs/go-ipld-format v0.2.0
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
@@ -60,5 +60,3 @@ require (
 )
 
 replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.2007.2
-
-replace github.com/filecoin-project/filecoin-ffi => github.com/filecoin-project/filecoin-ffi v0.30.4-0.20200910194244-f640612a1a1f
