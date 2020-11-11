@@ -16,13 +16,13 @@ Provides commands to interact with general data APIs
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
 ```
 
 ### SEE ALSO
 
 * [pow](pow.md)	 - A client for storage and retreival of powergate data
-* [pow data get](pow_data_get.md)	 - Get data by cid from the storage profile
+* [pow data get](pow_data_get.md)	 - Get data stored by the user by cid
 * [pow data info](pow_data_info.md)	 - Get information about the current storate state of a cid
 * [pow data log](pow_data_log.md)	 - Display logs for specified cid
 * [pow data replace](pow_data_replace.md)	 - Applies a StorageConfig for c2 equal to that of c1, and removes c1

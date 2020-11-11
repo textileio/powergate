@@ -30,7 +30,7 @@ var adminJobsCmd = &cobra.Command{
 
 var adminUsersCmd = &cobra.Command{
 	Use:     "users",
-	Aliases: []string{"profile"},
+	Aliases: []string{"user"},
 	Short:   "Provides admin users commands",
 	Long:    `Provides admin users commands`,
 }

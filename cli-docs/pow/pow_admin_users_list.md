@@ -1,13 +1,13 @@
-## pow admin profiles list
+## pow admin users list
 
-List all Powergate storage profiles.
+List all Powergate users.
 
 ### Synopsis
 
-List all Powergate storage profiles.
+List all Powergate users.
 
 ```
-pow admin profiles list [flags]
+pow admin users list [flags]
 ```
 
 ### Options
@@ -21,10 +21,10 @@ pow admin profiles list [flags]
 ```
       --admin-token string     admin auth token
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
 ```
 
 ### SEE ALSO
 
-* [pow admin profiles](pow_admin_profiles.md)	 - Provides admin storage profile commands
+* [pow admin users](pow_admin_users.md)	 - Provides admin users commands
 

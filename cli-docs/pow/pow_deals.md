@@ -16,12 +16,12 @@ Provides commands to view Filecoin deal information
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
 ```
 
 ### SEE ALSO
 
 * [pow](pow.md)	 - A client for storage and retreival of powergate data
-* [pow deals retrievals](pow_deals_retrievals.md)	 - List retrieval deal records for the storage profile
-* [pow deals storage](pow_deals_storage.md)	 - List storage deal records for the storage profile
+* [pow deals retrievals](pow_deals_retrievals.md)	 - List retrieval deal records for the user
+* [pow deals storage](pow_deals_storage.md)	 - List storage deal records for the user
 

@@ -1,10 +1,10 @@
 ## pow deals retrievals
 
-List retrieval deal records for the storage profile
+List retrieval deal records for the user
 
 ### Synopsis
 
-List retrieval deal records for the storage profile
+List retrieval deal records for the user
 
 ```
 pow deals retrievals [flags]
@@ -23,7 +23,7 @@ pow deals retrievals [flags]
 
 ```
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
 ```
 
 ### SEE ALSO

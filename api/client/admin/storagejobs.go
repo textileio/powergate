@@ -19,7 +19,7 @@ type storageJobsConfig struct {
 // StorageJobsOption configures a storageJobsConfig.
 type StorageJobsOption = func(*storageJobsConfig)
 
-// WithUserID filters the results to the specified profile.
+// WithUserID filters the results to the specified user.
 func WithUserID(userID string) StorageJobsOption {
 	return func(conf *storageJobsConfig) {
 		conf.UserID = userID

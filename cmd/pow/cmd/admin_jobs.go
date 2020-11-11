@@ -11,19 +11,19 @@ import (
 )
 
 func init() {
-	adminJobsQueuedCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
+	adminJobsQueuedCmd.Flags().StringP("user-id", "i", "", "optional instance id filter to apply")
 	adminJobsQueuedCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
-	adminJobsExecutingCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
+	adminJobsExecutingCmd.Flags().StringP("user-id", "i", "", "optional instance id filter to apply")
 	adminJobsExecutingCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
-	adminJobsLatestFinalCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
+	adminJobsLatestFinalCmd.Flags().StringP("user-id", "i", "", "optional instance id filter to apply")
 	adminJobsLatestFinalCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
-	adminJobsLatestSuccessfulCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
+	adminJobsLatestSuccessfulCmd.Flags().StringP("user-id", "i", "", "optional instance id filter to apply")
 	adminJobsLatestSuccessfulCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
-	adminJobsSummaryCmd.Flags().StringP("profile-id", "i", "", "optional instance id filter to apply")
+	adminJobsSummaryCmd.Flags().StringP("user-id", "i", "", "optional instance id filter to apply")
 	adminJobsSummaryCmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
 
 	adminJobsCmd.AddCommand(
@@ -152,8 +152,8 @@ var adminJobsSummaryCmd = &cobra.Command{
 
 func storageJobsOpts() []admin.StorageJobsOption {
 	var opts []admin.StorageJobsOption
-	if viper.IsSet("profile-id") {
-		opts = append(opts, admin.WithUserID(viper.GetString("profile-id")))
+	if viper.IsSet("user-id") {
+		opts = append(opts, admin.WithUserID(viper.GetString("user-id")))
 	}
 	if viper.IsSet("cids") {
 		opts = append(opts, admin.WithCids(viper.GetStringSlice("cids")...))

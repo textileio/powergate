@@ -88,7 +88,7 @@ Available Commands:
   data         Provides commands to interact with general data APIs
   deals        Provides commands to view Filecoin deal information
   help         Help about any command
-  id           Returns the storage profile id
+  id           Returns the user id
   storage-jobs Provides commands to query for storage jobs in various states
   version      Display version information for pow and the connected server
   wallet       Provides commands about filecoin wallets
@@ -96,7 +96,7 @@ Available Commands:
 Flags:
   -h, --help                   help for pow
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
   -v, --version                display version information for pow and the connected server
 
 Use "pow [command] --help" for more information about a command.
@@ -203,9 +203,9 @@ Terminal 2:
 ```bash
 make build
 ❯ head -c 700 </dev/urandom > myfile
-❯ pow admin profile create
+❯ pow admin user create
 {
-  "authEntry":  {
+  "user":  {
     "id":  "c06382e0-2021-4234-be53-6e07a8d40065",
     "token":  "883f57b1-4e66-47f8-b291-7cf8b10f6370"
   }

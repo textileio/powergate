@@ -58,7 +58,7 @@ func (w *Wallet) SendFil(ctx context.Context, from string, to string, amount *bi
 	return w.client.SendFil(ctx, req)
 }
 
-// SignMessage signs a message with a stprage profile wallet address.
+// SignMessage signs a message with a user wallet address.
 func (w *Wallet) SignMessage(ctx context.Context, address string, message []byte) (*userPb.SignMessageResponse, error) {
 	r := &userPb.SignMessageRequest{Address: address, Message: message}
 	return w.client.SignMessage(ctx, r)

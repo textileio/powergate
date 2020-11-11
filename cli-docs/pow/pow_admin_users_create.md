@@ -1,13 +1,13 @@
-## pow admin profiles create
+## pow admin users create
 
-Create a Powergate storage profile.
+Create a Powergate user.
 
 ### Synopsis
 
-Create a Powergate storage profile.
+Create a Powergate user.
 
 ```
-pow admin profiles create [flags]
+pow admin users create [flags]
 ```
 
 ### Options
@@ -21,10 +21,10 @@ pow admin profiles create [flags]
 ```
       --admin-token string     admin auth token
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
-  -t, --token string           storage profile auth token
+  -t, --token string           user auth token
 ```
 
 ### SEE ALSO
 
-* [pow admin profiles](pow_admin_profiles.md)	 - Provides admin storage profile commands
+* [pow admin users](pow_admin_users.md)	 - Provides admin users commands
 
