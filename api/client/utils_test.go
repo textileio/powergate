@@ -81,11 +81,9 @@ func freePort(t *testing.T) int {
 	return fp
 }
 
-func setupConnection(t *testing.T, grpcHostAddress string) (*grpc.ClientConn, func()) {
+func setupConnection(t *testing.T, grpcHostAddress multiaddr.Multiaddr) (*grpc.ClientConn, func()) {
 	auth := TokenAuth{}
-	ma, err := multiaddr.NewMultiaddr(grpcHostAddress)
-	require.NoError(t, err)
-	addr, err := util.TCPAddrFromMultiAddr(ma)
+	addr, err := util.TCPAddrFromMultiAddr(grpcHostAddress)
 	require.NoError(t, err)
 	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(auth))
 	require.NoError(t, err)
