@@ -14,7 +14,7 @@ cat << EOF > $OUT_PATH/setup.py
 import setuptools
 
 setuptools.setup(
-    name="grpc_powergatec_lient",
+    name="grpc_powergate_client",
     version="${LIB_VERSION}",
     author="Textile",
     author_email="contact@textile.io",
