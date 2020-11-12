@@ -68,7 +68,7 @@ func setupAdmin(t *testing.T, adminAuthToken string) (*admin.Admin, func()) {
 		defConfig.FFSAdminToken = adminAuthToken
 	}
 	serverDone := setupServer(t, defConfig)
-	conn, done := setupConnection(t)
+	conn, done := setupConnection(t, defConfig.GrpcWebProxyAddress)
 	return admin.NewAdmin(adminPb.NewAdminServiceClient(conn)), func() {
 		done()
 		serverDone()

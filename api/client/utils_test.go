@@ -1,12 +1,14 @@
 package client
 
 import (
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"testing"
 	"time"
 
 	"github.com/multiformats/go-multiaddr"
+	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/server"
 	"github.com/textileio/powergate/tests"
@@ -14,15 +16,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-var (
-	grpcHostNetwork      = "tcp"
-	grpcHostAddress      = "/ip4/127.0.0.1/tcp/15002"
-	grpcWebProxyAddress  = "127.0.0.1:16002"
-	gatewayHostAddr      = "0.0.0.0:17000"
-	indexRawJsonHostAddr = "0.0.0.0:18999"
-)
+var ()
 
 func defaultServerConfig(t *testing.T) server.Config {
+	grpcHostNetwork := "tcp"
+	grpcHostAddress := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", freePort(t))
+	grpcWebProxyAddress := fmt.Sprintf("127.0.0.1:%d", freePort(t))
+	gatewayHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
+	indexRawJsonHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
+
 	repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
 	require.NoError(t, err)
 
@@ -73,7 +75,13 @@ func setupServer(t *testing.T, conf server.Config) func() {
 	}
 }
 
-func setupConnection(t *testing.T) (*grpc.ClientConn, func()) {
+func freePort(t *testing.T) int {
+	fp, err := freeport.GetFreePort()
+	require.NoError(t, err)
+	return fp
+}
+
+func setupConnection(t *testing.T, grpcHostAddress string) (*grpc.ClientConn, func()) {
 	auth := TokenAuth{}
 	ma, err := multiaddr.NewMultiaddr(grpcHostAddress)
 	require.NoError(t, err)
