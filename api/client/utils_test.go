@@ -16,9 +16,9 @@ import (
 
 var (
 	grpcHostNetwork     = "tcp"
-	grpcHostAddress     = "/ip4/127.0.0.1/tcp/5002"
-	grpcWebProxyAddress = "127.0.0.1:6002"
-	gatewayHostAddr     = "0.0.0.0:7000"
+	grpcHostAddress     = "/ip4/127.0.0.1/tcp/15002"
+	grpcWebProxyAddress = "127.0.0.1:16002"
+	gatewayHostAddr     = "0.0.0.0:17000"
 )
 
 func defaultServerConfig(t *testing.T) server.Config {
