@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	grpcHostNetwork     = "tcp"
-	grpcHostAddress     = "/ip4/127.0.0.1/tcp/15002"
-	grpcWebProxyAddress = "127.0.0.1:16002"
-	gatewayHostAddr     = "0.0.0.0:17000"
+	grpcHostNetwork      = "tcp"
+	grpcHostAddress      = "/ip4/127.0.0.1/tcp/15002"
+	grpcWebProxyAddress  = "127.0.0.1:16002"
+	gatewayHostAddr      = "0.0.0.0:17000"
+	indexRawJsonHostAddr = "0.0.0.0:18999"
 )
 
 func defaultServerConfig(t *testing.T) server.Config {
@@ -48,6 +49,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 		GrpcWebProxyAddress:         grpcWebProxyAddress,
 		RepoPath:                    repoPath,
 		GatewayHostAddr:             gatewayHostAddr,
+		IndexRawJsonHostAddr:        indexRawJsonHostAddr,
 		MaxMindDBFolder:             "../../iplocation/maxmind",
 		MinerSelector:               "reputation",
 		FFSDealFinalityTimeout:      time.Minute * 30,

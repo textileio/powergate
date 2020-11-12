@@ -119,6 +119,7 @@ func configFromFlags() (server.Config, error) {
 	grpcWebProxyAddr := config.GetString("grpcwebproxyaddr")
 	gatewayHostAddr := config.GetString("gatewayhostaddr")
 	gatewayBasePath := config.GetString("gatewaybasepath")
+	indexRawJsonHostAddr := config.GetString("indexrawjsonhostaddr")
 	maxminddbfolder := config.GetString("maxminddbfolder")
 	mongoURI := config.GetString("mongouri")
 	mongoDB := config.GetString("mongodb")
@@ -154,8 +155,9 @@ func configFromFlags() (server.Config, error) {
 		GrpcHostAddress:     grpcHostMaddr,
 		GrpcWebProxyAddress: grpcWebProxyAddr,
 
-		GatewayHostAddr: gatewayHostAddr,
-		GatewayBasePath: gatewayBasePath,
+		GatewayHostAddr:      gatewayHostAddr,
+		GatewayBasePath:      gatewayBasePath,
+		IndexRawJsonHostAddr: indexRawJsonHostAddr,
 
 		MongoURI: mongoURI,
 		MongoDB:  mongoDB,
@@ -334,6 +336,7 @@ func setupFlags() error {
 
 	pflag.String("grpchostaddr", "/ip4/0.0.0.0/tcp/5002", "gRPC host listening address.")
 	pflag.String("grpcwebproxyaddr", "0.0.0.0:6002", "gRPC webproxy listening address.")
+	pflag.String("indexrawjsonhostaddr", "0.0.0.0:8889", "Indexes raw json output listening address")
 
 	pflag.String("lotushost", "/ip4/127.0.0.1/tcp/1234", "Lotus client API endpoint multiaddress.")
 	pflag.String("lotustoken", "", "Lotus API authorization token. This flag or --lotustoken file are mandatory.")
