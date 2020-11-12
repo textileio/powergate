@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - jsign/upandeff
   pull_request:
     branches:
       - master
