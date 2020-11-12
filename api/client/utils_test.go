@@ -23,7 +23,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 	grpcHostAddress := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", freePort(t))
 	grpcWebProxyAddress := fmt.Sprintf("127.0.0.1:%d", freePort(t))
 	gatewayHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
-	indexRawJsonHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
+	indexRawJSONHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
 
 	repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
 	require.NoError(t, err)
@@ -51,7 +51,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 		GrpcWebProxyAddress:         grpcWebProxyAddress,
 		RepoPath:                    repoPath,
 		GatewayHostAddr:             gatewayHostAddr,
-		IndexRawJsonHostAddr:        indexRawJsonHostAddr,
+		IndexRawJSONHostAddr:        indexRawJSONHostAddr,
 		MaxMindDBFolder:             "../../iplocation/maxmind",
 		MinerSelector:               "reputation",
 		FFSDealFinalityTimeout:      time.Minute * 30,

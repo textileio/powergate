@@ -13,9 +13,9 @@ import (
 var (
 	log = logging.Logger("reputation-source-store")
 
-	// ErrAlreadyExists returns when the soure already exists in Store
+	// ErrAlreadyExists returns when the soure already exists in Store.
 	ErrAlreadyExists = errors.New("source already exists")
-	// ErrDoesntExists returns when the source isn't in the Store
+	// ErrDoesntExists returns when the source isn't in the Store.
 	ErrDoesntExists = errors.New("source doesn't exist")
 
 	baseKey = datastore.NewKey("/reputation/store")

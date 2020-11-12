@@ -119,7 +119,7 @@ func configFromFlags() (server.Config, error) {
 	grpcWebProxyAddr := config.GetString("grpcwebproxyaddr")
 	gatewayHostAddr := config.GetString("gatewayhostaddr")
 	gatewayBasePath := config.GetString("gatewaybasepath")
-	indexRawJsonHostAddr := config.GetString("indexrawjsonhostaddr")
+	indexRawJSONHostAddr := config.GetString("indexrawjsonhostaddr")
 	maxminddbfolder := config.GetString("maxminddbfolder")
 	mongoURI := config.GetString("mongouri")
 	mongoDB := config.GetString("mongodb")
@@ -157,7 +157,7 @@ func configFromFlags() (server.Config, error) {
 
 		GatewayHostAddr:      gatewayHostAddr,
 		GatewayBasePath:      gatewayBasePath,
-		IndexRawJsonHostAddr: indexRawJsonHostAddr,
+		IndexRawJSONHostAddr: indexRawJSONHostAddr,
 
 		MongoURI: mongoURI,
 		MongoDB:  mongoDB,

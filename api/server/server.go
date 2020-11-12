@@ -112,7 +112,7 @@ type Config struct {
 
 	GatewayBasePath      string
 	GatewayHostAddr      string
-	IndexRawJsonHostAddr string
+	IndexRawJSONHostAddr string
 
 	MongoURI string
 	MongoDB  string
@@ -310,7 +310,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("starting GRPC services: %s", err)
 	}
 
-	s.indexServer = startIndexHTTPServer(s, conf.IndexRawJsonHostAddr)
+	s.indexServer = startIndexHTTPServer(s, conf.IndexRawJSONHostAddr)
 
 	log.Info("Starting finished, serving requests")
 
