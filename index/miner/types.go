@@ -21,7 +21,6 @@ type OnChainData struct {
 	Power         uint64
 	RelativePower float64
 	SectorSize    uint64
-	ActiveDeals   uint64
 }
 
 // MetaIndex contains off-chain information about miners.
