@@ -125,7 +125,7 @@ jobs:
           replace-with: ""
       - name: Generate Python gRPC bindings
         run: |
-          ./scripts/gen-py-protos.sh  ${{steps.makeversion.outputs.replaced}} . ./py-grpc
+          ./scripts/gen-py-protos.sh ${{steps.makeversion.outputs.replaced}} ./proto ./py-grpc
       - name: Publish Python gRPC bindings
         env:
           TWINE_USERNAME: __token__
