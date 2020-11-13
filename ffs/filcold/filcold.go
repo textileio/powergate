@@ -82,9 +82,7 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 }
 
 func (fc *FilCold) calculateDealPiece(ctx context.Context, c cid.Cid) (abi.PaddedPieceSize, cid.Cid, error) {
-	// Limiting deal size calculation since is very resource intensive.
-	// In the next Lotus version (v1.1.3) a new API will be used which also calculates
-	// CommP, so we can help Lotus avoid recalculating size and CommP when deals are made.
+	fc.l.Log(ctx, "Entering deal preprocessing queue...")
 	select {
 	case fc.semaphDealPrep <- struct{}{}:
 	case <-ctx.Done():
@@ -279,16 +277,6 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, pieceSize abi.Padde
 // makeDeals starts deals with the specified miners. It returns a slice with all the ProposalCids
 // that were started successfully, and a slice of DealError with deals that failed to be started.
 func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, pieceSize abi.PaddedPieceSize, pieceCid cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, error) {
-	fc.l.Log(ctx, "Entering deal execution queue...")
-	// In the next Lotus release (v1.1.3), we'll be able to remove this limiting
-	// since we can avoid creating deals recompute the deal size and CommP. Since
-	// that isn't ready yet, starting a deal is very resource intensive so put a cap for now.
-	select {
-	case fc.semaphDealPrep <- struct{}{}:
-	case <-ctx.Done():
-		return nil, nil, fmt.Errorf("canceled by context")
-	}
-	defer func() { <-fc.semaphDealPrep }()
 	for {
 		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
 			break
