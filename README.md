@@ -70,7 +70,12 @@ To build and install the CLI, run:
 ```bash
 $ make install-pow
 ```
-The binary will be placed automatically in `$GOPATH/bin` which in general is in `$PATH`, so you can immediately run `pow` in your terminal.
+The binary will be placed automatically in `$GOPATH/bin`. You may have to set the Path variables using the below commands
+```bash
+$ export PATH=$PATH:$(go env GOPATH)/bin
+$ export GOPATH=$(go env GOPATH)
+```
+You can then run `pow` in your terminal.
 
 You can read the [generated CLI docs](https://github.com/textileio/powergate/blob/master/cli-docs/pow/pow.md) in this repo, or run `pow` with the `--help` flag to see the available commands:
 
