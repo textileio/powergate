@@ -22,8 +22,8 @@ func WithImportPath(path string) Option {
 	}
 }
 
-// ListDealRecordsConfig specifies the options for DealsManager.List.
-type ListDealRecordsConfig struct {
+// DealRecordsConfig specifies the options for DealsManager.List.
+type DealRecordsConfig struct {
 	FromAddrs      []string
 	DataCids       []string
 	IncludePending bool
@@ -31,45 +31,45 @@ type ListDealRecordsConfig struct {
 	Ascending      bool
 }
 
-// ListDealRecordsOption updates a ListDealRecordsConfig.
-type ListDealRecordsOption func(*ListDealRecordsConfig)
+// DealRecordsOption updates a ListDealRecordsConfig.
+type DealRecordsOption func(*DealRecordsConfig)
 
 // WithFromAddrs limits the results deals initiated from the provided wallet addresses.
 // If WithDataCids is also provided, this is an AND operation.
-func WithFromAddrs(addrs ...string) ListDealRecordsOption {
-	return func(c *ListDealRecordsConfig) {
+func WithFromAddrs(addrs ...string) DealRecordsOption {
+	return func(c *DealRecordsConfig) {
 		c.FromAddrs = addrs
 	}
 }
 
 // WithDataCids limits the results to deals for the provided data cids.
 // If WithFromAddrs is also provided, this is an AND operation.
-func WithDataCids(cids ...string) ListDealRecordsOption {
-	return func(c *ListDealRecordsConfig) {
+func WithDataCids(cids ...string) DealRecordsOption {
+	return func(c *DealRecordsConfig) {
 		c.DataCids = cids
 	}
 }
 
 // WithIncludePending specifies whether or not to include pending deals in the results. Default is false.
 // Ignored for ListRetrievalDealRecords.
-func WithIncludePending(includePending bool) ListDealRecordsOption {
-	return func(c *ListDealRecordsConfig) {
+func WithIncludePending(includePending bool) DealRecordsOption {
+	return func(c *DealRecordsConfig) {
 		c.IncludePending = includePending
 	}
 }
 
 // WithIncludeFinal specifies whether or not to include final deals in the results. Default is false.
 // Ignored for ListRetrievalDealRecords.
-func WithIncludeFinal(includeFinal bool) ListDealRecordsOption {
-	return func(c *ListDealRecordsConfig) {
+func WithIncludeFinal(includeFinal bool) DealRecordsOption {
+	return func(c *DealRecordsConfig) {
 		c.IncludeFinal = includeFinal
 	}
 }
 
 // WithAscending specifies to sort the results in ascending order. Default is descending order.
 // Records are sorted by timestamp.
-func WithAscending(ascending bool) ListDealRecordsOption {
-	return func(c *ListDealRecordsConfig) {
+func WithAscending(ascending bool) DealRecordsOption {
+	return func(c *DealRecordsConfig) {
 		c.Ascending = ascending
 	}
 }

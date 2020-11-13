@@ -48,11 +48,11 @@ func TestPushCidReplace(t *testing.T) {
 	require.NoError(t, err)
 	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 
-	config2, err := fapi.GetStorageConfig(c2)
+	configs2, err := fapi.GetStorageConfigs(c2)
 	require.NoError(t, err)
-	require.Equal(t, config.Cold.Enabled, config2.Cold.Enabled)
+	require.Equal(t, config.Cold.Enabled, configs2[c2].Cold.Enabled)
 
-	_, err = fapi.GetStorageConfig(c1)
+	_, err = fapi.GetStorageConfigs(c1)
 	require.Equal(t, api.ErrNotFound, err)
 
 	it.RequireIpfsUnpinnedCid(ctx, t, c1, ipfs)
@@ -71,11 +71,11 @@ func TestDoubleReplace(t *testing.T) {
 
 	// This will ask for a new API to the manager, and do a replace. Always the same replace.
 	testAddThenReplace := func() {
-		_, authToken, err := m.Create(context.Background())
+		auth, err := m.Create(context.Background())
 		require.NoError(t, err)
 		time.Sleep(time.Second * 2) // Give some time to the funding transaction
 
-		fapi, err := m.GetByAuthToken(authToken)
+		fapi, err := m.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		r := rand.New(rand.NewSource(22))

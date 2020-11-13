@@ -1,6 +1,7 @@
 package sjstore
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ipfs/go-cid"
@@ -129,6 +130,76 @@ func TestStartedDeals(t *testing.T) {
 	fds, err = s.GetStartedDeals(cidData)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(fds))
+}
+
+func TestQueryJobs(t *testing.T) {
+	t.Run("ExecutingAndFailed", func(t *testing.T) {
+		t.Parallel()
+		s := create(t)
+		j := createJob(t)
+
+		err := s.Enqueue(j)
+		require.NoError(t, err)
+
+		queryJobs(t, j, s.QueuedJobs, 1)
+		queryJobs(t, j, s.ExecutingJobs, 0)
+		queryJobs(t, j, s.LatestFinalJobs, 0)
+		queryJobs(t, j, s.LatestSuccessfulJobs, 0)
+
+		dequeued, err := s.Dequeue()
+		require.NoError(t, err)
+		require.Equal(t, dequeued.ID, j.ID)
+
+		queryJobs(t, j, s.QueuedJobs, 0)
+		queryJobs(t, j, s.ExecutingJobs, 1)
+		queryJobs(t, j, s.LatestFinalJobs, 0)
+		queryJobs(t, j, s.LatestSuccessfulJobs, 0)
+
+		err = s.Finalize(j.ID, ffs.Failed, errors.New("oops"), nil)
+		require.NoError(t, err)
+
+		queryJobs(t, j, s.QueuedJobs, 0)
+		queryJobs(t, j, s.ExecutingJobs, 0)
+		queryJobs(t, j, s.LatestFinalJobs, 1)
+		queryJobs(t, j, s.LatestSuccessfulJobs, 0)
+	})
+	t.Run("ExecutingAndSucceeded", func(t *testing.T) {
+		t.Parallel()
+		s := create(t)
+		j := createJob(t)
+
+		err := s.Enqueue(j)
+		require.NoError(t, err)
+
+		dequeued, err := s.Dequeue()
+		require.NoError(t, err)
+		require.Equal(t, dequeued.ID, j.ID)
+
+		err = s.Finalize(j.ID, ffs.Success, nil, nil)
+		require.NoError(t, err)
+
+		queryJobs(t, j, s.QueuedJobs, 0)
+		queryJobs(t, j, s.ExecutingJobs, 0)
+		queryJobs(t, j, s.LatestFinalJobs, 1)
+		queryJobs(t, j, s.LatestSuccessfulJobs, 1)
+	})
+}
+
+func queryJobs(t *testing.T, j ffs.StorageJob, f func(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob, count int) {
+	jobs := f(ffs.EmptyInstanceID)
+	require.Len(t, jobs, count)
+	jobs = f(j.APIID)
+	require.Len(t, jobs, count)
+	jobs = f(ffs.EmptyInstanceID, j.Cid)
+	require.Len(t, jobs, count)
+	jobs = f(j.APIID, j.Cid)
+	require.Len(t, jobs, count)
+	jobs = f(ffs.APIID("nope"))
+	require.Empty(t, jobs)
+	c, err := util.CidFromString("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs9y")
+	require.NoError(t, err)
+	jobs = f(ffs.EmptyInstanceID, c)
+	require.Empty(t, jobs)
 }
 
 func createJob(t *testing.T) ffs.StorageJob {

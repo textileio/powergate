@@ -70,7 +70,7 @@ func (mi *Index) startMetaWorker(disabled bool) {
 // updateMetaIndex generates a new index that contains fresh metadata information
 // of addrs miners.
 func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, addrs []string) miner.MetaIndex {
-	client, cls, err := clientBuilder()
+	client, cls, err := clientBuilder(ctx)
 	if err != nil {
 		log.Errorf("creating lotus client: %s", err)
 		return miner.MetaIndex{}

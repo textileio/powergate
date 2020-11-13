@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -11,7 +12,7 @@ import (
 )
 
 var (
-	fcClient *client.Client
+	powClient *client.Client
 
 	cmdTimeout = time.Second * 10
 
@@ -26,7 +27,7 @@ var (
 
 			target := viper.GetString("serverAddress")
 
-			fcClient, err = client.NewClient(target)
+			powClient, err = client.NewClient(target)
 			checkErr(err)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -54,9 +55,12 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.Flags().BoolP("version", "v", false, "display version information for pow and the connected server")
 	rootCmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the powergate service api")
+	rootCmd.PersistentFlags().StringP("token", "t", "", "user auth token")
 }
 
 func initConfig() {
 	viper.SetEnvPrefix("POW")
 	viper.AutomaticEnv()
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
 }

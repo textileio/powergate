@@ -19,7 +19,7 @@ type WalletManager interface {
 	// NewAddress creates a new address.
 	NewAddress(context.Context, string) (string, error)
 	// Balance returns the current balance for an address.
-	Balance(context.Context, string) (uint64, error)
+	Balance(context.Context, string) (*big.Int, error)
 	// SendFil sends fil from one address to another.
 	SendFil(context.Context, string, string, *big.Int) error
 	// Sign signs a message using an address.
@@ -28,20 +28,10 @@ type WalletManager interface {
 	Verify(context.Context, string, []byte, []byte) (bool, error)
 }
 
-// PaychManager provides access to payment channels.
-type PaychManager interface {
-	// List lists all payment channels involving the specified addresses.
-	List(ctx context.Context, addrs ...string) ([]PaychInfo, error)
-	// Create creates a new payment channel.
-	Create(ctx context.Context, from string, to string, amount uint64) (PaychInfo, cid.Cid, error)
-	// Redeem redeems a payment channel.
-	Redeem(ctx context.Context, ch string) error
-}
-
 // DealRecordsManager provides access to deal records.
 type DealRecordsManager interface {
-	ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error)
-	ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error)
+	ListStorageDealRecords(opts ...deals.DealRecordsOption) ([]deals.StorageDealRecord, error)
+	ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]deals.RetrievalDealRecord, error)
 }
 
 // HotStorage is a fast storage layer for Cid data.
@@ -100,14 +90,14 @@ type ColdStorage interface {
 	// final state. If the deal finishes successfully it returns a FilStorage
 	// result. If the deal finished with error, it returns a ffs.DealError
 	// error result, so it should be considered in error handling.
-	WaitForDeal(context.Context, cid.Cid, cid.Cid, time.Duration) (FilStorage, error)
+	WaitForDeal(context.Context, cid.Cid, cid.Cid, time.Duration, chan deals.StorageDealInfo) (FilStorage, error)
 
 	// Fetch fetches the cid data in the underlying storage.
 	Fetch(context.Context, cid.Cid, *cid.Cid, string, []string, uint64, string) (FetchInfo, error)
 
 	// EnsureRenewals executes renewal logic for a Cid under a particular
 	// configuration. It returns a slice of deal errors happened during execution.
-	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig, time.Duration) (FilInfo, []DealError, error)
+	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig, time.Duration, chan deals.StorageDealInfo) (FilInfo, []DealError, error)
 
 	// IsFIlDealActive returns true if the proposal Cid is active on chain;
 	// returns false otherwise.
@@ -139,6 +129,8 @@ type MinerSelectorFilter struct {
 	CountryCodes []string
 	// MaxPrice is the max ask price to consider when selecting miner deals
 	MaxPrice uint64
+	// PieceSize is the piece size of the data.
+	PieceSize uint64
 }
 
 // MinerProposal contains a miners address and storage ask information

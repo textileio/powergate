@@ -11,10 +11,13 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
+	grpcm "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/ipfs/go-datastore"
 	badger "github.com/ipfs/go-ds-badger2"
@@ -22,7 +25,10 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	mongods "github.com/textileio/go-ds-mongo"
-	buildinfoRpc "github.com/textileio/powergate/buildinfo/rpc"
+	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/api/server/admin"
+	"github.com/textileio/powergate/api/server/user"
 	"github.com/textileio/powergate/deals"
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/fchost"
@@ -33,40 +39,33 @@ import (
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/ffs/minerselector/reptop"
 	"github.com/textileio/powergate/ffs/minerselector/sr2"
-	ffsRpc "github.com/textileio/powergate/ffs/rpc"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/filchain"
 	"github.com/textileio/powergate/gateway"
-	"github.com/textileio/powergate/health"
-	healthRpc "github.com/textileio/powergate/health/rpc"
-	askRpc "github.com/textileio/powergate/index/ask/rpc"
 	ask "github.com/textileio/powergate/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/index/faults/module"
-	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
 	minerModule "github.com/textileio/powergate/index/miner/module"
-	minerRpc "github.com/textileio/powergate/index/miner/rpc"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
-	pgnet "github.com/textileio/powergate/net"
-	pgnetlotus "github.com/textileio/powergate/net/lotus"
-	pgnetRpc "github.com/textileio/powergate/net/rpc"
-	paychLotus "github.com/textileio/powergate/paych/lotus"
 	"github.com/textileio/powergate/reputation"
-	reputationRpc "github.com/textileio/powergate/reputation/rpc"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
 	walletModule "github.com/textileio/powergate/wallet/module"
-	walletRpc "github.com/textileio/powergate/wallet/rpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
-	datastoreFolderName    = "datastore"
-	lotusConnectionRetries = 10
+	datastoreFolderName = "datastore"
 )
 
 var (
 	log = logging.Logger("server")
+
+	nonCompliantAPIs = []string{
+		"/ffs.rpc.RPCService/SendFil",
+	}
 )
 
 // Server represents the configured lotus client and filecoin grpc server.
@@ -80,8 +79,6 @@ type Server struct {
 	dm *dealsModule.Module
 	wm *walletModule.Module
 	rm *reputation.Module
-	nm pgnet.Module
-	hm *health.Module
 
 	ffsManager *manager.Manager
 	sched      *scheduler.Scheduler
@@ -103,9 +100,10 @@ type Config struct {
 	Devnet          bool
 	IpfsAPIAddr     ma.Multiaddr
 
-	LotusAddress    ma.Multiaddr
-	LotusAuthToken  string
-	LotusMasterAddr string
+	LotusAddress           ma.Multiaddr
+	LotusAuthToken         string
+	LotusMasterAddr        string
+	LotusConnectionRetries int
 
 	GrpcHostNetwork     string
 	GrpcHostAddress     ma.Multiaddr
@@ -118,15 +116,17 @@ type Config struct {
 	MongoURI string
 	MongoDB  string
 
-	FFSUseMasterAddr       bool
-	FFSDealFinalityTimeout time.Duration
-	FFSMinimumPieceSize    uint64
-	SchedMaxParallel       int
-	MinerSelector          string
-	MinerSelectorParams    string
-	DealWatchPollDuration  time.Duration
-	AutocreateMasterAddr   bool
-	WalletInitialFunds     big.Int
+	FFSAdminToken               string
+	FFSUseMasterAddr            bool
+	FFSDealFinalityTimeout      time.Duration
+	FFSMinimumPieceSize         uint64
+	FFSMaxParallelDealPreparing int
+	SchedMaxParallel            int
+	MinerSelector               string
+	MinerSelectorParams         string
+	DealWatchPollDuration       time.Duration
+	AutocreateMasterAddr        bool
+	WalletInitialFunds          big.Int
 
 	AskIndexQueryAskTimeout time.Duration
 	AskindexMaxParallel     int
@@ -134,6 +134,8 @@ type Config struct {
 	AskIndexRefreshOnStart  bool
 
 	DisableIndices bool
+
+	DisableNonCompliantAPIs bool
 }
 
 // NewServer starts and returns a new server with the given configuration.
@@ -143,13 +145,16 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	var err error
-	clientBuilder, err := lotus.NewBuilder(conf.LotusAddress, conf.LotusAuthToken, lotusConnectionRetries)
+	clientBuilder, err := lotus.NewBuilder(conf.LotusAddress, conf.LotusAuthToken, conf.LotusConnectionRetries)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client builder: %s", err)
 	}
-	lotus.MonitorLotusSync(clientBuilder)
+	lsm, err := lotus.NewSyncMonitor(clientBuilder)
+	if err != nil {
+		return nil, fmt.Errorf("creating lotus sync monitor: %s", err)
+	}
 
-	c, cls, err := clientBuilder()
+	c, cls, err := clientBuilder(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("connecting to lotus node: %s", err)
 	}
@@ -220,10 +225,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}
-	pm := paychLotus.New(clientBuilder)
 	rm := reputation.New(txndstr.Wrap(ds, "reputation"), mi, si, ai)
-	nm := pgnetlotus.New(clientBuilder, mm)
-	hm := health.New(nm)
 
 	ipfs, err := httpapi.NewApi(conf.IpfsAPIAddr)
 	if err != nil {
@@ -238,7 +240,10 @@ func NewServer(conf Config) (*Server, error) {
 	}
 
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
-	cs := filcold.New(ms, dm, ipfs, chain, l, conf.FFSMinimumPieceSize)
+	if conf.Devnet {
+		conf.FFSMinimumPieceSize = 0
+	}
+	cs := filcold.New(ms, dm, ipfs, chain, l, lsm, conf.FFSMinimumPieceSize, conf.FFSMaxParallelDealPreparing)
 	hs, err := coreipfs.New(ipfs, l)
 	if err != nil {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)
@@ -253,13 +258,21 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}
 
-	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, pm, dm, sched, conf.FFSUseMasterAddr, conf.Devnet)
+	ffsManager, err := manager.New(txndstr.Wrap(ds, "ffs/manager"), wm, dm, sched, conf.FFSUseMasterAddr, conf.Devnet)
 	if err != nil {
 		return nil, fmt.Errorf("creating ffs instance: %s", err)
 	}
 
 	log.Info("Starting gRPC, gateway and index HTTP servers...")
-	grpcServer := grpc.NewServer(conf.GrpcServerOpts...)
+
+	unaryInterceptors := []grpc.UnaryServerInterceptor{adminAuth(conf)}
+	if conf.DisableNonCompliantAPIs {
+		unaryInterceptors = append(unaryInterceptors, nonCompliantAPIsInterceptor(nonCompliantAPIs))
+	}
+	unaryInterceptorChain := grpcm.WithUnaryServerChain(unaryInterceptors...)
+
+	opts := append(conf.GrpcServerOpts, unaryInterceptorChain)
+	grpcServer := grpc.NewServer(opts...)
 	wrappedGRPCServer := wrapGRPCServer(grpcServer)
 	httpFFSAuthInterceptor, err := newHTTPFFSAuthInterceptor(conf, ffsManager)
 	if err != nil {
@@ -281,8 +294,6 @@ func NewServer(conf Config) (*Server, error) {
 		dm: dm,
 		wm: wm,
 		rm: rm,
-		nm: nm,
-		hm: hm,
 
 		ffsManager: ffsManager,
 		sched:      sched,
@@ -380,15 +391,8 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 }
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
-	buildinfoService := buildinfoRpc.New()
-	netService := pgnetRpc.New(s.nm)
-	healthService := healthRpc.New(s.hm)
-	walletService := walletRpc.New(s.wm)
-	reputationService := reputationRpc.New(s.rm)
-	askService := askRpc.New(s.ai)
-	minerService := minerRpc.New(s.mi)
-	faultsService := faultsRpc.New(s.fi)
-	ffsService := ffsRpc.New(s.ffsManager, s.hs)
+	userService := user.New(s.ffsManager, s.wm, s.hs)
+	adminService := admin.New(s.ffsManager, s.sched, s.wm)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {
@@ -399,15 +403,8 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 		return fmt.Errorf("listening to grpc: %s", err)
 	}
 	go func() {
-		buildinfoRpc.RegisterRPCServiceServer(server, buildinfoService)
-		pgnetRpc.RegisterRPCServiceServer(server, netService)
-		healthRpc.RegisterRPCServiceServer(server, healthService)
-		walletRpc.RegisterRPCServiceServer(server, walletService)
-		reputationRpc.RegisterRPCServiceServer(server, reputationService)
-		askRpc.RegisterRPCServiceServer(server, askService)
-		minerRpc.RegisterRPCServiceServer(server, minerService)
-		faultsRpc.RegisterRPCServiceServer(server, faultsService)
-		ffsRpc.RegisterRPCServiceServer(server, ffsService)
+		userPb.RegisterUserServiceServer(server, userService)
+		adminPb.RegisterAdminServiceServer(server, adminService)
 		if err := server.Serve(listener); err != nil {
 			log.Errorf("serving grpc endpoint: %s", err)
 		}
@@ -597,4 +594,37 @@ func evaluateMasterAddr(conf Config, c *apistruct.FullNodeStruct) (address.Addre
 		return address.Address{}, fmt.Errorf("parsing masteraddr: %s", err)
 	}
 	return res, nil
+}
+func adminAuth(conf Config) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		if conf.FFSAdminToken == "" {
+			return handler(ctx, req)
+		}
+
+		adminServicePrefix := "/powergate.admin.v1.AdminService"
+
+		method, _ := grpc.Method(ctx)
+
+		if !strings.HasPrefix(method, adminServicePrefix) {
+			return handler(ctx, req)
+		}
+
+		adminToken := metautils.ExtractIncoming(ctx).Get("X-pow-admin-token")
+		if adminToken != conf.FFSAdminToken {
+			return nil, status.Error(codes.PermissionDenied, "Method requires admin permission")
+		}
+		return handler(ctx, req)
+	}
+}
+
+func nonCompliantAPIsInterceptor(nonCompliantAPIs []string) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		method, _ := grpc.Method(ctx)
+		for _, nonCompliantAPI := range nonCompliantAPIs {
+			if method == nonCompliantAPI {
+				return nil, status.Error(codes.PermissionDenied, "method disabled by powergate administrators")
+			}
+		}
+		return handler(ctx, req)
+	}
 }

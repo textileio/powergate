@@ -1,0 +1,121 @@
+syntax = "proto3";
+package powergate.admin.v1;
+
+import "powergate/user/v1/user.proto";
+
+option go_package = "github.com/textileio/powergate/api/gen/powergate/admin/v1;adminPb";
+
+// Wallet
+message NewAddressRequest {
+  string address_type = 1;
+}
+
+message NewAddressResponse {
+  string address = 1;
+}
+
+message AddressesRequest {
+}
+
+message AddressesResponse {
+  repeated string addresses = 1;
+}
+
+message SendFilRequest {
+  string from = 1;
+  string to = 2;	
+  string amount = 3;
+}
+
+message SendFilResponse {
+}
+
+// Users
+
+message User {
+  string id = 1;
+  string token = 2;
+}
+
+message CreateUserRequest {
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message UsersRequest {
+}
+
+message UsersResponse {
+  repeated User users = 1;
+}
+
+// Jobs
+
+message QueuedStorageJobsRequest {
+  string user_id = 1;
+  repeated string cids = 2;
+}
+
+message QueuedStorageJobsResponse {
+  repeated powergate.user.v1.StorageJob storage_jobs = 1;
+}
+
+message ExecutingStorageJobsRequest {
+  string user_id = 1;
+  repeated string cids = 2;
+}
+
+message ExecutingStorageJobsResponse {
+  repeated powergate.user.v1.StorageJob storage_jobs = 1;
+}
+
+message LatestFinalStorageJobsRequest {
+  string user_id = 1;
+  repeated string cids = 2;
+}
+
+message LatestFinalStorageJobsResponse {
+  repeated powergate.user.v1.StorageJob storage_jobs = 1;
+}
+
+message LatestSuccessfulStorageJobsRequest {
+  string user_id = 1;
+  repeated string cids = 2;
+}
+
+message LatestSuccessfulStorageJobsResponse {
+  repeated powergate.user.v1.StorageJob storage_jobs = 1;
+}
+
+message StorageJobsSummaryRequest {
+  string user_id = 1;
+  repeated string cids = 2;
+}
+
+message StorageJobsSummaryResponse {
+  powergate.user.v1.JobCounts job_counts = 1;
+  repeated powergate.user.v1.StorageJob queued_storage_jobs = 2;
+  repeated powergate.user.v1.StorageJob executing_storage_jobs = 3;
+  repeated powergate.user.v1.StorageJob latest_final_storage_jobs = 4;
+  repeated powergate.user.v1.StorageJob latest_successful_storage_jobs = 5;
+}
+
+service AdminService {
+  // Wallet
+  rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
+  rpc Addresses(AddressesRequest) returns (AddressesResponse) {}
+  rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
+
+  // Users
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+  rpc Users(UsersRequest) returns (UsersResponse) {}
+
+  // Jobs
+  rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
+  rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
+  rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
+  rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
+  rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
+}

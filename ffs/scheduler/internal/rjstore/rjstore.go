@@ -83,6 +83,9 @@ func (s *Store) Dequeue() (*ffs.RetrievalJob, error) {
 		}
 	}()
 	for r := range res.Next() {
+		if r.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
 		var j ffs.RetrievalJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return nil, fmt.Errorf("unmarshalling job: %s", err)

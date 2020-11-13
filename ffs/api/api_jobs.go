@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 // GetStorageJob returns the current state of the specified job.
-func (i *API) GetStorageJob(ctx context.Context, jid ffs.JobID) (ffs.StorageJob, error) {
-	job, err := i.sched.GetJob(jid)
+func (i *API) GetStorageJob(jid ffs.JobID) (ffs.StorageJob, error) {
+	job, err := i.sched.StorageJob(jid)
 	if err == scheduler.ErrNotFound {
 		return ffs.StorageJob{}, fmt.Errorf("job id %s not found", jid)
 	}
@@ -26,7 +27,7 @@ func (i *API) GetStorageJob(ctx context.Context, jid ffs.JobID) (ffs.StorageJob,
 func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.StorageJob, jids ...ffs.JobID) error {
 	var jobs []ffs.StorageJob
 	for _, jid := range jids {
-		j, err := i.sched.GetJob(jid)
+		j, err := i.sched.StorageJob(jid)
 		if err == scheduler.ErrNotFound {
 			return fmt.Errorf("job id %s not found", jid)
 		}
@@ -66,4 +67,40 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.StorageJob, jids ...ff
 	}
 
 	return nil
+}
+
+// QueuedStorageJobs returns queued jobs for the specified cids.
+// If no cids are provided, data for all data cids is returned.
+func (i *API) QueuedStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.QueuedStorageJobs(i.cfg.ID, cids...)
+}
+
+// ExecutingStorageJobs returns executing jobs for the specified cids.
+// If no cids are provided, data for all data cids is returned.
+func (i *API) ExecutingStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.ExecutingStorageJobs(i.cfg.ID, cids...)
+}
+
+// LatestFinalStorageJobs returns the most recent finished jobs for the specified cids.
+// If no cids are provided, data for all data cids is returned.
+func (i *API) LatestFinalStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.LatestFinalStorageJobs(i.cfg.ID, cids...)
+}
+
+// LatestSuccessfulStorageJobs returns the most recent successful jobs for the specified cids.
+// If no cids are provided, data for all data cids is returned.
+func (i *API) LatestSuccessfulStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
+	return i.sched.LatestSuccessfulStorageJobs(i.cfg.ID, cids...)
+}
+
+// StorageConfigForJob returns the StorageConfig associated with the specified job.
+func (i *API) StorageConfigForJob(jid ffs.JobID) (ffs.StorageConfig, error) {
+	sc, err := i.sched.StorageConfig(jid)
+	if err == scheduler.ErrNotFound {
+		return ffs.StorageConfig{}, ErrNotFound
+	}
+	if err != nil {
+		return ffs.StorageConfig{}, fmt.Errorf("getting storage config for job: %v", err)
+	}
+	return sc, nil
 }

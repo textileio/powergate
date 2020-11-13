@@ -2,25 +2,25 @@ package filcold
 
 import (
 	"context"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/go-padreader"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
-	format "github.com/ipfs/go-ipld-format"
 	logger "github.com/ipfs/go-log/v2"
-	dag "github.com/ipfs/go-merkledag"
 	iface "github.com/ipfs/interface-go-ipfs-core"
-	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/ipld/go-car"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/deals/module"
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/lotus"
+)
+
+const (
+	unsyncedThreshold = 10
 )
 
 var (
@@ -30,12 +30,14 @@ var (
 // FilCold is a ColdStorage implementation which saves data in the Filecoin network.
 // It assumes the underlying Filecoin client has access to an IPFS node where data is stored.
 type FilCold struct {
-	ms               ffs.MinerSelector
-	dm               *dealsModule.Module
-	ipfs             iface.CoreAPI
-	chain            FilChain
-	l                ffs.JobLogger
-	minimumPieceSize uint64
+	ms             ffs.MinerSelector
+	dm             *dealsModule.Module
+	ipfs           iface.CoreAPI
+	chain          FilChain
+	l              ffs.JobLogger
+	lsm            *lotus.SyncMonitor
+	minPieceSize   uint64
+	semaphDealPrep chan struct{}
 }
 
 var _ ffs.ColdStorage = (*FilCold)(nil)
@@ -46,14 +48,16 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, minimumPieceSize uint64) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.SyncMonitor, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
 	return &FilCold{
-		ms:               ms,
-		dm:               dm,
-		ipfs:             ipfs,
-		chain:            chain,
-		l:                l,
-		minimumPieceSize: minimumPieceSize,
+		ms:             ms,
+		dm:             dm,
+		ipfs:           ipfs,
+		chain:          chain,
+		l:              l,
+		lsm:            lsm,
+		minPieceSize:   minPieceSize,
+		semaphDealPrep: make(chan struct{}, maxParallelDealPreparing),
 	}
 }
 
@@ -77,58 +81,89 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
 }
 
+func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (api.DataSize, error) {
+	// Limiting deal size calculation since is very resource intensive.
+	// In the next Lotus version (v1.1.3) a new API will be used which also calculates
+	// CommP, so we can help Lotus avoid recalculating size and CommP when deals are made.
+	select {
+	case fc.semaphDealPrep <- struct{}{}:
+	case <-ctx.Done():
+		return api.DataSize{}, fmt.Errorf("canceled by context")
+	}
+	defer func() { <-fc.semaphDealPrep }()
+	for {
+		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
+			break
+		}
+		log.Warnf("backpressure from unsynced Lotus node")
+		select {
+		case <-ctx.Done():
+			return api.DataSize{}, fmt.Errorf("canceled by context")
+		case <-time.After(time.Minute):
+		}
+	}
+	fc.l.Log(ctx, "Calculating piece size...")
+	size, err := fc.dm.CalculatePieceSize(ctx, c)
+	if err != nil {
+		return api.DataSize{}, fmt.Errorf("getting cid cummulative size: %s", err)
+	}
+	return size, nil
+}
+
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
 // the DAGService registered on instance creation. It returns a slice of ProposalCids that were correctly
 // started, and a slice of with Proposal Cids rejected. Returned proposed deals can be tracked
 // with the WaitForDeal API.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, uint64, error) {
+	size, err := fc.calculatePieceSize(ctx, c)
+	if err != nil {
+		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
+	}
+	fc.l.Log(ctx, "Calculated piece size is %d MiB.", size.PieceSize/1024/1024)
+	pieceSize := uint64(size.PieceSize)
+
+	if pieceSize < fc.minPieceSize {
+		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d MiB", fc.minPieceSize/1024/1024)
+	}
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
 		CountryCodes:   cfg.CountryCodes,
 		TrustedMiners:  cfg.TrustedMiners,
 		MaxPrice:       cfg.MaxPrice,
+		PieceSize:      pieceSize,
 	}
 	cfgs, err := makeDealConfigs(fc.ms, cfg.RepFactor, f, cfg.FastRetrieval, cfg.DealStartOffset)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("making deal configs: %s", err)
 	}
 
-	fc.l.Log(ctx, "Calculating piece size...")
-	size, err := fc.calculatePieceSize(ctx, c)
-	if err != nil {
-		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
-	}
-	fc.l.Log(ctx, "Estimated piece size is %d bytes.", size)
-
-	if size < fc.minimumPieceSize {
-		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d", fc.minimumPieceSize)
-	}
-
-	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, size, cfgs, cfg)
+	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, pieceSize, cfgs, cfg)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("starting deals: %s", err)
 	}
-	return okDeals, failedStartingDeals, size, nil
+	return okDeals, failedStartingDeals, pieceSize, nil
 }
 
 // IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
 func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bool, error) {
-	status, slashed, err := fc.dm.GetDealStatus(ctx, proposalCid)
+	status, err := fc.dm.GetDealStatus(ctx, proposalCid)
 	if err == module.ErrDealNotFound {
 		return false, nil
 	}
 	if err != nil {
 		return false, fmt.Errorf("getting deal state for %s: %s", proposalCid, err)
 	}
-	return !slashed && status == storagemarket.StorageDealActive, nil
+	return status == storagemarket.StorageDealActive, nil
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
+// Deal status updates are sent on the provided dealUpdates channel.
+// The caller should close the channel once all calls to EnsureRenewals have returned.
 // It returns an updated FilInfo for the Cid. All prevous Proposals in the received FilInfo are kept, only flagging the ones
 // that got renewed with Renewed=true. New deals from renewals are added to the returned FilInfo.
 // Note: Most probably all this code should change in the future, when Filecoin supports telling the miner which deal is about to
 // expire that we're interested in extending the deal duration. Now we should make a new deal from scratch (send data, etc).
-func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig, dealFinalityTimeout time.Duration) (ffs.FilInfo, []ffs.DealError, error) {
+func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInfo, cfg ffs.FilConfig, dealFinalityTimeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilInfo, []ffs.DealError, error) {
 	height, err := fc.chain.GetHeight(ctx)
 	if err != nil {
 		return ffs.FilInfo{}, nil, fmt.Errorf("get current filecoin height: %s", err)
@@ -183,18 +218,18 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	// Manually imported doesn't provide the piece size.
 	// Re-calculate it if necessary. If present, just re-use that value.
 	if inf.Size == 0 {
-		size, err := fc.calculatePieceSize(ctx, inf.DataCid)
+		pieceSize, err := fc.calculatePieceSize(ctx, inf.DataCid)
 		if err != nil {
 			return ffs.FilInfo{}, nil, fmt.Errorf("can't recalculate piece size: %s", err)
 		}
-		inf.Size = size
+		inf.Size = uint64(pieceSize.PieceSize)
 	}
 
 	toRenew := renewable[:numToBeRenewed]
 	var newDealErrors []ffs.DealError
 	for i, p := range toRenew {
 		var dealError ffs.DealError
-		newProposal, err := fc.renewDeal(ctx, c, inf.Size, p, cfg, dealFinalityTimeout)
+		newProposal, err := fc.renewDeal(ctx, c, inf.Size, p, cfg, dealFinalityTimeout, dealUpdates)
 		if err != nil {
 			if errors.As(err, &dealError) {
 				newDealErrors = append(newDealErrors, dealError)
@@ -209,19 +244,20 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return newInf, newDealErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration) (ffs.FilStorage, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, pieceSize uint64, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilStorage, error) {
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: fcfg.ExcludedMiners,
 		CountryCodes:   fcfg.CountryCodes,
 		TrustedMiners:  []string{p.Miner},
 		MaxPrice:       fcfg.MaxPrice,
+		PieceSize:      pieceSize,
 	}
 	dealConfig, err := makeDealConfigs(fc.ms, 1, f, fcfg.FastRetrieval, fcfg.DealStartOffset)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
 	}
 
-	okDeals, failedStartedDeals, err := fc.makeDeals(ctx, c, size, dealConfig, fcfg)
+	okDeals, failedStartedDeals, err := fc.makeDeals(ctx, c, pieceSize, dealConfig, fcfg)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("executing renewed deal: %s", err)
 	}
@@ -234,7 +270,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 	}
 
 	var dealError ffs.DealError
-	okDeal, err := fc.WaitForDeal(ctx, c, okDeals[0], waitDealTimeout)
+	okDeal, err := fc.WaitForDeal(ctx, c, okDeals[0], waitDealTimeout, dealUpdates)
 	if err != nil && !errors.As(err, &dealError) {
 		return ffs.FilStorage{}, ffs.DealError{ProposalCid: c, Message: fmt.Sprintf("waiting for renew deal: %s", err)}
 	}
@@ -244,6 +280,28 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, size uint64, p ffs.
 // makeDeals starts deals with the specified miners. It returns a slice with all the ProposalCids
 // that were started successfully, and a slice of DealError with deals that failed to be started.
 func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, error) {
+	fc.l.Log(ctx, "Entering deal execution queue...")
+	// In the next Lotus release (v1.1.3), we'll be able to remove this limiting
+	// since we can avoid creating deals recompute the deal size and CommP. Since
+	// that isn't ready yet, starting a deal is very resource intensive so put a cap for now.
+	select {
+	case fc.semaphDealPrep <- struct{}{}:
+	case <-ctx.Done():
+		return nil, nil, fmt.Errorf("canceled by context")
+	}
+	defer func() { <-fc.semaphDealPrep }()
+	for {
+		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
+			break
+		}
+		log.Warnf("lotus backpressure from unsynced node")
+		select {
+		case <-ctx.Done():
+			return nil, nil, fmt.Errorf("canceled by context")
+		case <-time.After(time.Minute):
+		}
+	}
+
 	for _, cfg := range cfgs {
 		fc.l.Log(ctx, "Proposing deal to miner %s with %d attoFIL per epoch...", cfg.Miner, cfg.EpochPrice)
 	}
@@ -272,10 +330,12 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, size uint64, cfgs [
 }
 
 // WaitForDeal blocks the provided Deal Proposal reaches a final state.
+// Deal status updates are sent on the provided dealUpdates channel.
+// The caller should close the channel once all calls to WaitForDeal have returned.
 // If the deal finishes successfully it returns a FilStorage result.
 // If the deal finished with error, it returns a ffs.DealError error
 // result, so it should be considered in error handling.
-func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid, timeout time.Duration) (ffs.FilStorage, error) {
+func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid, timeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilStorage, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	chDi, err := fc.dm.Watch(ctx, []cid.Cid{proposal})
@@ -290,12 +350,17 @@ Loop:
 		case <-time.After(timeout):
 			msg := fmt.Sprintf("DealID %d with miner %s tracking timed out after waiting for %.0f hours.", last.DealID, last.Miner, timeout.Hours())
 			fc.l.Log(ctx, msg)
-			return ffs.FilStorage{}, ffs.DealError{ProposalCid: proposal, Message: msg}
+			return ffs.FilStorage{}, ffs.DealError{ProposalCid: proposal, Miner: last.Miner, Message: msg}
 		case di, ok := <-chDi:
 			if !ok {
 				break Loop
 			}
 			last = di
+			select {
+			case dealUpdates <- di:
+			default:
+				log.Warnf("slow receiver for deal updates for %s", c)
+			}
 			switch di.StateID {
 			case storagemarket.StorageDealActive:
 				activeProposal := ffs.FilStorage{
@@ -308,9 +373,10 @@ Loop:
 					EpochPrice:      di.PricePerEpoch,
 				}
 				fc.l.Log(ctx, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
+
 				return activeProposal, nil
 			case storagemarket.StorageDealError, storagemarket.StorageDealFailing:
-				log.Errorf("deal %d failed with state %s: %s", di.DealID, storagemarket.DealStates[di.StateID], di.Message)
+				log.Errorf("deal %d & proposal %s failed with state %s: %s", di.DealID, proposal, storagemarket.DealStates[di.StateID], di.Message)
 				fc.l.Log(ctx, "DealID %d with miner %s failed and won't be active on-chain: %s", di.DealID, di.Miner, di.Message)
 
 				return ffs.FilStorage{}, ffs.DealError{ProposalCid: di.ProposalCid, Miner: di.Miner, Message: di.Message}
@@ -324,53 +390,6 @@ Loop:
 		}
 	}
 	return ffs.FilStorage{}, fmt.Errorf("aborted due to cancellation")
-}
-
-// estimatePieceSize estimates the size of the Piece that will be built by the filecoin client
-// when making the deal. This calculation should consider the unique node sizes of the DAG, and
-// padding. It's important to not underestimate the size since that would lead to deal rejection
-// since the miner won't accept the further calculated PricePerEpoch.
-func (fc *FilCold) calculatePieceSize(ctx context.Context, c cid.Cid) (uint64, error) {
-	// Get unique nodes.
-	seen := cid.NewSet()
-	if err := dag.Walk(ctx, fc.getLinks, c, seen.Visit); err != nil {
-		return 0, fmt.Errorf("walking dag for size calculation: %s", err)
-	}
-
-	// Account for CAR header size.
-	carHeader := car.CarHeader{
-		Roots:   []cid.Cid{c},
-		Version: 1,
-	}
-	totalSize, err := car.HeaderSize(&carHeader)
-	if err != nil {
-		return 0, fmt.Errorf("calculating car header size: %s", err)
-	}
-
-	// Calculate total unique node sizes.
-	buf := make([]byte, 8)
-	f := func(c cid.Cid) error {
-		s, err := fc.ipfs.Block().Stat(ctx, path.IpfsPath(c))
-		if err != nil {
-			return fmt.Errorf("getting stats from DAG node: %s", err)
-		}
-		size := uint64(s.Size())
-		carBlockHeaderSize := uint64(binary.PutUvarint(buf, size))
-		totalSize += carBlockHeaderSize + size
-		return nil
-	}
-	if err := seen.ForEach(f); err != nil {
-		return 0, fmt.Errorf("aggregating unique nodes size: %s", err)
-	}
-
-	// Consider padding.
-	paddedSize := padreader.PaddedSize(totalSize).Padded()
-
-	return uint64(paddedSize), nil
-}
-
-func (fc *FilCold) getLinks(ctx context.Context, c cid.Cid) ([]*format.Link, error) {
-	return fc.ipfs.Object().Links(ctx, path.IpfsPath(c))
 }
 
 func makeDealConfigs(ms ffs.MinerSelector, cntMiners int, f ffs.MinerSelectorFilter, fastRetrieval bool, dealStartOffset int64) ([]deals.StorageDealConfig, error) {

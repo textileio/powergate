@@ -26,12 +26,6 @@ type Auth struct {
 	ds   ds.Datastore
 }
 
-type entry struct {
-	Token string
-	APIID ffs.APIID
-	// This can be extended to have permissions
-}
-
 // New returns a new Auth.
 func New(store ds.Datastore) *Auth {
 	return &Auth{
@@ -44,7 +38,7 @@ func (r *Auth) Generate(iid ffs.APIID) (string, error) {
 	log.Infof("generating auth-token for instance %s", iid)
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	e := entry{
+	e := ffs.AuthEntry{
 		Token: uuid.New().String(),
 		APIID: iid,
 	}
@@ -71,7 +65,7 @@ func (r *Auth) Get(token string) (ffs.APIID, error) {
 	if err != nil {
 		return ffs.EmptyInstanceID, fmt.Errorf("getting token %s from datastore: %s", token, err)
 	}
-	var e entry
+	var e ffs.AuthEntry
 	if err := json.Unmarshal(buf, &e); err != nil {
 		return ffs.EmptyInstanceID, fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
 	}
@@ -79,7 +73,7 @@ func (r *Auth) Get(token string) (ffs.APIID, error) {
 }
 
 // List returns a list of all API instances.
-func (r *Auth) List() ([]ffs.APIID, error) {
+func (r *Auth) List() ([]ffs.AuthEntry, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	q := query.Query{Prefix: ""}
@@ -93,13 +87,16 @@ func (r *Auth) List() ([]ffs.APIID, error) {
 		}
 	}()
 
-	var ret []ffs.APIID
+	var ret []ffs.AuthEntry
 	for r := range res.Next() {
-		var e entry
+		if r.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
+		var e ffs.AuthEntry
 		if err := json.Unmarshal(r.Entry.Value, &e); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
 		}
-		ret = append(ret, e.APIID)
+		ret = append(ret, e)
 	}
 	return ret, nil
 }

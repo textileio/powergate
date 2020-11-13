@@ -16,9 +16,9 @@ localnet:
 
 
 up: down
-	LOTUS_IMAGE_TAG=v0.10.2 \
+	LOTUS_IMAGE_TAG=v1.1.2 \
 	docker-compose \
-		-p testnet \
+		-p mainnet \
 		-f docker-compose.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \
@@ -26,9 +26,9 @@ up: down
 .PHONY: up
 
 down:
-	LOTUS_IMAGE_TAG=v0.10.2 \
+	LOTUS_IMAGE_TAG=v1.1.2 \
 	docker-compose \
-		-p testnet \
+		-p mainnet \
 		-f docker-compose.yaml \
 		-f ipfs-image.yaml \
 		-f powergate-build-context.yaml \

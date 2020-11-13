@@ -109,6 +109,9 @@ func (ai *Runner) Query(q ask.Query) ([]ask.StorageAsk, error) {
 		if q.PieceSize != 0 && sa.MinPieceSize > q.PieceSize {
 			continue
 		}
+		if q.PieceSize != 0 && sa.MaxPieceSize < q.PieceSize {
+			continue
+		}
 		if offset > 0 {
 			offset--
 			continue
@@ -179,7 +182,7 @@ func (ai *Runner) update() error {
 	log.Info("updating ask index...")
 	defer log.Info("ask index updated")
 
-	client, cls, err := ai.clientBuilder()
+	client, cls, err := ai.clientBuilder(context.Background())
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -290,6 +293,7 @@ func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr
 		Miner:        sask.Miner.String(),
 		Price:        sask.Price.Uint64(),
 		MinPieceSize: uint64(sask.MinPieceSize),
+		MaxPieceSize: uint64(sask.MaxPieceSize),
 		Timestamp:    int64(sask.Timestamp),
 		Expiry:       int64(sask.Expiry),
 	}, true, nil

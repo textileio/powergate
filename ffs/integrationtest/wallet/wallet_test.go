@@ -2,12 +2,12 @@ package wallet
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/filecoin-project/go-address"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/ffs/api"
@@ -64,22 +64,21 @@ func TestNewAddressDefault(t *testing.T) {
 func TestSendFil(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, api, fapi, cls := it.NewAPI(t, 1)
 	defer cls()
 
 	const amt int64 = 1
 
 	balForAddress := func(addr string) (uint64, error) {
-		info, err := fapi.Info(ctx)
+		a, err := address.NewFromString(addr)
 		if err != nil {
 			return 0, err
 		}
-		for _, balanceInfo := range info.Balances {
-			if balanceInfo.Addr == addr {
-				return balanceInfo.Balance, nil
-			}
+		bal, err := api.WalletBalance(ctx, a)
+		if err != nil {
+			return 0, err
 		}
-		return 0, fmt.Errorf("no balance info for address %v", addr)
+		return bal.Uint64(), nil
 	}
 
 	addrs := fapi.Addrs()

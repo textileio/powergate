@@ -6,7 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/textileio/powergate?style=flat-square)](https://goreportcard.com/report/github.com/textileio/powergate?style=flat-square)
 [![GitHub action](https://github.com/textileio/powergate/workflows/Tests/badge.svg?style=popout-square)](https://github.com/textileio/powergate/actions)
 
-Powergate is a multitiered file storage API built on Filecoin and IPFS, and and index builder for Filecoin data. It's designed to be modular and extensible.
+Powergate is a multitiered file storage API built on Filecoin and IPFS, and an index builder for Filecoin data. It's designed to be modular and extensible.
 
 Join us on our [public Slack channel](https://slack.textile.io/) for news, discussions, and status updates. [Check out our blog](https://medium.com/textileio) for the latest posts and announcements.
 
@@ -61,8 +61,8 @@ Want to know more about this Powergate module? Check out the [FFS design documen
 
 ### 💫 API + CLI
 
-Powergate expose modules functionalities through gRPC endpoints. 
-You can explore our `.proto` files to generate your clients, or take advange of a ready-to-use Powergate Go and [JS client](https://github.com/textileio/js-powergate-client). 🙌
+Powergate exposes an API built from the various modules through gRPC endpoints. 
+You can explore our [`.proto` files](https://github.com/textileio/powergate/proto) to generate your clients, or take advange of a ready-to-use Powergate Go and [JS client](https://github.com/textileio/js-powergate-client). 🙌
 
 We have a CLI that supports most of Powergate features.
 
@@ -80,27 +80,29 @@ You can then run `pow` in your terminal.
 You can read the [generated CLI docs](https://github.com/textileio/powergate/blob/master/cli-docs/pow/pow.md) in this repo, or run `pow` with the `--help` flag to see the available commands:
 
 ```
-
 $ pow --help
 A client for storage and retreival of powergate data
 
 Usage:
+  pow [flags]
   pow [command]
 
 Available Commands:
-  asks        Provides commands to view asks data
-  faults      Provides commands to view faults data
-  ffs         Provides commands to manage ffs
-  health      Display the node health status
-  help        Help about any command
-  miners      Provides commands to view miners data
-  net         Provides commands related to peers and network
-  reputation  Provides commands to view miner reputation data
-  wallet      Provides commands about filecoin wallets
+  admin        Provides admin commands
+  config       Provides commands to interact with cid storage configs
+  data         Provides commands to interact with general data APIs
+  deals        Provides commands to view Filecoin deal information
+  help         Help about any command
+  id           Returns the user id
+  storage-jobs Provides commands to query for storage jobs in various states
+  version      Display version information for pow and the connected server
+  wallet       Provides commands about filecoin wallets
 
 Flags:
   -h, --help                   help for pow
       --serverAddress string   address of the powergate service api (default "127.0.0.1:5002")
+  -t, --token string           user auth token
+  -v, --version                display version information for pow and the connected server
 
 Use "pow [command] --help" for more information about a command.
 ```
@@ -141,23 +143,39 @@ make install-powd
 ```
 You can run the `-h` flag to see the configurable flags:
 ```bash
-$ powd -h
+$ powd -h 
 Usage of powd:
-      --autocreatemasteraddr      Automatically creates & funds a master address if none is provided
-      --debug                     Enable debug log level in all loggers.
-      --devnet                    Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.
-      --ffsusemasteraddr          Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.
-      --gatewayhostaddr string    Gateway host listening address (default "0.0.0.0:7000")
-      --grpchostaddr string       gRPC host listening address. (default "/ip4/0.0.0.0/tcp/5002")
-      --grpcwebproxyaddr string   gRPC webproxy listening address. (default "0.0.0.0:6002")
-      --ipfsapiaddr string        IPFS API endpoint multiaddress. (Optional, only needed if FFS is used) (default "/ip4/127.0.0.1/tcp/5001")
-      --lotushost string          Lotus client API endpoint multiaddress. (default "/ip4/127.0.0.1/tcp/1234")
-      --lotusmasteraddr string    Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)
-      --lotustoken string         Lotus API authorization token. This flag or --lotustoken file are mandatory.
-      --lotustokenfile string     Path of a file that contains the Lotus API authorization token.
-      --maxminddbfolder string    Path of the folder containing GeoLite2-City.mmdb (default ".")
-      --repopath string           Path of the repository where Powergate state will be saved. (default "~/.powergate")
-      --walletinitialfund int     FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set) (default 4000000000000000)
+      --askindexmaxparallel string       Max parallel query ask to execute while updating index (default "3")
+      --askindexqueryasktimeout string   Timeout in seconds for a query ask (default "15")
+      --askindexrefreshinterval string   Refresh interval measured in minutes (default "60")
+      --askindexrefreshonstart           If true it will refresh the index on start
+      --autocreatemasteraddr             Automatically creates & funds a master address if none is provided.
+      --dealwatchpollduration string     Poll interval in seconds used by Deals Module watch to detect state changes (default "900")
+      --debug                            Enable debug log level in all loggers.
+      --devnet                           Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.
+      --disableindices                   Disable all indices updates, useful to help Lotus syncing process
+      --disablenoncompliantapis          Disable APIs that may not easily comply with US law
+      --ffsadmintoken string             FFS admin token for authorized APIs. If empty, the APIs will be open to the public.
+      --ffsdealfinalitytimeout string    Deadline in minutes in which a deal must prove liveness changing status before considered abandoned (default "4320")
+      --ffsminerselector string          Miner selector to be used by FFS: 'sr2', 'reputation' (default "sr2")
+      --ffsminerselectorparams string    Miner selector configuration parameter, depends on --ffsminerselector (default "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json")
+      --ffsminimumpiecesize string       Minimum piece size in bytes allowed to be stored in Filecoin (default "67108864")
+      --ffsschedmaxparallel string       Maximum amount of Jobs executed in parallel (default "1000")
+      --ffsusemasteraddr                 Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.
+      --gatewaybasepath string           Gateway base path. (default "/")
+      --gatewayhostaddr string           Gateway host listening address. (default "0.0.0.0:7000")
+      --grpchostaddr string              gRPC host listening address. (default "/ip4/0.0.0.0/tcp/5002")
+      --grpcwebproxyaddr string          gRPC webproxy listening address. (default "0.0.0.0:6002")
+      --ipfsapiaddr string               IPFS API endpoint multiaddress. (Optional, only needed if FFS is used) (default "/ip4/127.0.0.1/tcp/5001")
+      --lotushost string                 Lotus client API endpoint multiaddress. (default "/ip4/127.0.0.1/tcp/1234")
+      --lotusmasteraddr string           Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)
+      --lotustoken string                Lotus API authorization token. This flag or --lotustoken file are mandatory.
+      --lotustokenfile string            Path of a file that contains the Lotus API authorization token.
+      --maxminddbfolder string           Path of the folder containing GeoLite2-City.mmdb (default ".")
+      --mongodb string                   Mongo database name. (if --mongouri is used, is mandatory
+      --mongouri string                  Mongo URI to connect to MongoDB database. (Optional: if empty, will use Badger)
+      --repopath string                  Path of the repository where Powergate state will be saved. (default "~/.powergate")
+      --walletinitialfund int            FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set) (default 250000000000000000)
 ```
 
 ## Localnet mode
@@ -190,15 +208,26 @@ Terminal 2:
 ```bash
 make build
 ❯ head -c 700 </dev/urandom > myfile
-❯ pow ffs create
-> Instance created with id 0ac0fb4d-581c-4276-bd90-a9aa30dd4cb4 and token 883f57b1-4e66-47f8-b291-7cf8b10f6370
-❯ pow ffs stage -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 myfile
-> Success! Cached file in FFS hot storage with cid: QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
-❯ pow ffs config push -w -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
-> Success! Pushed cid config for QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm to FFS with job id: 966dcb44-9ef4-4d2a-9c90-a8103c77c354
-               JOB ID                   STATUS
-966dcb44-9ef4-4d2a-9c90-a8103c77c354    Success
-❯ pow ffs get  -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm myfile2
+❯ pow admin user create
+{
+  "user":  {
+    "id":  "c06382e0-2021-4234-be53-6e07a8d40065",
+    "token":  "883f57b1-4e66-47f8-b291-7cf8b10f6370"
+  }
+}
+❯ pow data stage -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 myfile
+{
+  "cid":  "QmQJxVtp61Y7UrdjUKuWvse3TxGHaPDyA7RobrBhFwqcBM"
+}
+❯ pow config apply -w -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm
+{
+  "jobId":  "b4110048-5367-4ae5-8508-709bf7969748"
+}
+                 JOB ID                |       STATUS       | MINER  |  PRICE   |    DEAL STATUS     
+---------------------------------------+--------------------+--------+----------+--------------------
+  b4110048-5367-4ae5-8508-709bf7969748 | JOB_STATUS_SUCCESS |        |          |                    
+                                       |                    | f01000 | 62500000 | StorageDealActive
+❯ pow data get -t 883f57b1-4e66-47f8-b291-7cf8b10f6370 QmYaAK8SSsKJsJdtahCbUe7MZzQdkPBybFCcQJJ3dKZpfm myfile2
 > Success! Data written to myfile2
 ```
 
@@ -210,12 +239,12 @@ A production setup is also provided in the `docker` folder. It launches `powd` c
 - _Prometheus_, which is the backend for metrics processing.
 - _Grafana_, for metrics dashboard.
 - _cAdvisor_, for container metrics.
-- _Lotus_, node running on the current Testnet.
+- _Lotus_, node running on the current mainnet.
 - _IPFS_, node running to back Powergate FFS.
 - _Powergate_, wired with all of above components.
 
 Depending on which network you want to connect to, you have to run different commands:
-- `make up`, to connect to `testnet`.
+- `make up`, to connect to `mainnet`.
 
 Remember that you should wait for _Lotus_ to be fully-synced which might take a long time; you can check your current node sync status running `lotus sync status` inside the Lotus container. We also provide automatically generated Dockerhub images of Powergate server, see [textile/powergate](https://hub.docker.com/r/textile/powergate).
 
@@ -235,7 +264,7 @@ It will auto-download any necessary dependencies and run all tests.
 ## Benchmark
 There's a dedicated binary to run benchmarks against a Powergate server. For more information see the [specific README](cmd/powbench/README.md). 
 
-Soon we'll add benchmark results against real miners in the Testnet network, so stay tuned. ⌛ 
+Soon we'll add benchmark results against real miners in mainnet, so stay tuned. ⌛ 
 
 ## Contributing
 

@@ -65,6 +65,9 @@ func (d *TxMapDatastore) Clone() (*TxMapDatastore, error) {
 		MapDatastore: datastore.NewMapDatastore(),
 	}
 	for v := range res.Next() {
+		if v.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", v.Error)
+		}
 		if err := t2.Put(datastore.NewKey(v.Key), v.Value); err != nil {
 			return nil, fmt.Errorf("copying datastore value: %s", err)
 		}

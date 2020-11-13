@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
+	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/util"
 )
 
@@ -71,6 +72,12 @@ func (i APIID) String() string {
 	return string(i)
 }
 
+// AuthEntry encapsulates auth info for a FFS instance.
+type AuthEntry struct {
+	Token string
+	APIID APIID
+}
+
 // JobStatus is a type for Job statuses.
 type JobStatus int
 
@@ -109,6 +116,7 @@ type StorageJob struct {
 	Cid        cid.Cid
 	Status     JobStatus
 	ErrCause   string
+	DealInfo   []deals.StorageDealInfo
 	DealErrors []DealError
 	CreatedAt  int64
 }
@@ -348,7 +356,7 @@ type FilConfig struct {
 	Renew FilRenew
 	// Addr is the wallet address used to store the data in filecoin
 	Addr string
-	// MaxPrice is the maximum price that will be spent to store the data
+	// MaxPrice is the maximum price that will be spent per RepFactor to store the data in units of attoFIL per GiB per epoch
 	MaxPrice uint64
 	// FastRetrieval indicates that created deals should enable the
 	// fast retrieval feature.
@@ -401,9 +409,9 @@ type RetrievalInfo struct {
 	CreatedAt time.Time
 }
 
-// CidInfo contains information about the current storage state
+// StorageInfo contains information about the current storage state
 // of a Cid.
-type CidInfo struct {
+type StorageInfo struct {
 	// JobID indicates the Job ID which updated
 	// the current information. It *may be empty* if
 	// the data was imported manually.

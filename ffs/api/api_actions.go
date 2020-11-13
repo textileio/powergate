@@ -7,7 +7,6 @@ import (
 
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/scheduler"
 )
 
 // PushStorageConfig push a new configuration for the Cid in the Hot and
@@ -23,7 +22,7 @@ func (i *API) PushStorageConfig(c cid.Cid, opts ...PushStorageConfigOption) (ffs
 		}
 	}
 	if !cfg.OverrideConfig {
-		_, err := i.is.getStorageConfig(c)
+		_, err := i.is.getStorageConfigs(c)
 		if err == nil {
 			return ffs.EmptyJobID, ErrMustOverrideConfig
 		}
@@ -54,14 +53,14 @@ func (i *API) Remove(c cid.Cid) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg, err := i.is.getStorageConfig(c)
+	cfgs, err := i.is.getStorageConfigs(c)
 	if err == ErrNotFound {
 		return err
 	}
 	if err != nil {
 		return fmt.Errorf("getting cid config from store: %s", err)
 	}
-	if cfg.Hot.Enabled || cfg.Cold.Enabled {
+	if cfgs[c].Hot.Enabled || cfgs[c].Cold.Enabled {
 		return ErrActiveInStorage
 	}
 	if err := i.sched.Untrack(c); err != nil {
@@ -84,7 +83,7 @@ func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 		return ffs.EmptyJobID, fmt.Errorf("the old and new cid should be different")
 	}
 
-	cfg, err := i.is.getStorageConfig(c1)
+	cfgs, err := i.is.getStorageConfigs(c1)
 	if err == ErrNotFound {
 		return ffs.EmptyJobID, ErrReplacedCidNotFound
 	}
@@ -92,15 +91,15 @@ func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 		return ffs.EmptyJobID, fmt.Errorf("getting replaced cid config: %s", err)
 	}
 
-	if err := i.ensureValidColdCfg(cfg.Cold); err != nil {
+	if err := i.ensureValidColdCfg(cfgs[c1].Cold); err != nil {
 		return ffs.EmptyJobID, err
 	}
 
-	jid, err := i.sched.PushReplace(i.cfg.ID, c2, cfg, c1)
+	jid, err := i.sched.PushReplace(i.cfg.ID, c2, cfgs[c1], c1)
 	if err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("scheduling replacement %s to %s: %s", c1, c2, err)
 	}
-	if err := i.is.putStorageConfig(c2, cfg); err != nil {
+	if err := i.is.putStorageConfig(c2, cfgs[c1]); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c2, err)
 	}
 	if err := i.is.removeStorageConfig(c1); err != nil {
@@ -114,11 +113,11 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	if !c.Defined() {
 		return nil, fmt.Errorf("cid is undefined")
 	}
-	conf, err := i.is.getStorageConfig(c)
+	cfgs, err := i.is.getStorageConfigs(c)
 	if err != nil {
 		return nil, fmt.Errorf("getting cid config: %s", err)
 	}
-	if !conf.Hot.Enabled {
+	if !cfgs[c].Hot.Enabled {
 		return nil, ErrHotStorageDisabled
 	}
 	r, err := i.sched.GetCidFromHot(ctx, c)
@@ -126,19 +125,6 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 		return nil, fmt.Errorf("getting from hot layer %s: %s", c, err)
 	}
 	return r, nil
-}
-
-// Show returns the information about a stored Cid. If no information is available,
-// since the Cid was never stored, it returns ErrNotFound.
-func (i *API) Show(c cid.Cid) (ffs.CidInfo, error) {
-	inf, err := i.sched.GetCidInfo(c)
-	if err == scheduler.ErrNotFound {
-		return inf, ErrNotFound
-	}
-	if err != nil {
-		return inf, fmt.Errorf("getting cid information: %s", err)
-	}
-	return inf, nil
 }
 
 // CancelJob cancels an executing Job. If no Job is executing

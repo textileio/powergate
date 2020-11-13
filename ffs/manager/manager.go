@@ -68,7 +68,6 @@ var (
 // Manager creates Api instances, or loads existing ones them from an auth-token.
 type Manager struct {
 	wm    ffs.WalletManager
-	pm    ffs.PaychManager
 	drm   ffs.DealRecordsManager
 	sched *scheduler.Scheduler
 
@@ -83,7 +82,7 @@ type Manager struct {
 }
 
 // New returns a new Manager.
-func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool, onLocalnet bool) (*Manager, error) {
+func New(ds datastore.Datastore, wm ffs.WalletManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool, onLocalnet bool) (*Manager, error) {
 	if ffsUseMasterAddr && wm.MasterAddr() == address.Undef {
 		return nil, fmt.Errorf("ffsUseMasterAddr requires that master address is defined")
 	}
@@ -95,7 +94,6 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm 
 		auth:             auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
 		ds:               ds,
 		wm:               wm,
-		pm:               pm,
 		drm:              drm,
 		sched:            sched,
 		instances:        make(map[ffs.APIID]*api.API),
@@ -105,7 +103,7 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, pm ffs.PaychManager, drm 
 }
 
 // Create creates a new Api instance and an auth-token mapped to it.
-func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
+func (m *Manager) Create(ctx context.Context) (ffs.AuthEntry, error) {
 	log.Info("creating instance")
 
 	var addr address.Address
@@ -114,11 +112,11 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 	} else {
 		res, err := m.wm.NewAddress(ctx, "bls")
 		if err != nil {
-			return ffs.EmptyInstanceID, "", fmt.Errorf("creating new wallet addr: %s", err)
+			return ffs.AuthEntry{}, fmt.Errorf("creating new wallet addr: %s", err)
 		}
 		a, err := address.NewFromString(res)
 		if err != nil {
-			return ffs.EmptyInstanceID, "", fmt.Errorf("decoding newly created addr: %s", err)
+			return ffs.AuthEntry{}, fmt.Errorf("decoding newly created addr: %s", err)
 		}
 		addr = a
 	}
@@ -140,21 +138,21 @@ func (m *Manager) Create(ctx context.Context) (ffs.APIID, string, error) {
 
 	iid := ffs.NewAPIID()
 
-	fapi, err := api.New(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm, m.defaultConfig, addrInfo)
+	fapi, err := api.New(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.drm, m.defaultConfig, addrInfo)
 	if err != nil {
-		return ffs.EmptyInstanceID, "", fmt.Errorf("creating new instance: %s", err)
+		return ffs.AuthEntry{}, fmt.Errorf("creating new instance: %s", err)
 	}
 
 	auth, err := m.auth.Generate(fapi.ID())
 	if err != nil {
-		return ffs.EmptyInstanceID, "", fmt.Errorf("generating auth token for %s: %s", fapi.ID(), err)
+		return ffs.AuthEntry{}, fmt.Errorf("generating auth token for %s: %s", fapi.ID(), err)
 	}
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
 	m.instances[iid] = fapi
 
-	return fapi.ID(), auth, nil
+	return ffs.AuthEntry{APIID: fapi.ID(), Token: auth}, nil
 }
 
 // SetDefaultStorageConfig sets the default StorageConfig to be set as default to newly created
@@ -169,7 +167,7 @@ func (m *Manager) SetDefaultStorageConfig(dc ffs.StorageConfig) error {
 }
 
 // List returns a list of all existing API instances.
-func (m *Manager) List() ([]ffs.APIID, error) {
+func (m *Manager) List() ([]ffs.AuthEntry, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -194,7 +192,7 @@ func (m *Manager) GetByAuthToken(token string) (*api.API, error) {
 	i, ok := m.instances[iid]
 	if !ok {
 		log.Debugf("loading uncached instance %s", iid)
-		i, err = api.Load(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.pm, m.drm)
+		i, err = api.Load(namespace.Wrap(m.ds, datastore.NewKey("api/"+iid.String())), iid, m.sched, m.wm, m.drm)
 		if err != nil {
 			return nil, fmt.Errorf("loading instance %s: %s", iid, err)
 		}

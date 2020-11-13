@@ -31,7 +31,7 @@ import (
 const (
 	chanWriteTimeout = time.Second
 
-	defaultDealStartOffset = 72 * 60 * 60 / util.EpochDurationSeconds // 72hs
+	defaultDealStartOffset = 48 * 60 * 60 / util.EpochDurationSeconds // 48hs
 )
 
 var (
@@ -95,7 +95,7 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 		Path:  f.Name(),
 		IsCAR: isCAR,
 	}
-	api, cls, err := m.clientBuilder()
+	api, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return cid.Undef, 0, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -119,7 +119,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 	if err != nil {
 		return nil, fmt.Errorf("parsing wallet address: %s", err)
 	}
-	lapi, cls, err := m.clientBuilder()
+	lapi, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -173,11 +173,27 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 	return res, nil
 }
 
+// CalculatePieceSize calculates the data and piece size of a Cid accesible
+// by the underlying Lotus node.
+func (m *Module) CalculatePieceSize(ctx context.Context, c cid.Cid) (api.DataSize, error) {
+	lapi, cls, err := m.clientBuilder(ctx)
+	if err != nil {
+		return api.DataSize{}, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
+	dsz, err := lapi.ClientDealSize(ctx, c)
+	if err != nil {
+		return api.DataSize{}, fmt.Errorf("calculating data size: %s", err)
+	}
+	return dsz, nil
+}
+
 // Fetch fetches deal data to the underlying blockstore of the Filecoin client.
 // This API is meant for clients that use external implementations of blockstores with
 // their own API, e.g: IPFS.
 func (m *Module) Fetch(ctx context.Context, waddr string, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string) (string, <-chan marketevents.RetrievalEvent, error) {
-	lapi, cls, err := m.clientBuilder()
+	lapi, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return "", nil, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -201,7 +217,7 @@ func (m *Module) Retrieve(ctx context.Context, waddr string, payloadCid cid.Cid,
 		IsCAR: CAREncoding,
 	}
 
-	lapi, cls, err := m.clientBuilder()
+	lapi, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return "", nil, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -298,27 +314,21 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 	return o.Miner.String(), out, nil
 }
 
-// GetDealStatus returns the current status of the deal, and a flag indicating if the miner of the deal was slashed.
-// If the deal doesn't exist, *or has expired* it will return ErrDealNotFound. There's not actual way of distinguishing
-// both scenarios in Lotus.
-func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, bool, error) {
-	lapi, cls, err := m.clientBuilder()
+// GetDealStatus returns the current status of the deal.
+func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket.StorageDealStatus, error) {
+	lapi, cls, err := m.clientBuilder(ctx)
 	if err != nil {
-		return storagemarket.StorageDealUnknown, false, fmt.Errorf("creating lotus client: %s", err)
+		return storagemarket.StorageDealUnknown, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
-	di, err := lapi.ClientGetDealInfo(ctx, pcid)
+	di, err := robustClientGetDealInfo(ctx, lapi, pcid)
 	if err != nil {
 		if strings.Contains(err.Error(), "datastore: key not found") {
-			return storagemarket.StorageDealUnknown, false, ErrDealNotFound
+			return storagemarket.StorageDealUnknown, ErrDealNotFound
 		}
-		return storagemarket.StorageDealUnknown, false, fmt.Errorf("getting deal info: %s", err)
+		return storagemarket.StorageDealUnknown, fmt.Errorf("getting deal info: %s", err)
 	}
-	md, err := lapi.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
-	if err != nil {
-		return storagemarket.StorageDealUnknown, false, fmt.Errorf("get storage state: %s", err)
-	}
-	return di.State, md.State.SlashEpoch != -1, nil
+	return di.State, nil
 }
 
 // Watch returns a channel with state changes of indicated proposals.
@@ -329,21 +339,37 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 	ch := make(chan deals.StorageDealInfo)
 	go func() {
 		defer close(ch)
+
 		currentState := make(map[cid.Cid]*api.DealInfo)
+
+		makeClientAndNotify := func() error {
+			client, cls, err := m.clientBuilder(ctx)
+			if err != nil {
+				return fmt.Errorf("creating lotus client: %s", err)
+			}
+			if err := notifyChanges(ctx, client, currentState, proposals, ch); err != nil {
+				return fmt.Errorf("pushing new proposal states: %s", err)
+			}
+			cls()
+			return nil
+		}
+
+		// Notify once so that subscribers get a result quickly
+		if err := makeClientAndNotify(); err != nil {
+			log.Errorf("creating lotus client and notifying: %s", err)
+			return
+		}
+
+		// Then notify every m.pollDuration
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-time.After(m.pollDuration):
-				api, cls, err := m.clientBuilder()
-				if err != nil {
-					log.Errorf("creating lotus client: %s", err)
-					continue
+				if err := makeClientAndNotify(); err != nil {
+					log.Errorf("creating lotus client and notifying: %s", err)
+					return
 				}
-				if err := notifyChanges(ctx, api, currentState, proposals, ch); err != nil {
-					log.Errorf("pushing new proposal states: %s", err)
-				}
-				cls()
 			}
 		}
 	}()
@@ -351,8 +377,8 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 }
 
 // ListStorageDealRecords lists storage deals according to the provided options.
-func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.StorageDealRecord, error) {
-	c := deals.ListDealRecordsConfig{}
+func (m *Module) ListStorageDealRecords(opts ...deals.DealRecordsOption) ([]deals.StorageDealRecord, error) {
+	c := deals.DealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -419,8 +445,8 @@ func (m *Module) ListStorageDealRecords(opts ...deals.ListDealRecordsOption) ([]
 }
 
 // ListRetrievalDealRecords returns a list of retrieval deals according to the provided options.
-func (m *Module) ListRetrievalDealRecords(opts ...deals.ListDealRecordsOption) ([]deals.RetrievalDealRecord, error) {
-	c := deals.ListDealRecordsConfig{}
+func (m *Module) ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]deals.RetrievalDealRecord, error) {
+	c := deals.DealRecordsConfig{}
 	for _, opt := range opts {
 		opt(&c)
 	}
@@ -505,9 +531,9 @@ func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 }
 
 func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
-	lapi, cls, err := m.clientBuilder()
+	lapi, cls, err := m.clientBuilder(context.Background())
 	if err != nil {
-		log.Errorf("creating client: %s", err)
+		log.Errorf("finalize pending deal, creating client: %s", err)
 		return
 	}
 	defer cls()
@@ -518,7 +544,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	info, err := lapi.ClientGetDealInfo(ctx, dr.DealInfo.ProposalCid)
+	info, err := robustClientGetDealInfo(ctx, lapi, dr.DealInfo.ProposalCid)
 	if err != nil {
 		log.Errorf("getting deal info: %v", err)
 		deletePending()
@@ -616,15 +642,15 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
 	}
 }
 
-func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- deals.StorageDealInfo) error {
+func notifyChanges(ctx context.Context, lapi *apistruct.FullNodeStruct, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- deals.StorageDealInfo) error {
 	for _, pcid := range proposals {
-		dinfo, err := client.ClientGetDealInfo(ctx, pcid)
+		dinfo, err := robustClientGetDealInfo(ctx, lapi, pcid)
 		if err != nil {
 			return fmt.Errorf("getting deal proposal info %s: %s", pcid, err)
 		}
 		if currState[pcid] == nil || (*currState[pcid]).State != dinfo.State {
 			currState[pcid] = dinfo
-			newState, err := fromLotusDealInfo(ctx, client, dinfo)
+			newState, err := fromLotusDealInfo(ctx, lapi, dinfo)
 			if err != nil {
 				return fmt.Errorf("converting proposal cid %s from lotus deal info: %v", util.CidToString(pcid), err)
 			}
@@ -638,6 +664,33 @@ func notifyChanges(ctx context.Context, client *apistruct.FullNodeStruct, currSt
 		}
 	}
 	return nil
+}
+
+func robustClientGetDealInfo(ctx context.Context, lapi *apistruct.FullNodeStruct, propCid cid.Cid) (*api.DealInfo, error) {
+	di, err := lapi.ClientGetDealInfo(ctx, propCid)
+	if err != nil {
+		return nil, fmt.Errorf("client get deal info: %s", err)
+	}
+
+	// Workaround ClientGetDealInfo giving unreliable status.
+	// If the state isn't Active, double-check with on-chain API.
+	if di.DealID != 0 && di.State != storagemarket.StorageDealActive {
+		smd, err := lapi.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
+		if err != nil {
+			// If the DealID is not found, most probably is because the Lotus
+			// node isn't yet synced. Since all this logis is a workaround
+			// for a problem, make an exception and just return what
+			// ClientGetDealInfo said.
+			if strings.Contains(err.Error(), "not found") {
+				return di, nil
+			}
+			return nil, fmt.Errorf("state market storage deal: %s", err)
+		}
+		if smd.State.SectorStartEpoch > 0 {
+			di.State = storagemarket.StorageDealActive
+		}
+	}
+	return di, nil
 }
 
 func fromLotusDealInfo(ctx context.Context, client *apistruct.FullNodeStruct, dinfo *api.DealInfo) (deals.StorageDealInfo, error) {

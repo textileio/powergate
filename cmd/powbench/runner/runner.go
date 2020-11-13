@@ -9,8 +9,7 @@ import (
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/api/client"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/health"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/util"
 )
 
@@ -40,10 +39,6 @@ func Run(ctx context.Context, ts TestSetup) error {
 		return fmt.Errorf("creating client: %s", err)
 	}
 
-	if err := sanityCheck(ctx, c); err != nil {
-		return fmt.Errorf("sanity check with client: %s", err)
-	}
-
 	if err := runSetup(ctx, c, ts); err != nil {
 		return fmt.Errorf("running test setup: %s", err)
 	}
@@ -51,28 +46,17 @@ func Run(ctx context.Context, ts TestSetup) error {
 	return nil
 }
 
-func sanityCheck(ctx context.Context, c *client.Client) error {
-	s, _, err := c.Health.Check(ctx)
-	if err != nil {
-		return fmt.Errorf("health check call: %s", err)
-	}
-	if s != health.Ok {
-		return fmt.Errorf("reported health check not Ok: %s", s)
-	}
-	return nil
-}
-
 func runSetup(ctx context.Context, c *client.Client, ts TestSetup) error {
-	_, tok, err := c.FFS.Create(ctx)
+	res, err := c.Admin.Users.Create(ctx)
 	if err != nil {
 		return fmt.Errorf("creating ffs instance: %s", err)
 	}
-	ctx = context.WithValue(ctx, client.AuthKey, tok)
-	info, err := c.FFS.Info(ctx)
+	ctx = context.WithValue(ctx, client.AuthKey, res.User.Token)
+	res2, err := c.Wallet.Addresses(ctx)
 	if err != nil {
 		return fmt.Errorf("getting instance info: %s", err)
 	}
-	addr := info.Balances[0].Addr
+	addr := res2.Addresses[0].Address
 	time.Sleep(time.Second * 5)
 
 	chLimit := make(chan struct{}, ts.MaxParallel)
@@ -103,65 +87,65 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	lr := io.LimitReader(ra, size)
 
 	log.Infof("[%d] Adding to hot layer...", id)
-	ci, err := c.FFS.Stage(ctx, lr)
+	statgeRes, err := c.Data.Stage(ctx, lr)
 	if err != nil {
 		return fmt.Errorf("importing data to hot storage (ipfs node): %s", err)
 	}
 
-	log.Infof("[%d] Pushing %s to FFS...", id, *ci)
+	log.Infof("[%d] Pushing %s to FFS...", id, statgeRes.Cid)
 
 	// For completeness, fields that could be relied on defaults
 	// are explicitly kept here to have a better idea about their
 	// existence.
 	// This configuration will stop being static when we incorporate
 	// other test cases.
-	storageConfig := ffs.StorageConfig{
+	storageConfig := &userPb.StorageConfig{
 		Repairable: false,
-		Hot: ffs.HotConfig{
+		Hot: &userPb.HotConfig{
 			Enabled:          true,
 			AllowUnfreeze:    false,
 			UnfreezeMaxPrice: 0,
-			Ipfs: ffs.IpfsConfig{
+			Ipfs: &userPb.IpfsConfig{
 				AddTimeout: 30,
 			},
 		},
-		Cold: ffs.ColdConfig{
+		Cold: &userPb.ColdConfig{
 			Enabled: true,
-			Filecoin: ffs.FilConfig{
-				RepFactor:       1,
-				DealMinDuration: util.MinDealDuration,
-				Addr:            addr,
-				CountryCodes:    nil,
-				ExcludedMiners:  nil,
-				TrustedMiners:   []string{minerAddr},
-				Renew:           ffs.FilRenew{},
+			Filecoin: &userPb.FilConfig{
+				ReplicationFactor: 1,
+				DealMinDuration:   util.MinDealDuration,
+				Address:           addr,
+				CountryCodes:      nil,
+				ExcludedMiners:    nil,
+				TrustedMiners:     []string{minerAddr},
+				Renew:             &userPb.FilRenew{},
 			},
 		},
 	}
 
-	jid, err := c.FFS.PushStorageConfig(ctx, *ci, client.WithStorageConfig(storageConfig))
+	applyRes, err := c.StorageConfig.Apply(ctx, statgeRes.Cid, client.WithStorageConfig(storageConfig))
 	if err != nil {
 		return fmt.Errorf("pushing to FFS: %s", err)
 	}
 
-	log.Infof("[%d] Pushed successfully, queued job %s. Waiting for termination...", id, jid)
-	chJob := make(chan client.JobEvent, 1)
+	log.Infof("[%d] Pushed successfully, queued job %s. Waiting for termination...", id, applyRes.JobId)
+	chJob := make(chan client.WatchStorageJobsEvent, 1)
 	ctxWatch, cancel := context.WithCancel(ctx)
 	defer cancel()
-	err = c.FFS.WatchJobs(ctxWatch, chJob, jid)
+	err = c.StorageJobs.Watch(ctxWatch, chJob, applyRes.JobId)
 	if err != nil {
 		return fmt.Errorf("opening listening job status: %s", err)
 	}
-	var s client.JobEvent
+	var s client.WatchStorageJobsEvent
 	for s = range chJob {
 		if s.Err != nil {
 			return fmt.Errorf("job watching: %s", s.Err)
 		}
-		log.Infof("[%d] Job changed to status %s", id, ffs.JobStatusStr[s.Job.Status])
-		if s.Job.Status == ffs.Failed || s.Job.Status == ffs.Canceled {
+		log.Infof("[%d] Job changed to status %s", id, s.Res.StorageJob.Status.String())
+		if s.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_FAILED || s.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_CANCELED {
 			return fmt.Errorf("job execution failed or was canceled")
 		}
-		if s.Job.Status == ffs.Success {
+		if s.Res.StorageJob.Status == userPb.JobStatus_JOB_STATUS_SUCCESS {
 			return nil
 		}
 	}

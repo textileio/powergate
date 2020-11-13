@@ -91,21 +91,21 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestInfo(t *testing.T) {
+func TestDealConsistency(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ctx := context.Background()
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 		defer cls()
 
-		var err error
-		var first api.InstanceInfo
-		first, err = fapi.Info(ctx)
+		firstID := fapi.ID()
+		require.NotEmpty(t, firstID)
+
+		firstAddrs := fapi.Addrs()
+		require.Len(t, firstAddrs, 1)
+		require.NotEmpty(t, firstAddrs[0].Addr)
+
+		firstStorageConfigs, err := fapi.GetStorageConfigs()
 		require.NoError(t, err)
-		require.NotEmpty(t, first.ID)
-		require.Len(t, first.Balances, 1)
-		require.NotEmpty(t, first.Balances[0].Addr)
-		require.Greater(t, first.Balances[0].Balance, uint64(0))
-		require.Equal(t, len(first.Pins), 0)
+		require.Equal(t, len(firstStorageConfigs), 0)
 
 		r := rand.New(rand.NewSource(22))
 		n := 1
@@ -150,13 +150,17 @@ func TestInfo(t *testing.T) {
 			}
 		}
 
-		second, err := fapi.Info(ctx)
+		secondID := fapi.ID()
+		require.Equal(t, secondID, firstID)
+
+		secondAddrs := fapi.Addrs()
 		require.NoError(t, err)
-		require.Equal(t, second.ID, first.ID)
-		require.Len(t, second.Balances, 1)
-		require.Equal(t, second.Balances[0].Addr, first.Balances[0].Addr)
-		require.Less(t, second.Balances[0].Balance, first.Balances[0].Balance)
-		require.Equal(t, n, len(second.Pins))
+		require.Len(t, secondAddrs, 1)
+		require.Equal(t, secondAddrs[0].Addr, firstAddrs[0].Addr)
+
+		secondStorageConfigs, err := fapi.GetStorageConfigs()
+		require.NoError(t, err)
+		require.Equal(t, n, len(secondStorageConfigs))
 	})
 }
 
@@ -164,7 +168,6 @@ func TestShow(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ctx := context.Background()
 		ipfs, _, fapi, cls := it.NewAPI(t, 1)
 
 		defer cls()
@@ -176,17 +179,23 @@ func TestShow(t *testing.T) {
 		require.Equal(t, api.ErrNotFound, err)
 
 		r := rand.New(rand.NewSource(22))
-		cid, _ := it.AddRandomFile(t, r, ipfs)
-		jid, err := fapi.PushStorageConfig(cid)
+		randomCid, _ := it.AddRandomFile(t, r, ipfs)
+		jid, err := fapi.PushStorageConfig(randomCid)
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
-		it.RequireStorageConfig(t, fapi, cid, nil)
+		it.RequireStorageConfig(t, fapi, randomCid, nil)
 
-		inf, err := fapi.Info(ctx)
+		cfgs, err := fapi.GetStorageConfigs()
 		require.NoError(t, err)
-		require.Equal(t, 1, len(inf.Pins))
+		require.Equal(t, 1, len(cfgs))
 
-		c = inf.Pins[0]
+		cfgCids := make([]cid.Cid, 0, len(cfgs))
+		for cid := range cfgs {
+			cfgCids = append(cfgCids, cid)
+		}
+
+		c = cfgCids[0]
+
 		s, err := fapi.Show(c)
 		require.NoError(t, err)
 
@@ -215,11 +224,11 @@ func TestColdInstanceLoad(t *testing.T) {
 		addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
 		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
 
-		_, auth, err := manager.Create(context.Background())
+		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)
 		time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 
-		fapi, err := manager.GetByAuthToken(auth)
+		fapi, err := manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		ra := rand.New(rand.NewSource(22))
@@ -229,8 +238,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
-		info, err := fapi.Info(ctx)
-		require.NoError(t, err)
+		id := fapi.ID()
 		shw, err := fapi.Show(cid)
 		require.NoError(t, err)
 
@@ -242,12 +250,11 @@ func TestColdInstanceLoad(t *testing.T) {
 		// Rehydrate things again and check state.
 		manager, closeManager = it.NewFFSManager(t, ds, client, addr, ms, ipfs)
 		defer closeManager()
-		fapi, err = manager.GetByAuthToken(auth)
+		fapi, err = manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
-		ninfo, err := fapi.Info(ctx)
-		require.NoError(t, err)
-		require.Equal(t, info, ninfo)
+		nid := fapi.ID()
+		require.Equal(t, id, nid)
 
 		nshw, err := fapi.Show(cid)
 		require.NoError(t, err)
@@ -271,11 +278,11 @@ func TestHighMinimumPieceSize(t *testing.T) {
 		manager, closeManager := it.NewCustomFFSManager(t, ds, client, addr, ms, ipfs, 1024*1024*1024)
 		defer closeManager()
 
-		_, auth, err := manager.Create(context.Background())
+		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)
 		time.Sleep(time.Second * 3) // Wait for funding txn to finish.
 
-		fapi, err := manager.GetByAuthToken(auth)
+		fapi, err := manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
 
 		r := rand.New(rand.NewSource(22))
@@ -312,7 +319,7 @@ func TestRemove(t *testing.T) {
 
 		err = fapi.Remove(c1)
 		require.NoError(t, err)
-		_, err = fapi.GetStorageConfig(c1)
+		_, err = fapi.GetStorageConfigs(c1)
 		require.Equal(t, api.ErrNotFound, err)
 	})
 }

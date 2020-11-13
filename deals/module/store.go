@@ -72,6 +72,9 @@ func (s *store) getPendingDeals() ([]deals.StorageDealRecord, error) {
 
 	var ret []deals.StorageDealRecord
 	for r := range res.Next() {
+		if r.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
 		var dr deals.StorageDealRecord
 		if err := json.Unmarshal(r.Value, &dr); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
@@ -114,6 +117,9 @@ func (s *store) getFinalDeals() ([]deals.StorageDealRecord, error) {
 
 	var ret []deals.StorageDealRecord
 	for r := range res.Next() {
+		if r.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
 		var dealRecord deals.StorageDealRecord
 		if err := json.Unmarshal(r.Value, &dealRecord); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)
@@ -152,6 +158,9 @@ func (s *store) getRetrievals() ([]deals.RetrievalDealRecord, error) {
 
 	var ret []deals.RetrievalDealRecord
 	for r := range res.Next() {
+		if r.Error != nil {
+			return nil, fmt.Errorf("iter next: %s", r.Error)
+		}
 		var rr deals.RetrievalDealRecord
 		if err := json.Unmarshal(r.Value, &rr); err != nil {
 			return nil, fmt.Errorf("unmarshaling query result: %s", err)

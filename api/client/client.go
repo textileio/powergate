@@ -5,37 +5,32 @@ import (
 	"crypto/tls"
 	"strings"
 
-	buildinfoRpc "github.com/textileio/powergate/buildinfo/rpc"
-	ffsRpc "github.com/textileio/powergate/ffs/rpc"
-	healthRpc "github.com/textileio/powergate/health/rpc"
-	askRpc "github.com/textileio/powergate/index/ask/rpc"
-	faultsRpc "github.com/textileio/powergate/index/faults/rpc"
-	minerRpc "github.com/textileio/powergate/index/miner/rpc"
-	netRpc "github.com/textileio/powergate/net/rpc"
-	reputationRpc "github.com/textileio/powergate/reputation/rpc"
-	walletRpc "github.com/textileio/powergate/wallet/rpc"
+	"github.com/textileio/powergate/api/client/admin"
+	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
 // Client provides the client api.
 type Client struct {
-	Asks            *Asks
-	Miners          *Miners
-	Faults          *Faults
-	Wallet          *Wallet
-	Reputation      *Reputation
-	FFS             *FFS
-	Health          *Health
-	Net             *Net
-	conn            *grpc.ClientConn
-	buildInfoClient buildinfoRpc.RPCServiceClient
+	StorageConfig *StorageConfig
+	Data          *Data
+	Wallet        *Wallet
+	Deals         *Deals
+	StorageJobs   *StorageJobs
+	Admin         *admin.Admin
+	conn          *grpc.ClientConn
+	client        userPb.UserServiceClient
 }
 
 type ctxKey string
 
 // AuthKey is the key that should be used to set the auth token in a Context.
 const AuthKey = ctxKey("ffstoken")
+
+// AdminKey is the key that should be used to set the admin auth token in a Context.
+const AdminKey = ctxKey("admintoken")
 
 // TokenAuth provides token based auth.
 type TokenAuth struct {
@@ -45,10 +40,17 @@ type TokenAuth struct {
 // GetRequestMetadata returns request metadata that includes the auth token.
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
 	md := map[string]string{}
+
 	token, ok := ctx.Value(AuthKey).(string)
 	if ok && token != "" {
 		md["X-ffs-Token"] = token
 	}
+
+	adminToken, ok := ctx.Value(AdminKey).(string)
+	if ok && adminToken != "" {
+		md["X-pow-admin-token"] = adminToken
+	}
+
 	return md, nil
 }
 
@@ -89,19 +91,17 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := &Client{
-		Asks:            &Asks{client: askRpc.NewRPCServiceClient(conn)},
-		Miners:          &Miners{client: minerRpc.NewRPCServiceClient(conn)},
-		Faults:          &Faults{client: faultsRpc.NewRPCServiceClient(conn)},
-		Wallet:          &Wallet{client: walletRpc.NewRPCServiceClient(conn)},
-		Reputation:      &Reputation{client: reputationRpc.NewRPCServiceClient(conn)},
-		FFS:             &FFS{client: ffsRpc.NewRPCServiceClient(conn)},
-		Health:          &Health{client: healthRpc.NewRPCServiceClient(conn)},
-		Net:             &Net{client: netRpc.NewRPCServiceClient(conn)},
-		conn:            conn,
-		buildInfoClient: buildinfoRpc.NewRPCServiceClient(conn),
-	}
-	return client, nil
+	client := userPb.NewUserServiceClient(conn)
+	return &Client{
+		StorageConfig: &StorageConfig{client: client},
+		Data:          &Data{client: client},
+		Wallet:        &Wallet{client: client},
+		Deals:         &Deals{client: client},
+		StorageJobs:   &StorageJobs{client: client},
+		Admin:         admin.NewAdmin(adminPb.NewAdminServiceClient(conn)),
+		conn:          conn,
+		client:        client,
+	}, nil
 }
 
 // Host returns the client host address.
@@ -110,8 +110,13 @@ func (c *Client) Host() string {
 }
 
 // BuildInfo returns build info about the server.
-func (c *Client) BuildInfo(ctx context.Context) (*buildinfoRpc.BuildInfoResponse, error) {
-	return c.buildInfoClient.BuildInfo(ctx, &buildinfoRpc.BuildInfoRequest{})
+func (c *Client) BuildInfo(ctx context.Context) (*userPb.BuildInfoResponse, error) {
+	return c.client.BuildInfo(ctx, &userPb.BuildInfoRequest{})
+}
+
+// UserID returns the user id.
+func (c *Client) UserID(ctx context.Context) (*userPb.UserIdentifierResponse, error) {
+	return c.client.UserIdentifier(ctx, &userPb.UserIdentifierRequest{})
 }
 
 // Close closes the client's grpc connection and cancels any active requests.

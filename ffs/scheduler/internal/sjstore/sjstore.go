@@ -12,6 +12,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/util"
 )
@@ -35,6 +36,13 @@ type Store struct {
 
 	queued        []ffs.StorageJob
 	executingCids map[cid.Cid]ffs.JobID
+
+	jobStatusCache map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo
+
+	queuedJobs         map[ffs.APIID]map[cid.Cid][]*ffs.StorageJob
+	executingJobs      map[ffs.APIID]map[cid.Cid]*ffs.StorageJob
+	lastFinalJobs      map[ffs.APIID]map[cid.Cid]*ffs.StorageJob
+	lastSuccessfulJobs map[ffs.APIID]map[cid.Cid]*ffs.StorageJob
 }
 
 // Stats return metrics about current job queues.
@@ -51,16 +59,59 @@ type watcher struct {
 // New returns a new JobStore backed by the Datastore.
 func New(ds datastore.Datastore) (*Store, error) {
 	s := &Store{
-		ds:            ds,
-		executingCids: make(map[cid.Cid]ffs.JobID),
+		ds:                 ds,
+		executingCids:      make(map[cid.Cid]ffs.JobID),
+		jobStatusCache:     make(map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo),
+		queuedJobs:         make(map[ffs.APIID]map[cid.Cid][]*ffs.StorageJob),
+		executingJobs:      make(map[ffs.APIID]map[cid.Cid]*ffs.StorageJob),
+		lastFinalJobs:      make(map[ffs.APIID]map[cid.Cid]*ffs.StorageJob),
+		lastSuccessfulJobs: make(map[ffs.APIID]map[cid.Cid]*ffs.StorageJob),
 	}
-	if err := s.loadExecutingJobs(); err != nil {
-		return nil, fmt.Errorf("reloading priori executing jobs: %s", err)
-	}
-	if err := s.loadQueuedJobs(); err != nil {
-		return nil, fmt.Errorf("loading pending jobs: %s", err)
+	if err := s.loadCaches(); err != nil {
+		return nil, fmt.Errorf("reloading caches: %s", err)
 	}
 	return s, nil
+}
+
+// MonitorJob returns a channel that can be passed into the deal monitoring process.
+func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
+	dealUpdates := make(chan deals.StorageDealInfo, 1000)
+	go func() {
+		for update := range dealUpdates {
+			s.lock.Lock()
+			_, ok := s.jobStatusCache[j.APIID]
+			if !ok {
+				s.jobStatusCache[j.APIID] = map[cid.Cid]map[cid.Cid]deals.StorageDealInfo{}
+			}
+			_, ok = s.jobStatusCache[j.APIID][j.Cid]
+			if !ok {
+				s.jobStatusCache[j.APIID][j.Cid] = map[cid.Cid]deals.StorageDealInfo{}
+			}
+			s.jobStatusCache[j.APIID][j.Cid][update.ProposalCid] = update
+			job, err := s.get(j.ID)
+			if err != nil {
+				log.Errorf("getting job: %v", err)
+				s.lock.Unlock()
+				continue
+			}
+			values := make([]deals.StorageDealInfo, 0, len(s.jobStatusCache[j.APIID][j.Cid]))
+			for _, v := range s.jobStatusCache[j.APIID][j.Cid] {
+				values = append(values, v)
+			}
+			sort.Slice(values, func(i, j int) bool {
+				return values[i].ProposalCid.String() < values[j].ProposalCid.String()
+			})
+			job.DealInfo = values
+			if err := s.put(job); err != nil {
+				log.Errorf("saving job with deal info updates: %v", err)
+			}
+			s.lock.Unlock()
+		}
+		s.lock.Lock()
+		delete(s.jobStatusCache[j.APIID], j.Cid)
+		s.lock.Unlock()
+	}()
+	return dealUpdates
 }
 
 // Finalize sets a Job status to a final state, i.e. Success or Failed,
@@ -149,8 +200,8 @@ func (s *Store) GetStats() Stats {
 	}
 }
 
-// GetExecutingJobs returns the JobIDs of all Jobs in Executing status.
-func (s *Store) GetExecutingJobs() []ffs.JobID {
+// GetExecutingJobIDs returns the JobIDs of all Jobs in Executing status.
+func (s *Store) GetExecutingJobIDs() []ffs.JobID {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	res := make([]ffs.JobID, len(s.executingCids))
@@ -174,6 +225,9 @@ func (s *Store) cancelQueued(c cid.Cid) error {
 		}
 	}()
 	for r := range res.Next() {
+		if r.Error != nil {
+			return fmt.Errorf("iter next: %s", r.Error)
+		}
 		var j ffs.StorageJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return fmt.Errorf("unmarshalling job: %s", err)
@@ -281,6 +335,106 @@ func (s *Store) GetStartedDeals(c cid.Cid) ([]cid.Cid, error) {
 	return sd.ProposalCids, nil
 }
 
+// QueuedJobs returns queued jobs for the specified instance id and cids.
+// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
+// If no cids are provided, data for all data cids is returned.
+func (s *Store) QueuedJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	var iids []ffs.APIID
+	if iid == ffs.EmptyInstanceID {
+		for iid := range s.queuedJobs {
+			iids = append(iids, iid)
+		}
+	} else {
+		iids = append(iids, iid)
+		ensureJobsSliceMap(s.queuedJobs, iid)
+	}
+
+	var res []ffs.StorageJob
+	for _, iid := range iids {
+		cidsList := cids
+		if len(cidsList) == 0 {
+			for cid := range s.queuedJobs[iid] {
+				cidsList = append(cidsList, cid)
+			}
+		}
+		for _, cid := range cidsList {
+			jobs := s.queuedJobs[iid][cid]
+			for _, job := range jobs {
+				res = append(res, *job)
+			}
+		}
+	}
+
+	sort.Slice(res, func(a, b int) bool {
+		return res[a].CreatedAt < res[b].CreatedAt
+	})
+
+	return res
+}
+
+// ExecutingJobs returns executing jobs for the specified instance id and cids.
+// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
+// If no cids are provided, data for all data cids is returned.
+func (s *Store) ExecutingJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	return mappedJobs(s.executingJobs, iid, cids...)
+}
+
+// LatestFinalJobs returns the most recent finished jobs for the specified instance id and cids.
+// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
+// If no cids are provided, data for all data cids is returned.
+func (s *Store) LatestFinalJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	return mappedJobs(s.lastFinalJobs, iid, cids...)
+}
+
+// LatestSuccessfulJobs returns the most recent successful jobs for the specified instance id and cids.
+// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
+// If no cids are provided, data for all data cids is returned.
+func (s *Store) LatestSuccessfulJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	return mappedJobs(s.lastSuccessfulJobs, iid, cids...)
+}
+
+func mappedJobs(m map[ffs.APIID]map[cid.Cid]*ffs.StorageJob, iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
+	var iids []ffs.APIID
+	if iid == ffs.EmptyInstanceID {
+		for iid := range m {
+			iids = append(iids, iid)
+		}
+	} else {
+		iids = append(iids, iid)
+		ensureJobsMap(m, iid)
+	}
+
+	var res []ffs.StorageJob
+	for _, iid := range iids {
+		cidsList := cids
+		if len(cidsList) == 0 {
+			for cid := range m[iid] {
+				cidsList = append(cidsList, cid)
+			}
+		}
+
+		for _, cid := range cidsList {
+			job := m[iid][cid]
+			if job != nil {
+				res = append(res, *job)
+			}
+		}
+	}
+	return res
+}
+
 // Close closes the Store, unregistering any subscribed watchers.
 func (s *Store) Close() error {
 	s.lock.Lock()
@@ -302,8 +456,10 @@ func (s *Store) put(j ffs.StorageJob) error {
 	}
 
 	// Update executing cids cache.
+	ensureJobsMap(s.executingJobs, j.APIID)
 	if j.Status == ffs.Executing {
 		s.executingCids[j.Cid] = j.ID
+		s.executingJobs[j.APIID][j.Cid] = &j
 	} else {
 		execJobID, ok := s.executingCids[j.Cid]
 		// If the executing job is not longer executing,
@@ -311,14 +467,21 @@ func (s *Store) put(j ffs.StorageJob) error {
 		if ok && execJobID == j.ID {
 			delete(s.executingCids, j.Cid)
 		}
+
+		execJob, ok := s.executingJobs[j.APIID][j.Cid]
+		if ok && execJob.ID == j.ID {
+			delete(s.executingJobs[j.APIID], j.Cid)
+		}
 	}
 
 	// Update queued cids cache.
+	ensureJobsSliceMap(s.queuedJobs, j.APIID)
 	if j.Status == ffs.Queued {
 		// Every new Queued job goes at the tail since has
 		// the biggest CreatedAt value.
 		s.queued = append(s.queued, j)
-	} else { // In any other case, ensure taking it out from queued cache.
+		s.queuedJobs[j.APIID][j.Cid] = append(s.queuedJobs[j.APIID][j.Cid], &j)
+	} else { // In any other case, ensure taking it out from queued caches.
 		delIndex := -1
 		for i, job := range s.queued {
 			if j.ID == job.ID {
@@ -329,6 +492,29 @@ func (s *Store) put(j ffs.StorageJob) error {
 		if delIndex != -1 {
 			s.queued = append(s.queued[:delIndex], s.queued[delIndex+1:]...)
 		}
+
+		delIndex = -1
+		for i, job := range s.queuedJobs[j.APIID][j.Cid] {
+			if j.ID == job.ID {
+				delIndex = i
+				break
+			}
+		}
+		if delIndex != -1 {
+			s.queuedJobs[j.APIID][j.Cid] = append(s.queuedJobs[j.APIID][j.Cid][:delIndex], s.queuedJobs[j.APIID][j.Cid][delIndex+1:]...)
+		}
+	}
+
+	// Update the cache of latest final jobs
+	if isFinal(j) {
+		ensureJobsMap(s.lastFinalJobs, j.APIID)
+		s.lastFinalJobs[j.APIID][j.Cid] = &j
+	}
+
+	// Update the cache of latest successful jobs
+	if isSuccessful(j) {
+		ensureJobsMap(s.lastSuccessfulJobs, j.APIID)
+		s.lastSuccessfulJobs[j.APIID][j.Cid] = &j
 	}
 
 	s.notifyWatchers(j)
@@ -364,32 +550,7 @@ func (s *Store) notifyWatchers(j ffs.StorageJob) {
 	}
 }
 
-func (s *Store) loadExecutingJobs() error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	q := query.Query{Prefix: dsBaseJob.String()}
-	res, err := s.ds.Query(q)
-	if err != nil {
-		return fmt.Errorf("querying executing jobs in datastore: %s", err)
-	}
-	defer func() {
-		if err := res.Close(); err != nil {
-			log.Errorf("closing query result: %s", err)
-		}
-	}()
-	for r := range res.Next() {
-		var j ffs.StorageJob
-		if err := json.Unmarshal(r.Value, &j); err != nil {
-			return fmt.Errorf("unmarshalling job: %s", err)
-		}
-		if j.Status == ffs.Executing {
-			s.executingCids[j.Cid] = j.ID
-		}
-	}
-	return nil
-}
-
-func (s *Store) loadQueuedJobs() error {
+func (s *Store) loadCaches() error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -404,18 +565,69 @@ func (s *Store) loadQueuedJobs() error {
 		}
 	}()
 	for r := range res.Next() {
+		if r.Error != nil {
+			return fmt.Errorf("iter next: %s", r.Error)
+		}
 		var j ffs.StorageJob
 		if err := json.Unmarshal(r.Value, &j); err != nil {
 			return fmt.Errorf("unmarshalling job: %s", err)
 		}
+
 		if j.Status == ffs.Queued {
 			s.queued = append(s.queued, j)
+			ensureJobsSliceMap(s.queuedJobs, j.APIID)
+			s.queuedJobs[j.APIID][j.Cid] = append(s.queuedJobs[j.APIID][j.Cid], &j)
+		} else if j.Status == ffs.Executing {
+			s.executingCids[j.Cid] = j.ID
+			ensureJobsMap(s.executingJobs, j.APIID)
+			s.executingJobs[j.APIID][j.Cid] = &j
+		}
+
+		ensureJobsMap(s.lastFinalJobs, j.APIID)
+		newest, ok := s.lastFinalJobs[j.APIID][j.Cid]
+		if isFinal(j) && (!ok || j.CreatedAt > newest.CreatedAt) {
+			s.lastFinalJobs[j.APIID][j.Cid] = &j
+		}
+
+		ensureJobsMap(s.lastSuccessfulJobs, j.APIID)
+		newest, ok = s.lastSuccessfulJobs[j.APIID][j.Cid]
+		if isSuccessful(j) && (!ok || j.CreatedAt > newest.CreatedAt) {
+			s.lastSuccessfulJobs[j.APIID][j.Cid] = &j
 		}
 	}
 	sort.Slice(s.queued, func(a, b int) bool {
 		return s.queued[a].CreatedAt < s.queued[b].CreatedAt
 	})
+	for _, cidMap := range s.queuedJobs {
+		for _, queuedJobs := range cidMap {
+			sort.Slice(queuedJobs, func(a, b int) bool {
+				return queuedJobs[a].CreatedAt < queuedJobs[b].CreatedAt
+			})
+		}
+	}
 	return nil
+}
+
+func ensureJobsMap(m map[ffs.APIID]map[cid.Cid]*ffs.StorageJob, apiID ffs.APIID) {
+	_, ok := m[apiID]
+	if !ok {
+		m[apiID] = map[cid.Cid]*ffs.StorageJob{}
+	}
+}
+
+func ensureJobsSliceMap(m map[ffs.APIID]map[cid.Cid][]*ffs.StorageJob, apiID ffs.APIID) {
+	_, ok := m[apiID]
+	if !ok {
+		m[apiID] = map[cid.Cid][]*ffs.StorageJob{}
+	}
+}
+
+func isFinal(j ffs.StorageJob) bool {
+	return j.Status == ffs.Success || j.Status == ffs.Failed || j.Status == ffs.Canceled
+}
+
+func isSuccessful(j ffs.StorageJob) bool {
+	return j.Status == ffs.Success
 }
 
 func makeStartedDealsKey(c cid.Cid) datastore.Key {

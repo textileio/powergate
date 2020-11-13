@@ -81,7 +81,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 		return "", fmt.Errorf("unknown address type %s", typ)
 	}
 
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return "", fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -101,7 +101,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 			return "", fmt.Errorf("balance %d is less than allowed threshold", balance)
 		}
 		go func() {
-			client, cls, err := m.clientBuilder()
+			client, cls, err := m.clientBuilder(context.Background())
 			if err != nil {
 				log.Errorf("creating lotus client: %s", err)
 				return
@@ -127,7 +127,7 @@ func (m *Module) NewAddress(ctx context.Context, typ string) (string, error) {
 
 // Sign signs a message with an address.
 func (m *Module) Sign(ctx context.Context, addr string, message []byte) ([]byte, error) {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -150,7 +150,7 @@ func (m *Module) Sign(ctx context.Context, addr string, message []byte) ([]byte,
 
 // Verify verifies a message signature from an address.
 func (m *Module) Verify(ctx context.Context, addr string, message, signature []byte) (bool, error) {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return false, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -168,7 +168,7 @@ func (m *Module) Verify(ctx context.Context, addr string, message, signature []b
 
 // List returns all wallet addresses.
 func (m *Module) List(ctx context.Context) ([]string, error) {
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}
@@ -185,21 +185,21 @@ func (m *Module) List(ctx context.Context) ([]string, error) {
 }
 
 // Balance returns the balance of the specified address.
-func (m *Module) Balance(ctx context.Context, addr string) (uint64, error) {
-	client, cls, err := m.clientBuilder()
+func (m *Module) Balance(ctx context.Context, addr string) (*big.Int, error) {
+	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("creating lotus client: %s", err)
+		return nil, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
 	a, err := address.NewFromString(addr)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	b, err := client.WalletBalance(ctx, a)
 	if err != nil {
-		return 0, fmt.Errorf("getting balance from lotus: %s", err)
+		return nil, fmt.Errorf("getting balance from lotus: %s", err)
 	}
-	return b.Uint64(), nil
+	return b.Int, nil
 }
 
 // SendFil sends fil from one address to another.
@@ -217,7 +217,7 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 		To:    t,
 		Value: types.BigInt{Int: amount},
 	}
-	client, cls, err := m.clientBuilder()
+	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}

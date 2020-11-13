@@ -1,7 +1,7 @@
 LIB_VERSION=$1
 PROTOS_PATH=$2
 OUT_PATH=$3
-SRC_PATH=$OUT_PATH/pow
+SRC_PATH=$OUT_PATH/src
 
 if [ -d "$OUT_PATH" ] 
 then
@@ -14,14 +14,16 @@ cat << EOF > $OUT_PATH/setup.py
 import setuptools
 
 setuptools.setup(
-    name="grpc-powergate-client",
+    name="grpc_powergate_client",
     version="${LIB_VERSION}",
     author="Textile",
     author_email="contact@textile.io",
     url="https://github.com/textileio/powergate",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(where="src"),
+    package_dir={'': 'src'},
     install_requires=[
       'protobuf',
+      'grpcio',
     ],
 )
 EOF
