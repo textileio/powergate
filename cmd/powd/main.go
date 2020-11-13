@@ -210,7 +210,7 @@ func setupInstrumentation() (func(), error) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
-			log.Error("shutting down prometheus server: %s", err)
+			log.Errorf("shutting down prometheus server: %s", err)
 		}
 	}
 
