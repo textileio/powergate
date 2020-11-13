@@ -199,7 +199,7 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 	}
 
 	chainSubtitle := fmt.Sprintf("Last updated %v", timeToString(uint64ToTime(index.OnChain.LastUpdated)))
-	chainHeaders := []string{"Miner", "Power", "RelativePower", "SectorSize", "ActiveDeals"}
+	chainHeaders := []string{"Miner", "Power", "RelativePower", "SectorSize"}
 	var chainRows [][]interface{}
 	i = 0
 	for id, onchainData := range index.OnChain.Miners {
@@ -211,7 +211,6 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 			onchainData.Power,
 			onchainData.RelativePower,
 			onchainData.SectorSize,
-			onchainData.ActiveDeals,
 		})
 		i++
 	}
@@ -219,7 +218,7 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 	sort.Slice(chainRows, func(i, j int) bool {
 		l := chainRows[i][0].(string)
 		r := chainRows[j][0].(string)
-		return index.OnChain.Miners[l].ActiveDeals >= index.OnChain.Miners[r].ActiveDeals
+		return index.OnChain.Miners[l].RelativePower >= index.OnChain.Miners[r].RelativePower
 	})
 
 	c.HTML(http.StatusOK, "/public/html/miners.gohtml", gin.H{

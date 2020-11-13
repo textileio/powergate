@@ -21,7 +21,7 @@ const (
 	EpochDurationSeconds = 30
 
 	// MinDealDuration is the minium deal duration accepted in the Filecoin network.
-	// Original calculation: 180 * EpochsInADay
+	// Original calculation: 180 * EpochsInADay.
 	MinDealDuration = 180 * (24 * 60 * 60 / EpochDurationSeconds)
 
 	// CidUndef is a magic value to represent an undefined cid as a string.

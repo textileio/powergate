@@ -82,7 +82,7 @@ type AuthEntry struct {
 type JobStatus int
 
 const (
-	// Unspecified indicates a default or empty value
+	// Unspecified indicates a default or empty value.
 	Unspecified JobStatus = iota
 	// Queued indicates the Job is queued in the Scheduler.
 	Queued

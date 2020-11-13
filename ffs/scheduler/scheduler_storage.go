@@ -479,7 +479,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo
 		Enabled: true,
 		Filecoin: ffs.FilInfo{
 			DataCid:   curr.Cid,
-			Size:      size,
+			Size:      uint64(size),
 			Proposals: append(okDeals, curr.Cold.Filecoin.Proposals...), // Append to any existing other proposals
 		},
 	}, allErrors, nil

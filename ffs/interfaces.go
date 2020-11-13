@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/deals"
 )
@@ -84,7 +85,7 @@ type ColdStorage interface {
 	// Store stores a Cid using the provided configuration and
 	// account address. It returns a slice of accepted proposed deals,
 	// a slice of rejected proposal deals, and the size of the data.
-	Store(context.Context, cid.Cid, FilConfig) ([]cid.Cid, []DealError, uint64, error)
+	Store(context.Context, cid.Cid, FilConfig) ([]cid.Cid, []DealError, abi.PaddedPieceSize, error)
 
 	// WaitForDeal blocks the provided Deal Proposal reach a
 	// final state. If the deal finishes successfully it returns a FilStorage
