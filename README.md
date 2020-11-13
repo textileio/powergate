@@ -70,7 +70,7 @@ To build and install the CLI, run:
 ```bash
 $ make install-pow
 ```
-The binary will be placed automatically in `$GOPATH/bin`You may have to set the Path variables using the below coomands
+The binary will be placed automatically in `$GOPATH/bin`. You may have to set the Path variables using the below coomands
 ```bash
 $ export PATH=$PATH:$(go env GOPATH)/bin
 $ export GOPATH=$(go env GOPATH)
