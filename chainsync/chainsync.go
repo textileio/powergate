@@ -12,8 +12,8 @@ import (
 const (
 	hcApply = "apply"
 	// For completeness:
-	// hcRevert = "revert"
-	// hcCurrent = "current"
+	// hcRevert = "revert".
+	// hcCurrent = "current".
 )
 
 // ChainSync provides methods to resolve chain syncing situations.

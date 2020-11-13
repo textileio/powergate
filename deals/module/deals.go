@@ -111,7 +111,7 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 // is automatically calculated considering each miner epoch price and piece size.
 // The data of dataCid should be already imported to the Filecoin Client or should be
 // accessible to it. (e.g: is integrated with an IPFS node).
-func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, pieceSize uint64, dcfgs []deals.StorageDealConfig, minDuration uint64) ([]deals.StoreResult, error) {
+func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, pieceSize abi.PaddedPieceSize, pieceCid cid.Cid, dcfgs []deals.StorageDealConfig, minDuration uint64) ([]deals.StoreResult, error) {
 	if minDuration < util.MinDealDuration {
 		return nil, fmt.Errorf("duration %d should be greater or equal to %d", minDuration, util.MinDealDuration)
 	}
@@ -146,9 +146,11 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 			Data: &storagemarket.DataRef{
 				TransferType: storagemarket.TTGraphsync,
 				Root:         dataCid,
+				PieceCid:     &pieceCid,
+				PieceSize:    pieceSize.Unpadded(),
 			},
 			MinBlocksDuration: minDuration,
-			EpochPrice:        big.Div(big.Mul(big.NewIntUnsigned(c.EpochPrice), big.NewIntUnsigned(pieceSize)), abi.NewTokenAmount(1<<30)),
+			EpochPrice:        big.Div(big.Mul(big.NewIntUnsigned(c.EpochPrice), big.NewIntUnsigned(uint64(pieceSize))), abi.NewTokenAmount(1<<30)),
 			Miner:             maddr,
 			Wallet:            addr,
 			FastRetrieval:     c.FastRetrieval,
@@ -173,18 +175,17 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 	return res, nil
 }
 
-// CalculatePieceSize calculates the data and piece size of a Cid accesible
-// by the underlying Lotus node.
-func (m *Module) CalculatePieceSize(ctx context.Context, c cid.Cid) (api.DataSize, error) {
+// CalculateDealPiece calculates the size and CommP for a data cid.
+func (m *Module) CalculateDealPiece(ctx context.Context, c cid.Cid) (api.DataCIDSize, error) {
 	lapi, cls, err := m.clientBuilder(ctx)
 	if err != nil {
-		return api.DataSize{}, fmt.Errorf("creating lotus client: %s", err)
+		return api.DataCIDSize{}, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
 
-	dsz, err := lapi.ClientDealSize(ctx, c)
+	dsz, err := lapi.ClientDealPieceCID(ctx, c)
 	if err != nil {
-		return api.DataSize{}, fmt.Errorf("calculating data size: %s", err)
+		return api.DataCIDSize{}, fmt.Errorf("calculating data size: %s", err)
 	}
 	return dsz, nil
 }

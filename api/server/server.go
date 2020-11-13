@@ -110,8 +110,9 @@ type Config struct {
 	GrpcServerOpts      []grpc.ServerOption
 	GrpcWebProxyAddress string
 
-	GatewayBasePath string
-	GatewayHostAddr string
+	GatewayBasePath      string
+	GatewayHostAddr      string
+	IndexRawJSONHostAddr string
 
 	MongoURI string
 	MongoDB  string
@@ -309,7 +310,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("starting GRPC services: %s", err)
 	}
 
-	s.indexServer = startIndexHTTPServer(s)
+	s.indexServer = startIndexHTTPServer(s, conf.IndexRawJSONHostAddr)
 
 	log.Info("Starting finished, serving requests")
 
@@ -412,13 +413,13 @@ func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, ho
 
 	go func() {
 		if err := webProxy.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Errorf("error starting proxy: %v", err)
+			log.Errorf("starting proxy: %v", err)
 		}
 	}()
 	return nil
 }
 
-func startIndexHTTPServer(s *Server) *http.Server {
+func startIndexHTTPServer(s *Server, addr string) *http.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/index/ask", func(w http.ResponseWriter, r *http.Request) {
 		index := s.ai.Get()
@@ -454,7 +455,7 @@ func startIndexHTTPServer(s *Server) *http.Server {
 		}
 	})
 
-	srv := &http.Server{Addr: ":8889", Handler: mux}
+	srv := &http.Server{Addr: addr, Handler: mux}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("serving index http: %v", err)

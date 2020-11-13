@@ -1,12 +1,14 @@
 package client
 
 import (
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"testing"
 	"time"
 
 	"github.com/multiformats/go-multiaddr"
+	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/api/server"
 	"github.com/textileio/powergate/tests"
@@ -14,14 +16,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-var (
-	grpcHostNetwork     = "tcp"
-	grpcHostAddress     = "/ip4/127.0.0.1/tcp/5002"
-	grpcWebProxyAddress = "127.0.0.1:6002"
-	gatewayHostAddr     = "0.0.0.0:7000"
-)
+var ()
 
 func defaultServerConfig(t *testing.T) server.Config {
+	grpcHostNetwork := "tcp"
+	grpcHostAddress := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", freePort(t))
+	grpcWebProxyAddress := fmt.Sprintf("127.0.0.1:%d", freePort(t))
+	gatewayHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
+	indexRawJSONHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
+
 	repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
 	require.NoError(t, err)
 
@@ -48,6 +51,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 		GrpcWebProxyAddress:         grpcWebProxyAddress,
 		RepoPath:                    repoPath,
 		GatewayHostAddr:             gatewayHostAddr,
+		IndexRawJSONHostAddr:        indexRawJSONHostAddr,
 		MaxMindDBFolder:             "../../iplocation/maxmind",
 		MinerSelector:               "reputation",
 		FFSDealFinalityTimeout:      time.Minute * 30,
@@ -71,11 +75,15 @@ func setupServer(t *testing.T, conf server.Config) func() {
 	}
 }
 
-func setupConnection(t *testing.T) (*grpc.ClientConn, func()) {
-	auth := TokenAuth{}
-	ma, err := multiaddr.NewMultiaddr(grpcHostAddress)
+func freePort(t *testing.T) int {
+	fp, err := freeport.GetFreePort()
 	require.NoError(t, err)
-	addr, err := util.TCPAddrFromMultiAddr(ma)
+	return fp
+}
+
+func setupConnection(t *testing.T, grpcHostAddress multiaddr.Multiaddr) (*grpc.ClientConn, func()) {
+	auth := TokenAuth{}
+	addr, err := util.TCPAddrFromMultiAddr(grpcHostAddress)
 	require.NoError(t, err)
 	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(auth))
 	require.NoError(t, err)
