@@ -49,7 +49,7 @@ type WatchLogsEvent struct {
 	Err error
 }
 
-// Stage allows to temporarily stage data in the Hot Storage in preparation for pushing a cid storage config.
+// Stage allows to temporarily stage data in hot storage in preparation for pushing a cid storage config.
 func (d *Data) Stage(ctx context.Context, data io.Reader) (*userPb.StageResponse, error) {
 	stream, err := d.client.Stage(ctx)
 	if err != nil {
@@ -77,7 +77,7 @@ func (d *Data) Stage(ctx context.Context, data io.Reader) (*userPb.StageResponse
 	return stream.CloseAndRecv()
 }
 
-// StageFolder allows to temporarily stage a folder in the Hot Storage in preparation for pushing a cid storage config.
+// StageFolder allows to temporarily stage a folder in hot storage in preparation for pushing a cid storage config.
 func (d *Data) StageFolder(ctx context.Context, ipfsRevProxyAddr string, folderPath string) (string, error) {
 	ffsToken := ctx.Value(AuthKey).(string)
 
@@ -113,7 +113,7 @@ func (d *Data) ReplaceData(ctx context.Context, cid1, cid2 string) (*userPb.Repl
 	return d.client.ReplaceData(ctx, &userPb.ReplaceDataRequest{Cid1: cid1, Cid2: cid2})
 }
 
-// Get returns an io.Reader for reading a stored Cid from the Hot Storage.
+// Get returns an io.Reader for reading a stored Cid from hot storage.
 func (d *Data) Get(ctx context.Context, cid string) (io.Reader, error) {
 	stream, err := d.client.Get(ctx, &userPb.GetRequest{
 		Cid: cid,

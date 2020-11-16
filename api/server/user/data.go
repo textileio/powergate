@@ -13,9 +13,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Stage allows you to temporarily cache data in the Hot layer in preparation for pushing a cid storage config.
+// Stage allows you to temporarily cache data in hot storage in preparation for pushing a cid storage config.
 func (s *Service) Stage(srv userPb.UserService_StageServer) error {
-	// check that an API instance exists so not just anyone can add data to the hot layer
+	// check that an API instance exists so not just anyone can add data to hot storage
 	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
 		return err
 	}

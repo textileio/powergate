@@ -86,7 +86,7 @@ func run(ctx context.Context, c *client.Client, id int, seed int, size int64, ad
 	ra := rand.New(rand.NewSource(int64(seed)))
 	lr := io.LimitReader(ra, size)
 
-	log.Infof("[%d] Adding to hot layer...", id)
+	log.Infof("[%d] Adding to hot storage...", id)
 	statgeRes, err := c.Data.Stage(ctx, lr)
 	if err != nil {
 		return fmt.Errorf("importing data to hot storage (ipfs node): %s", err)

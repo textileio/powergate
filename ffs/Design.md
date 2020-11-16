@@ -83,10 +83,10 @@ In the current document we've referred to _StorageConfigs_ as a central concept 
 
 
 #### _API_ _Get(...)_ operation
-One important point is that `Get` operations in _API_ can only retrieve data from the Hot Storage (via `GetCidFromHot` in the _Scheduler_).
+One important point is that `Get` operations in _API_ can only retrieve data from hot storage (via `GetCidFromHot` in the _Scheduler_).
 This has some different scenarios:
-- If the data is stored in the Hot Storage, it fetched from there.
-- If the data wasn't enabled in the Hot Storage (`HotConfig.Enabled: false`), it will error indicating that the Hot Storage isn't enabled.
+- If the data is stored in hot storage, it fetched from there.
+- If the data wasn't enabled in hot storage (`HotConfig.Enabled: false`), it will error indicating that hot storage isn't enabled.
 
 The last point indicates that the _API_ client should explicitly set `HotConfig.Enabled: true` to be able to retrieve the data. Hot Storage enabling is done in two steps:
 1) It tries to fetch the data from the IPFS network considering the `AddTimeout` as a bound of time.

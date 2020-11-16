@@ -44,7 +44,7 @@ func (s *StorageConfig) SetDefault(ctx context.Context, config *userPb.StorageCo
 	return s.client.SetDefaultStorageConfig(ctx, req)
 }
 
-// Apply push a new configuration for the Cid in the Hot and Cold layers.
+// Apply push a new configuration for the Cid in hot and cold storage.
 func (s *StorageConfig) Apply(ctx context.Context, cid string, opts ...ApplyOption) (*userPb.ApplyStorageConfigResponse, error) {
 	req := &userPb.ApplyStorageConfigRequest{Cid: cid}
 	for _, opt := range opts {

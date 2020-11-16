@@ -93,7 +93,7 @@ func TestDoubleReplace(t *testing.T) {
 	}
 
 	// Test the same workflow in different APIs instaneces,
-	// but same hot & cold layer.
+	// but same hot & cold storage.
 	testAddThenReplace()
 	testAddThenReplace()
 }

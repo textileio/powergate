@@ -46,7 +46,7 @@ func New(ipfs iface.CoreAPI, l ffs.JobLogger) (*CoreIpfs, error) {
 	return ci, nil
 }
 
-// Remove removes a Cid from the Hot Storage.
+// Remove removes a Cid from hot storage.
 func (ci *CoreIpfs) Remove(ctx context.Context, c cid.Cid) error {
 	log.Debugf("removing cid %s", c)
 	if err := ci.ipfs.Pin().Rm(ctx, path.IpfsPath(c), options.Pin.RmRecursive(true)); err != nil {

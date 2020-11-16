@@ -29,12 +29,12 @@ var (
 	ErrActiveInStorage = errors.New("can't remove Cid, disable from Hot and Cold storage")
 	// ErrHotStorageDisabled returned when trying to fetch a Cid when disabled on Hot Storage.
 	// To retrieve the data, is necessary to call unfreeze by enabling the Enabled flag in
-	// the Hot Storage for that Cid.
+	// hot storage for that Cid.
 	ErrHotStorageDisabled = errors.New("cid disabled in hot storage")
 )
 
 // API is an Api instance, which owns a Lotus Address and allows to
-// Store and Retrieve Cids from Hot and Cold layers.
+// Store and Retrieve Cids from hot and cold storage.
 type API struct {
 	is  *instanceStore
 	wm  ffs.WalletManager

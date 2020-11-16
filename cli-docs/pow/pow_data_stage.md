@@ -1,10 +1,10 @@
 ## pow data stage
 
-Temporarily stage data in the Hot layer in preparation for applying a cid storage config
+Temporarily stage data in Hot Storage in preparation for applying a cid storage config
 
 ### Synopsis
 
-Temporarily stage data in the Hot layer in preparation for applying a cid storage config
+Temporarily stage data in Hot Storage in preparation for applying a cid storage config
 
 ```
 pow data stage [path|url] [flags]

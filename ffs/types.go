@@ -239,8 +239,8 @@ func (s StorageConfig) WithHotIpfsAddTimeout(seconds int) StorageConfig {
 	return s
 }
 
-// WithHotAllowUnfreeze allows the Scheduler to fetch data from the Cold Storage,
-// if the Enabled flag of the Hot Storage switches from false->true.
+// WithHotAllowUnfreeze allows the Scheduler to fetch data from cold storage,
+// if the Enabled flag of hot storage switches from false->true.
 func (s StorageConfig) WithHotAllowUnfreeze(allow bool) StorageConfig {
 	s.Hot.AllowUnfreeze = true
 	return s
@@ -261,7 +261,7 @@ func (s StorageConfig) Validate() error {
 	if err := s.Cold.Validate(); err != nil {
 		return fmt.Errorf("cold-filecoin config is invalid: %s", err)
 	}
-	// We can't accept being renewable without the hot storage enabled.
+	// We can't accept being renewable without hot storage enabled.
 	// See the (**) note in scheduler.go
 	if s.Cold.Enabled && s.Cold.Filecoin.Renew.Enabled && !s.Hot.Enabled {
 		return fmt.Errorf("hot storage should be enabled to enable renewals")
@@ -274,7 +274,7 @@ type HotConfig struct {
 	// Enable indicates if Cid data is stored. If true, it will consider
 	// further configurations to execute actions.
 	Enabled bool
-	// AllowUnfreeze indicates that if data isn't available in the Hot Storage,
+	// AllowUnfreeze indicates that if data isn't available in hot storage,
 	// it's allowed to be feeded by Cold Storage if available.
 	AllowUnfreeze bool
 	// UnfreezeMaxPrice indicates the maximum amount of attoFil to pay for
@@ -310,7 +310,7 @@ func (ic *IpfsConfig) Validate() error {
 	return nil
 }
 
-// ColdConfig is the desired state of a Cid in a cold layer.
+// ColdConfig is the desired state of a Cid in cold storage.
 type ColdConfig struct {
 	// Enabled indicates that data will be saved in Cold storage.
 	// If is switched from false->true, it will consider the other attributes
@@ -427,7 +427,7 @@ type StorageInfo struct {
 }
 
 // HotInfo contains information about the current storage state
-// of a Cid in the hot layer.
+// of a Cid in hot storage.
 type HotInfo struct {
 	Enabled bool
 	Size    int
@@ -441,7 +441,7 @@ type IpfsHotInfo struct {
 }
 
 // ColdInfo contains information about the current storage state
-// of a Cid in the cold layer.
+// of a Cid in cold storage.
 type ColdInfo struct {
 	Enabled  bool
 	Filecoin FilInfo

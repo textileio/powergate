@@ -9,8 +9,8 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
-// PushStorageConfig push a new configuration for the Cid in the Hot and
-// Cold layer. If WithOverride opt isn't set it errors with ErrMustOverrideConfig.
+// PushStorageConfig push a new configuration for the Cid in the hot and
+// cold storage. If WithOverride opt isn't set it errors with ErrMustOverrideConfig.
 func (i *API) PushStorageConfig(c cid.Cid, opts ...PushStorageConfigOption) (ffs.JobID, error) {
 	i.lock.Lock()
 	defer i.lock.Unlock()
@@ -108,7 +108,7 @@ func (i *API) Replace(c1 cid.Cid, c2 cid.Cid) (ffs.JobID, error) {
 	return jid, nil
 }
 
-// Get returns an io.Reader for reading a stored Cid from the Hot Storage.
+// Get returns an io.Reader for reading a stored Cid from hot storage.
 func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	if !c.Defined() {
 		return nil, fmt.Errorf("cid is undefined")
@@ -122,7 +122,7 @@ func (i *API) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	}
 	r, err := i.sched.GetCidFromHot(ctx, c)
 	if err != nil {
-		return nil, fmt.Errorf("getting from hot layer %s: %s", c, err)
+		return nil, fmt.Errorf("getting from hot storage %s: %s", c, err)
 	}
 	return r, nil
 }

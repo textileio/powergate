@@ -157,9 +157,9 @@ func TestEnabledConfigChange(t *testing.T) {
 			// undone.
 			it.RequireFilStored(ctx, t, client, cid)
 			// Despite of the above, check that the Cid Config still reflects
-			// that this *shouldn't* be in the Cold Storage. To indicate
+			// that this *shouldn't* be in cold storage. To indicate
 			// this can't be renewed, or any other future action that tries to
-			// store it again in the Cold Layer.
+			// store it again in cold storage.
 			it.RequireStorageConfig(t, fapi, cid, &config)
 		})
 	})

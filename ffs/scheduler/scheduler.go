@@ -36,9 +36,9 @@ var (
 	RepairEvalFrequency = time.Hour * 24
 )
 
-// Scheduler receives actions to store a Cid in Hot and Cold layers. These actions are
+// Scheduler receives actions to store a Cid in hot and cold storage. These actions are
 // created as Jobs which have a lifecycle that can be watched by external actors.
-// This Jobs are executed by delegating the work to the Hot and Cold layers configured for
+// This Jobs are executed by delegating the work to the hot and cold storage configured for
 // the scheduler.
 type Scheduler struct {
 	cs  ffs.ColdStorage
@@ -79,7 +79,7 @@ type retrievalDaemon struct {
 }
 
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
-// HotStorage for the hot layer, and ColdStorage for the cold layer.
+// HotStorage for hot storage, and ColdStorage for cold storage.
 func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage, maxParallel int, dealFinalityTimeout time.Duration, sr2rf func() (int, error)) (*Scheduler, error) {
 	sjs, err := sjstore.New(txndstr.Wrap(ds, "sjstore"))
 	if err != nil {
@@ -135,11 +135,11 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 	return sch, nil
 }
 
-// GetCidFromHot returns an io.Reader of the data from the hot layer.
+// GetCidFromHot returns an io.Reader of the data from hot storage.
 func (s *Scheduler) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	r, err := s.hs.Get(ctx, c)
 	if err != nil {
-		return nil, fmt.Errorf("getting %s from hot layer: %s", c, err)
+		return nil, fmt.Errorf("getting %s from hot storage: %s", c, err)
 	}
 	return r, nil
 }
