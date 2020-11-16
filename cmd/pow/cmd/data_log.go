@@ -19,10 +19,11 @@ func init() {
 }
 
 var dataLogCmd = &cobra.Command{
-	Use:   "log [cid]",
-	Short: "Display logs for specified cid",
-	Long:  `Display logs for specified cid`,
-	Args:  cobra.ExactArgs(1),
+	Use:     "log [cid]",
+	Aliases: []string{"logs"},
+	Short:   "Display logs for specified cid",
+	Long:    `Display logs for specified cid`,
+	Args:    cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
