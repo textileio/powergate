@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/ffs"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/tests"
 
 	"github.com/textileio/powergate/util"
@@ -25,7 +26,7 @@ func TestMain(m *testing.M) {
 
 func TestJobCancelation(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
-	ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	cid, _ := it.AddRandomFile(t, r, ipfsAPI)
@@ -46,7 +47,7 @@ func TestJobCancelation(t *testing.T) {
 
 func TestParallelExecution(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := it.NewAPI(t, 1)
+	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -81,8 +82,8 @@ func TestResumeScheduler(t *testing.T) {
 
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := it.CreateIPFS(t)
-	addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
-	manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
+	addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+	manager, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 	auth, err := manager.Create(context.Background())
 	require.NoError(t, err)
 	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
@@ -99,7 +100,7 @@ func TestResumeScheduler(t *testing.T) {
 	require.NoError(t, err)
 	closeManager()
 
-	manager, closeManager = it.NewFFSManager(t, ds2, client, addr, ms, ipfs)
+	manager, closeManager = itmanager.NewFFSManager(t, ds2, client, addr, ms, ipfs)
 	defer closeManager()
 	fapi, err = manager.GetByAuthToken(auth.Token) // Get same FFS instance again
 	require.NoError(t, err)
@@ -107,12 +108,12 @@ func TestResumeScheduler(t *testing.T) {
 
 	sh, err := fapi.Show(c)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(sh.Cold.Filecoin.Proposals)) // Check only one deal still exits.
+	require.Equal(t, 1, len(sh.Cold.Filecoin.Proposals)) // Check only one deal still exists.
 }
 
 func TestFailedJobMessage(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := it.NewAPI(t, 1)
+	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))

@@ -12,6 +12,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/util"
 )
 
@@ -24,7 +25,7 @@ func TestMain(m *testing.M) {
 
 func TestLogHistory(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := it.NewAPI(t, 1)
+	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -58,7 +59,7 @@ func TestLogHistory(t *testing.T) {
 func TestCidLogger(t *testing.T) {
 	t.Parallel()
 	t.Run("WithNoFilters", func(t *testing.T) {
-		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -97,7 +98,7 @@ func TestCidLogger(t *testing.T) {
 	})
 	t.Run("WithJidFilter", func(t *testing.T) {
 		t.Run("CorrectJid", func(t *testing.T) {
-			ipfs, _, fapi, cls := it.NewAPI(t, 1)
+			ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -135,7 +136,7 @@ func TestCidLogger(t *testing.T) {
 			it.RequireStorageConfig(t, fapi, cid, nil)
 		})
 		t.Run("IncorrectJid", func(t *testing.T) {
-			ipfs, _, fapi, cls := it.NewAPI(t, 1)
+			ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))

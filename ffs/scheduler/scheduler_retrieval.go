@@ -92,7 +92,7 @@ func (s *Scheduler) executeRetrieval(ctx context.Context, a astore.RetrievalActi
 	// ToDo: use graphsync to get the underlying DataCid to be pinned
 	dataCid := cid.Undef
 
-	size, err := s.hs.Store(ctx, dataCid)
+	size, err := s.hs.Pin(ctx, a.APIID, dataCid)
 	if err != nil {
 		return ffs.RetrievalInfo{}, fmt.Errorf("pinning data cid: %s", err)
 	}

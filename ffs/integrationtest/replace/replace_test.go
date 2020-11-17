@@ -12,6 +12,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -25,7 +26,7 @@ func TestMain(m *testing.M) {
 func TestPushCidReplace(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, client, fapi, cls := it.NewAPI(t, 1)
+	ipfs, client, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -65,8 +66,8 @@ func TestDoubleReplace(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := it.CreateIPFS(t)
-	addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
-	m, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
+	addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+	m, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 	defer closeManager()
 
 	// This will ask for a new API to the manager, and do a replace. Always the same replace.

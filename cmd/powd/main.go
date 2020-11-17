@@ -130,6 +130,8 @@ func configFromFlags() (server.Config, error) {
 	ffsDealWatchFinalityTimeout := time.Minute * time.Duration(config.GetInt("ffsdealfinalitytimeout"))
 	ffsMinimumPieceSize := config.GetUint64("ffsminimumpiecesize")
 	ffsMaxParallelDealPreparing := config.GetInt("ffsmaxparalleldealpreparing")
+	ffsGCInterval := time.Minute * time.Duration(config.GetInt("ffsgcinterval"))
+	ffsGCStagedGracePeriod := time.Minute * time.Duration(config.GetInt("ffsgcstagedgraceperiod"))
 	dealWatchPollDuration := time.Second * time.Duration(config.GetInt("dealwatchpollduration"))
 	askIndexQueryAskTimeout := time.Second * time.Duration(config.GetInt("askindexqueryasktimeout"))
 	askIndexRefreshInterval := time.Minute * time.Duration(config.GetInt("askindexrefreshinterval"))
@@ -167,6 +169,8 @@ func configFromFlags() (server.Config, error) {
 		FFSDealFinalityTimeout:      ffsDealWatchFinalityTimeout,
 		FFSMinimumPieceSize:         ffsMinimumPieceSize,
 		FFSMaxParallelDealPreparing: ffsMaxParallelDealPreparing,
+		FFSGCAutomaticGCInterval:    ffsGCInterval,
+		FFSGCStageGracePeriod:       ffsGCStagedGracePeriod,
 		AutocreateMasterAddr:        autocreateMasterAddr,
 		MinerSelector:               minerSelector,
 		MinerSelectorParams:         minerSelectorParams,
@@ -264,6 +268,7 @@ func setupLogging(repoPath string) error {
 		"ffs-sched-sjstore",
 		"ffs-sched-rjstore",
 		"ffs-cidlogger",
+		"ffs-pinstore",
 
 		// gRPC Services
 		"powergate-service",
@@ -363,6 +368,8 @@ func setupFlags() error {
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel")
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
 	pflag.String("ffsmaxparalleldealpreparing", "2", "Max parallel deal preparing tasks")
+	pflag.String("ffsgcinterval", "60", "Interval in minutes of Hot Storage GC for staged data; zero is never.")
+	pflag.String("ffsgcstagedgraceperiod", "60", "Duration in minutes where a staged Cid will be considered GCable if scheduled in a Job")
 	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes")
 
 	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask")

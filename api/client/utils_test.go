@@ -56,6 +56,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 		MinerSelector:               "reputation",
 		FFSDealFinalityTimeout:      time.Minute * 30,
 		FFSMaxParallelDealPreparing: 1,
+		FFSGCAutomaticGCInterval:    0,
 		DealWatchPollDuration:       time.Second * 15,
 		SchedMaxParallel:            10,
 		AskIndexQueryAskTimeout:     time.Second * 3,

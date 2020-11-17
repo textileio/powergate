@@ -30,6 +30,8 @@ type AdminServiceClient interface {
 	LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error)
 	LatestSuccessfulStorageJobs(ctx context.Context, in *LatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*LatestSuccessfulStorageJobsResponse, error)
 	StorageJobsSummary(ctx context.Context, in *StorageJobsSummaryRequest, opts ...grpc.CallOption) (*StorageJobsSummaryResponse, error)
+	GCStaged(ctx context.Context, in *GCStagedRequest, opts ...grpc.CallOption) (*GCStagedResponse, error)
+	PinnedCids(ctx context.Context, in *PinnedCidsRequest, opts ...grpc.CallOption) (*PinnedCidsResponse, error)
 }
 
 type adminServiceClient struct {
@@ -130,6 +132,24 @@ func (c *adminServiceClient) StorageJobsSummary(ctx context.Context, in *Storage
 	return out, nil
 }
 
+func (c *adminServiceClient) GCStaged(ctx context.Context, in *GCStagedRequest, opts ...grpc.CallOption) (*GCStagedResponse, error) {
+	out := new(GCStagedResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GCStaged", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) PinnedCids(ctx context.Context, in *PinnedCidsRequest, opts ...grpc.CallOption) (*PinnedCidsResponse, error) {
+	out := new(PinnedCidsResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/PinnedCids", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -147,6 +167,8 @@ type AdminServiceServer interface {
 	LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error)
 	LatestSuccessfulStorageJobs(context.Context, *LatestSuccessfulStorageJobsRequest) (*LatestSuccessfulStorageJobsResponse, error)
 	StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error)
+	GCStaged(context.Context, *GCStagedRequest) (*GCStagedResponse, error)
+	PinnedCids(context.Context, *PinnedCidsRequest) (*PinnedCidsResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -183,6 +205,12 @@ func (UnimplementedAdminServiceServer) LatestSuccessfulStorageJobs(context.Conte
 }
 func (UnimplementedAdminServiceServer) StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageJobsSummary not implemented")
+}
+func (UnimplementedAdminServiceServer) GCStaged(context.Context, *GCStagedRequest) (*GCStagedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GCStaged not implemented")
+}
+func (UnimplementedAdminServiceServer) PinnedCids(context.Context, *PinnedCidsRequest) (*PinnedCidsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PinnedCids not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -377,6 +405,42 @@ func _AdminService_StorageJobsSummary_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_GCStaged_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GCStagedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GCStaged(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GCStaged",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GCStaged(ctx, req.(*GCStagedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_PinnedCids_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PinnedCidsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).PinnedCids(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/PinnedCids",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).PinnedCids(ctx, req.(*PinnedCidsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AdminService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "powergate.admin.v1.AdminService",
 	HandlerType: (*AdminServiceServer)(nil),
@@ -420,6 +484,14 @@ var _AdminService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StorageJobsSummary",
 			Handler:    _AdminService_StorageJobsSummary_Handler,
+		},
+		{
+			MethodName: "GCStaged",
+			Handler:    _AdminService_GCStaged_Handler,
+		},
+		{
+			MethodName: "PinnedCids",
+			Handler:    _AdminService_PinnedCids_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

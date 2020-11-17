@@ -15,8 +15,9 @@ import (
 
 // Stage allows you to temporarily cache data in hot storage in preparation for pushing a cid storage config.
 func (s *Service) Stage(srv userPb.UserService_StageServer) error {
-	// check that an API instance exists so not just anyone can add data to hot storage
-	if _, err := s.getInstanceByToken(srv.Context()); err != nil {
+	// check that an API instance exists so not just anyone can add data to the hot layer
+	fapi, err := s.getInstanceByToken(srv.Context())
+	if err != nil {
 		return err
 	}
 
@@ -29,7 +30,7 @@ func (s *Service) Stage(srv userPb.UserService_StageServer) error {
 
 	go receiveFile(srv, writer)
 
-	c, err := s.hot.Add(srv.Context(), reader)
+	c, err := s.hot.Stage(srv.Context(), fapi.ID(), reader)
 	if err != nil {
 		return fmt.Errorf("adding data to hot storage: %s", err)
 	}

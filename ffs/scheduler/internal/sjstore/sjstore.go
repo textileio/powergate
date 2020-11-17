@@ -221,7 +221,7 @@ func (s *Store) cancelQueued(c cid.Cid) error {
 	}
 	defer func() {
 		if err := res.Close(); err != nil {
-			log.Errorf("closing getbystatus query result: %s", err)
+			log.Errorf("closing cancelQueued query result: %s", err)
 		}
 	}()
 	for r := range res.Next() {

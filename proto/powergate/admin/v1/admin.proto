@@ -94,12 +94,38 @@ message StorageJobsSummaryRequest {
   repeated string cids = 2;
 }
 
+
 message StorageJobsSummaryResponse {
   powergate.user.v1.JobCounts job_counts = 1;
   repeated powergate.user.v1.StorageJob queued_storage_jobs = 2;
   repeated powergate.user.v1.StorageJob executing_storage_jobs = 3;
   repeated powergate.user.v1.StorageJob latest_final_storage_jobs = 4;
   repeated powergate.user.v1.StorageJob latest_successful_storage_jobs = 5;
+}
+
+message GCStagedRequest {
+}
+
+message GCStagedResponse {
+	repeated string unpinned_cids = 1;
+}
+
+message PinnedCidsRequest {
+}
+
+message PinnedCidsResponse {
+	repeated HSPinnedCid cids = 1;
+}
+
+message HSPinnedCid {
+	string cid = 1;
+	repeated HSPinnedCidUser users = 2;
+}
+
+message HSPinnedCidUser {
+	string user_id = 1;
+	bool staged = 2;
+	int64 created_at = 3;
 }
 
 service AdminService {
@@ -118,4 +144,6 @@ service AdminService {
   rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
   rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
   rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
+  rpc GCStaged(GCStagedRequest) returns (GCStagedResponse) {}
+  rpc PinnedCids(PinnedCidsRequest) returns (PinnedCidsResponse) {}
 }

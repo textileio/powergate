@@ -122,6 +122,8 @@ type Config struct {
 	FFSDealFinalityTimeout      time.Duration
 	FFSMinimumPieceSize         uint64
 	FFSMaxParallelDealPreparing int
+	FFSGCAutomaticGCInterval    time.Duration
+	FFSGCStageGracePeriod       time.Duration
 	SchedMaxParallel            int
 	MinerSelector               string
 	MinerSelectorParams         string
@@ -245,7 +247,7 @@ func NewServer(conf Config) (*Server, error) {
 		conf.FFSMinimumPieceSize = 0
 	}
 	cs := filcold.New(ms, dm, ipfs, chain, l, lsm, conf.FFSMinimumPieceSize, conf.FFSMaxParallelDealPreparing)
-	hs, err := coreipfs.New(ipfs, l)
+	hs, err := coreipfs.New(txndstr.Wrap(ds, "ffs/coreipfs"), ipfs, l)
 	if err != nil {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)
 	}
@@ -254,7 +256,8 @@ func NewServer(conf Config) (*Server, error) {
 	if ms, ok := ms.(*sr2.MinerSelector); ok {
 		sr2rf = ms.GetReplicationFactor
 	}
-	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf)
+	gcConfig := scheduler.GCConfig{StageGracePeriod: conf.FFSGCStageGracePeriod, AutoGCInterval: conf.FFSGCAutomaticGCInterval}
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf, gcConfig)
 	if err != nil {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}

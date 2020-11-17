@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
@@ -26,7 +27,7 @@ func TestMain(m *testing.M) {
 
 func TestSetDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	config := ffs.StorageConfig{
@@ -58,7 +59,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		t.Parallel()
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -83,7 +84,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		t.Parallel()
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -109,7 +110,7 @@ func TestEnabledConfigChange(t *testing.T) {
 
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
+			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -135,7 +136,7 @@ func TestEnabledConfigChange(t *testing.T) {
 
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
+			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -184,7 +185,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 			t.Parallel()
 
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
-				ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+				ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 				defer cls()
 
 				r := rand.New(rand.NewSource(22))
@@ -235,7 +236,7 @@ func TestHotTimeoutConfig(t *testing.T) {
 	scheduler.HardcodedHotTimeout = time.Second * 10
 	t.SkipNow()
 	t.Parallel()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	t.Run("ShortTime", func(t *testing.T) {
@@ -253,7 +254,7 @@ func TestDurationConfig(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -274,7 +275,7 @@ func TestDurationConfig(t *testing.T) {
 
 func TestGetDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	defaultConf := fapi.DefaultStorageConfig()

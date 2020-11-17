@@ -54,10 +54,13 @@ type Scheduler struct {
 	sr2RepFactor        func() (int, error)
 	dealFinalityTimeout time.Duration
 
-	sd          storageDaemon
-	rd          retrievalDaemon
-	cancelLock  sync.Mutex
-	cancelChans map[ffs.JobID]chan struct{}
+	gcLock sync.Mutex
+	gc     GCConfig
+
+	sd         storageDaemon
+	rd         retrievalDaemon
+	cancelLock sync.Mutex
+	jobsCancel map[ffs.JobID]chan struct{}
 
 	ctx      context.Context
 	cancel   context.CancelFunc
@@ -78,9 +81,15 @@ type retrievalDaemon struct {
 	evaluateQueue chan struct{}
 }
 
+// GCConfig provides configuration for FFS GC.
+type GCConfig struct {
+	StageGracePeriod time.Duration
+	AutoGCInterval   time.Duration
+}
+
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
-// HotStorage for hot storage, and ColdStorage for cold storage.
-func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage, maxParallel int, dealFinalityTimeout time.Duration, sr2rf func() (int, error)) (*Scheduler, error) {
+// HotStorage for the hot layer, and ColdStorage for the cold layer.
+func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage, maxParallel int, dealFinalityTimeout time.Duration, sr2rf func() (int, error), gcConfig GCConfig) (*Scheduler, error) {
 	sjs, err := sjstore.New(txndstr.Wrap(ds, "sjstore"))
 	if err != nil {
 		return nil, fmt.Errorf("loading stroage jobstore: %s", err)
@@ -112,9 +121,10 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 		cis: cis,
 		ris: ris,
 
-		l: l,
+		l:  l,
+		gc: gcConfig,
 
-		cancelChans: make(map[ffs.JobID]chan struct{}),
+		jobsCancel: make(map[ffs.JobID]chan struct{}),
 		sd: storageDaemon{
 			rateLim:       make(chan struct{}, maxParallel),
 			evaluateQueue: make(chan struct{}, 1),
@@ -131,7 +141,9 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 		sr2RepFactor:        sr2rf,
 		dealFinalityTimeout: dealFinalityTimeout,
 	}
+
 	go sch.run()
+
 	return sch, nil
 }
 
@@ -148,7 +160,7 @@ func (s *Scheduler) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, er
 func (s *Scheduler) Cancel(jid ffs.JobID) error {
 	s.cancelLock.Lock()
 	defer s.cancelLock.Unlock()
-	cancelChan, ok := s.cancelChans[jid]
+	cancelChan, ok := s.jobsCancel[jid]
 	if !ok {
 		return nil
 	}
@@ -161,6 +173,50 @@ func (s *Scheduler) Cancel(jid ffs.JobID) error {
 		// don't block, this is just a cancel retry.
 	}
 	return nil
+}
+
+// GCStaged runs a unpinned garbage collection of stage-pins.
+func (s *Scheduler) GCStaged(ctx context.Context) ([]cid.Cid, error) {
+	return s.gcStaged(ctx, 0)
+}
+
+// PinnedCids returns the pinned cids from Hot-Storage.
+func (s *Scheduler) PinnedCids(ctx context.Context) ([]ffs.PinnedCid, error) {
+	res, err := s.hs.PinnedCids(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting pinned cids from hot-storage: %s", err)
+	}
+	return res, nil
+}
+
+func (s *Scheduler) gcStaged(ctx context.Context, gracePeriod time.Duration) ([]cid.Cid, error) {
+	s.gcLock.Lock()
+	defer s.gcLock.Unlock()
+	log.Infof("running scheduler gc...")
+	cids := map[cid.Cid]struct{}{}
+
+	qj := s.sjs.QueuedJobs(ffs.EmptyInstanceID)
+	for _, j := range qj {
+		cids[j.Cid] = struct{}{}
+	}
+	ej := s.sjs.ExecutingJobs(ffs.EmptyInstanceID)
+	for _, j := range ej {
+		cids[j.Cid] = struct{}{}
+	}
+
+	excludedCids := make([]cid.Cid, 0, len(cids))
+	for c := range cids {
+		excludedCids = append(excludedCids, c)
+	}
+
+	gced, err := s.hs.GCStaged(ctx, excludedCids, time.Now().Add(-gracePeriod))
+	if err != nil {
+		return nil, fmt.Errorf("hot-storage gc: %s", err)
+	}
+
+	log.Infof("scheduler gc ran with %d excluded cids, unpinning %d staged cids", len(excludedCids), len(gced))
+
+	return gced, nil
 }
 
 // Close terminates the scheduler.
@@ -176,15 +232,36 @@ func (s *Scheduler) Close() error {
 }
 
 // run spins the long-running goroutines that will execute
-// queued storage and retrieval jobs, renewals and repairs.
+// queued storage, retrieval jobs, renewals, repairs, and gc.
 func (s *Scheduler) run() {
 	defer close(s.finished)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		if s.gc.AutoGCInterval == 0 {
+			return
+		}
+
+		for {
+			select {
+			case <-s.ctx.Done():
+				return
+			case <-time.After(s.gc.AutoGCInterval):
+				if _, err := s.gcStaged(s.ctx, s.gc.StageGracePeriod); err != nil {
+					log.Errorf("automatic gc: %s", err)
+				}
+			}
+		}
+	}()
+
 	if err := s.resumeStartedDeals(); err != nil {
 		log.Errorf("resuming started deals: %s", err)
 		return
 	}
 
-	var wg sync.WaitGroup
 	// Timer for evaluating renewable storage configs.
 	wg.Add(1)
 	go func() {
@@ -396,11 +473,11 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	cancelChan := make(chan struct{}, 1)
 	// Create chan to allow Job cancellation.
 	s.cancelLock.Lock()
-	s.cancelChans[j.ID] = cancelChan
+	s.jobsCancel[j.ID] = cancelChan
 	s.cancelLock.Unlock()
 	defer func() {
 		s.cancelLock.Lock()
-		delete(s.cancelChans, j.ID)
+		delete(s.jobsCancel, j.ID)
 		s.cancelLock.Unlock()
 	}()
 
@@ -414,10 +491,10 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 		// If the user called Cancel to cancel Job execution,
 		// we cancel the context to finish.
 		<-cancelChan
-		cancel()
 		cancelLock.Lock()
 		canceled = true
 		cancelLock.Unlock()
+		cancel()
 	}()
 
 	// Get
@@ -464,6 +541,7 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	if err := s.sjs.Finalize(j.ID, finalStatus, nil, dealErrors); err != nil {
 		log.Errorf("changing job to success: %s", err)
 	}
+
 	s.l.Log(ctx, "Job %s execution finished with status %s.", j.ID, ffs.JobStatusStr[finalStatus])
 }
 
@@ -515,11 +593,11 @@ func (s *Scheduler) executeQueuedRetrievals(j ffs.RetrievalJob) {
 	cancelChan := make(chan struct{})
 	// Create chan to allow Job cancellation.
 	s.cancelLock.Lock()
-	s.cancelChans[j.ID] = cancelChan
+	s.jobsCancel[j.ID] = cancelChan
 	s.cancelLock.Unlock()
 	defer func() {
 		s.cancelLock.Lock()
-		delete(s.cancelChans, j.ID)
+		delete(s.jobsCancel, j.ID)
 		s.cancelLock.Unlock()
 	}()
 
