@@ -308,10 +308,6 @@ func epochToTime(value int64) time.Time {
 	return time.Unix(genesisEpochTime+value*30, 0)
 }
 
-func uint64ToTime(value int64) time.Time {
-	return time.Unix(value, 0)
-}
-
 func timeToString(t time.Time) string {
 	return t.Format("01/02/06 3:04 PM")
 }
