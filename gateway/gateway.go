@@ -198,7 +198,7 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 		i++
 	}
 
-	chainSubtitle := fmt.Sprintf("Last updated %v", timeToString(uint64ToTime(index.OnChain.LastUpdated)))
+	chainSubtitle := fmt.Sprintf("Last updated %v", timeToString(epochToTime(index.OnChain.LastUpdated)))
 	chainHeaders := []string{"Miner", "Power", "RelativePower", "SectorSize"}
 	var chainRows [][]interface{}
 	i = 0
@@ -303,8 +303,9 @@ func (g *Gateway) reputationHandler(c *gin.Context) {
 	})
 }
 
-func uint64ToTime(value int64) time.Time {
-	return time.Unix(value, 0)
+func epochToTime(value int64) time.Time {
+	genesisEpochTime := int64(1598295600)
+	return time.Unix(genesisEpochTime+value*30, 0)
 }
 
 func timeToString(t time.Time) string {
