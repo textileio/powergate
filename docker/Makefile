@@ -35,3 +35,23 @@ down:
 		down
 .PHONY: down
 
+
+up-calibration: down-calibration
+	LOTUS_IMAGE_TAG=ntwk-calibration-d6c42 \
+	docker-compose \
+		-p calibration \
+		-f docker-compose.yaml \
+		-f ipfs-image.yaml \
+		-f powergate-build-context.yaml \
+		up --build 
+.PHONY: up-calibration
+
+down-calibration:
+	LOTUS_IMAGE_TAG=ntwk-calibration-d6c42 \
+	docker-compose \
+		-p calibration \
+		-f docker-compose.yaml \
+		-f ipfs-image.yaml \
+		-f powergate-build-context.yaml \
+		down
+.PHONY: down-calibration
