@@ -28,6 +28,12 @@ var (
 			"/dns4/bootstrap-0.ipfsmain.cn/tcp/34721/p2p/12D3KooWQnwEGNqcM2nAcPtRR9rAX8Hrg4k9kJLCHoTR5chJfz6d",
 			"/dns4/bootstrap-1.ipfsmain.cn/tcp/34723/p2p/12D3KooWMKxMkD5DMpSWsW7dBddKxKT7L2GgbNuckz9otxvkvByP",
 		},
+		"calibrationnet": {
+			"/dns4/bootstrap-0.calibration.fildev.network/tcp/1347/p2p/12D3KooWK1QYsm6iqyhgH7vqsbeoNoKHbT368h1JLHS1qYN36oyc",
+			"/dns4/bootstrap-1.calibration.fildev.network/tcp/1347/p2p/12D3KooWKDyJZoPsNak1iYNN1GGmvGnvhyVbWBL6iusYfP3RpgYs",
+			"/dns4/bootstrap-2.calibration.fildev.network/tcp/1347/p2p/12D3KooWJRSTnzABB6MYYEBbSTT52phQntVD1PpRTMh1xt9mh6yH",
+			"/dns4/bootstrap-3.calibration.fildev.network/tcp/1347/p2p/12D3KooWQLi3kY6HnMYLUtwCe26zWMdNhniFgHVNn1DioQc7NiWv",
+		},
 	}
 )
 
