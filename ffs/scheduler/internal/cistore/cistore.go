@@ -48,7 +48,7 @@ func (s *Store) Get(iid ffs.APIID, c cid.Cid) (ffs.StorageInfo, error) {
 // Put saves a new storage state for a Cid.
 func (s *Store) Put(ci ffs.StorageInfo) error {
 	if !ci.APIID.Valid() {
-		return fmt.Errorf("apiid is invalid")
+		return fmt.Errorf("instance id is invalid")
 	}
 	if !ci.Cid.Defined() {
 		return fmt.Errorf("cid can't be undefined")

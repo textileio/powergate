@@ -470,6 +470,7 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	ctx, cancel := context.WithCancel(context.WithValue(context.Background(), ffs.CtxKeyJid, j.ID))
 	defer cancel()
 	ctx = context.WithValue(ctx, ffs.CtxStorageCid, j.Cid)
+	ctx = context.WithValue(ctx, ffs.CtxAPIID, j.APIID)
 
 	var cancelLock sync.Mutex
 	var canceled bool

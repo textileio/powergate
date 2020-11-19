@@ -57,6 +57,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 
 	ctx := context.WithValue(context.Background(), ffs.CtxKeyJid, jid)
 	ctx = context.WithValue(ctx, ffs.CtxStorageCid, c)
+	ctx = context.WithValue(ctx, ffs.CtxAPIID, iid)
 	s.l.Log(ctx, "Pushing new configuration...")
 
 	aa := astore.StorageAction{
