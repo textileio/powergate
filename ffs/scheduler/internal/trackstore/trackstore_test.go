@@ -75,6 +75,10 @@ func TestAll(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPutRenewableAndAfterRepairable(t *testing.T) {
+	require.True(t, false)
+}
+
 func create(t *testing.T) *Store {
 	ds := tests.NewTxMapDatastore()
 	store, err := New(ds)

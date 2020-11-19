@@ -368,23 +368,22 @@ func (s *Scheduler) resumeStartedDeals() error {
 // it has repairing semantics too. If no work is needed, this scheduled
 // job would have no real work done.
 func (s *Scheduler) execRepairCron(ctx context.Context) {
-	cids, err := s.ts.GetRepairables()
+	tcids, err := s.ts.GetRepairables()
 	if err != nil {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 		return
 	}
-	for _, c := range cids {
-		if ctx.Err() != nil {
-			log.Info("repair cron execution canceled")
-			break
-		}
-		lCtx := context.WithValue(ctx, ffs.CtxStorageCid, c)
-		s.l.Log(lCtx, "Scheduling deal repair evaluation...")
-		jid, err := s.scheduleRenewRepairJob(c)
-		if err != nil {
-			s.l.Log(lCtx, "Scheduling deal repair errored: %s", err)
-		} else {
-			s.l.Log(lCtx, "Job %s was queued for repair evaluation.", jid)
+	for _, tc := range tcids {
+		for _, sc := range tc.Tracked {
+			lCtx := context.WithValue(ctx, ffs.CtxStorageCid, tc.Cid)
+			lCtx = context.WithValue(ctx, ffs.CtxAPIID, sc.IID)
+			s.l.Log(lCtx, "Scheduling deal repair evaluation...")
+			jid, err := s.push(sc.IID, tc.Cid, sc.StorageConfig, cid.Undef)
+			if err != nil {
+				s.l.Log(lCtx, "Scheduling deal repair errored: %s", err)
+			} else {
+				s.l.Log(lCtx, "Job %s was queued for repair evaluation.", jid)
+			}
 		}
 	}
 }
@@ -393,36 +392,23 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 // reschedule them as if they were pushed. The scheduler main executing logic
 // will do renewals if necessary.
 func (s *Scheduler) execRenewCron(ctx context.Context) {
-	cids, err := s.ts.GetRenewables()
+	tcids, err := s.ts.GetRenewables()
 	if err != nil {
 		log.Errorf("getting repairable cid configs from store: %s", err)
 	}
-	for _, c := range cids {
-		if ctx.Err() != nil {
-			log.Infof("renew cron execution canceled")
-			return
+	for _, tc := range tcids {
+		for _, sc := range tc.Tracked {
+			lCtx := context.WithValue(ctx, ffs.CtxStorageCid, tc.Cid)
+			lCtx = context.WithValue(ctx, ffs.CtxAPIID, sc.IID)
+			s.l.Log(lCtx, "Scheduling deal renew evaluation...")
+			jid, err := s.push(sc.IID, tc.Cid, sc.StorageConfig, cid.Undef)
+			if err != nil {
+				s.l.Log(lCtx, "Scheduling deal renewal errored: %s", err)
+			} else {
+				s.l.Log(lCtx, "Job %s was queued for renew evaluation.", jid)
+			}
 		}
-		lCtx := context.WithValue(ctx, ffs.CtxStorageCid, c)
-		s.l.Log(lCtx, "Scheduling deal renew evaluation...")
-		jid, err := s.scheduleRenewRepairJob(c)
-		if err != nil {
-			s.l.Log(lCtx, "Scheduling deal renewal errored: %s", err)
-		} else {
-			s.l.Log(lCtx, "Job %s was queued for renew evaluation.", jid)
-		}
 	}
-}
-
-func (s *Scheduler) scheduleRenewRepairJob(c cid.Cid) (ffs.JobID, error) {
-	sc, iid, err := s.ts.Get(c)
-	if err != nil {
-		return "", fmt.Errorf("getting latest storage config: %s", err)
-	}
-	jid, err := s.push(iid, c, sc, cid.Undef)
-	if err != nil {
-		return "", fmt.Errorf("scheduling repair job: %s", err)
-	}
-	return jid, nil
 }
 
 func (s *Scheduler) execQueuedStorages(ctx context.Context) {
