@@ -19,7 +19,10 @@ type Migrator struct {
 	migrations map[int]Migration
 }
 
-type Migration func(datastore.Txn) error
+// Migration runs a vA->v(A+1) migration. The boolean
+// indicates that the user accepts severe migrations
+// that might appear in border cases.
+type Migration func(datastore.Txn, bool) error
 
 func New(ds datastore.TxnDatastore, migrations map[int]Migration) *Migrator {
 	m := &Migrator{
@@ -100,9 +103,8 @@ func (m *Migrator) run(version int) error {
 	}
 
 	if err := txn.Commit(); err != nil {
-		return fmt.Errorf("commiting transaction: %s", err)
+		return fmt.Errorf("committing transaction: %s", err)
 	}
 
 	return nil
-
 }
