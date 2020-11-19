@@ -182,7 +182,6 @@ func TestRemove(t *testing.T) {
 
 	requireRenewables(t, ts)
 	requireRepairables(t, ts)
-
 }
 
 func TestPutMultipleIIDsWithRemoves(t *testing.T) {
@@ -226,7 +225,7 @@ func TestPutMultipleIIDsWithRemoves(t *testing.T) {
 	requireRenewables(t, ts, expected{Cid: c1, IIDs: []ffs.APIID{iid3}}, expected{Cid: c2, IIDs: []ffs.APIID{iid1, iid2}}, expected{Cid: c3, IIDs: []ffs.APIID{iid3}})
 	requireRepairables(t, ts, expected{Cid: c1, IIDs: []ffs.APIID{iid1, iid2}})
 
-	// Remove arbitrarly and check correctness.
+	// Remove arbitrary and check correctness.
 	err = ts.Remove(iid2, c2)
 	require.NoError(t, err)
 	requireRenewables(t, ts, expected{Cid: c1, IIDs: []ffs.APIID{iid3}}, expected{Cid: c2, IIDs: []ffs.APIID{iid1}}, expected{Cid: c3, IIDs: []ffs.APIID{iid3}})
