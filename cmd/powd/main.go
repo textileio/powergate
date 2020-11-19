@@ -235,6 +235,7 @@ func setupLogging(repoPath string) error {
 		// Top-level
 		"powd",
 		"server",
+		"migrations",
 
 		// Indexes & Reputation
 		"index-miner",
