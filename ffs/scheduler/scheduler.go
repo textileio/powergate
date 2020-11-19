@@ -376,7 +376,7 @@ func (s *Scheduler) execRepairCron(ctx context.Context) {
 	for _, tc := range tcids {
 		for _, sc := range tc.Tracked {
 			lCtx := context.WithValue(ctx, ffs.CtxStorageCid, tc.Cid)
-			lCtx = context.WithValue(ctx, ffs.CtxAPIID, sc.IID)
+			lCtx = context.WithValue(lCtx, ffs.CtxAPIID, sc.IID)
 			s.l.Log(lCtx, "Scheduling deal repair evaluation...")
 			jid, err := s.push(sc.IID, tc.Cid, sc.StorageConfig, cid.Undef)
 			if err != nil {
@@ -399,7 +399,7 @@ func (s *Scheduler) execRenewCron(ctx context.Context) {
 	for _, tc := range tcids {
 		for _, sc := range tc.Tracked {
 			lCtx := context.WithValue(ctx, ffs.CtxStorageCid, tc.Cid)
-			lCtx = context.WithValue(ctx, ffs.CtxAPIID, sc.IID)
+			lCtx = context.WithValue(lCtx, ffs.CtxAPIID, sc.IID)
 			s.l.Log(lCtx, "Scheduling deal renew evaluation...")
 			jid, err := s.push(sc.IID, tc.Cid, sc.StorageConfig, cid.Undef)
 			if err != nil {

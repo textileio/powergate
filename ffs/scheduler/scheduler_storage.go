@@ -152,8 +152,8 @@ func (s *Scheduler) WatchLogs(ctx context.Context, c chan<- ffs.LogEntry) error 
 }
 
 // GetLogsByCid returns history logs of a Cid.
-func (s *Scheduler) GetLogsByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
-	lgs, err := s.l.GetByCid(ctx, c)
+func (s *Scheduler) GetLogsByCid(ctx context.Context, iid ffs.APIID, c cid.Cid) ([]ffs.LogEntry, error) {
+	lgs, err := s.l.GetByCid(ctx, iid, c)
 	if err != nil {
 		return nil, fmt.Errorf("getting logs: %s", err)
 	}

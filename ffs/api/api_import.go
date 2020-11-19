@@ -44,6 +44,7 @@ func (i *API) ImportStorage(payloadCid cid.Cid, pieceCid cid.Cid, deals []Import
 	}
 
 	cinfo := ffs.StorageInfo{
+		APIID:   i.cfg.ID,
 		JobID:   ffs.EmptyJobID,
 		Cid:     payloadCid,
 		Created: time.Now(),

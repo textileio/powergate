@@ -514,7 +514,7 @@ const (
 type JobLogger interface {
 	Log(context.Context, string, ...interface{})
 	Watch(context.Context, chan<- LogEntry) error
-	GetByCid(context.Context, cid.Cid) ([]LogEntry, error)
+	GetByCid(context.Context, APIID, cid.Cid) ([]LogEntry, error)
 }
 
 // LogEntry is a log entry from a Cid execution.

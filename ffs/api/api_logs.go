@@ -25,7 +25,7 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 	}
 
 	if config.history {
-		lgs, err := i.sched.GetLogsByCid(ctx, c)
+		lgs, err := i.sched.GetLogsByCid(ctx, i.cfg.ID, c)
 		if err != nil {
 			return fmt.Errorf("getting history logs of %s: %s", c, err)
 		}
