@@ -1,19 +1,19 @@
-## pow admin data gcstaged
+## pow admin data pinnedCids
 
-Unpins unused staged data.
+List pinned cids information in hot-storage.
 
 ### Synopsis
 
-Unpins staged data not used by queued or executing jobs.
+List pinned cids information in hot-storage.
 
 ```
-pow admin data gcstaged [flags]
+pow admin data pinnedCids [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for gcstaged
+  -h, --help   help for pinnedCids
 ```
 
 ### Options inherited from parent commands
