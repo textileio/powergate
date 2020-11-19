@@ -161,18 +161,15 @@ func (s *Store) query(renewable bool, repairable bool) ([]TrackedCid, error) {
 		}
 
 		tc := TrackedCid{Cid: c}
-	Loop:
 		for _, tsc := range tscs {
 			isRepairable := tsc.StorageConfig.Repairable
 			isRenewable := tsc.StorageConfig.Cold.Enabled && tsc.StorageConfig.Cold.Filecoin.Renew.Enabled
 			if (repairable && isRepairable) || (renewable && isRenewable) {
 				tc.Tracked = append(tc.Tracked, tsc)
-				break Loop
 			}
-
-			if len(tc.Tracked) > 0 {
-				res = append(res, tc)
-			}
+		}
+		if len(tc.Tracked) > 0 {
+			res = append(res, tc)
 		}
 	}
 	return res, nil
