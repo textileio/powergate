@@ -3,23 +3,20 @@ package migration
 import (
 	"fmt"
 
+	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/util"
 )
 
-func migrateJobLogger(txn datastore.Txn) error {
+func migrateJobLogger(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) error {
 	q := query.Query{Prefix: "/ffs/joblogger"}
 	res, err := txn.Query(q)
 	if err != nil {
 		return fmt.Errorf("querying joblogger: %s", err)
 	}
 	defer func() { _ = res.Close() }()
-
-	cidOwners, err := v0_CidOwners(txn)
-	if err != nil {
-		return fmt.Errorf("getting cid owners: %s", err)
-	}
 
 	for r := range res.Next() {
 		if r.Error != nil {
@@ -43,7 +40,7 @@ func migrateJobLogger(txn datastore.Txn) error {
 		for _, iid := range owners {
 			log.Infof("Migrating job log to owner %s...", iid)
 
-			newKey := datastore.NewKey("/ffs/jobloger").ChildString(cidStr).ChildString(timestampStr)
+			newKey := datastore.NewKey("/ffs/jobloger").ChildString(iid).ChildString(cidStr).ChildString(timestampStr)
 			if err := txn.Put(newKey, r.Value); err != nil {
 				return fmt.Errorf("copying job log: %s", err)
 			}

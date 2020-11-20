@@ -11,14 +11,19 @@ import (
 )
 
 var multitenancyMigration = func(txn datastore.Txn) error {
+	cidOwners, err := v0_CidOwners(txn)
+	if err != nil {
+		return fmt.Errorf("getting cid owners: %s", err)
+	}
+
 	log.Infof("Starting job logger migration...")
-	if err := migrateJobLogger(txn); err != nil {
+	if err := migrateJobLogger(txn, cidOwners); err != nil {
 		return fmt.Errorf("migrating job logger: %s", err)
 	}
 	log.Infof("Job logger migration finished")
 
 	log.Infof("Starting storage info migration...")
-	if err := migrateStorageInfo(txn); err != nil {
+	if err := migrateStorageInfo(txn, cidOwners); err != nil {
 		return fmt.Errorf("migrating storage info: %s", err)
 	}
 	log.Infof("Storage info migration finished")
