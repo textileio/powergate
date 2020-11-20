@@ -31,7 +31,6 @@ type Logger struct {
 }
 
 type logEntry struct {
-	APIID       ffs.APIID
 	Cid         cid.Cid
 	RetrievalID ffs.RetrievalID
 	Timestamp   int64
@@ -63,7 +62,6 @@ func (cl *Logger) Log(ctx context.Context, format string, a ...interface{}) {
 	nowNano := now.UnixNano()
 	key := makeKey(iid, c, rid, nowNano)
 	le := logEntry{
-		APIID:       iid,
 		Cid:         c,
 		RetrievalID: rid,
 		Jid:         jid,
@@ -81,7 +79,7 @@ func (cl *Logger) Log(ctx context.Context, format string, a ...interface{}) {
 	}
 
 	entry := ffs.LogEntry{
-		APIID:     le.APIID,
+		APIID:     iid,
 		Cid:       le.Cid,
 		Jid:       le.Jid,
 		Timestamp: now,

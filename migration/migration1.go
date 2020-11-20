@@ -10,36 +10,29 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
-var multitenancyMigration = func(txn datastore.Txn, force bool) error {
-
-	if err := migrateJobLogger(txn, force); err != nil {
+var multitenancyMigration = func(txn datastore.Txn) error {
+	log.Infof("Starting job logger migration...")
+	if err := migrateJobLogger(txn); err != nil {
 		return fmt.Errorf("migrating job logger: %s", err)
 	}
+	log.Infof("Job logger migration finished")
 
-	if err := migrateStorageInfo(txn, force); err != nil {
+	log.Infof("Starting storage info migration...")
+	if err := migrateStorageInfo(txn); err != nil {
 		return fmt.Errorf("migrating storage info: %s", err)
 	}
+	log.Infof("Storage info migration finished")
 
-	if err := migrateTrackstore(txn, force); err != nil {
+	log.Infof("Starting trackstore migration...")
+	if err := migrateTrackstore(txn); err != nil {
 		return fmt.Errorf("migrating trackstore: %s", err)
 	}
+	log.Infof("Trackstore migration finished")
 
 	return nil
 }
 
-func migrateJobLogger(txn datastore.Txn, force bool) error {
-	panic("TODO")
-}
-
-func migrateStorageInfo(txn datastore.Txn, force bool) error {
-	panic("TODO")
-}
-
-func migrateTrackstore(txn datastore.Txn, force bool) error {
-	panic("TODO")
-}
-
-func v0_CidOwners(txn datastore.Txn, c cid.Cid) (map[cid.Cid][]ffs.APIID, error) {
+func v0_CidOwners(txn datastore.Txn) (map[cid.Cid][]ffs.APIID, error) {
 	iids, err := v0_APIIDs(txn)
 	if err != nil {
 		return nil, fmt.Errorf("getting v0 iids: %s", err)
