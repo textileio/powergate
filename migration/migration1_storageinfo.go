@@ -37,7 +37,7 @@ func migrateStorageInfo(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) er
 		for _, iid := range owners {
 			log.Infof("Migrating storageinfo to owner %s...", iid)
 
-			newKey := datastore.NewKey("/ffs/scheduler/cistore/").ChildString(iid.String()).ChildString(cidStr)
+			newKey := datastore.NewKey("/ffs/scheduler/cistore").ChildString(iid.String()).ChildString(cidStr)
 			if err := txn.Put(newKey, r.Value); err != nil {
 				return fmt.Errorf("copying storageinfo: %s", err)
 			}

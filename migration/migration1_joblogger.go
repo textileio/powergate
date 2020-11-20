@@ -40,7 +40,7 @@ func migrateJobLogger(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) erro
 		for _, iid := range owners {
 			log.Infof("Migrating job log to owner %s...", iid)
 
-			newKey := datastore.NewKey("/ffs/jobloger").ChildString(iid).ChildString(cidStr).ChildString(timestampStr)
+			newKey := datastore.NewKey("/ffs/jobloger").ChildString(iid.String()).ChildString(cidStr).ChildString(timestampStr)
 			if err := txn.Put(newKey, r.Value); err != nil {
 				return fmt.Errorf("copying job log: %s", err)
 			}

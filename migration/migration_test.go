@@ -9,29 +9,30 @@ import (
 	"github.com/textileio/powergate/tests"
 )
 
-func TestBoostrapMigration(t *testing.T) {
+func TestEmptyDatastore(t *testing.T) {
 	t.Parallel()
 
 	ms := map[int]Migration{
 		1: func(_ datastore.Txn) error {
-			return nil
+			return fmt.Errorf("This migration shouldn't be run on empty database")
 		},
 	}
-	m := newMigrator(ms)
+	m := newMigrator(ms, true)
 
-	v, err := m.getCurrentVersion()
+	v, empty, err := m.getCurrentVersion()
 	require.NoError(t, err)
 	require.Equal(t, 0, v)
+	require.True(t, empty)
 
-	err = m.Ensure(1)
+	err = m.Ensure()
 	require.NoError(t, err)
 
-	v, err = m.getCurrentVersion()
+	v, _, err = m.getCurrentVersion()
 	require.NoError(t, err)
 	require.Equal(t, 1, v)
 }
 
-func TestMissingMigration(t *testing.T) {
+func TestNonEmptyDatastore(t *testing.T) {
 	t.Parallel()
 
 	ms := map[int]Migration{
@@ -39,24 +40,19 @@ func TestMissingMigration(t *testing.T) {
 			return nil
 		},
 	}
-	m := newMigrator(ms)
+	m := newMigrator(ms, false)
 
-	err := m.Ensure(2)
-	require.Error(t, err)
-}
+	v, empty, err := m.getCurrentVersion()
+	require.NoError(t, err)
+	require.Equal(t, 0, v)
+	require.False(t, empty)
 
-func TestWrongTarget(t *testing.T) {
-	t.Parallel()
+	err = m.Ensure()
+	require.NoError(t, err)
 
-	ms := map[int]Migration{
-		1: func(_ datastore.Txn) error {
-			return nil
-		},
-	}
-	m := newMigrator(ms)
-
-	err := m.Ensure(-1)
-	require.Error(t, err)
+	v, _, err = m.getCurrentVersion()
+	require.NoError(t, err)
+	require.Equal(t, 1, v)
 }
 
 func TestNoop(t *testing.T) {
@@ -67,12 +63,12 @@ func TestNoop(t *testing.T) {
 			return nil
 		},
 	}
-	m := newMigrator(ms)
+	m := newMigrator(ms, false)
 
-	err := m.Ensure(1)
+	err := m.Ensure()
 	require.NoError(t, err)
 
-	err = m.Ensure(1)
+	err = m.Ensure()
 	require.NoError(t, err)
 }
 
@@ -82,23 +78,27 @@ func TestFailingMigration(t *testing.T) {
 			return fmt.Errorf("I failed")
 		},
 	}
-	m := newMigrator(ms)
+	m := newMigrator(ms, false)
 
-	v, err := m.getCurrentVersion()
+	v, _, err := m.getCurrentVersion()
 	require.NoError(t, err)
 	require.Equal(t, 0, v)
 
-	err = m.Ensure(1)
+	err = m.Ensure()
 	require.Error(t, err)
 
-	v, err = m.getCurrentVersion()
+	v, _, err = m.getCurrentVersion()
 	require.NoError(t, err)
 	require.Equal(t, 0, v)
 }
 
-func newMigrator(migrations map[int]Migration) *Migrator {
+func newMigrator(migrations map[int]Migration, empty bool) *Migrator {
 	ds := tests.NewTxMapDatastore()
 	m := New(ds, migrations)
+
+	if !empty {
+		_ = ds.Put(datastore.NewKey("foo"), []byte("bar"))
+	}
 
 	return m
 }

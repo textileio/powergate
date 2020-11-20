@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/ipfs/go-cid"
@@ -29,7 +30,7 @@ var multitenancyMigration = func(txn datastore.Txn) error {
 	log.Infof("Storage info migration finished")
 
 	log.Infof("Starting trackstore migration...")
-	if err := migrateTrackstore(txn); err != nil {
+	if err := migrateTrackstore(txn, cidOwners); err != nil {
 		return fmt.Errorf("migrating trackstore: %s", err)
 	}
 	log.Infof("Trackstore migration finished")
@@ -110,4 +111,25 @@ func v0_APIIDs(txn datastore.Txn) ([]ffs.APIID, error) {
 	}
 
 	return ret, nil
+}
+
+func v0_GetStorageConfig(txn datastore.Txn, iid ffs.APIID, c cid.Cid) (ffs.StorageConfig, error) {
+	if !iid.Valid() {
+		return ffs.StorageConfig{}, fmt.Errorf("invalid iid")
+	}
+	if !c.Defined() {
+		return ffs.StorageConfig{}, fmt.Errorf("undefined cid")
+	}
+	key := datastore.NewKey("/ffs/manager/api/" + iid.String() + "/istore/cidstorageconfig/" + util.CidToString(c))
+
+	buf, err := txn.Get(key)
+	if err != nil {
+		return ffs.StorageConfig{}, fmt.Errorf("getting storage config: %s", err)
+	}
+	var conf ffs.StorageConfig
+	if err := json.Unmarshal(buf, &conf); err != nil {
+		return ffs.StorageConfig{}, fmt.Errorf("unmarshaling cid config from datastore: %s", err)
+	}
+
+	return conf, nil
 }
