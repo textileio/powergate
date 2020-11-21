@@ -243,7 +243,7 @@ func toRPCJob(job ffs.StorageJob) (*userPb.StorageJob, error) {
 			PricePerEpoch:   item.PricePerEpoch,
 			ProposalCid:     item.ProposalCid.String(),
 			Size:            item.Size,
-			StartEpoch:      item.Size,
+			StartEpoch:      item.StartEpoch,
 			StateId:         item.StateID,
 			StateName:       item.StateName,
 		}
