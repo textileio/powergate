@@ -24,7 +24,6 @@ type v1PinstorePin struct {
 }
 
 func pinstoreFilling(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) error {
-
 	// This migration should fill Pinstore. Pinstore keeps track of
 	// which IIDs are pinning a Cid in hot-storage.
 
@@ -42,7 +41,6 @@ func pinstoreFilling(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) error
 				cidsPinstore[c] = append(cidsPinstore[c], iid)
 			}
 		}
-
 	}
 
 	// Step 2/2:
