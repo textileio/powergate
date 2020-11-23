@@ -294,7 +294,7 @@ func TestHighMinimumPieceSize(t *testing.T) {
 	})
 }
 
-func TestStageCidPromotedToFullPin(t *testing.T) {
+func TestStageCidUnpinedOnDisabledHotStorage(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
