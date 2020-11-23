@@ -294,7 +294,7 @@ func TestHighMinimumPieceSize(t *testing.T) {
 	})
 }
 
-func TestHotStorageFalseWithAlreadyPinnedData(t *testing.T) {
+func TestFailingPushWithStagedData(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
@@ -314,9 +314,9 @@ func TestHotStorageFalseWithAlreadyPinnedData(t *testing.T) {
 
 		r := rand.New(rand.NewSource(22))
 
-		cid, _ := it.AddRandomFileSize(t, r, ipfs, 1600)
-		// Simulate staging the data, which pins it.
-		_, err = hs.Pin(ctx, fapi.ID(), cid)
+		data := it.RandomBytes(r, 1600)
+		// Simulate staging the data, which Stage-pins it.
+		cid, err := hs.Stage(ctx, fapi.ID(), bytes.NewReader(data))
 		require.NoError(t, err)
 
 		config := fapi.DefaultStorageConfig().WithHotEnabled(false)
