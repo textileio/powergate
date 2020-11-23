@@ -11,14 +11,14 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
-type v0_trackedStorageConfig struct {
+type v0trackedStorageConfig struct {
 	IID           ffs.APIID
 	StorageConfig ffs.StorageConfig
 }
 
 // In v1 we persist the same struct but as an array, instead
 // of a single element.
-type v1_trackedStorageConfig v0_trackedStorageConfig
+type v1trackedStorageConfig v0trackedStorageConfig
 
 func migrateTrackstore(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) error {
 	q := query.Query{Prefix: "/ffs/scheduler/tstore"}
@@ -45,16 +45,15 @@ func migrateTrackstore(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) err
 		// For each cid owner, we replace the registry
 		// with a slice of owners.
 		owners := cidOwners[cid]
-		newEntry := make([]v1_trackedStorageConfig, len(owners))
-		for _, iid := range owners {
-			sg, err := v0_GetStorageConfig(txn, iid, cid)
+		newEntry := make([]v1trackedStorageConfig, len(owners))
+		for i, iid := range owners {
+			sg, err := v0GetStorageConfig(txn, iid, cid)
 			if err != nil {
 				return fmt.Errorf("get storage config of cid from owner: %s", err)
 			}
 
 			if sg.Repairable || (sg.Cold.Enabled && sg.Cold.Filecoin.Renew.Enabled) {
-				newOwnerEntry := v1_trackedStorageConfig{IID: iid, StorageConfig: sg}
-				newEntry = append(newEntry, newOwnerEntry)
+				newEntry[i] = v1trackedStorageConfig{IID: iid, StorageConfig: sg}
 			}
 		}
 

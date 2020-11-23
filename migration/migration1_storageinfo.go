@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/ipfs/go-cid"
@@ -37,8 +38,18 @@ func migrateStorageInfo(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) er
 		for _, iid := range owners {
 			log.Infof("Migrating storageinfo to owner %s...", iid)
 
+			var si ffs.StorageInfo
+			if err := json.Unmarshal(r.Value, &si); err != nil {
+				return fmt.Errorf("unmarshaling storageconfig: %s", err)
+			}
+			si.APIID = iid
+			buf, err := json.Marshal(si)
+			if err != nil {
+				return fmt.Errorf("marshaling now entry: %s", err)
+			}
+
 			newKey := datastore.NewKey("/ffs/scheduler/cistore").ChildString(iid.String()).ChildString(cidStr)
-			if err := txn.Put(newKey, r.Value); err != nil {
+			if err := txn.Put(newKey, buf); err != nil {
 				return fmt.Errorf("copying storageinfo: %s", err)
 			}
 		}

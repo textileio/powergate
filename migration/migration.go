@@ -15,6 +15,8 @@ var (
 	keyCurrentVersion = datastore.NewKey("version")
 )
 
+// Migrator ensures a datastore goes through all the needed
+// Migrations to upgrade its current version to the latest version.
 type Migrator struct {
 	ds         datastore.TxnDatastore
 	migrations map[int]Migration
@@ -23,6 +25,7 @@ type Migrator struct {
 // Migration runs a vA->v(A+1) migration.
 type Migration func(datastore.Txn) error
 
+// New returns a new Migrator.
 func New(ds datastore.TxnDatastore, migrations map[int]Migration) *Migrator {
 	m := &Migrator{
 		ds:         ds,
@@ -31,6 +34,8 @@ func New(ds datastore.TxnDatastore, migrations map[int]Migration) *Migrator {
 	return m
 }
 
+// Ensure detects the current datastore version, and runs all the known migrations
+// to upgrade to the latest known version.
 func (m *Migrator) Ensure() error {
 	currentVersion, emptyDS, err := m.getCurrentVersion()
 	if err != nil {
@@ -144,7 +149,6 @@ func (m *Migrator) isDSEmpty() (bool, error) {
 	}
 
 	return len(all) == 0, nil
-
 }
 
 func (m *Migrator) getTargetVersion() int {

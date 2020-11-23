@@ -11,8 +11,10 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
-var multitenancyMigration = func(txn datastore.Txn) error {
-	cidOwners, err := v0_CidOwners(txn)
+// V1MultitenancyMigration contains the logic to upgrade a datastore from
+// version 0 to version 1.
+var V1MultitenancyMigration = Migration(func(txn datastore.Txn) error {
+	cidOwners, err := v0CidOwners(txn)
 	if err != nil {
 		return fmt.Errorf("getting cid owners: %s", err)
 	}
@@ -36,17 +38,17 @@ var multitenancyMigration = func(txn datastore.Txn) error {
 	log.Infof("Trackstore migration finished")
 
 	return nil
-}
+})
 
-func v0_CidOwners(txn datastore.Txn) (map[cid.Cid][]ffs.APIID, error) {
-	iids, err := v0_APIIDs(txn)
+func v0CidOwners(txn datastore.Txn) (map[cid.Cid][]ffs.APIID, error) {
+	iids, err := v0APIIDs(txn)
 	if err != nil {
 		return nil, fmt.Errorf("getting v0 iids: %s", err)
 	}
 
-	var owners map[cid.Cid][]ffs.APIID
+	owners := map[cid.Cid][]ffs.APIID{}
 	for _, iid := range iids {
-		cids, err := v0_GetCidsFromIID(txn, iid)
+		cids, err := v0GetCidsFromIID(txn, iid)
 		if err != nil {
 			return nil, fmt.Errorf("getting cids from iid: %s", err)
 		}
@@ -58,8 +60,8 @@ func v0_CidOwners(txn datastore.Txn) (map[cid.Cid][]ffs.APIID, error) {
 	return owners, nil
 }
 
-func v0_GetCidsFromIID(txn datastore.Txn, iid ffs.APIID) ([]cid.Cid, error) {
-	q := query.Query{Prefix: "/ffs/manager/api/" + iid.String() + "/cidstorageconfig"}
+func v0GetCidsFromIID(txn datastore.Txn, iid ffs.APIID) ([]cid.Cid, error) {
+	q := query.Query{Prefix: "/ffs/manager/api/" + iid.String() + "/istore/cidstorageconfig"}
 	res, err := txn.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("getting cids from iid: %s", err)
@@ -74,8 +76,8 @@ func v0_GetCidsFromIID(txn datastore.Txn, iid ffs.APIID) ([]cid.Cid, error) {
 			return nil, fmt.Errorf("query result: %s", r.Error)
 		}
 
-		// /ffs/manager/api/<iid>/cidstorageconfig/<cid>
-		cidStr := datastore.NewKey(r.Key).Namespaces()[5]
+		// /ffs/manager/api/<iid>/istore/cidstorageconfig/<cid>
+		cidStr := datastore.NewKey(r.Key).Namespaces()[6]
 		c, err := util.CidFromString(cidStr)
 		if err != nil {
 			return nil, fmt.Errorf("discovered invalid cid: %s", err)
@@ -86,7 +88,7 @@ func v0_GetCidsFromIID(txn datastore.Txn, iid ffs.APIID) ([]cid.Cid, error) {
 	return ret, nil
 }
 
-func v0_APIIDs(txn datastore.Txn) ([]ffs.APIID, error) {
+func v0APIIDs(txn datastore.Txn) ([]ffs.APIID, error) {
 	q := query.Query{Prefix: "/ffs/manager/api"}
 	res, err := txn.Query(q)
 	if err != nil {
@@ -113,9 +115,9 @@ func v0_APIIDs(txn datastore.Txn) ([]ffs.APIID, error) {
 	return ret, nil
 }
 
-func v0_GetStorageConfig(txn datastore.Txn, iid ffs.APIID, c cid.Cid) (ffs.StorageConfig, error) {
+func v0GetStorageConfig(txn datastore.Txn, iid ffs.APIID, c cid.Cid) (ffs.StorageConfig, error) {
 	if !iid.Valid() {
-		return ffs.StorageConfig{}, fmt.Errorf("invalid iid")
+		return ffs.StorageConfig{}, fmt.Errorf("invalid iid %s", iid)
 	}
 	if !c.Defined() {
 		return ffs.StorageConfig{}, fmt.Errorf("undefined cid")

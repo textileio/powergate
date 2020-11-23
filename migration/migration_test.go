@@ -1,10 +1,15 @@
 package migration
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/tests"
 )
@@ -101,4 +106,54 @@ func newMigrator(migrations map[int]Migration, empty bool) *Migrator {
 	}
 
 	return m
+}
+
+func pre(t *testing.T, ds datastore.TxnDatastore, path string) {
+	t.Helper()
+	f, err := os.Open(path)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, f.Close()) }()
+
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		parts := strings.SplitN(s.Text(), ",", 2)
+		err = ds.Put(datastore.NewKey(parts[0]), []byte(parts[1]))
+		require.NoError(t, err)
+	}
+}
+
+func post(t *testing.T, ds datastore.TxnDatastore, path string) {
+	t.Helper()
+
+	f, err := os.Open(path)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, f.Close()) }()
+
+	current := map[string][]byte{}
+	q := query.Query{}
+	res, err := ds.Query(q)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, res.Close()) }()
+	for r := range res.Next() {
+		require.NoError(t, r.Error)
+		current[r.Key] = r.Value
+	}
+
+	expected := map[string][]byte{}
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		parts := strings.SplitN(s.Text(), ",", 2)
+		expected[parts[0]] = []byte(parts[1])
+	}
+
+	require.Equal(t, len(expected), len(current))
+	for k1, v1 := range current {
+		v2, ok := expected[k1]
+		require.True(t, ok)
+		if !bytes.Equal(v2, v1) {
+			fmt.Printf("HUH1: %s\n", string(v2))
+			fmt.Printf("HUH2: %s\n", string(v1))
+		}
+		require.Equal(t, v2, v1)
+	}
 }

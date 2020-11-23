@@ -47,6 +47,7 @@ import (
 	minerModule "github.com/textileio/powergate/index/miner/module"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/migration"
 	"github.com/textileio/powergate/reputation"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -191,6 +192,10 @@ func NewServer(conf Config) (*Server, error) {
 	ds, err := createDatastore(conf)
 	if err != nil {
 		return nil, fmt.Errorf("creating datastore: %s", err)
+	}
+
+	if err := runMigrations(ds); err != nil {
+		return nil, fmt.Errorf("running migrations: %s", err)
 	}
 
 	log.Info("Wiring internal components...")
@@ -631,4 +636,16 @@ func nonCompliantAPIsInterceptor(nonCompliantAPIs []string) grpc.UnaryServerInte
 		}
 		return handler(ctx, req)
 	}
+}
+
+func runMigrations(ds datastore.TxnDatastore) error {
+	migrations := map[int]migration.Migration{
+		1: migration.V1MultitenancyMigration,
+	}
+	m := migration.New(ds, migrations)
+	if err := m.Ensure(); err != nil {
+		return fmt.Errorf("running migrations: %s", err)
+	}
+
+	return nil
 }
