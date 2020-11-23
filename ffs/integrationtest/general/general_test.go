@@ -294,7 +294,7 @@ func TestHighMinimumPieceSize(t *testing.T) {
 	})
 }
 
-func TestFailingPushWithStagedData(t *testing.T) {
+func TestStageCidPromotedToFullPin(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
@@ -302,7 +302,6 @@ func TestFailingPushWithStagedData(t *testing.T) {
 		ds := tests.NewTxMapDatastore()
 		ipfs, ipfsMAddr := it.CreateIPFS(t)
 		addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
-		// Set MinimumPieceSize to 1GB so to force failing
 		manager, hs, closeManager := itmanager.NewCustomFFSManager(t, ds, client, addr, ms, ipfs, 0)
 		defer closeManager()
 		auth, err := manager.Create(context.Background())
@@ -318,6 +317,7 @@ func TestFailingPushWithStagedData(t *testing.T) {
 		// Simulate staging the data, which Stage-pins it.
 		cid, err := hs.Stage(ctx, fapi.ID(), bytes.NewReader(data))
 		require.NoError(t, err)
+		it.RequireIpfsPinnedCid(ctx, t, cid, ipfs)
 
 		config := fapi.DefaultStorageConfig().WithHotEnabled(false)
 		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
