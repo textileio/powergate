@@ -69,7 +69,8 @@ func TestForwardOnly(t *testing.T) {
 		},
 	}
 	m := newMigrator(ms, false)
-	m.bootstrapEmptyDatastore(10)
+	err := m.bootstrapEmptyDatastore(10)
+	require.NoError(t, err)
 
 	v, _, err := m.getCurrentVersion()
 	require.NoError(t, err)
