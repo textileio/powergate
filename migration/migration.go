@@ -61,6 +61,10 @@ func (m *Migrator) Ensure() error {
 		return nil
 	}
 
+	if currentVersion > targetVersion {
+		return fmt.Errorf("migrations are forward only, current version %d, target version %d", currentVersion, targetVersion)
+	}
+
 	for i := currentVersion + 1; i <= targetVersion; i++ {
 		log.Infof("Running %d migration...")
 		if err := m.run(i); err != nil {

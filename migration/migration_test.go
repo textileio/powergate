@@ -60,6 +60,25 @@ func TestNonEmptyDatastore(t *testing.T) {
 	require.Equal(t, 1, v)
 }
 
+func TestForwardOnly(t *testing.T) {
+	t.Parallel()
+
+	ms := map[int]Migration{
+		1: func(_ datastore.Txn) error {
+			return nil
+		},
+	}
+	m := newMigrator(ms, false)
+	m.bootstrapEmptyDatastore(10)
+
+	v, _, err := m.getCurrentVersion()
+	require.NoError(t, err)
+	require.Equal(t, 10, v)
+
+	err = m.Ensure()
+	require.Error(t, err)
+}
+
 func TestNoop(t *testing.T) {
 	t.Parallel()
 
