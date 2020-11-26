@@ -20,9 +20,9 @@ type v0trackedStorageConfig struct {
 // of a single element.
 type v1trackedStorageConfig v0trackedStorageConfig
 
-func migrateTrackstore(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) error {
+func migrateTrackstore(ds datastoreReaderWriter, cidOwners map[cid.Cid][]ffs.APIID) error {
 	q := query.Query{Prefix: "/ffs/scheduler/tstore"}
-	res, err := txn.Query(q)
+	res, err := ds.Query(q)
 	if err != nil {
 		return fmt.Errorf("querying tstore: %s", err)
 	}
@@ -39,7 +39,6 @@ func migrateTrackstore(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) err
 		if err != nil {
 			return fmt.Errorf("discovered invalid cid: %s", err)
 		}
-		log.Infof("Migrating trackstore entry of cid %s...", cid)
 
 		// Step 1/2:
 		// For each cid owner, we replace the registry
@@ -47,7 +46,7 @@ func migrateTrackstore(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) err
 		owners := cidOwners[cid]
 		newEntry := make([]v1trackedStorageConfig, len(owners))
 		for i, iid := range owners {
-			sg, err := v0GetStorageConfig(txn, iid, cid)
+			sg, err := v0GetStorageConfig(ds, iid, cid)
 			if err != nil {
 				return fmt.Errorf("get storage config of cid from owner: %s", err)
 			}
@@ -63,11 +62,9 @@ func migrateTrackstore(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) err
 		if err != nil {
 			return fmt.Errorf("marshaling new entry: %s", err)
 		}
-		if err := txn.Put(originalKey, buf); err != nil {
+		if err := ds.Put(originalKey, buf); err != nil {
 			return fmt.Errorf("put new entry in datastore: %s", err)
 		}
-
-		log.Infof("Migrated trackstore entry with %d owners...", len(newEntry))
 	}
 
 	return nil

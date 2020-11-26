@@ -22,8 +22,17 @@ type Migrator struct {
 	migrations map[int]Migration
 }
 
-// Migration runs a vA->v(A+1) migration.
-type Migration func(datastore.Txn) error
+type datastoreReaderWriter interface {
+	datastore.Read
+	datastore.Write
+}
+
+// Migration runs a vA->v(A+1) migration. UseTxn indicates
+// if this migration should be run in a transaction.
+type Migration struct {
+	Run    func(datastoreReaderWriter) error
+	UseTxn bool
+}
 
 // New returns a new Migrator.
 func New(ds datastore.TxnDatastore, migrations map[int]Migration) *Migrator {
@@ -66,11 +75,11 @@ func (m *Migrator) Ensure() error {
 	}
 
 	for i := currentVersion + 1; i <= targetVersion; i++ {
-		log.Infof("Running %d migration...")
+		log.Infof("Running %d migration...", i)
 		if err := m.run(i); err != nil {
 			return fmt.Errorf("running migration %d: %s", i, err)
 		}
-		log.Infof("Migration %d ran successfully")
+		log.Infof("Migration %d ran successfully", i)
 	}
 
 	return nil
@@ -100,6 +109,7 @@ func (m *Migrator) getCurrentVersion() (int, bool, error) {
 	if err != nil {
 		return 0, false, fmt.Errorf("getting version from datastore: %s", err)
 	}
+
 	if err := json.Unmarshal(buf, &current); err != nil {
 		return 0, false, fmt.Errorf("unmarshaling current version: %s", err)
 	}
@@ -108,18 +118,24 @@ func (m *Migrator) getCurrentVersion() (int, bool, error) {
 }
 
 func (m *Migrator) run(version int) error {
-	txn, err := m.ds.NewTransaction(false)
-	if err != nil {
-		return fmt.Errorf("creating txn for migration: %s", err)
-	}
-	defer txn.Discard()
+	var dsReaderWriter datastoreReaderWriter
 
-	script, ok := m.migrations[version]
+	migration, ok := m.migrations[version]
 	if !ok {
 		return fmt.Errorf("migration script not found")
 	}
 
-	if err := script(txn); err != nil {
+	dsReaderWriter = m.ds
+	if migration.UseTxn {
+		txn, err := m.ds.NewTransaction(false)
+		if err != nil {
+			return fmt.Errorf("creating txn for migration: %s", err)
+		}
+		defer txn.Discard()
+		dsReaderWriter = txn
+	}
+
+	if err := migration.Run(dsReaderWriter); err != nil {
 		return fmt.Errorf("running migration script: %s", err)
 	}
 
@@ -128,12 +144,15 @@ func (m *Migrator) run(version int) error {
 	if err != nil {
 		return fmt.Errorf("marshaling new version: %s", err)
 	}
-	if err := txn.Put(keyCurrentVersion, newVerBuf); err != nil {
+	if err := dsReaderWriter.Put(keyCurrentVersion, newVerBuf); err != nil {
 		return fmt.Errorf("saving new version: %s", err)
 	}
 
-	if err := txn.Commit(); err != nil {
-		return fmt.Errorf("committing transaction: %s", err)
+	if migration.UseTxn {
+		txn := dsReaderWriter.(datastore.Txn)
+		if err := txn.Commit(); err != nil {
+			return fmt.Errorf("committing transaction: %s", err)
+		}
 	}
 
 	return nil

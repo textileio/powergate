@@ -3,6 +3,7 @@ package migration
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -23,24 +24,42 @@ type v1PinstorePin struct {
 	CreatedAt int64
 }
 
-func pinstoreFilling(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) error {
+func pinstoreFilling(ds datastoreReaderWriter, cidOwners map[cid.Cid][]ffs.APIID) error {
 	// This migration should fill Pinstore. Pinstore keeps track of
 	// which IIDs are pinning a Cid in hot-storage.
 
 	// Step 1/2:
 	// - Iterate over all cidOwners and make a list of
 	//   IIDs that are pinning a Cid in hot-storage.
+	var lock sync.Mutex
+	var errors []string
+	lim := make(chan struct{}, 1000)
 	cidsPinstore := map[cid.Cid][]ffs.APIID{}
 	for c, iids := range cidOwners {
-		for _, iid := range iids {
-			sc, err := v0GetStorageConfig(txn, iid, c)
-			if err != nil {
-				return fmt.Errorf("getting storage config: %s", err)
+		lim <- struct{}{}
+		c := c
+		iids := iids
+		go func() {
+			defer func() { <-lim }()
+			for _, iid := range iids {
+				sc, err := v0GetStorageConfig(ds, iid, c)
+				if err != nil {
+					lock.Lock()
+					errors = append(errors, fmt.Sprintf("getting storage config: %s", err))
+					lock.Unlock()
+					return
+				}
+				if sc.Hot.Enabled {
+					lock.Lock()
+					cidsPinstore[c] = append(cidsPinstore[c], iid)
+					lock.Unlock()
+				}
 			}
-			if sc.Hot.Enabled {
-				cidsPinstore[c] = append(cidsPinstore[c], iid)
-			}
-		}
+		}()
+	}
+
+	for i := 0; i < len(lim); i++ {
+		lim <- struct{}{}
 	}
 
 	// Step 2/2:
@@ -64,7 +83,7 @@ func pinstoreFilling(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) error
 		if err != nil {
 			return fmt.Errorf("marshaling to datastore: %s", err)
 		}
-		if err := txn.Put(k, buf); err != nil {
+		if err := ds.Put(k, buf); err != nil {
 			return fmt.Errorf("put in datastore: %s", err)
 		}
 	}

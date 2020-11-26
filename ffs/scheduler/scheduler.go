@@ -104,7 +104,7 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 		return nil, fmt.Errorf("loading scheduler trackstore: %s", err)
 	}
 
-	cis := cistore.New(txndstr.Wrap(ds, "cistore"))
+	cis := cistore.New(txndstr.Wrap(ds, "cistore_v2"))
 	ris := ristore.New(txndstr.Wrap(ds, "ristore"))
 
 	ctx, cancel := context.WithCancel(context.Background())

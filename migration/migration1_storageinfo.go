@@ -11,9 +11,9 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
-func migrateStorageInfo(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) error {
+func migrateStorageInfo(ds datastoreReaderWriter, cidOwners map[cid.Cid][]ffs.APIID) error {
 	q := query.Query{Prefix: "/ffs/scheduler/cistore"}
-	res, err := txn.Query(q)
+	res, err := ds.Query(q)
 	if err != nil {
 		return fmt.Errorf("querying cistore: %s", err)
 	}
@@ -36,8 +36,6 @@ func migrateStorageInfo(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) er
 		// For each cid owner, we create the same registry
 		// prexifing the iid considering the new namespace structure.
 		for _, iid := range owners {
-			log.Infof("Migrating storageinfo to owner %s...", iid)
-
 			var si ffs.StorageInfo
 			if err := json.Unmarshal(r.Value, &si); err != nil {
 				return fmt.Errorf("unmarshaling storageconfig: %s", err)
@@ -48,16 +46,15 @@ func migrateStorageInfo(txn datastore.Txn, cidOwners map[cid.Cid][]ffs.APIID) er
 				return fmt.Errorf("marshaling now entry: %s", err)
 			}
 
-			newKey := datastore.NewKey("/ffs/scheduler/cistore").ChildString(iid.String()).ChildString(cidStr)
-			if err := txn.Put(newKey, buf); err != nil {
+			newKey := datastore.NewKey("/ffs/scheduler/cistore_v2").ChildString(iid.String()).ChildString(cidStr)
+			if err := ds.Put(newKey, buf); err != nil {
 				return fmt.Errorf("copying storageinfo: %s", err)
 			}
 		}
 
 		// Step 2/2:
 		// Delete old datastore key.
-		log.Infof("Deleting original storageinfo key...")
-		if err := txn.Delete(originalKey); err != nil {
+		if err := ds.Delete(originalKey); err != nil {
 			return fmt.Errorf("deleting old key: %s", err)
 		}
 	}

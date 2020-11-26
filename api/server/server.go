@@ -189,13 +189,13 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	}
 
-	ds, err := createDatastore(conf)
-	if err != nil {
-		return nil, fmt.Errorf("creating datastore: %s", err)
+	if err := runMigrations(conf); err != nil {
+		return nil, fmt.Errorf("running migrations: %s", err)
 	}
 
-	if err := runMigrations(ds); err != nil {
-		return nil, fmt.Errorf("running migrations: %s", err)
+	ds, err := createDatastore(conf, false)
+	if err != nil {
+		return nil, fmt.Errorf("creating datastore: %s", err)
 	}
 
 	log.Info("Wiring internal components...")
@@ -247,7 +247,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating miner selector: %s", err)
 	}
 
-	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
+	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger_v2"))
 	if conf.Devnet {
 		conf.FFSMinimumPieceSize = 0
 	}
@@ -537,7 +537,7 @@ func (s *Server) Close() {
 	}
 }
 
-func createDatastore(conf Config) (datastore.TxnDatastore, error) {
+func createDatastore(conf Config, longTimeout bool) (datastore.TxnDatastore, error) {
 	if conf.MongoURI != "" {
 		log.Info("Opening Mongo database...")
 		mongoCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -545,7 +545,11 @@ func createDatastore(conf Config) (datastore.TxnDatastore, error) {
 		if conf.MongoDB == "" {
 			return nil, fmt.Errorf("mongo database name is empty")
 		}
-		ds, err := mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB)
+		var opts []mongods.Option
+		if longTimeout {
+			opts = []mongods.Option{mongods.WithOpTimeout(time.Hour), mongods.WithTxnTimeout(time.Hour)}
+		}
+		ds, err := mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB, opts...)
 		if err != nil {
 			return nil, fmt.Errorf("opening mongo datastore: %s", err)
 		}
@@ -638,7 +642,17 @@ func nonCompliantAPIsInterceptor(nonCompliantAPIs []string) grpc.UnaryServerInte
 	}
 }
 
-func runMigrations(ds datastore.TxnDatastore) error {
+func runMigrations(conf Config) error {
+	ds, err := createDatastore(conf, true)
+	if err != nil {
+		return fmt.Errorf("creating migration datastore: %s", err)
+	}
+	defer func() {
+		if err := ds.Close(); err != nil {
+			log.Errorf("closing migration datastore: %s", err)
+		}
+	}()
+
 	migrations := map[int]migration.Migration{
 		1: migration.V1MultitenancyMigration,
 	}

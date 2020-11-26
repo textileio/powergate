@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"testing"
 	"time"
@@ -25,9 +24,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 	gatewayHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
 	indexRawJSONHostAddr := fmt.Sprintf("0.0.0.0:%d", freePort(t))
 
-	repoPath, err := ioutil.TempDir("/tmp/powergate", ".powergate-*")
-	require.NoError(t, err)
-
+	repoPath := t.TempDir()
 	dipfs, cls := tests.LaunchIPFSDocker(t)
 	t.Cleanup(func() { cls() })
 
