@@ -24,7 +24,7 @@ var (
 	ErrNotFound = errors.New("job not found")
 
 	dsBaseJob          = datastore.NewKey("job")
-	dsBaseStartedDeals = datastore.NewKey("starteddeals")
+	dsBaseStartedDeals = datastore.NewKey("starteddeals_v2")
 )
 
 // Store is a Datastore implementation of JobStore, which saves
@@ -34,8 +34,7 @@ type Store struct {
 	ds       datastore.Datastore
 	watchers []watcher
 
-	queued        []ffs.StorageJob
-	executingCids map[cid.Cid]ffs.JobID
+	queued []ffs.StorageJob
 
 	jobStatusCache map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo
 
@@ -60,7 +59,6 @@ type watcher struct {
 func New(ds datastore.Datastore) (*Store, error) {
 	s := &Store{
 		ds:                 ds,
-		executingCids:      make(map[cid.Cid]ffs.JobID),
 		jobStatusCache:     make(map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo),
 		queuedJobs:         make(map[ffs.APIID]map[cid.Cid][]*ffs.StorageJob),
 		executingJobs:      make(map[ffs.APIID]map[cid.Cid]*ffs.StorageJob),
@@ -151,7 +149,7 @@ func (s *Store) Dequeue() (*ffs.StorageJob, error) {
 	defer s.lock.Unlock()
 
 	for _, job := range s.queued {
-		execJobID, ok := s.executingCids[job.Cid]
+		execJob, ok := s.executingJobs[job.APIID][job.Cid]
 		if job.Status == ffs.Queued && !ok {
 			job.Status = ffs.Executing
 			if err := s.put(job); err != nil {
@@ -159,7 +157,7 @@ func (s *Store) Dequeue() (*ffs.StorageJob, error) {
 			}
 			return &job, nil
 		}
-		log.Infof("queued %s is delayed since job %s is running", job.ID, execJobID)
+		log.Infof("queued %s is delayed since job %s is running", job.ID, execJob.ID)
 	}
 	return nil, nil
 }
@@ -181,22 +179,26 @@ func (s *Store) Enqueue(j ffs.StorageJob) error {
 }
 
 // GetExecutingJob returns a JobID that is currently executing for
-// data with cid c. If there's not such job, it returns nil.
-func (s *Store) GetExecutingJob(c cid.Cid) *ffs.JobID {
-	j, ok := s.executingCids[c]
+// data with cid c in iid. If there's not such job, it returns nil.
+func (s *Store) GetExecutingJob(iid ffs.APIID, c cid.Cid) *ffs.JobID {
+	j, ok := s.executingJobs[iid][c]
 	if !ok {
 		return nil
 	}
-	return &j
+	return &j.ID
 }
 
 // GetStats return the current Stats for storage jobs.
 func (s *Store) GetStats() Stats {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	var count int
+	for _, iidJobs := range s.executingJobs {
+		count += len(iidJobs)
+	}
 	return Stats{
 		TotalQueued:    len(s.queued),
-		TotalExecuting: len(s.executingCids),
+		TotalExecuting: count,
 	}
 }
 
@@ -204,11 +206,11 @@ func (s *Store) GetStats() Stats {
 func (s *Store) GetExecutingJobIDs() []ffs.JobID {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	res := make([]ffs.JobID, len(s.executingCids))
-	var i int
-	for _, jid := range s.executingCids {
-		res[i] = jid
-		i++
+	var res []ffs.JobID
+	for _, iid := range s.executingJobs {
+		for _, j := range iid {
+			res = append(res, j.ID)
+		}
 	}
 	return res
 }
@@ -292,7 +294,7 @@ type StartedDeals struct {
 // AddStartedDeals is a temporal storage solution of deals that are started
 // are being watched. It serves as a recovery point to reattach to fired
 // deals when the scheduler was abruptly interrupted.
-func (s *Store) AddStartedDeals(c cid.Cid, proposals []cid.Cid) error {
+func (s *Store) AddStartedDeals(iid ffs.APIID, c cid.Cid, proposals []cid.Cid) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	sd := StartedDeals{Cid: c, ProposalCids: proposals}
@@ -300,35 +302,36 @@ func (s *Store) AddStartedDeals(c cid.Cid, proposals []cid.Cid) error {
 	if err != nil {
 		return fmt.Errorf("marshaling started deals: %s", err)
 	}
-	if err := s.ds.Put(makeStartedDealsKey(c), buf); err != nil {
+	if err := s.ds.Put(makeStartedDealsKey(iid, c), buf); err != nil {
 		return fmt.Errorf("saving started deals to datastore: %s", err)
 	}
 	return nil
 }
 
 // RemoveStartedDeals removes all started deals from Cid.
-func (s *Store) RemoveStartedDeals(c cid.Cid) error {
+func (s *Store) RemoveStartedDeals(iid ffs.APIID, c cid.Cid) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	if err := s.ds.Delete(makeStartedDealsKey(c)); err != nil {
+	if err := s.ds.Delete(makeStartedDealsKey(iid, c)); err != nil {
 		return fmt.Errorf("deleting started deals from datastore: %s", err)
 	}
 	return nil
 }
 
-// GetStartedDeals gets all stored started deals from Cid. If no started
-// deals are present, an empty slice is returned.
-func (s *Store) GetStartedDeals(c cid.Cid) ([]cid.Cid, error) {
+// GetStartedDeals gets all stored started deals from Cid for an APIID.
+// If no started deals are present, an empty slice is returned.
+func (s *Store) GetStartedDeals(iid ffs.APIID, c cid.Cid) ([]cid.Cid, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	var sd StartedDeals
-	b, err := s.ds.Get(makeStartedDealsKey(c))
+
+	b, err := s.ds.Get(makeStartedDealsKey(iid, c))
 	if err == datastore.ErrNotFound {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("getting started deals from datastore: %s", err)
 	}
+	var sd StartedDeals
 	if err := json.Unmarshal(b, &sd); err != nil {
 		return nil, fmt.Errorf("unmarshaling started deals from datastore: %s", err)
 	}
@@ -458,16 +461,8 @@ func (s *Store) put(j ffs.StorageJob) error {
 	// Update executing cids cache.
 	ensureJobsMap(s.executingJobs, j.APIID)
 	if j.Status == ffs.Executing {
-		s.executingCids[j.Cid] = j.ID
 		s.executingJobs[j.APIID][j.Cid] = &j
 	} else {
-		execJobID, ok := s.executingCids[j.Cid]
-		// If the executing job is not longer executing,
-		// take out from executing cache.
-		if ok && execJobID == j.ID {
-			delete(s.executingCids, j.Cid)
-		}
-
 		execJob, ok := s.executingJobs[j.APIID][j.Cid]
 		if ok && execJob.ID == j.ID {
 			delete(s.executingJobs[j.APIID], j.Cid)
@@ -578,7 +573,6 @@ func (s *Store) loadCaches() error {
 			ensureJobsSliceMap(s.queuedJobs, j.APIID)
 			s.queuedJobs[j.APIID][j.Cid] = append(s.queuedJobs[j.APIID][j.Cid], &j)
 		} else if j.Status == ffs.Executing {
-			s.executingCids[j.Cid] = j.ID
 			ensureJobsMap(s.executingJobs, j.APIID)
 			s.executingJobs[j.APIID][j.Cid] = &j
 		}
@@ -630,8 +624,8 @@ func isSuccessful(j ffs.StorageJob) bool {
 	return j.Status == ffs.Success
 }
 
-func makeStartedDealsKey(c cid.Cid) datastore.Key {
-	return dsBaseStartedDeals.ChildString(util.CidToString(c))
+func makeStartedDealsKey(iid ffs.APIID, c cid.Cid) datastore.Key {
+	return dsBaseStartedDeals.ChildString(iid.String()).ChildString(util.CidToString(c))
 }
 
 func makeKey(jid ffs.JobID) datastore.Key {

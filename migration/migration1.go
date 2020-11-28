@@ -39,6 +39,12 @@ var V1MultitenancyMigration = Migration{
 		}
 		log.Infof("Trackstore migration finished")
 
+		log.Infof("Starting started deals migration...")
+		if err := migrateStartedDeals(ds); err != nil {
+			return fmt.Errorf("migrating trackstore: %s", err)
+		}
+		log.Infof("Started deals migration finished")
+
 		log.Infof("Starting pinstore filling migration...")
 		if err := pinstoreFilling(ds, cidOwners); err != nil {
 			return fmt.Errorf("filling pinstore: %s", err)
@@ -172,4 +178,56 @@ func v0GetStorageConfig(ds datastoreReaderWriter, iid ffs.APIID, c cid.Cid) (ffs
 	}
 
 	return conf, nil
+}
+
+func v0GetExecutingJobs(ds datastoreReaderWriter) (map[cid.Cid]ffs.APIID, error) {
+	q := query.Query{Prefix: "/ffs/scheduler/sjstore/job"} // /ffs/scheduler/sjstore/job/<job-id>
+	res, err := ds.Query(q)
+	if err != nil {
+		return nil, fmt.Errorf("getting jobs: %s", err)
+	}
+	defer func() {
+		_ = res.Close()
+	}()
+
+	lim := make(chan struct{}, 1000)
+	var lock sync.Mutex
+	var errors []string
+	ret := map[cid.Cid]ffs.APIID{}
+	for r := range res.Next() {
+		if r.Error != nil {
+			return nil, fmt.Errorf("getting result from query: %s", r.Error)
+		}
+		lim <- struct{}{}
+		r := r
+		go func() {
+			defer func() { <-lim }()
+
+			var j ffs.StorageJob
+			if err := json.Unmarshal(r.Value, &j); err != nil {
+				lock.Lock()
+				errors = append(errors, fmt.Sprintf("unmarshalling job: %s", err))
+				lock.Unlock()
+				return
+			}
+			if j.Status == ffs.Executing {
+				lock.Lock()
+				ret[j.Cid] = j.APIID
+				lock.Unlock()
+			}
+		}()
+	}
+
+	for i := 0; i < cap(lim); i++ {
+		lim <- struct{}{}
+	}
+
+	if len(errors) > 0 {
+		for _, m := range errors {
+			log.Error(m)
+		}
+		return nil, fmt.Errorf("building executing jobs map had %d errors", len(errors))
+	}
+
+	return ret, nil
 }

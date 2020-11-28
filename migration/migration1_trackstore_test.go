@@ -88,6 +88,9 @@ func TestV0_CidOwners(t *testing.T) {
 	for k1, v1 := range expectedOwners {
 		v2, ok := owners[k1]
 		require.True(t, ok)
+		sort.Slice(v2, func(i, j int) bool {
+			return v2[i].String() < v2[j].String()
+		})
 		require.Equal(t, v1, v2)
 	}
 }

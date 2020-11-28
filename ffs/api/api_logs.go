@@ -40,7 +40,7 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 		close(ichan)
 	}()
 	for le := range ichan {
-		if c == le.Cid && (config.jid == ffs.EmptyJobID || config.jid == le.Jid) {
+		if c == le.Cid && le.APIID == i.cfg.ID && (config.jid == ffs.EmptyJobID || config.jid == le.Jid) {
 			ch <- le
 		}
 	}

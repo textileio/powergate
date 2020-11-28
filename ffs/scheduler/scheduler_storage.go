@@ -77,7 +77,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 	if err := s.sjs.Enqueue(j); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("enqueuing job: %s", err)
 	}
-	if jid := s.sjs.GetExecutingJob(c); jid != nil {
+	if jid := s.sjs.GetExecutingJob(iid, c); jid != nil {
 		s.l.Log(ctx, "Job %s is already being executed for the same data, this job will be queued until it finishes or is canceled.", jid)
 	}
 
@@ -336,7 +336,7 @@ func (s *Scheduler) getRefreshedInfo(ctx context.Context, iid ffs.APIID, c cid.C
 		if err != cistore.ErrNotFound {
 			return ffs.StorageInfo{}, ErrNotFound
 		}
-		return ffs.StorageInfo{Cid: c}, nil // Default value has both storages disabled
+		return ffs.StorageInfo{Cid: c, APIID: iid}, nil // Default value has both storages disabled
 	}
 
 	ci.Hot, err = s.getRefreshedHotInfo(ctx, iid, c, ci.Hot)
@@ -391,7 +391,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo
 	// 1. If we recognize there were some unfinished started deals, then
 	// Powergate was closed while that was being executed. If that's the case
 	// we resume tracking those deals until they finish.
-	sds, err := s.sjs.GetStartedDeals(curr.Cid)
+	sds, err := s.sjs.GetStartedDeals(curr.APIID, curr.Cid)
 	if err != nil {
 		return ffs.ColdInfo{}, nil, fmt.Errorf("checking for started deals: %s", err)
 	}
@@ -403,6 +403,11 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo
 		allErrors = append(allErrors, failedResumedDeals...)
 		// Append the resumed and confirmed deals to the current active proposals
 		curr.Cold.Filecoin.Proposals = append(okResumedDeals, curr.Cold.Filecoin.Proposals...)
+
+		// We can already clean resumed started deals.
+		if err := s.sjs.RemoveStartedDeals(curr.APIID, curr.Cid); err != nil {
+			return ffs.ColdInfo{}, allErrors, fmt.Errorf("removing resumed started deals storage: %s", err)
+		}
 	}
 
 	// 2. If this Storage Config is renewable, then let's check if any of the existing deals
@@ -482,14 +487,14 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo
 
 	// Track all deals that weren't rejected, just in case Powergate crashes/closes before
 	// we see them finalize, so they can be detected and resumed on starting Powergate again (point 1. above)
-	if err := s.sjs.AddStartedDeals(curr.Cid, startedProposals); err != nil {
+	if err := s.sjs.AddStartedDeals(curr.APIID, curr.Cid, startedProposals); err != nil {
 		return ffs.ColdInfo{}, rejectedProposals, err
 	}
 
 	// Wait for started deals.
 	okDeals, failedDeals := s.waitForDeals(ctx, curr.Cid, startedProposals, dealUpdates)
 	allErrors = append(allErrors, failedDeals...)
-	if err := s.sjs.RemoveStartedDeals(curr.Cid); err != nil {
+	if err := s.sjs.RemoveStartedDeals(curr.APIID, curr.Cid); err != nil {
 		return ffs.ColdInfo{}, allErrors, fmt.Errorf("removing temporal started deals storage: %s", err)
 	}
 

@@ -69,7 +69,7 @@ func migrateJobLogger(ds datastoreReaderWriter, cidOwners map[cid.Cid][]ffs.APII
 		}()
 	}
 
-	for i := 0; i < len(lim); i++ {
+	for i := 0; i < cap(lim); i++ {
 		lim <- struct{}{}
 	}
 

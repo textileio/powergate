@@ -643,6 +643,7 @@ func nonCompliantAPIsInterceptor(nonCompliantAPIs []string) grpc.UnaryServerInte
 }
 
 func runMigrations(conf Config) error {
+	log.Infof("Ensuring migrations...")
 	ds, err := createDatastore(conf, true)
 	if err != nil {
 		return fmt.Errorf("creating migration datastore: %s", err)
@@ -660,6 +661,7 @@ func runMigrations(conf Config) error {
 	if err := m.Ensure(); err != nil {
 		return fmt.Errorf("running migrations: %s", err)
 	}
+	log.Infof("Migrations ensured")
 
 	return nil
 }
