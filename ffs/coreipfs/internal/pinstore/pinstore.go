@@ -53,7 +53,7 @@ func New(ds datastore.TxnDatastore) (*Store, error) {
 	return &Store{ds: ds, cache: cache}, nil
 }
 
-// AddStaged sets  c a stage-pin by iid.
+// AddStaged pins a Cid for APIID with a staged-pin.
 // If c is already stage-pinned, its stage-pin timestamp will be refreshed.
 // If c is already fully-pinned, this call is a noop (full-pin will be kept).
 func (s *Store) AddStaged(iid ffs.APIID, c cid.Cid) error {
