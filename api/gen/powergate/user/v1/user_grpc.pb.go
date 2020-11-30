@@ -27,6 +27,7 @@ type UserServiceClient interface {
 	Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*RemoveResponse, error)
 	// Data
 	Stage(ctx context.Context, opts ...grpc.CallOption) (UserService_StageClient, error)
+	StageCid(ctx context.Context, in *StageCidRequest, opts ...grpc.CallOption) (*StageCidResponse, error)
 	ReplaceData(ctx context.Context, in *ReplaceDataRequest, opts ...grpc.CallOption) (*ReplaceDataResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (UserService_GetClient, error)
 	WatchLogs(ctx context.Context, in *WatchLogsRequest, opts ...grpc.CallOption) (UserService_WatchLogsClient, error)
@@ -147,6 +148,15 @@ func (x *userServiceStageClient) CloseAndRecv() (*StageResponse, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (c *userServiceClient) StageCid(ctx context.Context, in *StageCidRequest, opts ...grpc.CallOption) (*StageCidResponse, error) {
+	out := new(StageCidResponse)
+	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/StageCid", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *userServiceClient) ReplaceData(ctx context.Context, in *ReplaceDataRequest, opts ...grpc.CallOption) (*ReplaceDataResponse, error) {
@@ -421,6 +431,7 @@ type UserServiceServer interface {
 	Remove(context.Context, *RemoveRequest) (*RemoveResponse, error)
 	// Data
 	Stage(UserService_StageServer) error
+	StageCid(context.Context, *StageCidRequest) (*StageCidResponse, error)
 	ReplaceData(context.Context, *ReplaceDataRequest) (*ReplaceDataResponse, error)
 	Get(*GetRequest, UserService_GetServer) error
 	WatchLogs(*WatchLogsRequest, UserService_WatchLogsServer) error
@@ -472,6 +483,9 @@ func (UnimplementedUserServiceServer) Remove(context.Context, *RemoveRequest) (*
 }
 func (UnimplementedUserServiceServer) Stage(UserService_StageServer) error {
 	return status.Errorf(codes.Unimplemented, "method Stage not implemented")
+}
+func (UnimplementedUserServiceServer) StageCid(context.Context, *StageCidRequest) (*StageCidResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StageCid not implemented")
 }
 func (UnimplementedUserServiceServer) ReplaceData(context.Context, *ReplaceDataRequest) (*ReplaceDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReplaceData not implemented")
@@ -681,6 +695,24 @@ func (x *userServiceStageServer) Recv() (*StageRequest, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func _UserService_StageCid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StageCidRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).StageCid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.user.v1.UserService/StageCid",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).StageCid(ctx, req.(*StageCidRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_ReplaceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1097,6 +1129,10 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Remove",
 			Handler:    _UserService_Remove_Handler,
+		},
+		{
+			MethodName: "StageCid",
+			Handler:    _UserService_StageCid_Handler,
 		},
 		{
 			MethodName: "ReplaceData",

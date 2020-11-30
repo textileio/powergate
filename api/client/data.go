@@ -97,11 +97,16 @@ func (d *Data) StageFolder(ctx context.Context, ipfsRevProxyAddr string, folderP
 	defer func() { _ = ff.Close() }()
 	opts := []options.UnixfsAddOption{
 		options.Unixfs.CidVersion(1),
-		options.Unixfs.Pin(false),
+		options.Unixfs.Pin(true),
 	}
 	pth, err := ipfs.Unixfs().Add(context.Background(), files.ToDir(ff), opts...)
 	if err != nil {
 		return "", err
+	}
+
+	_, err = d.client.StageCid(ctx, &userPb.StageCidRequest{Cid: pth.Cid().String()})
+	if err != nil {
+		return "", fmt.Errorf("stage pinning cid: %s", err)
 	}
 
 	return pth.Cid().String(), nil

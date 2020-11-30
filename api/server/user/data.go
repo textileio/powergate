@@ -13,12 +13,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Stage allows you to temporarily cache data in hot storage in preparation for pushing a cid storage config.
+// Stage allows to stage-pin a stream of data in Hot-Storage in preparation for pushing a storage configuration.
 func (s *Service) Stage(srv userPb.UserService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	fapi, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return err
+		return fmt.Errorf("getting user instance: %s", err)
 	}
 
 	reader, writer := io.Pipe()
@@ -36,6 +36,27 @@ func (s *Service) Stage(srv userPb.UserService_StageServer) error {
 	}
 
 	return srv.SendAndClose(&userPb.StageResponse{Cid: util.CidToString(c)})
+}
+
+// StageCid allows to stage-pin a cid in Hot-Storage in preparation for pushing a storage configuration.
+func (s *Service) StageCid(ctx context.Context, req *userPb.StageCidRequest) (*userPb.StageCidResponse, error) {
+	// check that an API instance exists so not just anyone can add data to the hot layer
+	fapi, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting user instance: %s", err)
+	}
+
+	c, err := util.CidFromString(req.Cid)
+	if err != nil {
+		return nil, fmt.Errorf("parsing cid: %s", err)
+	}
+
+	err = s.hot.StageCid(ctx, fapi.ID(), c)
+	if err != nil {
+		return nil, fmt.Errorf("stage pinning cid in hot-storage: %s", err)
+	}
+
+	return &userPb.StageCidResponse{}, nil
 }
 
 // ReplaceData calls ffs.Replace.

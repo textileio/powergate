@@ -72,6 +72,18 @@ func (ci *CoreIpfs) Stage(ctx context.Context, iid ffs.APIID, r io.Reader) (cid.
 	return p.Cid(), nil
 }
 
+// StageCid stage-pin a Cid.
+func (ci *CoreIpfs) StageCid(ctx context.Context, iid ffs.APIID, c cid.Cid) error {
+	ci.lock.Lock()
+	defer ci.lock.Unlock()
+
+	if err := ci.ps.AddStaged(iid, c); err != nil {
+		return fmt.Errorf("saving new pin in pinstore: %s", err)
+	}
+
+	return nil
+}
+
 // Get retrieves a cid data from the IPFS node.
 func (ci *CoreIpfs) Get(ctx context.Context, c cid.Cid) (io.Reader, error) {
 	n, err := ci.ipfs.Unixfs().Get(ctx, path.IpfsPath(c))

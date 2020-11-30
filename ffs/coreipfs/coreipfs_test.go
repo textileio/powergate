@@ -44,6 +44,34 @@ func TestStage(t *testing.T) {
 	requireRefCount(t, ci, c, 0, 1)
 }
 
+func TestStageCid(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	r := rand.New(rand.NewSource(22))
+
+	ci, ipfs := newCoreIPFS(t)
+	data := it.RandomBytes(r, 1500)
+	// Add as if the Powergate client uses the proxy
+	p, err := ci.ipfs.Unixfs().Add(ctx, ipfsfiles.NewReaderFile(bytes.NewReader(data)), options.Unixfs.Pin(true))
+	require.NoError(t, err)
+	iid := ffs.NewAPIID()
+	c := p.Cid()
+
+	err = ci.StageCid(ctx, iid, c)
+	require.NoError(t, err)
+	it.RequireIpfsPinnedCid(ctx, t, c, ipfs)
+	requireCidIsGCable(t, ci, c)
+	okPinned, err := ci.IsPinned(ctx, iid, c)
+	require.NoError(t, err)
+	require.True(t, okPinned)
+	requireRefCount(t, ci, c, 0, 1)
+
+	// Re-stage and test ref count is stil 1.
+	c, err = ci.Stage(ctx, iid, bytes.NewReader(data))
+	require.NoError(t, err)
+	requireRefCount(t, ci, c, 0, 1)
+}
+
 func TestStagePinStage(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
