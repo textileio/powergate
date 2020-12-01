@@ -31,10 +31,11 @@ var _ ffs.MinerSelector = (*RepTop)(nil)
 
 // New returns a new RetTop instance that uses the specified Reputation Module
 // to select miners and the AskIndex for their epoch prices.
-func New(rm *reputation.Module, ai *askRunner.Runner) *RepTop {
+func New(cb lotus.ClientBuilder, rm *reputation.Module, ai *askRunner.Runner) *RepTop {
 	return &RepTop{
 		rm: rm,
 		ai: ai,
+		cb: cb,
 	}
 }
 
@@ -49,7 +50,7 @@ func (rt *RepTop) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerPropos
 	// This is done to circumvent index building restrictions such as excluding miners
 	// with zero power. Trusted miners are trusted by definition, so if they have zero
 	// power, that's a risk that the client is accepting.
-	trustedMiners := rt.genTrustedMiners(f)
+	trustedMiners := rt.genTrustedMiners(f, n)
 
 	// The remaining needed miners are gathered from the reputation index.
 	reputationMiners, err := rt.genFromReputation(f, n-len(trustedMiners))
@@ -61,7 +62,7 @@ func (rt *RepTop) GetMiners(n int, f ffs.MinerSelectorFilter) ([]ffs.MinerPropos
 	return append(trustedMiners, reputationMiners...), nil
 }
 
-func (rt *RepTop) genTrustedMiners(f ffs.MinerSelectorFilter) []ffs.MinerProposal {
+func (rt *RepTop) genTrustedMiners(f ffs.MinerSelectorFilter, n int) []ffs.MinerProposal {
 	ret := make([]ffs.MinerProposal, 0, len(f.TrustedMiners))
 	for _, m := range f.TrustedMiners {
 		mp, err := rt.getMinerProposal(f, m)
@@ -70,12 +71,18 @@ func (rt *RepTop) genTrustedMiners(f ffs.MinerSelectorFilter) []ffs.MinerProposa
 			continue
 		}
 		ret = append(ret, mp)
+		if len(ret) == n {
+			break
+		}
 	}
 
 	return ret
 }
 
 func (rt *RepTop) genFromReputation(f ffs.MinerSelectorFilter, n int) ([]ffs.MinerProposal, error) {
+	if n == 0 {
+		return nil, nil
+	}
 	ms, err := rt.rm.QueryMiners(f.TrustedMiners, f.CountryCodes, nil)
 	if err != nil {
 		return nil, fmt.Errorf("getting miners from reputation module: %s", err)

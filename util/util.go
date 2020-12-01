@@ -3,8 +3,11 @@ package util
 import (
 	"context"
 	"fmt"
+	"math/big"
+	"strings"
 	"time"
 
+	"github.com/filecoin-project/lotus/build"
 	"github.com/ipfs/go-cid"
 	ma "github.com/multiformats/go-multiaddr"
 	dns "github.com/multiformats/go-multiaddr-dns"
@@ -97,4 +100,12 @@ func CidFromString(c string) (cid.Cid, error) {
 		return cid.Undef, nil
 	}
 	return cid.Decode(c)
+}
+
+func AttoFilToFil(attoFil uint64) string {
+	r := new(big.Rat).SetFrac(big.NewInt(int64(attoFil)), big.NewInt(int64(build.FilecoinPrecision)))
+	if r.Sign() == 0 {
+		return "0"
+	}
+	return strings.TrimRight(strings.TrimRight(r.FloatString(18), "0"), ".")
 }
