@@ -102,6 +102,8 @@ func CidFromString(c string) (cid.Cid, error) {
 	return cid.Decode(c)
 }
 
+// AttoFilToFil transforms an attoFIL integer value, to a
+// pretty FIL string.
 func AttoFilToFil(attoFil uint64) string {
 	r := new(big.Rat).SetFrac(big.NewInt(int64(attoFil)), big.NewInt(int64(build.FilecoinPrecision)))
 	if r.Sign() == 0 {
