@@ -1,0 +1,97 @@
+package cmd
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/logrusorgru/aurora"
+	"github.com/olekukonko/tablewriter"
+	"github.com/spf13/viper"
+	"github.com/textileio/powergate/api/client"
+)
+
+// Message prints a message to stdout.
+func Message(format string, args ...interface{}) {
+	fmt.Println(aurora.Sprintf(aurora.BrightBlack("> "+format), args...))
+}
+
+// Success prints a success message to stdout.
+func Success(format string, args ...interface{}) {
+	fmt.Println(aurora.Sprintf(aurora.Cyan("> Success! %s"),
+		aurora.Sprintf(aurora.BrightBlack(format), args...)))
+}
+
+// Success prints a success message to stdout.
+func Warning(format string, args ...interface{}) {
+	fmt.Println(aurora.Sprintf(aurora.BrightYellow("> Warning! %s"),
+		aurora.Sprintf(aurora.BrightBlack(format), args...)))
+}
+
+// Fatal prints a fatal error to stdout, and exits immediately with
+// error code 1.
+func Fatal(err error, args ...interface{}) {
+	NonFatal(err, args)
+	os.Exit(1)
+}
+
+// Fatal prints a fatal error to stdout, and exits immediately with
+// error code 1.
+func NonFatal(err error, args ...interface{}) {
+	words := strings.SplitN(err.Error(), " ", 2)
+	words[0] = strings.Title(words[0])
+	msg := strings.Join(words, " ")
+	fmt.Println(aurora.Sprintf(aurora.Red("> Error! %s"),
+		aurora.Sprintf(aurora.BrightBlack(msg), args...)))
+}
+
+// RenderTable renders a table with header columns and data rows to writer.
+func RenderTable(writer io.Writer, header []string, data [][]string) {
+	table := tablewriter.NewWriter(writer)
+	table.SetHeader(header)
+	table.SetBorder(false)
+	headersColors := make([]tablewriter.Colors, len(header))
+	for i := range headersColors {
+		headersColors[i] = tablewriter.Colors{tablewriter.FgHiBlackColor}
+	}
+	table.SetHeaderColor(headersColors...)
+	table.AppendBulk(data)
+	table.Render()
+}
+
+func checkErr(e error) {
+	if e != nil {
+		Fatal(e)
+	}
+}
+
+func mustAuthCtx(ctx context.Context) context.Context {
+	token := viper.GetString("token")
+	if token == "" {
+		Fatal(errors.New("must provide -t token"))
+	}
+	return context.WithValue(ctx, client.AuthKey, token)
+}
+
+func adminAuthCtx(ctx context.Context) context.Context {
+	token := viper.GetString("admin-token")
+	return context.WithValue(ctx, client.AdminKey, token)
+}
+
+func getDirSize(path string) (int64, error) {
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size, err
+}
