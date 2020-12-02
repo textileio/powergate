@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/ffs/minerselector/fixed"
 	"github.com/textileio/powergate/tests"
 
@@ -28,7 +29,7 @@ func TestMain(m *testing.M) {
 func TestFilecoinExcludedMiners(t *testing.T) {
 	t.Parallel()
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 2)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -51,7 +52,7 @@ func TestFilecoinTrustedMiner(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 2)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -88,7 +89,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 		}
 		ms := fixed.New(fixedMiners)
 		ds := tests.NewTxMapDatastore()
-		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
+		manager, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 		defer closeManager()
 		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)
@@ -121,7 +122,7 @@ func TestFilecoinMaxPriceFilter(t *testing.T) {
 		miner := fixed.Miner{Addr: "f01000", EpochPrice: 500000000}
 		ms := fixed.New([]fixed.Miner{miner})
 		ds := tests.NewTxMapDatastore()
-		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
+		manager, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 		defer closeManager()
 		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)

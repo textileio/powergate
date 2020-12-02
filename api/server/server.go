@@ -47,6 +47,7 @@ import (
 	minerModule "github.com/textileio/powergate/index/miner/module"
 	"github.com/textileio/powergate/iplocation/maxmind"
 	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/migration"
 	"github.com/textileio/powergate/reputation"
 	txndstr "github.com/textileio/powergate/txndstransform"
 	"github.com/textileio/powergate/util"
@@ -122,6 +123,8 @@ type Config struct {
 	FFSDealFinalityTimeout      time.Duration
 	FFSMinimumPieceSize         uint64
 	FFSMaxParallelDealPreparing int
+	FFSGCAutomaticGCInterval    time.Duration
+	FFSGCStageGracePeriod       time.Duration
 	SchedMaxParallel            int
 	MinerSelector               string
 	MinerSelectorParams         string
@@ -186,7 +189,11 @@ func NewServer(conf Config) (*Server, error) {
 		}
 	}
 
-	ds, err := createDatastore(conf)
+	if err := runMigrations(conf); err != nil {
+		return nil, fmt.Errorf("running migrations: %s", err)
+	}
+
+	ds, err := createDatastore(conf, false)
 	if err != nil {
 		return nil, fmt.Errorf("creating datastore: %s", err)
 	}
@@ -240,12 +247,12 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating miner selector: %s", err)
 	}
 
-	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
+	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger_v2"))
 	if conf.Devnet {
 		conf.FFSMinimumPieceSize = 0
 	}
 	cs := filcold.New(ms, dm, ipfs, chain, l, lsm, conf.FFSMinimumPieceSize, conf.FFSMaxParallelDealPreparing)
-	hs, err := coreipfs.New(ipfs, l)
+	hs, err := coreipfs.New(txndstr.Wrap(ds, "ffs/coreipfs"), ipfs, l)
 	if err != nil {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)
 	}
@@ -254,7 +261,8 @@ func NewServer(conf Config) (*Server, error) {
 	if ms, ok := ms.(*sr2.MinerSelector); ok {
 		sr2rf = ms.GetReplicationFactor
 	}
-	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf)
+	gcConfig := scheduler.GCConfig{StageGracePeriod: conf.FFSGCStageGracePeriod, AutoGCInterval: conf.FFSGCAutomaticGCInterval}
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf, gcConfig)
 	if err != nil {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}
@@ -529,7 +537,7 @@ func (s *Server) Close() {
 	}
 }
 
-func createDatastore(conf Config) (datastore.TxnDatastore, error) {
+func createDatastore(conf Config, longTimeout bool) (datastore.TxnDatastore, error) {
 	if conf.MongoURI != "" {
 		log.Info("Opening Mongo database...")
 		mongoCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -537,7 +545,11 @@ func createDatastore(conf Config) (datastore.TxnDatastore, error) {
 		if conf.MongoDB == "" {
 			return nil, fmt.Errorf("mongo database name is empty")
 		}
-		ds, err := mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB)
+		var opts []mongods.Option
+		if longTimeout {
+			opts = []mongods.Option{mongods.WithOpTimeout(time.Hour), mongods.WithTxnTimeout(time.Hour)}
+		}
+		ds, err := mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB, opts...)
 		if err != nil {
 			return nil, fmt.Errorf("opening mongo datastore: %s", err)
 		}
@@ -628,4 +640,28 @@ func nonCompliantAPIsInterceptor(nonCompliantAPIs []string) grpc.UnaryServerInte
 		}
 		return handler(ctx, req)
 	}
+}
+
+func runMigrations(conf Config) error {
+	log.Infof("Ensuring migrations...")
+	ds, err := createDatastore(conf, true)
+	if err != nil {
+		return fmt.Errorf("creating migration datastore: %s", err)
+	}
+	defer func() {
+		if err := ds.Close(); err != nil {
+			log.Errorf("closing migration datastore: %s", err)
+		}
+	}()
+
+	migrations := map[int]migration.Migration{
+		1: migration.V1MultitenancyMigration,
+	}
+	m := migration.New(ds, migrations)
+	if err := m.Ensure(); err != nil {
+		return fmt.Errorf("running migrations: %s", err)
+	}
+	log.Infof("Migrations ensured")
+
+	return nil
 }

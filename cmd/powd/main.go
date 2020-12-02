@@ -130,6 +130,8 @@ func configFromFlags() (server.Config, error) {
 	ffsDealWatchFinalityTimeout := time.Minute * time.Duration(config.GetInt("ffsdealfinalitytimeout"))
 	ffsMinimumPieceSize := config.GetUint64("ffsminimumpiecesize")
 	ffsMaxParallelDealPreparing := config.GetInt("ffsmaxparalleldealpreparing")
+	ffsGCInterval := time.Minute * time.Duration(config.GetInt("ffsgcinterval"))
+	ffsGCStagedGracePeriod := time.Minute * time.Duration(config.GetInt("ffsgcstagedgraceperiod"))
 	dealWatchPollDuration := time.Second * time.Duration(config.GetInt("dealwatchpollduration"))
 	askIndexQueryAskTimeout := time.Second * time.Duration(config.GetInt("askindexqueryasktimeout"))
 	askIndexRefreshInterval := time.Minute * time.Duration(config.GetInt("askindexrefreshinterval"))
@@ -167,6 +169,8 @@ func configFromFlags() (server.Config, error) {
 		FFSDealFinalityTimeout:      ffsDealWatchFinalityTimeout,
 		FFSMinimumPieceSize:         ffsMinimumPieceSize,
 		FFSMaxParallelDealPreparing: ffsMaxParallelDealPreparing,
+		FFSGCAutomaticGCInterval:    ffsGCInterval,
+		FFSGCStageGracePeriod:       ffsGCStagedGracePeriod,
 		AutocreateMasterAddr:        autocreateMasterAddr,
 		MinerSelector:               minerSelector,
 		MinerSelectorParams:         minerSelectorParams,
@@ -231,6 +235,7 @@ func setupLogging(repoPath string) error {
 		// Top-level
 		"powd",
 		"server",
+		"migrations",
 
 		// Indexes & Reputation
 		"index-miner",
@@ -264,6 +269,7 @@ func setupLogging(repoPath string) error {
 		"ffs-sched-sjstore",
 		"ffs-sched-rjstore",
 		"ffs-cidlogger",
+		"ffs-pinstore",
 
 		// gRPC Services
 		"powergate-service",
@@ -350,28 +356,30 @@ func setupFlags() error {
 	pflag.String("repopath", "~/.powergate", "Path of the repository where Powergate state will be saved.")
 	pflag.Bool("devnet", false, "Indicate that will be running on an ephemeral devnet. --repopath will be autocleaned on exit.")
 	pflag.String("ipfsapiaddr", "/ip4/127.0.0.1/tcp/5001", "IPFS API endpoint multiaddress. (Optional, only needed if FFS is used)")
-	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb")
+	pflag.String("maxminddbfolder", ".", "Path of the folder containing GeoLite2-City.mmdb.")
 
-	pflag.String("mongouri", "", "Mongo URI to connect to MongoDB database. (Optional: if empty, will use Badger)")
-	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory")
+	pflag.String("mongouri", "", "Mongo URI to connect to MongoDB database. (Optional: if empty, will use Badger).")
+	pflag.String("mongodb", "", "Mongo database name. (if --mongouri is used, is mandatory.")
 
 	pflag.String("ffsadmintoken", "", "FFS admin token for authorized APIs. If empty, the APIs will be open to the public.")
 	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
-	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'")
-	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector")
-	pflag.String("ffsminimumpiecesize", "67108864", "Minimum piece size in bytes allowed to be stored in Filecoin")
-	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel")
-	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned")
-	pflag.String("ffsmaxparalleldealpreparing", "2", "Max parallel deal preparing tasks")
-	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes")
+	pflag.String("ffsminerselector", "sr2", "Miner selector to be used by FFS: 'sr2', 'reputation'.")
+	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector.")
+	pflag.String("ffsminimumpiecesize", "67108864", "Minimum piece size in bytes allowed to be stored in Filecoin.")
+	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel.")
+	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned.")
+	pflag.String("ffsmaxparalleldealpreparing", "2", "Max parallel deal preparing tasks.")
+	pflag.String("ffsgcinterval", "60", "Interval in minutes of Hot Storage GC for staged data; zero is never.")
+	pflag.String("ffsgcstagedgraceperiod", "60", "Duration in minutes where a staged Cid will be considered GCable if scheduled in a Job.")
+	pflag.String("dealwatchpollduration", "900", "Poll interval in seconds used by Deals Module watch to detect state changes.")
 
-	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask")
-	pflag.String("askindexrefreshinterval", "360", "Refresh interval measured in minutes")
-	pflag.Bool("askindexrefreshonstart", false, "If true it will refresh the index on start")
-	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index")
+	pflag.String("askindexqueryasktimeout", "15", "Timeout in seconds for a query ask.")
+	pflag.String("askindexrefreshinterval", "360", "Refresh interval measured in minutes.")
+	pflag.Bool("askindexrefreshonstart", false, "If true it will refresh the index on start.")
+	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index.")
 
-	pflag.Bool("disableindices", false, "Disable all indices updates, useful to help Lotus syncing process")
-	pflag.Bool("disablenoncompliantapis", false, "Disable APIs that may not easily comply with US law")
+	pflag.Bool("disableindices", false, "Disable all indices updates, useful to help Lotus syncing process.")
+	pflag.Bool("disablenoncompliantapis", false, "Disable APIs that may not easily comply with US law.")
 
 	pflag.Parse()
 

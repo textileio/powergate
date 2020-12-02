@@ -56,10 +56,11 @@ func (cl *Logger) Log(ctx context.Context, format string, a ...interface{}) {
 	c, _ := ctx.Value(ffs.CtxStorageCid).(cid.Cid)
 	rid, _ := ctx.Value(ffs.CtxRetrievalID).(ffs.RetrievalID)
 	jid, _ := ctx.Value(ffs.CtxKeyJid).(ffs.JobID)
+	iid, _ := ctx.Value(ffs.CtxAPIID).(ffs.APIID)
 
 	now := time.Now()
 	nowNano := now.UnixNano()
-	key := makeKey(c, rid, nowNano)
+	key := makeKey(iid, c, rid, nowNano)
 	le := logEntry{
 		Cid:         c,
 		RetrievalID: rid,
@@ -78,6 +79,7 @@ func (cl *Logger) Log(ctx context.Context, format string, a ...interface{}) {
 	}
 
 	entry := ffs.LogEntry{
+		APIID:     iid,
 		Cid:       le.Cid,
 		Jid:       le.Jid,
 		Timestamp: now,
@@ -95,8 +97,8 @@ func (cl *Logger) Log(ctx context.Context, format string, a ...interface{}) {
 }
 
 // GetByCid returns history logs for a Cid.
-func (cl *Logger) GetByCid(ctx context.Context, c cid.Cid) ([]ffs.LogEntry, error) {
-	q := query.Query{Prefix: makeCidKey(c).String()}
+func (cl *Logger) GetByCid(ctx context.Context, iid ffs.APIID, c cid.Cid) ([]ffs.LogEntry, error) {
+	q := query.Query{Prefix: makeStorageCidKey(iid, c).String()}
 	res, err := cl.ds.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("running query: %s", err)
@@ -176,21 +178,24 @@ func (cl *Logger) Close() error {
 	return nil
 }
 
-func makeKey(c cid.Cid, rid ffs.RetrievalID, timestamp int64) datastore.Key {
+func makeKey(iid ffs.APIID, c cid.Cid, rid ffs.RetrievalID, timestamp int64) datastore.Key {
+	if !iid.Valid() {
+		panic("iid can't be empty")
+	}
 	strt := strconv.FormatInt(timestamp, 10)
 	if c != cid.Undef {
-		return makeCidKey(c).ChildString(strt)
+		return makeStorageCidKey(iid, c).ChildString(strt)
 	}
 	if rid != ffs.EmptyRetrievalID {
-		return makeRetrievalKey(c).ChildString(strt)
+		return makeRetrievalKey(iid, c).ChildString(strt)
 	}
 	panic("log should be from stored cid or retrieval request")
 }
 
-func makeCidKey(c cid.Cid) datastore.Key {
-	return datastore.NewKey(util.CidToString(c))
+func makeStorageCidKey(iid ffs.APIID, c cid.Cid) datastore.Key {
+	return datastore.NewKey(iid.String()).ChildString(util.CidToString(c))
 }
 
-func makeRetrievalKey(rid cid.Cid) datastore.Key {
-	return datastore.NewKey(rid.String())
+func makeRetrievalKey(iid ffs.APIID, rid cid.Cid) datastore.Key {
+	return datastore.NewKey(iid.String()).ChildString(rid.String())
 }

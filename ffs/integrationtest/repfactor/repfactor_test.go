@@ -12,6 +12,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -31,7 +32,7 @@ func TestRepFactor(t *testing.T) {
 			t.Parallel()
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
 				r := rand.New(rand.NewSource(22))
-				ipfsAPI, _, fapi, cls := it.NewAPI(t, rf)
+				ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, rf)
 				defer cls()
 				cid, _ := it.AddRandomFile(t, r, ipfsAPI)
 				config := fapi.DefaultStorageConfig().WithColdFilRepFactor(rf)
@@ -52,7 +53,7 @@ func TestRepFactorIncrease(t *testing.T) {
 	t.SkipNow()
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		r := rand.New(rand.NewSource(22))
-		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 2)
 		defer cls()
 		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
 		jid, err := fapi.PushStorageConfig(cid)
@@ -80,7 +81,7 @@ func TestRepFactorIncrease(t *testing.T) {
 func TestRepFactorDecrease(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		r := rand.New(rand.NewSource(22))
-		ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 2)
 		defer cls()
 
 		cid, _ := it.AddRandomFile(t, r, ipfsAPI)
@@ -109,7 +110,7 @@ func TestRepFactorDecrease(t *testing.T) {
 func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	// Too flaky for CI.
 	t.SkipNow()
-	ipfsAPI, _, fapi, cls := it.NewAPI(t, 2)
+	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 2)
 	defer cls()
 
 	ra := rand.New(rand.NewSource(22))

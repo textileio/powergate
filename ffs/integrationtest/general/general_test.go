@@ -16,6 +16,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -32,7 +33,7 @@ func TestAdd(t *testing.T) {
 		t.Parallel()
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, client, fapi, cls := it.NewAPI(t, 1)
+			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -52,7 +53,7 @@ func TestAdd(t *testing.T) {
 		t.Parallel()
 
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
-			ipfsAPI, _, fapi, cls := it.NewAPI(t, 1)
+			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -73,7 +74,7 @@ func TestGet(t *testing.T) {
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ctx := context.Background()
-		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -93,7 +94,7 @@ func TestGet(t *testing.T) {
 
 func TestDealConsistency(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 		defer cls()
 
 		firstID := fapi.ID()
@@ -168,7 +169,7 @@ func TestShow(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 
 		defer cls()
 
@@ -221,8 +222,8 @@ func TestColdInstanceLoad(t *testing.T) {
 
 		ds := tests.NewTxMapDatastore()
 		ipfs, ipfsMAddr := it.CreateIPFS(t)
-		addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
-		manager, closeManager := it.NewFFSManager(t, ds, client, addr, ms, ipfs)
+		addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+		manager, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 
 		auth, err := manager.Create(context.Background())
 		require.NoError(t, err)
@@ -248,7 +249,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		closeManager()
 
 		// Rehydrate things again and check state.
-		manager, closeManager = it.NewFFSManager(t, ds, client, addr, ms, ipfs)
+		manager, closeManager = itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 		defer closeManager()
 		fapi, err = manager.GetByAuthToken(auth.Token)
 		require.NoError(t, err)
@@ -273,9 +274,9 @@ func TestHighMinimumPieceSize(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ds := tests.NewTxMapDatastore()
 		ipfs, ipfsMAddr := it.CreateIPFS(t)
-		addr, client, ms := it.NewDevnet(t, 1, ipfsMAddr)
+		addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
 		// Set MinimumPieceSize to 1GB so to force failing
-		manager, closeManager := it.NewCustomFFSManager(t, ds, client, addr, ms, ipfs, 1024*1024*1024)
+		manager, _, closeManager := itmanager.NewCustomFFSManager(t, ds, client, addr, ms, ipfs, 1024*1024*1024)
 		defer closeManager()
 
 		auth, err := manager.Create(context.Background())
@@ -293,11 +294,45 @@ func TestHighMinimumPieceSize(t *testing.T) {
 	})
 }
 
+func TestStageCidUnpinedOnDisabledHotStorage(t *testing.T) {
+	t.Parallel()
+
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
+		ctx := context.Background()
+		ds := tests.NewTxMapDatastore()
+		ipfs, ipfsMAddr := it.CreateIPFS(t)
+		addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+		manager, hs, closeManager := itmanager.NewCustomFFSManager(t, ds, client, addr, ms, ipfs, 0)
+		defer closeManager()
+		auth, err := manager.Create(context.Background())
+		require.NoError(t, err)
+		time.Sleep(time.Second * 3) // Wait for funding txn to finish.
+
+		fapi, err := manager.GetByAuthToken(auth.Token)
+		require.NoError(t, err)
+
+		r := rand.New(rand.NewSource(22))
+
+		data := it.RandomBytes(r, 1600)
+		// Simulate staging the data, which Stage-pins it.
+		cid, err := hs.Stage(ctx, fapi.ID(), bytes.NewReader(data))
+		require.NoError(t, err)
+		it.RequireIpfsPinnedCid(ctx, t, cid, ipfs)
+
+		config := fapi.DefaultStorageConfig().WithHotEnabled(false)
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+		require.NoError(t, err)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
+		time.Sleep(time.Second)
+		it.RequireIpfsUnpinnedCid(ctx, t, cid, ipfs)
+	})
+}
+
 func TestRemove(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -326,7 +361,7 @@ func TestRemove(t *testing.T) {
 
 func TestImport(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	miner := "t01234"

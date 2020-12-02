@@ -4,7 +4,7 @@ RUN mkdir /app
 WORKDIR /app 
 
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download -x
 COPY . .
 RUN POW_BUILD_FLAGS="CGO_ENABLED=0 GOOS=linux" make build-powd
 RUN POW_BUILD_FLAGS="CGO_ENABLED=0 GOOS=linux" make build-pow

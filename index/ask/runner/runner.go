@@ -241,7 +241,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct, maxParall
 			newAsks[addr.String()] = sask
 			lock.Unlock()
 		}(addr)
-		if i%100 == 0 {
+		if i%5000 == 0 {
 			stats.Record(context.Background(), metrics.MFullRefreshProgress.M(float64(i)/float64(len(addrs))))
 			log.Infof("progress %d/%d", i, len(addrs))
 		}

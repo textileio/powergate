@@ -9,6 +9,7 @@ type Admin struct {
 	StorageJobs *StorageJobs
 	Users       *Users
 	Wallet      *Wallet
+	Data        *Data
 }
 
 // NewAdmin creates a new admin API.
@@ -17,5 +18,6 @@ func NewAdmin(client adminPb.AdminServiceClient) *Admin {
 		StorageJobs: &StorageJobs{client: client},
 		Users:       &Users{client: client},
 		Wallet:      &Wallet{client: client},
+		Data:        &Data{client: client},
 	}
 }

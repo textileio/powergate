@@ -12,6 +12,7 @@ func init() {
 		adminJobsCmd,
 		adminUsersCmd,
 		adminWalletCmd,
+		adminDataCmd,
 	)
 }
 
@@ -39,4 +40,10 @@ var adminWalletCmd = &cobra.Command{
 	Use:   "wallet",
 	Short: "Provides admin wallet commands",
 	Long:  `Provides admin wallet commands`,
+}
+
+var adminDataCmd = &cobra.Command{
+	Use:   "data",
+	Short: "Provides admin data commands",
+	Long:  `Provides admin data commands`,
 }

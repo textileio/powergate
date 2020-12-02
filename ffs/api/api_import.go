@@ -44,6 +44,7 @@ func (i *API) ImportStorage(payloadCid cid.Cid, pieceCid cid.Cid, deals []Import
 	}
 
 	cinfo := ffs.StorageInfo{
+		APIID:   i.cfg.ID,
 		JobID:   ffs.EmptyJobID,
 		Cid:     payloadCid,
 		Created: time.Now(),
@@ -57,7 +58,7 @@ func (i *API) ImportStorage(payloadCid cid.Cid, pieceCid cid.Cid, deals []Import
 		},
 	}
 
-	if err := i.sched.ImportStorageInfo(cinfo); err != nil {
+	if err := i.sched.ImportStorageInfo(i.cfg.ID, cinfo); err != nil {
 		return fmt.Errorf("importing cid info in scheduler: %s", err)
 	}
 

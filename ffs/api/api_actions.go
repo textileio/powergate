@@ -63,7 +63,7 @@ func (i *API) Remove(c cid.Cid) error {
 	if cfgs[c].Hot.Enabled || cfgs[c].Cold.Enabled {
 		return ErrActiveInStorage
 	}
-	if err := i.sched.Untrack(c); err != nil {
+	if err := i.sched.Untrack(i.cfg.ID, c); err != nil {
 		return fmt.Errorf("untracking from scheduler: %s", err)
 	}
 	if err := i.is.removeStorageConfig(c); err != nil {

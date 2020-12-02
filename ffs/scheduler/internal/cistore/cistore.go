@@ -30,9 +30,9 @@ func New(ds datastore.Datastore) *Store {
 }
 
 // Get gets the current stored state of a Cid.
-func (s *Store) Get(c cid.Cid) (ffs.StorageInfo, error) {
+func (s *Store) Get(iid ffs.APIID, c cid.Cid) (ffs.StorageInfo, error) {
 	var ci ffs.StorageInfo
-	buf, err := s.ds.Get(makeKey(c))
+	buf, err := s.ds.Get(makeKey(iid, c))
 	if err == datastore.ErrNotFound {
 		return ci, ErrNotFound
 	}
@@ -47,6 +47,9 @@ func (s *Store) Get(c cid.Cid) (ffs.StorageInfo, error) {
 
 // Put saves a new storage state for a Cid.
 func (s *Store) Put(ci ffs.StorageInfo) error {
+	if !ci.APIID.Valid() {
+		return fmt.Errorf("instance id is invalid")
+	}
 	if !ci.Cid.Defined() {
 		return fmt.Errorf("cid can't be undefined")
 	}
@@ -54,12 +57,12 @@ func (s *Store) Put(ci ffs.StorageInfo) error {
 	if err != nil {
 		return fmt.Errorf("marshaling cid info for datastore: %s", err)
 	}
-	if err := s.ds.Put(makeKey(ci.Cid), buf); err != nil {
+	if err := s.ds.Put(makeKey(ci.APIID, ci.Cid), buf); err != nil {
 		return fmt.Errorf("put cid info in datastore: %s", err)
 	}
 	return nil
 }
 
-func makeKey(c cid.Cid) datastore.Key {
-	return datastore.NewKey(util.CidToString(c))
+func makeKey(iid ffs.APIID, c cid.Cid) datastore.Key {
+	return datastore.NewKey(iid.String()).ChildString(util.CidToString(c))
 }

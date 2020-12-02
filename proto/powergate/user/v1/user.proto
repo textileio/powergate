@@ -46,6 +46,13 @@ message StageResponse {
   string cid = 1;
 }
 
+message StageCidRequest {
+  string cid = 1;
+}
+
+message StageCidResponse {
+}
+
 message ApplyStorageConfigRequest {
   string cid = 1;
   StorageConfig config = 2;
@@ -264,6 +271,7 @@ service UserService {
 
   // Data
   rpc Stage(stream StageRequest) returns (StageResponse) {}
+  rpc StageCid(StageCidRequest) returns (StageCidResponse) {}
   rpc ReplaceData(ReplaceDataRequest) returns (ReplaceDataResponse) {}
   rpc Get(GetRequest) returns (stream GetResponse) {}
   rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}

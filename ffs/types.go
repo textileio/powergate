@@ -412,6 +412,9 @@ type RetrievalInfo struct {
 // StorageInfo contains information about the current storage state
 // of a Cid.
 type StorageInfo struct {
+	// APIID indicate from which instance this
+	// information belongs.
+	APIID APIID
 	// JobID indicates the Job ID which updated
 	// the current information. It *may be empty* if
 	// the data was imported manually.
@@ -502,17 +505,21 @@ const (
 	// CtxRetrievalID is the context-key to indicate the RetrievalID of
 	// a RetrievalJob for JobLogger.
 	CtxRetrievalID
+	// CtxAPIID is the context-key to indicate which APIID owns the log
+	// entry.
+	CtxAPIID
 )
 
 // JobLogger saves log information about a storage and retrieval tasks.
 type JobLogger interface {
 	Log(context.Context, string, ...interface{})
 	Watch(context.Context, chan<- LogEntry) error
-	GetByCid(context.Context, cid.Cid) ([]LogEntry, error)
+	GetByCid(context.Context, APIID, cid.Cid) ([]LogEntry, error)
 }
 
 // LogEntry is a log entry from a Cid execution.
 type LogEntry struct {
+	APIID     APIID
 	Cid       cid.Cid
 	Timestamp time.Time
 	Jid       JobID

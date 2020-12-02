@@ -11,7 +11,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/ffs/api"
-	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/util"
 )
 
@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 
 func TestAddrs(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	addrs := fapi.Addrs()
@@ -38,7 +38,7 @@ func TestAddrs(t *testing.T) {
 
 func TestNewAddress(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	addr, err := fapi.NewAddr(context.Background(), "my address")
@@ -51,7 +51,7 @@ func TestNewAddress(t *testing.T) {
 
 func TestNewAddressDefault(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	addr, err := fapi.NewAddr(context.Background(), "my address", api.WithMakeDefault(true))
@@ -64,7 +64,7 @@ func TestNewAddressDefault(t *testing.T) {
 func TestSendFil(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	_, api, fapi, cls := it.NewAPI(t, 1)
+	_, api, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	const amt int64 = 1
@@ -112,7 +112,7 @@ func TestSendFil(t *testing.T) {
 func TestSignVerifyMessage(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	_, _, fapi, cls := it.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
 	addrs := fapi.Addrs()

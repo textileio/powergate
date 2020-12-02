@@ -104,10 +104,11 @@ func TestStartedDeals(t *testing.T) {
 	t.Parallel()
 	s := create(t)
 
+	iid := ffs.NewAPIID()
 	b, _ := multihash.Encode([]byte("data"), multihash.SHA1)
 	cidData := cid.NewCidV1(1, b)
 
-	fds, err := s.GetStartedDeals(cidData)
+	fds, err := s.GetStartedDeals(iid, cidData)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(fds))
 
@@ -117,17 +118,17 @@ func TestStartedDeals(t *testing.T) {
 	cidProp2 := cid.NewCidV1(1, b)
 
 	startedDeals := []cid.Cid{cidProp1, cidProp2}
-	err = s.AddStartedDeals(cidData, startedDeals)
+	err = s.AddStartedDeals(iid, cidData, startedDeals)
 	require.NoError(t, err)
 
-	fds, err = s.GetStartedDeals(cidData)
+	fds, err = s.GetStartedDeals(iid, cidData)
 	require.NoError(t, err)
 	require.Equal(t, startedDeals, fds)
 
-	err = s.RemoveStartedDeals(cidData)
+	err = s.RemoveStartedDeals(iid, cidData)
 	require.NoError(t, err)
 
-	fds, err = s.GetStartedDeals(cidData)
+	fds, err = s.GetStartedDeals(iid, cidData)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(fds))
 }

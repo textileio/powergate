@@ -13,7 +13,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	mh "github.com/multiformats/go-multihash"
 	"github.com/stretchr/testify/require"
-	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -34,7 +34,7 @@ func TestPartialRetrievalFlow(t *testing.T) {
 	t.Parallel()
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ctx := context.Background()
-		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 		defer cls()
 		_ = ctx
 		_ = fapi

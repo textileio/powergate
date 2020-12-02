@@ -12,6 +12,7 @@ import (
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
 	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
@@ -31,7 +32,7 @@ func TestMain(m *testing.M) {
 func TestRepair(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		scheduler.RepairEvalFrequency = time.Second * 30
-		ipfs, _, fapi, cls := it.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))

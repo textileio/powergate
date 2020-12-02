@@ -1,6 +1,6 @@
 module github.com/textileio/powergate
 
-go 1.14
+go 1.15
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
@@ -32,6 +32,7 @@ require (
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
+	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/libp2p/go-libp2p v0.12.0
 	github.com/libp2p/go-libp2p-core v0.7.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
