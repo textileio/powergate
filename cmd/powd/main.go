@@ -258,6 +258,7 @@ func setupLogging(repoPath string) error {
 
 		// Miner Selectors
 		"sr2-miner-selector",
+		"reptop",
 
 		// FFS
 		"ffs-scheduler",

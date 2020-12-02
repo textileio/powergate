@@ -571,14 +571,14 @@ func createDatastore(conf Config, longTimeout bool) (datastore.TxnDatastore, err
 
 func getMinerSelector(conf Config, rm *reputation.Module, ai *ask.Runner, cb lotus.ClientBuilder) (ffs.MinerSelector, error) {
 	if conf.Devnet {
-		return reptop.New(rm, ai), nil
+		return reptop.New(cb, rm, ai), nil
 	}
 	var ms ffs.MinerSelector
 	var err error
 
 	switch conf.MinerSelector {
 	case "reputation":
-		ms = reptop.New(rm, ai)
+		ms = reptop.New(cb, rm, ai)
 	case "sr2":
 		ms, err = sr2.New(conf.MinerSelectorParams, cb)
 		if err != nil {

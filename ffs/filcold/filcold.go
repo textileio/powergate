@@ -17,6 +17,7 @@ import (
 	dealsModule "github.com/textileio/powergate/deals/module"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/util"
 )
 
 const (
@@ -290,7 +291,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, pieceSize abi.Padde
 	}
 
 	for _, cfg := range cfgs {
-		fc.l.Log(ctx, "Proposing deal to miner %s with %d attoFIL per epoch...", cfg.Miner, cfg.EpochPrice)
+		fc.l.Log(ctx, "Proposing deal to miner %s with %s FIL per epoch...", cfg.Miner, util.AttoFilToFil(cfg.EpochPrice))
 	}
 
 	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, pieceSize, pieceCid, cfgs, uint64(fcfg.DealMinDuration))
