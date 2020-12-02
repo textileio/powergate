@@ -17,8 +17,8 @@ func init() {
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Display version information for powtasker and the connected server",
-	Long:  `Display version information for powtasker and the connected server`,
+	Short: "Display version information for fts and the connected server",
+	Long:  `Display version information for fts and the connected server`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
@@ -27,7 +27,7 @@ var versionCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 		defer cancel()
 
-		Message("powtasker build info:")
+		Message("fts build info:")
 		RenderTable(
 			os.Stdout,
 			[]string{},

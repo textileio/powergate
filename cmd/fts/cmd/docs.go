@@ -13,8 +13,8 @@ func init() {
 
 var docsCmd = &cobra.Command{
 	Use:    "docs [outdir]",
-	Short:  "Generate markdown docs for pow command",
-	Long:   `Generate markdown docs for pow command`,
+	Short:  "Generate markdown docs for fts command",
+	Long:   `Generate markdown docs for fts command`,
 	Hidden: true,
 	Args:   cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

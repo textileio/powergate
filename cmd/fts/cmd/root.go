@@ -17,9 +17,9 @@ var (
 	cmdTimeout = time.Second * 10
 
 	rootCmd = &cobra.Command{
-		Use:               "powtasker",
-		Short:             "A client for storage and retreival of powergate data",
-		Long:              `A client for storage and retreival of powergate data`,
+		Use:               "fts",
+		Short:             "Filecoin data transfer service client for migrating big data to mainnet",
+		Long:              `Filecoin data transfer service client for migrating big data to mainnet`,
 		DisableAutoGenTag: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			err := viper.BindPFlag("serverAddress", cmd.Root().PersistentFlags().Lookup("serverAddress"))
@@ -53,7 +53,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.Flags().BoolP("version", "v", false, "display version information for powtasker and the connected server")
+	rootCmd.Flags().BoolP("version", "v", false, "display version information for fts and the connected server")
 	rootCmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the powergate service api")
 	rootCmd.PersistentFlags().StringP("token", "t", "", "user auth token")
 }
