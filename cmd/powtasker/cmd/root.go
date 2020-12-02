@@ -17,7 +17,7 @@ var (
 	cmdTimeout = time.Second * 10
 
 	rootCmd = &cobra.Command{
-		Use:               "pow",
+		Use:               "powtasker",
 		Short:             "A client for storage and retreival of powergate data",
 		Long:              `A client for storage and retreival of powergate data`,
 		DisableAutoGenTag: true,

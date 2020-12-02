@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	runCmd.Flags().Bool("dry-run", false, "Powergate IPFS reverse proxy multiaddr")
+	runCmd.Flags().Bool("dry-run", false, "Run through steps without pushing data to Powergate API")
 	runCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
 	runCmd.Flags().String("folder", "", "Folder with organized tasks of directories or files")
 	runCmd.Flags().Int64("concurrent", 2, "Max concurrent tasks being processed")
