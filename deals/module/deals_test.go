@@ -208,7 +208,8 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 				storagemarket.StorageDealClientFunding,
 				storagemarket.StorageDealPublish,
 				storagemarket.StorageDealPublishing,
-				storagemarket.StorageDealSealing:
+				storagemarket.StorageDealSealing,
+				storagemarket.StorageDealAwaitingPreCommit:
 			default:
 
 				return fmt.Errorf("unexpected deal state: %s", storagemarket.DealStates[di.State])
