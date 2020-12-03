@@ -85,7 +85,7 @@ func v0CidOwners(ds datastoreReaderWriter) (map[cid.Cid][]ffs.APIID, error) {
 		}()
 	}
 
-	for i := 0; i < len(lim); i++ {
+	for i := 0; i < cap(lim); i++ {
 		lim <- struct{}{}
 	}
 
