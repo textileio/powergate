@@ -376,7 +376,6 @@ func (s *Scheduler) resumeStartedDeals() error {
 			case s.sd.evaluateQueue <- struct{}{}:
 			default:
 			}
-
 		}(j)
 	}
 	return nil
