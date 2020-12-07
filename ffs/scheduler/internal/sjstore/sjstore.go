@@ -215,6 +215,28 @@ func (s *Store) GetExecutingJobIDs() []ffs.JobID {
 	return res
 }
 
+// CancelQueued cancels a job if it's in Queued status.
+// If the Job isn't Queued, the call is a noop. If the Job
+// doesn't exist it returns ErrNotFound.
+func (s *Store) CancelQueued(jid ffs.JobID) (bool, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	j, err := s.get(jid)
+	if err != nil {
+		return false, err
+	}
+	if j.Status != ffs.Queued {
+		return false, nil
+	}
+	j.Status = ffs.Canceled
+	if err := s.put(j); err != nil {
+		return false, fmt.Errorf("canceling queued job: %s", err)
+	}
+
+	return true, nil
+}
+
 func (s *Store) cancelQueued(c cid.Cid) error {
 	q := query.Query{Prefix: ""}
 	res, err := s.ds.Query(q)

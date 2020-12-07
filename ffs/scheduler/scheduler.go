@@ -160,10 +160,23 @@ func (s *Scheduler) GetCidFromHot(ctx context.Context, c cid.Cid) (io.Reader, er
 func (s *Scheduler) Cancel(jid ffs.JobID) error {
 	s.cancelLock.Lock()
 	defer s.cancelLock.Unlock()
+
+	ok, err := s.sjs.CancelQueued(jid)
+	if err != nil {
+		return fmt.Errorf("canceling potentially queued job: %s", err)
+	}
+	// The Job was Queued, and switched to Cancel; we're done.
+	if ok {
+		return nil
+	}
+
 	cancelChan, ok := s.jobsCancel[jid]
+	// The Job isn't executing; nothing to do.
 	if !ok {
 		return nil
 	}
+
+	// Send cancel signal to executing job.
 	// The main scheduler loop is responsible for
 	// deleting cancelChan from the map.
 	select {

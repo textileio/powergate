@@ -10,6 +10,8 @@ import (
 
 func init() {
 	storageJobsCmd.AddCommand(storageJobsCancelCmd)
+	storageJobsCmd.AddCommand(storageJobsCancelQueuedCmd)
+	storageJobsCmd.AddCommand(storageJobsCancelExecutingCmd)
 }
 
 var storageJobsCancelCmd = &cobra.Command{
@@ -27,5 +29,55 @@ var storageJobsCancelCmd = &cobra.Command{
 
 		_, err := powClient.StorageJobs.Cancel(mustAuthCtx(ctx), args[0])
 		checkErr(err)
+	},
+}
+
+var storageJobsCancelQueuedCmd = &cobra.Command{
+	Use:   "cancel-queued",
+	Short: "Cancel all queued jobs",
+	Long:  "Cancel all queued jobs",
+	Args:  cobra.ExactArgs(0),
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		checkErr(err)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		ctx := mustAuthCtx(context.Background())
+
+		js, err := powClient.StorageJobs.Queued(ctx)
+		checkErr(err)
+
+		for _, j := range js.StorageJobs {
+			ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+			defer cancel()
+
+			_, err := powClient.StorageJobs.Cancel(ctx, j.Id)
+			checkErr(err)
+		}
+	},
+}
+
+var storageJobsCancelExecutingCmd = &cobra.Command{
+	Use:   "cancel-executing",
+	Short: "Cancel all executing jobs",
+	Long:  "Cancel all executing jobs",
+	Args:  cobra.ExactArgs(0),
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		checkErr(err)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		ctx := mustAuthCtx(context.Background())
+
+		js, err := powClient.StorageJobs.Executing(ctx)
+		checkErr(err)
+
+		for _, j := range js.StorageJobs {
+			ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+			defer cancel()
+
+			_, err := powClient.StorageJobs.Cancel(ctx, j.Id)
+			checkErr(err)
+		}
 	},
 }
