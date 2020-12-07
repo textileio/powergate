@@ -10,6 +10,8 @@ import (
 
 func init() {
 	storageJobsCmd.AddCommand(storageJobsCancelCmd)
+	storageJobsCmd.AddCommand(storageJobsCancelQueuedCmd)
+	storageJobsCmd.AddCommand(storageJobsCancelExecutingCmd)
 }
 
 var storageJobsCancelCmd = &cobra.Command{
