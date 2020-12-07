@@ -42,14 +42,15 @@ var storageJobsCancelQueuedCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-		defer cancel()
+		ctx := mustAuthCtx(context.Background())
 
-		ctx = mustAuthCtx(ctx)
 		js, err := powClient.StorageJobs.Queued(ctx)
 		checkErr(err)
 
 		for _, j := range js.StorageJobs {
+			ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+			defer cancel()
+
 			_, err := powClient.StorageJobs.Cancel(ctx, j.Id)
 			checkErr(err)
 		}
@@ -66,14 +67,15 @@ var storageJobsCancelExecutingCmd = &cobra.Command{
 		checkErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-		defer cancel()
+		ctx := mustAuthCtx(context.Background())
 
-		ctx = mustAuthCtx(ctx)
 		js, err := powClient.StorageJobs.Executing(ctx)
 		checkErr(err)
 
 		for _, j := range js.StorageJobs {
+			ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+			defer cancel()
+
 			_, err := powClient.StorageJobs.Cancel(ctx, j.Id)
 			checkErr(err)
 		}
