@@ -370,6 +370,12 @@ func (s *Scheduler) resumeStartedDeals() error {
 
 			log.Infof("storage job resume rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
 			<-s.sd.rateLim
+
+			// Signal that a free slot is available for a queued job.
+			select {
+			case s.sd.evaluateQueue <- struct{}{}:
+			default:
+			}
 		}(j)
 	}
 	return nil
