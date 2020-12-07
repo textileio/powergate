@@ -23,6 +23,8 @@ Provides commands to query for storage jobs in various statess
 
 * [pow](pow.md)	 - A client for storage and retreival of powergate data
 * [pow storage-jobs cancel](pow_storage-jobs_cancel.md)	 - Cancel an executing storage job
+* [pow storage-jobs cancel-executing](pow_storage-jobs_cancel-executing.md)	 - Cancel all executing jobs
+* [pow storage-jobs cancel-queued](pow_storage-jobs_cancel-queued.md)	 - Cancel all queued jobs
 * [pow storage-jobs executing](pow_storage-jobs_executing.md)	 - List executing storage jobs
 * [pow storage-jobs get](pow_storage-jobs_get.md)	 - Get a storage job's current status
 * [pow storage-jobs latest-final](pow_storage-jobs_latest-final.md)	 - List the latest final storage jobs
