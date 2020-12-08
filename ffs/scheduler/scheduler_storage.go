@@ -362,17 +362,11 @@ func (s *Scheduler) getRefreshedHotInfo(ctx context.Context, iid ffs.APIID, c ci
 }
 
 func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, curr ffs.ColdInfo) (ffs.ColdInfo, error) {
-	var err error
 	activeDeals := make([]ffs.FilStorage, 0, len(curr.Filecoin.Proposals))
 	for _, fp := range curr.Filecoin.Proposals {
-		active := true
-		// Consider the border-case of imported deals which
-		// didn't provide the ProposalCid of the deal.
-		if fp.ProposalCid != cid.Undef {
-			active, err = s.cs.IsFilDealActive(ctx, fp.ProposalCid)
-			if err != nil {
-				return ffs.ColdInfo{}, fmt.Errorf("getting deal state of proposal %s: %s", fp.ProposalCid, err)
-			}
+		active, err := s.cs.IsFilDealActive(ctx, fp.DealID)
+		if err != nil {
+			return ffs.ColdInfo{}, fmt.Errorf("getting deal %d state: %s", fp.DealID, err)
 		}
 		if active {
 			activeDeals = append(activeDeals, fp)

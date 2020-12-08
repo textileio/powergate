@@ -143,15 +143,12 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 }
 
 // IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
-func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bool, error) {
-	status, err := fc.dm.GetDealStatus(ctx, proposalCid)
+func (fc *FilCold) IsFilDealActive(ctx context.Context, dealID uint64) (bool, error) {
+	_, err := fc.dm.GetDealInfo(ctx, dealID)
 	if err == module.ErrDealNotFound {
 		return false, nil
 	}
-	if err != nil {
-		return false, fmt.Errorf("getting deal state for %s: %s", proposalCid, err)
-	}
-	return status == storagemarket.StorageDealActive, nil
+	return true, nil
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
@@ -211,17 +208,6 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	}
 	for i, p := range inf.Proposals {
 		newInf.Proposals[i] = p
-	}
-
-	// Manually imported doesn't provide the piece size.
-	// Re-calculate it if necessary. If present, just re-use that value.
-	panic("TODO: Fix the below thing")
-	if inf.Size == 0 {
-		pieceSize, _, err := fc.calculateDealPiece(ctx, inf.DataCid)
-		if err != nil {
-			return ffs.FilInfo{}, nil, fmt.Errorf("can't recalculate piece size: %s", err)
-		}
-		inf.Size = uint64(pieceSize)
 	}
 
 	toRenew := renewable[:numToBeRenewed]
@@ -353,7 +339,6 @@ Loop:
 			switch di.StateID {
 			case storagemarket.StorageDealActive:
 				activeProposal := ffs.FilStorage{
-					ProposalCid:     di.ProposalCid,
 					PieceCid:        di.PieceCID,
 					Duration:        int64(di.Duration),
 					Miner:           di.Miner,

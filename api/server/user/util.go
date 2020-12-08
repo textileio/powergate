@@ -134,16 +134,11 @@ func toRPCStorageInfo(info ffs.StorageInfo) *userPb.StorageInfo {
 		},
 	}
 	for i, p := range info.Cold.Filecoin.Proposals {
-		var strProposalCid string
-		if p.ProposalCid.Defined() {
-			strProposalCid = util.CidToString(p.ProposalCid)
-		}
 		var strPieceCid string
 		if p.PieceCid.Defined() {
 			strPieceCid = util.CidToString(p.PieceCid)
 		}
 		storageInfo.Cold.Filecoin.Proposals[i] = &userPb.FilStorage{
-			ProposalCid:     strProposalCid,
 			PieceCid:        strPieceCid,
 			Renewed:         p.Renewed,
 			Duration:        p.Duration,

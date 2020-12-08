@@ -153,7 +153,7 @@ Loop:
 		require.True(t, (firstDeal.Renewed && !secondDeal.Renewed) || (secondDeal.Renewed && !firstDeal.Renewed))
 
 		newDeal := i.Cold.Filecoin.Proposals[2]
-		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
+		require.NotEqual(t, firstDeal.DealID, newDeal.DealID)
 		require.False(t, newDeal.Renewed)
 		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
 		require.Greater(t, newDeal.Duration, config.Cold.Filecoin.DealMinDuration)

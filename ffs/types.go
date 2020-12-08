@@ -470,8 +470,6 @@ type FilInfo struct {
 type FilStorage struct {
 	// DealID is the deal id in the network.
 	DealID uint64
-	// ProposalCid of the deal.
-	ProposalCid cid.Cid
 	// PieceCid is the piece Cid.
 	PieceCid cid.Cid
 	// Renewed indicates if this deal was
