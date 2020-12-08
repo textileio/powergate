@@ -215,6 +215,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 
 	// Manually imported doesn't provide the piece size.
 	// Re-calculate it if necessary. If present, just re-use that value.
+	panic("TODO: Fix the below thing")
 	if inf.Size == 0 {
 		pieceSize, _, err := fc.calculateDealPiece(ctx, inf.DataCid)
 		if err != nil {

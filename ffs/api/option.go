@@ -77,17 +77,19 @@ func WithHistory(enabled bool) GetLogsOption {
 }
 
 type importConfig struct {
-	validate bool
+	unfreeze *importUnfreeze
+}
+
+type importUnfreeze struct {
+	maxPrice uint64
 }
 
 // ImportOption provides configurations for importing deal information.
 type ImportOption func(*importConfig)
 
-// WithValidateImport indicates to validate imported deal information
-// to check for inconsistencies.
-func WithValidateImport(enabled bool) ImportOption {
+func WithUnfreeze(enabled bool, maxPrice uint64) ImportOption {
 	return func(c *importConfig) {
-		c.validate = enabled
+		c.unfreeze = &importUnfreeze{maxPrice: maxPrice}
 	}
 }
 
