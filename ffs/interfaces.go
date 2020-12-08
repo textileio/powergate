@@ -110,9 +110,9 @@ type ColdStorage interface {
 	// configuration. It returns a slice of deal errors happened during execution.
 	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig, time.Duration, chan deals.StorageDealInfo) (FilInfo, []DealError, error)
 
-	// IsFIlDealActive returns true if the proposal Cid is active on chain;
+	// IsFIlDealActive returns true if the DealID is active on chain;
 	// returns false otherwise.
-	IsFilDealActive(context.Context, cid.Cid) (bool, error)
+	IsFilDealActive(context.Context, uint64) (bool, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a

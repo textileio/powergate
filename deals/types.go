@@ -22,9 +22,10 @@ type StoreResult struct {
 
 // StorageDealInfo contains information about a proposed storage deal.
 type StorageDealInfo struct {
-	StateID   uint64
-	StateName string
-	Miner     string
+	ProposalCid cid.Cid
+	StateID     uint64
+	StateName   string
+	Miner       string
 
 	PieceCID cid.Cid
 	Size     uint64

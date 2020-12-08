@@ -209,7 +209,7 @@ func TestShow(t *testing.T) {
 		require.True(t, s.Cold.Filecoin.DataCid.Defined())
 		require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
 		p := s.Cold.Filecoin.Proposals[0]
-		require.True(t, p.ProposalCid.Defined())
+		require.Greater(t, 0, p.DealID)
 		require.Greater(t, p.Duration, int64(0))
 		require.Greater(t, p.EpochPrice, uint64(0))
 	})
@@ -382,7 +382,7 @@ func TestImport(t *testing.T) {
 	require.Len(t, i.Cold.Filecoin.Proposals, 1)
 
 	prop := i.Cold.Filecoin.Proposals[0]
-	require.Equal(t, cid.Undef, prop.ProposalCid)
+	require.Greater(t, 0, prop.DealID)
 	require.Equal(t, pieceCid, prop.PieceCid)
 	require.Equal(t, prop.Duration, int64(0))
 	require.Equal(t, prop.ActivationEpoch, int64(0))
