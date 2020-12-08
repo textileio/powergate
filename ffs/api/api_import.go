@@ -8,42 +8,69 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
-// ImportDeal contains information of an imported deal.
-type ImportDeal struct {
-	ProposalCid  *cid.Cid
-	MinerAddress string
-}
+type DealID uint64
 
-// ImportStorage imports deals existing in the Filecoin network. The StorageConfig
-// attached to this Cid will be the default one with HotStorage disabled.
-func (i *API) ImportStorage(payloadCid cid.Cid, pieceCid cid.Cid, deals []ImportDeal, opts ...ImportOption) error {
+func (i *API) ImportStorage(payloadCid cid.Cid, pieceCid cid.Cid, deals []DealID, opts ...ImportOption) error {
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg := importConfig{}
+	conf := importConfig{}
 	for _, o := range opts {
-		o(&cfg)
-	}
-	scfg := ffs.StorageConfig{
-		Repairable: false,
-		Hot: ffs.HotConfig{
-			Enabled: false,
-		},
-		Cold: i.cfg.DefaultStorageConfig.Cold,
+		o(&conf)
 	}
 
-	filStorage := make([]ffs.FilStorage, len(deals))
-	for i, d := range deals {
-		filStorage[i] = ffs.FilStorage{
-			PieceCid: pieceCid,
-			Miner:    d.MinerAddress,
-		}
-		if d.ProposalCid != nil {
-			filStorage[i].ProposalCid = *d.ProposalCid
+	// The StorageConfig of the import is the default storage config
+	// but with a twist in HotConfig depending on opts.
+	scfg := i.cfg.DefaultStorageConfig
+	scfg.Hot.Enabled = false
+	if conf.unfreeze != nil {
+		scfg.Hot = ffs.HotConfig{
+			Enabled:          true,
+			AllowUnfreeze:    true,
+			UnfreezeMaxPrice: conf.unfreeze.maxPrice,
 		}
 	}
 
-	cinfo := ffs.StorageInfo{
+	// Generate StorageInfo as if Powergate saved this data.
+	si, err := i.genStorageInfo(payloadCid, pieceCid, deals)
+	if err != nil {
+		return fmt.Errorf("generating storage info from imported deals: %s", err)
+	}
+	if err := i.sched.ImportStorageInfo(i.cfg.ID, si); err != nil {
+		return fmt.Errorf("importing cid info in scheduler: %s", err)
+	}
+	if err := i.is.putStorageConfig(payloadCid, scfg); err != nil {
+		return fmt.Errorf("saving new imported config: %s", err)
+	}
+
+	// We're done; we're in the same state as if Powergate
+	// stored the data. If the user decided that wanted to
+	// unfreeze the data (via opts), do it.
+	if conf.unfreeze != nil {
+		if err := i.scheduleImportJob(); err != nil {
+			return fmt.Errorf("scheduling unfreeze job from import: %s", err)
+		}
+	}
+
+	return nil
+}
+
+// Re-create FilStorage, as if they were created by Powergate
+// storing the data itself.
+func (i *API) genStorageInfo(payloadCid, pieceCid cid.Cid, deals []DealID) (ffs.StorageInfo, error) {
+	fss := make([]ffs.FilStorage, len(deals))
+	for j, dealID := range deals {
+		fs, err := i.genFilStorage(dealID)
+		if err != nil {
+			return ffs.StorageInfo{}, fmt.Errorf("generating fil storage for dealid %d: %s", err)
+		}
+		if fs.PieceCid != pieceCid {
+			return ffs.StorageInfo{}, fmt.Errorf("deal PieceCID doesn't match: %s != %s", fs.PieceCid, pieceCid)
+		}
+		fss[j] = fs
+	}
+
+	return ffs.StorageInfo{
 		APIID:   i.cfg.ID,
 		JobID:   ffs.EmptyJobID,
 		Cid:     payloadCid,
@@ -53,18 +80,17 @@ func (i *API) ImportStorage(payloadCid cid.Cid, pieceCid cid.Cid, deals []Import
 			Enabled: true,
 			Filecoin: ffs.FilInfo{
 				DataCid:   payloadCid,
-				Proposals: filStorage,
+				Proposals: fss,
 			},
 		},
-	}
+	}, nil
+}
 
-	if err := i.sched.ImportStorageInfo(i.cfg.ID, cinfo); err != nil {
-		return fmt.Errorf("importing cid info in scheduler: %s", err)
-	}
+// genFilStorage generates FilStorage given a DealID.
+func (i *API) genFilStorage(dealID DealID) (ffs.FilStorage, error) {
+	panic("TODO")
+	return ffs.FilStorage{
+		DealID: uint64(dealID),
+	}, nil
 
-	if err := i.is.putStorageConfig(payloadCid, scfg); err != nil {
-		return fmt.Errorf("saving new imported config: %s", err)
-	}
-
-	return nil
 }

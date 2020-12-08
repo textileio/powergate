@@ -332,6 +332,40 @@ func (m *Module) GetDealStatus(ctx context.Context, pcid cid.Cid) (storagemarket
 	return di.State, nil
 }
 
+// GetDealInfo returns info about a deal. If the deal isn't active on-chain,
+// it returns ErrDealNotFound.
+func (m *Module) GetDealInfo(ctx context.Context, dealID uint64) (deals.StorageDealInfo, error) {
+	lapi, cls, err := m.clientBuilder(ctx)
+	if err != nil {
+		return deals.StorageDealInfo{}, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
+	id := abi.DealID(dealID)
+	smd, err := lapi.StateMarketStorageDeal(ctx, id, types.EmptyTSK)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return deals.StorageDealInfo{}, ErrDealNotFound
+		}
+		return deals.StorageDealInfo{}, fmt.Errorf("getting deal info: %s", err)
+	}
+
+	sdi := deals.StorageDealInfo{
+		//ProposalCid:   dinfo.ProposalCid,
+		StateID:       storagemarket.StorageDealActive,
+		StateName:     storagemarket.DealStates[storagemarket.StorageDealActive],
+		Miner:         smd.Proposal.Provider.String(),
+		PieceCID:      smd.Proposal.PieceCID,
+		Size:          uint64(smd.Proposal.PieceSize),
+		PricePerEpoch: smd.Proposal.StoragePricePerEpoch.Uint64(),
+		Duration:      uint64(int64(smd.Proposal.EndEpoch) - int64(smd.Proposal.StartEpoch) + 1),
+		DealID:        dealID,
+		Message:       "",
+	}
+
+	return sdi, nil
+}
+
 // Watch returns a channel with state changes of indicated proposals.
 func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.StorageDealInfo, error) {
 	if len(proposals) == 0 {
@@ -696,7 +730,7 @@ func robustClientGetDealInfo(ctx context.Context, lapi *apistruct.FullNodeStruct
 
 func fromLotusDealInfo(ctx context.Context, client *apistruct.FullNodeStruct, dinfo *api.DealInfo) (deals.StorageDealInfo, error) {
 	di := deals.StorageDealInfo{
-		ProposalCid:   dinfo.ProposalCid,
+		//ProposalCid:   dinfo.ProposalCid,
 		StateID:       dinfo.State,
 		StateName:     storagemarket.DealStates[dinfo.State],
 		Miner:         dinfo.Provider.String(),

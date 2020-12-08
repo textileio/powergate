@@ -458,8 +458,7 @@ type FilInfo struct {
 	// Size is the size of the Piece. Recall that this size
 	// is which is accounted for payment. Also is equal or
 	// greater than the original data size.
-	// This value might be zero for imported deals; if that's
-	// the case, will be re-calculated in the next made deal.
+	// TODO: 0 if imported? Fix that.
 	Size uint64
 	// Proposals contains known deals for the data.
 	Proposals []FilStorage
@@ -469,6 +468,8 @@ type FilInfo struct {
 // This information is used in FFS may be used by FFS logic to
 // provide repair, renwal, or retrieval tasks.
 type FilStorage struct {
+	// DealID is the deal id in the network.
+	DealID uint64
 	// ProposalCid of the deal.
 	ProposalCid cid.Cid
 	// PieceCid is the piece Cid.
