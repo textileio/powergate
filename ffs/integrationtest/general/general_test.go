@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
@@ -359,33 +360,43 @@ func TestRemove(t *testing.T) {
 	})
 }
 
-func TestImport(t *testing.T) {
+func TestImportSimple(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := itmanager.NewAPI(t, 1)
+
+	// Store some data with User 1.
+	_, _, fapi1, cls := itmanager.NewAPI(t, 1)
 	defer cls()
 
-	miner := "t01234"
-	pieceCid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
-	payloadCid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC8z")
+	ipfsAPI, _, fapi1, cls := itmanager.NewAPI(t, 1)
+	defer cls()
 
-	// Import correct data, and shouldn't fail.
-	imd := []api.ImportDeal{{MinerAddress: miner}}
-	err := fapi.ImportStorage(payloadCid, pieceCid, imd)
+	r := rand.New(rand.NewSource(22))
+	cid, _ := it.AddRandomFile(t, r, ipfsAPI)
+	jid, err := fapi1.PushStorageConfig(cid)
 	require.NoError(t, err)
+	it.RequireEventualJobState(t, fapi1, jid, ffs.Success)
 
-	// Check that imported data is in fapi2
-	i, err := fapi.Show(payloadCid)
+	// Grab the DealID from the created deal.
+	si1, err := fapi1.Show(cid)
 	require.NoError(t, err)
-	require.False(t, i.Hot.Enabled)
-	require.Equal(t, payloadCid, i.Cold.Filecoin.DataCid)
-	require.Equal(t, uint64(0), i.Cold.Filecoin.Size)
-	require.Len(t, i.Cold.Filecoin.Proposals, 1)
+	si1p := si1.Cold.Filecoin.Proposals[0]
 
-	prop := i.Cold.Filecoin.Proposals[0]
-	require.Greater(t, 0, prop.DealID)
-	require.Equal(t, pieceCid, prop.PieceCid)
-	require.Equal(t, prop.Duration, int64(0))
-	require.Equal(t, prop.StartEpoch, uint64(0))
-	require.Equal(t, prop.EpochPrice, uint64(0))
-	require.Equal(t, imd[0].MinerAddress, prop.Miner)
+	// Create some User 2, import the DealIDs from User 1.
+	// Make the import without unfreeze, so just import deals
+	// and check StorageInfo is what we expect.
+	_, _, fapi2, cls := itmanager.NewAPI(t, 1)
+	defer cls()
+	config := fapi2.DefaultStorageConfig().WithHotEnabled(false)
+	jid, err = fapi2.PushStorageConfig(cid, api.WithDealImport([]uint64{si1p.DealID}), api.WithStorageConfig(config))
+	require.NoError(t, err)
+	it.RequireEventualJobState(t, fapi2, jid, ffs.Success)
+
+	si2, err := fapi2.Show(cid)
+	require.NoError(t, err)
+	require.Equal(t, fapi2.ID(), si2.APIID)
+	require.Equal(t, cid, si2.Cid)
+	require.Equal(t, ffs.EmptyJobID, si2.JobID)
+	require.Len(t, si2.Cold.Filecoin.Proposals, 1)
+	si2p := si2.Cold.Filecoin.Proposals[0]
+	require.True(t, cmp.Equal(si1p, si2p))
 }
