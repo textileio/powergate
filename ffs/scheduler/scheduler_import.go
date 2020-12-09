@@ -45,32 +45,59 @@ func (s *Scheduler) ImportDeals(iid ffs.APIID, payloadCid cid.Cid, dealIDs []uin
 }
 
 func (s *Scheduler) augmentStorageInfo(si *ffs.StorageInfo, deals []uint64) error {
-	fss := make([]ffs.FilStorage, len(deals))
-	for j, dealID := range deals {
-		fs, err := s.genFilStorage(dealID)
-		if err != nil {
-			return ffs.StorageInfo{}, fmt.Errorf("generating fil storage for dealid %d: %s", dealID, err)
+	// Deduplicate any already known DealID existing in StorageInfo with the
+	// imported ones.
+	var newDealIDs []uint64
+	existingDealID := map[uint64]struct{}{}
+	for _, p := range si.Cold.Filecoin.Proposals {
+		existingDealID[p.DealID] = struct{}{}
+	}
+	for _, did := range deals {
+		if _, ok := existingDealID[did]; !ok {
+			newDealIDs = append(newDealIDs, did)
 		}
-		if fs.PieceCid != pieceCid {
-			return ffs.StorageInfo{}, fmt.Errorf("invalid deal, PieceCID doesn't match: %s != %s", fs.PieceCid, pieceCid)
-		}
-		fss[j] = fs
 	}
 
-	return ffs.StorageInfo{
-		APIID:   iid,
-		JobID:   ffs.EmptyJobID,
-		Cid:     payloadCid,
-		Created: time.Now(),
-		Hot:     ffs.HotInfo{Enabled: false},
-		Cold: ffs.ColdInfo{
-			Enabled: true,
-			Filecoin: ffs.FilInfo{
-				DataCid:   payloadCid,
-				Proposals: fss,
-			},
-		},
-	}, nil
+	// If we have known deals, get the PieceCid. This will be used
+	// for validating that the provided DealID are from deals also
+	// for the same data. If that isn't the case, those DealIDs are
+	// wrong to import.
+	// If no known deals are present, we'll at least verify that all
+	// DealIDs point to the same PieceCid, so at least are all
+	// coherent. Unfortunately, there isn't a safe way to match
+	// PieceCid for PayloadCid without the data.
+	var pieceCid cid.Cid
+	if len(si.Cold.Filecoin.Proposals) > 0 {
+		pieceCid = si.Cold.Filecoin.Proposals[0].PieceCid
+	}
+
+	// Iterate new imported deals, and add the information
+	// to StorageInfo as if Powergate made those deals.
+	for _, dealID := range newDealIDs {
+		fs, err := s.genFilStorage(dealID)
+		if err != nil {
+			return fmt.Errorf("generating fil storage for dealid %d: %s", dealID, err)
+		}
+
+		// If we couldn't know the right PieceCID from known deals
+		// take the value from the first imported deals. Then use
+		// this to also assert that other provided DealIDs are coherent
+		// between each other.
+		if pieceCid == cid.Undef {
+			pieceCid = fs.PieceCid
+		}
+
+		// Validate that imported deals correspond all to the
+		// same PieceCid. And if we already knew PieceCid from
+		// previous deals Powergate did, also assert that's the case.
+		if fs.PieceCid != pieceCid {
+			return fmt.Errorf("invalid deal, PieceCID doesn't match: %s != %s", fs.PieceCid, pieceCid)
+		}
+
+		si.Cold.Filecoin.Proposals = append(si.Cold.Filecoin.Proposals, fs)
+	}
+
+	return nil
 }
 
 // genFilStorage generates FilStorage given a DealID.
