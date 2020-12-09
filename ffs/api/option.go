@@ -7,18 +7,18 @@ import (
 )
 
 // PushStorageConfigOption mutates a push configuration.
-type PushStorageConfigOption func(o *PushStorageConfigConfig) error
+type PushStorageConfigOption func(o *pushStorageConfigConfig) error
 
-// PushStorageConfigConfig contains options for pushing a Cid configuration.
-type PushStorageConfigConfig struct {
-	Config         ffs.StorageConfig
-	OverrideConfig bool
+type pushStorageConfigConfig struct {
+	config         ffs.StorageConfig
+	overrideConfig bool
+	dealIDs        []uint64
 }
 
 // WithStorageConfig overrides the Api default Cid configuration.
 func WithStorageConfig(c ffs.StorageConfig) PushStorageConfigOption {
-	return func(o *PushStorageConfigConfig) error {
-		o.Config = c
+	return func(o *pushStorageConfigConfig) error {
+		o.config = c
 		return nil
 	}
 }
@@ -26,15 +26,22 @@ func WithStorageConfig(c ffs.StorageConfig) PushStorageConfigOption {
 // WithOverride allows a new push configuration to override an existing one.
 // It's used as an extra security measure to avoid unwanted configuration changes.
 func WithOverride(override bool) PushStorageConfigOption {
-	return func(o *PushStorageConfigConfig) error {
-		o.OverrideConfig = override
+	return func(o *pushStorageConfigConfig) error {
+		o.overrideConfig = override
+		return nil
+	}
+}
+
+func WithDealImport(dealIDs []uint64) PushStorageConfigOption {
+	return func(o *pushStorageConfigConfig) error {
+		o.dealIDs = dealIDs
 		return nil
 	}
 }
 
 // Validate validates a PushStorageConfigConfig.
-func (pc PushStorageConfigConfig) Validate() error {
-	if err := pc.Config.Validate(); err != nil {
+func (pc pushStorageConfigConfig) Validate() error {
+	if err := pc.config.Validate(); err != nil {
 		return fmt.Errorf("invalid config: %s", err)
 	}
 	return nil
@@ -73,23 +80,6 @@ func WithJidFilter(jid ffs.JobID) GetLogsOption {
 func WithHistory(enabled bool) GetLogsOption {
 	return func(c *GetLogsConfig) {
 		c.history = enabled
-	}
-}
-
-type importConfig struct {
-	unfreeze *importUnfreeze
-}
-
-type importUnfreeze struct {
-	maxPrice uint64
-}
-
-// ImportOption provides configurations for importing deal information.
-type ImportOption func(*importConfig)
-
-func WithUnfreeze(enabled bool, maxPrice uint64) ImportOption {
-	return func(c *importConfig) {
-		c.unfreeze = &importUnfreeze{maxPrice: maxPrice}
 	}
 }
 
