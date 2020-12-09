@@ -269,7 +269,6 @@ func TestDurationConfig(t *testing.T) {
 		require.NoError(t, err)
 		p := cinfo.Cold.Filecoin.Proposals[0]
 		require.Greater(t, p.Duration, duration)
-		require.Greater(t, p.ActivationEpoch, int64(0))
 	})
 }
 

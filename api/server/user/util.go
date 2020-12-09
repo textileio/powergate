@@ -139,13 +139,13 @@ func toRPCStorageInfo(info ffs.StorageInfo) *userPb.StorageInfo {
 			strPieceCid = util.CidToString(p.PieceCid)
 		}
 		storageInfo.Cold.Filecoin.Proposals[i] = &userPb.FilStorage{
-			PieceCid:        strPieceCid,
-			Renewed:         p.Renewed,
-			Duration:        p.Duration,
-			ActivationEpoch: p.ActivationEpoch,
-			StartEpoch:      p.StartEpoch,
-			Miner:           p.Miner,
-			EpochPrice:      p.EpochPrice,
+			DealId:     int64(p.DealID),
+			PieceCid:   strPieceCid,
+			Renewed:    p.Renewed,
+			Duration:   p.Duration,
+			StartEpoch: p.StartEpoch,
+			Miner:      p.Miner,
+			EpochPrice: p.EpochPrice,
 		}
 	}
 	return storageInfo

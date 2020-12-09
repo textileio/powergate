@@ -2,12 +2,14 @@ package ffs
 
 import (
 	"context"
+	"errors"
 	"io"
 	"math/big"
 	"time"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/deals"
 )
@@ -89,6 +91,10 @@ type FetchInfo struct {
 	FundsSpent     uint64
 }
 
+var (
+	ErrOnChainDealNotFound = errors.New("on-chain deal not found, may not exist or have been slashed")
+)
+
 // ColdStorage is slow/cheap storage for Cid data. It has
 // native support for Filecoin storage.
 type ColdStorage interface {
@@ -110,9 +116,10 @@ type ColdStorage interface {
 	// configuration. It returns a slice of deal errors happened during execution.
 	EnsureRenewals(context.Context, cid.Cid, FilInfo, FilConfig, time.Duration, chan deals.StorageDealInfo) (FilInfo, []DealError, error)
 
-	// IsFIlDealActive returns true if the DealID is active on chain;
-	// returns false otherwise.
-	IsFilDealActive(context.Context, uint64) (bool, error)
+	// GetDealInfo returns information about an on-chain deal.
+	// If a deal ID doesn't exist, the deal isn't active anymore, or was
+	// slashed, then ErrOnChainDealNotFound is returned.
+	GetDealInfo(context.Context, uint64) (api.MarketDeal, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a

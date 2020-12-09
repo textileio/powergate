@@ -67,7 +67,6 @@ Loop:
 		newDeal := i.Cold.Filecoin.Proposals[1]
 		require.NotEqual(t, firstDeal.DealID, newDeal.DealID)
 		require.False(t, newDeal.Renewed)
-		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
 		require.Greater(t, newDeal.Duration, config.Cold.Filecoin.DealMinDuration)
 		break Loop
 	}

@@ -369,9 +369,9 @@ message HotInfo {
 }
 
 message FilStorage {
-  bool renewed = 1;
-  int64 duration = 2;
-  int64 activation_epoch = 3;
+  int64 deal_id = 1;
+  bool renewed = 2;
+  int64 duration = 3;
   uint64 start_epoch = 4;
   string miner = 5;
   uint64 epoch_price = 6;

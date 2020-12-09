@@ -385,7 +385,6 @@ func TestImport(t *testing.T) {
 	require.Greater(t, 0, prop.DealID)
 	require.Equal(t, pieceCid, prop.PieceCid)
 	require.Equal(t, prop.Duration, int64(0))
-	require.Equal(t, prop.ActivationEpoch, int64(0))
 	require.Equal(t, prop.StartEpoch, uint64(0))
 	require.Equal(t, prop.EpochPrice, uint64(0))
 	require.Equal(t, imd[0].MinerAddress, prop.Miner)
