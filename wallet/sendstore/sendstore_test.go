@@ -15,13 +15,6 @@ import (
 
 var createAddress = address.NewForTestGetter()
 
-// func createTxn(t *testing.T) wallet.SendFilTxn {
-// 	c, err := util.CidFromString("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u")
-// 	require.NoError(t, err)
-
-// 	return w
-// }
-
 func TestPut(t *testing.T) {
 	t.Parallel()
 	s := create(t)
@@ -41,7 +34,7 @@ func TestGet(t *testing.T) {
 	require.True(t, res.Time.Equal(txn.Time))
 }
 
-func TestAllFrom(t *testing.T) {
+func TestAll(t *testing.T) {
 	t.Parallel()
 	s := create(t)
 	addr1 := createAddress()
@@ -50,12 +43,13 @@ func TestAllFrom(t *testing.T) {
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8v", addr1, addr2, "200")
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8w", addr1, addr2, "300")
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8x", addr2, addr1, "400")
-	all, err := s.From(addr1)
+	res, err := s.All()
 	require.NoError(t, err)
-	require.Len(t, all, 3)
+	require.Len(t, res, 4)
+	requireSorted(t, res)
 }
 
-func TestAllTo(t *testing.T) {
+func TestFrom(t *testing.T) {
 	t.Parallel()
 	s := create(t)
 	addr1 := createAddress()
@@ -64,12 +58,28 @@ func TestAllTo(t *testing.T) {
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8v", addr1, addr2, "200")
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8w", addr1, addr2, "300")
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8x", addr2, addr1, "400")
-	all, err := s.To(addr2)
+	res, err := s.From(addr1)
 	require.NoError(t, err)
-	require.Len(t, all, 3)
+	require.Len(t, res, 3)
+	requireSorted(t, res)
 }
 
-func TestAllFromTo(t *testing.T) {
+func TestTo(t *testing.T) {
+	t.Parallel()
+	s := create(t)
+	addr1 := createAddress()
+	addr2 := createAddress()
+	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u", addr1, addr2, "100")
+	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8v", addr1, addr2, "200")
+	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8w", addr1, addr2, "300")
+	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8x", addr2, addr1, "400")
+	res, err := s.To(addr2)
+	require.NoError(t, err)
+	require.Len(t, res, 3)
+	requireSorted(t, res)
+}
+
+func TestFromTo(t *testing.T) {
 	t.Parallel()
 	s := create(t)
 	addr1 := createAddress()
@@ -80,12 +90,14 @@ func TestAllFromTo(t *testing.T) {
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8w", addr1, addr2, "300")
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8x", addr2, addr1, "400")
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8y", addr3, addr1, "500")
-	all, err := s.FromTo(addr1, addr2)
+	res, err := s.FromTo(addr1, addr2)
 	require.NoError(t, err)
-	require.Len(t, all, 3)
-	all, err = s.FromTo(addr2, addr1)
+	require.Len(t, res, 3)
+	requireSorted(t, res)
+	res, err = s.FromTo(addr2, addr1)
 	require.NoError(t, err)
-	require.Len(t, all, 1)
+	require.Len(t, res, 1)
+	requireSorted(t, res)
 }
 
 func TestBetween(t *testing.T) {
@@ -99,9 +111,10 @@ func TestBetween(t *testing.T) {
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8w", addr1, addr2, "300")
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8x", addr2, addr1, "400")
 	requirePut(t, s, "QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8y", addr3, addr1, "500")
-	all, err := s.Between(addr1, addr2)
+	res, err := s.Between(addr1, addr2)
 	require.NoError(t, err)
-	require.Len(t, all, 4)
+	require.Len(t, res, 4)
+	requireSorted(t, res)
 }
 
 func requireCid(t *testing.T, cid string) cid.Cid {
@@ -127,6 +140,16 @@ func requirePut(t *testing.T, s *SendStore, cid string, from, to address.Address
 	require.Equal(t, to, txn.To)
 	require.True(t, txn.Time.Before(time.Now()))
 	return txn
+}
+
+func requireSorted(t *testing.T, events []*wallet.SendFilEvent) {
+	var last *wallet.SendFilEvent
+	for _, event := range events {
+		if last != nil {
+			require.True(t, last.Time.Before(event.Time), "%v is not before %v", last.Time, event.Time)
+		}
+		last = event
+	}
 }
 
 func create(t *testing.T) *SendStore {

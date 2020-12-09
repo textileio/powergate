@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strconv"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -22,8 +23,8 @@ var (
 	ErrNotFound = errors.New("not found")
 
 	dsBaseEvent     = datastore.NewKey("event").String()
-	dsBaseIndexFrom = datastore.NewKey("index").ChildString("from").String()
-	dsBaseIndexTo   = datastore.NewKey("index").ChildString("to").String()
+	dsBaseIndexFrom = datastore.NewKey("index/from").String()
+	dsBaseIndexTo   = datastore.NewKey("index/to").String()
 )
 
 // SendStore stores information about SendFil transactions.
@@ -65,12 +66,12 @@ func (s *SendStore) Put(cid cid.Cid, from, to address.Address, amount *big.Int) 
 		return nil, fmt.Errorf("putting rec: %v", err)
 	}
 
-	err = tx.Put(indexFromKey(cid, from, to, rec.Time), dataKey.Bytes())
+	err = tx.Put(indexFromKey(cid, from, to, rec.Time, rec.Amount), dataKey.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("putting from index: %v", err)
 	}
 
-	err = tx.Put(indexToKey(cid, to, from, rec.Time), dataKey.Bytes())
+	err = tx.Put(indexToKey(cid, to, from, rec.Time, rec.Amount), dataKey.Bytes())
 	if err != nil {
 		return nil, fmt.Errorf("putting to index: %v", err)
 	}
@@ -85,6 +86,11 @@ func (s *SendStore) Put(cid cid.Cid, from, to address.Address, amount *big.Int) 
 // Get retrieves a send fil txn by cid.
 func (s *SendStore) Get(cid cid.Cid) (*wallet.SendFilEvent, error) {
 	return s.get(eventKey(cid))
+}
+
+// All returns all SendFilEvents.
+func (s *SendStore) All() ([]*wallet.SendFilEvent, error) {
+	return s.withIndexPrefix(dsBaseIndexFrom)
 }
 
 // From returns all SendFilEvents sent from the specified address.
@@ -115,8 +121,44 @@ func (s *SendStore) Between(addr1, addr2 address.Address) ([]*wallet.SendFilEven
 	return append(res1, res2...), nil
 }
 
+func sortByTime(a, b query.Entry) int {
+	aTime, err := extractTime(a.Key)
+	if err != nil {
+		log.Errorf("extracting time from key a: %v", err)
+		return 0
+	}
+	bTime, err := extractTime(b.Key)
+	if err != nil {
+		log.Errorf("extracting time from key b: %v", err)
+		return 0
+	}
+
+	if aTime > bTime {
+		return 1
+	} else if bTime > aTime {
+		return -1
+	} else {
+		return 0
+	}
+}
+
+func extractTime(key string) (int64, error) {
+	k := datastore.NewKey(key)
+	for _, namespace := range k.Namespaces() {
+		t := datastore.NamespaceType(namespace)
+		v := datastore.NamespaceValue(namespace)
+		if t == "time" {
+			return strconv.ParseInt(v, 10, 64)
+		}
+	}
+	return 0, fmt.Errorf("no time namespace type found")
+}
+
 func (s *SendStore) withIndexPrefix(prefix string) ([]*wallet.SendFilEvent, error) {
-	q := query.Query{Prefix: prefix}
+	q := query.Query{
+		Prefix: prefix,
+		Orders: []query.Order{query.OrderByFunction(sortByTime)},
+	}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return nil, fmt.Errorf("querying datastore: %s", err)
@@ -155,29 +197,61 @@ func (s *SendStore) get(key datastore.Key) (*wallet.SendFilEvent, error) {
 }
 
 func eventKey(cid cid.Cid) datastore.Key {
-	return datastore.NewKey(dsBaseEvent).ChildString(cid.String())
+	return datastore.KeyWithNamespaces([]string{
+		dsBaseEvent,
+		cid.String(),
+	})
 }
 
 func indexFromPrefix(from address.Address) string {
-	return fmt.Sprintf("%s/%s", dsBaseIndexFrom, from.String())
+	return datastore.KeyWithNamespaces([]string{
+		dsBaseIndexFrom,
+		kvStr("from", from.String()),
+	}).String()
 }
 
 func indexToPrefix(to address.Address) string {
-	return fmt.Sprintf("%s/%s", dsBaseIndexTo, to.String())
+	return datastore.KeyWithNamespaces([]string{
+		dsBaseIndexTo,
+		kvStr("to", to.String()),
+	}).String()
 }
 
 func indexFromToPrefix(from, to address.Address) string {
-	return fmt.Sprintf("%s/%s", indexFromPrefix(from), to.String())
+	return datastore.KeyWithNamespaces([]string{
+		indexFromPrefix(from),
+		kvStr("to", to.String()),
+	}).String()
 }
 
 func indexToFromPrefix(to, from address.Address) string {
-	return fmt.Sprintf("%s/%s", indexToPrefix(to), from.String())
+	return datastore.KeyWithNamespaces([]string{
+		indexToPrefix(to),
+		kvStr("from", from.String()),
+	}).String()
 }
 
-func indexFromKey(cid cid.Cid, from, to address.Address, time time.Time) datastore.Key {
-	return datastore.NewKey(indexFromToPrefix(from, to)).ChildString(fmt.Sprintf("%d", time.UnixNano())).ChildString(cid.String())
+func indexFromKey(cid cid.Cid, from, to address.Address, time time.Time, amt *big.Int) datastore.Key {
+	return datastore.KeyWithNamespaces([]string{
+		indexFromToPrefix(from, to),
+		kvStr("time", fmt.Sprintf("%d", time.UnixNano())),
+		kvStr("amt", amt.String()),
+		cid.String(),
+	})
 }
 
-func indexToKey(cid cid.Cid, to, from address.Address, time time.Time) datastore.Key {
-	return datastore.NewKey(indexToFromPrefix(to, from)).ChildString(fmt.Sprintf("%d", time.UnixNano())).ChildString(cid.String())
+func indexToKey(cid cid.Cid, to, from address.Address, time time.Time, amt *big.Int) datastore.Key {
+	return datastore.KeyWithNamespaces([]string{
+		indexToFromPrefix(to, from),
+		kvStr("time", fmt.Sprintf("%d", time.UnixNano())),
+		kvStr("amt", amt.String()),
+		cid.String(),
+	})
+}
+
+func kvStr(t, v string) string {
+	if t == "" {
+		return v
+	}
+	return fmt.Sprintf("%s:%s", t, v)
 }
