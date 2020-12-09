@@ -10,30 +10,41 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
 )
 
-func (s *Scheduler) PushImport(iid ffs.APIID, payloadCid, pieceCid cid.Cid, dealIDs []uint64, cfg ffs.StorageConfig) (ffs.JobID, error) {
+func (s *Scheduler) ImportDeals(iid ffs.APIID, payloadCid cid.Cid, dealIDs []uint64) error {
 	_, err := s.cis.Get(iid, payloadCid)
 	if err != nil && err != cistore.ErrNotFound {
-		return ffs.EmptyJobID, fmt.Errorf("checking if cid info already exists: %s", err)
+		return fmt.Errorf("checking if cid info already exists: %s", err)
 	}
 	if err != cistore.ErrNotFound {
-		return ffs.EmptyJobID, fmt.Errorf("there is cid information for the provided cid")
+		return fmt.Errorf("there is cid information for the provided cid")
 	}
 
-	// Generate StorageInfo as if Powergate saved this data.
-	si, err := s.genStorageInfo(iid, payloadCid, pieceCid, dealIDs)
+	// 1. Get current StorageInfo.
+	si, err := s.cis.Get(iid, payloadCid)
+	if err == cistore.ErrNotFound {
+		si = ffs.StorageInfo{
+			APIID:   iid,
+			JobID:   ffs.EmptyJobID,
+			Cid:     payloadCid,
+			Created: time.Now(),
+		}
+	}
 	if err != nil {
-		return ffs.EmptyJobID, fmt.Errorf("generating storage info from imported deals: %s", err)
+		return fmt.Errorf("getting current storageinfo: %s", err)
+	}
+
+	// 2. Augment the retrieved/bootstraped StorageInfo with provided deals.
+	if err := s.augmentStorageInfo(&si, dealIDs); err != nil {
+		return fmt.Errorf("generating storage info from imported deals: %s", err)
 	}
 	if err := s.cis.Put(si); err != nil {
-		return ffs.EmptyJobID, fmt.Errorf("importing cid information: %s", err)
+		return fmt.Errorf("importing cid information: %s", err)
 	}
 
-	return s.push(iid, payloadCid, cfg, cid.Undef)
+	return nil
 }
 
-// Re-create FilStorage, as if they were created by Powergate
-// storing the data itself.
-func (s *Scheduler) genStorageInfo(iid ffs.APIID, payloadCid, pieceCid cid.Cid, deals []uint64) (ffs.StorageInfo, error) {
+func (s *Scheduler) augmentStorageInfo(si *ffs.StorageInfo, deals []uint64) error {
 	fss := make([]ffs.FilStorage, len(deals))
 	for j, dealID := range deals {
 		fs, err := s.genFilStorage(dealID)
