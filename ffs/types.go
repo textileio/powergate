@@ -478,9 +478,6 @@ type FilStorage struct {
 	Renewed bool
 	// Duration is the duration of the deal.
 	Duration int64
-	// ActivationEpoch is the epoch in which
-	// the deal was activated.
-	ActivationEpoch int64
 	// StartEpoch is the starting epoch in which
 	// the deal is considered active on-chain.
 	StartEpoch uint64

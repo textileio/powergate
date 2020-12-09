@@ -9,6 +9,7 @@ import (
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	iface "github.com/ipfs/interface-go-ipfs-core"
@@ -142,13 +143,20 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 	return okDeals, failedStartingDeals, pieceSize, nil
 }
 
-// IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
-func (fc *FilCold) IsFilDealActive(ctx context.Context, dealID uint64) (bool, error) {
-	_, err := fc.dm.GetDealInfo(ctx, dealID)
+// GetDealInfo returns on-chain information for a deal.
+func (fc *FilCold) GetDealInfo(ctx context.Context, dealID uint64) (api.MarketDeal, error) {
+	di, err := fc.dm.GetDealInfo(ctx, dealID)
 	if err == module.ErrDealNotFound {
-		return false, nil
+		return api.MarketDeal{}, ffs.ErrOnChainDealNotFound
 	}
-	return true, nil
+	if err != nil {
+		return api.MarketDeal{}, fmt.Errorf("getting deal information: %s", err)
+	}
+	if di.State.SlashEpoch != -1 {
+		return api.MarketDeal{}, ffs.ErrOnChainDealNotFound
+	}
+
+	return di, nil
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
@@ -339,12 +347,11 @@ Loop:
 			switch di.StateID {
 			case storagemarket.StorageDealActive:
 				activeProposal := ffs.FilStorage{
-					PieceCid:        di.PieceCID,
-					Duration:        int64(di.Duration),
-					Miner:           di.Miner,
-					ActivationEpoch: di.ActivationEpoch,
-					StartEpoch:      di.StartEpoch,
-					EpochPrice:      di.PricePerEpoch,
+					PieceCid:   di.PieceCID,
+					Duration:   int64(di.Duration),
+					Miner:      di.Miner,
+					StartEpoch: di.StartEpoch,
+					EpochPrice: di.PricePerEpoch,
 				}
 				fc.l.Log(ctx, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
 
