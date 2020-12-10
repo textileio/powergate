@@ -179,13 +179,6 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		if p.Renewed {
 			continue
 		}
-		// TODO: Reconsider.
-		// In imported deals data, we might have missing information
-		// about start and/or duration. If that's the case, ignore
-		// them.
-		if p.StartEpoch == 0 || p.Duration == 0 {
-			continue
-		}
 		expiry := int64(p.StartEpoch) + p.Duration
 		renewalHeight := expiry - int64(cfg.Renew.Threshold)
 		if uint64(renewalHeight) <= height {

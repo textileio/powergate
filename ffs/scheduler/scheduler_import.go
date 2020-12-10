@@ -65,7 +65,7 @@ func (s *Scheduler) augmentStorageInfo(si *ffs.StorageInfo, deals []uint64) erro
 	// Iterate new imported deals, and add the information
 	// to StorageInfo as if Powergate made those deals.
 	for _, dealID := range newDealIDs {
-		fs, err := s.genFilStorage(dealID)
+		fs, size, err := s.genFilStorage(dealID)
 		if err != nil {
 			return fmt.Errorf("generating fil storage for dealid %d: %s", dealID, err)
 		}
@@ -86,18 +86,24 @@ func (s *Scheduler) augmentStorageInfo(si *ffs.StorageInfo, deals []uint64) erro
 		}
 
 		si.Cold.Filecoin.Proposals = append(si.Cold.Filecoin.Proposals, fs)
+
+		// If our StorageInfo doesn't know about size, which is the case if we're boostrapping only
+		// knowing DealIDs, then populate that data.
+		if si.Cold.Filecoin.Size == 0 {
+			si.Cold.Filecoin.Size = size
+		}
 	}
 
 	return nil
 }
 
-// genFilStorage generates FilStorage given a DealID.
-func (i *Scheduler) genFilStorage(dealID uint64) (ffs.FilStorage, error) {
+// genFilStorage given a DealID it generates FilStorage and returns the piece size.
+func (i *Scheduler) genFilStorage(dealID uint64) (ffs.FilStorage, uint64, error) {
 	ctx, cls := context.WithTimeout(context.Background(), time.Second*10)
 	defer cls()
 	di, err := i.cs.GetDealInfo(ctx, dealID)
 	if err != nil {
-		return ffs.FilStorage{}, fmt.Errorf("getting deal %d information: %s", dealID, err)
+		return ffs.FilStorage{}, 0, fmt.Errorf("getting deal %d information: %s", dealID, err)
 	}
 	return ffs.FilStorage{
 		DealID:     uint64(dealID),
@@ -107,5 +113,5 @@ func (i *Scheduler) genFilStorage(dealID uint64) (ffs.FilStorage, error) {
 		StartEpoch: uint64(di.Proposal.StartEpoch),
 		Miner:      di.Proposal.Provider.String(),
 		EpochPrice: di.Proposal.StoragePricePerEpoch.Uint64(),
-	}, nil
+	}, uint64(di.Proposal.PieceSize), nil
 }
