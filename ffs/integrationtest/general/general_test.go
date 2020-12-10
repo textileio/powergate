@@ -209,7 +209,7 @@ func TestShow(t *testing.T) {
 		require.True(t, s.Cold.Filecoin.DataCid.Defined())
 		require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
 		p := s.Cold.Filecoin.Proposals[0]
-		require.Greater(t, uint64(0), p.DealID)
+		require.Greater(t, p.DealID, uint64(0))
 		require.Greater(t, p.Duration, int64(0))
 		require.Greater(t, p.EpochPrice, uint64(0))
 	})
