@@ -125,7 +125,7 @@ func (i *API) GetStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.StorageConfig,
 		return nil, err
 	}
 	if err != nil {
-		return nil, fmt.Errorf("getting cid config from store: %s", err)
+		return nil, fmt.Errorf("getting cid configs from store: %s", err)
 	}
 	return configs, nil
 }
