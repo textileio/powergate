@@ -13,7 +13,7 @@ import (
 
 var (
 	// ErrNotFound indicates the instance doesn't exist.
-	ErrNotFound = errors.New("cid info not found")
+	ErrNotFound = errors.New("storage info not found")
 )
 
 // Store is an Datastore implementation of StorageInfoStore.

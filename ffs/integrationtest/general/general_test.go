@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
@@ -362,41 +361,56 @@ func TestRemove(t *testing.T) {
 
 func TestImportSimple(t *testing.T) {
 	t.Parallel()
+	ds := tests.NewTxMapDatastore()
+	ipfsAPI, ipfsMAddr := it.CreateIPFS(t)
+	addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+	manager, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfsAPI)
+	defer closeManager()
 
 	// Store some data with User 1.
-	_, _, fapi1, cls := itmanager.NewAPI(t, 1)
-	defer cls()
-
-	ipfsAPI, _, fapi1, cls := itmanager.NewAPI(t, 1)
-	defer cls()
-
+	auth, err := manager.Create(context.Background())
+	require.NoError(t, err)
+	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
+	fapi1, err := manager.GetByAuthToken(auth.Token)
+	require.NoError(t, err)
 	r := rand.New(rand.NewSource(22))
-	cid, _ := it.AddRandomFile(t, r, ipfsAPI)
-	jid, err := fapi1.PushStorageConfig(cid)
+	c, _ := it.AddRandomFile(t, r, ipfsAPI)
+	jid, err := fapi1.PushStorageConfig(c)
 	require.NoError(t, err)
 	it.RequireEventualJobState(t, fapi1, jid, ffs.Success)
 
 	// Grab the DealID from the created deal.
-	si1, err := fapi1.Show(cid)
+	si1, err := fapi1.Show(c)
 	require.NoError(t, err)
 	si1p := si1.Cold.Filecoin.Proposals[0]
 
 	// Create some User 2, import the DealIDs from User 1.
 	// Make the import without unfreeze, so just import deals
 	// and check StorageInfo is what we expect.
-	_, _, fapi2, cls := itmanager.NewAPI(t, 1)
-	defer cls()
+	auth, err = manager.Create(context.Background())
+	require.NoError(t, err)
+	require.NoError(t, err)
+	time.Sleep(time.Second * 3) // Wait for funding txn to finish.
+	fapi2, err := manager.GetByAuthToken(auth.Token)
+	require.NoError(t, err)
 	config := fapi2.DefaultStorageConfig().WithHotEnabled(false)
-	jid, err = fapi2.PushStorageConfig(cid, api.WithDealImport([]uint64{si1p.DealID}), api.WithStorageConfig(config))
+	jid, err = fapi2.PushStorageConfig(c, api.WithDealImport([]uint64{si1p.DealID}), api.WithStorageConfig(config))
 	require.NoError(t, err)
 	it.RequireEventualJobState(t, fapi2, jid, ffs.Success)
 
-	si2, err := fapi2.Show(cid)
+	// Now compare that User 2 active deals for the Cid matches the same
+	// data of User 1. That should be true, since User 2 imported the deal
+	// created by User 1.
+	si2, err := fapi2.Show(c)
 	require.NoError(t, err)
 	require.Equal(t, fapi2.ID(), si2.APIID)
-	require.Equal(t, cid, si2.Cid)
-	require.Equal(t, ffs.EmptyJobID, si2.JobID)
+	require.Equal(t, c, si2.Cid)
+	require.Equal(t, jid, si2.JobID)
 	require.Len(t, si2.Cold.Filecoin.Proposals, 1)
 	si2p := si2.Cold.Filecoin.Proposals[0]
-	require.True(t, cmp.Equal(si1p, si2p))
+	require.Equal(t, si1p.DealID, si2p.DealID)
+	require.Equal(t, si1p.PieceCid, si2p.PieceCid)
+	require.Equal(t, si1p.Duration, si2p.Duration)
+	require.Equal(t, si1p.StartEpoch, si2p.StartEpoch)
+	require.Equal(t, si1p.Miner, si2p.Miner)
 }
