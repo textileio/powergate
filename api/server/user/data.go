@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sort"
 
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/ffs"
@@ -224,6 +225,9 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		}
 		res = append(res, cidInfo)
 	}
+	sort.Slice(res, func(a, b int) bool {
+		return res[a].Cid < res[b].Cid
+	})
 	return &userPb.CidInfoResponse{CidInfos: res}, nil
 }
 
