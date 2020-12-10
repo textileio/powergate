@@ -88,10 +88,12 @@ func (s *instanceStore) getStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.Stor
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	rawRes := make(map[cid.Cid][]byte)
+	filter := make(map[cid.Cid]struct{})
 	for _, cid := range cids {
-		rawRes[cid] = nil
+		filter[cid] = struct{}{}
 	}
+
+	rawRes := make(map[cid.Cid][]byte)
 
 	if len(cids) == 1 {
 		// just getting a single value, do an explicit query for it
@@ -126,9 +128,9 @@ func (s *instanceStore) getStorageConfigs(cids ...cid.Cid) (map[cid.Cid]ffs.Stor
 			if err != nil {
 				return nil, fmt.Errorf("decoding cid: %s", err)
 			}
-			if len(rawRes) > 0 {
+			if len(filter) > 0 {
 				// we have a filter, check it
-				if _, ok := rawRes[c]; ok {
+				if _, ok := filter[c]; ok {
 					rawRes[c] = r.Value
 				}
 			} else {

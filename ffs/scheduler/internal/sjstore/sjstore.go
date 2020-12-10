@@ -457,6 +457,11 @@ func mappedJobs(m map[ffs.APIID]map[cid.Cid]*ffs.StorageJob, iid ffs.APIID, cids
 			}
 		}
 	}
+
+	sort.Slice(res, func(a, b int) bool {
+		return res[a].CreatedAt < res[b].CreatedAt
+	})
+
 	return res
 }
 
