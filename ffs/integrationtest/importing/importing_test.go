@@ -71,6 +71,7 @@ func TestImportWithoutRetrievalTwoUsers(t *testing.T) {
 	require.Equal(t, si1p.Duration, si2p.Duration)
 	require.Equal(t, si1p.StartEpoch, si2p.StartEpoch)
 	require.Equal(t, si1p.Miner, si2p.Miner)
+	require.Equal(t, si1.Cold.Filecoin.Size, si2.Cold.Filecoin.Size)
 }
 
 func TestImportWithRetrievalSingleUser(t *testing.T) {

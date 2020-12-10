@@ -456,9 +456,9 @@ type FilInfo struct {
 	// DataCid corresponds to the PayloadCid of the deal.
 	DataCid cid.Cid
 	// Size is the size of the Piece. Recall that this size
-	// is which is accounted for payment. Also is equal or
-	// greater than the original data size.
-	// TODO: 0 if imported? Fix that.
+	// is which is accounted for payment, and is usually
+	// greater than real data size since data is padded in
+	// Filecoin.
 	Size uint64
 	// Proposals contains known deals for the data.
 	Proposals []FilStorage
