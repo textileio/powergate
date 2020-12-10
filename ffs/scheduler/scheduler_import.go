@@ -11,14 +11,6 @@ import (
 )
 
 func (s *Scheduler) ImportDeals(iid ffs.APIID, payloadCid cid.Cid, dealIDs []uint64) error {
-	_, err := s.cis.Get(iid, payloadCid)
-	if err != nil && err != cistore.ErrNotFound {
-		return fmt.Errorf("checking if cid info already exists: %s", err)
-	}
-	if err != cistore.ErrNotFound {
-		return fmt.Errorf("there is cid information for the provided cid")
-	}
-
 	// 1. Get current StorageInfo.
 	si, err := s.cis.Get(iid, payloadCid)
 	if err == cistore.ErrNotFound {
