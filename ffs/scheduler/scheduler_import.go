@@ -28,8 +28,7 @@ func (s *Scheduler) ImportDeals(iid ffs.APIID, payloadCid cid.Cid, dealIDs []uin
 			Cid:     payloadCid,
 			Created: time.Now(),
 		}
-	}
-	if err != nil {
+	} else if err != nil {
 		return fmt.Errorf("getting current storageinfo: %s", err)
 	}
 
@@ -106,14 +105,14 @@ func (i *Scheduler) genFilStorage(dealID uint64) (ffs.FilStorage, error) {
 	defer cls()
 	di, err := i.cs.GetDealInfo(ctx, dealID)
 	if err != nil {
-		return ffs.FilStorage{}, fmt.Errorf("getting deal %d information :%s", dealID, err)
+		return ffs.FilStorage{}, fmt.Errorf("getting deal %d information: %s", dealID, err)
 	}
 	return ffs.FilStorage{
 		DealID:     uint64(dealID),
 		PieceCid:   di.Proposal.PieceCID,
 		Renewed:    false,
 		Duration:   int64(di.Proposal.EndEpoch) - int64(di.Proposal.StartEpoch) + 1,
-		StartEpoch: uint64(di.State.SectorStartEpoch),
+		StartEpoch: uint64(di.Proposal.StartEpoch),
 		Miner:      di.Proposal.Provider.String(),
 		EpochPrice: di.Proposal.StoragePricePerEpoch.Uint64(),
 	}, nil

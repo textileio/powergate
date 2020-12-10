@@ -179,6 +179,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		if p.Renewed {
 			continue
 		}
+		// TODO: Reconsider.
 		// In imported deals data, we might have missing information
 		// about start and/or duration. If that's the case, ignore
 		// them.
@@ -347,6 +348,7 @@ Loop:
 			switch di.StateID {
 			case storagemarket.StorageDealActive:
 				activeProposal := ffs.FilStorage{
+					DealID:     di.DealID,
 					PieceCid:   di.PieceCID,
 					Duration:   int64(di.Duration),
 					Miner:      di.Miner,
