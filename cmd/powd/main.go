@@ -273,7 +273,7 @@ func setupLogging(repoPath string) error {
 		"ffs-pinstore",
 
 		// gRPC Services
-		"powergate-service",
+		"user-service",
 	}
 
 	// powd registered loggers get info level by default.
