@@ -65,6 +65,10 @@ func (s *Service) ApplyStorageConfig(ctx context.Context, req *userPb.ApplyStora
 		options = append(options, api.WithOverride(req.OverrideConfig))
 	}
 
+	if len(req.ImportDealIds) > 0 {
+		options = append(options, api.WithDealImport(req.ImportDealIds))
+	}
+
 	jid, err := i.PushStorageConfig(c, options...)
 	if err != nil {
 		return nil, err

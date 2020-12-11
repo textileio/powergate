@@ -13,10 +13,11 @@ pow config apply [cid] [flags]
 ### Options
 
 ```
-  -c, --conf string   Optional path to a file containing storage config json, falls back to stdin, uses the user default by default
-  -h, --help          help for apply
-  -o, --override      If set, override any pre-existing storage configuration for the cid
-  -w, --watch         Watch the progress of the resulting job
+  -c, --conf string           Optional path to a file containing storage config json, falls back to stdin, uses the user default by default
+  -h, --help                  help for apply
+  -i, --import-deals string   Comma-separated list of deal ids to import
+  -o, --override              If set, override any pre-existing storage configuration for the cid
+  -w, --watch                 Watch the progress of the resulting job
 ```
 
 ### Options inherited from parent commands
