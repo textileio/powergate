@@ -6,6 +6,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/apoorvam/goterminal v0.0.0-20180523175556-614d345c47e5
 	github.com/caarlos0/spin v1.1.0
+	github.com/charmbracelet/bubbletea v0.12.2 // indirect
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
@@ -14,12 +15,15 @@ require (
 	github.com/filecoin-project/go-jsonrpc v0.1.2
 	github.com/filecoin-project/go-state-types v0.0.0-20201102161440-c8033295a1fc
 	github.com/filecoin-project/lotus v1.2.2
+	github.com/fogleman/ease v0.0.0-20170301025033-8da417bf1776 // indirect
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.2
 	github.com/google/uuid v1.1.2
+	github.com/gosuri/uilive v0.0.4 // indirect
+	github.com/gosuri/uiprogress v0.0.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/improbable-eng/grpc-web v0.13.0
 	github.com/ipfs/go-cid v0.0.7
@@ -37,8 +41,9 @@ require (
 	github.com/libp2p/go-libp2p-core v0.7.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
-	github.com/mattn/go-runewidth v0.0.8 // indirect
+	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/muesli/reflow v0.2.0 // indirect
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/multiformats/go-multiaddr-dns v0.2.0
 	github.com/multiformats/go-multihash v0.0.14
@@ -51,9 +56,11 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
+	github.com/sqs/goreturns v0.0.0-20181028201513-538ac6014518 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/textileio/go-ds-mongo v0.1.2
+	github.com/textileio/go-threads v1.0.2
 	go.opencensus.io v0.22.5
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	google.golang.org/grpc v1.33.1
