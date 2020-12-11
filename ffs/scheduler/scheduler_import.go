@@ -19,13 +19,18 @@ func (s *Scheduler) ImportDeals(iid ffs.APIID, payloadCid cid.Cid, dealIDs []uin
 			JobID:   ffs.EmptyJobID,
 			Cid:     payloadCid,
 			Created: time.Now(),
+			Cold: ffs.ColdInfo{
+				Filecoin: ffs.FilInfo{
+					DataCid: payloadCid,
+				},
+			},
 		}
 	} else if err != nil {
 		return fmt.Errorf("getting current storageinfo: %s", err)
 	}
 
 	// 2. Augment the retrieved/bootstraped StorageInfo with provided deals.
-	if err := s.augmentStorageInfo(&si, dealIDs); err != nil {
+	if err := s.augmentStorageInfo(&si.Cold.Filecoin, dealIDs); err != nil {
 		return fmt.Errorf("generating storage info from imported deals: %s", err)
 	}
 	if err := s.cis.Put(si); err != nil {
@@ -35,12 +40,12 @@ func (s *Scheduler) ImportDeals(iid ffs.APIID, payloadCid cid.Cid, dealIDs []uin
 	return nil
 }
 
-func (s *Scheduler) augmentStorageInfo(si *ffs.StorageInfo, deals []uint64) error {
+func (s *Scheduler) augmentStorageInfo(fi *ffs.FilInfo, deals []uint64) error {
 	// Deduplicate any already known DealID existing in StorageInfo with the
 	// imported ones.
 	var newDealIDs []uint64
 	existingDealID := map[uint64]struct{}{}
-	for _, p := range si.Cold.Filecoin.Proposals {
+	for _, p := range fi.Proposals {
 		existingDealID[p.DealID] = struct{}{}
 	}
 	for _, did := range deals {
@@ -58,8 +63,8 @@ func (s *Scheduler) augmentStorageInfo(si *ffs.StorageInfo, deals []uint64) erro
 	// coherent. Unfortunately, there isn't a safe way to match
 	// PieceCid for PayloadCid without the data.
 	var pieceCid cid.Cid
-	if len(si.Cold.Filecoin.Proposals) > 0 {
-		pieceCid = si.Cold.Filecoin.Proposals[0].PieceCid
+	if len(fi.Proposals) > 0 {
+		pieceCid = fi.Proposals[0].PieceCid
 	}
 
 	// Iterate new imported deals, and add the information
@@ -85,12 +90,12 @@ func (s *Scheduler) augmentStorageInfo(si *ffs.StorageInfo, deals []uint64) erro
 			return fmt.Errorf("invalid deal, PieceCID doesn't match: %s != %s", fs.PieceCid, pieceCid)
 		}
 
-		si.Cold.Filecoin.Proposals = append(si.Cold.Filecoin.Proposals, fs)
+		fi.Proposals = append(fi.Proposals, fs)
 
 		// If our StorageInfo doesn't know about size, which is the case if we're boostrapping only
 		// knowing DealIDs, then populate that data.
-		if si.Cold.Filecoin.Size == 0 {
-			si.Cold.Filecoin.Size = size
+		if fi.Size == 0 {
+			fi.Size = size
 		}
 	}
 
