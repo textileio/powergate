@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 
 func TestUnfreeze(t *testing.T) {
 	t.Parallel()
-	scheduler.HardcodedHotTimeout = time.Second * 10
+	scheduler.DefaultHotTimeout = time.Second * 10
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 		defer cls()

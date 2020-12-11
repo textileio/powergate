@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	// HardcodedHotTimeout is a temporary override of storage configs
+	// DefaultHotTimeout is a temporary override of storage configs
 	// value for AddTimeout.
-	HardcodedHotTimeout = time.Second * 300
+	DefaultHotTimeout = time.Second * 600
 )
 
 // PushConfig queues the specified StorageConfig to be executed as a new Job. It returns
@@ -262,9 +262,12 @@ func (s *Scheduler) executeEnabledHotStorage(ctx context.Context, iid ffs.APIID,
 		return curr.Hot, nil
 	}
 
-	// ToDo: this is a hot-fix to force a big timeout until we have a
-	// migration tool to make this tunable again.
-	sctx, cancel := context.WithTimeout(ctx, HardcodedHotTimeout)
+	ipfsTimeout := time.Duration(cfg.Ipfs.AddTimeout) * time.Second
+	if ipfsTimeout == 0 {
+		ipfsTimeout = DefaultHotTimeout
+	}
+
+	sctx, cancel := context.WithTimeout(ctx, ipfsTimeout)
 	defer cancel()
 
 	var size int
@@ -367,6 +370,7 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo
 		s.l.Log(ctx, "Cold-Storage was disabled, Filecoin deals will eventually expire.")
 		return curr.Cold, nil, nil
 	}
+	curr.Cold.Enabled = true
 
 	// 1. If we recognize there were some unfinished started deals, then
 	// Powergate was closed while that was being executed. If that's the case

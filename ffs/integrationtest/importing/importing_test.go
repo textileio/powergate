@@ -76,7 +76,7 @@ func TestImportWithoutRetrievalTwoUsers(t *testing.T) {
 
 func TestImportWithRetrievalSingleUser(t *testing.T) {
 	t.Parallel()
-	scheduler.HardcodedHotTimeout = time.Second * 5
+	scheduler.DefaultHotTimeout = time.Second * 5
 
 	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()

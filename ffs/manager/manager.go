@@ -51,7 +51,7 @@ var (
 		Hot: ffs.HotConfig{
 			Enabled: true,
 			Ipfs: ffs.IpfsConfig{
-				AddTimeout: 30,
+				AddTimeout: 10,
 			},
 		},
 		Cold: ffs.ColdConfig{
