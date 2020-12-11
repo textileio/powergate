@@ -233,7 +233,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 }
 
 func TestHotTimeoutConfig(t *testing.T) {
-	scheduler.HardcodedHotTimeout = time.Second * 10
+	scheduler.DefaultHotTimeout = time.Second * 10
 	t.SkipNow()
 	t.Parallel()
 	_, _, fapi, cls := itmanager.NewAPI(t, 1)
