@@ -200,7 +200,7 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		}
 		cidInfo.QueuedStorageJobs = rpcQueudJobs
 		executingJobs := i.ExecutingStorageJobs(cid)
-		if len(executingJobs) > 0 {
+		if len(executingJobs) == 1 {
 			// There is exactly one job in the slice because we specified a cid
 			// and there can be only one executing job per cid at a time.
 			rpcJob, err := toRPCJob(executingJobs[0])
@@ -208,6 +208,8 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
 			}
 			cidInfo.ExecutingStorageJob = rpcJob
+		} else {
+			log.Warnf("received %d executing jobs when there should be 1", len(executingJobs))
 		}
 		finalJobs := i.LatestFinalStorageJobs(cid)
 		if len(finalJobs) > 0 {

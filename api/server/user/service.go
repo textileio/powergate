@@ -18,7 +18,7 @@ var (
 	// ErrEmptyAuthToken is returned when the provided auth-token is unknown.
 	ErrEmptyAuthToken = errors.New("auth token can't be empty")
 
-	log = logger.Logger("powergate-service")
+	log = logger.Logger("user-service")
 )
 
 // Service implements the Powergate API.
