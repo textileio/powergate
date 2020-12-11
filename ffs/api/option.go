@@ -32,6 +32,8 @@ func WithOverride(override bool) PushStorageConfigOption {
 	}
 }
 
+// WithDealImport provides active deals to create/augment the storage info
+// of the cid.
 func WithDealImport(dealIDs []uint64) PushStorageConfigOption {
 	return func(o *pushStorageConfigConfig) error {
 		o.dealIDs = dealIDs

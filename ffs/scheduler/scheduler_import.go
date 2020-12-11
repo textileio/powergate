@@ -10,6 +10,8 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
 )
 
+// ImportDeals create or augments a Storageinfo for a Cid with the provided deal ids.
+// All deal ids must be active on-chain to let the operation succeed.
 func (s *Scheduler) ImportDeals(iid ffs.APIID, payloadCid cid.Cid, dealIDs []uint64) error {
 	// 1. Get current StorageInfo.
 	si, err := s.cis.Get(iid, payloadCid)
@@ -103,15 +105,15 @@ func (s *Scheduler) augmentStorageInfo(fi *ffs.FilInfo, deals []uint64) error {
 }
 
 // genFilStorage given a DealID it generates FilStorage and returns the piece size.
-func (i *Scheduler) genFilStorage(dealID uint64) (ffs.FilStorage, uint64, error) {
+func (s *Scheduler) genFilStorage(dealID uint64) (ffs.FilStorage, uint64, error) {
 	ctx, cls := context.WithTimeout(context.Background(), time.Second*10)
 	defer cls()
-	di, err := i.cs.GetDealInfo(ctx, dealID)
+	di, err := s.cs.GetDealInfo(ctx, dealID)
 	if err != nil {
 		return ffs.FilStorage{}, 0, fmt.Errorf("getting deal %d information: %s", dealID, err)
 	}
 	return ffs.FilStorage{
-		DealID:     uint64(dealID),
+		DealID:     dealID,
 		PieceCid:   di.Proposal.PieceCID,
 		Renewed:    false,
 		Duration:   int64(di.Proposal.EndEpoch) - int64(di.Proposal.StartEpoch) + 1,
