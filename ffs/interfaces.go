@@ -92,6 +92,8 @@ type FetchInfo struct {
 }
 
 var (
+	// ErrOnChainDealNotFound is returned when a deal doesn't exist,
+	// or might have been slashed.
 	ErrOnChainDealNotFound = errors.New("on-chain deal not found, may not exist or have been slashed")
 )
 
