@@ -1,14 +1,16 @@
 package cmd
 
 import (
-	"errors"
+	"context"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/gosuri/uiprogress"
-	"github.com/gosuri/uiprogress/util/strutil"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/textileio/powergate/api/client"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
 
 var (
@@ -22,24 +24,23 @@ var (
 	taskFolder     string
 	resultsOut     string
 	concurrent     int64
+	ipfsrevproxy   string
+	retryErrors    bool
 )
 
 func init() {
+	runCmd.Flags().StringVar(&ipfsrevproxy, "ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
 	runCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "Run through steps without pushing data to Powergate API")
 	runCmd.Flags().StringVarP(&resultsOut, "results", "r", "results.json", "The location to store intermediate and final results.")
-	runCmd.Flags().String("ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
 	runCmd.Flags().StringVar(&taskFolder, "folder", "", "Folder with organized tasks of directories or files")
 	runCmd.Flags().Int64Var(&concurrent, "concurrent", 4, "Max concurrent tasks being processed")
 	runCmd.Flags().Int64Var(&maxStagedBytes, "max-staged-bytes", 30000, "Maximum bytes of all tasks queued on staging")
-	runCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 10000, "Maximum bytes of a single deal")
-	runCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 8699, "Minimum bytes of a single deal")
+	runCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 24000, "Maximum bytes of a single deal")
+	runCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 8000, "Minimum bytes of a single deal")
 	runCmd.Flags().BoolVarP(&hiddenFiles, "all", "a", false, "Include hidden files & folders from top level folder")
-	runCmd.Flags().String("jobs", "jobs.csv", "Output file for jobs results")
-	runCmd.Flags().String("deals", "deals.csv", "Output file for deals results")
-	runCmd.Flags().String("errors", "errors.csv", "Output file for errors results")
-	runCmd.Flags().Bool("pipe", false, "Pipe all results to stdout")
 	runCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Run in non-interactive")
 	runCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Run in verbose mode")
+	runCmd.Flags().BoolVarP(&retryErrors, "retry-errors", "f", false, "Retry tasks with error status")
 
 	rootCmd.AddCommand(runCmd)
 }
@@ -63,48 +64,25 @@ var runCmd = &cobra.Command{
 		tasks := filterTasks(unfiltered, verbose)
 
 		if !quiet {
-			Message("Found %d tasks (filtered %d)", len(tasks), len(unfiltered)-len(tasks))
-		}
-
-		// Prompt to continue
-		if len(tasks) > 0 && !quiet {
-			prompt := promptui.Prompt{
-				Label:     fmt.Sprintf("Continue with %d tasks", len(tasks)),
-				IsConfirm: true,
-				Default:   "y",
-			}
-			result, _ := prompt.Run()
-			if err != nil && err != errors.New("") {
-				checkErr(err)
-			}
-			if result == "N" || result == "n" {
-				return
-			}
+			Message("New tasks %d", len(tasks))
 		}
 
 		// Ensure there aren't existing tasks in the same queue
 		knownTasks, err := openResults(resultsOut)
 		checkErr(err)
-		if len(knownTasks) > 0 && !quiet {
-			Message("Previous job exists (%d tasks)", len(knownTasks))
-			prompt := promptui.Select{
-				Label: "Continue or discard old job tasks",
-				Items: []string{
-					"Continue",
-					"Discard",
-				},
-			}
-
-			choice, _, err := prompt.Run()
-			if err != nil {
-				fmt.Printf("Prompt failed %v\n", err)
-				return
-			}
-			if choice != 0 {
-				knownTasks = make([]Task, 0)
-			}
+		if !quiet {
+			Message("Existing tasks: %d", len(knownTasks))
 		}
 		tasks = mergeNewTasks(knownTasks, tasks)
+
+		tasks = removeComplete(tasks)
+		if !quiet {
+			Message("Total pending tasks: %d", len(tasks))
+		}
+
+		if len(tasks) == 0 {
+			return
+		}
 
 		// Init or update our intermediate results
 		err = storeResults(resultsOut, tasks)
@@ -115,52 +93,86 @@ var runCmd = &cobra.Command{
 			concurrent = int64(len(tasks))
 		}
 
-		rc := RunConfig{
+		rc := PipelineConfig{
 			token:           viper.GetString("token"),
-			ipfsrevproxy:    viper.GetString("ipfsrevproxy"),
 			serverAddress:   viper.GetString("serverAddress"),
+			ipfsrevproxy:    ipfsrevproxy,
 			maxStagingBytes: maxStagedBytes,
 			minDealBytes:    minDealBytes,
 			concurrent:      concurrent,
 			dryRun:          dryRun,
 		}
 
-		bar := uiprogress.AddBar(len(tasks)).AppendCompleted().PrependElapsed()
-		bar.PrependFunc(func(b *uiprogress.Bar) string {
-			return strutil.Resize(fmt.Sprintf("Task (%d/%d)", b.Current(), len(tasks)), 22)
-		})
-		uiprogress.Start()
+		storageConfig, err := getStorageConfig(rc)
+		checkErr(err)
+		rc.storageConfig = storageConfig
 
-		updates := Run(tasks, rc)
+		var progressWaitGroup sync.WaitGroup
+		progress := uiprogress.New()
+		progress.Start()
+		progressBars := make(map[string](chan Task))
+
+		taskUpdates := Run(tasks, rc)
+
 		jobs := 0
 		deals := 0
 		errs := 0
-		for {
-			select {
-			case res, ok := <-updates:
-				if ok {
-					if res.err != nil {
-						// Message("Error: %s %s %s", res.Path, res.Stage, res.err.Error())
-						errs++
-					} else {
-						// Message("Job: %s %s %s", res.Path, res.CID, res.JobID)
-
-						// for _, record := range res.records {
-						// 	// Message("Deal: %s %s %s", res.Path, res.CID, record.DealInfo.ProposalCid)
-						// 	deals++
-						// }
-						if res.Stage == "Complete" {
-							// Message("%s: %s", res.Stage, res.Name)
-							bar.Incr()
-							jobs++
-						}
-					}
-				} else {
-					uiprogress.Stop()
-					Message("%d %d %d", jobs, deals, errs)
-					return
+		jobCt := 1
+		for task := range taskUpdates {
+			if _, found := progressBars[task.Name]; !found {
+				progressBars[task.Name] = make(chan Task)
+				progressWaitGroup.Add(1)
+				go progressBar(progress, progressBars[task.Name], jobCt, len(tasks), &progressWaitGroup)
+				jobCt++
+			}
+			if task.err != nil {
+				errs++
+			} else {
+				if task.Stage > DryRunComplete {
+					progressBars[task.Name] <- task
+				}
+				if task.Stage == Complete {
+					jobs++
 				}
 			}
+			tasks = updateTasks(tasks, task)
+			err = storeResults(resultsOut, tasks)
+			checkErr(err)
 		}
+
+		go func() {
+			progressWaitGroup.Wait()
+			for _, c := range progressBars {
+				close(c)
+			}
+		}()
+
+		progress.Stop()
+		Message("%d %d %d", jobs, deals, errs)
 	},
+}
+
+func getStorageConfig(config PipelineConfig) (*userPb.StorageConfig, error) {
+	pow, err := client.NewClient(config.serverAddress)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour*2)
+	defer cancel()
+	ctx = context.WithValue(ctx, client.AuthKey, config.token)
+	task, err := pow.StorageConfig.Default(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return task.GetDefaultStorageConfig(), nil
+}
+
+func updateTasks(tasks []Task, update Task) []Task {
+	for i, orig := range tasks {
+		if orig.Path == update.Path {
+			tasks[i] = update
+			return tasks
+		}
+	}
+	return tasks
 }

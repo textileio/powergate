@@ -18,8 +18,8 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:               "fts",
-		Short:             "Filecoin data transfer service client for migrating big data to mainnet",
-		Long:              `Filecoin data transfer service client for migrating big data to mainnet`,
+		Short:             "Filecoin data transfer service client for migrating big data",
+		Long:              `Filecoin data transfer service client for migrating big data`,
 		DisableAutoGenTag: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			err := viper.BindPFlag("serverAddress", cmd.Root().PersistentFlags().Lookup("serverAddress"))

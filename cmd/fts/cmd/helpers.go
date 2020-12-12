@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -99,6 +98,16 @@ func getDirSize(path string) (int64, error) {
 	return size, err
 }
 
+func removeComplete(tasks []Task) []Task {
+	result := []Task{}
+	for _, task := range tasks {
+		if task.Stage != Complete {
+			result = append(result, task)
+		}
+	}
+	return result
+}
+
 func mergeNewTasks(primary []Task, secondary []Task) []Task {
 	for _, task := range secondary {
 		primary = appendUniquePaths(primary, task)
@@ -134,9 +143,9 @@ func openResults(target string) ([]Task, error) {
 	}
 	if _, err := os.Stat(target); err == nil {
 		plan, _ := ioutil.ReadFile(target)
-		var data []Task
-		err = json.Unmarshal(plan, &data)
-		return data, err
+		var tasks []Task
+		err = json.Unmarshal(plan, &tasks)
+		return tasks, err
 	} else if os.IsNotExist(err) {
 		return make([]Task, 0), nil
 	} else {
@@ -157,138 +166,9 @@ func resultsToStdOut(rc chan Task) (int, int, int) {
 					errs++
 				} else {
 					Message("Job: %s %s %s", res.Path, res.CID, res.JobID)
-
-					for _, record := range res.records {
-						Message("Deal: %s %s %s", res.Path, res.CID, record.DealInfo.ProposalCid)
-						deals++
-					}
 					jobs++
 				}
 			} else {
-				return jobs, deals, errs
-			}
-		}
-	}
-}
-
-func resultsToCSV(rc chan Task, jobsFileName string, dealsFileName string, errFileName string) (int, int, int) {
-	jobs := 0
-	deals := 0
-	errs := 0
-
-	errFile, err := os.Create(errFileName)
-	checkErr(err)
-	errCsv := csv.NewWriter(errFile)
-
-	resFile, err := os.Create(jobsFileName)
-	checkErr(err)
-
-	resCsv := csv.NewWriter(resFile)
-
-	dealFile, err := os.Create(dealsFileName)
-	checkErr(err)
-
-	dealCsv := csv.NewWriter(dealFile)
-
-	errCsv.Write([]string{
-		"name",
-		"path",
-		"bytes",
-		"cid",
-		"jobId",
-		"stage",
-		"error",
-	})
-	resCsv.Write([]string{
-		"name",
-		"path",
-		"bytes",
-		"cid",
-		"jobId",
-		"stage",
-	})
-
-	dealCsv.Write([]string{
-		"name",
-		"path",
-		"cid",
-		"jobId",
-		"address",
-		"rootCid",
-		"pending",
-		"time",
-		"miner",
-		"proposalCid",
-		"stateName",
-	})
-
-	for {
-		select {
-		case res, ok := <-rc:
-			if ok {
-				if res.err != nil {
-					errCsv.Write([]string{
-						res.Name,
-						res.Path,
-						fmt.Sprint(res.Bytes),
-						res.CID,
-						res.JobID,
-						string(res.Stage),
-						res.err.Error(),
-					})
-					Message("Error: %s", res.err.Error())
-					errs++
-				} else {
-					resCsv.Write([]string{
-						res.Name,
-						res.Path,
-						fmt.Sprint(res.Bytes),
-						res.CID,
-						res.JobID,
-						string(res.Stage),
-					})
-					Message("Complete: %s %s", res.Path, res.CID)
-
-					for _, record := range res.records {
-						dealCsv.Write([]string{
-							res.Name,
-							res.Path,
-							res.CID,
-							res.JobID,
-							record.Address,
-							record.RootCid,
-							fmt.Sprint(record.Pending),
-							fmt.Sprint(record.Time),
-							record.DealInfo.Miner,
-							record.DealInfo.ProposalCid,
-							record.DealInfo.StateName,
-						})
-						deals++
-					}
-					jobs++
-				}
-			} else {
-				errCsv.Flush()
-				if err = errCsv.Error(); err != nil {
-					NonFatal(err)
-				}
-				resCsv.Flush()
-				if err = resCsv.Error(); err != nil {
-					NonFatal(err)
-				}
-				dealCsv.Flush()
-				if err = dealCsv.Error(); err != nil {
-					NonFatal(err)
-				}
-				if err = errFile.Close(); err != nil {
-					NonFatal(err)
-				}
-				if err = resFile.Close(); err != nil {
-					NonFatal(err)
-				}
-				if err = dealFile.Close(); err != nil {
-					NonFatal(err)
-				}
 				return jobs, deals, errs
 			}
 		}
@@ -346,7 +226,7 @@ func pathToTasks(target string) ([]Task, error) {
 				Bytes:    size,
 				IsDir:    true,
 				IsHidden: strings.HasPrefix(f.Name(), "."),
-				Stage:    stageToString[Init],
+				Stage:    Init,
 			})
 			continue
 		}
@@ -356,7 +236,7 @@ func pathToTasks(target string) ([]Task, error) {
 			Bytes:    f.Size(),
 			IsDir:    false,
 			IsHidden: strings.HasPrefix(f.Name(), "."),
-			Stage:    stageToString[Init],
+			Stage:    Init,
 		})
 	}
 
