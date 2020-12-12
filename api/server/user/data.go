@@ -156,8 +156,8 @@ func (s *Service) WatchLogs(req *userPb.WatchLogsRequest, srv userPb.UserService
 	return nil
 }
 
-// CidInfo returns information about cids managed by the FFS instance.
-func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*userPb.CidInfoResponse, error) {
+// CidSummary gives a summary of the storage and jobs state of the specified cid.
+func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest) (*userPb.CidSummaryResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, err
@@ -176,63 +176,172 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		}
 		return nil, status.Errorf(code, "getting storage configs: %v", err)
 	}
-	res := make([]*userPb.CidInfo, 0, len(storageConfigs))
-	for cid, config := range storageConfigs {
-		rpcConfig := ToRPCStorageConfig(config)
-		cidInfo := &userPb.CidInfo{
-			Cid:                       cid.String(),
-			LatestPushedStorageConfig: rpcConfig,
-		}
+
+	type source struct {
+		cid            string
+		currentStorage *ffs.StorageInfo
+		queuedJobs     []ffs.StorageJob
+		executingJob   *ffs.StorageJob
+	}
+
+	var sources []source
+
+	for cid := range storageConfigs {
+		d := source{cid: cid.String()}
+
 		info, err := i.Show(cid)
 		if err != nil && err != api.ErrNotFound {
 			return nil, status.Errorf(codes.Internal, "getting storage info: %v", err)
 		} else if err == nil {
-			cidInfo.CurrentStorageInfo = toRPCStorageInfo(info)
+			d.currentStorage = &info
 		}
-		queuedJobs := i.QueuedStorageJobs(cid)
-		rpcQueudJobs := make([]*userPb.StorageJob, len(queuedJobs))
-		for i, job := range queuedJobs {
-			rpcJob, err := toRPCJob(job)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
-			}
-			rpcQueudJobs[i] = rpcJob
-		}
-		cidInfo.QueuedStorageJobs = rpcQueudJobs
+
+		d.queuedJobs = i.QueuedStorageJobs(cid)
+
 		executingJobs := i.ExecutingStorageJobs(cid)
 		if len(executingJobs) == 1 {
 			// There is exactly one job in the slice because we specified a cid
 			// and there can be only one executing job per cid at a time.
-			rpcJob, err := toRPCJob(executingJobs[0])
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
-			}
-			cidInfo.ExecutingStorageJob = rpcJob
-		} else {
+			d.executingJob = &executingJobs[0]
+		} else if len(executingJobs) > 1 {
 			log.Warnf("received %d executing jobs when there should be 1", len(executingJobs))
 		}
-		finalJobs := i.LatestFinalStorageJobs(cid)
-		if len(finalJobs) > 0 {
-			rpcJob, err := toRPCJob(finalJobs[0])
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
-			}
-			cidInfo.LatestFinalStorageJob = rpcJob
-		}
-		successfulJobs := i.LatestSuccessfulStorageJobs(cid)
-		if len(successfulJobs) > 0 {
-			rpcJob, err := toRPCJob(successfulJobs[0])
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
-			}
-			cidInfo.LatestSuccessfulStorageJob = rpcJob
-		}
-		res = append(res, cidInfo)
+
+		sources = append(sources, d)
 	}
-	sort.Slice(res, func(a, b int) bool {
-		return res[a].Cid < res[b].Cid
+
+	extractJobTime := func(d source) int64 {
+		var time int64
+		if d.executingJob != nil {
+			time = d.executingJob.CreatedAt
+		}
+		for _, job := range d.queuedJobs {
+			if job.CreatedAt > time {
+				time = job.CreatedAt
+			}
+		}
+		return time
+	}
+
+	extractCurrentStorageTime := func(d source) int64 {
+		var time int64
+		if d.currentStorage != nil {
+			return d.currentStorage.Created.Unix()
+		}
+		return time
+	}
+
+	sort.Slice(sources, func(a, b int) bool {
+		jobTimeA := extractJobTime(sources[a])
+		jobTimeB := extractJobTime(sources[b])
+		currentStorageTimeA := extractCurrentStorageTime(sources[a])
+		currentStorageTimeB := extractCurrentStorageTime(sources[b])
+		if jobTimeA > jobTimeB {
+			return true
+		}
+		if jobTimeA < jobTimeB {
+			return false
+		}
+		return currentStorageTimeA > currentStorageTimeB
 	})
-	return &userPb.CidInfoResponse{CidInfos: res}, nil
+
+	summaries := make([]*userPb.CidSummary, len(sources))
+	for i, source := range sources {
+		summaries[i] = &userPb.CidSummary{
+			Cid:    source.cid,
+			Stored: source.currentStorage != nil,
+		}
+		if source.executingJob != nil {
+			summaries[i].ExecutingJob = source.executingJob.ID.String()
+		}
+		if len(source.queuedJobs) > 0 {
+			queuedIds := make([]string, len(source.queuedJobs))
+			for j, job := range source.queuedJobs {
+				queuedIds[j] = job.ID.String()
+			}
+			summaries[i].QueuedJobs = queuedIds
+		}
+	}
+
+	return &userPb.CidSummaryResponse{CidSummary: summaries}, nil
+}
+
+// CidInfo returns information about cids managed by the FFS instance.
+func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*userPb.CidInfoResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cid, err := fromProtoCid(req.Cid)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "parsing cid: %v", err)
+	}
+
+	storageConfigs, err := i.GetStorageConfigs(cid)
+	if err != nil {
+		code := codes.Internal
+		if err == api.ErrNotFound {
+			code = codes.NotFound
+		}
+		return nil, status.Errorf(code, "getting storage configs: %v", err)
+	}
+	config, ok := storageConfigs[cid]
+	if !ok {
+		log.Warnf("didn't find storage config for cid %s", cid.String())
+		return nil, status.Errorf(codes.Internal, "didn't find storage config for cid %s", cid.String())
+	}
+
+	rpcConfig := ToRPCStorageConfig(config)
+	cidInfo := &userPb.CidInfo{
+		Cid:                       cid.String(),
+		LatestPushedStorageConfig: rpcConfig,
+	}
+	info, err := i.Show(cid)
+	if err != nil && err != api.ErrNotFound {
+		return nil, status.Errorf(codes.Internal, "getting storage info: %v", err)
+	} else if err == nil {
+		cidInfo.CurrentStorageInfo = toRPCStorageInfo(info)
+	}
+	queuedJobs := i.QueuedStorageJobs(cid)
+	rpcQueudJobs := make([]*userPb.StorageJob, len(queuedJobs))
+	for i, job := range queuedJobs {
+		rpcJob, err := toRPCJob(job)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
+		}
+		rpcQueudJobs[i] = rpcJob
+	}
+	cidInfo.QueuedStorageJobs = rpcQueudJobs
+	executingJobs := i.ExecutingStorageJobs(cid)
+	if len(executingJobs) == 1 {
+		// There is exactly one job in the slice because we specified a cid
+		// and there can be only one executing job per cid at a time.
+		rpcJob, err := toRPCJob(executingJobs[0])
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
+		}
+		cidInfo.ExecutingStorageJob = rpcJob
+	} else if len(executingJobs) > 1 {
+		log.Warnf("received %d executing jobs when there should be 1", len(executingJobs))
+	}
+	finalJobs := i.LatestFinalStorageJobs(cid)
+	if len(finalJobs) > 0 {
+		rpcJob, err := toRPCJob(finalJobs[0])
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
+		}
+		cidInfo.LatestFinalStorageJob = rpcJob
+	}
+	successfulJobs := i.LatestSuccessfulStorageJobs(cid)
+	if len(successfulJobs) > 0 {
+		rpcJob, err := toRPCJob(successfulJobs[0])
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
+		}
+		cidInfo.LatestSuccessfulStorageJob = rpcJob
+	}
+	return &userPb.CidInfoResponse{CidInfo: cidInfo}, nil
 }
 
 func receiveFile(srv userPb.UserService_StageServer, writer *io.PipeWriter) {

@@ -31,6 +31,7 @@ type UserServiceClient interface {
 	ReplaceData(ctx context.Context, in *ReplaceDataRequest, opts ...grpc.CallOption) (*ReplaceDataResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (UserService_GetClient, error)
 	WatchLogs(ctx context.Context, in *WatchLogsRequest, opts ...grpc.CallOption) (UserService_WatchLogsClient, error)
+	CidSummary(ctx context.Context, in *CidSummaryRequest, opts ...grpc.CallOption) (*CidSummaryResponse, error)
 	CidInfo(ctx context.Context, in *CidInfoRequest, opts ...grpc.CallOption) (*CidInfoResponse, error)
 	// Wallet
 	Balance(ctx context.Context, in *BalanceRequest, opts ...grpc.CallOption) (*BalanceResponse, error)
@@ -230,6 +231,15 @@ func (x *userServiceWatchLogsClient) Recv() (*WatchLogsResponse, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+func (c *userServiceClient) CidSummary(ctx context.Context, in *CidSummaryRequest, opts ...grpc.CallOption) (*CidSummaryResponse, error) {
+	out := new(CidSummaryResponse)
+	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/CidSummary", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *userServiceClient) CidInfo(ctx context.Context, in *CidInfoRequest, opts ...grpc.CallOption) (*CidInfoResponse, error) {
@@ -435,6 +445,7 @@ type UserServiceServer interface {
 	ReplaceData(context.Context, *ReplaceDataRequest) (*ReplaceDataResponse, error)
 	Get(*GetRequest, UserService_GetServer) error
 	WatchLogs(*WatchLogsRequest, UserService_WatchLogsServer) error
+	CidSummary(context.Context, *CidSummaryRequest) (*CidSummaryResponse, error)
 	CidInfo(context.Context, *CidInfoRequest) (*CidInfoResponse, error)
 	// Wallet
 	Balance(context.Context, *BalanceRequest) (*BalanceResponse, error)
@@ -495,6 +506,9 @@ func (UnimplementedUserServiceServer) Get(*GetRequest, UserService_GetServer) er
 }
 func (UnimplementedUserServiceServer) WatchLogs(*WatchLogsRequest, UserService_WatchLogsServer) error {
 	return status.Errorf(codes.Unimplemented, "method WatchLogs not implemented")
+}
+func (UnimplementedUserServiceServer) CidSummary(context.Context, *CidSummaryRequest) (*CidSummaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CidSummary not implemented")
 }
 func (UnimplementedUserServiceServer) CidInfo(context.Context, *CidInfoRequest) (*CidInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CidInfo not implemented")
@@ -773,6 +787,24 @@ type userServiceWatchLogsServer struct {
 
 func (x *userServiceWatchLogsServer) Send(m *WatchLogsResponse) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func _UserService_CidSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CidSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CidSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.user.v1.UserService/CidSummary",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CidSummary(ctx, req.(*CidSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _UserService_CidInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1137,6 +1169,10 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReplaceData",
 			Handler:    _UserService_ReplaceData_Handler,
+		},
+		{
+			MethodName: "CidSummary",
+			Handler:    _UserService_CidSummary_Handler,
 		},
 		{
 			MethodName: "CidInfo",

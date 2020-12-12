@@ -393,8 +393,9 @@ func (s *Store) QueuedJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
 		}
 	}
 
+	// Return these newest first.
 	sort.Slice(res, func(a, b int) bool {
-		return res[a].CreatedAt < res[b].CreatedAt
+		return res[a].CreatedAt > res[b].CreatedAt
 	})
 
 	return res
@@ -458,8 +459,9 @@ func mappedJobs(m map[ffs.APIID]map[cid.Cid]*ffs.StorageJob, iid ffs.APIID, cids
 		}
 	}
 
+	// Return these newest first.
 	sort.Slice(res, func(a, b int) bool {
-		return res[a].CreatedAt < res[b].CreatedAt
+		return res[a].CreatedAt > res[b].CreatedAt
 	})
 
 	return res

@@ -1,19 +1,19 @@
-## pow data info
+## pow data summary
 
-Get information about the current storage state of a cid
+Get a summary about the current storage and jobs state of cids
 
 ### Synopsis
 
-Get information about the current storage state of a cid
+Get a summary about the current storage and jobs state of cids
 
 ```
-pow data info cid [flags]
+pow data summary [optional cid1,cid2,...] [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for info
+  -h, --help   help for summary
 ```
 
 ### Options inherited from parent commands
