@@ -101,12 +101,20 @@ message WatchLogsResponse {
   LogEntry log_entry = 1;
 }
 
-message CidInfoRequest {
+message CidSummaryRequest {
   repeated string cids = 1;
 }
 
+message CidSummaryResponse {
+  repeated CidSummary cid_summary = 1;
+}
+
+message CidInfoRequest {
+  string cid = 1;
+}
+
 message CidInfoResponse {
-  repeated CidInfo cid_infos = 1;
+  CidInfo cid_info = 1;
 }
 
 
@@ -295,6 +303,7 @@ service UserService {
   rpc ReplaceData(ReplaceDataRequest) returns (ReplaceDataResponse) {}
   rpc Get(GetRequest) returns (stream GetResponse) {}
   rpc WatchLogs(WatchLogsRequest) returns (stream WatchLogsResponse){}
+  rpc CidSummary(CidSummaryRequest) returns (CidSummaryResponse) {}
   rpc CidInfo(CidInfoRequest) returns (CidInfoResponse) {}
 
   // Wallet
@@ -340,6 +349,13 @@ message AddrInfo {
   string address = 2;
   string type = 3;
   string balance = 4;
+}
+
+message CidSummary {
+  string cid = 1;
+  bool stored = 2;
+  repeated string queued_jobs = 3;
+  string executing_job = 4;
 }
 
 message IpfsConfig {

@@ -14,7 +14,7 @@ import (
 var (
 	powClient *client.Client
 
-	cmdTimeout = time.Second * 10
+	cmdTimeout = time.Second * 60
 
 	rootCmd = &cobra.Command{
 		Use:               "pow",
