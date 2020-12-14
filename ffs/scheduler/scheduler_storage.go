@@ -15,12 +15,6 @@ import (
 	"github.com/textileio/powergate/ffs/scheduler/internal/sjstore"
 )
 
-var (
-	// DefaultHotTimeout is a temporary override of storage configs
-	// value for AddTimeout.
-	DefaultHotTimeout = time.Second * 600
-)
-
 // PushConfig queues the specified StorageConfig to be executed as a new Job. It returns
 // the created JobID for further tracking of its state.
 func (s *Scheduler) PushConfig(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig) (ffs.JobID, error) {
@@ -263,10 +257,6 @@ func (s *Scheduler) executeEnabledHotStorage(ctx context.Context, iid ffs.APIID,
 	}
 
 	ipfsTimeout := time.Duration(cfg.Ipfs.AddTimeout) * time.Second
-	if ipfsTimeout == 0 {
-		ipfsTimeout = DefaultHotTimeout
-	}
-
 	sctx, cancel := context.WithTimeout(ctx, ipfsTimeout)
 	defer cancel()
 
