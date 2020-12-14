@@ -13,7 +13,6 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
 	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
-	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/tests"
 )
 
@@ -76,7 +75,6 @@ func TestImportWithoutRetrievalTwoUsers(t *testing.T) {
 
 func TestImportWithRetrievalSingleUser(t *testing.T) {
 	t.Parallel()
-	scheduler.DefaultHotTimeout = time.Second * 5
 
 	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
 	defer cls()

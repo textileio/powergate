@@ -14,7 +14,6 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
 	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
-	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -233,7 +232,6 @@ func TestFilecoinEnableConfig(t *testing.T) {
 }
 
 func TestHotTimeoutConfig(t *testing.T) {
-	scheduler.DefaultHotTimeout = time.Second * 10
 	t.SkipNow()
 	t.Parallel()
 	_, _, fapi, cls := itmanager.NewAPI(t, 1)
