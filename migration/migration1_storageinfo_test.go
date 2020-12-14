@@ -11,7 +11,6 @@ import (
 )
 
 func TestV1_StorageInfo(t *testing.T) {
-	t.Skip()
 	t.Parallel()
 
 	ds := tests.NewTxMapDatastore()
