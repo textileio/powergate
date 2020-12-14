@@ -304,7 +304,7 @@ type IpfsConfig struct {
 
 // Validate validates an IpfsConfig.
 func (ic *IpfsConfig) Validate() error {
-	if ic.AddTimeout < 0 {
+	if ic.AddTimeout <= 0 {
 		return fmt.Errorf("add timeout should be greater than 0 seconds, got %d", ic.AddTimeout)
 	}
 	return nil
