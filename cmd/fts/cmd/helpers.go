@@ -3,18 +3,17 @@ package cmd
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/olekukonko/tablewriter"
-	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
+	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
 
 // Message prints a message to stdout.
@@ -28,7 +27,7 @@ func Success(format string, args ...interface{}) {
 		aurora.Sprintf(aurora.BrightBlack(format), args...)))
 }
 
-// Success prints a success message to stdout.
+// Warning prints a warning message to stdout.
 func Warning(format string, args ...interface{}) {
 	fmt.Println(aurora.Sprintf(aurora.BrightYellow("> Warning! %s"),
 		aurora.Sprintf(aurora.BrightBlack(format), args...)))
@@ -37,12 +36,15 @@ func Warning(format string, args ...interface{}) {
 // Fatal prints a fatal error to stdout, and exits immediately with
 // error code 1.
 func Fatal(err error, args ...interface{}) {
-	NonFatal(err, args)
+	words := strings.SplitN(err.Error(), " ", 2)
+	words[0] = strings.Title(words[0])
+	msg := strings.Join(words, " ")
+	fmt.Println(aurora.Sprintf(aurora.Red("> Error! %s"),
+		aurora.Sprintf(aurora.BrightBlack(msg), args...)))
 	os.Exit(1)
 }
 
-// Fatal prints a fatal error to stdout, and exits immediately with
-// error code 1.
+// NonFatal prints a fatal error to stdout
 func NonFatal(err error, args ...interface{}) {
 	words := strings.SplitN(err.Error(), " ", 2)
 	words[0] = strings.Title(words[0])
@@ -51,39 +53,13 @@ func NonFatal(err error, args ...interface{}) {
 		aurora.Sprintf(aurora.BrightBlack(msg), args...)))
 }
 
-// RenderTable renders a table with header columns and data rows to writer.
-func RenderTable(writer io.Writer, header []string, data [][]string) {
-	table := tablewriter.NewWriter(writer)
-	table.SetHeader(header)
-	table.SetBorder(false)
-	headersColors := make([]tablewriter.Colors, len(header))
-	for i := range headersColors {
-		headersColors[i] = tablewriter.Colors{tablewriter.FgHiBlackColor}
-	}
-	table.SetHeaderColor(headersColors...)
-	table.AppendBulk(data)
-	table.Render()
-}
-
 func checkErr(e error) {
 	if e != nil {
 		Fatal(e)
 	}
 }
 
-func mustAuthCtx(ctx context.Context) context.Context {
-	token := viper.GetString("token")
-	if token == "" {
-		Fatal(errors.New("must provide -t token"))
-	}
-	return context.WithValue(ctx, client.AuthKey, token)
-}
-
-func adminAuthCtx(ctx context.Context) context.Context {
-	token := viper.GetString("admin-token")
-	return context.WithValue(ctx, client.AdminKey, token)
-}
-
+// Get the on-disk size of a directory
 func getDirSize(path string) (int64, error) {
 	var size int64
 	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
@@ -98,6 +74,7 @@ func getDirSize(path string) (int64, error) {
 	return size, err
 }
 
+// Remote tasks with Complete status
 func removeComplete(tasks []Task) []Task {
 	result := []Task{}
 	for _, task := range tasks {
@@ -108,6 +85,22 @@ func removeComplete(tasks []Task) []Task {
 	return result
 }
 
+// Remote tasks with an error
+func cleanErrors(tasks []Task, retry bool) []Task {
+	result := []Task{}
+	for _, task := range tasks {
+		if task.Error == "" {
+			result = append(result, task)
+		} else if retry == true {
+			task.Stage = Init
+			task.Error = ""
+			result = append(result, task)
+		}
+	}
+	return result
+}
+
+// Merge two task lists without duplicates
 func mergeNewTasks(primary []Task, secondary []Task) []Task {
 	for _, task := range secondary {
 		primary = appendUniquePaths(primary, task)
@@ -115,6 +108,7 @@ func mergeNewTasks(primary []Task, secondary []Task) []Task {
 	return primary
 }
 
+// Ensures no duplicate tasks based on path
 func appendUniquePaths(tasks []Task, task Task) []Task {
 	for _, orig := range tasks {
 		if orig.Path == task.Path {
@@ -124,6 +118,7 @@ func appendUniquePaths(tasks []Task, task Task) []Task {
 	return append(tasks, task)
 }
 
+// Stores the results json as a file
 func storeResults(target string, tasks []Task) error {
 	target, err := filepath.Abs(filepath.Clean(target))
 	if err != nil {
@@ -136,6 +131,7 @@ func storeResults(target string, tasks []Task) error {
 	return ioutil.WriteFile(target, file, 0644)
 }
 
+// Opens the json results output
 func openResults(target string) ([]Task, error) {
 	target, err := filepath.Abs(filepath.Clean(target))
 	if err != nil {
@@ -153,54 +149,25 @@ func openResults(target string) ([]Task, error) {
 	}
 }
 
-func resultsToStdOut(rc chan Task) (int, int, int) {
-	jobs := 0
-	deals := 0
-	errs := 0
-	for {
-		select {
-		case res, ok := <-rc:
-			if ok {
-				if res.err != nil {
-					Message("Error: %s %s %s", res.Path, res.Stage, res.err.Error())
-					errs++
-				} else {
-					Message("Job: %s %s %s", res.Path, res.CID, res.JobID)
-					jobs++
-				}
-			} else {
-				return jobs, deals, errs
-			}
-		}
-	}
-}
-
-func filterTasks(tsks []Task, verbose bool) []Task {
-	tasks := tsks[:0]
-	for _, tsk := range tsks {
+// Filter hidden files/folders out of task slice
+func filterTasks(tasks []Task) []Task {
+	result := tasks[:0]
+	for _, tsk := range tasks {
 		if !hiddenFiles && strings.HasPrefix(tsk.Name, ".") {
-			if verbose {
-				Message("removing hidden %s", tsk.Name)
-			}
 			continue
 		}
 		if tsk.Bytes < minDealBytes {
-			if verbose {
-				Message("data too small %s (%d)", tsk.Name, tsk.Bytes)
-			}
 			continue
 		}
 		if maxDealBytes < tsk.Bytes {
-			if verbose {
-				Message("data too large %s (%d)", tsk.Name, tsk.Bytes)
-			}
 			continue
 		}
-		tasks = append(tasks, tsk)
+		result = append(result, tsk)
 	}
-	return tasks
+	return result
 }
 
+// Converts a directory into a slice of Tasks
 func pathToTasks(target string) ([]Task, error) {
 	target, err := filepath.Abs(filepath.Clean(target))
 	if err != nil {
@@ -241,4 +208,69 @@ func pathToTasks(target string) ([]Task, error) {
 	}
 
 	return tasks, nil
+}
+
+// gets the default storage config from powergate
+func getStorageConfig(config PipelineConfig) (*userPb.StorageConfig, error) {
+	pow, err := client.NewClient(config.serverAddress)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour*2)
+	defer cancel()
+	ctx = context.WithValue(ctx, client.AuthKey, config.token)
+	task, err := pow.StorageConfig.Default(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return task.GetDefaultStorageConfig(), nil
+}
+
+// overwrites a Task in a slice
+func updateTasks(tasks []Task, update Task) ([]Task, bool) {
+	for i, orig := range tasks {
+		if orig.Path == update.Path {
+			change := orig.Stage != update.Stage || update.Error != ""
+			tasks[i] = update
+			return tasks, change
+		}
+	}
+	return tasks, false
+}
+
+func stageData(task Task, pow *client.Client, config PipelineConfig) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour*2)
+	defer cancel()
+	ctx = context.WithValue(ctx, client.AuthKey, config.token)
+	if task.IsDir {
+		return pow.Data.StageFolder(ctx, config.ipfsrevproxy, task.Path)
+	}
+	f, err := os.Open(task.Path)
+	if err != nil {
+		return "", err
+	}
+	stageRes, err := pow.Data.Stage(ctx, f)
+	if err != nil {
+		return "", err
+	}
+	err = f.Close()
+	return stageRes.Cid, err
+}
+
+// applyConfig applys either default or given config to a CID
+func applyConfig(task Task, pow *client.Client, config PipelineConfig) (*userPb.ApplyStorageConfigResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour*2)
+	defer cancel()
+	ctx = context.WithValue(ctx, client.AuthKey, config.token)
+	options := []client.ApplyOption{}
+	if task.storageConfig != nil {
+		options = append(options, client.WithStorageConfig(task.storageConfig))
+	} else if config.storageConfig != nil {
+		options = append(options, client.WithStorageConfig(config.storageConfig))
+	}
+	return pow.StorageConfig.Apply(ctx, task.CID, options...)
+}
+
+func dryRunStep() {
+	time.Sleep(time.Millisecond * time.Duration(rand.Intn(250)))
 }

@@ -27,38 +27,44 @@ type Task struct {
 type queueConfig struct {
 	watch    chan Task
 	updates  chan<- Task
-	wg       *sync.WaitGroup
-	staging  *StagingLimit
-	pipe     PipelineConfig
 	complete chan struct{}
+	staging  *StagingStatus
+	pipeWg   *sync.WaitGroup
+	pipe     PipelineConfig
 }
 
 func queue(task Task, conf queueConfig, isLast bool) {
 	for {
 		// check available space
 		ready, err := conf.staging.Ready(task.Bytes)
+		waitTimeout := 1 * time.Second
 		if err != nil {
 			task.Error = err.Error()
 			task.err = err
 			conf.updates <- task
-			conf.wg.Done()
+			conf.pipeWg.Done()
 			return
 		}
 		// wait for space
 		if !ready {
-			timeout := 1000 * time.Millisecond
-			time.Sleep(timeout)
+			time.Sleep(waitTimeout)
+			waitTimeout = waitTimeout * 2
 			continue
 		}
 		// start processing
-		conf.wg.Add(1)
+		conf.pipeWg.Add(1)
 		go process(task, conf, isLast)
 		return
 	}
 }
 
 func process(task Task, conf queueConfig, isLast bool) {
-	defer conf.wg.Done()
+	defer func() {
+		if isLast {
+			conf.complete <- struct{}{}
+		}
+		conf.pipeWg.Done()
+	}()
 
 	sendErr := func(err error) {
 		task.Error = err.Error()
@@ -90,9 +96,6 @@ func process(task Task, conf queueConfig, isLast bool) {
 			}
 		}
 		sendStage(StagingComplete)
-	} else {
-		// TODO: can we ensure that the CID exists on the server still?
-		// perhaps using DHT Providers API with similar wait to other pow
 	}
 
 	if task.Stage < PushComplete {
@@ -109,8 +112,6 @@ func process(task Task, conf queueConfig, isLast bool) {
 		}
 		sendStage(PushComplete)
 	}
+
 	conf.watch <- task
-	if isLast {
-		conf.complete <- struct{}{}
-	}
 }

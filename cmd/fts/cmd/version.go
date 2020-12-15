@@ -28,7 +28,7 @@ var versionCmd = &cobra.Command{
 		defer cancel()
 
 		Message("fts build info:")
-		RenderTable(
+		renderTable(
 			os.Stdout,
 			[]string{},
 			[][]string{
@@ -50,7 +50,7 @@ var versionCmd = &cobra.Command{
 		fmt.Print("\n")
 
 		Message("powergate server build info:")
-		RenderTable(
+		renderTable(
 			os.Stdout,
 			[]string{},
 			[][]string{

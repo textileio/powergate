@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -9,14 +8,11 @@ import (
 	"github.com/gosuri/uiprogress"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/api/client"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
 
 var (
 	dryRun         bool
-	quiet          bool
-	verbose        bool
+	mainnet        bool
 	maxStagedBytes int64
 	maxDealBytes   int64
 	minDealBytes   int64
@@ -29,18 +25,23 @@ var (
 )
 
 func init() {
-	runCmd.Flags().StringVar(&ipfsrevproxy, "ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
-	runCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "Run through steps without pushing data to Powergate API")
-	runCmd.Flags().StringVarP(&resultsOut, "results", "r", "results.json", "The location to store intermediate and final results.")
+	runCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "Run through steps without pushing data to Powergate API.")
+	runCmd.Flags().BoolVarP(&mainnet, "mainnet", "n", false, "Sets staging limits based on localnet or mainnet.")
+	runCmd.Flags().BoolVarP(&retryErrors, "retry", "e", false, "Retry tasks with error status")
 	runCmd.Flags().StringVar(&taskFolder, "folder", "", "Folder with organized tasks of directories or files")
-	runCmd.Flags().Int64Var(&concurrent, "concurrent", 4, "Max concurrent tasks being processed")
-	runCmd.Flags().Int64Var(&maxStagedBytes, "max-staged-bytes", 30000, "Maximum bytes of all tasks queued on staging")
-	runCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 24000, "Maximum bytes of a single deal")
-	runCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 8000, "Minimum bytes of a single deal")
 	runCmd.Flags().BoolVarP(&hiddenFiles, "all", "a", false, "Include hidden files & folders from top level folder")
-	runCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Run in non-interactive")
-	runCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Run in verbose mode")
-	runCmd.Flags().BoolVarP(&retryErrors, "retry-errors", "f", false, "Retry tasks with error status")
+	runCmd.Flags().StringVar(&ipfsrevproxy, "ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
+	runCmd.Flags().StringVarP(&resultsOut, "results", "r", "results.json", "The location to store intermediate and final results.")
+
+	// Not included in the public commands
+	runCmd.Flags().Int64Var(&concurrent, "concurrent", 10000, "Max concurrent tasks being processed")
+	runCmd.Flags().Int64Var(&maxStagedBytes, "max-staged-bytes", 0, "Maximum bytes of all tasks queued on staging")
+	runCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 0, "Maximum bytes of a single deal")
+	runCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 0, "Minimum bytes of a single deal")
+	runCmd.Flags().MarkHidden("concurrent")
+	runCmd.Flags().MarkHidden("max-staged-bytes")
+	runCmd.Flags().MarkHidden("max-deal-bytes")
+	runCmd.Flags().MarkHidden("min-deal-bytes")
 
 	rootCmd.AddCommand(runCmd)
 }
@@ -52,45 +53,62 @@ var runCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		checkErr(err)
+		// set default variables
+		if mainnet {
+			if maxStagedBytes == 0 {
+				maxStagedBytes = 26843545600 // 25Gib
+			}
+			if maxDealBytes == 0 {
+				maxDealBytes = 4294967296 // 4Gib
+			}
+			if minDealBytes == 0 {
+				minDealBytes = 67108864 // 0.5Gib
+			}
+		} else { // localnet
+			if maxStagedBytes == 0 {
+				maxStagedBytes = 524288
+			}
+			if maxDealBytes == 0 {
+				maxDealBytes = 524288
+			}
+			if minDealBytes == 0 {
+				minDealBytes = 9000
+			}
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if maxStagedBytes < maxDealBytes {
 			Fatal(fmt.Errorf("Max deal size (%d) is larger than max staging size (%d)", maxDealBytes, maxStagedBytes))
 		}
 
+		// Read all tasks from the input folder
 		unfiltered, err := pathToTasks(taskFolder)
 		checkErr(err)
-
-		tasks := filterTasks(unfiltered, verbose)
-
-		if !quiet {
-			Message("New tasks %d", len(tasks))
-		}
+		Message("Input tasks: %d", len(unfiltered))
+		allTasks := filterTasks(unfiltered)
 
 		// Ensure there aren't existing tasks in the same queue
 		knownTasks, err := openResults(resultsOut)
 		checkErr(err)
-		if !quiet {
-			Message("Existing tasks: %d", len(knownTasks))
-		}
-		tasks = mergeNewTasks(knownTasks, tasks)
+		Message("Existing tasks: %d", len(knownTasks))
+		allTasks = mergeNewTasks(knownTasks, allTasks)
 
-		tasks = removeComplete(tasks)
-		if !quiet {
-			Message("Total pending tasks: %d", len(tasks))
-		}
+		pendingTasks := cleanErrors(removeComplete(allTasks), retryErrors)
 
-		if len(tasks) == 0 {
+		Message("Pending tasks: %d", len(pendingTasks))
+		time.Sleep(1 * time.Second)
+
+		if len(pendingTasks) == 0 {
 			return
 		}
 
 		// Init or update our intermediate results
-		err = storeResults(resultsOut, tasks)
+		err = storeResults(resultsOut, allTasks)
 		checkErr(err)
 
 		// Determine the max concurrent we need vs allowed
-		if int64(len(tasks)) < concurrent {
-			concurrent = int64(len(tasks))
+		if int64(len(pendingTasks)) < concurrent {
+			concurrent = int64(len(pendingTasks))
 		}
 
 		rc := PipelineConfig{
@@ -102,42 +120,43 @@ var runCmd = &cobra.Command{
 			concurrent:      concurrent,
 			dryRun:          dryRun,
 		}
-
 		storageConfig, err := getStorageConfig(rc)
 		checkErr(err)
+		storageConfig.Hot.Enabled = false
 		rc.storageConfig = storageConfig
 
+		trackProgress(pendingTasks, allTasks, rc)
+	},
+}
+
+func trackProgress(pendingTasks []Task, allTasks []Task, conf PipelineConfig) {
+
 		var progressWaitGroup sync.WaitGroup
+
 		progress := uiprogress.New()
 		progress.Start()
 		progressBars := make(map[string](chan Task))
 
-		taskUpdates := Run(tasks, rc)
+		taskUpdates := Start(pendingTasks, conf)
 
-		jobs := 0
-		deals := 0
-		errs := 0
-		jobCt := 1
+		j := 1
 		for task := range taskUpdates {
-			if _, found := progressBars[task.Name]; !found {
-				progressBars[task.Name] = make(chan Task)
-				progressWaitGroup.Add(1)
-				go progressBar(progress, progressBars[task.Name], jobCt, len(tasks), &progressWaitGroup)
-				jobCt++
-			}
-			if task.err != nil {
-				errs++
-			} else {
+			allTasks, change := updateTasks(allTasks, task)
+			if change {
+				if _, found := progressBars[task.Name]; !found {
+					progressBars[task.Name] = make(chan Task)
+					progressWaitGroup.Add(1)
+					go progressBar(progress, progressBars[task.Name], j, len(pendingTasks), &progressWaitGroup)
+					j++
+				}
 				if task.Stage > DryRunComplete {
 					progressBars[task.Name] <- task
 				}
-				if task.Stage == Complete {
-					jobs++
-				}
+				err := storeResults(resultsOut, allTasks)
+				checkErr(err)
+			} else {
+				Message(fmt.Sprintf("%s %d", task.Name, task.Stage))
 			}
-			tasks = updateTasks(tasks, task)
-			err = storeResults(resultsOut, tasks)
-			checkErr(err)
 		}
 
 		go func() {
@@ -148,31 +167,4 @@ var runCmd = &cobra.Command{
 		}()
 
 		progress.Stop()
-		Message("%d %d %d", jobs, deals, errs)
-	},
-}
-
-func getStorageConfig(config PipelineConfig) (*userPb.StorageConfig, error) {
-	pow, err := client.NewClient(config.serverAddress)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Hour*2)
-	defer cancel()
-	ctx = context.WithValue(ctx, client.AuthKey, config.token)
-	task, err := pow.StorageConfig.Default(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return task.GetDefaultStorageConfig(), nil
-}
-
-func updateTasks(tasks []Task, update Task) []Task {
-	for i, orig := range tasks {
-		if orig.Path == update.Path {
-			tasks[i] = update
-			return tasks
-		}
-	}
-	return tasks
 }

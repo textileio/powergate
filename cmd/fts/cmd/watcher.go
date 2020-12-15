@@ -12,21 +12,20 @@ import (
 type watchJobsConfig struct {
 	watch    chan Task
 	updates  chan<- Task
-	staging  *StagingLimit
-	pipe     PipelineConfig
 	complete chan struct{}
+	staging  *StagingStatus
+	pipe     PipelineConfig
 	wg       *sync.WaitGroup
 }
 
 // timed loop that will check for deal updates
-func watchJobs(conf queueConfig) {
-	defer conf.wg.Done()
+func watcher(conf queueConfig) {
+	defer conf.pipeWg.Done()
 	watching := []Task{}
-	delay := time.Second * 3
-
+	wait := 2 * time.Second
 	receivedAllTasks := false
 
-	for range time.Tick(delay) {
+	for range time.Tick(wait) {
 		incomplete := []Task{}
 		summary, err := getStorageSummary(conf)
 		queued := summary.QueuedStorageJobs
@@ -85,6 +84,10 @@ func watchJobs(conf queueConfig) {
 		watching = append(incomplete, updateWatching(conf.watch)...)
 		if !receivedAllTasks {
 			receivedAllTasks = checkReceivedAll(conf.complete)
+		}
+		// Allows any empty jobs or dry-runs to clean up fast
+		if wait < 128*time.Second {
+			wait = wait * 2
 		}
 		if receivedAllTasks && len(watching) == 0 {
 			return

@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/gosuri/uiprogress"
 	"github.com/gosuri/uiprogress/util/strutil"
+	"github.com/olekukonko/tablewriter"
 )
 
 func getStandardBar(progress *uiprogress.Progress, width int) *uiprogress.Bar {
@@ -39,4 +41,18 @@ func staticNameStage(task Task) (string, string) {
 		stage = fmt.Sprintf("Error(%s)", stage)
 	}
 	return name, stage
+}
+
+// renderTable renders a table with header columns and data rows to writer.
+func renderTable(writer io.Writer, header []string, data [][]string) {
+	table := tablewriter.NewWriter(writer)
+	table.SetHeader(header)
+	table.SetBorder(false)
+	headersColors := make([]tablewriter.Colors, len(header))
+	for i := range headersColors {
+		headersColors[i] = tablewriter.Colors{tablewriter.FgHiBlackColor}
+	}
+	table.SetHeaderColor(headersColors...)
+	table.AppendBulk(data)
+	table.Render()
 }
