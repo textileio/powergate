@@ -19,7 +19,7 @@ func (sc *StagingStatus) Ready(bytes int64) (bool, error) {
 		err := fmt.Errorf("Request larger than available staging limit: %d needed out of %d.", bytes, sc.maxStagingBytes)
 		return false, err
 	}
-	if sc.cachedBytes+bytes >= sc.maxStagingBytes {
+	if sc.cachedBytes+bytes > sc.maxStagingBytes {
 		return false, nil
 	}
 	sc.cachedBytes += bytes
