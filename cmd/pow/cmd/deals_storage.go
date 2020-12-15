@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
+	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -26,10 +27,10 @@ var dealsStorageCmd = &cobra.Command{
 	Long:  `List storage deal records for the user`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
 		var opts []client.DealRecordsOption
@@ -50,11 +51,11 @@ var dealsStorageCmd = &cobra.Command{
 			opts = append(opts, client.WithIncludeFinal(viper.GetBool("include-final")))
 		}
 
-		res, err := powClient.Deals.StorageDealRecords(mustAuthCtx(ctx), opts...)
-		checkErr(err)
+		res, err := c.PowClient.Deals.StorageDealRecords(c.MustAuthCtx(ctx), opts...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},

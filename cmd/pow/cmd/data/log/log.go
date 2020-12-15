@@ -1,4 +1,4 @@
-package cmd
+package log
 
 import (
 	"context"
@@ -10,15 +10,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
+	c "github.com/textileio/powergate/cmd/pow/common"
 )
 
 func init() {
-	dataLogCmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
-
-	dataCmd.AddCommand(dataLogCmd)
+	Cmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
 }
 
-var dataLogCmd = &cobra.Command{
+// Cmd displays logs for specified cid.
+var Cmd = &cobra.Command{
 	Use:     "log [cid]",
 	Aliases: []string{"logs"},
 	Short:   "Display logs for specified cid",
@@ -26,7 +26,7 @@ var dataLogCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := []client.WatchLogsOption{client.WithHistory(true)}
@@ -39,13 +39,13 @@ var dataLogCmd = &cobra.Command{
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		err := powClient.Data.WatchLogs(mustAuthCtx(ctx), ch, args[0], opts...)
-		checkErr(err)
+		err := c.PowClient.Data.WatchLogs(c.MustAuthCtx(ctx), ch, args[0], opts...)
+		c.CheckErr(err)
 
-		c := make(chan os.Signal)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		interrupt := make(chan os.Signal)
+		signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 		go func() {
-			<-c
+			<-interrupt
 			cancel()
 			os.Exit(0)
 		}()
@@ -56,11 +56,11 @@ var dataLogCmd = &cobra.Command{
 				break
 			}
 			if event.Err != nil {
-				Fatal(event.Err)
+				c.Fatal(event.Err)
 				break
 			}
 			ts := time.Unix(event.Res.LogEntry.Time, 0)
-			Message("%v - %v", ts.Format("2006-01-02T15:04:05"), event.Res.LogEntry.Message)
+			c.Message("%v - %v", ts.Format("2006-01-02T15:04:05"), event.Res.LogEntry.Message)
 		}
 	},
 }

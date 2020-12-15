@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -21,7 +22,7 @@ var storageJobsQueuedCmd = &cobra.Command{
 	Args:  cobra.RangeArgs(0, 1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var cids []string
@@ -29,14 +30,14 @@ var storageJobsQueuedCmd = &cobra.Command{
 			cids = strings.Split(args[0], ",")
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		res, err := powClient.StorageJobs.Queued(mustAuthCtx(ctx), cids...)
-		checkErr(err)
+		res, err := c.PowClient.StorageJobs.Queued(c.MustAuthCtx(ctx), cids...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},

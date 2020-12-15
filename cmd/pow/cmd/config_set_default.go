@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -29,7 +30,7 @@ var configSetDefaultCmd = &cobra.Command{
 	Args:  cobra.MaximumNArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
@@ -44,20 +45,20 @@ var configSetDefaultCmd = &cobra.Command{
 				}
 			}()
 			reader = file
-			checkErr(err)
+			c.CheckErr(err)
 		} else {
 			reader = cmd.InOrStdin()
 		}
 
 		buf := new(bytes.Buffer)
 		_, err := buf.ReadFrom(reader)
-		checkErr(err)
+		c.CheckErr(err)
 
 		config := &userPb.StorageConfig{}
 		err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
-		checkErr(err)
+		c.CheckErr(err)
 
-		_, err = powClient.StorageConfig.SetDefault(mustAuthCtx(ctx), config)
-		checkErr(err)
+		_, err = c.PowClient.StorageConfig.SetDefault(c.MustAuthCtx(ctx), config)
+		c.CheckErr(err)
 	},
 }

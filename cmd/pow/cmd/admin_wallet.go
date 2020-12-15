@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -27,19 +28,19 @@ var adminWalletNewCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
 		format := viper.GetString("format")
 
-		res, err := powClient.Admin.Wallet.NewAddress(adminAuthCtx(ctx), format)
-		checkErr(err)
+		res, err := c.PowClient.Admin.Wallet.NewAddress(c.AdminAuthCtx(ctx), format)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},
@@ -52,17 +53,17 @@ var adminWalletAddrsCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.Wallet.Addresses(adminAuthCtx(ctx))
-		checkErr(err)
+		res, err := c.PowClient.Admin.Wallet.Addresses(c.AdminAuthCtx(ctx))
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},
@@ -75,18 +76,18 @@ var adminWalletSendCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(3),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
 		amount, ok := new(big.Int).SetString(args[2], 10)
 		if !ok {
-			checkErr(fmt.Errorf("parsing amount %v", args[2]))
+			c.CheckErr(fmt.Errorf("parsing amount %v", args[2]))
 		}
 
-		_, err := powClient.Admin.Wallet.SendFil(adminAuthCtx(ctx), args[0], args[1], amount)
-		checkErr(err)
+		_, err := c.PowClient.Admin.Wallet.SendFil(c.AdminAuthCtx(ctx), args[0], args[1], amount)
+		c.CheckErr(err)
 	},
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
+	c "github.com/textileio/powergate/cmd/pow/common"
 )
 
 func init() {
@@ -21,9 +22,9 @@ var docsCmd = &cobra.Command{
 		dir := args[0]
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			err = os.MkdirAll(dir, os.ModePerm)
-			checkErr(err)
+			c.CheckErr(err)
 		}
 		err := doc.GenMarkdownTree(rootCmd, args[0])
-		checkErr(err)
+		c.CheckErr(err)
 	},
 }

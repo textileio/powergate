@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	c "github.com/textileio/powergate/cmd/pow/common"
 )
 
 func init() {
@@ -20,10 +21,10 @@ var walletSendCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(3),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
 		from := args[0]
@@ -31,10 +32,10 @@ var walletSendCmd = &cobra.Command{
 
 		amount, ok := new(big.Int).SetString(args[2], 10)
 		if !ok {
-			checkErr(fmt.Errorf("parsing amount %v", args[2]))
+			c.CheckErr(fmt.Errorf("parsing amount %v", args[2]))
 		}
 
-		_, err := powClient.Wallet.SendFil(mustAuthCtx(ctx), from, to, amount)
-		checkErr(err)
+		_, err := c.PowClient.Wallet.SendFil(c.MustAuthCtx(ctx), from, to, amount)
+		c.CheckErr(err)
 	},
 }

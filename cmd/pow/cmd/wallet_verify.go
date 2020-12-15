@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -21,22 +22,22 @@ var walletVerifyCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(3),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
 		mb, err := hex.DecodeString(args[1])
-		checkErr(err)
+		c.CheckErr(err)
 		sb, err := hex.DecodeString(args[2])
-		checkErr(err)
+		c.CheckErr(err)
 
-		res, err := powClient.Wallet.VerifyMessage(mustAuthCtx(ctx), args[0], mb, sb)
-		checkErr(err)
+		res, err := c.PowClient.Wallet.VerifyMessage(c.MustAuthCtx(ctx), args[0], mb, sb)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},

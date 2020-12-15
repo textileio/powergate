@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client/admin"
+	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -42,17 +43,17 @@ var adminJobsQueuedCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.Queued(adminAuthCtx(ctx), storageJobsOpts()...)
-		checkErr(err)
+		res, err := c.PowClient.Admin.StorageJobs.Queued(c.AdminAuthCtx(ctx), storageJobsOpts()...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},
@@ -65,17 +66,17 @@ var adminJobsExecutingCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.Executing(adminAuthCtx(ctx), storageJobsOpts()...)
-		checkErr(err)
+		res, err := c.PowClient.Admin.StorageJobs.Executing(c.AdminAuthCtx(ctx), storageJobsOpts()...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},
@@ -88,17 +89,17 @@ var adminJobsLatestFinalCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.LatestFinal(adminAuthCtx(ctx), storageJobsOpts()...)
-		checkErr(err)
+		res, err := c.PowClient.Admin.StorageJobs.LatestFinal(c.AdminAuthCtx(ctx), storageJobsOpts()...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},
@@ -111,17 +112,17 @@ var adminJobsLatestSuccessfulCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.LatestSuccessful(adminAuthCtx(ctx), storageJobsOpts()...)
-		checkErr(err)
+		res, err := c.PowClient.Admin.StorageJobs.LatestSuccessful(c.AdminAuthCtx(ctx), storageJobsOpts()...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},
@@ -134,17 +135,17 @@ var adminJobsSummaryCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		res, err := powClient.Admin.StorageJobs.Summary(adminAuthCtx(ctx), storageJobsOpts()...)
-		checkErr(err)
+		res, err := c.PowClient.Admin.StorageJobs.Summary(c.AdminAuthCtx(ctx), storageJobsOpts()...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},

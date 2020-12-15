@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/buildinfo"
+	c "github.com/textileio/powergate/cmd/pow/common"
 )
 
 func init() {
@@ -21,14 +22,14 @@ var versionCmd = &cobra.Command{
 	Long:  `Display version information for pow and the connected server`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		Message("pow build info:")
-		RenderTable(
+		c.Message("pow build info:")
+		c.RenderTable(
 			os.Stdout,
 			[]string{},
 			[][]string{
@@ -43,14 +44,14 @@ var versionCmd = &cobra.Command{
 
 		s := spin.New("%s Getting Powergate server build info...")
 		s.Start()
-		info, err := powClient.BuildInfo(ctx)
+		info, err := c.PowClient.BuildInfo(ctx)
 		s.Stop()
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Print("\n")
 
-		Message("powergate server build info:")
-		RenderTable(
+		c.Message("powergate server build info:")
+		c.RenderTable(
 			os.Stdout,
 			[]string{},
 			[][]string{

@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
+	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -25,14 +26,14 @@ var newAddrCmd = &cobra.Command{
 	Long:  `Create a new wallet address`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
 		if len(args) != 1 {
-			Fatal(errors.New("must provide a name for the address"))
+			c.Fatal(errors.New("must provide a name for the address"))
 		}
 
 		format := viper.GetString("format")
@@ -46,11 +47,11 @@ var newAddrCmd = &cobra.Command{
 			opts = append(opts, client.WithMakeDefault(makeDefault))
 		}
 
-		res, err := powClient.Wallet.NewAddress(mustAuthCtx(ctx), args[0], opts...)
-		checkErr(err)
+		res, err := c.PowClient.Wallet.NewAddress(c.MustAuthCtx(ctx), args[0], opts...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 	},

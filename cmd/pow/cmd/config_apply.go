@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/textileio/powergate/api/client"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -30,7 +31,7 @@ var configApplyCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
@@ -47,7 +48,7 @@ var configApplyCmd = &cobra.Command{
 				}
 			}()
 			reader = file
-			checkErr(err)
+			c.CheckErr(err)
 		} else {
 			stat, _ := os.Stdin.Stat()
 			// stdin is being piped in (not being read from terminal)
@@ -61,11 +62,11 @@ var configApplyCmd = &cobra.Command{
 		if reader != nil {
 			buf := new(bytes.Buffer)
 			_, err := buf.ReadFrom(reader)
-			checkErr(err)
+			c.CheckErr(err)
 
 			config := &userPb.StorageConfig{}
 			err = protojson.UnmarshalOptions{}.Unmarshal(buf.Bytes(), config)
-			checkErr(err)
+			c.CheckErr(err)
 
 			options = append(options, client.WithStorageConfig(config))
 		}
@@ -74,16 +75,16 @@ var configApplyCmd = &cobra.Command{
 			options = append(options, client.WithOverride(viper.GetBool("override")))
 		}
 
-		res, err := powClient.StorageConfig.Apply(mustAuthCtx(ctx), args[0], options...)
-		checkErr(err)
+		res, err := c.PowClient.StorageConfig.Apply(c.MustAuthCtx(ctx), args[0], options...)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
-		checkErr(err)
+		c.CheckErr(err)
 
 		fmt.Println(string(json))
 
 		if viper.GetBool("watch") {
-			watchJobIds(res.JobId)
+			c.WatchJobIds(res.JobId)
 		}
 	},
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	c "github.com/textileio/powergate/cmd/pow/common"
 )
 
 func init() {
@@ -20,25 +21,25 @@ var walletSignCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
 		b, err := hex.DecodeString(args[0])
-		checkErr(err)
+		c.CheckErr(err)
 
-		res, err := powClient.Wallet.Addresses(mustAuthCtx(ctx))
-		checkErr(err)
+		res, err := c.PowClient.Wallet.Addresses(c.MustAuthCtx(ctx))
+		c.CheckErr(err)
 
 		data := make([][]string, len(res.Addresses))
 		for i, a := range res.Addresses {
-			signRes, err := powClient.Wallet.SignMessage(mustAuthCtx(ctx), a.Address, b)
-			checkErr(err)
+			signRes, err := c.PowClient.Wallet.SignMessage(c.MustAuthCtx(ctx), a.Address, b)
+			c.CheckErr(err)
 			data[i] = []string{a.Address, hex.EncodeToString(signRes.Signature)}
 		}
 
-		RenderTable(os.Stdout, []string{"address", "signature"}, data)
+		c.RenderTable(os.Stdout, []string{"address", "signature"}, data)
 	},
 }

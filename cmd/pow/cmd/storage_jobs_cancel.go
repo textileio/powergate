@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	c "github.com/textileio/powergate/cmd/pow/common"
 )
 
 func init() {
@@ -21,14 +22,14 @@ var storageJobsCancelCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 
-		_, err := powClient.StorageJobs.Cancel(mustAuthCtx(ctx), args[0])
-		checkErr(err)
+		_, err := c.PowClient.StorageJobs.Cancel(c.MustAuthCtx(ctx), args[0])
+		c.CheckErr(err)
 	},
 }
 
@@ -39,20 +40,20 @@ var storageJobsCancelQueuedCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := mustAuthCtx(context.Background())
+		ctx := c.MustAuthCtx(context.Background())
 
-		js, err := powClient.StorageJobs.Queued(ctx)
-		checkErr(err)
+		js, err := c.PowClient.StorageJobs.Queued(ctx)
+		c.CheckErr(err)
 
 		for _, j := range js.StorageJobs {
 			ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 			defer cancel()
 
-			_, err := powClient.StorageJobs.Cancel(ctx, j.Id)
-			checkErr(err)
+			_, err := c.PowClient.StorageJobs.Cancel(ctx, j.Id)
+			c.CheckErr(err)
 		}
 	},
 }
@@ -64,20 +65,20 @@ var storageJobsCancelExecutingCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := mustAuthCtx(context.Background())
+		ctx := c.MustAuthCtx(context.Background())
 
-		js, err := powClient.StorageJobs.Executing(ctx)
-		checkErr(err)
+		js, err := c.PowClient.StorageJobs.Executing(ctx)
+		c.CheckErr(err)
 
 		for _, j := range js.StorageJobs {
 			ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 			defer cancel()
 
-			_, err := powClient.StorageJobs.Cancel(ctx, j.Id)
-			checkErr(err)
+			_, err := c.PowClient.StorageJobs.Cancel(ctx, j.Id)
+			c.CheckErr(err)
 		}
 	},
 }

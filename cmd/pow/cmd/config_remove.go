@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	c "github.com/textileio/powergate/cmd/pow/common"
 )
 
 func init() {
@@ -19,12 +20,12 @@ var removeCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
-		checkErr(err)
+		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
-		_, err := powClient.StorageConfig.Remove(mustAuthCtx(ctx), args[0])
-		checkErr(err)
+		_, err := c.PowClient.StorageConfig.Remove(c.MustAuthCtx(ctx), args[0])
+		c.CheckErr(err)
 	},
 }
