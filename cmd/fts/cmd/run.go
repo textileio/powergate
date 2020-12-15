@@ -129,45 +129,45 @@ var runCmd = &cobra.Command{
 		storageConfig.Hot.Enabled = false
 		rc.storageConfig = storageConfig
 
-		trackProgress(pendingTasks, allTasks, rc)
+		OutputProgress(pendingTasks, allTasks, rc)
 	},
 }
 
-func trackProgress(pendingTasks []Task, allTasks []Task, conf PipelineConfig) {
-		var progressWaitGroup sync.WaitGroup
+// OutputProgress starts the pipeline and outputs progress to file or terminal.
+func OutputProgress(pendingTasks []Task, allTasks []Task, conf PipelineConfig) {
+	progress := uiprogress.New()
+	progress.Start()
+	progressBars := make(map[string](chan Task))
 
-		progress := uiprogress.New()
-		progress.Start()
-		progressBars := make(map[string](chan Task))
+	taskUpdates := Start(pendingTasks, conf)
 
-		taskUpdates := Start(pendingTasks, conf)
-
-		j := 1
-		for task := range taskUpdates {
-			allTasks, change := updateTasks(allTasks, task)
-			if change {
-				if _, found := progressBars[task.Name]; !found {
-					progressBars[task.Name] = make(chan Task)
-					progressWaitGroup.Add(1)
-					go progressBar(progress, progressBars[task.Name], j, len(pendingTasks), &progressWaitGroup)
-					j++
-				}
-				if task.Stage > DryRunComplete {
-					progressBars[task.Name] <- task
-				}
-				err := storeResults(resultsOut, allTasks)
-				checkErr(err)
-			} else {
-				Message(fmt.Sprintf("%s %d", task.Name, task.Stage))
+	j := 1
+	var wg sync.WaitGroup
+	for task := range taskUpdates {
+		allTasks, change := updateTasks(allTasks, task)
+		if change {
+			if _, found := progressBars[task.Name]; !found {
+				progressBars[task.Name] = make(chan Task)
+				wg.Add(1)
+				go progressBar(progress, progressBars[task.Name], j, len(pendingTasks), &wg)
+				j++
 			}
+			if task.Stage > DryRunComplete {
+				progressBars[task.Name] <- task
+			}
+			err := storeResults(resultsOut, allTasks)
+			checkErr(err)
+		} else {
+			Message(fmt.Sprintf("%s %d", task.Name, task.Stage))
 		}
+	}
 
-		go func() {
-			progressWaitGroup.Wait()
-			for _, c := range progressBars {
-				close(c)
-			}
-		}()
+	go func() {
+		wg.Wait()
+		for _, c := range progressBars {
+			close(c)
+		}
+	}()
 
-		progress.Stop()
+	progress.Stop()
 }

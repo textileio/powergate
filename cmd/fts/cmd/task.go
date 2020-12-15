@@ -34,10 +34,10 @@ type queueConfig struct {
 }
 
 func queue(task Task, conf queueConfig, isLast bool) {
+	waitTimeout := 1 * time.Second
 	for {
 		// check available space.
 		ready, err := conf.staging.Ready(task.Bytes)
-		waitTimeout := 1 * time.Second
 		if err != nil {
 			task.Error = err.Error()
 			task.err = err

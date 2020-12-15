@@ -101,6 +101,6 @@ var resumeCmd = &cobra.Command{
 		storageConfig.Hot.Enabled = false
 		rc.storageConfig = storageConfig
 
-		trackProgress(pendingTasks, knownTasks, rc)
+		OutputProgress(pendingTasks, knownTasks, rc)
 	},
 }
