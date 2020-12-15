@@ -141,11 +141,11 @@ func TestFailingMigration(t *testing.T) {
 	require.Equal(t, 0, v)
 }
 
-func TestRealDataBadger(t *testing.T) {
+func TestRealDataBadgerV0(t *testing.T) {
 	logger.SetDebugLogging()
 	_ = logger.SetLogLevel("badger", "error")
 	tmpDir := t.TempDir()
-	err := copyDir("testdata/badgerdump", tmpDir+"/badgerdump")
+	err := copyDir("testdata/badgerdumpv0", tmpDir+"/badgerdump")
 	require.NoError(t, err)
 
 	opts := &badger.DefaultOptions
@@ -155,6 +155,27 @@ func TestRealDataBadger(t *testing.T) {
 
 	migrations := map[int]Migration{
 		1: V1MultitenancyMigration,
+	}
+	m := New(ds, migrations)
+	err = m.Ensure()
+	require.NoError(t, err)
+}
+
+func TestRealDataBadgerV1(t *testing.T) {
+	logger.SetDebugLogging()
+	_ = logger.SetLogLevel("badger", "error")
+	tmpDir := t.TempDir()
+	err := copyDir("testdata/badgerdumpv1", tmpDir+"/badgerdump")
+	require.NoError(t, err)
+
+	opts := &badger.DefaultOptions
+	ds, err := badger.NewDatastore(tmpDir+"/badgerdump", opts)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ds.Close()) }()
+
+	migrations := map[int]Migration{
+		1: V1MultitenancyMigration,
+		2: V2StorageInfoDealIDs,
 	}
 	m := New(ds, migrations)
 	err = m.Ensure()
@@ -174,6 +195,7 @@ func TestRealDataRemoteMongo(t *testing.T) {
 
 	migrations := map[int]Migration{
 		1: V1MultitenancyMigration,
+		2: V2StorageInfoDealIDs,
 	}
 	m := New(ds, migrations)
 	err = m.Ensure()
