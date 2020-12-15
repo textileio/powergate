@@ -2,21 +2,11 @@ package cmd
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/textileio/powergate/api/client"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
-
-type watchJobsConfig struct {
-	watch    chan Task
-	updates  chan<- Task
-	complete chan struct{}
-	staging  *StagingStatus
-	pipe     PipelineConfig
-	wg       *sync.WaitGroup
-}
 
 // timed loop that will check for deal updates
 func watcher(conf queueConfig) {
