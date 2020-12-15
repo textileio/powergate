@@ -94,6 +94,7 @@ var resumeCmd = &cobra.Command{
 			minDealBytes:    minDealBytes,
 			concurrent:      concurrent,
 			dryRun:          dryRun,
+			mainnet:         mainnet,
 		}
 
 		storageConfig, err := getStorageConfig(rc)

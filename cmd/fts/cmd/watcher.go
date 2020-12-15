@@ -13,6 +13,10 @@ func watcher(conf queueConfig) {
 	defer conf.pipeWg.Done()
 	watching := []Task{}
 	wait := 2 * time.Second
+	maxWait := 2 * time.Minute
+	if conf.pipe.mainnet {
+		maxWait = 5 * time.Minute
+	}
 	receivedAllTasks := false
 
 	for range time.Tick(wait) {
@@ -76,7 +80,7 @@ func watcher(conf queueConfig) {
 			receivedAllTasks = checkReceivedAll(conf.complete)
 		}
 		// Allows any empty jobs or dry-runs to clean up fast.
-		if wait < 128*time.Second {
+		if wait < maxWait {
 			wait = wait * 2
 		}
 		if receivedAllTasks && len(watching) == 0 {

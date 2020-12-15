@@ -123,6 +123,7 @@ var runCmd = &cobra.Command{
 			minDealBytes:    minDealBytes,
 			concurrent:      concurrent,
 			dryRun:          dryRun,
+			mainnet:         mainnet,
 		}
 		storageConfig, err := getStorageConfig(rc)
 		checkErr(err)

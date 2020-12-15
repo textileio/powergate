@@ -16,6 +16,7 @@ type PipelineConfig struct {
 	minDealBytes    int64
 	maxStagingBytes int64
 	dryRun          bool
+	mainnet         bool
 	storageConfig   *userPb.StorageConfig
 }
 
