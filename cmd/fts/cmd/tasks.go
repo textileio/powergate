@@ -7,7 +7,7 @@ import (
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
 
-// PipelineConfig config for task pipeline
+// PipelineConfig config for task pipeline.
 type PipelineConfig struct {
 	token           string
 	ipfsrevproxy    string
@@ -26,14 +26,14 @@ type fanoutConf struct {
 	pipeWg  *sync.WaitGroup
 }
 
-// Start the task pipeline
+// Start the task pipeline.
 func Start(tasks []Task, pipe PipelineConfig) chan Task {
 	pipeWg := sync.WaitGroup{}
 	sc := StagingStatus{
 		maxStagingBytes: pipe.maxStagingBytes,
 		minDealBytes:    pipe.minDealBytes,
 	}
-	// updates chan for return to gui, pipe, and output
+	// updates chan for return to gui, pipe, and output.
 	updates := make(chan Task)
 
 	conf := fanoutConf{

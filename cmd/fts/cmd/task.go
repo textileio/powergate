@@ -8,7 +8,7 @@ import (
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
 
-// Task is an individual data collection to be stored on Filecoin
+// Task is an individual data collection to be stored on Filecoin.
 type Task struct {
 	Name          string               `json:"name,omitempty"`
 	Path          string               `json:"path,omitempty"`
@@ -35,7 +35,7 @@ type queueConfig struct {
 
 func queue(task Task, conf queueConfig, isLast bool) {
 	for {
-		// check available space
+		// check available space.
 		ready, err := conf.staging.Ready(task.Bytes)
 		waitTimeout := 1 * time.Second
 		if err != nil {
@@ -45,13 +45,13 @@ func queue(task Task, conf queueConfig, isLast bool) {
 			conf.pipeWg.Done()
 			return
 		}
-		// wait for space
+		// wait for space.
 		if !ready {
 			time.Sleep(waitTimeout)
 			waitTimeout = waitTimeout * 2
 			continue
 		}
-		// start processing
+		// start processing.
 		conf.pipeWg.Add(1)
 		go process(task, conf, isLast)
 		return

@@ -82,7 +82,7 @@ var runCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if maxStagedBytes < maxDealBytes {
-			Fatal(fmt.Errorf("Max deal size (%d) is larger than max staging size (%d)", maxDealBytes, maxStagedBytes))
+			Fatal(fmt.Errorf("max deal size (%d) is larger than max staging size (%d)", maxDealBytes, maxStagedBytes))
 		}
 
 		// Read all tasks from the input folder
@@ -134,7 +134,6 @@ var runCmd = &cobra.Command{
 }
 
 func trackProgress(pendingTasks []Task, allTasks []Task, conf PipelineConfig) {
-
 		var progressWaitGroup sync.WaitGroup
 
 		progress := uiprogress.New()

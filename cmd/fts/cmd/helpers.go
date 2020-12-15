@@ -44,7 +44,7 @@ func Fatal(err error, args ...interface{}) {
 	os.Exit(1)
 }
 
-// NonFatal prints a fatal error to stdout
+// NonFatal prints a fatal error to stdout.
 func NonFatal(err error, args ...interface{}) {
 	words := strings.SplitN(err.Error(), " ", 2)
 	words[0] = strings.Title(words[0])
@@ -59,7 +59,7 @@ func checkErr(e error) {
 	}
 }
 
-// Get the on-disk size of a directory
+// Get the on-disk size of a directory.
 func getDirSize(path string) (int64, error) {
 	var size int64
 	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
@@ -74,7 +74,7 @@ func getDirSize(path string) (int64, error) {
 	return size, err
 }
 
-// Remote tasks with Complete status
+// Remote tasks with Complete status.
 func removeComplete(tasks []Task) []Task {
 	result := []Task{}
 	for _, task := range tasks {
@@ -85,13 +85,13 @@ func removeComplete(tasks []Task) []Task {
 	return result
 }
 
-// Remote tasks with an error
+// Remote tasks with an error.
 func cleanErrors(tasks []Task, retry bool) []Task {
 	result := []Task{}
 	for _, task := range tasks {
 		if task.Error == "" {
 			result = append(result, task)
-		} else if retry == true {
+		} else if retry {
 			task.Stage = Init
 			task.Error = ""
 			result = append(result, task)
@@ -100,7 +100,7 @@ func cleanErrors(tasks []Task, retry bool) []Task {
 	return result
 }
 
-// Merge two task lists without duplicates
+// Merge two task lists without duplicates.
 func mergeNewTasks(primary []Task, secondary []Task) []Task {
 	for _, task := range secondary {
 		primary = appendUniquePaths(primary, task)
@@ -108,7 +108,7 @@ func mergeNewTasks(primary []Task, secondary []Task) []Task {
 	return primary
 }
 
-// Ensures no duplicate tasks based on path
+// Ensures no duplicate tasks based on path.
 func appendUniquePaths(tasks []Task, task Task) []Task {
 	for _, orig := range tasks {
 		if orig.Path == task.Path {
@@ -118,7 +118,7 @@ func appendUniquePaths(tasks []Task, task Task) []Task {
 	return append(tasks, task)
 }
 
-// Stores the results json as a file
+// Stores the results json as a file.
 func storeResults(target string, tasks []Task) error {
 	target, err := filepath.Abs(filepath.Clean(target))
 	if err != nil {
@@ -131,7 +131,7 @@ func storeResults(target string, tasks []Task) error {
 	return ioutil.WriteFile(target, file, 0644)
 }
 
-// Opens the json results output
+// Opens the json results output.
 func openResults(target string) ([]Task, error) {
 	target, err := filepath.Abs(filepath.Clean(target))
 	if err != nil {
@@ -149,7 +149,7 @@ func openResults(target string) ([]Task, error) {
 	}
 }
 
-// Filter hidden files/folders out of task slice
+// Filter hidden files/folders out of task slice.
 func filterTasks(tasks []Task) []Task {
 	result := tasks[:0]
 	for _, tsk := range tasks {
@@ -167,7 +167,7 @@ func filterTasks(tasks []Task) []Task {
 	return result
 }
 
-// Converts a directory into a slice of Tasks
+// Converts a directory into a slice of Tasks.
 func pathToTasks(target string) ([]Task, error) {
 	target, err := filepath.Abs(filepath.Clean(target))
 	if err != nil {
@@ -210,7 +210,7 @@ func pathToTasks(target string) ([]Task, error) {
 	return tasks, nil
 }
 
-// gets the default storage config from powergate
+// gets the default storage config from powergate.
 func getStorageConfig(config PipelineConfig) (*userPb.StorageConfig, error) {
 	pow, err := client.NewClient(config.serverAddress)
 	if err != nil {
@@ -226,7 +226,7 @@ func getStorageConfig(config PipelineConfig) (*userPb.StorageConfig, error) {
 	return task.GetDefaultStorageConfig(), nil
 }
 
-// overwrites a Task in a slice
+// overwrites a Task in a slice.
 func updateTasks(tasks []Task, update Task) ([]Task, bool) {
 	for i, orig := range tasks {
 		if orig.Path == update.Path {
@@ -257,7 +257,7 @@ func stageData(task Task, pow *client.Client, config PipelineConfig) (string, er
 	return stageRes.Cid, err
 }
 
-// applyConfig applys either default or given config to a CID
+// applyConfig applys either default or given config to a CID.
 func applyConfig(task Task, pow *client.Client, config PipelineConfig) (*userPb.ApplyStorageConfigResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour*2)
 	defer cancel()

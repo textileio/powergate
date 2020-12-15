@@ -65,7 +65,7 @@ var resumeCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if maxStagedBytes < maxDealBytes {
-			Fatal(fmt.Errorf("Max deal size (%d) is larger than max staging size (%d)", maxDealBytes, maxStagedBytes))
+			Fatal(fmt.Errorf("max deal size (%d) is larger than max staging size (%d)", maxDealBytes, maxStagedBytes))
 		}
 
 		// Ensure there aren't existing tasks in the same queue

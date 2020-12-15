@@ -8,7 +8,7 @@ import (
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 )
 
-// timed loop that will check for deal updates
+// timed loop that will check for deal updates.
 func watcher(conf queueConfig) {
 	defer conf.pipeWg.Done()
 	watching := []Task{}
@@ -75,7 +75,7 @@ func watcher(conf queueConfig) {
 		if !receivedAllTasks {
 			receivedAllTasks = checkReceivedAll(conf.complete)
 		}
-		// Allows any empty jobs or dry-runs to clean up fast
+		// Allows any empty jobs or dry-runs to clean up fast.
 		if wait < 128*time.Second {
 			wait = wait * 2
 		}
@@ -85,7 +85,7 @@ func watcher(conf queueConfig) {
 	}
 }
 
-// grabs any new tasks that are ready to watch
+// grabs any new tasks that are ready to watch.
 func updateWatching(tasks chan Task) []Task {
 	watching := []Task{}
 	for {
