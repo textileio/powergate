@@ -13,6 +13,7 @@ import (
 var (
 	dryRun         bool
 	mainnet        bool
+	resume         bool
 	maxStagedBytes int64
 	maxDealBytes   int64
 	minDealBytes   int64
@@ -26,12 +27,13 @@ var (
 
 func init() {
 	runCmd.Flags().BoolVarP(&dryRun, "dry-run", "d", false, "Run through steps without pushing data to Powergate API.")
-	runCmd.Flags().BoolVarP(&mainnet, "mainnet", "n", false, "Sets staging limits based on localnet or mainnet.")
-	runCmd.Flags().BoolVarP(&retryErrors, "retry", "e", false, "Retry tasks with error status")
-	runCmd.Flags().StringVar(&taskFolder, "folder", "", "Folder with organized tasks of directories or files")
-	runCmd.Flags().BoolVarP(&hiddenFiles, "all", "a", false, "Include hidden files & folders from top level folder")
+	runCmd.Flags().BoolVarP(&mainnet, "mainnet", "m", false, "Sets staging limits based on localnet or mainnet.")
+	runCmd.Flags().BoolVarP(&retryErrors, "retry-errors", "e", false, "Retry tasks with error status")
+	runCmd.Flags().StringVar(&taskFolder, "folder", "f", "Folder with organized tasks of directories or files")
+	runCmd.Flags().BoolVarP(&hiddenFiles, "include-all", "i", false, "Include hidden files & folders from top level folder")
 	runCmd.Flags().StringVar(&ipfsrevproxy, "ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
-	runCmd.Flags().StringVarP(&resultsOut, "results", "r", "results.json", "The location to store intermediate and final results.")
+	runCmd.Flags().StringVarP(&resultsOut, "output", "o", "results.json", "The location to store intermediate and final results.")
+	runCmd.Flags().BoolVarP(&resume, "resume", "r", false, "Resume tasks stored in local results output file.")
 
 	// Not included in the public commands
 	runCmd.Flags().Int64Var(&concurrent, "concurrent", 1000, "Max concurrent tasks being processed")
@@ -85,11 +87,14 @@ var runCmd = &cobra.Command{
 			Fatal(fmt.Errorf("max deal size (%d) is larger than max staging size (%d)", maxDealBytes, maxStagedBytes))
 		}
 
-		// Read all tasks from the input folder
-		unfiltered, err := pathToTasks(taskFolder)
-		checkErr(err)
-		Message("Input tasks: %d", len(unfiltered))
-		allTasks := filterTasks(unfiltered)
+		allTasks := make([]Task, 0)
+		if !resume {
+			// Read all tasks from the input folder
+			unfiltered, err := pathToTasks(taskFolder)
+			checkErr(err)
+			Message("Input tasks: %d", len(unfiltered))
+			allTasks = filterTasks(unfiltered)
+		}
 
 		// Ensure there aren't existing tasks in the same queue
 		knownTasks, err := openResults(resultsOut)
@@ -99,12 +104,12 @@ var runCmd = &cobra.Command{
 
 		pendingTasks := cleanErrors(removeComplete(allTasks), retryErrors)
 
-		Message("Pending tasks: %d", len(pendingTasks))
-		time.Sleep(1 * time.Second)
-
 		if len(pendingTasks) == 0 {
 			return
 		}
+
+		Message("Starting tasks: %d", len(pendingTasks))
+		time.Sleep(1 * time.Second)
 
 		// Init or update our intermediate results
 		err = storeResults(resultsOut, allTasks)
