@@ -16,7 +16,7 @@ func init() {
 	resumeCmd.Flags().StringVarP(&resultsOut, "results", "r", "results.json", "The of ongoing tasks to resume.")
 
 	// Not included in the public commands
-	resumeCmd.Flags().Int64Var(&concurrent, "concurrent", 10000, "Max concurrent tasks being processed")
+	resumeCmd.Flags().Int64Var(&concurrent, "concurrent", 1000, "Max concurrent tasks being processed")
 	resumeCmd.Flags().Int64Var(&maxStagedBytes, "max-staged-bytes", 0, "Maximum bytes of all tasks queued on staging")
 	resumeCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 0, "Maximum bytes of a single deal")
 	resumeCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 0, "Minimum bytes of a single deal")

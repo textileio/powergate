@@ -34,7 +34,7 @@ func init() {
 	runCmd.Flags().StringVarP(&resultsOut, "results", "r", "results.json", "The location to store intermediate and final results.")
 
 	// Not included in the public commands
-	runCmd.Flags().Int64Var(&concurrent, "concurrent", 10000, "Max concurrent tasks being processed")
+	runCmd.Flags().Int64Var(&concurrent, "concurrent", 1000, "Max concurrent tasks being processed")
 	runCmd.Flags().Int64Var(&maxStagedBytes, "max-staged-bytes", 0, "Maximum bytes of all tasks queued on staging")
 	runCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 0, "Maximum bytes of a single deal")
 	runCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 0, "Minimum bytes of a single deal")
