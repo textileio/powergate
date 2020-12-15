@@ -27,7 +27,8 @@ func progressBar(progress *uiprogress.Progress, updates chan Task, job int, tota
 	})
 	for task := range updates {
 		name, stage = staticNameStage(task)
-		bar.Set(int(task.Stage))
+		err := bar.Set(int(task.Stage))
+		checkErr(err)
 	}
 }
 

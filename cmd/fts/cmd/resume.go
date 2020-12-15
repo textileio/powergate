@@ -21,13 +21,13 @@ func init() {
 	resumeCmd.Flags().Int64Var(&maxDealBytes, "max-deal-bytes", 0, "Maximum bytes of a single deal")
 	resumeCmd.Flags().Int64Var(&minDealBytes, "min-deal-bytes", 0, "Minimum bytes of a single deal")
 
-	err := runCmd.Flags().MarkHidden("concurrent")
+	err := resumeCmd.Flags().MarkHidden("concurrent")
 	checkErr(err)
-	err = runCmd.Flags().MarkHidden("max-staged-bytes")
+	err = resumeCmd.Flags().MarkHidden("max-staged-bytes")
 	checkErr(err)
-	err = runCmd.Flags().MarkHidden("max-deal-bytes")
+	err = resumeCmd.Flags().MarkHidden("max-deal-bytes")
 	checkErr(err)
-	err = runCmd.Flags().MarkHidden("min-deal-bytes")
+	err = resumeCmd.Flags().MarkHidden("min-deal-bytes")
 	checkErr(err)
 
 	rootCmd.AddCommand(resumeCmd)
