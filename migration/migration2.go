@@ -63,7 +63,6 @@ func v2GenProposalCidToDealID(ds datastoreReaderWriter) (map[cid.Cid]uint64, err
 					errors = append(errors, fmt.Sprintf("unmarshaling query result: %s", err))
 					lock.Unlock()
 					return
-
 				}
 				if dr.DealInfo.DealID != 0 {
 					lock.Lock()
@@ -71,7 +70,6 @@ func v2GenProposalCidToDealID(ds datastoreReaderWriter) (map[cid.Cid]uint64, err
 					lock.Unlock()
 				}
 			}()
-
 		}
 		for i := 0; i < cap(lim); i++ {
 			lim <- struct{}{}
@@ -188,5 +186,4 @@ func v2MigrationDealIDFilling(ds datastoreReaderWriter, propsDealID map[cid.Cid]
 	}
 
 	return nil
-
 }
