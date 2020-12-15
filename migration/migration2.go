@@ -161,12 +161,12 @@ func v2MigrationDealIDFilling(ds datastoreReaderWriter, propsDealID map[cid.Cid]
 			buf, err := json.Marshal(newCi)
 			if err != nil {
 				lock.Lock()
-				errors = append(errors, fmt.Sprintf("marshaling cid info for datastore: %s", err))
+				errors = append(errors, fmt.Sprintf("marshaling storage info for datastore: %s", err))
 				lock.Unlock()
 			}
 			if err := ds.Put(datastore.NewKey(r.Key), buf); err != nil {
 				lock.Lock()
-				errors = append(errors, fmt.Sprintf("put cid info in datastore: %s", err))
+				errors = append(errors, fmt.Sprintf("put storage info in datastore: %s", err))
 				lock.Unlock()
 			}
 		}()

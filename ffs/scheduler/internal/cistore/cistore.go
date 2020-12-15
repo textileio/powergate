@@ -55,10 +55,10 @@ func (s *Store) Put(ci ffs.StorageInfo) error {
 	}
 	buf, err := json.Marshal(ci)
 	if err != nil {
-		return fmt.Errorf("marshaling cid info for datastore: %s", err)
+		return fmt.Errorf("marshaling storage info for datastore: %s", err)
 	}
 	if err := s.ds.Put(makeKey(ci.APIID, ci.Cid), buf); err != nil {
-		return fmt.Errorf("put cid info in datastore: %s", err)
+		return fmt.Errorf("put storage info in datastore: %s", err)
 	}
 	return nil
 }
