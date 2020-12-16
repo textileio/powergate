@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	Cmd.Flags().BoolP("json", "j", false, "output data in raw json instead of an interactive tui")
+	Cmd.Flags().BoolP("json", "j", false, "output data in raw json instead of an interactive ui")
 }
 
 // Cmd is the command.
@@ -44,12 +44,13 @@ var Cmd = &cobra.Command{
 			c.CheckErr(err)
 
 			fmt.Println(string(json))
-		} else {
-			p := tea.NewProgram(model{cids: cids})
-			if err := p.Start(); err != nil {
-				fmt.Printf("Alas, there's been an error: %v", err)
-				os.Exit(1)
-			}
+			return
+		}
+
+		p := tea.NewProgram(model{cids: cids})
+		if err := p.Start(); err != nil {
+			fmt.Printf("Alas, there's been an error: %v", err)
+			os.Exit(1)
 		}
 	},
 }
