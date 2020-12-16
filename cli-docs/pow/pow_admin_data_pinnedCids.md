@@ -1,4 +1,4 @@
-## pow admin data pinnedCids
+## pow admin data pinnedcids
 
 List pinned cids information in hot-storage.
 
@@ -7,13 +7,13 @@ List pinned cids information in hot-storage.
 List pinned cids information in hot-storage.
 
 ```
-pow admin data pinnedCids [flags]
+pow admin data pinnedcids [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for pinnedCids
+  -h, --help   help for pinnedcids
 ```
 
 ### Options inherited from parent commands
