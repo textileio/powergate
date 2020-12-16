@@ -18,7 +18,7 @@ func init() {
 	Cmd.Flags().BoolP("json", "j", false, "output data in raw json instead of an interactive tui")
 }
 
-// Cmd gets a summary about the current storage and jobs state of cids.
+// Cmd is the command.
 var Cmd = &cobra.Command{
 	Use:   "summary [optional cid1,cid2,...]",
 	Short: "Get a summary about the current storage and jobs state of cids",

@@ -279,18 +279,10 @@ func toRPCJob(job ffs.StorageJob) (*userPb.StorageJob, error) {
 	}, nil
 }
 
-func fromProtoCid(c string) (cid.Cid, error) {
-	res, err := util.CidFromString(c)
-	if err != nil {
-		return cid.Undef, err
-	}
-	return res, nil
-}
-
 func fromProtoCids(cids []string) ([]cid.Cid, error) {
 	var res []cid.Cid
 	for _, cid := range cids {
-		cid, err := fromProtoCid(cid)
+		cid, err := util.CidFromString(cid)
 		if err != nil {
 			return nil, err
 		}

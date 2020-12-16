@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// Cmd gets information about the current storage state of a cid.
+// Cmd is the command.
 var Cmd = &cobra.Command{
 	Use:   "info cid",
 	Short: "Get information about the current storage state of a cid",
