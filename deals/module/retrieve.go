@@ -80,7 +80,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 		}
 		qo, err := lapi.ClientMinerQueryOffer(ctx, a, payloadCid, pieceCid)
 		if err != nil {
-			log.Infof("asking miner %s query-offer failed: %s", m, err)
+			log.Infof("asking miner %s query-offer failed: %s", a, err)
 			continue
 		}
 		offers = append(offers, qo)
