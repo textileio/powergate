@@ -14,6 +14,7 @@ pow data summary [optional cid1,cid2,...] [flags]
 
 ```
   -h, --help   help for summary
+  -j, --json   output data in raw json instead of an interactive ui
 ```
 
 ### Options inherited from parent commands
