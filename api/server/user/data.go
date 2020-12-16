@@ -20,7 +20,7 @@ func (s *Service) Stage(srv userPb.UserService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	fapi, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return fmt.Errorf("getting user instance: %s", err)
+		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
 	}
 
 	reader, writer := io.Pipe()
@@ -45,7 +45,7 @@ func (s *Service) StageCid(ctx context.Context, req *userPb.StageCidRequest) (*u
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	fapi, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("getting user instance: %s", err)
+		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
 	}
 
 	c, err := util.CidFromString(req.Cid)
@@ -65,7 +65,7 @@ func (s *Service) StageCid(ctx context.Context, req *userPb.StageCidRequest) (*u
 func (s *Service) ReplaceData(ctx context.Context, req *userPb.ReplaceDataRequest) (*userPb.ReplaceDataResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
 	}
 
 	c1, err := util.CidFromString(req.Cid1)
@@ -89,7 +89,7 @@ func (s *Service) ReplaceData(ctx context.Context, req *userPb.ReplaceDataReques
 func (s *Service) Get(req *userPb.GetRequest, srv userPb.UserService_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return err
+		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
 	}
 	c, err := util.CidFromString(req.GetCid())
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *Service) Get(req *userPb.GetRequest, srv userPb.UserService_GetServer) 
 func (s *Service) WatchLogs(req *userPb.WatchLogsRequest, srv userPb.UserService_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return err
+		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
 	}
 
 	opts := []api.GetLogsOption{api.WithHistory(req.History)}
@@ -161,10 +161,10 @@ func (s *Service) WatchLogs(req *userPb.WatchLogsRequest, srv userPb.UserService
 func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest) (*userPb.CidSummaryResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
 	}
 
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -205,7 +205,9 @@ func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest)
 			// and there can be only one executing job per cid at a time.
 			d.executingJob = &executingJobs[0]
 		} else if len(executingJobs) > 1 {
-			log.Warnf("received %d executing jobs when there should be 1", len(executingJobs))
+			msg := fmt.Sprintf("received %d executing jobs when there should be 1", len(executingJobs))
+			log.Error(msg)
+			return nil, status.Error(codes.Internal, msg)
 		}
 
 		sources = append(sources, d)
@@ -235,14 +237,14 @@ func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest)
 	sort.Slice(sources, func(a, b int) bool {
 		jobTimeA := extractJobTime(sources[a])
 		jobTimeB := extractJobTime(sources[b])
-		currentStorageTimeA := extractCurrentStorageTime(sources[a])
-		currentStorageTimeB := extractCurrentStorageTime(sources[b])
 		if jobTimeA > jobTimeB {
 			return true
 		}
 		if jobTimeA < jobTimeB {
 			return false
 		}
+		currentStorageTimeA := extractCurrentStorageTime(sources[a])
+		currentStorageTimeB := extractCurrentStorageTime(sources[b])
 		return currentStorageTimeA > currentStorageTimeB
 	})
 
@@ -271,10 +273,10 @@ func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest)
 func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*userPb.CidInfoResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
 	}
 
-	cid, err := fromProtoCid(req.Cid)
+	cid, err := util.CidFromString(req.Cid)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cid: %v", err)
 	}
@@ -324,7 +326,9 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		}
 		cidInfo.ExecutingStorageJob = rpcJob
 	} else if len(executingJobs) > 1 {
-		log.Warnf("received %d executing jobs when there should be 1", len(executingJobs))
+		msg := fmt.Sprintf("received %d executing jobs when there should be 1", len(executingJobs))
+		log.Error(msg)
+		return nil, status.Error(codes.Internal, msg)
 	}
 	finalJobs := i.LatestFinalStorageJobs(cid)
 	if len(finalJobs) > 0 {

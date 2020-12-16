@@ -3,19 +3,17 @@ package admin
 import (
 	"context"
 
-	"github.com/ipfs/go-cid"
 	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	su "github.com/textileio/powergate/api/server/util"
 	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // QueuedStorageJobs returns a list of queued storage jobs.
 func (a *Service) QueuedStorageJobs(ctx context.Context, req *adminPb.QueuedStorageJobsRequest) (*adminPb.QueuedStorageJobsResponse, error) {
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -31,7 +29,7 @@ func (a *Service) QueuedStorageJobs(ctx context.Context, req *adminPb.QueuedStor
 
 // ExecutingStorageJobs returns a list of executing storage jobs.
 func (a *Service) ExecutingStorageJobs(ctx context.Context, req *adminPb.ExecutingStorageJobsRequest) (*adminPb.ExecutingStorageJobsResponse, error) {
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -47,7 +45,7 @@ func (a *Service) ExecutingStorageJobs(ctx context.Context, req *adminPb.Executi
 
 // LatestFinalStorageJobs returns a list of latest final storage jobs.
 func (a *Service) LatestFinalStorageJobs(ctx context.Context, req *adminPb.LatestFinalStorageJobsRequest) (*adminPb.LatestFinalStorageJobsResponse, error) {
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -63,7 +61,7 @@ func (a *Service) LatestFinalStorageJobs(ctx context.Context, req *adminPb.Lates
 
 // LatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
 func (a *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *adminPb.LatestSuccessfulStorageJobsRequest) (*adminPb.LatestSuccessfulStorageJobsResponse, error) {
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -79,7 +77,7 @@ func (a *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *adminPb.
 
 // StorageJobsSummary returns a summary of all storage jobs.
 func (a *Service) StorageJobsSummary(ctx context.Context, req *adminPb.StorageJobsSummaryRequest) (*adminPb.StorageJobsSummaryResponse, error) {
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -118,16 +116,4 @@ func (a *Service) StorageJobsSummary(ctx context.Context, req *adminPb.StorageJo
 		LatestSuccessfulStorageJobs: protoLatestSuccessfulJobs,
 		QueuedStorageJobs:           protoQueuedJobs,
 	}, nil
-}
-
-func fromProtoCids(cids []string) ([]cid.Cid, error) {
-	var res []cid.Cid
-	for _, cid := range cids {
-		cid, err := util.CidFromString(cid)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, cid)
-	}
-	return res, nil
 }

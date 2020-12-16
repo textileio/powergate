@@ -5,6 +5,7 @@ import (
 
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/api/server/util"
+	su "github.com/textileio/powergate/api/server/util"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
@@ -61,7 +62,7 @@ func (s *Service) QueuedStorageJobs(ctx context.Context, req *userPb.QueuedStora
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
 	}
 
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -82,7 +83,7 @@ func (s *Service) ExecutingStorageJobs(ctx context.Context, req *userPb.Executin
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
 	}
 
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -103,7 +104,7 @@ func (s *Service) LatestFinalStorageJobs(ctx context.Context, req *userPb.Latest
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
 	}
 
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -124,7 +125,7 @@ func (s *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *userPb.L
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
 	}
 
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
@@ -145,7 +146,7 @@ func (s *Service) StorageJobsSummary(ctx context.Context, req *userPb.StorageJob
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
 	}
 
-	cids, err := fromProtoCids(req.Cids)
+	cids, err := su.FromProtoCids(req.Cids)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
