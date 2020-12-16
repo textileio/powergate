@@ -7,10 +7,11 @@ import (
 	"github.com/textileio/powergate/cmd/pow/cmd/data/log"
 	"github.com/textileio/powergate/cmd/pow/cmd/data/replace"
 	"github.com/textileio/powergate/cmd/pow/cmd/data/stage"
+	"github.com/textileio/powergate/cmd/pow/cmd/data/summary"
 )
 
 func init() {
-	Cmd.AddCommand(get.Cmd, log.Cmd, info.Cmd, replace.Cmd, stage.Cmd)
+	Cmd.AddCommand(get.Cmd, info.Cmd, log.Cmd, replace.Cmd, stage.Cmd, summary.Cmd)
 }
 
 // Cmd provides commands to interact with general data APIs.
