@@ -70,15 +70,21 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 	if err != nil {
 		return ffs.FetchInfo{}, fmt.Errorf("fetching from deal module: %s", err)
 	}
+	fc.l.Log(ctx, "Fetching from %s...", miner)
 	var fundsSpent uint64
+	var lastMsg string
 	for e := range events {
 		if e.Err != "" {
 			return ffs.FetchInfo{}, fmt.Errorf("event error in retrieval progress: %s", e.Err)
 		}
 		strEvent := retrievalmarket.ClientEvents[e.Event]
 		strDealStatus := retrievalmarket.DealStatuses[e.Status]
-		fc.l.Log(ctx, "Event: %s, bytes received %d, funds spent: %d attoFil, status: %s ", strEvent, e.BytesReceived, e.FundsSpent, strDealStatus)
 		fundsSpent = e.FundsSpent.Uint64()
+		newMsg := fmt.Sprintf("Received %.2fGiB, total spent: %sFIL (%s/%s)", float64(e.BytesReceived)/1024/1024/1024, util.AttoFilToFil(fundsSpent), strEvent, strDealStatus)
+		if newMsg != lastMsg {
+			fc.l.Log(ctx, newMsg)
+			lastMsg = newMsg
+		}
 	}
 	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
 }
