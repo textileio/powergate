@@ -17,7 +17,7 @@ func init() {
 	Cmd.Flags().StringP("jid", "j", "", "Display information for only this job id")
 }
 
-// Cmd displays logs for specified cid.
+// Cmd is the command.
 var Cmd = &cobra.Command{
 	Use:     "log [cid]",
 	Aliases: []string{"logs"},

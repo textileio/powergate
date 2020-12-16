@@ -1,8 +1,9 @@
-package info
+package getdefault
 
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -12,22 +13,21 @@ import (
 
 // Cmd is the command.
 var Cmd = &cobra.Command{
-	Use:   "info cid",
-	Short: "Get information about the current storage state of a cid",
-	Long:  `Get information about the current storage state of a cid`,
-	Args:  cobra.ExactArgs(1),
+	Use:   "default",
+	Short: "Returns the default storage config",
+	Long:  `Returns the default storage config`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 
-		res, err := c.PowClient.Data.CidInfo(c.MustAuthCtx(ctx), args[0])
+		res, err := c.PowClient.StorageConfig.Default(c.MustAuthCtx(ctx))
 		c.CheckErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.DefaultStorageConfig)
 		c.CheckErr(err)
 
 		fmt.Println(string(json))

@@ -14,7 +14,7 @@ func init() {
 	Cmd.AddCommand(get.Cmd, info.Cmd, log.Cmd, replace.Cmd, stage.Cmd, summary.Cmd)
 }
 
-// Cmd provides commands to interact with general data APIs.
+// Cmd is the command.
 var Cmd = &cobra.Command{
 	Use:   "data",
 	Short: "Provides commands to interact with general data APIs",

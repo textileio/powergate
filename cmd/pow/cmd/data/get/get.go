@@ -18,7 +18,7 @@ func init() {
 	Cmd.Flags().BoolP("folder", "f", false, "Indicates that the retrieved Cid is a folder")
 }
 
-// Cmd get data stored by the user by cid.
+// Cmd is the command.
 var Cmd = &cobra.Command{
 	Use:   "get [cid] [output file path]",
 	Short: "Get data stored by the user by cid",

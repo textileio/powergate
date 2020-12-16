@@ -20,7 +20,7 @@ func init() {
 	Cmd.Flags().String("ipfsrevproxy", "127.0.0.1:6002", "Powergate IPFS reverse proxy multiaddr")
 }
 
-// Cmd temporarily stages data in Hot Storage in preparation for applying a cid storage config.
+// Cmd is the command.
 var Cmd = &cobra.Command{
 	Use:   "stage [path|url]",
 	Short: "Temporarily stage data in Hot Storage in preparation for applying a cid storage config",

@@ -1,9 +1,9 @@
-package summary
+package verify
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -13,10 +13,10 @@ import (
 
 // Cmd is the command.
 var Cmd = &cobra.Command{
-	Use:   "summary [optional cid1,cid2,...]",
-	Short: "Get a summary about the current storage and jobs state of cids",
-	Long:  `Get a summary about the current storage and jobs state of cids`,
-	Args:  cobra.MaximumNArgs(1),
+	Use:   "verify [addr] [hex-encoded-message] [hex-encoded-signature]",
+	Short: "Verifies the signature of a message signed with a user wallet address.",
+	Long:  "Verifies the signature of a message signed with a user wallet address.",
+	Args:  cobra.ExactArgs(3),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
@@ -25,12 +25,12 @@ var Cmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		var cids []string
-		if len(args) > 0 {
-			cids = strings.Split(args[0], ",")
-		}
+		mb, err := hex.DecodeString(args[1])
+		c.CheckErr(err)
+		sb, err := hex.DecodeString(args[2])
+		c.CheckErr(err)
 
-		res, err := c.PowClient.Data.CidSummary(c.MustAuthCtx(ctx), cids...)
+		res, err := c.PowClient.Wallet.VerifyMessage(c.MustAuthCtx(ctx), args[0], mb, sb)
 		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

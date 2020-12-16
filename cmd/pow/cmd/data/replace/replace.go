@@ -15,7 +15,7 @@ func init() {
 	Cmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 }
 
-// Cmd applies a StorageConfig for c2 equal to that of c1, and removes c1.
+// Cmd is the command.
 var Cmd = &cobra.Command{
 	Use:   "replace [cid1] [cid2]",
 	Short: "Applies a StorageConfig for c2 equal to that of c1, and removes c1",

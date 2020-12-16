@@ -1,9 +1,8 @@
-package summary
+package storageconfig
 
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -13,10 +12,10 @@ import (
 
 // Cmd is the command.
 var Cmd = &cobra.Command{
-	Use:   "summary [optional cid1,cid2,...]",
-	Short: "Get a summary about the current storage and jobs state of cids",
-	Long:  `Get a summary about the current storage and jobs state of cids`,
-	Args:  cobra.MaximumNArgs(1),
+	Use:   "storage-config [job-id]",
+	Short: "Get the StorageConfig associated with the specified job",
+	Long:  `Get the StorageConfig associated with the specified job`,
+	Args:  cobra.ExactArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
@@ -25,15 +24,10 @@ var Cmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		var cids []string
-		if len(args) > 0 {
-			cids = strings.Split(args[0], ",")
-		}
-
-		res, err := c.PowClient.Data.CidSummary(c.MustAuthCtx(ctx), cids...)
+		res, err := c.PowClient.StorageJobs.StorageConfigForJob(c.MustAuthCtx(ctx), args[0])
 		c.CheckErr(err)
 
-		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res.StorageConfig)
 		c.CheckErr(err)
 
 		fmt.Println(string(json))
