@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -21,7 +20,7 @@ func init() {
 	configApplyCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses the user default by default")
 	configApplyCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
 	configApplyCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
-	configApplyCmd.Flags().StringP("import-deals", "i", "", "Comma-separated list of deal ids to import")
+	configApplyCmd.Flags().StringSliceP("import-deals", "i", nil, "Comma-separated list of deal ids to import")
 
 	configCmd.AddCommand(configApplyCmd)
 }
@@ -78,9 +77,9 @@ var configApplyCmd = &cobra.Command{
 		}
 
 		if viper.IsSet("import-deals") {
-			csvDealIDs := viper.GetString("import-deals")
+			csvDealIDs := viper.GetStringSlice("import-deals")
 			var dealIDs []uint64
-			for _, strDealID := range strings.Split(csvDealIDs, ",") {
+			for _, strDealID := range csvDealIDs {
 				dealID, err := strconv.ParseUint(strDealID, 10, 64)
 				checkErr(err)
 				dealIDs = append(dealIDs, dealID)
