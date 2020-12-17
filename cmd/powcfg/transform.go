@@ -11,6 +11,9 @@ import (
 	"github.com/textileio/powergate/ffs"
 )
 
+// Transform is a function that applies a transformation to a StorageConfig.
+// The function should edit the received parameter directly, and return 'true'
+// if changes were made, or false otherwise.
 type Transform func(*ffs.StorageConfig) (bool, error)
 
 func applyTransform(ds datastore.TxnDatastore, dryrun bool, t Transform) (int, error) {
@@ -19,7 +22,11 @@ func applyTransform(ds datastore.TxnDatastore, dryrun bool, t Transform) (int, e
 	if err != nil {
 		return 0, fmt.Errorf("running query: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Warnf("closing query result: %s", err)
+		}
+	}()
 
 	rl, err := ratelim.New(1000)
 	if err != nil {
