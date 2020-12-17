@@ -20,6 +20,7 @@ var (
 )
 
 func main() {
+	logger.SetAllLoggers(logger.LevelInfo)
 	log.Infof("starting powcfg:\n%s", buildinfo.Summary())
 
 	if err := wireFlagsAndEnvs(); err != nil {
@@ -28,14 +29,15 @@ func main() {
 
 	mongoURI := config.GetString("mongouri")
 	mongoDB := config.GetString("mongodb")
+	mongoCollection := config.GetString("mongocollection")
 	badgerrepo := config.GetString("badgerrepo")
 	dryrun := config.GetBool("dryrun")
-	ds, err := createDatastore(mongoURI, mongoDB, badgerrepo)
+	ds, err := createDatastore(mongoURI, mongoDB, mongoCollection, badgerrepo)
 	if err != nil {
 		log.Fatalf("opening datastore: %s", err)
 	}
 
-	count, err := applyTransform(ds, dryrun, bumpIpfsAddTimeout(600))
+	count, err := applyTransform(ds, dryrun, bumpIpfsAddTimeout(480))
 	if err != nil {
 		log.Fatalf("applying transformation: %s", err)
 	}
@@ -49,8 +51,9 @@ func main() {
 func wireFlagsAndEnvs() error {
 	pflag.String("mongouri", "", "MongoDB URI")
 	pflag.String("mongodb", "", "MongoDB database name")
+	pflag.String("mongocollection", "", "MongoDB collection name")
 	pflag.String("badgerrepo", "", "Badger Repo")
-	pflag.Bool("dryrun", true, "Avoid any write to the datastore")
+	pflag.Bool("dryrun", false, "Avoid any write to the datastore")
 	config.SetEnvPrefix("POWCFG")
 	config.AutomaticEnv()
 	pflag.Parse()
@@ -60,7 +63,7 @@ func wireFlagsAndEnvs() error {
 	return nil
 }
 
-func createDatastore(mongoURI, mongoDB, badgerrepo string) (datastore.TxnDatastore, error) {
+func createDatastore(mongoURI, mongoDB, mongoCollection, badgerrepo string) (datastore.TxnDatastore, error) {
 	if mongoURI != "" {
 		log.Info("Opening Mongo database...")
 		mongoCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -68,7 +71,14 @@ func createDatastore(mongoURI, mongoDB, badgerrepo string) (datastore.TxnDatasto
 		if mongoDB == "" {
 			return nil, fmt.Errorf("mongo database name is empty")
 		}
-		opts := []mongods.Option{mongods.WithOpTimeout(time.Hour), mongods.WithTxnTimeout(time.Hour)}
+		if mongoCollection == "" {
+			return nil, fmt.Errorf("mongo collection name is empty")
+		}
+		opts := []mongods.Option{
+			mongods.WithCollName(mongoCollection),
+			mongods.WithOpTimeout(time.Hour),
+			mongods.WithTxnTimeout(time.Hour),
+		}
 		ds, err := mongods.New(mongoCtx, mongoURI, mongoDB, opts...)
 		if err != nil {
 			return nil, fmt.Errorf("opening mongo datastore: %s", err)
