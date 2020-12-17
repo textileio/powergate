@@ -143,7 +143,7 @@ func (rt *RepTop) getMinerProposal(f ffs.MinerSelectorFilter, addrStr string) (f
 	}()
 
 	select {
-	case <-time.After(time.Second * 10):
+	case <-time.After(time.Second * 20):
 		return ffs.MinerProposal{}, fmt.Errorf("query asking timed out")
 	case r := <-chAsk:
 		if r.Error != "" {
