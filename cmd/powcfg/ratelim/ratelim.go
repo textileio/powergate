@@ -27,13 +27,15 @@ func New(limit int) (*RateLim, error) {
 // maximum limit.
 func (rl *RateLim) Exec(f func() error) {
 	rl.c <- struct{}{}
-	defer func() { <-rl.c }()
-	err := f()
-	if err != nil {
-		rl.lock.Lock()
-		rl.errors = append(rl.errors, err.Error())
-		rl.lock.Unlock()
-	}
+	go func() {
+		defer func() { <-rl.c }()
+		err := f()
+		if err != nil {
+			rl.lock.Lock()
+			rl.errors = append(rl.errors, err.Error())
+			rl.lock.Unlock()
+		}
+	}()
 }
 
 // Wait will block until all executing functions finish, and return
