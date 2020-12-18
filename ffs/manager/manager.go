@@ -43,6 +43,7 @@ var (
 				DealMinDuration: util.MinDealDuration,
 				FastRetrieval:   true,
 				DealStartOffset: 72 * 60 * 60 / util.EpochDurationSeconds, // 72hs
+				MaxPrice:        100_000_000_000,
 			},
 		},
 	}
