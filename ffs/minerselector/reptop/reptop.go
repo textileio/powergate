@@ -67,7 +67,7 @@ func (rt *RepTop) genTrustedMiners(f ffs.MinerSelectorFilter, n int) []ffs.Miner
 	for _, m := range f.TrustedMiners {
 		mp, err := rt.getMinerProposal(f, m)
 		if err != nil {
-			log.Warnf("trusted miner query asking: %s", err)
+			log.Warnf("trusted miner %s query asking: %s", m, err)
 			continue
 		}
 		ret = append(ret, mp)
