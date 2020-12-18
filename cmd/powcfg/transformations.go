@@ -17,3 +17,18 @@ func bumpIpfsAddTimeout(minValue int) Transform {
 		return true, nil
 	}
 }
+
+// unsetFilecoinUnlimitedPrice is a transformation that sets
+// Cold.Filecoin.MaxPrice to maxPrice if the current value is
+// 0 (no limit).
+func unsetFilecoinUnlimitedPrice(maxPrice uint64) Transform {
+	return func(cfg *ffs.StorageConfig) (bool, error) {
+		if cfg.Cold.Filecoin.MaxPrice > 0 {
+			return false, nil
+		}
+
+		cfg.Cold.Filecoin.MaxPrice = maxPrice
+
+		return true, nil
+	}
+}
