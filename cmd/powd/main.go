@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -267,10 +268,16 @@ func setupLogging(repoPath string) error {
 		"user-service",
 	}
 
-	ipfslog := config.GetBool("ipfslog")
-	// If ipfslog is defined, the output format, destination and level
-	// can be managed via native to ipfs/go-log library
-	// environment variables (e.g. GOLOG_LOG_*)
+	var ipfslog bool
+	// Looking for ipfs/go-log setup environment variables
+	// If at least one of them defined - do not override
+	// ipfs/go-log internal logging setup
+	for _, e := range os.Environ() {
+		if strings.HasPrefix(e, "GOLOG_LOG_") {
+			ipfslog = true
+			break
+		}
+	}
 	if !ipfslog {
 		if err := os.MkdirAll(repoPath, os.ModePerm); err != nil {
 			return fmt.Errorf("creating repo folder: %s", err)
@@ -345,7 +352,6 @@ func getLotusToken(devnet bool) (string, error) {
 
 func setupFlags() error {
 	pflag.Bool("debug", false, "Enable debug log level in all loggers.")
-	pflag.Bool("ipfslog", false, "Enable native ipfs/go-log logging setup via supported env vars.")
 
 	pflag.Bool("autocreatemasteraddr", false, "Automatically creates & funds a master address if none is provided.")
 	pflag.Int64("walletinitialfund", 250_000_000_000_000_000, "FFS initial funding transaction amount in attoFIL received by --lotusmasteraddr. (if set)")
