@@ -273,7 +273,7 @@ func setupLogging(repoPath string) error {
 	// If at least one of them defined - do not override
 	// ipfs/go-log internal logging setup
 	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "GOLOG_LOG_") {
+		if strings.HasPrefix(e, "GOLOG_") {
 			ipfslog = true
 			break
 		}
