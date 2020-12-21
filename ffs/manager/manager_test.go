@@ -194,7 +194,7 @@ func TestDefaultStorageConfig(t *testing.T) {
 }
 
 func newManager(clientBuilder lotus.ClientBuilder, ds datastore.TxnDatastore, masterAddr address.Address, ffsUseMasterAddr bool) (*Manager, func() error, error) {
-	wm, err := walletModule.New(clientBuilder, masterAddr, *big.NewInt(4000000000), false, "")
+	wm, err := walletModule.New(clientBuilder, masterAddr, *big.NewInt(4000000000), false, "", txndstr.Wrap(ds, "wallet"))
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}

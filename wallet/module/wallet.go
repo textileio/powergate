@@ -12,8 +12,11 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/ipfs/go-datastore"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/lotus"
+	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/wallet/sendstore"
 )
 
 const (
@@ -31,15 +34,17 @@ type Module struct {
 	iAmount       *big.Int
 	masterAddr    address.Address
 	networkName   string
+	ss            *sendstore.SendStore
 }
 
 // New creates a new wallet module.
-func New(clientBuilder lotus.ClientBuilder, maddr address.Address, iam big.Int, autocreate bool, networkName string) (*Module, error) {
+func New(clientBuilder lotus.ClientBuilder, maddr address.Address, iam big.Int, autocreate bool, networkName string, ds datastore.TxnDatastore) (*Module, error) {
 	m := &Module{
 		clientBuilder: clientBuilder,
 		iAmount:       &iam,
 		masterAddr:    maddr,
 		networkName:   networkName,
+		ss:            sendstore.New(txndstr.Wrap(ds, "sendstore")),
 	}
 	if maddr == address.Undef && autocreate {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -223,8 +228,16 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 	}
 	defer cls()
 
-	_, err = client.MpoolPushMessage(ctx, msg, nil)
-	return err
+	sm, err := client.MpoolPushMessage(ctx, msg, nil)
+	if err != nil {
+		return fmt.Errorf("pushing mpool message: %s", err)
+	}
+
+	if _, err := m.ss.Put(sm.Cid(), f, t, amount); err != nil {
+		return fmt.Errorf("saving transaction: %s", err)
+	}
+
+	return nil
 }
 
 // FundFromFaucet make a faucet call to fund the provided wallet address.

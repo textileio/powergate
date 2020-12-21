@@ -229,7 +229,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
-	wm, err := walletModule.New(clientBuilder, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName)
+	wm, err := walletModule.New(clientBuilder, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName, txndstr.Wrap(ds, "wallet"))
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}

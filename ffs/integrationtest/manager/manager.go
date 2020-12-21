@@ -92,7 +92,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil, scheduler.GCConfig{AutoGCInterval: 0})
 	require.NoError(t, err)
 
-	wm, err := walletModule.New(cb, masterAddr, *big.NewInt(iWalletBal), false, "")
+	wm, err := walletModule.New(cb, masterAddr, *big.NewInt(iWalletBal), false, "", txndstr.Wrap(ds, "wallet"))
 	require.NoError(t, err)
 
 	manager, err := manager.New(ds, wm, dm, sched, false, true)
