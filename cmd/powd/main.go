@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -222,15 +223,6 @@ func setupInstrumentation() (func(), error) {
 }
 
 func setupLogging(repoPath string) error {
-	if err := os.MkdirAll(repoPath, os.ModePerm); err != nil {
-		return fmt.Errorf("creating repo folder: %s", err)
-	}
-	cfg := logging.Config{
-		Level:  logging.LevelError,
-		Stdout: true,
-		File:   filepath.Join(repoPath, "powd.log"),
-	}
-	logging.SetupLogging(cfg)
 	loggers := []string{
 		// Top-level
 		"powd",
@@ -276,12 +268,35 @@ func setupLogging(repoPath string) error {
 		"user-service",
 	}
 
-	// powd registered loggers get info level by default.
-	for _, l := range loggers {
-		if err := logging.SetLogLevel(l, "info"); err != nil {
-			return fmt.Errorf("setting up logger %s: %s", l, err)
+	var ipfslog bool
+	// Looking for ipfs/go-log setup environment variables
+	// If at least one of them defined - do not override
+	// ipfs/go-log internal logging setup
+	for _, e := range os.Environ() {
+		if strings.HasPrefix(e, "GOLOG_") {
+			ipfslog = true
+			break
 		}
 	}
+	if !ipfslog {
+		if err := os.MkdirAll(repoPath, os.ModePerm); err != nil {
+			return fmt.Errorf("creating repo folder: %s", err)
+		}
+		cfg := logging.Config{
+			Level:  logging.LevelError,
+			Stdout: true,
+			File:   filepath.Join(repoPath, "powd.log"),
+		}
+		logging.SetupLogging(cfg)
+
+		// powd registered loggers get info level by default.
+		for _, l := range loggers {
+			if err := logging.SetLogLevel(l, "info"); err != nil {
+				return fmt.Errorf("setting up logger %s: %s", l, err)
+			}
+		}
+	}
+
 	debugLevel := config.GetBool("debug")
 	if debugLevel {
 		for _, l := range loggers {
