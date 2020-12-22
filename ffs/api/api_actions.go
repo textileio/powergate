@@ -43,9 +43,13 @@ func (i *API) PushStorageConfig(c cid.Cid, opts ...PushStorageConfigOption) (ffs
 		}
 	}
 
-	jid, err := i.sched.PushConfig(i.cfg.ID, c, cfg.config)
-	if err != nil {
-		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
+	var jid ffs.JobID
+	var err error
+	if !cfg.noExec {
+		jid, err = i.sched.PushConfig(i.cfg.ID, c, cfg.config)
+		if err != nil {
+			return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
+		}
 	}
 	if err := i.is.putStorageConfig(c, cfg.config); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)

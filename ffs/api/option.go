@@ -13,6 +13,7 @@ type pushStorageConfigConfig struct {
 	config         ffs.StorageConfig
 	overrideConfig bool
 	dealIDs        []uint64
+	noExec         bool
 }
 
 // WithStorageConfig overrides the Api default Cid configuration.
@@ -37,6 +38,14 @@ func WithOverride(override bool) PushStorageConfigOption {
 func WithDealImport(dealIDs []uint64) PushStorageConfigOption {
 	return func(o *pushStorageConfigConfig) error {
 		o.dealIDs = dealIDs
+		return nil
+	}
+}
+
+// WithNoExec avoids creating a Job for the new configuration.
+func WithNoExec(noExec bool) PushStorageConfigOption {
+	return func(o *pushStorageConfigConfig) error {
+		o.noExec = noExec
 		return nil
 	}
 }

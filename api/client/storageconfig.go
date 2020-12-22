@@ -38,6 +38,13 @@ func WithImportDealIDs(dealIDs []uint64) ApplyOption {
 	}
 }
 
+// WithNoExec allows to configure if a Job should ensure the new storage configuration.
+func WithNoExec(noExec bool) ApplyOption {
+	return func(r *userPb.ApplyStorageConfigRequest) {
+		r.NoExec = noExec
+	}
+}
+
 // Default returns the default storage config.
 func (s *StorageConfig) Default(ctx context.Context) (*userPb.DefaultStorageConfigResponse, error) {
 	return s.client.DefaultStorageConfig(ctx, &userPb.DefaultStorageConfigRequest{})
