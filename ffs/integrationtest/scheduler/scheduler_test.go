@@ -106,7 +106,7 @@ func TestResumeScheduler(t *testing.T) {
 	require.NoError(t, err)
 	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 
-	sh, err := fapi.Show(c)
+	sh, err := fapi.StorageInfo(c)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(sh.Cold.Filecoin.Proposals)) // Check only one deal still exists.
 }

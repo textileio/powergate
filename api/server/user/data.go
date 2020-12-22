@@ -189,7 +189,7 @@ func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest)
 	for cid := range storageConfigs {
 		d := source{cid: cid.String()}
 
-		info, err := i.Show(cid)
+		info, err := i.StorageInfo(cid)
 		if err != nil && err != api.ErrNotFound {
 			return nil, status.Errorf(codes.Internal, "getting storage info: %v", err)
 		} else if err == nil {
@@ -299,7 +299,7 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		Cid:                       cid.String(),
 		LatestPushedStorageConfig: rpcConfig,
 	}
-	info, err := i.Show(cid)
+	info, err := i.StorageInfo(cid)
 	if err != nil && err != api.ErrNotFound {
 		return nil, status.Errorf(codes.Internal, "getting storage info: %v", err)
 	} else if err == nil {

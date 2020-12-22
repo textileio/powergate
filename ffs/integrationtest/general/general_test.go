@@ -176,7 +176,7 @@ func TestShow(t *testing.T) {
 		// Test not stored
 		c, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 
-		_, err := fapi.Show(c)
+		_, err := fapi.StorageInfo(c)
 		require.Equal(t, api.ErrNotFound, err)
 
 		r := rand.New(rand.NewSource(22))
@@ -197,7 +197,7 @@ func TestShow(t *testing.T) {
 
 		c = cfgCids[0]
 
-		s, err := fapi.Show(c)
+		s, err := fapi.StorageInfo(c)
 		require.NoError(t, err)
 
 		require.True(t, s.Cid.Defined())
@@ -240,7 +240,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
 		id := fapi.ID()
-		shw, err := fapi.Show(cid)
+		shw, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 
 		// Now close the FFS Instance, and the manager.
@@ -257,7 +257,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		nid := fapi.ID()
 		require.Equal(t, id, nid)
 
-		nshw, err := fapi.Show(cid)
+		nshw, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		require.Equal(t, shw, nshw)
 
@@ -374,7 +374,7 @@ func TestImport(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that imported data is in fapi2
-	i, err := fapi.Show(payloadCid)
+	i, err := fapi.StorageInfo(payloadCid)
 	require.NoError(t, err)
 	require.False(t, i.Hot.Enabled)
 	require.Equal(t, payloadCid, i.Cold.Filecoin.DataCid)
