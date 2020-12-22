@@ -18,6 +18,8 @@ func bumpIpfsAddTimeout(minValue int) Transform {
 	}
 }
 
+var _ = unsetFilecoinUnlimitedPrice
+
 // unsetFilecoinUnlimitedPrice is a transformation that sets
 // Cold.Filecoin.MaxPrice to maxPrice if the current value is
 // 0 (no limit).
