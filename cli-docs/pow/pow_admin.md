@@ -25,6 +25,7 @@ Provides admin commands
 * [pow](pow.md)	 - A client for storage and retreival of powergate data
 * [pow admin data](pow_admin_data.md)	 - Provides admin data commands
 * [pow admin jobs](pow_admin_jobs.md)	 - Provides admin jobs commands
+* [pow admin storage-info](pow_admin_storage-info.md)	 - Provides admin storage info commands
 * [pow admin users](pow_admin_users.md)	 - Provides admin users commands
 * [pow admin wallet](pow_admin_wallet.md)	 - Provides admin wallet commands
 

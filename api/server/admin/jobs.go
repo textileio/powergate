@@ -6,7 +6,7 @@ import (
 	"github.com/ipfs/go-cid"
 	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	"github.com/textileio/powergate/api/server/user"
+	su "github.com/textileio/powergate/api/server/util"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc/codes"
@@ -20,7 +20,7 @@ func (a *Service) QueuedStorageJobs(ctx context.Context, req *adminPb.QueuedStor
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 	jobs := a.s.QueuedStorageJobs(ffs.APIID(req.UserId), cids...)
-	protoJobs, err := user.ToProtoStorageJobs(jobs)
+	protoJobs, err := su.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
@@ -36,7 +36,7 @@ func (a *Service) ExecutingStorageJobs(ctx context.Context, req *adminPb.Executi
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 	jobs := a.s.ExecutingStorageJobs(ffs.APIID(req.UserId), cids...)
-	protoJobs, err := user.ToProtoStorageJobs(jobs)
+	protoJobs, err := su.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
@@ -52,7 +52,7 @@ func (a *Service) LatestFinalStorageJobs(ctx context.Context, req *adminPb.Lates
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 	jobs := a.s.LatestFinalStorageJobs(ffs.APIID(req.UserId), cids...)
-	protoJobs, err := user.ToProtoStorageJobs(jobs)
+	protoJobs, err := su.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
@@ -68,7 +68,7 @@ func (a *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *adminPb.
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 	jobs := a.s.LatestSuccessfulStorageJobs(ffs.APIID(req.UserId), cids...)
-	protoJobs, err := user.ToProtoStorageJobs(jobs)
+	protoJobs, err := su.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
@@ -89,19 +89,19 @@ func (a *Service) StorageJobsSummary(ctx context.Context, req *adminPb.StorageJo
 	latestFinalJobs := a.s.LatestFinalStorageJobs(ffs.APIID(req.UserId), cids...)
 	latestSuccessfulJobs := a.s.LatestSuccessfulStorageJobs(ffs.APIID(req.UserId), cids...)
 
-	protoQueuedJobs, err := user.ToProtoStorageJobs(queuedJobs)
+	protoQueuedJobs, err := su.ToProtoStorageJobs(queuedJobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting queued jobs to protos: %v", err)
 	}
-	protoExecutingJobs, err := user.ToProtoStorageJobs(executingJobs)
+	protoExecutingJobs, err := su.ToProtoStorageJobs(executingJobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting executing jobs to protos: %v", err)
 	}
-	protoLatestFinalJobs, err := user.ToProtoStorageJobs(latestFinalJobs)
+	protoLatestFinalJobs, err := su.ToProtoStorageJobs(latestFinalJobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting latest final jobs to protos: %v", err)
 	}
-	protoLatestSuccessfulJobs, err := user.ToProtoStorageJobs(latestSuccessfulJobs)
+	protoLatestSuccessfulJobs, err := su.ToProtoStorageJobs(latestSuccessfulJobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting latest successful jobs to protos: %v", err)
 	}
