@@ -105,9 +105,13 @@ func (s *Scheduler) GetStorageInfo(iid ffs.APIID, c cid.Cid) (ffs.StorageInfo, e
 	return info, nil
 }
 
-// QueryStorageInfo returns a list of StorageInfo matching any provided query options.
-func (s *Scheduler) QueryStorageInfo(iids []ffs.APIID, cids []cid.Cid) ([]ffs.StorageInfo, error) {
-	return s.cis.Query(iids, cids)
+// ListStorageInfo returns a list of StorageInfo matching any provided query options.
+func (s *Scheduler) ListStorageInfo(iids []ffs.APIID, cids []cid.Cid) ([]ffs.StorageInfo, error) {
+	res, err := s.cis.List(iids, cids)
+	if err != nil {
+		return nil, fmt.Errorf("listing storage info from cistore: %v", err)
+	}
+	return res, nil
 }
 
 // StorageJob the current storage state of a Job.

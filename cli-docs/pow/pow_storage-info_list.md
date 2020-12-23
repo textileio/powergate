@@ -1,10 +1,10 @@
 ## pow storage-info list
 
-Returns a list of infomration about all stored cids, filtered by cids if provided.
+Returns a list of information about all stored cids, filtered by cids if provided.
 
 ### Synopsis
 
-Returns a list of infomration about all stored cids, filtered by cids if provided.
+Returns a list of information about all stored cids, filtered by cids if provided.
 
 ```
 pow storage-info list [optional cid1,cid2,...] [flags]

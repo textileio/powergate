@@ -51,8 +51,8 @@ func (s *Store) Get(iid ffs.APIID, c cid.Cid) (ffs.StorageInfo, error) {
 	return ci, nil
 }
 
-// Query returns a list of StorageInfo matching any provided query options.
-func (s *Store) Query(iids []ffs.APIID, cids []cid.Cid) ([]ffs.StorageInfo, error) {
+// List returns a list of StorageInfo matching any provided query options.
+func (s *Store) List(iids []ffs.APIID, cids []cid.Cid) ([]ffs.StorageInfo, error) {
 	APIIDFilter := make(map[ffs.APIID]struct{})
 	for _, id := range iids {
 		APIIDFilter[id] = struct{}{}

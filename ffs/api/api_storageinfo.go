@@ -21,7 +21,7 @@ func (i *API) StorageInfo(cid cid.Cid) (ffs.StorageInfo, error) {
 	return inf, nil
 }
 
-// QueryStorageInfo returns a list of infomration about all stored cids, filtered by cids if provided.
-func (i *API) QueryStorageInfo(cids ...cid.Cid) ([]ffs.StorageInfo, error) {
-	return i.sched.QueryStorageInfo([]ffs.APIID{i.cfg.ID}, cids)
+// ListStorageInfo returns a list of information about all stored cids, filtered by cids if provided.
+func (i *API) ListStorageInfo(cids ...cid.Cid) ([]ffs.StorageInfo, error) {
+	return i.sched.ListStorageInfo([]ffs.APIID{i.cfg.ID}, cids)
 }

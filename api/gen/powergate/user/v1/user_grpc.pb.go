@@ -41,7 +41,7 @@ type UserServiceClient interface {
 	VerifyMessage(ctx context.Context, in *VerifyMessageRequest, opts ...grpc.CallOption) (*VerifyMessageResponse, error)
 	// Storage Info
 	StorageInfo(ctx context.Context, in *StorageInfoRequest, opts ...grpc.CallOption) (*StorageInfoResponse, error)
-	QueryStorageInfo(ctx context.Context, in *QueryStorageInfoRequest, opts ...grpc.CallOption) (*QueryStorageInfoResponse, error)
+	ListStorageInfo(ctx context.Context, in *ListStorageInfoRequest, opts ...grpc.CallOption) (*ListStorageInfoResponse, error)
 	// Storage Jobs
 	StorageJob(ctx context.Context, in *StorageJobRequest, opts ...grpc.CallOption) (*StorageJobResponse, error)
 	StorageConfigForJob(ctx context.Context, in *StorageConfigForJobRequest, opts ...grpc.CallOption) (*StorageConfigForJobResponse, error)
@@ -307,9 +307,9 @@ func (c *userServiceClient) StorageInfo(ctx context.Context, in *StorageInfoRequ
 	return out, nil
 }
 
-func (c *userServiceClient) QueryStorageInfo(ctx context.Context, in *QueryStorageInfoRequest, opts ...grpc.CallOption) (*QueryStorageInfoResponse, error) {
-	out := new(QueryStorageInfoResponse)
-	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/QueryStorageInfo", in, out, opts...)
+func (c *userServiceClient) ListStorageInfo(ctx context.Context, in *ListStorageInfoRequest, opts ...grpc.CallOption) (*ListStorageInfoResponse, error) {
+	out := new(ListStorageInfoResponse)
+	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/ListStorageInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -466,7 +466,7 @@ type UserServiceServer interface {
 	VerifyMessage(context.Context, *VerifyMessageRequest) (*VerifyMessageResponse, error)
 	// Storage Info
 	StorageInfo(context.Context, *StorageInfoRequest) (*StorageInfoResponse, error)
-	QueryStorageInfo(context.Context, *QueryStorageInfoRequest) (*QueryStorageInfoResponse, error)
+	ListStorageInfo(context.Context, *ListStorageInfoRequest) (*ListStorageInfoResponse, error)
 	// Storage Jobs
 	StorageJob(context.Context, *StorageJobRequest) (*StorageJobResponse, error)
 	StorageConfigForJob(context.Context, *StorageConfigForJobRequest) (*StorageConfigForJobResponse, error)
@@ -544,8 +544,8 @@ func (UnimplementedUserServiceServer) VerifyMessage(context.Context, *VerifyMess
 func (UnimplementedUserServiceServer) StorageInfo(context.Context, *StorageInfoRequest) (*StorageInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageInfo not implemented")
 }
-func (UnimplementedUserServiceServer) QueryStorageInfo(context.Context, *QueryStorageInfoRequest) (*QueryStorageInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method QueryStorageInfo not implemented")
+func (UnimplementedUserServiceServer) ListStorageInfo(context.Context, *ListStorageInfoRequest) (*ListStorageInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStorageInfo not implemented")
 }
 func (UnimplementedUserServiceServer) StorageJob(context.Context, *StorageJobRequest) (*StorageJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageJob not implemented")
@@ -949,20 +949,20 @@ func _UserService_StorageInfo_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_QueryStorageInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryStorageInfoRequest)
+func _UserService_ListStorageInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStorageInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).QueryStorageInfo(ctx, in)
+		return srv.(UserServiceServer).ListStorageInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/powergate.user.v1.UserService/QueryStorageInfo",
+		FullMethod: "/powergate.user.v1.UserService/ListStorageInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).QueryStorageInfo(ctx, req.(*QueryStorageInfoRequest))
+		return srv.(UserServiceServer).ListStorageInfo(ctx, req.(*ListStorageInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1237,8 +1237,8 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_StorageInfo_Handler,
 		},
 		{
-			MethodName: "QueryStorageInfo",
-			Handler:    _UserService_QueryStorageInfo_Handler,
+			MethodName: "ListStorageInfo",
+			Handler:    _UserService_ListStorageInfo_Handler,
 		},
 		{
 			MethodName: "StorageJob",

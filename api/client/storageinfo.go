@@ -17,7 +17,7 @@ func (s *StorageInfo) StorageInfo(ctx context.Context, cid string) (*userPb.Stor
 	return s.client.StorageInfo(ctx, &userPb.StorageInfoRequest{Cid: cid})
 }
 
-// QueryStorageInfo returns a list of infomration about all stored cids, filtered by cids if provided.
-func (s *StorageInfo) QueryStorageInfo(ctx context.Context, cids ...string) (*userPb.QueryStorageInfoResponse, error) {
-	return s.client.QueryStorageInfo(ctx, &userPb.QueryStorageInfoRequest{Cids: cids})
+// ListStorageInfo returns a list of information about all stored cids, filtered by cids if provided.
+func (s *StorageInfo) ListStorageInfo(ctx context.Context, cids ...string) (*userPb.ListStorageInfoResponse, error) {
+	return s.client.ListStorageInfo(ctx, &userPb.ListStorageInfoRequest{Cids: cids})
 }

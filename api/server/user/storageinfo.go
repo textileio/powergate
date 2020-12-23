@@ -33,8 +33,8 @@ func (s *Service) StorageInfo(ctx context.Context, req *userPb.StorageInfoReques
 	return &userPb.StorageInfoResponse{StorageInfo: pbInfo}, nil
 }
 
-// QueryStorageInfo returns a list of infomration about all stored cids, filtered by cids if provided.
-func (s *Service) QueryStorageInfo(ctx context.Context, req *userPb.QueryStorageInfoRequest) (*userPb.QueryStorageInfoResponse, error) {
+// ListStorageInfo returns a list of information about all stored cids, filtered by cids if provided.
+func (s *Service) ListStorageInfo(ctx context.Context, req *userPb.ListStorageInfoRequest) (*userPb.ListStorageInfoResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
@@ -47,7 +47,7 @@ func (s *Service) QueryStorageInfo(ctx context.Context, req *userPb.QueryStorage
 		}
 		cids[i] = c
 	}
-	infos, err := i.QueryStorageInfo(cids...)
+	infos, err := i.ListStorageInfo(cids...)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "querying storage info: %v", err)
 	}
@@ -55,5 +55,5 @@ func (s *Service) QueryStorageInfo(ctx context.Context, req *userPb.QueryStorage
 	for i, info := range infos {
 		res[i] = toRPCStorageInfo(info)
 	}
-	return &userPb.QueryStorageInfoResponse{StorageInfo: res}, nil
+	return &userPb.ListStorageInfoResponse{StorageInfo: res}, nil
 }

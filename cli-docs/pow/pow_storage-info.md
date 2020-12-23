@@ -23,5 +23,5 @@ Provides commands to get and query cid storage info.
 
 * [pow](pow.md)	 - A client for storage and retreival of powergate data
 * [pow storage-info get](pow_storage-info_get.md)	 - Returns the information about a stored cid.
-* [pow storage-info list](pow_storage-info_list.md)	 - Returns a list of infomration about all stored cids, filtered by cids if provided.
+* [pow storage-info list](pow_storage-info_list.md)	 - Returns a list of information about all stored cids, filtered by cids if provided.
 

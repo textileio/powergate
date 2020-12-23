@@ -13,7 +13,6 @@ func init() {
 	storageInfoCmd.AddCommand(storageInfoGetCmd)
 }
 
-// Cmd is the command.
 var storageInfoGetCmd = &cobra.Command{
 	Use:   "get [cid]",
 	Short: "Returns the information about a stored cid.",

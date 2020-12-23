@@ -16,8 +16,8 @@ func init() {
 
 var storageInfoListCmd = &cobra.Command{
 	Use:   "list [optional cid1,cid2,...]",
-	Short: "Returns a list of infomration about all stored cids, filtered by cids if provided.",
-	Long:  `Returns a list of infomration about all stored cids, filtered by cids if provided.`,
+	Short: "Returns a list of information about all stored cids, filtered by cids if provided.",
+	Long:  `Returns a list of information about all stored cids, filtered by cids if provided.`,
 	Args:  cobra.MaximumNArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -32,7 +32,7 @@ var storageInfoListCmd = &cobra.Command{
 			cids = strings.Split(args[0], ",")
 		}
 
-		res, err := powClient.StorageInfo.QueryStorageInfo(mustAuthCtx(ctx), cids...)
+		res, err := powClient.StorageInfo.ListStorageInfo(mustAuthCtx(ctx), cids...)
 		checkErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
