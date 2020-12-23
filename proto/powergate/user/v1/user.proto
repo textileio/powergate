@@ -60,6 +60,7 @@ message ApplyStorageConfigRequest {
   bool override_config = 4;
   bool has_override_config = 5;
   repeated uint64 import_deal_ids = 6;
+  bool no_exec = 7;
 }
 
 message ApplyStorageConfigResponse {
