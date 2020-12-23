@@ -165,7 +165,25 @@ message VerifyMessageResponse {
   bool ok = 1;
 }
 
-// Jobs
+// Storage Info
+
+message StorageInfoRequest {
+  string cid = 1;
+}
+
+message StorageInfoResponse {
+  StorageInfo storage_info = 1;
+}
+
+message ListStorageInfoRequest {
+  repeated string cids = 1;
+}
+
+message ListStorageInfoResponse {
+  repeated StorageInfo storage_info = 1;
+}
+
+// Storage Jobs
 
 message CancelStorageJobRequest {
    string job_id = 1;
@@ -286,6 +304,10 @@ service UserService {
   rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
   rpc SignMessage(SignMessageRequest) returns (SignMessageResponse) {}
   rpc VerifyMessage(VerifyMessageRequest) returns (VerifyMessageResponse) {}
+
+  // Storage Info
+  rpc StorageInfo(StorageInfoRequest) returns (StorageInfoResponse) {}
+  rpc ListStorageInfo(ListStorageInfoRequest) returns (ListStorageInfoResponse) {}
 
   // Storage Jobs
   rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}

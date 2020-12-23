@@ -41,7 +41,7 @@ func TestFilecoinExcludedMiners(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		cinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		p := cinfo.Cold.Filecoin.Proposals[0]
 		require.NotEqual(t, p.Miner, excludedMiner)
@@ -64,7 +64,7 @@ func TestFilecoinTrustedMiner(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		cinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		p := cinfo.Cold.Filecoin.Proposals[0]
 		require.Equal(t, p.Miner, trustedMiner)
@@ -106,7 +106,7 @@ func TestFilecoinCountryFilter(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		cinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		p := cinfo.Cold.Filecoin.Proposals[0]
 		require.Equal(t, p.Miner, "f01001")
@@ -143,7 +143,7 @@ func TestFilecoinMaxPriceFilter(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		cinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		p := cinfo.Cold.Filecoin.Proposals[0]
 		require.Equal(t, p.Miner, "f01000")

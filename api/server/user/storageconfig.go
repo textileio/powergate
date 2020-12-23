@@ -17,7 +17,7 @@ func (s *Service) DefaultStorageConfig(ctx context.Context, req *userPb.DefaultS
 	}
 	conf := i.DefaultStorageConfig()
 	return &userPb.DefaultStorageConfigResponse{
-		DefaultStorageConfig: ToRPCStorageConfig(conf),
+		DefaultStorageConfig: toRPCStorageConfig(conf),
 	}, nil
 }
 

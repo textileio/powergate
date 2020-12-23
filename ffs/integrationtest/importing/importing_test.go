@@ -37,7 +37,7 @@ func TestImportWithoutRetrievalTwoUsers(t *testing.T) {
 	it.RequireEventualJobState(t, fapi1, jid, ffs.Success)
 
 	// Grab the DealID from the created deal.
-	si1, err := fapi1.Show(c)
+	si1, err := fapi1.StorageInfo(c)
 	require.NoError(t, err)
 	si1p := si1.Cold.Filecoin.Proposals[0]
 
@@ -58,7 +58,7 @@ func TestImportWithoutRetrievalTwoUsers(t *testing.T) {
 	// Now compare that User 2 active deals for the Cid matches the same
 	// data of User 1. That should be true, since User 2 imported the deal
 	// created by User 1.
-	si2, err := fapi2.Show(c)
+	si2, err := fapi2.StorageInfo(c)
 	require.NoError(t, err)
 	require.Equal(t, fapi2.ID(), si2.APIID)
 	require.Equal(t, c, si2.Cid)
@@ -88,7 +88,7 @@ func TestImportWithRetrievalSingleUser(t *testing.T) {
 	it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 
 	// Grab the DealID from the created deal.
-	si1, err := fapi.Show(c)
+	si1, err := fapi.StorageInfo(c)
 	require.NoError(t, err)
 	si1p := si1.Cold.Filecoin.Proposals[0]
 
