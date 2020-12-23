@@ -19,6 +19,7 @@ import (
 func init() {
 	configApplyCmd.Flags().StringP("conf", "c", "", "Optional path to a file containing storage config json, falls back to stdin, uses the user default by default")
 	configApplyCmd.Flags().BoolP("override", "o", false, "If set, override any pre-existing storage configuration for the cid")
+	configApplyCmd.Flags().BoolP("noexec", "e", false, "If set, it doesn't create a job to ensure the new configuration")
 	configApplyCmd.Flags().BoolP("watch", "w", false, "Watch the progress of the resulting job")
 	configApplyCmd.Flags().StringSliceP("import-deals", "i", nil, "Comma-separated list of deal ids to import")
 
@@ -74,6 +75,10 @@ var configApplyCmd = &cobra.Command{
 
 		if viper.IsSet("override") {
 			options = append(options, client.WithOverride(viper.GetBool("override")))
+		}
+
+		if viper.IsSet("noexec") {
+			options = append(options, client.WithNoExec(viper.GetBool("noexec")))
 		}
 
 		if viper.IsSet("import-deals") {

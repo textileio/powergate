@@ -16,6 +16,7 @@ pow config apply [cid] [flags]
   -c, --conf string            Optional path to a file containing storage config json, falls back to stdin, uses the user default by default
   -h, --help                   help for apply
   -i, --import-deals strings   Comma-separated list of deal ids to import
+  -e, --noexec                 If set, it doesn't create a job to ensure the new configuration
   -o, --override               If set, override any pre-existing storage configuration for the cid
   -w, --watch                  Watch the progress of the resulting job
 ```
