@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/ipfs/go-cid"
@@ -24,6 +26,8 @@ var (
 	ErrNotFound = errors.New("job not found")
 
 	dsBaseJob          = datastore.NewKey("job")
+	dsBaseAPIID        = datastore.NewKey("apiid")
+	dsBaseCid          = datastore.NewKey("cid")
 	dsBaseStartedDeals = datastore.NewKey("starteddeals_v2")
 )
 
@@ -31,7 +35,7 @@ var (
 // state of scheduler Jobs.
 type Store struct {
 	lock     sync.Mutex
-	ds       datastore.Datastore
+	ds       datastore.TxnDatastore
 	watchers []watcher
 
 	queued []ffs.StorageJob
@@ -42,6 +46,9 @@ type Store struct {
 	executingJobs      map[ffs.APIID]map[cid.Cid]*ffs.StorageJob
 	lastFinalJobs      map[ffs.APIID]map[cid.Cid]*ffs.StorageJob
 	lastSuccessfulJobs map[ffs.APIID]map[cid.Cid]*ffs.StorageJob
+
+	queuedIDs    map[ffs.JobID]struct{}
+	executingIDs map[ffs.JobID]struct{}
 }
 
 // Stats return metrics about current job queues.
@@ -56,7 +63,7 @@ type watcher struct {
 }
 
 // New returns a new JobStore backed by the Datastore.
-func New(ds datastore.Datastore) (*Store, error) {
+func New(ds datastore.TxnDatastore) (*Store, error) {
 	s := &Store{
 		ds:                 ds,
 		jobStatusCache:     make(map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo),
@@ -64,6 +71,8 @@ func New(ds datastore.Datastore) (*Store, error) {
 		executingJobs:      make(map[ffs.APIID]map[cid.Cid]*ffs.StorageJob),
 		lastFinalJobs:      make(map[ffs.APIID]map[cid.Cid]*ffs.StorageJob),
 		lastSuccessfulJobs: make(map[ffs.APIID]map[cid.Cid]*ffs.StorageJob),
+		queuedIDs:          make(map[ffs.JobID]struct{}),
+		executingIDs:       make(map[ffs.JobID]struct{}),
 	}
 	if err := s.loadCaches(); err != nil {
 		return nil, fmt.Errorf("reloading caches: %s", err)
@@ -100,7 +109,7 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 				return values[i].ProposalCid.String() < values[j].ProposalCid.String()
 			})
 			job.DealInfo = values
-			if err := s.put(job); err != nil {
+			if err := s.put(job, false); err != nil {
 				log.Errorf("saving job with deal info updates: %v", err)
 			}
 			s.lock.Unlock()
@@ -134,7 +143,7 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 		j.ErrCause = jobError.Error()
 	}
 	j.DealErrors = dealErrors
-	if err := s.put(j); err != nil {
+	if err := s.put(j, false); err != nil {
 		return fmt.Errorf("saving in datastore: %s", err)
 	}
 	return nil
@@ -152,7 +161,7 @@ func (s *Store) Dequeue() (*ffs.StorageJob, error) {
 		execJob, ok := s.executingJobs[job.APIID][job.Cid]
 		if job.Status == ffs.Queued && !ok {
 			job.Status = ffs.Executing
-			if err := s.put(job); err != nil {
+			if err := s.put(job, false); err != nil {
 				return nil, err
 			}
 			return &job, nil
@@ -171,7 +180,7 @@ func (s *Store) Enqueue(j ffs.StorageJob) error {
 		return fmt.Errorf("canceling queued jobs: %s", err)
 	}
 	j.Status = ffs.Queued
-	if err := s.put(j); err != nil {
+	if err := s.put(j, true); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
 
@@ -230,7 +239,7 @@ func (s *Store) CancelQueued(jid ffs.JobID) (bool, error) {
 		return false, nil
 	}
 	j.Status = ffs.Canceled
-	if err := s.put(j); err != nil {
+	if err := s.put(j, false); err != nil {
 		return false, fmt.Errorf("canceling queued job: %s", err)
 	}
 
@@ -238,7 +247,7 @@ func (s *Store) CancelQueued(jid ffs.JobID) (bool, error) {
 }
 
 func (s *Store) cancelQueued(c cid.Cid) error {
-	q := query.Query{Prefix: ""}
+	q := query.Query{Prefix: dsBaseJob.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
 		return fmt.Errorf("querying datastore: %s", err)
@@ -258,7 +267,7 @@ func (s *Store) cancelQueued(c cid.Cid) error {
 		}
 		if j.Status == ffs.Queued && j.Cid == c {
 			j.Status = ffs.Canceled
-			if err := s.put(j); err != nil {
+			if err := s.put(j, false); err != nil {
 				return fmt.Errorf("canceling queued job: %s", err)
 			}
 		}
@@ -358,6 +367,168 @@ func (s *Store) GetStartedDeals(iid ffs.APIID, c cid.Cid) ([]cid.Cid, error) {
 		return nil, fmt.Errorf("unmarshaling started deals from datastore: %s", err)
 	}
 	return sd.ProposalCids, nil
+}
+
+// Select specifies which StorageJobs to list.
+type Select int
+
+const (
+	// All lists all StorageJobs and is the default.
+	All Select = iota
+	// Queued lists queued StorageJobs.
+	Queued
+	// Executing lists executing StorageJobs.
+	Executing
+	// Final lists final StorageJobs.
+	Final
+)
+
+// ListConfig controls the behavior for listing StorageJobs.
+type ListConfig struct {
+	// APIIDFilter filters StorageJobs list to the specified APIID. Defaults to no filter.
+	APIIDFilter ffs.APIID
+	// CidFilter filters StorageJobs list to the specified cid. Defaults to no filter.
+	CidFilter cid.Cid
+	// Limit limits the number of StorageJobs returned. Defaults to no limit.
+	Limit uint64
+	// Ascending returns the StorageJobs ascending by time. Defaults to false, descending.
+	Ascending bool
+	// Select specifies to return StorageJobs in the specified state.
+	Select Select
+	// After sets the slug from which to start building the next page of results.
+	After string
+}
+
+// List lists StorageJobs according to the provided ListConfig.
+func (s *Store) List(config ListConfig) ([]ffs.StorageJob, bool, string, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	byTime := func(ascending bool) func(a, b query.Entry) int {
+		extractTime := func(key string) (int64, error) {
+			parts := strings.Split(key, "/")
+			if len(parts) != 5 {
+				return 0, fmt.Errorf("expected 5 key parts but got %v", len(parts))
+			}
+			return strconv.ParseInt(parts[4], 10, 64)
+		}
+		return func(a, b query.Entry) int {
+			l := a
+			r := b
+			if ascending {
+				l = b
+				r = a
+			}
+			lTime, err := extractTime(l.Key)
+			if err != nil {
+				log.Errorf("extracting time from key a: %v", err)
+				return 0
+			}
+			rTime, err := extractTime(r.Key)
+			if err != nil {
+				log.Errorf("extracting time from key b: %v", err)
+				return 0
+			}
+			if lTime > rTime {
+				return -1
+			} else if rTime > lTime {
+				return 1
+			} else {
+				return 0
+			}
+		}
+	}
+
+	// by default, query all.
+	prefix := dsBaseCid.String()
+	if config.APIIDFilter != ffs.EmptyInstanceID && config.CidFilter.Defined() {
+		// use apiid/cid
+		prefix = prefixAPIIDAndCid(config.APIIDFilter, config.CidFilter)
+	} else if config.APIIDFilter != ffs.EmptyInstanceID && !config.CidFilter.Defined() {
+		// use appid
+		prefix = prefixAPIID(config.APIIDFilter)
+	} else if config.APIIDFilter == ffs.EmptyInstanceID && config.CidFilter.Defined() {
+		// use cid
+		prefix = prefixCid(config.CidFilter)
+	}
+
+	q := query.Query{
+		Prefix: prefix,
+		Orders: []query.Order{query.OrderByFunction(byTime(config.Ascending))},
+	}
+	res, err := s.ds.Query(q)
+	if err != nil {
+		return nil, false, "", fmt.Errorf("querying datastore: %v", err)
+	}
+	var jobs []ffs.StorageJob
+	foundAfter := false
+	if config.After == "" {
+		foundAfter = true
+	}
+	done := false
+	more := false
+	last := ""
+	for r := range res.Next() {
+		// return an error if there was an error iterating next.
+		if r.Error != nil {
+			return nil, false, "", fmt.Errorf("iter next: %s", r.Error)
+		}
+
+		// if in the last loop we decided we're done, we use this iteration
+		// just to note that there is more data available then break.
+		if done {
+			more = true
+			break
+		}
+
+		jobIDString := string(r.Value)
+		jobID := ffs.JobID(jobIDString)
+
+		// if we haven't found the record we need to seek to, continue to the next.
+		if !foundAfter {
+			// additionally, if this is the record we are seeking to, note that we've found it, then continue.
+			if config.After == jobIDString {
+				foundAfter = true
+			}
+			continue
+		}
+
+		// Filter out based on queued/executing etc
+		switch config.Select {
+		case All:
+			break
+		case Queued:
+			if _, queued := s.queuedIDs[jobID]; queued {
+				break
+			}
+			continue
+		case Executing:
+			if _, executing := s.executingIDs[jobID]; executing {
+				break
+			}
+			continue
+		case Final:
+			_, queued := s.queuedIDs[jobID]
+			_, executing := s.executingIDs[jobID]
+			if !queued && !executing {
+				break
+			}
+			continue
+		}
+
+		job, err := s.get(jobID)
+		if err != nil {
+			return nil, false, "", fmt.Errorf("getting job: %v", err)
+		}
+		jobs = append(jobs, job)
+		last = jobIDString
+		if len(jobs) == int(config.Limit) {
+			done = true
+		}
+		continue
+	}
+
+	return jobs, more, last, nil
 }
 
 // QueuedJobs returns queued jobs for the specified instance id and cids.
@@ -478,24 +649,45 @@ func (s *Store) Close() error {
 	return nil
 }
 
-func (s *Store) put(j ffs.StorageJob) error {
+func (s *Store) put(j ffs.StorageJob, updateIndex bool) error {
 	buf, err := json.Marshal(j)
 	if err != nil {
 		return fmt.Errorf("marshaling for datastore: %s", err)
 	}
+
+	txn, err := s.ds.NewTransaction(false)
+	if err != nil {
+		return fmt.Errorf("starting transaction: %s", err)
+	}
+
 	if err := s.ds.Put(makeKey(j.ID), buf); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
+	}
+
+	if updateIndex {
+		if err := s.ds.Put(makeAPIIDKey(j), []byte(j.ID)); err != nil {
+			return fmt.Errorf("saving to api id index: %s", err)
+		}
+		if err := s.ds.Put(makeCidKey(j), []byte(j.ID)); err != nil {
+			return fmt.Errorf("saving to cid index: %s", err)
+		}
+	}
+
+	if err := txn.Commit(); err != nil {
+		return fmt.Errorf("committing txn: %v", err)
 	}
 
 	// Update executing cids cache.
 	ensureJobsMap(s.executingJobs, j.APIID)
 	if j.Status == ffs.Executing {
 		s.executingJobs[j.APIID][j.Cid] = &j
+		s.executingIDs[j.ID] = struct{}{}
 	} else {
 		execJob, ok := s.executingJobs[j.APIID][j.Cid]
 		if ok && execJob.ID == j.ID {
 			delete(s.executingJobs[j.APIID], j.Cid)
 		}
+		delete(s.executingIDs, j.ID)
 	}
 
 	// Update queued cids cache.
@@ -505,6 +697,7 @@ func (s *Store) put(j ffs.StorageJob) error {
 		// the biggest CreatedAt value.
 		s.queued = append(s.queued, j)
 		s.queuedJobs[j.APIID][j.Cid] = append(s.queuedJobs[j.APIID][j.Cid], &j)
+		s.queuedIDs[j.ID] = struct{}{}
 	} else { // In any other case, ensure taking it out from queued caches.
 		delIndex := -1
 		for i, job := range s.queued {
@@ -527,6 +720,7 @@ func (s *Store) put(j ffs.StorageJob) error {
 		if delIndex != -1 {
 			s.queuedJobs[j.APIID][j.Cid] = append(s.queuedJobs[j.APIID][j.Cid][:delIndex], s.queuedJobs[j.APIID][j.Cid][delIndex+1:]...)
 		}
+		delete(s.queuedIDs, j.ID)
 	}
 
 	// Update the cache of latest final jobs
@@ -601,9 +795,11 @@ func (s *Store) loadCaches() error {
 			s.queued = append(s.queued, j)
 			ensureJobsSliceMap(s.queuedJobs, j.APIID)
 			s.queuedJobs[j.APIID][j.Cid] = append(s.queuedJobs[j.APIID][j.Cid], &j)
+			s.queuedIDs[j.ID] = struct{}{}
 		} else if j.Status == ffs.Executing {
 			ensureJobsMap(s.executingJobs, j.APIID)
 			s.executingJobs[j.APIID][j.Cid] = &j
+			s.executingIDs[j.ID] = struct{}{}
 		}
 
 		ensureJobsMap(s.lastFinalJobs, j.APIID)
@@ -659,4 +855,28 @@ func makeStartedDealsKey(iid ffs.APIID, c cid.Cid) datastore.Key {
 
 func makeKey(jid ffs.JobID) datastore.Key {
 	return dsBaseJob.ChildString(jid.String())
+}
+
+func makeAPIIDKey(j ffs.StorageJob) datastore.Key {
+	return datastore.NewKey(prefixAPIIDAndCid(j.APIID, j.Cid)).ChildString(fmt.Sprintf("%d", j.CreatedAt))
+}
+
+func makeCidKey(j ffs.StorageJob) datastore.Key {
+	return datastore.NewKey(prefixCidAndAPIID(j.Cid, j.APIID)).ChildString(fmt.Sprintf("%d", j.CreatedAt))
+}
+
+func prefixCid(cid cid.Cid) string {
+	return dsBaseCid.ChildString(cid.String()).String()
+}
+
+func prefixAPIID(APIID ffs.APIID) string {
+	return dsBaseAPIID.ChildString(APIID.String()).String()
+}
+
+func prefixCidAndAPIID(cid cid.Cid, APIID ffs.APIID) string {
+	return dsBaseCid.ChildString(cid.String()).ChildString(APIID.String()).String()
+}
+
+func prefixAPIIDAndCid(APIID ffs.APIID, cid cid.Cid) string {
+	return dsBaseAPIID.ChildString(APIID.String()).ChildString(cid.String()).String()
 }
