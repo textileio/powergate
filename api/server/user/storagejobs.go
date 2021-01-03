@@ -69,10 +69,10 @@ func (s *Service) ListStorageJobs(ctx context.Context, req *userPb.ListStorageJo
 		selector = api.All
 	}
 	conf := api.ListStorageJobsConfig{
-		Limit:     req.Limit,
-		Ascending: req.Ascending,
-		After:     req.After,
-		Select:    selector,
+		Limit:         req.Limit,
+		Ascending:     req.Ascending,
+		NextPageToken: req.NextPageToken,
+		Select:        selector,
 	}
 	if req.CidFilter != "" {
 		c, err := cid.Decode(req.CidFilter)
@@ -81,7 +81,7 @@ func (s *Service) ListStorageJobs(ctx context.Context, req *userPb.ListStorageJo
 		}
 		conf.CidFilter = c
 	}
-	jobs, more, after, err := i.ListStorageJobs(conf)
+	jobs, more, next, err := i.ListStorageJobs(conf)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "listing storage jobs: %v", err)
 	}
@@ -90,9 +90,9 @@ func (s *Service) ListStorageJobs(ctx context.Context, req *userPb.ListStorageJo
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
 	res := &userPb.ListStorageJobsResponse{
-		StorageJobs: protoJobs,
-		More:        more,
-		After:       after,
+		StorageJobs:   protoJobs,
+		More:          more,
+		NextPageToken: next,
 	}
 	return res, nil
 }

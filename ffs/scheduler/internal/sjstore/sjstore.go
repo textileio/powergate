@@ -395,8 +395,8 @@ type ListConfig struct {
 	Ascending bool
 	// Select specifies to return StorageJobs in the specified state.
 	Select Select
-	// After sets the slug from which to start building the next page of results.
-	After string
+	// NextPageToken sets the slug from which to start building the next page of results.
+	NextPageToken string
 }
 
 // List lists StorageJobs according to the provided ListConfig.
@@ -461,13 +461,13 @@ func (s *Store) List(config ListConfig) ([]ffs.StorageJob, bool, string, error) 
 		return nil, false, "", fmt.Errorf("querying datastore: %v", err)
 	}
 	var jobs []ffs.StorageJob
-	foundAfter := false
-	if config.After == "" {
-		foundAfter = true
+	foundNextPageToken := false
+	if config.NextPageToken == "" {
+		foundNextPageToken = true
 	}
 	done := false
 	more := false
-	last := ""
+	nextPageToken := ""
 	for r := range res.Next() {
 		// return an error if there was an error iterating next.
 		if r.Error != nil {
@@ -485,10 +485,10 @@ func (s *Store) List(config ListConfig) ([]ffs.StorageJob, bool, string, error) 
 		jobID := ffs.JobID(jobIDString)
 
 		// if we haven't found the record we need to seek to, continue to the next.
-		if !foundAfter {
+		if !foundNextPageToken {
 			// additionally, if this is the record we are seeking to, note that we've found it, then continue.
-			if config.After == jobIDString {
-				foundAfter = true
+			if config.NextPageToken == jobIDString {
+				foundNextPageToken = true
 			}
 			continue
 		}
@@ -520,14 +520,18 @@ func (s *Store) List(config ListConfig) ([]ffs.StorageJob, bool, string, error) 
 			return nil, false, "", fmt.Errorf("getting job: %v", err)
 		}
 		jobs = append(jobs, job)
-		last = jobIDString
+		nextPageToken = jobIDString
 		if len(jobs) == int(config.Limit) {
 			done = true
 		}
 		continue
 	}
 
-	return jobs, more, last, nil
+	if !more {
+		nextPageToken = ""
+	}
+
+	return jobs, more, nextPageToken, nil
 }
 
 // QueuedJobs returns queued jobs for the specified instance id and cids.

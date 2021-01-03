@@ -186,19 +186,19 @@ type ListStorageJobsConfig struct {
 	Ascending bool
 	// Select specifies to return StorageJobs in the specified state.
 	Select Select
-	// After sets the slug from which to start building the next page of results.
-	After string
+	// NextPageToken sets the slug from which to start building the next page of results.
+	NextPageToken string
 }
 
 // ListStorageJobs lists StorageJobs according to the provided ListStorageJobsConfig.
 func (s *Scheduler) ListStorageJobs(config ListStorageJobsConfig) ([]ffs.StorageJob, bool, string, error) {
 	c := sjstore.ListConfig{
-		APIIDFilter: config.APIIDFilter,
-		CidFilter:   config.CidFilter,
-		Limit:       config.Limit,
-		Ascending:   config.Ascending,
-		Select:      sjstore.Select(config.Select),
-		After:       config.After,
+		APIIDFilter:   config.APIIDFilter,
+		CidFilter:     config.CidFilter,
+		Limit:         config.Limit,
+		Ascending:     config.Ascending,
+		Select:        sjstore.Select(config.Select),
+		NextPageToken: config.NextPageToken,
 	}
 	return s.sjs.List(c)
 }

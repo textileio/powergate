@@ -30,11 +30,11 @@ func (a *Service) ListStorageJobs(ctx context.Context, req *adminPb.ListStorageJ
 		selector = scheduler.All
 	}
 	conf := scheduler.ListStorageJobsConfig{
-		APIIDFilter: ffs.APIID(req.UserIdFilter),
-		Limit:       req.Limit,
-		Ascending:   req.Ascending,
-		After:       req.After,
-		Select:      selector,
+		APIIDFilter:   ffs.APIID(req.UserIdFilter),
+		Limit:         req.Limit,
+		Ascending:     req.Ascending,
+		NextPageToken: req.NextPageToken,
+		Select:        selector,
 	}
 	if req.CidFilter != "" {
 		c, err := cid.Decode(req.CidFilter)
@@ -43,7 +43,7 @@ func (a *Service) ListStorageJobs(ctx context.Context, req *adminPb.ListStorageJ
 		}
 		conf.CidFilter = c
 	}
-	jobs, more, after, err := a.s.ListStorageJobs(conf)
+	jobs, more, next, err := a.s.ListStorageJobs(conf)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "listing storage jobs: %v", err)
 	}
@@ -52,9 +52,9 @@ func (a *Service) ListStorageJobs(ctx context.Context, req *adminPb.ListStorageJ
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
 	res := &adminPb.ListStorageJobsResponse{
-		StorageJobs: protoJobs,
-		More:        more,
-		After:       after,
+		StorageJobs:   protoJobs,
+		More:          more,
+		NextPageToken: next,
 	}
 	return res, nil
 }

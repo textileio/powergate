@@ -200,14 +200,14 @@ message ListStorageJobsRequest {
   string cid_filter = 1;
   uint64 limit = 2;
   bool ascending = 3;
-  string after = 4;
+  string next_page_token = 4;
   StorageJobsSelector selector = 5;
 }
 
 message ListStorageJobsResponse {
   repeated StorageJob storage_jobs = 1;
   bool more = 2;
-  string after = 3;
+  string next_page_token = 3;
 }
 
 message QueuedStorageJobsRequest {

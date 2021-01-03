@@ -58,14 +58,14 @@ message ListStorageJobsRequest {
   string cid_filter = 2;
   uint64 limit = 3;
   bool ascending = 4;
-  string after = 5;
+  string next_page_token = 5;
   powergate.user.v1.StorageJobsSelector selector = 6;
 }
 
 message ListStorageJobsResponse {
   repeated powergate.user.v1.StorageJob storage_jobs = 1;
   bool more = 2;
-  string after = 3;
+  string next_page_token = 3;
 }
 
 message QueuedStorageJobsRequest {

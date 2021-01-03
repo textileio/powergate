@@ -125,19 +125,19 @@ func TestFoo(t *testing.T) {
 	require.True(t, more)
 	requireDescending(t, res)
 
-	res, more, last, err = s.List(ListConfig{After: last, Limit: 1})
+	res, more, last, err = s.List(ListConfig{NextPageToken: last, Limit: 1})
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 	require.True(t, more)
 	requireDescending(t, res)
 
-	res, more, last, err = s.List(ListConfig{After: last, Limit: 4})
+	res, more, last, err = s.List(ListConfig{NextPageToken: last, Limit: 4})
 	require.NoError(t, err)
 	require.Len(t, res, 4)
 	require.True(t, more)
 	requireDescending(t, res)
 
-	res, more, last, err = s.List(ListConfig{After: last, Limit: 10})
+	res, more, last, err = s.List(ListConfig{NextPageToken: last, Limit: 10})
 	require.NoError(t, err)
 	require.Len(t, res, 3)
 	require.False(t, more)

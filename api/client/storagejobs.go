@@ -14,6 +14,34 @@ type StorageJobs struct {
 	client userPb.UserServiceClient
 }
 
+// ListSelect specifies which StorageJobs to list.
+type ListSelect int32
+
+const (
+	// All lists all StorageJobs and is the default.
+	All ListSelect = iota
+	// Queued lists queued StorageJobs.
+	Queued
+	// Executing lists executing StorageJobs.
+	Executing
+	// Final lists final StorageJobs.
+	Final
+)
+
+// ListConfig controls the behavior for listing StorageJobs.
+type ListConfig struct {
+	// CidFilter filters StorageJobs list to the specified cid. Defaults to no filter.
+	CidFilter string
+	// Limit limits the number of StorageJobs returned. Defaults to no limit.
+	Limit uint64
+	// Ascending returns the StorageJobs ascending by time. Defaults to false, descending.
+	Ascending bool
+	// Select specifies to return StorageJobs in the specified state.
+	Select ListSelect
+	// NextPageToken sets the slug from which to start building the next page of results.
+	NextPageToken string
+}
+
 // WatchStorageJobsEvent represents an event for Watching a job.
 type WatchStorageJobsEvent struct {
 	Res *userPb.WatchStorageJobsResponse
@@ -28,6 +56,18 @@ func (j *StorageJobs) StorageJob(ctx context.Context, jobID string) (*userPb.Sto
 // StorageConfigForJob returns the StorageConfig associated with the specified job.
 func (j *StorageJobs) StorageConfigForJob(ctx context.Context, jobID string) (*userPb.StorageConfigForJobResponse, error) {
 	return j.client.StorageConfigForJob(ctx, &userPb.StorageConfigForJobRequest{JobId: jobID})
+}
+
+// List lists StorageJobs according to the provided ListConfig.
+func (j *StorageJobs) List(ctx context.Context, config ListConfig) (*userPb.ListStorageJobsResponse, error) {
+	req := &userPb.ListStorageJobsRequest{
+		CidFilter:     config.CidFilter,
+		Limit:         config.Limit,
+		Ascending:     config.Ascending,
+		NextPageToken: config.NextPageToken,
+		Selector:      userPb.StorageJobsSelector(config.Select),
+	}
+	return j.client.ListStorageJobs(ctx, req)
 }
 
 // Queued returns a list of queued storage jobs.
