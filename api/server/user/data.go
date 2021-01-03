@@ -19,7 +19,7 @@ func (s *Service) Stage(srv userPb.UserService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	fapi, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return err
 	}
 
 	reader, writer := io.Pipe()
@@ -44,7 +44,7 @@ func (s *Service) StageCid(ctx context.Context, req *userPb.StageCidRequest) (*u
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	fapi, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return nil, err
 	}
 
 	c, err := util.CidFromString(req.Cid)
@@ -64,7 +64,7 @@ func (s *Service) StageCid(ctx context.Context, req *userPb.StageCidRequest) (*u
 func (s *Service) ReplaceData(ctx context.Context, req *userPb.ReplaceDataRequest) (*userPb.ReplaceDataResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return nil, err
 	}
 
 	c1, err := util.CidFromString(req.Cid1)
@@ -88,7 +88,7 @@ func (s *Service) ReplaceData(ctx context.Context, req *userPb.ReplaceDataReques
 func (s *Service) Get(req *userPb.GetRequest, srv userPb.UserService_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return err
 	}
 	c, err := util.CidFromString(req.GetCid())
 	if err != nil {
@@ -119,7 +119,7 @@ func (s *Service) Get(req *userPb.GetRequest, srv userPb.UserService_GetServer) 
 func (s *Service) WatchLogs(req *userPb.WatchLogsRequest, srv userPb.UserService_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return err
 	}
 
 	opts := []api.GetLogsOption{api.WithHistory(req.History)}
@@ -160,7 +160,7 @@ func (s *Service) WatchLogs(req *userPb.WatchLogsRequest, srv userPb.UserService
 func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest) (*userPb.CidSummaryResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return nil, err
 	}
 
 	cids, err := fromProtoCids(req.Cids)
@@ -272,7 +272,7 @@ func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest)
 func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*userPb.CidInfoResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return nil, err
 	}
 
 	cid, err := util.CidFromString(req.Cid)

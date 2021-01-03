@@ -43,6 +43,7 @@ type UserServiceClient interface {
 	// Storage Jobs
 	StorageJob(ctx context.Context, in *StorageJobRequest, opts ...grpc.CallOption) (*StorageJobResponse, error)
 	StorageConfigForJob(ctx context.Context, in *StorageConfigForJobRequest, opts ...grpc.CallOption) (*StorageConfigForJobResponse, error)
+	ListStorageJobs(ctx context.Context, in *ListStorageJobsRequest, opts ...grpc.CallOption) (*ListStorageJobsResponse, error)
 	QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error)
 	ExecutingStorageJobs(ctx context.Context, in *ExecutingStorageJobsRequest, opts ...grpc.CallOption) (*ExecutingStorageJobsResponse, error)
 	LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error)
@@ -323,6 +324,15 @@ func (c *userServiceClient) StorageConfigForJob(ctx context.Context, in *Storage
 	return out, nil
 }
 
+func (c *userServiceClient) ListStorageJobs(ctx context.Context, in *ListStorageJobsRequest, opts ...grpc.CallOption) (*ListStorageJobsResponse, error) {
+	out := new(ListStorageJobsResponse)
+	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/ListStorageJobs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error) {
 	out := new(QueuedStorageJobsResponse)
 	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/QueuedStorageJobs", in, out, opts...)
@@ -457,6 +467,7 @@ type UserServiceServer interface {
 	// Storage Jobs
 	StorageJob(context.Context, *StorageJobRequest) (*StorageJobResponse, error)
 	StorageConfigForJob(context.Context, *StorageConfigForJobRequest) (*StorageConfigForJobResponse, error)
+	ListStorageJobs(context.Context, *ListStorageJobsRequest) (*ListStorageJobsResponse, error)
 	QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error)
 	ExecutingStorageJobs(context.Context, *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error)
 	LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error)
@@ -536,6 +547,9 @@ func (UnimplementedUserServiceServer) StorageJob(context.Context, *StorageJobReq
 }
 func (UnimplementedUserServiceServer) StorageConfigForJob(context.Context, *StorageConfigForJobRequest) (*StorageConfigForJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageConfigForJob not implemented")
+}
+func (UnimplementedUserServiceServer) ListStorageJobs(context.Context, *ListStorageJobsRequest) (*ListStorageJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStorageJobs not implemented")
 }
 func (UnimplementedUserServiceServer) QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueuedStorageJobs not implemented")
@@ -969,6 +983,24 @@ func _UserService_StorageConfigForJob_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_ListStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStorageJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListStorageJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.user.v1.UserService/ListStorageJobs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListStorageJobs(ctx, req.(*ListStorageJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_QueuedStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueuedStorageJobsRequest)
 	if err := dec(in); err != nil {
@@ -1209,6 +1241,10 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StorageConfigForJob",
 			Handler:    _UserService_StorageConfigForJob_Handler,
+		},
+		{
+			MethodName: "ListStorageJobs",
+			Handler:    _UserService_ListStorageJobs_Handler,
 		},
 		{
 			MethodName: "QueuedStorageJobs",

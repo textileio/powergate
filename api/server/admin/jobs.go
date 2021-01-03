@@ -8,10 +8,56 @@ import (
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/api/server/user"
 	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+// ListStorageJobs lists StorageJobs according to the provided request parameters.
+func (a *Service) ListStorageJobs(ctx context.Context, req *adminPb.ListStorageJobsRequest) (*adminPb.ListStorageJobsResponse, error) {
+	var selector scheduler.Select
+	switch req.Selector {
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_ALL:
+		selector = scheduler.All
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_EXECUTING:
+		selector = scheduler.Executing
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_FINAL:
+		selector = scheduler.Final
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_QUEUED:
+		selector = scheduler.Queued
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_UNSPECIFIED:
+		selector = scheduler.All
+	}
+	conf := scheduler.ListStorageJobsConfig{
+		APIIDFilter: ffs.APIID(req.UserIdFilter),
+		Limit:       req.Limit,
+		Ascending:   req.Ascending,
+		After:       req.After,
+		Select:      selector,
+	}
+	if req.CidFilter != "" {
+		c, err := cid.Decode(req.CidFilter)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing cid filter: %v", err)
+		}
+		conf.CidFilter = c
+	}
+	jobs, more, after, err := a.s.ListStorageJobs(conf)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing storage jobs: %v", err)
+	}
+	protoJobs, err := user.ToProtoStorageJobs(jobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
+	}
+	res := &adminPb.ListStorageJobsResponse{
+		StorageJobs: protoJobs,
+		More:        more,
+		After:       after,
+	}
+	return res, nil
+}
 
 // QueuedStorageJobs returns a list of queued storage jobs.
 func (a *Service) QueuedStorageJobs(ctx context.Context, req *adminPb.QueuedStorageJobsRequest) (*adminPb.QueuedStorageJobsResponse, error) {

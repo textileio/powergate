@@ -69,6 +69,47 @@ func (i *API) WatchJobs(ctx context.Context, c chan<- ffs.StorageJob, jids ...ff
 	return nil
 }
 
+// ListStorageJobsSelect specifies which StorageJobs to list.
+type ListStorageJobsSelect int
+
+const (
+	// All lists all StorageJobs and is the default.
+	All ListStorageJobsSelect = iota
+	// Queued lists queued StorageJobs.
+	Queued
+	// Executing lists executing StorageJobs.
+	Executing
+	// Final lists final StorageJobs.
+	Final
+)
+
+// ListStorageJobsConfig controls the behavior for listing StorageJobs.
+type ListStorageJobsConfig struct {
+	// CidFilter filters StorageJobs list to the specified cid. Defaults to no filter.
+	CidFilter cid.Cid
+	// Limit limits the number of StorageJobs returned. Defaults to no limit.
+	Limit uint64
+	// Ascending returns the StorageJobs ascending by time. Defaults to false, descending.
+	Ascending bool
+	// Select specifies to return StorageJobs in the specified state.
+	Select ListStorageJobsSelect
+	// After sets the slug from which to start building the next page of results.
+	After string
+}
+
+// ListStorageJobs lists StorageJobs according to the provided ListStorageJobsConfig.
+func (i *API) ListStorageJobs(config ListStorageJobsConfig) ([]ffs.StorageJob, bool, string, error) {
+	c := scheduler.ListStorageJobsConfig{
+		APIIDFilter: i.cfg.ID,
+		CidFilter:   config.CidFilter,
+		Limit:       config.Limit,
+		Ascending:   config.Ascending,
+		Select:      scheduler.Select(config.Select),
+		After:       config.After,
+	}
+	return i.sched.ListStorageJobs(c)
+}
+
 // QueuedStorageJobs returns queued jobs for the specified cids.
 // If no cids are provided, data for all data cids is returned.
 func (i *API) QueuedStorageJobs(cids ...cid.Cid) []ffs.StorageJob {

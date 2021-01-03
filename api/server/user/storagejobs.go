@@ -3,10 +3,10 @@ package user
 import (
 	"context"
 
+	"github.com/ipfs/go-cid"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/manager"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -35,11 +35,7 @@ func (s *Service) StorageJob(ctx context.Context, req *userPb.StorageJobRequest)
 func (s *Service) StorageConfigForJob(ctx context.Context, req *userPb.StorageConfigForJobRequest) (*userPb.StorageConfigForJobResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		code := codes.Internal
-		if err == manager.ErrAuthTokenNotFound || err == ErrEmptyAuthToken {
-			code = codes.PermissionDenied
-		}
-		return nil, status.Errorf(code, "getting instance: %v", err)
+		return nil, err
 	}
 	sc, err := i.StorageConfigForJob(ffs.JobID(req.JobId))
 	if err != nil {
@@ -53,11 +49,59 @@ func (s *Service) StorageConfigForJob(ctx context.Context, req *userPb.StorageCo
 	return &userPb.StorageConfigForJobResponse{StorageConfig: res}, nil
 }
 
+// ListStorageJobs lists StorageJobs according to the provided request parameters.
+func (s *Service) ListStorageJobs(ctx context.Context, req *userPb.ListStorageJobsRequest) (*userPb.ListStorageJobsResponse, error) {
+	i, err := s.getInstanceByToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var selector api.ListStorageJobsSelect
+	switch req.Selector {
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_ALL:
+		selector = api.All
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_EXECUTING:
+		selector = api.Executing
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_FINAL:
+		selector = api.Final
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_QUEUED:
+		selector = api.Queued
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_UNSPECIFIED:
+		selector = api.All
+	}
+	conf := api.ListStorageJobsConfig{
+		Limit:     req.Limit,
+		Ascending: req.Ascending,
+		After:     req.After,
+		Select:    selector,
+	}
+	if req.CidFilter != "" {
+		c, err := cid.Decode(req.CidFilter)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing cid filter: %v", err)
+		}
+		conf.CidFilter = c
+	}
+	jobs, more, after, err := i.ListStorageJobs(conf)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing storage jobs: %v", err)
+	}
+	protoJobs, err := ToProtoStorageJobs(jobs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
+	}
+	res := &userPb.ListStorageJobsResponse{
+		StorageJobs: protoJobs,
+		More:        more,
+		After:       after,
+	}
+	return res, nil
+}
+
 // QueuedStorageJobs returns a list of queued storage jobs.
 func (s *Service) QueuedStorageJobs(ctx context.Context, req *userPb.QueuedStorageJobsRequest) (*userPb.QueuedStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+		return nil, err
 	}
 
 	cids, err := fromProtoCids(req.Cids)
@@ -78,7 +122,7 @@ func (s *Service) QueuedStorageJobs(ctx context.Context, req *userPb.QueuedStora
 func (s *Service) ExecutingStorageJobs(ctx context.Context, req *userPb.ExecutingStorageJobsRequest) (*userPb.ExecutingStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+		return nil, err
 	}
 
 	cids, err := fromProtoCids(req.Cids)
@@ -99,7 +143,7 @@ func (s *Service) ExecutingStorageJobs(ctx context.Context, req *userPb.Executin
 func (s *Service) LatestFinalStorageJobs(ctx context.Context, req *userPb.LatestFinalStorageJobsRequest) (*userPb.LatestFinalStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+		return nil, err
 	}
 
 	cids, err := fromProtoCids(req.Cids)
@@ -120,7 +164,7 @@ func (s *Service) LatestFinalStorageJobs(ctx context.Context, req *userPb.Latest
 func (s *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *userPb.LatestSuccessfulStorageJobsRequest) (*userPb.LatestSuccessfulStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+		return nil, err
 	}
 
 	cids, err := fromProtoCids(req.Cids)
@@ -141,7 +185,7 @@ func (s *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *userPb.L
 func (s *Service) StorageJobsSummary(ctx context.Context, req *userPb.StorageJobsSummaryRequest) (*userPb.StorageJobsSummaryResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+		return nil, err
 	}
 
 	cids, err := fromProtoCids(req.Cids)

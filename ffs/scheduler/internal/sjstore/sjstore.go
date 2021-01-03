@@ -496,7 +496,6 @@ func (s *Store) List(config ListConfig) ([]ffs.StorageJob, bool, string, error) 
 		// Filter out based on queued/executing etc
 		switch config.Select {
 		case All:
-			break
 		case Queued:
 			if _, queued := s.queuedIDs[jobID]; queued {
 				break

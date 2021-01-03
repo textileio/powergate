@@ -196,6 +196,20 @@ message StorageConfigForJobResponse {
   StorageConfig storage_config = 1;
 }
 
+message ListStorageJobsRequest {
+  string cid_filter = 1;
+  uint64 limit = 2;
+  bool ascending = 3;
+  string after = 4;
+  StorageJobsSelector selector = 5;
+}
+
+message ListStorageJobsResponse {
+  repeated StorageJob storage_jobs = 1;
+  bool more = 2;
+  string after = 3;
+}
+
 message QueuedStorageJobsRequest {
    repeated string cids = 1;
 }
@@ -297,6 +311,7 @@ service UserService {
   // Storage Jobs
   rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}
   rpc StorageConfigForJob(StorageConfigForJobRequest) returns (StorageConfigForJobResponse) {}
+  rpc ListStorageJobs(ListStorageJobsRequest) returns (ListStorageJobsResponse) {}
   rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
   rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
   rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
@@ -457,6 +472,14 @@ message StorageJob {
   repeated DealInfo deal_info = 6;
   repeated DealError deal_errors = 7;
   int64 created_at = 8;
+}
+
+enum StorageJobsSelector {
+  STORAGE_JOBS_SELECTOR_UNSPECIFIED = 0;
+  STORAGE_JOBS_SELECTOR_ALL = 1;
+  STORAGE_JOBS_SELECTOR_QUEUED = 2;
+  STORAGE_JOBS_SELECTOR_EXECUTING = 3;
+  STORAGE_JOBS_SELECTOR_FINAL = 4;
 }
 
 message DealError {

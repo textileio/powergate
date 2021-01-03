@@ -83,6 +83,61 @@ func (JobStatus) EnumDescriptor() ([]byte, []int) {
 	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{0}
 }
 
+type StorageJobsSelector int32
+
+const (
+	StorageJobsSelector_STORAGE_JOBS_SELECTOR_UNSPECIFIED StorageJobsSelector = 0
+	StorageJobsSelector_STORAGE_JOBS_SELECTOR_ALL         StorageJobsSelector = 1
+	StorageJobsSelector_STORAGE_JOBS_SELECTOR_QUEUED      StorageJobsSelector = 2
+	StorageJobsSelector_STORAGE_JOBS_SELECTOR_EXECUTING   StorageJobsSelector = 3
+	StorageJobsSelector_STORAGE_JOBS_SELECTOR_FINAL       StorageJobsSelector = 4
+)
+
+// Enum value maps for StorageJobsSelector.
+var (
+	StorageJobsSelector_name = map[int32]string{
+		0: "STORAGE_JOBS_SELECTOR_UNSPECIFIED",
+		1: "STORAGE_JOBS_SELECTOR_ALL",
+		2: "STORAGE_JOBS_SELECTOR_QUEUED",
+		3: "STORAGE_JOBS_SELECTOR_EXECUTING",
+		4: "STORAGE_JOBS_SELECTOR_FINAL",
+	}
+	StorageJobsSelector_value = map[string]int32{
+		"STORAGE_JOBS_SELECTOR_UNSPECIFIED": 0,
+		"STORAGE_JOBS_SELECTOR_ALL":         1,
+		"STORAGE_JOBS_SELECTOR_QUEUED":      2,
+		"STORAGE_JOBS_SELECTOR_EXECUTING":   3,
+		"STORAGE_JOBS_SELECTOR_FINAL":       4,
+	}
+)
+
+func (x StorageJobsSelector) Enum() *StorageJobsSelector {
+	p := new(StorageJobsSelector)
+	*p = x
+	return p
+}
+
+func (x StorageJobsSelector) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (StorageJobsSelector) Descriptor() protoreflect.EnumDescriptor {
+	return file_powergate_user_v1_user_proto_enumTypes[1].Descriptor()
+}
+
+func (StorageJobsSelector) Type() protoreflect.EnumType {
+	return &file_powergate_user_v1_user_proto_enumTypes[1]
+}
+
+func (x StorageJobsSelector) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use StorageJobsSelector.Descriptor instead.
+func (StorageJobsSelector) EnumDescriptor() ([]byte, []int) {
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{1}
+}
+
 type BuildInfoRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2222,6 +2277,148 @@ func (x *StorageConfigForJobResponse) GetStorageConfig() *StorageConfig {
 	return nil
 }
 
+type ListStorageJobsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CidFilter string              `protobuf:"bytes,1,opt,name=cid_filter,json=cidFilter,proto3" json:"cid_filter,omitempty"`
+	Limit     uint64              `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Ascending bool                `protobuf:"varint,3,opt,name=ascending,proto3" json:"ascending,omitempty"`
+	After     string              `protobuf:"bytes,4,opt,name=after,proto3" json:"after,omitempty"`
+	Selector  StorageJobsSelector `protobuf:"varint,5,opt,name=selector,proto3,enum=powergate.user.v1.StorageJobsSelector" json:"selector,omitempty"`
+}
+
+func (x *ListStorageJobsRequest) Reset() {
+	*x = ListStorageJobsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_powergate_user_v1_user_proto_msgTypes[44]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListStorageJobsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStorageJobsRequest) ProtoMessage() {}
+
+func (x *ListStorageJobsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_powergate_user_v1_user_proto_msgTypes[44]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStorageJobsRequest.ProtoReflect.Descriptor instead.
+func (*ListStorageJobsRequest) Descriptor() ([]byte, []int) {
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ListStorageJobsRequest) GetCidFilter() string {
+	if x != nil {
+		return x.CidFilter
+	}
+	return ""
+}
+
+func (x *ListStorageJobsRequest) GetLimit() uint64 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListStorageJobsRequest) GetAscending() bool {
+	if x != nil {
+		return x.Ascending
+	}
+	return false
+}
+
+func (x *ListStorageJobsRequest) GetAfter() string {
+	if x != nil {
+		return x.After
+	}
+	return ""
+}
+
+func (x *ListStorageJobsRequest) GetSelector() StorageJobsSelector {
+	if x != nil {
+		return x.Selector
+	}
+	return StorageJobsSelector_STORAGE_JOBS_SELECTOR_UNSPECIFIED
+}
+
+type ListStorageJobsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	StorageJobs []*StorageJob `protobuf:"bytes,1,rep,name=storage_jobs,json=storageJobs,proto3" json:"storage_jobs,omitempty"`
+	More        bool          `protobuf:"varint,2,opt,name=more,proto3" json:"more,omitempty"`
+	After       string        `protobuf:"bytes,3,opt,name=after,proto3" json:"after,omitempty"`
+}
+
+func (x *ListStorageJobsResponse) Reset() {
+	*x = ListStorageJobsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_powergate_user_v1_user_proto_msgTypes[45]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListStorageJobsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListStorageJobsResponse) ProtoMessage() {}
+
+func (x *ListStorageJobsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_powergate_user_v1_user_proto_msgTypes[45]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListStorageJobsResponse.ProtoReflect.Descriptor instead.
+func (*ListStorageJobsResponse) Descriptor() ([]byte, []int) {
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *ListStorageJobsResponse) GetStorageJobs() []*StorageJob {
+	if x != nil {
+		return x.StorageJobs
+	}
+	return nil
+}
+
+func (x *ListStorageJobsResponse) GetMore() bool {
+	if x != nil {
+		return x.More
+	}
+	return false
+}
+
+func (x *ListStorageJobsResponse) GetAfter() string {
+	if x != nil {
+		return x.After
+	}
+	return ""
+}
+
 type QueuedStorageJobsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2233,7 +2430,7 @@ type QueuedStorageJobsRequest struct {
 func (x *QueuedStorageJobsRequest) Reset() {
 	*x = QueuedStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[44]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2246,7 +2443,7 @@ func (x *QueuedStorageJobsRequest) String() string {
 func (*QueuedStorageJobsRequest) ProtoMessage() {}
 
 func (x *QueuedStorageJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[44]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2259,7 +2456,7 @@ func (x *QueuedStorageJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueuedStorageJobsRequest.ProtoReflect.Descriptor instead.
 func (*QueuedStorageJobsRequest) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{44}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *QueuedStorageJobsRequest) GetCids() []string {
@@ -2280,7 +2477,7 @@ type QueuedStorageJobsResponse struct {
 func (x *QueuedStorageJobsResponse) Reset() {
 	*x = QueuedStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[45]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2293,7 +2490,7 @@ func (x *QueuedStorageJobsResponse) String() string {
 func (*QueuedStorageJobsResponse) ProtoMessage() {}
 
 func (x *QueuedStorageJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[45]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2306,7 +2503,7 @@ func (x *QueuedStorageJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueuedStorageJobsResponse.ProtoReflect.Descriptor instead.
 func (*QueuedStorageJobsResponse) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{45}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *QueuedStorageJobsResponse) GetStorageJobs() []*StorageJob {
@@ -2327,7 +2524,7 @@ type ExecutingStorageJobsRequest struct {
 func (x *ExecutingStorageJobsRequest) Reset() {
 	*x = ExecutingStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[46]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2340,7 +2537,7 @@ func (x *ExecutingStorageJobsRequest) String() string {
 func (*ExecutingStorageJobsRequest) ProtoMessage() {}
 
 func (x *ExecutingStorageJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[46]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2353,7 +2550,7 @@ func (x *ExecutingStorageJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutingStorageJobsRequest.ProtoReflect.Descriptor instead.
 func (*ExecutingStorageJobsRequest) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{46}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ExecutingStorageJobsRequest) GetCids() []string {
@@ -2374,7 +2571,7 @@ type ExecutingStorageJobsResponse struct {
 func (x *ExecutingStorageJobsResponse) Reset() {
 	*x = ExecutingStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[47]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2387,7 +2584,7 @@ func (x *ExecutingStorageJobsResponse) String() string {
 func (*ExecutingStorageJobsResponse) ProtoMessage() {}
 
 func (x *ExecutingStorageJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[47]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2400,7 +2597,7 @@ func (x *ExecutingStorageJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutingStorageJobsResponse.ProtoReflect.Descriptor instead.
 func (*ExecutingStorageJobsResponse) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{47}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *ExecutingStorageJobsResponse) GetStorageJobs() []*StorageJob {
@@ -2421,7 +2618,7 @@ type LatestFinalStorageJobsRequest struct {
 func (x *LatestFinalStorageJobsRequest) Reset() {
 	*x = LatestFinalStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[48]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2434,7 +2631,7 @@ func (x *LatestFinalStorageJobsRequest) String() string {
 func (*LatestFinalStorageJobsRequest) ProtoMessage() {}
 
 func (x *LatestFinalStorageJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[48]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2447,7 +2644,7 @@ func (x *LatestFinalStorageJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LatestFinalStorageJobsRequest.ProtoReflect.Descriptor instead.
 func (*LatestFinalStorageJobsRequest) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{48}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *LatestFinalStorageJobsRequest) GetCids() []string {
@@ -2468,7 +2665,7 @@ type LatestFinalStorageJobsResponse struct {
 func (x *LatestFinalStorageJobsResponse) Reset() {
 	*x = LatestFinalStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[49]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2481,7 +2678,7 @@ func (x *LatestFinalStorageJobsResponse) String() string {
 func (*LatestFinalStorageJobsResponse) ProtoMessage() {}
 
 func (x *LatestFinalStorageJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[49]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2494,7 +2691,7 @@ func (x *LatestFinalStorageJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LatestFinalStorageJobsResponse.ProtoReflect.Descriptor instead.
 func (*LatestFinalStorageJobsResponse) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{49}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *LatestFinalStorageJobsResponse) GetStorageJobs() []*StorageJob {
@@ -2515,7 +2712,7 @@ type LatestSuccessfulStorageJobsRequest struct {
 func (x *LatestSuccessfulStorageJobsRequest) Reset() {
 	*x = LatestSuccessfulStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[50]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2528,7 +2725,7 @@ func (x *LatestSuccessfulStorageJobsRequest) String() string {
 func (*LatestSuccessfulStorageJobsRequest) ProtoMessage() {}
 
 func (x *LatestSuccessfulStorageJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[50]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2541,7 +2738,7 @@ func (x *LatestSuccessfulStorageJobsRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use LatestSuccessfulStorageJobsRequest.ProtoReflect.Descriptor instead.
 func (*LatestSuccessfulStorageJobsRequest) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{50}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *LatestSuccessfulStorageJobsRequest) GetCids() []string {
@@ -2562,7 +2759,7 @@ type LatestSuccessfulStorageJobsResponse struct {
 func (x *LatestSuccessfulStorageJobsResponse) Reset() {
 	*x = LatestSuccessfulStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[51]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2575,7 +2772,7 @@ func (x *LatestSuccessfulStorageJobsResponse) String() string {
 func (*LatestSuccessfulStorageJobsResponse) ProtoMessage() {}
 
 func (x *LatestSuccessfulStorageJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[51]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2588,7 +2785,7 @@ func (x *LatestSuccessfulStorageJobsResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use LatestSuccessfulStorageJobsResponse.ProtoReflect.Descriptor instead.
 func (*LatestSuccessfulStorageJobsResponse) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{51}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *LatestSuccessfulStorageJobsResponse) GetStorageJobs() []*StorageJob {
@@ -2609,7 +2806,7 @@ type StorageJobsSummaryRequest struct {
 func (x *StorageJobsSummaryRequest) Reset() {
 	*x = StorageJobsSummaryRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[52]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2622,7 +2819,7 @@ func (x *StorageJobsSummaryRequest) String() string {
 func (*StorageJobsSummaryRequest) ProtoMessage() {}
 
 func (x *StorageJobsSummaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[52]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2635,7 +2832,7 @@ func (x *StorageJobsSummaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageJobsSummaryRequest.ProtoReflect.Descriptor instead.
 func (*StorageJobsSummaryRequest) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{52}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *StorageJobsSummaryRequest) GetCids() []string {
@@ -2660,7 +2857,7 @@ type StorageJobsSummaryResponse struct {
 func (x *StorageJobsSummaryResponse) Reset() {
 	*x = StorageJobsSummaryResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[53]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2673,7 +2870,7 @@ func (x *StorageJobsSummaryResponse) String() string {
 func (*StorageJobsSummaryResponse) ProtoMessage() {}
 
 func (x *StorageJobsSummaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[53]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2686,7 +2883,7 @@ func (x *StorageJobsSummaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageJobsSummaryResponse.ProtoReflect.Descriptor instead.
 func (*StorageJobsSummaryResponse) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{53}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *StorageJobsSummaryResponse) GetJobCounts() *JobCounts {
@@ -2735,7 +2932,7 @@ type WatchStorageJobsRequest struct {
 func (x *WatchStorageJobsRequest) Reset() {
 	*x = WatchStorageJobsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[54]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2748,7 +2945,7 @@ func (x *WatchStorageJobsRequest) String() string {
 func (*WatchStorageJobsRequest) ProtoMessage() {}
 
 func (x *WatchStorageJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[54]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2761,7 +2958,7 @@ func (x *WatchStorageJobsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchStorageJobsRequest.ProtoReflect.Descriptor instead.
 func (*WatchStorageJobsRequest) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{54}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *WatchStorageJobsRequest) GetJobIds() []string {
@@ -2782,7 +2979,7 @@ type WatchStorageJobsResponse struct {
 func (x *WatchStorageJobsResponse) Reset() {
 	*x = WatchStorageJobsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[55]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2795,7 +2992,7 @@ func (x *WatchStorageJobsResponse) String() string {
 func (*WatchStorageJobsResponse) ProtoMessage() {}
 
 func (x *WatchStorageJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[55]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2808,7 +3005,7 @@ func (x *WatchStorageJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchStorageJobsResponse.ProtoReflect.Descriptor instead.
 func (*WatchStorageJobsResponse) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{55}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *WatchStorageJobsResponse) GetStorageJob() *StorageJob {
@@ -2829,7 +3026,7 @@ type StorageDealRecordsRequest struct {
 func (x *StorageDealRecordsRequest) Reset() {
 	*x = StorageDealRecordsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[56]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2842,7 +3039,7 @@ func (x *StorageDealRecordsRequest) String() string {
 func (*StorageDealRecordsRequest) ProtoMessage() {}
 
 func (x *StorageDealRecordsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[56]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2855,7 +3052,7 @@ func (x *StorageDealRecordsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageDealRecordsRequest.ProtoReflect.Descriptor instead.
 func (*StorageDealRecordsRequest) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{56}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *StorageDealRecordsRequest) GetConfig() *DealRecordsConfig {
@@ -2876,7 +3073,7 @@ type StorageDealRecordsResponse struct {
 func (x *StorageDealRecordsResponse) Reset() {
 	*x = StorageDealRecordsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[57]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2889,7 +3086,7 @@ func (x *StorageDealRecordsResponse) String() string {
 func (*StorageDealRecordsResponse) ProtoMessage() {}
 
 func (x *StorageDealRecordsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[57]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2902,7 +3099,7 @@ func (x *StorageDealRecordsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageDealRecordsResponse.ProtoReflect.Descriptor instead.
 func (*StorageDealRecordsResponse) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{57}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *StorageDealRecordsResponse) GetRecords() []*StorageDealRecord {
@@ -2923,7 +3120,7 @@ type RetrievalDealRecordsRequest struct {
 func (x *RetrievalDealRecordsRequest) Reset() {
 	*x = RetrievalDealRecordsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[58]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2936,7 +3133,7 @@ func (x *RetrievalDealRecordsRequest) String() string {
 func (*RetrievalDealRecordsRequest) ProtoMessage() {}
 
 func (x *RetrievalDealRecordsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[58]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2949,7 +3146,7 @@ func (x *RetrievalDealRecordsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetrievalDealRecordsRequest.ProtoReflect.Descriptor instead.
 func (*RetrievalDealRecordsRequest) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{58}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *RetrievalDealRecordsRequest) GetConfig() *DealRecordsConfig {
@@ -2970,7 +3167,7 @@ type RetrievalDealRecordsResponse struct {
 func (x *RetrievalDealRecordsResponse) Reset() {
 	*x = RetrievalDealRecordsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[59]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2983,7 +3180,7 @@ func (x *RetrievalDealRecordsResponse) String() string {
 func (*RetrievalDealRecordsResponse) ProtoMessage() {}
 
 func (x *RetrievalDealRecordsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[59]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2996,7 +3193,7 @@ func (x *RetrievalDealRecordsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetrievalDealRecordsResponse.ProtoReflect.Descriptor instead.
 func (*RetrievalDealRecordsResponse) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{59}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *RetrievalDealRecordsResponse) GetRecords() []*RetrievalDealRecord {
@@ -3020,7 +3217,7 @@ type JobCounts struct {
 func (x *JobCounts) Reset() {
 	*x = JobCounts{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[60]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3033,7 +3230,7 @@ func (x *JobCounts) String() string {
 func (*JobCounts) ProtoMessage() {}
 
 func (x *JobCounts) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[60]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3046,7 +3243,7 @@ func (x *JobCounts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobCounts.ProtoReflect.Descriptor instead.
 func (*JobCounts) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{60}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *JobCounts) GetQueued() int32 {
@@ -3091,7 +3288,7 @@ type AddrInfo struct {
 func (x *AddrInfo) Reset() {
 	*x = AddrInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[61]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3104,7 +3301,7 @@ func (x *AddrInfo) String() string {
 func (*AddrInfo) ProtoMessage() {}
 
 func (x *AddrInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[61]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3117,7 +3314,7 @@ func (x *AddrInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddrInfo.ProtoReflect.Descriptor instead.
 func (*AddrInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{61}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *AddrInfo) GetName() string {
@@ -3162,7 +3359,7 @@ type CidSummary struct {
 func (x *CidSummary) Reset() {
 	*x = CidSummary{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[62]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3175,7 +3372,7 @@ func (x *CidSummary) String() string {
 func (*CidSummary) ProtoMessage() {}
 
 func (x *CidSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[62]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3188,7 +3385,7 @@ func (x *CidSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CidSummary.ProtoReflect.Descriptor instead.
 func (*CidSummary) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{62}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *CidSummary) GetCid() string {
@@ -3230,7 +3427,7 @@ type IpfsConfig struct {
 func (x *IpfsConfig) Reset() {
 	*x = IpfsConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[63]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3243,7 +3440,7 @@ func (x *IpfsConfig) String() string {
 func (*IpfsConfig) ProtoMessage() {}
 
 func (x *IpfsConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[63]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3256,7 +3453,7 @@ func (x *IpfsConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IpfsConfig.ProtoReflect.Descriptor instead.
 func (*IpfsConfig) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{63}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *IpfsConfig) GetAddTimeout() int64 {
@@ -3280,7 +3477,7 @@ type HotConfig struct {
 func (x *HotConfig) Reset() {
 	*x = HotConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[64]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3293,7 +3490,7 @@ func (x *HotConfig) String() string {
 func (*HotConfig) ProtoMessage() {}
 
 func (x *HotConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[64]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3306,7 +3503,7 @@ func (x *HotConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HotConfig.ProtoReflect.Descriptor instead.
 func (*HotConfig) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{64}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *HotConfig) GetEnabled() bool {
@@ -3349,7 +3546,7 @@ type FilRenew struct {
 func (x *FilRenew) Reset() {
 	*x = FilRenew{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[65]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[67]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3362,7 +3559,7 @@ func (x *FilRenew) String() string {
 func (*FilRenew) ProtoMessage() {}
 
 func (x *FilRenew) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[65]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[67]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3375,7 +3572,7 @@ func (x *FilRenew) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FilRenew.ProtoReflect.Descriptor instead.
 func (*FilRenew) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{65}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *FilRenew) GetEnabled() bool {
@@ -3412,7 +3609,7 @@ type FilConfig struct {
 func (x *FilConfig) Reset() {
 	*x = FilConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[66]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[68]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3425,7 +3622,7 @@ func (x *FilConfig) String() string {
 func (*FilConfig) ProtoMessage() {}
 
 func (x *FilConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[66]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[68]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3438,7 +3635,7 @@ func (x *FilConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FilConfig.ProtoReflect.Descriptor instead.
 func (*FilConfig) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{66}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *FilConfig) GetReplicationFactor() int64 {
@@ -3523,7 +3720,7 @@ type ColdConfig struct {
 func (x *ColdConfig) Reset() {
 	*x = ColdConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[67]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[69]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3536,7 +3733,7 @@ func (x *ColdConfig) String() string {
 func (*ColdConfig) ProtoMessage() {}
 
 func (x *ColdConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[67]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[69]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3549,7 +3746,7 @@ func (x *ColdConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ColdConfig.ProtoReflect.Descriptor instead.
 func (*ColdConfig) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{67}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ColdConfig) GetEnabled() bool {
@@ -3579,7 +3776,7 @@ type StorageConfig struct {
 func (x *StorageConfig) Reset() {
 	*x = StorageConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[68]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[70]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3592,7 +3789,7 @@ func (x *StorageConfig) String() string {
 func (*StorageConfig) ProtoMessage() {}
 
 func (x *StorageConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[68]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[70]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3605,7 +3802,7 @@ func (x *StorageConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageConfig.ProtoReflect.Descriptor instead.
 func (*StorageConfig) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{68}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *StorageConfig) GetHot() *HotConfig {
@@ -3640,7 +3837,7 @@ type IpfsHotInfo struct {
 func (x *IpfsHotInfo) Reset() {
 	*x = IpfsHotInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[69]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[71]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3653,7 +3850,7 @@ func (x *IpfsHotInfo) String() string {
 func (*IpfsHotInfo) ProtoMessage() {}
 
 func (x *IpfsHotInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[69]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[71]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3666,7 +3863,7 @@ func (x *IpfsHotInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IpfsHotInfo.ProtoReflect.Descriptor instead.
 func (*IpfsHotInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{69}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *IpfsHotInfo) GetCreated() int64 {
@@ -3689,7 +3886,7 @@ type HotInfo struct {
 func (x *HotInfo) Reset() {
 	*x = HotInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[70]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[72]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3702,7 +3899,7 @@ func (x *HotInfo) String() string {
 func (*HotInfo) ProtoMessage() {}
 
 func (x *HotInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[70]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[72]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3715,7 +3912,7 @@ func (x *HotInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HotInfo.ProtoReflect.Descriptor instead.
 func (*HotInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{70}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *HotInfo) GetEnabled() bool {
@@ -3757,7 +3954,7 @@ type FilStorage struct {
 func (x *FilStorage) Reset() {
 	*x = FilStorage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[71]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[73]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3770,7 +3967,7 @@ func (x *FilStorage) String() string {
 func (*FilStorage) ProtoMessage() {}
 
 func (x *FilStorage) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[71]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[73]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3783,7 +3980,7 @@ func (x *FilStorage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FilStorage.ProtoReflect.Descriptor instead.
 func (*FilStorage) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{71}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *FilStorage) GetProposalCid() string {
@@ -3855,7 +4052,7 @@ type FilInfo struct {
 func (x *FilInfo) Reset() {
 	*x = FilInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[72]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[74]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3868,7 +4065,7 @@ func (x *FilInfo) String() string {
 func (*FilInfo) ProtoMessage() {}
 
 func (x *FilInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[72]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[74]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3881,7 +4078,7 @@ func (x *FilInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FilInfo.ProtoReflect.Descriptor instead.
 func (*FilInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{72}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *FilInfo) GetDataCid() string {
@@ -3917,7 +4114,7 @@ type ColdInfo struct {
 func (x *ColdInfo) Reset() {
 	*x = ColdInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[73]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[75]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3930,7 +4127,7 @@ func (x *ColdInfo) String() string {
 func (*ColdInfo) ProtoMessage() {}
 
 func (x *ColdInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[73]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[75]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3943,7 +4140,7 @@ func (x *ColdInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ColdInfo.ProtoReflect.Descriptor instead.
 func (*ColdInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{73}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *ColdInfo) GetEnabled() bool {
@@ -3975,7 +4172,7 @@ type StorageInfo struct {
 func (x *StorageInfo) Reset() {
 	*x = StorageInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[74]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[76]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3988,7 +4185,7 @@ func (x *StorageInfo) String() string {
 func (*StorageInfo) ProtoMessage() {}
 
 func (x *StorageInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[74]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[76]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4001,7 +4198,7 @@ func (x *StorageInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageInfo.ProtoReflect.Descriptor instead.
 func (*StorageInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{74}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *StorageInfo) GetJobId() string {
@@ -4056,7 +4253,7 @@ type CidInfo struct {
 func (x *CidInfo) Reset() {
 	*x = CidInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[75]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[77]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4069,7 +4266,7 @@ func (x *CidInfo) String() string {
 func (*CidInfo) ProtoMessage() {}
 
 func (x *CidInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[75]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[77]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4082,7 +4279,7 @@ func (x *CidInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CidInfo.ProtoReflect.Descriptor instead.
 func (*CidInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{75}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *CidInfo) GetCid() string {
@@ -4156,7 +4353,7 @@ type DealInfo struct {
 func (x *DealInfo) Reset() {
 	*x = DealInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[76]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[78]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4169,7 +4366,7 @@ func (x *DealInfo) String() string {
 func (*DealInfo) ProtoMessage() {}
 
 func (x *DealInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[76]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[78]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4182,7 +4379,7 @@ func (x *DealInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DealInfo.ProtoReflect.Descriptor instead.
 func (*DealInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{76}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *DealInfo) GetProposalCid() string {
@@ -4287,7 +4484,7 @@ type StorageJob struct {
 func (x *StorageJob) Reset() {
 	*x = StorageJob{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[77]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[79]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4300,7 +4497,7 @@ func (x *StorageJob) String() string {
 func (*StorageJob) ProtoMessage() {}
 
 func (x *StorageJob) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[77]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[79]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4313,7 +4510,7 @@ func (x *StorageJob) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageJob.ProtoReflect.Descriptor instead.
 func (*StorageJob) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{77}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *StorageJob) GetId() string {
@@ -4385,7 +4582,7 @@ type DealError struct {
 func (x *DealError) Reset() {
 	*x = DealError{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[78]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[80]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4398,7 +4595,7 @@ func (x *DealError) String() string {
 func (*DealError) ProtoMessage() {}
 
 func (x *DealError) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[78]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[80]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4411,7 +4608,7 @@ func (x *DealError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DealError.ProtoReflect.Descriptor instead.
 func (*DealError) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{78}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *DealError) GetProposalCid() string {
@@ -4449,7 +4646,7 @@ type LogEntry struct {
 func (x *LogEntry) Reset() {
 	*x = LogEntry{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[79]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[81]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4462,7 +4659,7 @@ func (x *LogEntry) String() string {
 func (*LogEntry) ProtoMessage() {}
 
 func (x *LogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[79]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[81]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4475,7 +4672,7 @@ func (x *LogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogEntry.ProtoReflect.Descriptor instead.
 func (*LogEntry) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{79}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *LogEntry) GetCid() string {
@@ -4521,7 +4718,7 @@ type DealRecordsConfig struct {
 func (x *DealRecordsConfig) Reset() {
 	*x = DealRecordsConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[80]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[82]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4534,7 +4731,7 @@ func (x *DealRecordsConfig) String() string {
 func (*DealRecordsConfig) ProtoMessage() {}
 
 func (x *DealRecordsConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[80]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[82]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4547,7 +4744,7 @@ func (x *DealRecordsConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DealRecordsConfig.ProtoReflect.Descriptor instead.
 func (*DealRecordsConfig) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{80}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *DealRecordsConfig) GetFromAddrs() []string {
@@ -4607,7 +4804,7 @@ type StorageDealInfo struct {
 func (x *StorageDealInfo) Reset() {
 	*x = StorageDealInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[81]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[83]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4620,7 +4817,7 @@ func (x *StorageDealInfo) String() string {
 func (*StorageDealInfo) ProtoMessage() {}
 
 func (x *StorageDealInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[81]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[83]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4633,7 +4830,7 @@ func (x *StorageDealInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageDealInfo.ProtoReflect.Descriptor instead.
 func (*StorageDealInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{81}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *StorageDealInfo) GetProposalCid() string {
@@ -4735,7 +4932,7 @@ type StorageDealRecord struct {
 func (x *StorageDealRecord) Reset() {
 	*x = StorageDealRecord{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[82]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[84]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4748,7 +4945,7 @@ func (x *StorageDealRecord) String() string {
 func (*StorageDealRecord) ProtoMessage() {}
 
 func (x *StorageDealRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[82]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[84]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4761,7 +4958,7 @@ func (x *StorageDealRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageDealRecord.ProtoReflect.Descriptor instead.
 func (*StorageDealRecord) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{82}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *StorageDealRecord) GetRootCid() string {
@@ -4816,7 +5013,7 @@ type RetrievalDealInfo struct {
 func (x *RetrievalDealInfo) Reset() {
 	*x = RetrievalDealInfo{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[83]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[85]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4829,7 +5026,7 @@ func (x *RetrievalDealInfo) String() string {
 func (*RetrievalDealInfo) ProtoMessage() {}
 
 func (x *RetrievalDealInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[83]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[85]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4842,7 +5039,7 @@ func (x *RetrievalDealInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetrievalDealInfo.ProtoReflect.Descriptor instead.
 func (*RetrievalDealInfo) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{83}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *RetrievalDealInfo) GetRootCid() string {
@@ -4907,7 +5104,7 @@ type RetrievalDealRecord struct {
 func (x *RetrievalDealRecord) Reset() {
 	*x = RetrievalDealRecord{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_powergate_user_v1_user_proto_msgTypes[84]
+		mi := &file_powergate_user_v1_user_proto_msgTypes[86]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4920,7 +5117,7 @@ func (x *RetrievalDealRecord) String() string {
 func (*RetrievalDealRecord) ProtoMessage() {}
 
 func (x *RetrievalDealRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_powergate_user_v1_user_proto_msgTypes[84]
+	mi := &file_powergate_user_v1_user_proto_msgTypes[86]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4933,7 +5130,7 @@ func (x *RetrievalDealRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RetrievalDealRecord.ProtoReflect.Descriptor instead.
 func (*RetrievalDealRecord) Descriptor() ([]byte, []int) {
-	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{84}
+	return file_powergate_user_v1_user_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *RetrievalDealRecord) GetAddress() string {
@@ -5131,7 +5328,28 @@ var file_powergate_user_v1_user_proto_rawDesc = []byte{
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
 	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61,
 	0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x0d, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x2e, 0x0a, 0x18, 0x51, 0x75, 0x65, 0x75, 0x65,
+	0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0xc5, 0x01, 0x0a, 0x16, 0x4c, 0x69, 0x73, 0x74,
+	0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x1d, 0x0a, 0x0a, 0x63, 0x69, 0x64, 0x5f, 0x66, 0x69, 0x6c, 0x74, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x63, 0x69, 0x64, 0x46, 0x69, 0x6c, 0x74, 0x65,
+	0x72, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04,
+	0x52, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x61, 0x73, 0x63, 0x65, 0x6e,
+	0x64, 0x69, 0x6e, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x61, 0x73, 0x63, 0x65,
+	0x6e, 0x64, 0x69, 0x6e, 0x67, 0x12, 0x14, 0x0a, 0x05, 0x61, 0x66, 0x74, 0x65, 0x72, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x61, 0x66, 0x74, 0x65, 0x72, 0x12, 0x42, 0x0a, 0x08, 0x73,
+	0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x26, 0x2e,
+	0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x53, 0x65, 0x6c,
+	0x65, 0x63, 0x74, 0x6f, 0x72, 0x52, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x22,
+	0x85, 0x01, 0x0a, 0x17, 0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a,
+	0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x40, 0x0a, 0x0c, 0x73,
+	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x1d, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73,
+	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
+	0x52, 0x0b, 0x73, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x12, 0x0a,
+	0x04, 0x6d, 0x6f, 0x72, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x04, 0x6d, 0x6f, 0x72,
+	0x65, 0x12, 0x14, 0x0a, 0x05, 0x61, 0x66, 0x74, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x61, 0x66, 0x74, 0x65, 0x72, 0x22, 0x2e, 0x0a, 0x18, 0x51, 0x75, 0x65, 0x75, 0x65,
 	0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75,
 	0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
 	0x09, 0x52, 0x04, 0x63, 0x69, 0x64, 0x73, 0x22, 0x5d, 0x0a, 0x19, 0x51, 0x75, 0x65, 0x75, 0x65,
@@ -5538,207 +5756,226 @@ var file_powergate_user_v1_user_proto_rawDesc = []byte{
 	0x12, 0x17, 0x0a, 0x13, 0x4a, 0x4f, 0x42, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x43,
 	0x41, 0x4e, 0x43, 0x45, 0x4c, 0x45, 0x44, 0x10, 0x04, 0x12, 0x16, 0x0a, 0x12, 0x4a, 0x4f, 0x42,
 	0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x53, 0x55, 0x43, 0x43, 0x45, 0x53, 0x53, 0x10,
-	0x05, 0x32, 0xb2, 0x18, 0x0a, 0x0b, 0x55, 0x73, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
-	0x65, 0x12, 0x58, 0x0a, 0x09, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x23,
-	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x2e, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
-	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x49, 0x6e, 0x66,
-	0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x67, 0x0a, 0x0e, 0x55,
-	0x73, 0x65, 0x72, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x12, 0x28, 0x2e,
+	0x05, 0x2a, 0xc3, 0x01, 0x0a, 0x13, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
+	0x73, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x12, 0x25, 0x0a, 0x21, 0x53, 0x54, 0x4f,
+	0x52, 0x41, 0x47, 0x45, 0x5f, 0x4a, 0x4f, 0x42, 0x53, 0x5f, 0x53, 0x45, 0x4c, 0x45, 0x43, 0x54,
+	0x4f, 0x52, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00,
+	0x12, 0x1d, 0x0a, 0x19, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x4a, 0x4f, 0x42, 0x53,
+	0x5f, 0x53, 0x45, 0x4c, 0x45, 0x43, 0x54, 0x4f, 0x52, 0x5f, 0x41, 0x4c, 0x4c, 0x10, 0x01, 0x12,
+	0x20, 0x0a, 0x1c, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x4a, 0x4f, 0x42, 0x53, 0x5f,
+	0x53, 0x45, 0x4c, 0x45, 0x43, 0x54, 0x4f, 0x52, 0x5f, 0x51, 0x55, 0x45, 0x55, 0x45, 0x44, 0x10,
+	0x02, 0x12, 0x23, 0x0a, 0x1f, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47, 0x45, 0x5f, 0x4a, 0x4f, 0x42,
+	0x53, 0x5f, 0x53, 0x45, 0x4c, 0x45, 0x43, 0x54, 0x4f, 0x52, 0x5f, 0x45, 0x58, 0x45, 0x43, 0x55,
+	0x54, 0x49, 0x4e, 0x47, 0x10, 0x03, 0x12, 0x1f, 0x0a, 0x1b, 0x53, 0x54, 0x4f, 0x52, 0x41, 0x47,
+	0x45, 0x5f, 0x4a, 0x4f, 0x42, 0x53, 0x5f, 0x53, 0x45, 0x4c, 0x45, 0x43, 0x54, 0x4f, 0x52, 0x5f,
+	0x46, 0x49, 0x4e, 0x41, 0x4c, 0x10, 0x04, 0x32, 0x9e, 0x19, 0x0a, 0x0b, 0x55, 0x73, 0x65, 0x72,
+	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x58, 0x0a, 0x09, 0x42, 0x75, 0x69, 0x6c, 0x64,
+	0x49, 0x6e, 0x66, 0x6f, 0x12, 0x23, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65,
+	0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x49, 0x6e,
+	0x66, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x75,
+	0x69, 0x6c, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x67, 0x0a, 0x0e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66,
+	0x69, 0x65, 0x72, 0x12, 0x28, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
+	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x65, 0x6e,
+	0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e,
 	0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76,
 	0x31, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x29, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
-	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x73, 0x65, 0x72,
-	0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x79, 0x0a, 0x14, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53,
-	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x2e, 0x2e, 0x70,
-	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x70,
-	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x79, 0x0a, 0x14, 0x44, 0x65,
+	0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x12, 0x2e, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75,
+	0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75,
+	0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x82, 0x01, 0x0a, 0x17, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66,
+	0x61, 0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x12, 0x31, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73,
+	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74,
+	0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65,
+	0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61,
+	0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x73, 0x0a, 0x12, 0x41, 0x70,
+	0x70, 0x6c, 0x79, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+	0x12, 0x2c, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65,
+	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x79, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
+	0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d,
+	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x41, 0x70, 0x70, 0x6c, 0x79, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43,
 	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
-	0x82, 0x01, 0x0a, 0x17, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74,
-	0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x31, 0x2e, 0x70, 0x6f,
+	0x4f, 0x0a, 0x06, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x12, 0x20, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65,
+	0x6d, 0x6f, 0x76, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x70, 0x6f,
 	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
-	0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32,
-	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x2e, 0x53, 0x65, 0x74, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x53, 0x74, 0x6f,
-	0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x73, 0x0a, 0x12, 0x41, 0x70, 0x70, 0x6c, 0x79, 0x53, 0x74, 0x6f,
-	0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x2c, 0x2e, 0x70, 0x6f, 0x77,
-	0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41,
-	0x70, 0x70, 0x6c, 0x79, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
-	0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x70, 0x70,
-	0x6c, 0x79, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4f, 0x0a, 0x06, 0x52, 0x65, 0x6d,
-	0x6f, 0x76, 0x65, 0x12, 0x20, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
-	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x21, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
-	0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x4e, 0x0a, 0x05, 0x53, 0x74,
-	0x61, 0x67, 0x65, 0x12, 0x1f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
-	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65,
-	0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x61, 0x67, 0x65, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x12, 0x55, 0x0a, 0x08, 0x53, 0x74,
-	0x61, 0x67, 0x65, 0x43, 0x69, 0x64, 0x12, 0x22, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
-	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x61, 0x67, 0x65,
-	0x43, 0x69, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x70, 0x6f, 0x77,
+	0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x4e, 0x0a, 0x05, 0x53, 0x74, 0x61, 0x67, 0x65, 0x12, 0x1f, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74,
+	0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e, 0x70, 0x6f, 0x77,
 	0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53,
-	0x74, 0x61, 0x67, 0x65, 0x43, 0x69, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x5e, 0x0a, 0x0b, 0x52, 0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x44, 0x61, 0x74, 0x61,
-	0x12, 0x25, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65,
-	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x44, 0x61, 0x74, 0x61,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
-	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x70, 0x6c,
-	0x61, 0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x48, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x1d, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
-	0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
-	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x5a, 0x0a, 0x09, 0x57,
-	0x61, 0x74, 0x63, 0x68, 0x4c, 0x6f, 0x67, 0x73, 0x12, 0x23, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
-	0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x61, 0x74,
-	0x63, 0x68, 0x4c, 0x6f, 0x67, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e,
+	0x74, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01,
+	0x12, 0x55, 0x0a, 0x08, 0x53, 0x74, 0x61, 0x67, 0x65, 0x43, 0x69, 0x64, 0x12, 0x22, 0x2e, 0x70,
+	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x2e, 0x53, 0x74, 0x61, 0x67, 0x65, 0x43, 0x69, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x23, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65,
+	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x61, 0x67, 0x65, 0x43, 0x69, 0x64, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5e, 0x0a, 0x0b, 0x52, 0x65, 0x70, 0x6c, 0x61,
+	0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x12, 0x25, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
+	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x61,
+	0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e,
 	0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76,
-	0x31, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4c, 0x6f, 0x67, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x5b, 0x0a, 0x0a, 0x43, 0x69, 0x64, 0x53, 0x75,
-	0x6d, 0x6d, 0x61, 0x72, 0x79, 0x12, 0x24, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
-	0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x69, 0x64, 0x53, 0x75, 0x6d,
-	0x6d, 0x61, 0x72, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x70, 0x6f,
-	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
-	0x43, 0x69, 0x64, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x07, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x12,
-	0x21, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72,
-	0x2e, 0x76, 0x31, 0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x22, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75,
-	0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x07, 0x42, 0x61, 0x6c, 0x61,
-	0x6e, 0x63, 0x65, 0x12, 0x21, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
-	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
-	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x61, 0x6c, 0x61, 0x6e,
-	0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5b, 0x0a, 0x0a,
-	0x4e, 0x65, 0x77, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x24, 0x2e, 0x70, 0x6f, 0x77,
-	0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4e,
-	0x65, 0x77, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x25, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65,
-	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4e, 0x65, 0x77, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x58, 0x0a, 0x09, 0x41, 0x64, 0x64,
-	0x72, 0x65, 0x73, 0x73, 0x65, 0x73, 0x12, 0x23, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
-	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65,
-	0x73, 0x73, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x70, 0x6f,
-	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
-	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x07, 0x53, 0x65, 0x6e, 0x64, 0x46, 0x69, 0x6c, 0x12, 0x21,
+	0x31, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x48, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x1d,
 	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x2e, 0x53, 0x65, 0x6e, 0x64, 0x46, 0x69, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x22, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73,
-	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x6e, 0x64, 0x46, 0x69, 0x6c, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5e, 0x0a, 0x0b, 0x53, 0x69, 0x67, 0x6e, 0x4d,
-	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x25, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
-	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x4d,
-	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e,
+	0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e,
 	0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76,
-	0x31, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x64, 0x0a, 0x0d, 0x56, 0x65, 0x72, 0x69, 0x66,
-	0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x27, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
-	0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x65, 0x72,
-	0x69, 0x66, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x1a, 0x28, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73,
-	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x4d, 0x65, 0x73, 0x73,
-	0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5b, 0x0a,
-	0x0a, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x12, 0x24, 0x2e, 0x70, 0x6f,
+	0x31, 0x2e, 0x47, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x30,
+	0x01, 0x12, 0x5a, 0x0a, 0x09, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4c, 0x6f, 0x67, 0x73, 0x12, 0x23,
+	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4c, 0x6f, 0x67, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
+	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x4c, 0x6f, 0x67,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x5b, 0x0a,
+	0x0a, 0x43, 0x69, 0x64, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x12, 0x24, 0x2e, 0x70, 0x6f,
 	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
-	0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x43, 0x69, 0x64, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x1a, 0x25, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73,
+	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x69, 0x64, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x07, 0x43, 0x69,
+	0x64, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x21, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
+	0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x69, 0x64, 0x49, 0x6e, 0x66,
+	0x6f, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
+	0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x69, 0x64,
+	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52,
+	0x0a, 0x07, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x12, 0x21, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x61,
+	0x6c, 0x61, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x70,
+	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x2e, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x5b, 0x0a, 0x0a, 0x4e, 0x65, 0x77, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
+	0x12, 0x24, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65,
+	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4e, 0x65, 0x77, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
+	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4e, 0x65, 0x77, 0x41, 0x64,
+	0x64, 0x72, 0x65, 0x73, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x58, 0x0a, 0x09, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x65, 0x73, 0x12, 0x23, 0x2e, 0x70,
+	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x24, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73,
+	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x65, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x52, 0x0a, 0x07, 0x53, 0x65, 0x6e,
+	0x64, 0x46, 0x69, 0x6c, 0x12, 0x21, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65,
+	0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x6e, 0x64, 0x46, 0x69, 0x6c,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
+	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x65, 0x6e, 0x64,
+	0x46, 0x69, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5e, 0x0a,
+	0x0b, 0x53, 0x69, 0x67, 0x6e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x25, 0x2e, 0x70,
+	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x2e, 0x53, 0x69, 0x67, 0x6e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
+	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x4d, 0x65, 0x73, 0x73,
+	0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x64, 0x0a,
+	0x0d, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x27,
+	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x28, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
+	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x65, 0x72, 0x69,
+	0x66, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x5b, 0x0a, 0x0a, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f,
+	0x62, 0x12, 0x24, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73,
 	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x76, 0x0a, 0x13, 0x53, 0x74,
-	0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x46, 0x6f, 0x72, 0x4a, 0x6f,
-	0x62, 0x12, 0x2d, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73,
-	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x46, 0x6f, 0x72, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x2e, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65,
-	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x46, 0x6f, 0x72, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x70, 0x0a, 0x11, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72,
-	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2b, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
-	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x75,
-	0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65,
-	0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
+	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x76, 0x0a, 0x13, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x46, 0x6f, 0x72, 0x4a, 0x6f, 0x62, 0x12, 0x2d, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
+	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x46, 0x6f, 0x72, 0x4a, 0x6f, 0x62, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
+	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61,
+	0x67, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x46, 0x6f, 0x72, 0x4a, 0x6f, 0x62, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x6a, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74,
+	0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x29, 0x2e, 0x70, 0x6f,
+	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
+	0x4c, 0x69, 0x73, 0x74, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
+	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x53,
 	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x79, 0x0a, 0x14, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e,
-	0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2e, 0x2e, 0x70,
-	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x70,
-	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
-	0x7f, 0x0a, 0x16, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74,
-	0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x30, 0x2e, 0x70, 0x6f, 0x77, 0x65,
-	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x61,
-	0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65,
-	0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x70, 0x6f,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x70, 0x0a, 0x11, 0x51, 0x75, 0x65, 0x75, 0x65, 0x64, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2b, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
+	0x65, 0x75, 0x65, 0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
+	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x75, 0x65,
+	0x64, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x79, 0x0a, 0x14, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74,
+	0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2e,
+	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f,
+	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6e, 0x67, 0x53, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x7f, 0x0a, 0x16, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c,
+	0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x30, 0x2e, 0x70, 0x6f,
 	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
 	0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61,
-	0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x8e, 0x01, 0x0a, 0x1b, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65,
-	0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73,
-	0x12, 0x35, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65,
-	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65,
-	0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
-	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x61, 0x74, 0x65,
-	0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72,
-	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x73, 0x0a, 0x12, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73,
-	0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x12, 0x2c, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
+	0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e,
+	0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x2e, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x46, 0x69, 0x6e, 0x61, 0x6c, 0x53, 0x74, 0x6f,
+	0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x8e, 0x01, 0x0a, 0x1b, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63,
+	0x63, 0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f,
+	0x62, 0x73, 0x12, 0x35, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75,
+	0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x61, 0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63,
+	0x63, 0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f,
+	0x62, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x36, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x61,
+	0x74, 0x65, 0x73, 0x74, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x66, 0x75, 0x6c, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x73, 0x0a, 0x12, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f,
+	0x62, 0x73, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x12, 0x2c, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
 	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72,
 	0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
-	0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x4a, 0x6f, 0x62, 0x73, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x6f, 0x0a, 0x10, 0x57, 0x61, 0x74, 0x63, 0x68, 0x53,
-	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2a, 0x2e, 0x70, 0x6f, 0x77,
-	0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x57,
-	0x61, 0x74, 0x63, 0x68, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61,
-	0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x61, 0x74, 0x63, 0x68,
-	0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x6d, 0x0a, 0x10, 0x43, 0x61, 0x6e, 0x63, 0x65,
-	0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x12, 0x2a, 0x2e, 0x70, 0x6f,
-	0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
-	0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67,
-	0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x61, 0x6e, 0x63,
-	0x65, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x73, 0x0a, 0x12, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x2c, 0x2e, 0x70,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x6f, 0x0a, 0x10, 0x57, 0x61, 0x74, 0x63,
+	0x68, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x12, 0x2a, 0x2e, 0x70,
+	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x2e, 0x57, 0x61, 0x74, 0x63, 0x68, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72,
+	0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x57, 0x61, 0x74,
+	0x63, 0x68, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x6d, 0x0a, 0x10, 0x43, 0x61, 0x6e,
+	0x63, 0x65, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x12, 0x2a, 0x2e,
+	0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x2e, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a,
+	0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x70, 0x6f, 0x77, 0x65,
+	0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x61,
+	0x6e, 0x63, 0x65, 0x6c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x73, 0x0a, 0x12, 0x53, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x2c,
+	0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65,
+	0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d, 0x2e, 0x70,
 	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31,
 	0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f,
-	0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d, 0x2e, 0x70, 0x6f, 0x77,
-	0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53,
-	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64,
-	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x79, 0x0a, 0x14, 0x52,
-	0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f,
-	0x72, 0x64, 0x73, 0x12, 0x2e, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
-	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61,
-	0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2e,
-	0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61,
-	0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x41, 0x5a, 0x3f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x65, 0x78, 0x74, 0x69, 0x6c, 0x65, 0x69, 0x6f, 0x2f, 0x70,
-	0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x65, 0x6e,
-	0x2f, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2f, 0x75, 0x73, 0x65, 0x72, 0x2f,
-	0x76, 0x31, 0x3b, 0x75, 0x73, 0x65, 0x72, 0x50, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x72, 0x64, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x79, 0x0a,
+	0x14, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65,
+	0x63, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x2e, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
+	0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65,
+	0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74,
+	0x65, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65,
+	0x76, 0x61, 0x6c, 0x44, 0x65, 0x61, 0x6c, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x41, 0x5a, 0x3f, 0x67, 0x69, 0x74, 0x68,
+	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x74, 0x65, 0x78, 0x74, 0x69, 0x6c, 0x65, 0x69, 0x6f,
+	0x2f, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x67,
+	0x65, 0x6e, 0x2f, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x67, 0x61, 0x74, 0x65, 0x2f, 0x75, 0x73, 0x65,
+	0x72, 0x2f, 0x76, 0x31, 0x3b, 0x75, 0x73, 0x65, 0x72, 0x50, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -5753,206 +5990,213 @@ func file_powergate_user_v1_user_proto_rawDescGZIP() []byte {
 	return file_powergate_user_v1_user_proto_rawDescData
 }
 
-var file_powergate_user_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_powergate_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 85)
+var file_powergate_user_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_powergate_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 87)
 var file_powergate_user_v1_user_proto_goTypes = []interface{}{
 	(JobStatus)(0),                              // 0: powergate.user.v1.JobStatus
-	(*BuildInfoRequest)(nil),                    // 1: powergate.user.v1.BuildInfoRequest
-	(*BuildInfoResponse)(nil),                   // 2: powergate.user.v1.BuildInfoResponse
-	(*UserIdentifierRequest)(nil),               // 3: powergate.user.v1.UserIdentifierRequest
-	(*UserIdentifierResponse)(nil),              // 4: powergate.user.v1.UserIdentifierResponse
-	(*DefaultStorageConfigRequest)(nil),         // 5: powergate.user.v1.DefaultStorageConfigRequest
-	(*DefaultStorageConfigResponse)(nil),        // 6: powergate.user.v1.DefaultStorageConfigResponse
-	(*SetDefaultStorageConfigRequest)(nil),      // 7: powergate.user.v1.SetDefaultStorageConfigRequest
-	(*SetDefaultStorageConfigResponse)(nil),     // 8: powergate.user.v1.SetDefaultStorageConfigResponse
-	(*StageRequest)(nil),                        // 9: powergate.user.v1.StageRequest
-	(*StageResponse)(nil),                       // 10: powergate.user.v1.StageResponse
-	(*StageCidRequest)(nil),                     // 11: powergate.user.v1.StageCidRequest
-	(*StageCidResponse)(nil),                    // 12: powergate.user.v1.StageCidResponse
-	(*ApplyStorageConfigRequest)(nil),           // 13: powergate.user.v1.ApplyStorageConfigRequest
-	(*ApplyStorageConfigResponse)(nil),          // 14: powergate.user.v1.ApplyStorageConfigResponse
-	(*ReplaceDataRequest)(nil),                  // 15: powergate.user.v1.ReplaceDataRequest
-	(*ReplaceDataResponse)(nil),                 // 16: powergate.user.v1.ReplaceDataResponse
-	(*GetRequest)(nil),                          // 17: powergate.user.v1.GetRequest
-	(*GetResponse)(nil),                         // 18: powergate.user.v1.GetResponse
-	(*RemoveRequest)(nil),                       // 19: powergate.user.v1.RemoveRequest
-	(*RemoveResponse)(nil),                      // 20: powergate.user.v1.RemoveResponse
-	(*WatchLogsRequest)(nil),                    // 21: powergate.user.v1.WatchLogsRequest
-	(*WatchLogsResponse)(nil),                   // 22: powergate.user.v1.WatchLogsResponse
-	(*CidSummaryRequest)(nil),                   // 23: powergate.user.v1.CidSummaryRequest
-	(*CidSummaryResponse)(nil),                  // 24: powergate.user.v1.CidSummaryResponse
-	(*CidInfoRequest)(nil),                      // 25: powergate.user.v1.CidInfoRequest
-	(*CidInfoResponse)(nil),                     // 26: powergate.user.v1.CidInfoResponse
-	(*BalanceRequest)(nil),                      // 27: powergate.user.v1.BalanceRequest
-	(*BalanceResponse)(nil),                     // 28: powergate.user.v1.BalanceResponse
-	(*NewAddressRequest)(nil),                   // 29: powergate.user.v1.NewAddressRequest
-	(*NewAddressResponse)(nil),                  // 30: powergate.user.v1.NewAddressResponse
-	(*AddressesRequest)(nil),                    // 31: powergate.user.v1.AddressesRequest
-	(*AddressesResponse)(nil),                   // 32: powergate.user.v1.AddressesResponse
-	(*SendFilRequest)(nil),                      // 33: powergate.user.v1.SendFilRequest
-	(*SendFilResponse)(nil),                     // 34: powergate.user.v1.SendFilResponse
-	(*SignMessageRequest)(nil),                  // 35: powergate.user.v1.SignMessageRequest
-	(*SignMessageResponse)(nil),                 // 36: powergate.user.v1.SignMessageResponse
-	(*VerifyMessageRequest)(nil),                // 37: powergate.user.v1.VerifyMessageRequest
-	(*VerifyMessageResponse)(nil),               // 38: powergate.user.v1.VerifyMessageResponse
-	(*CancelStorageJobRequest)(nil),             // 39: powergate.user.v1.CancelStorageJobRequest
-	(*CancelStorageJobResponse)(nil),            // 40: powergate.user.v1.CancelStorageJobResponse
-	(*StorageJobRequest)(nil),                   // 41: powergate.user.v1.StorageJobRequest
-	(*StorageJobResponse)(nil),                  // 42: powergate.user.v1.StorageJobResponse
-	(*StorageConfigForJobRequest)(nil),          // 43: powergate.user.v1.StorageConfigForJobRequest
-	(*StorageConfigForJobResponse)(nil),         // 44: powergate.user.v1.StorageConfigForJobResponse
-	(*QueuedStorageJobsRequest)(nil),            // 45: powergate.user.v1.QueuedStorageJobsRequest
-	(*QueuedStorageJobsResponse)(nil),           // 46: powergate.user.v1.QueuedStorageJobsResponse
-	(*ExecutingStorageJobsRequest)(nil),         // 47: powergate.user.v1.ExecutingStorageJobsRequest
-	(*ExecutingStorageJobsResponse)(nil),        // 48: powergate.user.v1.ExecutingStorageJobsResponse
-	(*LatestFinalStorageJobsRequest)(nil),       // 49: powergate.user.v1.LatestFinalStorageJobsRequest
-	(*LatestFinalStorageJobsResponse)(nil),      // 50: powergate.user.v1.LatestFinalStorageJobsResponse
-	(*LatestSuccessfulStorageJobsRequest)(nil),  // 51: powergate.user.v1.LatestSuccessfulStorageJobsRequest
-	(*LatestSuccessfulStorageJobsResponse)(nil), // 52: powergate.user.v1.LatestSuccessfulStorageJobsResponse
-	(*StorageJobsSummaryRequest)(nil),           // 53: powergate.user.v1.StorageJobsSummaryRequest
-	(*StorageJobsSummaryResponse)(nil),          // 54: powergate.user.v1.StorageJobsSummaryResponse
-	(*WatchStorageJobsRequest)(nil),             // 55: powergate.user.v1.WatchStorageJobsRequest
-	(*WatchStorageJobsResponse)(nil),            // 56: powergate.user.v1.WatchStorageJobsResponse
-	(*StorageDealRecordsRequest)(nil),           // 57: powergate.user.v1.StorageDealRecordsRequest
-	(*StorageDealRecordsResponse)(nil),          // 58: powergate.user.v1.StorageDealRecordsResponse
-	(*RetrievalDealRecordsRequest)(nil),         // 59: powergate.user.v1.RetrievalDealRecordsRequest
-	(*RetrievalDealRecordsResponse)(nil),        // 60: powergate.user.v1.RetrievalDealRecordsResponse
-	(*JobCounts)(nil),                           // 61: powergate.user.v1.JobCounts
-	(*AddrInfo)(nil),                            // 62: powergate.user.v1.AddrInfo
-	(*CidSummary)(nil),                          // 63: powergate.user.v1.CidSummary
-	(*IpfsConfig)(nil),                          // 64: powergate.user.v1.IpfsConfig
-	(*HotConfig)(nil),                           // 65: powergate.user.v1.HotConfig
-	(*FilRenew)(nil),                            // 66: powergate.user.v1.FilRenew
-	(*FilConfig)(nil),                           // 67: powergate.user.v1.FilConfig
-	(*ColdConfig)(nil),                          // 68: powergate.user.v1.ColdConfig
-	(*StorageConfig)(nil),                       // 69: powergate.user.v1.StorageConfig
-	(*IpfsHotInfo)(nil),                         // 70: powergate.user.v1.IpfsHotInfo
-	(*HotInfo)(nil),                             // 71: powergate.user.v1.HotInfo
-	(*FilStorage)(nil),                          // 72: powergate.user.v1.FilStorage
-	(*FilInfo)(nil),                             // 73: powergate.user.v1.FilInfo
-	(*ColdInfo)(nil),                            // 74: powergate.user.v1.ColdInfo
-	(*StorageInfo)(nil),                         // 75: powergate.user.v1.StorageInfo
-	(*CidInfo)(nil),                             // 76: powergate.user.v1.CidInfo
-	(*DealInfo)(nil),                            // 77: powergate.user.v1.DealInfo
-	(*StorageJob)(nil),                          // 78: powergate.user.v1.StorageJob
-	(*DealError)(nil),                           // 79: powergate.user.v1.DealError
-	(*LogEntry)(nil),                            // 80: powergate.user.v1.LogEntry
-	(*DealRecordsConfig)(nil),                   // 81: powergate.user.v1.DealRecordsConfig
-	(*StorageDealInfo)(nil),                     // 82: powergate.user.v1.StorageDealInfo
-	(*StorageDealRecord)(nil),                   // 83: powergate.user.v1.StorageDealRecord
-	(*RetrievalDealInfo)(nil),                   // 84: powergate.user.v1.RetrievalDealInfo
-	(*RetrievalDealRecord)(nil),                 // 85: powergate.user.v1.RetrievalDealRecord
+	(StorageJobsSelector)(0),                    // 1: powergate.user.v1.StorageJobsSelector
+	(*BuildInfoRequest)(nil),                    // 2: powergate.user.v1.BuildInfoRequest
+	(*BuildInfoResponse)(nil),                   // 3: powergate.user.v1.BuildInfoResponse
+	(*UserIdentifierRequest)(nil),               // 4: powergate.user.v1.UserIdentifierRequest
+	(*UserIdentifierResponse)(nil),              // 5: powergate.user.v1.UserIdentifierResponse
+	(*DefaultStorageConfigRequest)(nil),         // 6: powergate.user.v1.DefaultStorageConfigRequest
+	(*DefaultStorageConfigResponse)(nil),        // 7: powergate.user.v1.DefaultStorageConfigResponse
+	(*SetDefaultStorageConfigRequest)(nil),      // 8: powergate.user.v1.SetDefaultStorageConfigRequest
+	(*SetDefaultStorageConfigResponse)(nil),     // 9: powergate.user.v1.SetDefaultStorageConfigResponse
+	(*StageRequest)(nil),                        // 10: powergate.user.v1.StageRequest
+	(*StageResponse)(nil),                       // 11: powergate.user.v1.StageResponse
+	(*StageCidRequest)(nil),                     // 12: powergate.user.v1.StageCidRequest
+	(*StageCidResponse)(nil),                    // 13: powergate.user.v1.StageCidResponse
+	(*ApplyStorageConfigRequest)(nil),           // 14: powergate.user.v1.ApplyStorageConfigRequest
+	(*ApplyStorageConfigResponse)(nil),          // 15: powergate.user.v1.ApplyStorageConfigResponse
+	(*ReplaceDataRequest)(nil),                  // 16: powergate.user.v1.ReplaceDataRequest
+	(*ReplaceDataResponse)(nil),                 // 17: powergate.user.v1.ReplaceDataResponse
+	(*GetRequest)(nil),                          // 18: powergate.user.v1.GetRequest
+	(*GetResponse)(nil),                         // 19: powergate.user.v1.GetResponse
+	(*RemoveRequest)(nil),                       // 20: powergate.user.v1.RemoveRequest
+	(*RemoveResponse)(nil),                      // 21: powergate.user.v1.RemoveResponse
+	(*WatchLogsRequest)(nil),                    // 22: powergate.user.v1.WatchLogsRequest
+	(*WatchLogsResponse)(nil),                   // 23: powergate.user.v1.WatchLogsResponse
+	(*CidSummaryRequest)(nil),                   // 24: powergate.user.v1.CidSummaryRequest
+	(*CidSummaryResponse)(nil),                  // 25: powergate.user.v1.CidSummaryResponse
+	(*CidInfoRequest)(nil),                      // 26: powergate.user.v1.CidInfoRequest
+	(*CidInfoResponse)(nil),                     // 27: powergate.user.v1.CidInfoResponse
+	(*BalanceRequest)(nil),                      // 28: powergate.user.v1.BalanceRequest
+	(*BalanceResponse)(nil),                     // 29: powergate.user.v1.BalanceResponse
+	(*NewAddressRequest)(nil),                   // 30: powergate.user.v1.NewAddressRequest
+	(*NewAddressResponse)(nil),                  // 31: powergate.user.v1.NewAddressResponse
+	(*AddressesRequest)(nil),                    // 32: powergate.user.v1.AddressesRequest
+	(*AddressesResponse)(nil),                   // 33: powergate.user.v1.AddressesResponse
+	(*SendFilRequest)(nil),                      // 34: powergate.user.v1.SendFilRequest
+	(*SendFilResponse)(nil),                     // 35: powergate.user.v1.SendFilResponse
+	(*SignMessageRequest)(nil),                  // 36: powergate.user.v1.SignMessageRequest
+	(*SignMessageResponse)(nil),                 // 37: powergate.user.v1.SignMessageResponse
+	(*VerifyMessageRequest)(nil),                // 38: powergate.user.v1.VerifyMessageRequest
+	(*VerifyMessageResponse)(nil),               // 39: powergate.user.v1.VerifyMessageResponse
+	(*CancelStorageJobRequest)(nil),             // 40: powergate.user.v1.CancelStorageJobRequest
+	(*CancelStorageJobResponse)(nil),            // 41: powergate.user.v1.CancelStorageJobResponse
+	(*StorageJobRequest)(nil),                   // 42: powergate.user.v1.StorageJobRequest
+	(*StorageJobResponse)(nil),                  // 43: powergate.user.v1.StorageJobResponse
+	(*StorageConfigForJobRequest)(nil),          // 44: powergate.user.v1.StorageConfigForJobRequest
+	(*StorageConfigForJobResponse)(nil),         // 45: powergate.user.v1.StorageConfigForJobResponse
+	(*ListStorageJobsRequest)(nil),              // 46: powergate.user.v1.ListStorageJobsRequest
+	(*ListStorageJobsResponse)(nil),             // 47: powergate.user.v1.ListStorageJobsResponse
+	(*QueuedStorageJobsRequest)(nil),            // 48: powergate.user.v1.QueuedStorageJobsRequest
+	(*QueuedStorageJobsResponse)(nil),           // 49: powergate.user.v1.QueuedStorageJobsResponse
+	(*ExecutingStorageJobsRequest)(nil),         // 50: powergate.user.v1.ExecutingStorageJobsRequest
+	(*ExecutingStorageJobsResponse)(nil),        // 51: powergate.user.v1.ExecutingStorageJobsResponse
+	(*LatestFinalStorageJobsRequest)(nil),       // 52: powergate.user.v1.LatestFinalStorageJobsRequest
+	(*LatestFinalStorageJobsResponse)(nil),      // 53: powergate.user.v1.LatestFinalStorageJobsResponse
+	(*LatestSuccessfulStorageJobsRequest)(nil),  // 54: powergate.user.v1.LatestSuccessfulStorageJobsRequest
+	(*LatestSuccessfulStorageJobsResponse)(nil), // 55: powergate.user.v1.LatestSuccessfulStorageJobsResponse
+	(*StorageJobsSummaryRequest)(nil),           // 56: powergate.user.v1.StorageJobsSummaryRequest
+	(*StorageJobsSummaryResponse)(nil),          // 57: powergate.user.v1.StorageJobsSummaryResponse
+	(*WatchStorageJobsRequest)(nil),             // 58: powergate.user.v1.WatchStorageJobsRequest
+	(*WatchStorageJobsResponse)(nil),            // 59: powergate.user.v1.WatchStorageJobsResponse
+	(*StorageDealRecordsRequest)(nil),           // 60: powergate.user.v1.StorageDealRecordsRequest
+	(*StorageDealRecordsResponse)(nil),          // 61: powergate.user.v1.StorageDealRecordsResponse
+	(*RetrievalDealRecordsRequest)(nil),         // 62: powergate.user.v1.RetrievalDealRecordsRequest
+	(*RetrievalDealRecordsResponse)(nil),        // 63: powergate.user.v1.RetrievalDealRecordsResponse
+	(*JobCounts)(nil),                           // 64: powergate.user.v1.JobCounts
+	(*AddrInfo)(nil),                            // 65: powergate.user.v1.AddrInfo
+	(*CidSummary)(nil),                          // 66: powergate.user.v1.CidSummary
+	(*IpfsConfig)(nil),                          // 67: powergate.user.v1.IpfsConfig
+	(*HotConfig)(nil),                           // 68: powergate.user.v1.HotConfig
+	(*FilRenew)(nil),                            // 69: powergate.user.v1.FilRenew
+	(*FilConfig)(nil),                           // 70: powergate.user.v1.FilConfig
+	(*ColdConfig)(nil),                          // 71: powergate.user.v1.ColdConfig
+	(*StorageConfig)(nil),                       // 72: powergate.user.v1.StorageConfig
+	(*IpfsHotInfo)(nil),                         // 73: powergate.user.v1.IpfsHotInfo
+	(*HotInfo)(nil),                             // 74: powergate.user.v1.HotInfo
+	(*FilStorage)(nil),                          // 75: powergate.user.v1.FilStorage
+	(*FilInfo)(nil),                             // 76: powergate.user.v1.FilInfo
+	(*ColdInfo)(nil),                            // 77: powergate.user.v1.ColdInfo
+	(*StorageInfo)(nil),                         // 78: powergate.user.v1.StorageInfo
+	(*CidInfo)(nil),                             // 79: powergate.user.v1.CidInfo
+	(*DealInfo)(nil),                            // 80: powergate.user.v1.DealInfo
+	(*StorageJob)(nil),                          // 81: powergate.user.v1.StorageJob
+	(*DealError)(nil),                           // 82: powergate.user.v1.DealError
+	(*LogEntry)(nil),                            // 83: powergate.user.v1.LogEntry
+	(*DealRecordsConfig)(nil),                   // 84: powergate.user.v1.DealRecordsConfig
+	(*StorageDealInfo)(nil),                     // 85: powergate.user.v1.StorageDealInfo
+	(*StorageDealRecord)(nil),                   // 86: powergate.user.v1.StorageDealRecord
+	(*RetrievalDealInfo)(nil),                   // 87: powergate.user.v1.RetrievalDealInfo
+	(*RetrievalDealRecord)(nil),                 // 88: powergate.user.v1.RetrievalDealRecord
 }
 var file_powergate_user_v1_user_proto_depIdxs = []int32{
-	69, // 0: powergate.user.v1.DefaultStorageConfigResponse.default_storage_config:type_name -> powergate.user.v1.StorageConfig
-	69, // 1: powergate.user.v1.SetDefaultStorageConfigRequest.config:type_name -> powergate.user.v1.StorageConfig
-	69, // 2: powergate.user.v1.ApplyStorageConfigRequest.config:type_name -> powergate.user.v1.StorageConfig
-	80, // 3: powergate.user.v1.WatchLogsResponse.log_entry:type_name -> powergate.user.v1.LogEntry
-	63, // 4: powergate.user.v1.CidSummaryResponse.cid_summary:type_name -> powergate.user.v1.CidSummary
-	76, // 5: powergate.user.v1.CidInfoResponse.cid_info:type_name -> powergate.user.v1.CidInfo
-	62, // 6: powergate.user.v1.AddressesResponse.addresses:type_name -> powergate.user.v1.AddrInfo
-	78, // 7: powergate.user.v1.StorageJobResponse.storage_job:type_name -> powergate.user.v1.StorageJob
-	69, // 8: powergate.user.v1.StorageConfigForJobResponse.storage_config:type_name -> powergate.user.v1.StorageConfig
-	78, // 9: powergate.user.v1.QueuedStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
-	78, // 10: powergate.user.v1.ExecutingStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
-	78, // 11: powergate.user.v1.LatestFinalStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
-	78, // 12: powergate.user.v1.LatestSuccessfulStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
-	61, // 13: powergate.user.v1.StorageJobsSummaryResponse.job_counts:type_name -> powergate.user.v1.JobCounts
-	78, // 14: powergate.user.v1.StorageJobsSummaryResponse.queued_storage_jobs:type_name -> powergate.user.v1.StorageJob
-	78, // 15: powergate.user.v1.StorageJobsSummaryResponse.executing_storage_jobs:type_name -> powergate.user.v1.StorageJob
-	78, // 16: powergate.user.v1.StorageJobsSummaryResponse.latest_final_storage_jobs:type_name -> powergate.user.v1.StorageJob
-	78, // 17: powergate.user.v1.StorageJobsSummaryResponse.latest_successful_storage_jobs:type_name -> powergate.user.v1.StorageJob
-	78, // 18: powergate.user.v1.WatchStorageJobsResponse.storage_job:type_name -> powergate.user.v1.StorageJob
-	81, // 19: powergate.user.v1.StorageDealRecordsRequest.config:type_name -> powergate.user.v1.DealRecordsConfig
-	83, // 20: powergate.user.v1.StorageDealRecordsResponse.records:type_name -> powergate.user.v1.StorageDealRecord
-	81, // 21: powergate.user.v1.RetrievalDealRecordsRequest.config:type_name -> powergate.user.v1.DealRecordsConfig
-	85, // 22: powergate.user.v1.RetrievalDealRecordsResponse.records:type_name -> powergate.user.v1.RetrievalDealRecord
-	64, // 23: powergate.user.v1.HotConfig.ipfs:type_name -> powergate.user.v1.IpfsConfig
-	66, // 24: powergate.user.v1.FilConfig.renew:type_name -> powergate.user.v1.FilRenew
-	67, // 25: powergate.user.v1.ColdConfig.filecoin:type_name -> powergate.user.v1.FilConfig
-	65, // 26: powergate.user.v1.StorageConfig.hot:type_name -> powergate.user.v1.HotConfig
-	68, // 27: powergate.user.v1.StorageConfig.cold:type_name -> powergate.user.v1.ColdConfig
-	70, // 28: powergate.user.v1.HotInfo.ipfs:type_name -> powergate.user.v1.IpfsHotInfo
-	72, // 29: powergate.user.v1.FilInfo.proposals:type_name -> powergate.user.v1.FilStorage
-	73, // 30: powergate.user.v1.ColdInfo.filecoin:type_name -> powergate.user.v1.FilInfo
-	71, // 31: powergate.user.v1.StorageInfo.hot:type_name -> powergate.user.v1.HotInfo
-	74, // 32: powergate.user.v1.StorageInfo.cold:type_name -> powergate.user.v1.ColdInfo
-	69, // 33: powergate.user.v1.CidInfo.latest_pushed_storage_config:type_name -> powergate.user.v1.StorageConfig
-	75, // 34: powergate.user.v1.CidInfo.current_storage_info:type_name -> powergate.user.v1.StorageInfo
-	78, // 35: powergate.user.v1.CidInfo.queued_storage_jobs:type_name -> powergate.user.v1.StorageJob
-	78, // 36: powergate.user.v1.CidInfo.executing_storage_job:type_name -> powergate.user.v1.StorageJob
-	78, // 37: powergate.user.v1.CidInfo.latest_final_storage_job:type_name -> powergate.user.v1.StorageJob
-	78, // 38: powergate.user.v1.CidInfo.latest_successful_storage_job:type_name -> powergate.user.v1.StorageJob
-	0,  // 39: powergate.user.v1.StorageJob.status:type_name -> powergate.user.v1.JobStatus
-	77, // 40: powergate.user.v1.StorageJob.deal_info:type_name -> powergate.user.v1.DealInfo
-	79, // 41: powergate.user.v1.StorageJob.deal_errors:type_name -> powergate.user.v1.DealError
-	82, // 42: powergate.user.v1.StorageDealRecord.deal_info:type_name -> powergate.user.v1.StorageDealInfo
-	84, // 43: powergate.user.v1.RetrievalDealRecord.deal_info:type_name -> powergate.user.v1.RetrievalDealInfo
-	1,  // 44: powergate.user.v1.UserService.BuildInfo:input_type -> powergate.user.v1.BuildInfoRequest
-	3,  // 45: powergate.user.v1.UserService.UserIdentifier:input_type -> powergate.user.v1.UserIdentifierRequest
-	5,  // 46: powergate.user.v1.UserService.DefaultStorageConfig:input_type -> powergate.user.v1.DefaultStorageConfigRequest
-	7,  // 47: powergate.user.v1.UserService.SetDefaultStorageConfig:input_type -> powergate.user.v1.SetDefaultStorageConfigRequest
-	13, // 48: powergate.user.v1.UserService.ApplyStorageConfig:input_type -> powergate.user.v1.ApplyStorageConfigRequest
-	19, // 49: powergate.user.v1.UserService.Remove:input_type -> powergate.user.v1.RemoveRequest
-	9,  // 50: powergate.user.v1.UserService.Stage:input_type -> powergate.user.v1.StageRequest
-	11, // 51: powergate.user.v1.UserService.StageCid:input_type -> powergate.user.v1.StageCidRequest
-	15, // 52: powergate.user.v1.UserService.ReplaceData:input_type -> powergate.user.v1.ReplaceDataRequest
-	17, // 53: powergate.user.v1.UserService.Get:input_type -> powergate.user.v1.GetRequest
-	21, // 54: powergate.user.v1.UserService.WatchLogs:input_type -> powergate.user.v1.WatchLogsRequest
-	23, // 55: powergate.user.v1.UserService.CidSummary:input_type -> powergate.user.v1.CidSummaryRequest
-	25, // 56: powergate.user.v1.UserService.CidInfo:input_type -> powergate.user.v1.CidInfoRequest
-	27, // 57: powergate.user.v1.UserService.Balance:input_type -> powergate.user.v1.BalanceRequest
-	29, // 58: powergate.user.v1.UserService.NewAddress:input_type -> powergate.user.v1.NewAddressRequest
-	31, // 59: powergate.user.v1.UserService.Addresses:input_type -> powergate.user.v1.AddressesRequest
-	33, // 60: powergate.user.v1.UserService.SendFil:input_type -> powergate.user.v1.SendFilRequest
-	35, // 61: powergate.user.v1.UserService.SignMessage:input_type -> powergate.user.v1.SignMessageRequest
-	37, // 62: powergate.user.v1.UserService.VerifyMessage:input_type -> powergate.user.v1.VerifyMessageRequest
-	41, // 63: powergate.user.v1.UserService.StorageJob:input_type -> powergate.user.v1.StorageJobRequest
-	43, // 64: powergate.user.v1.UserService.StorageConfigForJob:input_type -> powergate.user.v1.StorageConfigForJobRequest
-	45, // 65: powergate.user.v1.UserService.QueuedStorageJobs:input_type -> powergate.user.v1.QueuedStorageJobsRequest
-	47, // 66: powergate.user.v1.UserService.ExecutingStorageJobs:input_type -> powergate.user.v1.ExecutingStorageJobsRequest
-	49, // 67: powergate.user.v1.UserService.LatestFinalStorageJobs:input_type -> powergate.user.v1.LatestFinalStorageJobsRequest
-	51, // 68: powergate.user.v1.UserService.LatestSuccessfulStorageJobs:input_type -> powergate.user.v1.LatestSuccessfulStorageJobsRequest
-	53, // 69: powergate.user.v1.UserService.StorageJobsSummary:input_type -> powergate.user.v1.StorageJobsSummaryRequest
-	55, // 70: powergate.user.v1.UserService.WatchStorageJobs:input_type -> powergate.user.v1.WatchStorageJobsRequest
-	39, // 71: powergate.user.v1.UserService.CancelStorageJob:input_type -> powergate.user.v1.CancelStorageJobRequest
-	57, // 72: powergate.user.v1.UserService.StorageDealRecords:input_type -> powergate.user.v1.StorageDealRecordsRequest
-	59, // 73: powergate.user.v1.UserService.RetrievalDealRecords:input_type -> powergate.user.v1.RetrievalDealRecordsRequest
-	2,  // 74: powergate.user.v1.UserService.BuildInfo:output_type -> powergate.user.v1.BuildInfoResponse
-	4,  // 75: powergate.user.v1.UserService.UserIdentifier:output_type -> powergate.user.v1.UserIdentifierResponse
-	6,  // 76: powergate.user.v1.UserService.DefaultStorageConfig:output_type -> powergate.user.v1.DefaultStorageConfigResponse
-	8,  // 77: powergate.user.v1.UserService.SetDefaultStorageConfig:output_type -> powergate.user.v1.SetDefaultStorageConfigResponse
-	14, // 78: powergate.user.v1.UserService.ApplyStorageConfig:output_type -> powergate.user.v1.ApplyStorageConfigResponse
-	20, // 79: powergate.user.v1.UserService.Remove:output_type -> powergate.user.v1.RemoveResponse
-	10, // 80: powergate.user.v1.UserService.Stage:output_type -> powergate.user.v1.StageResponse
-	12, // 81: powergate.user.v1.UserService.StageCid:output_type -> powergate.user.v1.StageCidResponse
-	16, // 82: powergate.user.v1.UserService.ReplaceData:output_type -> powergate.user.v1.ReplaceDataResponse
-	18, // 83: powergate.user.v1.UserService.Get:output_type -> powergate.user.v1.GetResponse
-	22, // 84: powergate.user.v1.UserService.WatchLogs:output_type -> powergate.user.v1.WatchLogsResponse
-	24, // 85: powergate.user.v1.UserService.CidSummary:output_type -> powergate.user.v1.CidSummaryResponse
-	26, // 86: powergate.user.v1.UserService.CidInfo:output_type -> powergate.user.v1.CidInfoResponse
-	28, // 87: powergate.user.v1.UserService.Balance:output_type -> powergate.user.v1.BalanceResponse
-	30, // 88: powergate.user.v1.UserService.NewAddress:output_type -> powergate.user.v1.NewAddressResponse
-	32, // 89: powergate.user.v1.UserService.Addresses:output_type -> powergate.user.v1.AddressesResponse
-	34, // 90: powergate.user.v1.UserService.SendFil:output_type -> powergate.user.v1.SendFilResponse
-	36, // 91: powergate.user.v1.UserService.SignMessage:output_type -> powergate.user.v1.SignMessageResponse
-	38, // 92: powergate.user.v1.UserService.VerifyMessage:output_type -> powergate.user.v1.VerifyMessageResponse
-	42, // 93: powergate.user.v1.UserService.StorageJob:output_type -> powergate.user.v1.StorageJobResponse
-	44, // 94: powergate.user.v1.UserService.StorageConfigForJob:output_type -> powergate.user.v1.StorageConfigForJobResponse
-	46, // 95: powergate.user.v1.UserService.QueuedStorageJobs:output_type -> powergate.user.v1.QueuedStorageJobsResponse
-	48, // 96: powergate.user.v1.UserService.ExecutingStorageJobs:output_type -> powergate.user.v1.ExecutingStorageJobsResponse
-	50, // 97: powergate.user.v1.UserService.LatestFinalStorageJobs:output_type -> powergate.user.v1.LatestFinalStorageJobsResponse
-	52, // 98: powergate.user.v1.UserService.LatestSuccessfulStorageJobs:output_type -> powergate.user.v1.LatestSuccessfulStorageJobsResponse
-	54, // 99: powergate.user.v1.UserService.StorageJobsSummary:output_type -> powergate.user.v1.StorageJobsSummaryResponse
-	56, // 100: powergate.user.v1.UserService.WatchStorageJobs:output_type -> powergate.user.v1.WatchStorageJobsResponse
-	40, // 101: powergate.user.v1.UserService.CancelStorageJob:output_type -> powergate.user.v1.CancelStorageJobResponse
-	58, // 102: powergate.user.v1.UserService.StorageDealRecords:output_type -> powergate.user.v1.StorageDealRecordsResponse
-	60, // 103: powergate.user.v1.UserService.RetrievalDealRecords:output_type -> powergate.user.v1.RetrievalDealRecordsResponse
-	74, // [74:104] is the sub-list for method output_type
-	44, // [44:74] is the sub-list for method input_type
-	44, // [44:44] is the sub-list for extension type_name
-	44, // [44:44] is the sub-list for extension extendee
-	0,  // [0:44] is the sub-list for field type_name
+	72, // 0: powergate.user.v1.DefaultStorageConfigResponse.default_storage_config:type_name -> powergate.user.v1.StorageConfig
+	72, // 1: powergate.user.v1.SetDefaultStorageConfigRequest.config:type_name -> powergate.user.v1.StorageConfig
+	72, // 2: powergate.user.v1.ApplyStorageConfigRequest.config:type_name -> powergate.user.v1.StorageConfig
+	83, // 3: powergate.user.v1.WatchLogsResponse.log_entry:type_name -> powergate.user.v1.LogEntry
+	66, // 4: powergate.user.v1.CidSummaryResponse.cid_summary:type_name -> powergate.user.v1.CidSummary
+	79, // 5: powergate.user.v1.CidInfoResponse.cid_info:type_name -> powergate.user.v1.CidInfo
+	65, // 6: powergate.user.v1.AddressesResponse.addresses:type_name -> powergate.user.v1.AddrInfo
+	81, // 7: powergate.user.v1.StorageJobResponse.storage_job:type_name -> powergate.user.v1.StorageJob
+	72, // 8: powergate.user.v1.StorageConfigForJobResponse.storage_config:type_name -> powergate.user.v1.StorageConfig
+	1,  // 9: powergate.user.v1.ListStorageJobsRequest.selector:type_name -> powergate.user.v1.StorageJobsSelector
+	81, // 10: powergate.user.v1.ListStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 11: powergate.user.v1.QueuedStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 12: powergate.user.v1.ExecutingStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 13: powergate.user.v1.LatestFinalStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 14: powergate.user.v1.LatestSuccessfulStorageJobsResponse.storage_jobs:type_name -> powergate.user.v1.StorageJob
+	64, // 15: powergate.user.v1.StorageJobsSummaryResponse.job_counts:type_name -> powergate.user.v1.JobCounts
+	81, // 16: powergate.user.v1.StorageJobsSummaryResponse.queued_storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 17: powergate.user.v1.StorageJobsSummaryResponse.executing_storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 18: powergate.user.v1.StorageJobsSummaryResponse.latest_final_storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 19: powergate.user.v1.StorageJobsSummaryResponse.latest_successful_storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 20: powergate.user.v1.WatchStorageJobsResponse.storage_job:type_name -> powergate.user.v1.StorageJob
+	84, // 21: powergate.user.v1.StorageDealRecordsRequest.config:type_name -> powergate.user.v1.DealRecordsConfig
+	86, // 22: powergate.user.v1.StorageDealRecordsResponse.records:type_name -> powergate.user.v1.StorageDealRecord
+	84, // 23: powergate.user.v1.RetrievalDealRecordsRequest.config:type_name -> powergate.user.v1.DealRecordsConfig
+	88, // 24: powergate.user.v1.RetrievalDealRecordsResponse.records:type_name -> powergate.user.v1.RetrievalDealRecord
+	67, // 25: powergate.user.v1.HotConfig.ipfs:type_name -> powergate.user.v1.IpfsConfig
+	69, // 26: powergate.user.v1.FilConfig.renew:type_name -> powergate.user.v1.FilRenew
+	70, // 27: powergate.user.v1.ColdConfig.filecoin:type_name -> powergate.user.v1.FilConfig
+	68, // 28: powergate.user.v1.StorageConfig.hot:type_name -> powergate.user.v1.HotConfig
+	71, // 29: powergate.user.v1.StorageConfig.cold:type_name -> powergate.user.v1.ColdConfig
+	73, // 30: powergate.user.v1.HotInfo.ipfs:type_name -> powergate.user.v1.IpfsHotInfo
+	75, // 31: powergate.user.v1.FilInfo.proposals:type_name -> powergate.user.v1.FilStorage
+	76, // 32: powergate.user.v1.ColdInfo.filecoin:type_name -> powergate.user.v1.FilInfo
+	74, // 33: powergate.user.v1.StorageInfo.hot:type_name -> powergate.user.v1.HotInfo
+	77, // 34: powergate.user.v1.StorageInfo.cold:type_name -> powergate.user.v1.ColdInfo
+	72, // 35: powergate.user.v1.CidInfo.latest_pushed_storage_config:type_name -> powergate.user.v1.StorageConfig
+	78, // 36: powergate.user.v1.CidInfo.current_storage_info:type_name -> powergate.user.v1.StorageInfo
+	81, // 37: powergate.user.v1.CidInfo.queued_storage_jobs:type_name -> powergate.user.v1.StorageJob
+	81, // 38: powergate.user.v1.CidInfo.executing_storage_job:type_name -> powergate.user.v1.StorageJob
+	81, // 39: powergate.user.v1.CidInfo.latest_final_storage_job:type_name -> powergate.user.v1.StorageJob
+	81, // 40: powergate.user.v1.CidInfo.latest_successful_storage_job:type_name -> powergate.user.v1.StorageJob
+	0,  // 41: powergate.user.v1.StorageJob.status:type_name -> powergate.user.v1.JobStatus
+	80, // 42: powergate.user.v1.StorageJob.deal_info:type_name -> powergate.user.v1.DealInfo
+	82, // 43: powergate.user.v1.StorageJob.deal_errors:type_name -> powergate.user.v1.DealError
+	85, // 44: powergate.user.v1.StorageDealRecord.deal_info:type_name -> powergate.user.v1.StorageDealInfo
+	87, // 45: powergate.user.v1.RetrievalDealRecord.deal_info:type_name -> powergate.user.v1.RetrievalDealInfo
+	2,  // 46: powergate.user.v1.UserService.BuildInfo:input_type -> powergate.user.v1.BuildInfoRequest
+	4,  // 47: powergate.user.v1.UserService.UserIdentifier:input_type -> powergate.user.v1.UserIdentifierRequest
+	6,  // 48: powergate.user.v1.UserService.DefaultStorageConfig:input_type -> powergate.user.v1.DefaultStorageConfigRequest
+	8,  // 49: powergate.user.v1.UserService.SetDefaultStorageConfig:input_type -> powergate.user.v1.SetDefaultStorageConfigRequest
+	14, // 50: powergate.user.v1.UserService.ApplyStorageConfig:input_type -> powergate.user.v1.ApplyStorageConfigRequest
+	20, // 51: powergate.user.v1.UserService.Remove:input_type -> powergate.user.v1.RemoveRequest
+	10, // 52: powergate.user.v1.UserService.Stage:input_type -> powergate.user.v1.StageRequest
+	12, // 53: powergate.user.v1.UserService.StageCid:input_type -> powergate.user.v1.StageCidRequest
+	16, // 54: powergate.user.v1.UserService.ReplaceData:input_type -> powergate.user.v1.ReplaceDataRequest
+	18, // 55: powergate.user.v1.UserService.Get:input_type -> powergate.user.v1.GetRequest
+	22, // 56: powergate.user.v1.UserService.WatchLogs:input_type -> powergate.user.v1.WatchLogsRequest
+	24, // 57: powergate.user.v1.UserService.CidSummary:input_type -> powergate.user.v1.CidSummaryRequest
+	26, // 58: powergate.user.v1.UserService.CidInfo:input_type -> powergate.user.v1.CidInfoRequest
+	28, // 59: powergate.user.v1.UserService.Balance:input_type -> powergate.user.v1.BalanceRequest
+	30, // 60: powergate.user.v1.UserService.NewAddress:input_type -> powergate.user.v1.NewAddressRequest
+	32, // 61: powergate.user.v1.UserService.Addresses:input_type -> powergate.user.v1.AddressesRequest
+	34, // 62: powergate.user.v1.UserService.SendFil:input_type -> powergate.user.v1.SendFilRequest
+	36, // 63: powergate.user.v1.UserService.SignMessage:input_type -> powergate.user.v1.SignMessageRequest
+	38, // 64: powergate.user.v1.UserService.VerifyMessage:input_type -> powergate.user.v1.VerifyMessageRequest
+	42, // 65: powergate.user.v1.UserService.StorageJob:input_type -> powergate.user.v1.StorageJobRequest
+	44, // 66: powergate.user.v1.UserService.StorageConfigForJob:input_type -> powergate.user.v1.StorageConfigForJobRequest
+	46, // 67: powergate.user.v1.UserService.ListStorageJobs:input_type -> powergate.user.v1.ListStorageJobsRequest
+	48, // 68: powergate.user.v1.UserService.QueuedStorageJobs:input_type -> powergate.user.v1.QueuedStorageJobsRequest
+	50, // 69: powergate.user.v1.UserService.ExecutingStorageJobs:input_type -> powergate.user.v1.ExecutingStorageJobsRequest
+	52, // 70: powergate.user.v1.UserService.LatestFinalStorageJobs:input_type -> powergate.user.v1.LatestFinalStorageJobsRequest
+	54, // 71: powergate.user.v1.UserService.LatestSuccessfulStorageJobs:input_type -> powergate.user.v1.LatestSuccessfulStorageJobsRequest
+	56, // 72: powergate.user.v1.UserService.StorageJobsSummary:input_type -> powergate.user.v1.StorageJobsSummaryRequest
+	58, // 73: powergate.user.v1.UserService.WatchStorageJobs:input_type -> powergate.user.v1.WatchStorageJobsRequest
+	40, // 74: powergate.user.v1.UserService.CancelStorageJob:input_type -> powergate.user.v1.CancelStorageJobRequest
+	60, // 75: powergate.user.v1.UserService.StorageDealRecords:input_type -> powergate.user.v1.StorageDealRecordsRequest
+	62, // 76: powergate.user.v1.UserService.RetrievalDealRecords:input_type -> powergate.user.v1.RetrievalDealRecordsRequest
+	3,  // 77: powergate.user.v1.UserService.BuildInfo:output_type -> powergate.user.v1.BuildInfoResponse
+	5,  // 78: powergate.user.v1.UserService.UserIdentifier:output_type -> powergate.user.v1.UserIdentifierResponse
+	7,  // 79: powergate.user.v1.UserService.DefaultStorageConfig:output_type -> powergate.user.v1.DefaultStorageConfigResponse
+	9,  // 80: powergate.user.v1.UserService.SetDefaultStorageConfig:output_type -> powergate.user.v1.SetDefaultStorageConfigResponse
+	15, // 81: powergate.user.v1.UserService.ApplyStorageConfig:output_type -> powergate.user.v1.ApplyStorageConfigResponse
+	21, // 82: powergate.user.v1.UserService.Remove:output_type -> powergate.user.v1.RemoveResponse
+	11, // 83: powergate.user.v1.UserService.Stage:output_type -> powergate.user.v1.StageResponse
+	13, // 84: powergate.user.v1.UserService.StageCid:output_type -> powergate.user.v1.StageCidResponse
+	17, // 85: powergate.user.v1.UserService.ReplaceData:output_type -> powergate.user.v1.ReplaceDataResponse
+	19, // 86: powergate.user.v1.UserService.Get:output_type -> powergate.user.v1.GetResponse
+	23, // 87: powergate.user.v1.UserService.WatchLogs:output_type -> powergate.user.v1.WatchLogsResponse
+	25, // 88: powergate.user.v1.UserService.CidSummary:output_type -> powergate.user.v1.CidSummaryResponse
+	27, // 89: powergate.user.v1.UserService.CidInfo:output_type -> powergate.user.v1.CidInfoResponse
+	29, // 90: powergate.user.v1.UserService.Balance:output_type -> powergate.user.v1.BalanceResponse
+	31, // 91: powergate.user.v1.UserService.NewAddress:output_type -> powergate.user.v1.NewAddressResponse
+	33, // 92: powergate.user.v1.UserService.Addresses:output_type -> powergate.user.v1.AddressesResponse
+	35, // 93: powergate.user.v1.UserService.SendFil:output_type -> powergate.user.v1.SendFilResponse
+	37, // 94: powergate.user.v1.UserService.SignMessage:output_type -> powergate.user.v1.SignMessageResponse
+	39, // 95: powergate.user.v1.UserService.VerifyMessage:output_type -> powergate.user.v1.VerifyMessageResponse
+	43, // 96: powergate.user.v1.UserService.StorageJob:output_type -> powergate.user.v1.StorageJobResponse
+	45, // 97: powergate.user.v1.UserService.StorageConfigForJob:output_type -> powergate.user.v1.StorageConfigForJobResponse
+	47, // 98: powergate.user.v1.UserService.ListStorageJobs:output_type -> powergate.user.v1.ListStorageJobsResponse
+	49, // 99: powergate.user.v1.UserService.QueuedStorageJobs:output_type -> powergate.user.v1.QueuedStorageJobsResponse
+	51, // 100: powergate.user.v1.UserService.ExecutingStorageJobs:output_type -> powergate.user.v1.ExecutingStorageJobsResponse
+	53, // 101: powergate.user.v1.UserService.LatestFinalStorageJobs:output_type -> powergate.user.v1.LatestFinalStorageJobsResponse
+	55, // 102: powergate.user.v1.UserService.LatestSuccessfulStorageJobs:output_type -> powergate.user.v1.LatestSuccessfulStorageJobsResponse
+	57, // 103: powergate.user.v1.UserService.StorageJobsSummary:output_type -> powergate.user.v1.StorageJobsSummaryResponse
+	59, // 104: powergate.user.v1.UserService.WatchStorageJobs:output_type -> powergate.user.v1.WatchStorageJobsResponse
+	41, // 105: powergate.user.v1.UserService.CancelStorageJob:output_type -> powergate.user.v1.CancelStorageJobResponse
+	61, // 106: powergate.user.v1.UserService.StorageDealRecords:output_type -> powergate.user.v1.StorageDealRecordsResponse
+	63, // 107: powergate.user.v1.UserService.RetrievalDealRecords:output_type -> powergate.user.v1.RetrievalDealRecordsResponse
+	77, // [77:108] is the sub-list for method output_type
+	46, // [46:77] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_powergate_user_v1_user_proto_init() }
@@ -6490,7 +6734,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueuedStorageJobsRequest); i {
+			switch v := v.(*ListStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6502,7 +6746,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueuedStorageJobsResponse); i {
+			switch v := v.(*ListStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6514,7 +6758,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ExecutingStorageJobsRequest); i {
+			switch v := v.(*QueuedStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6526,7 +6770,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ExecutingStorageJobsResponse); i {
+			switch v := v.(*QueuedStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6538,7 +6782,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LatestFinalStorageJobsRequest); i {
+			switch v := v.(*ExecutingStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6550,7 +6794,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LatestFinalStorageJobsResponse); i {
+			switch v := v.(*ExecutingStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6562,7 +6806,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LatestSuccessfulStorageJobsRequest); i {
+			switch v := v.(*LatestFinalStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6574,7 +6818,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LatestSuccessfulStorageJobsResponse); i {
+			switch v := v.(*LatestFinalStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6586,7 +6830,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageJobsSummaryRequest); i {
+			switch v := v.(*LatestSuccessfulStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6598,7 +6842,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageJobsSummaryResponse); i {
+			switch v := v.(*LatestSuccessfulStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6610,7 +6854,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchStorageJobsRequest); i {
+			switch v := v.(*StorageJobsSummaryRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6622,7 +6866,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*WatchStorageJobsResponse); i {
+			switch v := v.(*StorageJobsSummaryResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6634,7 +6878,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageDealRecordsRequest); i {
+			switch v := v.(*WatchStorageJobsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6646,7 +6890,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageDealRecordsResponse); i {
+			switch v := v.(*WatchStorageJobsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6658,7 +6902,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RetrievalDealRecordsRequest); i {
+			switch v := v.(*StorageDealRecordsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6670,7 +6914,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RetrievalDealRecordsResponse); i {
+			switch v := v.(*StorageDealRecordsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6682,7 +6926,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobCounts); i {
+			switch v := v.(*RetrievalDealRecordsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6694,7 +6938,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AddrInfo); i {
+			switch v := v.(*RetrievalDealRecordsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6706,7 +6950,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CidSummary); i {
+			switch v := v.(*JobCounts); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6718,7 +6962,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IpfsConfig); i {
+			switch v := v.(*AddrInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6730,7 +6974,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HotConfig); i {
+			switch v := v.(*CidSummary); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6742,7 +6986,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FilRenew); i {
+			switch v := v.(*IpfsConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6754,7 +6998,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FilConfig); i {
+			switch v := v.(*HotConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6766,7 +7010,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ColdConfig); i {
+			switch v := v.(*FilRenew); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6778,7 +7022,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageConfig); i {
+			switch v := v.(*FilConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6790,7 +7034,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IpfsHotInfo); i {
+			switch v := v.(*ColdConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6802,7 +7046,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HotInfo); i {
+			switch v := v.(*StorageConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6814,7 +7058,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FilStorage); i {
+			switch v := v.(*IpfsHotInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6826,7 +7070,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FilInfo); i {
+			switch v := v.(*HotInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6838,7 +7082,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ColdInfo); i {
+			switch v := v.(*FilStorage); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6850,7 +7094,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageInfo); i {
+			switch v := v.(*FilInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6862,7 +7106,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CidInfo); i {
+			switch v := v.(*ColdInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6874,7 +7118,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DealInfo); i {
+			switch v := v.(*StorageInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6886,7 +7130,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageJob); i {
+			switch v := v.(*CidInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6898,7 +7142,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DealError); i {
+			switch v := v.(*DealInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6910,7 +7154,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LogEntry); i {
+			switch v := v.(*StorageJob); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6922,7 +7166,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DealRecordsConfig); i {
+			switch v := v.(*DealError); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6934,7 +7178,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageDealInfo); i {
+			switch v := v.(*LogEntry); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6946,7 +7190,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StorageDealRecord); i {
+			switch v := v.(*DealRecordsConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6958,7 +7202,7 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RetrievalDealInfo); i {
+			switch v := v.(*StorageDealInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6970,6 +7214,30 @@ func file_powergate_user_v1_user_proto_init() {
 			}
 		}
 		file_powergate_user_v1_user_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StorageDealRecord); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_powergate_user_v1_user_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RetrievalDealInfo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_powergate_user_v1_user_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RetrievalDealRecord); i {
 			case 0:
 				return &v.state
@@ -6987,8 +7255,8 @@ func file_powergate_user_v1_user_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_powergate_user_v1_user_proto_rawDesc,
-			NumEnums:      1,
-			NumMessages:   85,
+			NumEnums:      2,
+			NumMessages:   87,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

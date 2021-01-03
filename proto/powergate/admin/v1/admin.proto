@@ -53,6 +53,21 @@ message UsersResponse {
 
 // Jobs
 
+message ListStorageJobsRequest {
+  string user_id_filter = 1;
+  string cid_filter = 2;
+  uint64 limit = 3;
+  bool ascending = 4;
+  string after = 5;
+  powergate.user.v1.StorageJobsSelector selector = 6;
+}
+
+message ListStorageJobsResponse {
+  repeated powergate.user.v1.StorageJob storage_jobs = 1;
+  bool more = 2;
+  string after = 3;
+}
+
 message QueuedStorageJobsRequest {
   string user_id = 1;
   repeated string cids = 2;
@@ -139,6 +154,7 @@ service AdminService {
   rpc Users(UsersRequest) returns (UsersResponse) {}
 
   // Jobs
+  rpc ListStorageJobs(ListStorageJobsRequest) returns (ListStorageJobsResponse) {}
   rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
   rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
   rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
