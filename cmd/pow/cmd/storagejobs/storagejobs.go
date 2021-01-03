@@ -9,6 +9,7 @@ import (
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/get"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/latestfinal"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/latestsuccessful"
+	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/list"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/queued"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/storageconfig"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/summary"
@@ -24,6 +25,7 @@ func init() {
 		get.Cmd,
 		latestfinal.Cmd,
 		latestsuccessful.Cmd,
+		list.Cmd,
 		queued.Cmd,
 		storageconfig.Cmd,
 		summary.Cmd,
