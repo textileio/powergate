@@ -42,12 +42,25 @@ var testsx = []test{
 			require.Len(t, res, 1)
 		},
 	},
+	{
+		name: "final",
+		apiJobs: []apiJobs{
+			{
+				apiid: "api1",
+				final: 3,
+			},
+		},
+		cb: func(t *testing.T, s *Store) {
+			res, _, _, err := s.List(ListConfig{Select: Final})
+			require.NoError(t, err)
+			require.Len(t, res, 3)
+		},
+	},
 }
 
 func TestTests(t *testing.T) {
 	for _, test := range testsx {
 		t.Logf("running test: %s", test.name)
-		t.Parallel()
 		s := create(t)
 		for _, apiJobs := range test.apiJobs {
 			total := apiJobs.queued + apiJobs.executing + apiJobs.final

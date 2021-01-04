@@ -66,12 +66,23 @@ func WithCids(cids ...string) StorageJobsOption {
 
 // List lists StorageJobs according to the provided ListConfig.
 func (j *StorageJobs) List(ctx context.Context, config ListConfig) (*adminPb.ListStorageJobsResponse, error) {
+	sel := userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_UNSPECIFIED
+	switch config.Select {
+	case All:
+		sel = userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_ALL
+	case Queued:
+		sel = userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_QUEUED
+	case Executing:
+		sel = userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_EXECUTING
+	case Final:
+		sel = userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_FINAL
+	}
 	req := &adminPb.ListStorageJobsRequest{
 		CidFilter:     config.CidFilter,
 		Limit:         config.Limit,
 		Ascending:     config.Ascending,
 		NextPageToken: config.NextPageToken,
-		Selector:      userPb.StorageJobsSelector(config.Select),
+		Selector:      sel,
 	}
 	return j.client.ListStorageJobs(ctx, req)
 }

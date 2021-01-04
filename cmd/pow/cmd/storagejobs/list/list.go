@@ -44,7 +44,7 @@ var Cmd = &cobra.Command{
 		case "final":
 			sel = client.Final
 		default:
-			c.CheckErr(fmt.Errorf("%s is not a valid option for --select", selIn))
+			c.CheckErr(fmt.Errorf("invalid option for --select: %s", selIn))
 		}
 
 		conf := client.ListConfig{
