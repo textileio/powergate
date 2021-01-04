@@ -110,30 +110,6 @@ func (i *API) ListStorageJobs(config ListStorageJobsConfig) ([]ffs.StorageJob, b
 	return i.sched.ListStorageJobs(c)
 }
 
-// QueuedStorageJobs returns queued jobs for the specified cids.
-// If no cids are provided, data for all data cids is returned.
-func (i *API) QueuedStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
-	return i.sched.QueuedStorageJobs(i.cfg.ID, cids...)
-}
-
-// ExecutingStorageJobs returns executing jobs for the specified cids.
-// If no cids are provided, data for all data cids is returned.
-func (i *API) ExecutingStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
-	return i.sched.ExecutingStorageJobs(i.cfg.ID, cids...)
-}
-
-// LatestFinalStorageJobs returns the most recent finished jobs for the specified cids.
-// If no cids are provided, data for all data cids is returned.
-func (i *API) LatestFinalStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
-	return i.sched.LatestFinalStorageJobs(i.cfg.ID, cids...)
-}
-
-// LatestSuccessfulStorageJobs returns the most recent successful jobs for the specified cids.
-// If no cids are provided, data for all data cids is returned.
-func (i *API) LatestSuccessfulStorageJobs(cids ...cid.Cid) []ffs.StorageJob {
-	return i.sched.LatestSuccessfulStorageJobs(i.cfg.ID, cids...)
-}
-
 // StorageConfigForJob returns the StorageConfig associated with the specified job.
 func (i *API) StorageConfigForJob(jid ffs.JobID) (ffs.StorageConfig, error) {
 	sc, err := i.sched.StorageConfig(jid)

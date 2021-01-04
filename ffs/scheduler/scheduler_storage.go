@@ -203,34 +203,6 @@ func (s *Scheduler) ListStorageJobs(config ListStorageJobsConfig) ([]ffs.Storage
 	return s.sjs.List(c)
 }
 
-// QueuedStorageJobs returns queued jobs for the specified instance id and cids.
-// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
-// If no cids are provided, data for all data cids is returned.
-func (s *Scheduler) QueuedStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
-	return s.sjs.QueuedJobs(iid, cids...)
-}
-
-// ExecutingStorageJobs returns executing jobs for the specified instance id and cids.
-// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
-// If no cids are provided, data for all data cids is returned.
-func (s *Scheduler) ExecutingStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
-	return s.sjs.ExecutingJobs(iid, cids...)
-}
-
-// LatestFinalStorageJobs returns the most recent finished jobs for the specified instance id and cids.
-// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
-// If no cids are provided, data for all data cids is returned.
-func (s *Scheduler) LatestFinalStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
-	return s.sjs.LatestFinalJobs(iid, cids...)
-}
-
-// LatestSuccessfulStorageJobs returns the most recent successful jobs for the specified instance id and cids.
-// If the instance id is ffs.EmptyInstanceID, data for all instances is returned.
-// If no cids are provided, data for all data cids is returned.
-func (s *Scheduler) LatestSuccessfulStorageJobs(iid ffs.APIID, cids ...cid.Cid) []ffs.StorageJob {
-	return s.sjs.LatestSuccessfulJobs(iid, cids...)
-}
-
 // StorageConfig returns the storage config for a job.
 func (s *Scheduler) StorageConfig(jid ffs.JobID) (ffs.StorageConfig, error) {
 	a, err := s.as.GetStorageAction(jid)

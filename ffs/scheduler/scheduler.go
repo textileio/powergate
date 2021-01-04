@@ -208,11 +208,17 @@ func (s *Scheduler) gcStaged(ctx context.Context, gracePeriod time.Duration) ([]
 	log.Infof("running scheduler gc...")
 	cids := map[cid.Cid]struct{}{}
 
-	qj := s.sjs.QueuedJobs(ffs.EmptyInstanceID)
+	qj, _, _, err := s.sjs.List(sjstore.ListConfig{Select: sjstore.Queued})
+	if err != nil {
+		return nil, fmt.Errorf("listing queued storage jobs: %s", err)
+	}
 	for _, j := range qj {
 		cids[j.Cid] = struct{}{}
 	}
-	ej := s.sjs.ExecutingJobs(ffs.EmptyInstanceID)
+	ej, _, _, err := s.sjs.List(sjstore.ListConfig{Select: sjstore.Executing})
+	if err != nil {
+		return nil, fmt.Errorf("listing executing storage jobs: %s", err)
+	}
 	for _, j := range ej {
 		cids[j.Cid] = struct{}{}
 	}

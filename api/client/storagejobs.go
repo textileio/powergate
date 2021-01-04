@@ -42,6 +42,20 @@ type ListConfig struct {
 	NextPageToken string
 }
 
+type summaryConfig struct {
+	cid string
+}
+
+// SummaryOption configures a storageJobsConfig.
+type SummaryOption = func(*summaryConfig)
+
+// WithCid filters the results to the specified data cid.
+func WithCid(cid string) SummaryOption {
+	return func(conf *summaryConfig) {
+		conf.cid = cid
+	}
+}
+
 // WatchStorageJobsEvent represents an event for Watching a job.
 type WatchStorageJobsEvent struct {
 	Res *userPb.WatchStorageJobsResponse
@@ -81,42 +95,14 @@ func (j *StorageJobs) List(ctx context.Context, config ListConfig) (*userPb.List
 	return j.client.ListStorageJobs(ctx, req)
 }
 
-// Queued returns a list of queued storage jobs.
-func (j *StorageJobs) Queued(ctx context.Context, cids ...string) (*userPb.QueuedStorageJobsResponse, error) {
-	req := &userPb.QueuedStorageJobsRequest{
-		Cids: cids,
-	}
-	return j.client.QueuedStorageJobs(ctx, req)
-}
-
-// Executing returns a list of executing storage jobs.
-func (j *StorageJobs) Executing(ctx context.Context, cids ...string) (*userPb.ExecutingStorageJobsResponse, error) {
-	req := &userPb.ExecutingStorageJobsRequest{
-		Cids: cids,
-	}
-	return j.client.ExecutingStorageJobs(ctx, req)
-}
-
-// LatestFinal returns a list of latest final storage jobs.
-func (j *StorageJobs) LatestFinal(ctx context.Context, cids ...string) (*userPb.LatestFinalStorageJobsResponse, error) {
-	req := &userPb.LatestFinalStorageJobsRequest{
-		Cids: cids,
-	}
-	return j.client.LatestFinalStorageJobs(ctx, req)
-}
-
-// LatestSuccessful returns a list of latest successful storage jobs.
-func (j *StorageJobs) LatestSuccessful(ctx context.Context, cids ...string) (*userPb.LatestSuccessfulStorageJobsResponse, error) {
-	req := &userPb.LatestSuccessfulStorageJobsRequest{
-		Cids: cids,
-	}
-	return j.client.LatestSuccessfulStorageJobs(ctx, req)
-}
-
 // Summary returns a summary of storage jobs.
-func (j *StorageJobs) Summary(ctx context.Context, cids ...string) (*userPb.StorageJobsSummaryResponse, error) {
+func (j *StorageJobs) Summary(ctx context.Context, opts ...SummaryOption) (*userPb.StorageJobsSummaryResponse, error) {
+	conf := &summaryConfig{}
+	for _, opt := range opts {
+		opt(conf)
+	}
 	req := &userPb.StorageJobsSummaryRequest{
-		Cids: cids,
+		Cid: conf.cid,
 	}
 	return j.client.StorageJobsSummary(ctx, req)
 }

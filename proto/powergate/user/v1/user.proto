@@ -21,7 +21,7 @@ message UserIdentifierRequest {
 }
 
 message UserIdentifierResponse {
-   string id = 1;
+  string id = 1;
 }
 
 message DefaultStorageConfigRequest {
@@ -140,7 +140,7 @@ message AddressesRequest {
 }
 
 message AddressesResponse {
-   repeated AddrInfo addresses = 1;
+  repeated AddrInfo addresses = 1;
 }
 
 message SendFilRequest {		
@@ -174,18 +174,18 @@ message VerifyMessageResponse {
 // Jobs
 
 message CancelStorageJobRequest {
-   string job_id = 1;
+  string job_id = 1;
 }
 
 message CancelStorageJobResponse {
 }
 
 message StorageJobRequest {
-   string job_id = 1;
+  string job_id = 1;
 }
 
 message StorageJobResponse {
-   StorageJob storage_job = 1;
+  StorageJob storage_job = 1;
 }
 
 message StorageConfigForJobRequest {
@@ -210,56 +210,25 @@ message ListStorageJobsResponse {
   string next_page_token = 3;
 }
 
-message QueuedStorageJobsRequest {
-   repeated string cids = 1;
-}
-
-message QueuedStorageJobsResponse {
-   repeated StorageJob storage_jobs = 1;
-}
-
-message ExecutingStorageJobsRequest {
-   repeated string cids = 1;
-}
-
-message ExecutingStorageJobsResponse {
-   repeated StorageJob storage_jobs = 1;
-}
-
-message LatestFinalStorageJobsRequest {
-   repeated string cids = 1;
-}
-
-message LatestFinalStorageJobsResponse {
-   repeated StorageJob storage_jobs = 1;
-}
-
-message LatestSuccessfulStorageJobsRequest {
-   repeated string cids = 1;
-}
-
-message LatestSuccessfulStorageJobsResponse {
-   repeated StorageJob storage_jobs = 1;
-}
-
 message StorageJobsSummaryRequest {
-   repeated string cids = 1;
+  string cid = 1;
 }
  
 message StorageJobsSummaryResponse {
-   JobCounts job_counts = 1;
-   repeated StorageJob queued_storage_jobs = 2;
-   repeated StorageJob executing_storage_jobs = 3;
-   repeated StorageJob latest_final_storage_jobs = 4;
-   repeated StorageJob latest_successful_storage_jobs = 5;
+  int32 count_queued_storage_jobs = 1;
+  int32 count_executing_storage_jobs = 2;
+  int32 count_final_storage_jobs = 3;
+  repeated string queued_storage_jobs = 4;
+  repeated string executing_storage_jobs = 5;
+  repeated string final_storage_jobs = 6;
 }
 
 message WatchStorageJobsRequest {
-   repeated string job_ids = 1;
+  repeated string job_ids = 1;
 }
 
 message WatchStorageJobsResponse {
-   StorageJob storage_job = 1;
+  StorageJob storage_job = 1;
 }
 
 // Storage
@@ -312,10 +281,6 @@ service UserService {
   rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}
   rpc StorageConfigForJob(StorageConfigForJobRequest) returns (StorageConfigForJobResponse) {}
   rpc ListStorageJobs(ListStorageJobsRequest) returns (ListStorageJobsResponse) {}
-  rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
-  rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
-  rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
-  rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
   rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
   rpc WatchStorageJobs(WatchStorageJobsRequest) returns (stream WatchStorageJobsResponse) {}
   rpc CancelStorageJob(CancelStorageJobRequest) returns (CancelStorageJobResponse) {}
@@ -327,13 +292,6 @@ service UserService {
 
 
 // model messages
-
-message JobCounts {
-  int32 queued = 1;
-  int32 executing = 2;
-  int32 latest_final = 3;
-  int32 latest_successful = 4;
-}
 
 message AddrInfo {
   string name = 1;
@@ -530,17 +488,17 @@ message StorageDealRecord {
 }
 
 message RetrievalDealInfo {
- string root_cid = 1;
- uint64 size = 2;
- uint64 min_price = 3;
- uint64 payment_interval = 4;
- uint64 payment_interval_increase = 5;
- string miner = 6;
- string miner_peer_id = 7;
+  string root_cid = 1;
+  uint64 size = 2;
+  uint64 min_price = 3;
+  uint64 payment_interval = 4;
+  uint64 payment_interval_increase = 5;
+  string miner = 6;
+  string miner_peer_id = 7;
 }
 
 message RetrievalDealRecord {
-   string address = 1;
-   int64 time = 2;
-   RetrievalDealInfo deal_info = 3;
+  string address = 1;
+  int64 time = 2;
+  RetrievalDealInfo deal_info = 3;
 }

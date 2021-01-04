@@ -196,9 +196,16 @@ func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest)
 			d.currentStorage = &info
 		}
 
-		d.queuedJobs = i.QueuedStorageJobs(cid)
+		queuedJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Queued, CidFilter: cid})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "listing queued storage jobs: %v", err)
+		}
+		d.queuedJobs = queuedJobs
 
-		executingJobs := i.ExecutingStorageJobs(cid)
+		executingJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Executing, CidFilter: cid})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "listing executing storage jobs: %v", err)
+		}
 		if len(executingJobs) == 1 {
 			// There is exactly one job in the slice because we specified a cid
 			// and there can be only one executing job per cid at a time.
@@ -305,7 +312,10 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 	} else if err == nil {
 		cidInfo.CurrentStorageInfo = toRPCStorageInfo(info)
 	}
-	queuedJobs := i.QueuedStorageJobs(cid)
+	queuedJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Queued, CidFilter: cid})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing queued jobs: %v", err)
+	}
 	rpcQueudJobs := make([]*userPb.StorageJob, len(queuedJobs))
 	for i, job := range queuedJobs {
 		rpcJob, err := toRPCJob(job)
@@ -315,7 +325,10 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		rpcQueudJobs[i] = rpcJob
 	}
 	cidInfo.QueuedStorageJobs = rpcQueudJobs
-	executingJobs := i.ExecutingStorageJobs(cid)
+	executingJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Executing, CidFilter: cid})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing executing jobs: %v", err)
+	}
 	if len(executingJobs) == 1 {
 		// There is exactly one job in the slice because we specified a cid
 		// and there can be only one executing job per cid at a time.
@@ -328,22 +341,6 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		msg := fmt.Sprintf("received %d executing jobs when there should be 1", len(executingJobs))
 		log.Error(msg)
 		return nil, status.Error(codes.Internal, msg)
-	}
-	finalJobs := i.LatestFinalStorageJobs(cid)
-	if len(finalJobs) > 0 {
-		rpcJob, err := toRPCJob(finalJobs[0])
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
-		}
-		cidInfo.LatestFinalStorageJob = rpcJob
-	}
-	successfulJobs := i.LatestSuccessfulStorageJobs(cid)
-	if len(successfulJobs) > 0 {
-		rpcJob, err := toRPCJob(successfulJobs[0])
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
-		}
-		cidInfo.LatestSuccessfulStorageJob = rpcJob
 	}
 	return &userPb.CidInfoResponse{CidInfo: cidInfo}, nil
 }
