@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	Cmd.Flags().StringP("user-id", "i", "", "optional user id filter to apply")
+	Cmd.Flags().StringP("user-id", "u", "", "optional user id filter to apply")
 	Cmd.Flags().StringP("cid", "c", "", "optional cid filter to apply")
 }
 
