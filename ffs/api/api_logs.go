@@ -30,7 +30,9 @@ func (i *API) WatchLogs(ctx context.Context, ch chan<- ffs.LogEntry, c cid.Cid, 
 			return fmt.Errorf("getting history logs of %s: %s", c, err)
 		}
 		for _, l := range lgs {
-			ch <- l
+			if config.jid == ffs.EmptyJobID || config.jid == l.Jid {
+				ch <- l
+			}
 		}
 	}
 
