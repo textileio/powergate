@@ -137,12 +137,9 @@ func (s *Service) StorageJobsSummary(ctx context.Context, req *userPb.StorageJob
 	}
 
 	return &userPb.StorageJobsSummaryResponse{
-		CountQueuedStorageJobs:    int32(len(queuedJobIDs)),
-		CountExecutingStorageJobs: int32(len(executingJobIDs)),
-		CountFinalStorageJobs:     int32(len(finalJobIDs)),
-		QueuedStorageJobs:         queuedJobIDs,
-		ExecutingStorageJobs:      executingJobIDs,
-		FinalStorageJobs:          finalJobIDs,
+		QueuedStorageJobs:    queuedJobIDs,
+		ExecutingStorageJobs: executingJobIDs,
+		FinalStorageJobs:     finalJobIDs,
 	}, nil
 }
 

@@ -93,11 +93,8 @@ func (a *Service) StorageJobsSummary(ctx context.Context, req *adminPb.StorageJo
 	}
 
 	return &adminPb.StorageJobsSummaryResponse{
-		CountQueuedStorageJobs:    int32(len(queuedJobIDs)),
-		CountExecutingStorageJobs: int32(len(executingJobIDs)),
-		CountFinalStorageJobs:     int32(len(finalJobIDs)),
-		QueuedStorageJobs:         queuedJobIDs,
-		ExecutingStorageJobs:      executingJobIDs,
-		FinalStorageJobs:          finalJobIDs,
+		QueuedStorageJobs:    queuedJobIDs,
+		ExecutingStorageJobs: executingJobIDs,
+		FinalStorageJobs:     finalJobIDs,
 	}, nil
 }

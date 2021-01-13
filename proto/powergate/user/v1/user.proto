@@ -215,12 +215,9 @@ message StorageJobsSummaryRequest {
 }
  
 message StorageJobsSummaryResponse {
-  int32 count_queued_storage_jobs = 1;
-  int32 count_executing_storage_jobs = 2;
-  int32 count_final_storage_jobs = 3;
-  repeated string queued_storage_jobs = 4;
-  repeated string executing_storage_jobs = 5;
-  repeated string final_storage_jobs = 6;
+  repeated string queued_storage_jobs = 1;
+  repeated string executing_storage_jobs = 2;
+  repeated string final_storage_jobs = 3;
 }
 
 message WatchStorageJobsRequest {
