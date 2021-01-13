@@ -19,6 +19,17 @@ import (
 	"github.com/textileio/powergate/util"
 )
 
+/**
+There are many namespaces that are maintained in the contained datastore.
+Use these descriptions to understand what information is stored where.
+Might be useful in a future migration or datastore maintenance.
+
+/job/<job-id>: Stores StorageJob data by job-id
+/apiid/<api-id>/<cid>/<timestamp>: Index on api-id primarily, cid secondarily, with timestamp, values of job-id
+/cid/<cid>/<api-id>/<timestamp>: Index on cid primarily, api-id secondarily, with timestamp, values of job-id
+/starteddeals_v2/<instance-id>/<cid>: Stores StartedDeals data by instance-id and cid
+*/
+
 var (
 	log = logging.Logger("ffs-sched-sjstore")
 
@@ -497,22 +508,19 @@ func (s *Store) List(config ListConfig) ([]ffs.StorageJob, bool, string, error) 
 		switch config.Select {
 		case All:
 		case Queued:
-			if _, queued := s.queuedIDs[jobID]; queued {
-				break
+			if _, queued := s.queuedIDs[jobID]; !queued {
+				continue
 			}
-			continue
 		case Executing:
-			if _, executing := s.executingIDs[jobID]; executing {
-				break
+			if _, executing := s.executingIDs[jobID]; !executing {
+				continue
 			}
-			continue
 		case Final:
 			_, queued := s.queuedIDs[jobID]
 			_, executing := s.executingIDs[jobID]
-			if !queued && !executing {
-				break
+			if queued || executing {
+				continue
 			}
-			continue
 		}
 
 		job, err := s.get(jobID)
@@ -524,7 +532,6 @@ func (s *Store) List(config ListConfig) ([]ffs.StorageJob, bool, string, error) 
 		if len(jobs) == int(config.Limit) {
 			done = true
 		}
-		continue
 	}
 
 	if !more {
@@ -555,6 +562,7 @@ func (s *Store) put(j ffs.StorageJob, updateIndex bool) error {
 	if err != nil {
 		return fmt.Errorf("starting transaction: %s", err)
 	}
+	defer txn.Discard()
 
 	if err := s.ds.Put(makeKey(j.ID), buf); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
