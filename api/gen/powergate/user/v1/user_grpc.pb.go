@@ -39,6 +39,9 @@ type UserServiceClient interface {
 	SendFil(ctx context.Context, in *SendFilRequest, opts ...grpc.CallOption) (*SendFilResponse, error)
 	SignMessage(ctx context.Context, in *SignMessageRequest, opts ...grpc.CallOption) (*SignMessageResponse, error)
 	VerifyMessage(ctx context.Context, in *VerifyMessageRequest, opts ...grpc.CallOption) (*VerifyMessageResponse, error)
+	// Storage Info
+	StorageInfo(ctx context.Context, in *StorageInfoRequest, opts ...grpc.CallOption) (*StorageInfoResponse, error)
+	ListStorageInfo(ctx context.Context, in *ListStorageInfoRequest, opts ...grpc.CallOption) (*ListStorageInfoResponse, error)
 	// Storage Jobs
 	StorageJob(ctx context.Context, in *StorageJobRequest, opts ...grpc.CallOption) (*StorageJobResponse, error)
 	StorageConfigForJob(ctx context.Context, in *StorageConfigForJobRequest, opts ...grpc.CallOption) (*StorageConfigForJobResponse, error)
@@ -295,6 +298,24 @@ func (c *userServiceClient) VerifyMessage(ctx context.Context, in *VerifyMessage
 	return out, nil
 }
 
+func (c *userServiceClient) StorageInfo(ctx context.Context, in *StorageInfoRequest, opts ...grpc.CallOption) (*StorageInfoResponse, error) {
+	out := new(StorageInfoResponse)
+	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/StorageInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListStorageInfo(ctx context.Context, in *ListStorageInfoRequest, opts ...grpc.CallOption) (*ListStorageInfoResponse, error) {
+	out := new(ListStorageInfoResponse)
+	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/ListStorageInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) StorageJob(ctx context.Context, in *StorageJobRequest, opts ...grpc.CallOption) (*StorageJobResponse, error) {
 	out := new(StorageJobResponse)
 	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/StorageJob", in, out, opts...)
@@ -443,6 +464,9 @@ type UserServiceServer interface {
 	SendFil(context.Context, *SendFilRequest) (*SendFilResponse, error)
 	SignMessage(context.Context, *SignMessageRequest) (*SignMessageResponse, error)
 	VerifyMessage(context.Context, *VerifyMessageRequest) (*VerifyMessageResponse, error)
+	// Storage Info
+	StorageInfo(context.Context, *StorageInfoRequest) (*StorageInfoResponse, error)
+	ListStorageInfo(context.Context, *ListStorageInfoRequest) (*ListStorageInfoResponse, error)
 	// Storage Jobs
 	StorageJob(context.Context, *StorageJobRequest) (*StorageJobResponse, error)
 	StorageConfigForJob(context.Context, *StorageConfigForJobRequest) (*StorageConfigForJobResponse, error)
@@ -516,6 +540,12 @@ func (UnimplementedUserServiceServer) SignMessage(context.Context, *SignMessageR
 }
 func (UnimplementedUserServiceServer) VerifyMessage(context.Context, *VerifyMessageRequest) (*VerifyMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyMessage not implemented")
+}
+func (UnimplementedUserServiceServer) StorageInfo(context.Context, *StorageInfoRequest) (*StorageInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StorageInfo not implemented")
+}
+func (UnimplementedUserServiceServer) ListStorageInfo(context.Context, *ListStorageInfoRequest) (*ListStorageInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStorageInfo not implemented")
 }
 func (UnimplementedUserServiceServer) StorageJob(context.Context, *StorageJobRequest) (*StorageJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageJob not implemented")
@@ -901,6 +931,42 @@ func _UserService_VerifyMessage_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_StorageInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StorageInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).StorageInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.user.v1.UserService/StorageInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).StorageInfo(ctx, req.(*StorageInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListStorageInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStorageInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListStorageInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.user.v1.UserService/ListStorageInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListStorageInfo(ctx, req.(*ListStorageInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_StorageJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StorageJobRequest)
 	if err := dec(in); err != nil {
@@ -1165,6 +1231,14 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "VerifyMessage",
 			Handler:    _UserService_VerifyMessage_Handler,
+		},
+		{
+			MethodName: "StorageInfo",
+			Handler:    _UserService_StorageInfo_Handler,
+		},
+		{
+			MethodName: "ListStorageInfo",
+			Handler:    _UserService_ListStorageInfo_Handler,
 		},
 		{
 			MethodName: "StorageJob",

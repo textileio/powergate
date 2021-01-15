@@ -14,7 +14,6 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 	it "github.com/textileio/powergate/ffs/integrationtest"
 	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
-	"github.com/textileio/powergate/ffs/scheduler"
 	"github.com/textileio/powergate/tests"
 	"github.com/textileio/powergate/util"
 )
@@ -202,7 +201,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 					it.RequireStorageConfig(t, fapi, cid, &config)
 
 					// Show() assertions
-					cinfo, err := fapi.Show(cid)
+					cinfo, err := fapi.StorageInfo(cid)
 					require.NoError(t, err)
 					require.Equal(t, tt.HotEnabled, cinfo.Hot.Enabled)
 					if tt.ColdEnabled {
@@ -233,7 +232,6 @@ func TestFilecoinEnableConfig(t *testing.T) {
 }
 
 func TestHotTimeoutConfig(t *testing.T) {
-	scheduler.HardcodedHotTimeout = time.Second * 10
 	t.SkipNow()
 	t.Parallel()
 	_, _, fapi, cls := itmanager.NewAPI(t, 1)
@@ -265,11 +263,10 @@ func TestDurationConfig(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		cinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		p := cinfo.Cold.Filecoin.Proposals[0]
 		require.Greater(t, p.Duration, duration)
-		require.Greater(t, p.ActivationEpoch, int64(0))
 	})
 }
 

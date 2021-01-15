@@ -59,6 +59,8 @@ message ApplyStorageConfigRequest {
   bool has_config = 3;
   bool override_config = 4;
   bool has_override_config = 5;
+  repeated uint64 import_deal_ids = 6;
+  bool no_exec = 7;
 }
 
 message ApplyStorageConfigResponse {
@@ -163,7 +165,25 @@ message VerifyMessageResponse {
   bool ok = 1;
 }
 
-// Jobs
+// Storage Info
+
+message StorageInfoRequest {
+  string cid = 1;
+}
+
+message StorageInfoResponse {
+  StorageInfo storage_info = 1;
+}
+
+message ListStorageInfoRequest {
+  repeated string cids = 1;
+}
+
+message ListStorageInfoResponse {
+  repeated StorageInfo storage_info = 1;
+}
+
+// Storage Jobs
 
 message CancelStorageJobRequest {
    string job_id = 1;
@@ -285,6 +305,10 @@ service UserService {
   rpc SignMessage(SignMessageRequest) returns (SignMessageResponse) {}
   rpc VerifyMessage(VerifyMessageRequest) returns (VerifyMessageResponse) {}
 
+  // Storage Info
+  rpc StorageInfo(StorageInfoRequest) returns (StorageInfoResponse) {}
+  rpc ListStorageInfo(ListStorageInfoRequest) returns (ListStorageInfoResponse) {}
+
   // Storage Jobs
   rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}
   rpc StorageConfigForJob(StorageConfigForJobRequest) returns (StorageConfigForJobResponse) {}
@@ -369,14 +393,13 @@ message HotInfo {
 }
 
 message FilStorage {
-  string proposal_cid = 1;
+  int64 deal_id = 1;
   bool renewed = 2;
   int64 duration = 3;
-  int64 activation_epoch = 4;
-  uint64 start_epoch = 5;
-  string miner = 6;
-  uint64 epoch_price = 7;
-  string piece_cid = 8;
+  uint64 start_epoch = 4;
+  string miner = 5;
+  uint64 epoch_price = 6;
+  string piece_cid = 7;
 }
 
 message FilInfo {

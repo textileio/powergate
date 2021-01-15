@@ -4,6 +4,7 @@ import (
 	"context"
 
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/api/server/util"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
@@ -22,7 +23,7 @@ func (s *Service) StorageJob(ctx context.Context, req *userPb.StorageJobRequest)
 	if err != nil {
 		return nil, err
 	}
-	rpcJob, err := toRPCJob(job)
+	rpcJob, err := util.ToRPCJob(job)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "building job response: %v", err.Error())
 	}
@@ -49,7 +50,7 @@ func (s *Service) StorageConfigForJob(ctx context.Context, req *userPb.StorageCo
 		}
 		return nil, status.Errorf(code, "getting storage config for job: %v", err)
 	}
-	res := ToRPCStorageConfig(sc)
+	res := toRPCStorageConfig(sc)
 	return &userPb.StorageConfigForJobResponse{StorageConfig: res}, nil
 }
 
@@ -65,7 +66,7 @@ func (s *Service) QueuedStorageJobs(ctx context.Context, req *userPb.QueuedStora
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 	jobs := i.QueuedStorageJobs(cids...)
-	protoJobs, err := ToProtoStorageJobs(jobs)
+	protoJobs, err := util.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
@@ -86,7 +87,7 @@ func (s *Service) ExecutingStorageJobs(ctx context.Context, req *userPb.Executin
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 	jobs := i.ExecutingStorageJobs(cids...)
-	protoJobs, err := ToProtoStorageJobs(jobs)
+	protoJobs, err := util.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
@@ -107,7 +108,7 @@ func (s *Service) LatestFinalStorageJobs(ctx context.Context, req *userPb.Latest
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 	jobs := i.LatestFinalStorageJobs(cids...)
-	protoJobs, err := ToProtoStorageJobs(jobs)
+	protoJobs, err := util.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
@@ -128,7 +129,7 @@ func (s *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *userPb.L
 		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
 	}
 	jobs := i.LatestSuccessfulStorageJobs(cids...)
-	protoJobs, err := ToProtoStorageJobs(jobs)
+	protoJobs, err := util.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
@@ -154,19 +155,19 @@ func (s *Service) StorageJobsSummary(ctx context.Context, req *userPb.StorageJob
 	latestFinalJobs := i.LatestFinalStorageJobs(cids...)
 	latestSuccessfulJobs := i.LatestSuccessfulStorageJobs(cids...)
 
-	protoQueuedJobs, err := ToProtoStorageJobs(queuedJobs)
+	protoQueuedJobs, err := util.ToProtoStorageJobs(queuedJobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting queued jobs to protos: %v", err)
 	}
-	protoExecutingJobs, err := ToProtoStorageJobs(executingJobs)
+	protoExecutingJobs, err := util.ToProtoStorageJobs(executingJobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting executing jobs to protos: %v", err)
 	}
-	protoLatestFinalJobs, err := ToProtoStorageJobs(latestFinalJobs)
+	protoLatestFinalJobs, err := util.ToProtoStorageJobs(latestFinalJobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting latest final jobs to protos: %v", err)
 	}
-	protoLatestSuccessfulJobs, err := ToProtoStorageJobs(latestSuccessfulJobs)
+	protoLatestSuccessfulJobs, err := util.ToProtoStorageJobs(latestSuccessfulJobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting latest successful jobs to protos: %v", err)
 	}
@@ -203,7 +204,7 @@ func (s *Service) WatchStorageJobs(req *userPb.WatchStorageJobsRequest, srv user
 		close(ch)
 	}()
 	for job := range ch {
-		rpcJob, err := toRPCJob(job)
+		rpcJob, err := util.ToRPCJob(job)
 		if err != nil {
 			return err
 		}

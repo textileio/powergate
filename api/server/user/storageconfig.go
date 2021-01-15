@@ -17,7 +17,7 @@ func (s *Service) DefaultStorageConfig(ctx context.Context, req *userPb.DefaultS
 	}
 	conf := i.DefaultStorageConfig()
 	return &userPb.DefaultStorageConfigResponse{
-		DefaultStorageConfig: ToRPCStorageConfig(conf),
+		DefaultStorageConfig: toRPCStorageConfig(conf),
 	}, nil
 }
 
@@ -63,6 +63,13 @@ func (s *Service) ApplyStorageConfig(ctx context.Context, req *userPb.ApplyStora
 
 	if req.HasOverrideConfig {
 		options = append(options, api.WithOverride(req.OverrideConfig))
+	}
+
+	if len(req.ImportDealIds) > 0 {
+		options = append(options, api.WithDealImport(req.ImportDealIds))
+	}
+	if req.NoExec {
+		options = append(options, api.WithNoExec(true))
 	}
 
 	jid, err := i.PushStorageConfig(c, options...)

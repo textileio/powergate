@@ -33,7 +33,7 @@ var (
 		Hot: ffs.HotConfig{
 			Enabled: false,
 			Ipfs: ffs.IpfsConfig{
-				AddTimeout: 300, // 5 min
+				AddTimeout: 480, // 8 min
 			},
 		},
 		Cold: ffs.ColdConfig{
@@ -43,6 +43,7 @@ var (
 				DealMinDuration: util.MinDealDuration,
 				FastRetrieval:   true,
 				DealStartOffset: 72 * 60 * 60 / util.EpochDurationSeconds, // 72hs
+				MaxPrice:        100_000_000_000,
 			},
 		},
 	}
@@ -51,7 +52,7 @@ var (
 		Hot: ffs.HotConfig{
 			Enabled: true,
 			Ipfs: ffs.IpfsConfig{
-				AddTimeout: 30,
+				AddTimeout: 10,
 			},
 		},
 		Cold: ffs.ColdConfig{

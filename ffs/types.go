@@ -456,10 +456,9 @@ type FilInfo struct {
 	// DataCid corresponds to the PayloadCid of the deal.
 	DataCid cid.Cid
 	// Size is the size of the Piece. Recall that this size
-	// is which is accounted for payment. Also is equal or
-	// greater than the original data size.
-	// This value might be zero for imported deals; if that's
-	// the case, will be re-calculated in the next made deal.
+	// is which is accounted for payment, and is usually
+	// greater than real data size since data is padded in
+	// Filecoin.
 	Size uint64
 	// Proposals contains known deals for the data.
 	Proposals []FilStorage
@@ -469,8 +468,8 @@ type FilInfo struct {
 // This information is used in FFS may be used by FFS logic to
 // provide repair, renwal, or retrieval tasks.
 type FilStorage struct {
-	// ProposalCid of the deal.
-	ProposalCid cid.Cid
+	// DealID is the deal id in the network.
+	DealID uint64
 	// PieceCid is the piece Cid.
 	PieceCid cid.Cid
 	// Renewed indicates if this deal was
@@ -479,9 +478,6 @@ type FilStorage struct {
 	Renewed bool
 	// Duration is the duration of the deal.
 	Duration int64
-	// ActivationEpoch is the epoch in which
-	// the deal was activated.
-	ActivationEpoch int64
 	// StartEpoch is the starting epoch in which
 	// the deal is considered active on-chain.
 	StartEpoch uint64

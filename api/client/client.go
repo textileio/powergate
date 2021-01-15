@@ -18,6 +18,7 @@ type Client struct {
 	Data          *Data
 	Wallet        *Wallet
 	Deals         *Deals
+	StorageInfo   *StorageInfo
 	StorageJobs   *StorageJobs
 	Admin         *admin.Admin
 	conn          *grpc.ClientConn
@@ -97,6 +98,7 @@ func NewClient(host string, optsOverrides ...grpc.DialOption) (*Client, error) {
 		Data:          &Data{client: client},
 		Wallet:        &Wallet{client: client},
 		Deals:         &Deals{client: client},
+		StorageInfo:   &StorageInfo{client: client},
 		StorageJobs:   &StorageJobs{client: client},
 		Admin:         admin.NewAdmin(adminPb.NewAdminServiceClient(conn)),
 		conn:          conn,

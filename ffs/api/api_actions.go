@@ -15,13 +15,13 @@ func (i *API) PushStorageConfig(c cid.Cid, opts ...PushStorageConfigOption) (ffs
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
-	cfg := PushStorageConfigConfig{Config: i.cfg.DefaultStorageConfig}
+	cfg := pushStorageConfigConfig{config: i.cfg.DefaultStorageConfig}
 	for _, opt := range opts {
 		if err := opt(&cfg); err != nil {
 			return ffs.EmptyJobID, fmt.Errorf("config option: %s", err)
 		}
 	}
-	if !cfg.OverrideConfig {
+	if !cfg.overrideConfig {
 		_, err := i.is.getStorageConfigs(c)
 		if err == nil {
 			return ffs.EmptyJobID, ErrMustOverrideConfig
@@ -30,18 +30,28 @@ func (i *API) PushStorageConfig(c cid.Cid, opts ...PushStorageConfigOption) (ffs
 			return ffs.EmptyJobID, fmt.Errorf("getting cid config: %s", err)
 		}
 	}
-	if err := cfg.Config.Validate(); err != nil {
+	if err := cfg.config.Validate(); err != nil {
 		return ffs.EmptyJobID, err
 	}
-	if err := i.ensureValidColdCfg(cfg.Config.Cold); err != nil {
+	if err := i.ensureValidColdCfg(cfg.config.Cold); err != nil {
 		return ffs.EmptyJobID, err
 	}
 
-	jid, err := i.sched.PushConfig(i.cfg.ID, c, cfg.Config)
-	if err != nil {
-		return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
+	if len(cfg.dealIDs) > 0 {
+		if err := i.sched.ImportDeals(i.cfg.ID, c, cfg.dealIDs); err != nil {
+			return ffs.EmptyJobID, fmt.Errorf("importing external deals information: %s", err)
+		}
 	}
-	if err := i.is.putStorageConfig(c, cfg.Config); err != nil {
+
+	var jid ffs.JobID
+	var err error
+	if !cfg.noExec {
+		jid, err = i.sched.PushConfig(i.cfg.ID, c, cfg.config)
+		if err != nil {
+			return ffs.EmptyJobID, fmt.Errorf("scheduling cid %s: %s", c, err)
+		}
+	}
+	if err := i.is.putStorageConfig(c, cfg.config); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving new config for cid %s: %s", c, err)
 	}
 	return jid, nil

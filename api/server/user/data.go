@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	su "github.com/textileio/powergate/api/server/util"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/util"
@@ -178,21 +179,21 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 	}
 	res := make([]*userPb.CidInfo, 0, len(storageConfigs))
 	for cid, config := range storageConfigs {
-		rpcConfig := ToRPCStorageConfig(config)
+		rpcConfig := toRPCStorageConfig(config)
 		cidInfo := &userPb.CidInfo{
 			Cid:                       cid.String(),
 			LatestPushedStorageConfig: rpcConfig,
 		}
-		info, err := i.Show(cid)
+		info, err := i.StorageInfo(cid)
 		if err != nil && err != api.ErrNotFound {
 			return nil, status.Errorf(codes.Internal, "getting storage info: %v", err)
 		} else if err == nil {
-			cidInfo.CurrentStorageInfo = toRPCStorageInfo(info)
+			cidInfo.CurrentStorageInfo = su.ToRPCStorageInfo(info)
 		}
 		queuedJobs := i.QueuedStorageJobs(cid)
 		rpcQueudJobs := make([]*userPb.StorageJob, len(queuedJobs))
 		for i, job := range queuedJobs {
-			rpcJob, err := toRPCJob(job)
+			rpcJob, err := su.ToRPCJob(job)
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
 			}
@@ -203,7 +204,7 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		if len(executingJobs) == 1 {
 			// There is exactly one job in the slice because we specified a cid
 			// and there can be only one executing job per cid at a time.
-			rpcJob, err := toRPCJob(executingJobs[0])
+			rpcJob, err := su.ToRPCJob(executingJobs[0])
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
 			}
@@ -213,7 +214,7 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		}
 		finalJobs := i.LatestFinalStorageJobs(cid)
 		if len(finalJobs) > 0 {
-			rpcJob, err := toRPCJob(finalJobs[0])
+			rpcJob, err := su.ToRPCJob(finalJobs[0])
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
 			}
@@ -221,7 +222,7 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		}
 		successfulJobs := i.LatestSuccessfulStorageJobs(cid)
 		if len(successfulJobs) > 0 {
-			rpcJob, err := toRPCJob(successfulJobs[0])
+			rpcJob, err := su.ToRPCJob(successfulJobs[0])
 			if err != nil {
 				return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
 			}

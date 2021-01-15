@@ -9,6 +9,7 @@ import (
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	iface "github.com/ipfs/interface-go-ipfs-core"
@@ -69,15 +70,21 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 	if err != nil {
 		return ffs.FetchInfo{}, fmt.Errorf("fetching from deal module: %s", err)
 	}
+	fc.l.Log(ctx, "Fetching from %s...", miner)
 	var fundsSpent uint64
+	var lastMsg string
 	for e := range events {
 		if e.Err != "" {
 			return ffs.FetchInfo{}, fmt.Errorf("event error in retrieval progress: %s", e.Err)
 		}
 		strEvent := retrievalmarket.ClientEvents[e.Event]
 		strDealStatus := retrievalmarket.DealStatuses[e.Status]
-		fc.l.Log(ctx, "Event: %s, bytes received %d, funds spent: %d attoFil, status: %s ", strEvent, e.BytesReceived, e.FundsSpent, strDealStatus)
 		fundsSpent = e.FundsSpent.Uint64()
+		newMsg := fmt.Sprintf("Received %.2fGiB, total spent: %sFIL (%s/%s)", float64(e.BytesReceived)/1024/1024/1024, util.AttoFilToFil(fundsSpent), strEvent, strDealStatus)
+		if newMsg != lastMsg {
+			fc.l.Log(ctx, newMsg)
+			lastMsg = newMsg
+		}
 	}
 	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
 }
@@ -142,16 +149,20 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 	return okDeals, failedStartingDeals, pieceSize, nil
 }
 
-// IsFilDealActive returns true if a deal is considered active on-chain, false otherwise.
-func (fc *FilCold) IsFilDealActive(ctx context.Context, proposalCid cid.Cid) (bool, error) {
-	status, err := fc.dm.GetDealStatus(ctx, proposalCid)
+// GetDealInfo returns on-chain information for a deal.
+func (fc *FilCold) GetDealInfo(ctx context.Context, dealID uint64) (api.MarketDeal, error) {
+	di, err := fc.dm.GetDealInfo(ctx, dealID)
 	if err == module.ErrDealNotFound {
-		return false, nil
+		return api.MarketDeal{}, ffs.ErrOnChainDealNotFound
 	}
 	if err != nil {
-		return false, fmt.Errorf("getting deal state for %s: %s", proposalCid, err)
+		return api.MarketDeal{}, fmt.Errorf("getting deal information: %s", err)
 	}
-	return status == storagemarket.StorageDealActive, nil
+	if di.State.SlashEpoch != -1 {
+		return api.MarketDeal{}, ffs.ErrOnChainDealNotFound
+	}
+
+	return di, nil
 }
 
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
@@ -172,12 +183,6 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 		// If this deal was already renewed, we can ignore it will
 		// soon expire since we already handled it.
 		if p.Renewed {
-			continue
-		}
-		// In imported deals data, we might have missing information
-		// about start and/or duration. If that's the case, ignore
-		// them.
-		if p.StartEpoch == 0 || p.Duration == 0 {
 			continue
 		}
 		expiry := int64(p.StartEpoch) + p.Duration
@@ -211,16 +216,6 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	}
 	for i, p := range inf.Proposals {
 		newInf.Proposals[i] = p
-	}
-
-	// Manually imported doesn't provide the piece size.
-	// Re-calculate it if necessary. If present, just re-use that value.
-	if inf.Size == 0 {
-		pieceSize, _, err := fc.calculateDealPiece(ctx, inf.DataCid)
-		if err != nil {
-			return ffs.FilInfo{}, nil, fmt.Errorf("can't recalculate piece size: %s", err)
-		}
-		inf.Size = uint64(pieceSize)
 	}
 
 	toRenew := renewable[:numToBeRenewed]
@@ -352,13 +347,12 @@ Loop:
 			switch di.StateID {
 			case storagemarket.StorageDealActive:
 				activeProposal := ffs.FilStorage{
-					ProposalCid:     di.ProposalCid,
-					PieceCid:        di.PieceCID,
-					Duration:        int64(di.Duration),
-					Miner:           di.Miner,
-					ActivationEpoch: di.ActivationEpoch,
-					StartEpoch:      di.StartEpoch,
-					EpochPrice:      di.PricePerEpoch,
+					DealID:     di.DealID,
+					PieceCid:   di.PieceCID,
+					Duration:   int64(di.Duration),
+					Miner:      di.Miner,
+					StartEpoch: di.StartEpoch,
+					EpochPrice: di.PricePerEpoch,
 				}
 				fc.l.Log(ctx, "Deal %d with miner %s is active on-chain", di.DealID, di.Miner)
 
