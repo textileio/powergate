@@ -23,9 +23,6 @@ Provides admin jobs commands
 ### SEE ALSO
 
 * [pow admin](pow_admin.md)	 - Provides admin commands
-* [pow admin jobs executing](pow_admin_jobs_executing.md)	 - List executing storage jobs
-* [pow admin jobs latest-final](pow_admin_jobs_latest-final.md)	 - List the latest final storage jobs
-* [pow admin jobs latest-successful](pow_admin_jobs_latest-successful.md)	 - List the latest successful storage jobs
-* [pow admin jobs queued](pow_admin_jobs_queued.md)	 - List queued storage jobs
+* [pow admin jobs list](pow_admin_jobs_list.md)	 - List storage jobs according to query flag options.
 * [pow admin jobs summary](pow_admin_jobs_summary.md)	 - Give a summary of storage jobs in all states
 
