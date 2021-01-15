@@ -453,7 +453,7 @@ forLoop:
 			break forLoop
 		}
 
-		j, err = s.sjs.Dequeue()
+		j, err = s.sjs.Dequeue(ffs.EmptyInstanceID)
 		if err != nil {
 			log.Errorf("getting queued jobs: %s", err)
 			<-s.sd.rateLim

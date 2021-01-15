@@ -162,22 +162,31 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 
 // Dequeue dequeues a Job which doesn't have have another Executing Job
 // for the same Cid. Saying it differently, it's safe to execute. The returned
-// job Status is automatically changed to Executing. If no jobs are available to dequeue
+// job Status is automatically changed to Executing. If an instance id is provided,
+// only a job for that instance id will be dequeued. If no jobs are available to dequeue
 // it returns a nil *ffs.Job and no-error.
-func (s *Store) Dequeue() (*ffs.StorageJob, error) {
+func (s *Store) Dequeue(iid ffs.APIID) (*ffs.StorageJob, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	for _, job := range s.queued {
 		execJob, ok := s.executingJobs[job.APIID][job.Cid]
-		if job.Status == ffs.Queued && !ok {
+		isAPIIDMatch := true
+		if iid != ffs.EmptyInstanceID {
+			isAPIIDMatch = iid == job.APIID
+		}
+		if job.Status == ffs.Queued && !ok && isAPIIDMatch {
 			job.Status = ffs.Executing
 			if err := s.put(job, false); err != nil {
 				return nil, err
 			}
 			return &job, nil
 		}
-		log.Infof("queued %s is delayed since job %s is running", job.ID, execJob.ID)
+		if ok {
+			// ToDo: Maybe remove this since there might be lots of reasons we skip over a job.
+			// For example, if the specified iid doesn't match, but that is not worth logging.
+			log.Infof("queued %s is delayed since job %s is running", job.ID, execJob.ID)
+		}
 	}
 	return nil, nil
 }
@@ -456,7 +465,7 @@ func (s *Store) List(config ListConfig) ([]ffs.StorageJob, bool, string, error) 
 		// use apiid/cid
 		prefix = prefixAPIIDAndCid(config.APIIDFilter, config.CidFilter)
 	} else if config.APIIDFilter != ffs.EmptyInstanceID && !config.CidFilter.Defined() {
-		// use appid
+		// use apiid
 		prefix = prefixAPIID(config.APIIDFilter)
 	} else if config.APIIDFilter == ffs.EmptyInstanceID && config.CidFilter.Defined() {
 		// use cid
