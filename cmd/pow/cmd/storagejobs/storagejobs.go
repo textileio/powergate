@@ -5,11 +5,8 @@ import (
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/cancel"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/cancelexecuting"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/cancelqueued"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/executing"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/get"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/latestfinal"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/latestsuccessful"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/queued"
+	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/list"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/storageconfig"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/summary"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/watch"
@@ -20,11 +17,8 @@ func init() {
 		cancel.Cmd,
 		cancelexecuting.Cmd,
 		cancelqueued.Cmd,
-		executing.Cmd,
 		get.Cmd,
-		latestfinal.Cmd,
-		latestsuccessful.Cmd,
-		queued.Cmd,
+		list.Cmd,
 		storageconfig.Cmd,
 		summary.Cmd,
 		watch.Cmd,

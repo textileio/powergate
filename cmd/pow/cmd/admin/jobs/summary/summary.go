@@ -6,14 +6,14 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/jobs/util"
+	"github.com/textileio/powergate/api/client/admin"
 	c "github.com/textileio/powergate/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func init() {
-	Cmd.Flags().StringP("user-id", "i", "", "optional instance id filter to apply")
-	Cmd.Flags().StringSliceP("cids", "c", nil, "optional cids filter to apply")
+	Cmd.Flags().StringP("user-id", "u", "", "optional user id filter to apply")
+	Cmd.Flags().StringP("cid", "c", "", "optional cid filter to apply")
 }
 
 // Cmd is the command.
@@ -30,7 +30,15 @@ var Cmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(context.Background(), c.CmdTimeout)
 		defer cancel()
 
-		res, err := c.PowClient.Admin.StorageJobs.Summary(c.AdminAuthCtx(ctx), util.StorageJobsOpts()...)
+		var opts []admin.SummaryOption
+		if viper.IsSet("user-id") {
+			opts = append(opts, admin.WithUserID(viper.GetString("user-id")))
+		}
+		if viper.IsSet("cid") {
+			opts = append(opts, admin.WithCid(viper.GetString("cid")))
+		}
+
+		res, err := c.PowClient.Admin.StorageJobs.Summary(c.AdminAuthCtx(ctx), opts...)
 		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)

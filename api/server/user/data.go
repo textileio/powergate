@@ -20,7 +20,7 @@ func (s *Service) Stage(srv userPb.UserService_StageServer) error {
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	fapi, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return err
 	}
 
 	reader, writer := io.Pipe()
@@ -45,7 +45,7 @@ func (s *Service) StageCid(ctx context.Context, req *userPb.StageCidRequest) (*u
 	// check that an API instance exists so not just anyone can add data to the hot layer
 	fapi, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return nil, err
 	}
 
 	c, err := util.CidFromString(req.Cid)
@@ -65,7 +65,7 @@ func (s *Service) StageCid(ctx context.Context, req *userPb.StageCidRequest) (*u
 func (s *Service) ReplaceData(ctx context.Context, req *userPb.ReplaceDataRequest) (*userPb.ReplaceDataResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return nil, err
 	}
 
 	c1, err := util.CidFromString(req.Cid1)
@@ -89,7 +89,7 @@ func (s *Service) ReplaceData(ctx context.Context, req *userPb.ReplaceDataReques
 func (s *Service) Get(req *userPb.GetRequest, srv userPb.UserService_GetServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return err
 	}
 	c, err := util.CidFromString(req.GetCid())
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *Service) Get(req *userPb.GetRequest, srv userPb.UserService_GetServer) 
 func (s *Service) WatchLogs(req *userPb.WatchLogsRequest, srv userPb.UserService_WatchLogsServer) error {
 	i, err := s.getInstanceByToken(srv.Context())
 	if err != nil {
-		return status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return err
 	}
 
 	opts := []api.GetLogsOption{api.WithHistory(req.History)}
@@ -161,7 +161,7 @@ func (s *Service) WatchLogs(req *userPb.WatchLogsRequest, srv userPb.UserService
 func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest) (*userPb.CidSummaryResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return nil, err
 	}
 
 	cids, err := su.FromProtoCids(req.Cids)
@@ -197,9 +197,16 @@ func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest)
 			d.currentStorage = &info
 		}
 
-		d.queuedJobs = i.QueuedStorageJobs(cid)
+		queuedJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Queued, CidFilter: cid})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "listing queued storage jobs: %v", err)
+		}
+		d.queuedJobs = queuedJobs
 
-		executingJobs := i.ExecutingStorageJobs(cid)
+		executingJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Executing, CidFilter: cid})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "listing executing storage jobs: %v", err)
+		}
 		if len(executingJobs) == 1 {
 			// There is exactly one job in the slice because we specified a cid
 			// and there can be only one executing job per cid at a time.
@@ -273,7 +280,7 @@ func (s *Service) CidSummary(ctx context.Context, req *userPb.CidSummaryRequest)
 func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*userPb.CidInfoResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "getting user instance: %v", err)
+		return nil, err
 	}
 
 	cid, err := util.CidFromString(req.Cid)
@@ -306,7 +313,10 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 	} else if err == nil {
 		cidInfo.CurrentStorageInfo = su.ToRPCStorageInfo(info)
 	}
-	queuedJobs := i.QueuedStorageJobs(cid)
+	queuedJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Queued, CidFilter: cid})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing queued jobs: %v", err)
+	}
 	rpcQueudJobs := make([]*userPb.StorageJob, len(queuedJobs))
 	for i, job := range queuedJobs {
 		rpcJob, err := su.ToRPCJob(job)
@@ -316,7 +326,10 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		rpcQueudJobs[i] = rpcJob
 	}
 	cidInfo.QueuedStorageJobs = rpcQueudJobs
-	executingJobs := i.ExecutingStorageJobs(cid)
+	executingJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Executing, CidFilter: cid})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing executing jobs: %v", err)
+	}
 	if len(executingJobs) == 1 {
 		// There is exactly one job in the slice because we specified a cid
 		// and there can be only one executing job per cid at a time.
@@ -329,22 +342,6 @@ func (s *Service) CidInfo(ctx context.Context, req *userPb.CidInfoRequest) (*use
 		msg := fmt.Sprintf("received %d executing jobs when there should be 1", len(executingJobs))
 		log.Error(msg)
 		return nil, status.Error(codes.Internal, msg)
-	}
-	finalJobs := i.LatestFinalStorageJobs(cid)
-	if len(finalJobs) > 0 {
-		rpcJob, err := su.ToRPCJob(finalJobs[0])
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
-		}
-		cidInfo.LatestFinalStorageJob = rpcJob
-	}
-	successfulJobs := i.LatestSuccessfulStorageJobs(cid)
-	if len(successfulJobs) > 0 {
-		rpcJob, err := su.ToRPCJob(successfulJobs[0])
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "converting job to rpc job: %v", err)
-		}
-		cidInfo.LatestSuccessfulStorageJob = rpcJob
 	}
 	return &userPb.CidInfoResponse{CidInfo: cidInfo}, nil
 }

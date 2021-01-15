@@ -46,10 +46,7 @@ type UserServiceClient interface {
 	// Storage Jobs
 	StorageJob(ctx context.Context, in *StorageJobRequest, opts ...grpc.CallOption) (*StorageJobResponse, error)
 	StorageConfigForJob(ctx context.Context, in *StorageConfigForJobRequest, opts ...grpc.CallOption) (*StorageConfigForJobResponse, error)
-	QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error)
-	ExecutingStorageJobs(ctx context.Context, in *ExecutingStorageJobsRequest, opts ...grpc.CallOption) (*ExecutingStorageJobsResponse, error)
-	LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error)
-	LatestSuccessfulStorageJobs(ctx context.Context, in *LatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*LatestSuccessfulStorageJobsResponse, error)
+	ListStorageJobs(ctx context.Context, in *ListStorageJobsRequest, opts ...grpc.CallOption) (*ListStorageJobsResponse, error)
 	StorageJobsSummary(ctx context.Context, in *StorageJobsSummaryRequest, opts ...grpc.CallOption) (*StorageJobsSummaryResponse, error)
 	WatchStorageJobs(ctx context.Context, in *WatchStorageJobsRequest, opts ...grpc.CallOption) (UserService_WatchStorageJobsClient, error)
 	CancelStorageJob(ctx context.Context, in *CancelStorageJobRequest, opts ...grpc.CallOption) (*CancelStorageJobResponse, error)
@@ -344,36 +341,9 @@ func (c *userServiceClient) StorageConfigForJob(ctx context.Context, in *Storage
 	return out, nil
 }
 
-func (c *userServiceClient) QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error) {
-	out := new(QueuedStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/QueuedStorageJobs", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) ExecutingStorageJobs(ctx context.Context, in *ExecutingStorageJobsRequest, opts ...grpc.CallOption) (*ExecutingStorageJobsResponse, error) {
-	out := new(ExecutingStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/ExecutingStorageJobs", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error) {
-	out := new(LatestFinalStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/LatestFinalStorageJobs", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) LatestSuccessfulStorageJobs(ctx context.Context, in *LatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*LatestSuccessfulStorageJobsResponse, error) {
-	out := new(LatestSuccessfulStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/LatestSuccessfulStorageJobs", in, out, opts...)
+func (c *userServiceClient) ListStorageJobs(ctx context.Context, in *ListStorageJobsRequest, opts ...grpc.CallOption) (*ListStorageJobsResponse, error) {
+	out := new(ListStorageJobsResponse)
+	err := c.cc.Invoke(ctx, "/powergate.user.v1.UserService/ListStorageJobs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -481,10 +451,7 @@ type UserServiceServer interface {
 	// Storage Jobs
 	StorageJob(context.Context, *StorageJobRequest) (*StorageJobResponse, error)
 	StorageConfigForJob(context.Context, *StorageConfigForJobRequest) (*StorageConfigForJobResponse, error)
-	QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error)
-	ExecutingStorageJobs(context.Context, *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error)
-	LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error)
-	LatestSuccessfulStorageJobs(context.Context, *LatestSuccessfulStorageJobsRequest) (*LatestSuccessfulStorageJobsResponse, error)
+	ListStorageJobs(context.Context, *ListStorageJobsRequest) (*ListStorageJobsResponse, error)
 	StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error)
 	WatchStorageJobs(*WatchStorageJobsRequest, UserService_WatchStorageJobsServer) error
 	CancelStorageJob(context.Context, *CancelStorageJobRequest) (*CancelStorageJobResponse, error)
@@ -567,17 +534,8 @@ func (UnimplementedUserServiceServer) StorageJob(context.Context, *StorageJobReq
 func (UnimplementedUserServiceServer) StorageConfigForJob(context.Context, *StorageConfigForJobRequest) (*StorageConfigForJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageConfigForJob not implemented")
 }
-func (UnimplementedUserServiceServer) QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method QueuedStorageJobs not implemented")
-}
-func (UnimplementedUserServiceServer) ExecutingStorageJobs(context.Context, *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExecutingStorageJobs not implemented")
-}
-func (UnimplementedUserServiceServer) LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LatestFinalStorageJobs not implemented")
-}
-func (UnimplementedUserServiceServer) LatestSuccessfulStorageJobs(context.Context, *LatestSuccessfulStorageJobsRequest) (*LatestSuccessfulStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LatestSuccessfulStorageJobs not implemented")
+func (UnimplementedUserServiceServer) ListStorageJobs(context.Context, *ListStorageJobsRequest) (*ListStorageJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStorageJobs not implemented")
 }
 func (UnimplementedUserServiceServer) StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageJobsSummary not implemented")
@@ -1035,74 +993,20 @@ func _UserService_StorageConfigForJob_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_QueuedStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueuedStorageJobsRequest)
+func _UserService_ListStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStorageJobsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).QueuedStorageJobs(ctx, in)
+		return srv.(UserServiceServer).ListStorageJobs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/powergate.user.v1.UserService/QueuedStorageJobs",
+		FullMethod: "/powergate.user.v1.UserService/ListStorageJobs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).QueuedStorageJobs(ctx, req.(*QueuedStorageJobsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_ExecutingStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExecutingStorageJobsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).ExecutingStorageJobs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/powergate.user.v1.UserService/ExecutingStorageJobs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).ExecutingStorageJobs(ctx, req.(*ExecutingStorageJobsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_LatestFinalStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LatestFinalStorageJobsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).LatestFinalStorageJobs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/powergate.user.v1.UserService/LatestFinalStorageJobs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).LatestFinalStorageJobs(ctx, req.(*LatestFinalStorageJobsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_LatestSuccessfulStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LatestSuccessfulStorageJobsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).LatestSuccessfulStorageJobs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/powergate.user.v1.UserService/LatestSuccessfulStorageJobs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).LatestSuccessfulStorageJobs(ctx, req.(*LatestSuccessfulStorageJobsRequest))
+		return srv.(UserServiceServer).ListStorageJobs(ctx, req.(*ListStorageJobsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1285,20 +1189,8 @@ var _UserService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_StorageConfigForJob_Handler,
 		},
 		{
-			MethodName: "QueuedStorageJobs",
-			Handler:    _UserService_QueuedStorageJobs_Handler,
-		},
-		{
-			MethodName: "ExecutingStorageJobs",
-			Handler:    _UserService_ExecutingStorageJobs_Handler,
-		},
-		{
-			MethodName: "LatestFinalStorageJobs",
-			Handler:    _UserService_LatestFinalStorageJobs_Handler,
-		},
-		{
-			MethodName: "LatestSuccessfulStorageJobs",
-			Handler:    _UserService_LatestSuccessfulStorageJobs_Handler,
+			MethodName: "ListStorageJobs",
+			Handler:    _UserService_ListStorageJobs_Handler,
 		},
 		{
 			MethodName: "StorageJobsSummary",

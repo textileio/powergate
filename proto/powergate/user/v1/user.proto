@@ -21,7 +21,7 @@ message UserIdentifierRequest {
 }
 
 message UserIdentifierResponse {
-   string id = 1;
+  string id = 1;
 }
 
 message DefaultStorageConfigRequest {
@@ -142,7 +142,7 @@ message AddressesRequest {
 }
 
 message AddressesResponse {
-   repeated AddrInfo addresses = 1;
+  repeated AddrInfo addresses = 1;
 }
 
 message SendFilRequest {		
@@ -194,18 +194,18 @@ message ListStorageInfoResponse {
 // Storage Jobs
 
 message CancelStorageJobRequest {
-   string job_id = 1;
+  string job_id = 1;
 }
 
 message CancelStorageJobResponse {
 }
 
 message StorageJobRequest {
-   string job_id = 1;
+  string job_id = 1;
 }
 
 message StorageJobResponse {
-   StorageJob storage_job = 1;
+  StorageJob storage_job = 1;
 }
 
 message StorageConfigForJobRequest {
@@ -216,56 +216,36 @@ message StorageConfigForJobResponse {
   StorageConfig storage_config = 1;
 }
 
-message QueuedStorageJobsRequest {
-   repeated string cids = 1;
+message ListStorageJobsRequest {
+  string cid_filter = 1;
+  uint64 limit = 2;
+  bool ascending = 3;
+  string next_page_token = 4;
+  StorageJobsSelector selector = 5;
 }
 
-message QueuedStorageJobsResponse {
-   repeated StorageJob storage_jobs = 1;
-}
-
-message ExecutingStorageJobsRequest {
-   repeated string cids = 1;
-}
-
-message ExecutingStorageJobsResponse {
-   repeated StorageJob storage_jobs = 1;
-}
-
-message LatestFinalStorageJobsRequest {
-   repeated string cids = 1;
-}
-
-message LatestFinalStorageJobsResponse {
-   repeated StorageJob storage_jobs = 1;
-}
-
-message LatestSuccessfulStorageJobsRequest {
-   repeated string cids = 1;
-}
-
-message LatestSuccessfulStorageJobsResponse {
-   repeated StorageJob storage_jobs = 1;
+message ListStorageJobsResponse {
+  repeated StorageJob storage_jobs = 1;
+  bool more = 2;
+  string next_page_token = 3;
 }
 
 message StorageJobsSummaryRequest {
-   repeated string cids = 1;
+  string cid = 1;
 }
  
 message StorageJobsSummaryResponse {
-   JobCounts job_counts = 1;
-   repeated StorageJob queued_storage_jobs = 2;
-   repeated StorageJob executing_storage_jobs = 3;
-   repeated StorageJob latest_final_storage_jobs = 4;
-   repeated StorageJob latest_successful_storage_jobs = 5;
+  repeated string queued_storage_jobs = 1;
+  repeated string executing_storage_jobs = 2;
+  repeated string final_storage_jobs = 3;
 }
 
 message WatchStorageJobsRequest {
-   repeated string job_ids = 1;
+  repeated string job_ids = 1;
 }
 
 message WatchStorageJobsResponse {
-   StorageJob storage_job = 1;
+  StorageJob storage_job = 1;
 }
 
 // Storage
@@ -321,10 +301,7 @@ service UserService {
   // Storage Jobs
   rpc StorageJob(StorageJobRequest) returns (StorageJobResponse) {}
   rpc StorageConfigForJob(StorageConfigForJobRequest) returns (StorageConfigForJobResponse) {}
-  rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
-  rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
-  rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
-  rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
+  rpc ListStorageJobs(ListStorageJobsRequest) returns (ListStorageJobsResponse) {}
   rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
   rpc WatchStorageJobs(WatchStorageJobsRequest) returns (stream WatchStorageJobsResponse) {}
   rpc CancelStorageJob(CancelStorageJobRequest) returns (CancelStorageJobResponse) {}
@@ -336,13 +313,6 @@ service UserService {
 
 
 // model messages
-
-message JobCounts {
-  int32 queued = 1;
-  int32 executing = 2;
-  int32 latest_final = 3;
-  int32 latest_successful = 4;
-}
 
 message AddrInfo {
   string name = 1;
@@ -482,6 +452,14 @@ message StorageJob {
   int64 created_at = 8;
 }
 
+enum StorageJobsSelector {
+  STORAGE_JOBS_SELECTOR_UNSPECIFIED = 0;
+  STORAGE_JOBS_SELECTOR_ALL = 1;
+  STORAGE_JOBS_SELECTOR_QUEUED = 2;
+  STORAGE_JOBS_SELECTOR_EXECUTING = 3;
+  STORAGE_JOBS_SELECTOR_FINAL = 4;
+}
+
 message DealError {
   string proposal_cid = 1;
   string miner = 2;
@@ -530,17 +508,17 @@ message StorageDealRecord {
 }
 
 message RetrievalDealInfo {
- string root_cid = 1;
- uint64 size = 2;
- uint64 min_price = 3;
- uint64 payment_interval = 4;
- uint64 payment_interval_increase = 5;
- string miner = 6;
- string miner_peer_id = 7;
+  string root_cid = 1;
+  uint64 size = 2;
+  uint64 min_price = 3;
+  uint64 payment_interval = 4;
+  uint64 payment_interval_increase = 5;
+  string miner = 6;
+  string miner_peer_id = 7;
 }
 
 message RetrievalDealRecord {
-   string address = 1;
-   int64 time = 2;
-   RetrievalDealInfo deal_info = 3;
+  string address = 1;
+  int64 time = 2;
+  RetrievalDealInfo deal_info = 3;
 }

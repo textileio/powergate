@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/textileio/powergate/api/client"
 	c "github.com/textileio/powergate/cmd/pow/common"
 )
 
@@ -22,7 +23,7 @@ var Cmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := c.MustAuthCtx(context.Background())
 
-		js, err := c.PowClient.StorageJobs.Queued(ctx)
+		js, err := c.PowClient.StorageJobs.List(ctx, client.ListConfig{Select: client.Queued})
 		c.CheckErr(err)
 
 		for _, j := range js.StorageJobs {
