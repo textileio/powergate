@@ -10,6 +10,7 @@ func init() {
 	rootCmd.AddCommand(adminCmd)
 	adminCmd.AddCommand(
 		adminJobsCmd,
+		adminStorageInfoCmd,
 		adminUsersCmd,
 		adminWalletCmd,
 		adminDataCmd,
@@ -27,6 +28,12 @@ var adminJobsCmd = &cobra.Command{
 	Aliases: []string{"job"},
 	Short:   "Provides admin jobs commands",
 	Long:    `Provides admin jobs commands`,
+}
+
+var adminStorageInfoCmd = &cobra.Command{
+	Use:   "storage-info",
+	Short: "Provides admin storage info commands",
+	Long:  `Provides admin storage info commands`,
 }
 
 var adminUsersCmd = &cobra.Command{

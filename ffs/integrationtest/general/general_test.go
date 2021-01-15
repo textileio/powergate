@@ -176,7 +176,7 @@ func TestShow(t *testing.T) {
 		// Test not stored
 		c, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
 
-		_, err := fapi.Show(c)
+		_, err := fapi.StorageInfo(c)
 		require.Equal(t, api.ErrNotFound, err)
 
 		r := rand.New(rand.NewSource(22))
@@ -197,7 +197,7 @@ func TestShow(t *testing.T) {
 
 		c = cfgCids[0]
 
-		s, err := fapi.Show(c)
+		s, err := fapi.StorageInfo(c)
 		require.NoError(t, err)
 
 		require.True(t, s.Cid.Defined())
@@ -209,7 +209,7 @@ func TestShow(t *testing.T) {
 		require.True(t, s.Cold.Filecoin.DataCid.Defined())
 		require.Equal(t, 1, len(s.Cold.Filecoin.Proposals))
 		p := s.Cold.Filecoin.Proposals[0]
-		require.True(t, p.ProposalCid.Defined())
+		require.Greater(t, p.DealID, uint64(0))
 		require.Greater(t, p.Duration, int64(0))
 		require.Greater(t, p.EpochPrice, uint64(0))
 	})
@@ -240,7 +240,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
 		id := fapi.ID()
-		shw, err := fapi.Show(cid)
+		shw, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 
 		// Now close the FFS Instance, and the manager.
@@ -257,7 +257,7 @@ func TestColdInstanceLoad(t *testing.T) {
 		nid := fapi.ID()
 		require.Equal(t, id, nid)
 
-		nshw, err := fapi.Show(cid)
+		nshw, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		require.Equal(t, shw, nshw)
 
@@ -357,36 +357,4 @@ func TestRemove(t *testing.T) {
 		_, err = fapi.GetStorageConfigs(c1)
 		require.Equal(t, api.ErrNotFound, err)
 	})
-}
-
-func TestImport(t *testing.T) {
-	t.Parallel()
-	_, _, fapi, cls := itmanager.NewAPI(t, 1)
-	defer cls()
-
-	miner := "t01234"
-	pieceCid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z")
-	payloadCid, _ := util.CidFromString("Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC8z")
-
-	// Import correct data, and shouldn't fail.
-	imd := []api.ImportDeal{{MinerAddress: miner}}
-	err := fapi.ImportStorage(payloadCid, pieceCid, imd)
-	require.NoError(t, err)
-
-	// Check that imported data is in fapi2
-	i, err := fapi.Show(payloadCid)
-	require.NoError(t, err)
-	require.False(t, i.Hot.Enabled)
-	require.Equal(t, payloadCid, i.Cold.Filecoin.DataCid)
-	require.Equal(t, uint64(0), i.Cold.Filecoin.Size)
-	require.Len(t, i.Cold.Filecoin.Proposals, 1)
-
-	prop := i.Cold.Filecoin.Proposals[0]
-	require.Equal(t, cid.Undef, prop.ProposalCid)
-	require.Equal(t, pieceCid, prop.PieceCid)
-	require.Equal(t, prop.Duration, int64(0))
-	require.Equal(t, prop.ActivationEpoch, int64(0))
-	require.Equal(t, prop.StartEpoch, uint64(0))
-	require.Equal(t, prop.EpochPrice, uint64(0))
-	require.Equal(t, imd[0].MinerAddress, prop.Miner)
 }

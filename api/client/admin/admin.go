@@ -7,6 +7,7 @@ import (
 // Admin provides access to Powergate admin APIs.
 type Admin struct {
 	StorageJobs *StorageJobs
+	StorageInfo *StorageInfo
 	Users       *Users
 	Wallet      *Wallet
 	Data        *Data
@@ -16,6 +17,7 @@ type Admin struct {
 func NewAdmin(client adminPb.AdminServiceClient) *Admin {
 	return &Admin{
 		StorageJobs: &StorageJobs{client: client},
+		StorageInfo: &StorageInfo{client: client},
 		Users:       &Users{client: client},
 		Wallet:      &Wallet{client: client},
 		Data:        &Data{client: client},

@@ -67,7 +67,7 @@ func (rt *RepTop) genTrustedMiners(f ffs.MinerSelectorFilter, n int) []ffs.Miner
 	for _, m := range f.TrustedMiners {
 		mp, err := rt.getMinerProposal(f, m)
 		if err != nil {
-			log.Warnf("trusted miner query asking: %s", err)
+			log.Warnf("trusted miner %s query asking: %s", m, err)
 			continue
 		}
 		ret = append(ret, mp)
@@ -143,7 +143,7 @@ func (rt *RepTop) getMinerProposal(f ffs.MinerSelectorFilter, addrStr string) (f
 	}()
 
 	select {
-	case <-time.After(time.Second * 10):
+	case <-time.After(time.Second * 20):
 		return ffs.MinerProposal{}, fmt.Errorf("query asking timed out")
 	case r := <-chAsk:
 		if r.Error != "" {

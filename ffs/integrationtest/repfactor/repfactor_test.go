@@ -41,7 +41,7 @@ func TestRepFactor(t *testing.T) {
 				it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 				it.RequireStorageConfig(t, fapi, cid, &config)
 
-				cinfo, err := fapi.Show(cid)
+				cinfo, err := fapi.StorageInfo(cid)
 				require.NoError(t, err)
 				require.Equal(t, rf, len(cinfo.Cold.Filecoin.Proposals))
 			})
@@ -61,7 +61,7 @@ func TestRepFactorIncrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, nil)
 
-		cinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(cinfo.Cold.Filecoin.Proposals))
 		firstProposal := cinfo.Cold.Filecoin.Proposals[0]
@@ -71,7 +71,7 @@ func TestRepFactorIncrease(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
-		cinfo, err = fapi.Show(cid)
+		cinfo, err = fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 		require.Contains(t, cinfo.Cold.Filecoin.Proposals, firstProposal)
@@ -91,7 +91,7 @@ func TestRepFactorDecrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
-		cinfo, err := fapi.Show(cid)
+		cinfo, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 
@@ -101,7 +101,7 @@ func TestRepFactorDecrease(t *testing.T) {
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 		it.RequireStorageConfig(t, fapi, cid, &config)
 
-		cinfo, err = fapi.Show(cid)
+		cinfo, err = fapi.StorageInfo(cid)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(cinfo.Cold.Filecoin.Proposals))
 	})
@@ -136,7 +136,7 @@ func TestRenewWithDecreasedRepFactor(t *testing.T) {
 	epochDeadline := 200
 Loop:
 	for range ticker.C {
-		i, err := fapi.Show(cid)
+		i, err := fapi.StorageInfo(cid)
 		require.NoError(t, err)
 
 		firstDeal := i.Cold.Filecoin.Proposals[0]
@@ -153,9 +153,8 @@ Loop:
 		require.True(t, (firstDeal.Renewed && !secondDeal.Renewed) || (secondDeal.Renewed && !firstDeal.Renewed))
 
 		newDeal := i.Cold.Filecoin.Proposals[2]
-		require.NotEqual(t, firstDeal.ProposalCid, newDeal.ProposalCid)
+		require.NotEqual(t, firstDeal.DealID, newDeal.DealID)
 		require.False(t, newDeal.Renewed)
-		require.Greater(t, newDeal.ActivationEpoch, firstDeal.ActivationEpoch)
 		require.Greater(t, newDeal.Duration, config.Cold.Filecoin.DealMinDuration)
 		break Loop
 	}

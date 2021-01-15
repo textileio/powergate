@@ -31,6 +31,20 @@ func WithOverride(override bool) ApplyOption {
 	}
 }
 
+// WithImportDealIDs allows to import active on-chain deals to the Cid deals information.
+func WithImportDealIDs(dealIDs []uint64) ApplyOption {
+	return func(r *userPb.ApplyStorageConfigRequest) {
+		r.ImportDealIds = dealIDs
+	}
+}
+
+// WithNoExec allows to configure if a Job should ensure the new storage configuration.
+func WithNoExec(noExec bool) ApplyOption {
+	return func(r *userPb.ApplyStorageConfigRequest) {
+		r.NoExec = noExec
+	}
+}
+
 // Default returns the default storage config.
 func (s *StorageConfig) Default(ctx context.Context) (*userPb.DefaultStorageConfigResponse, error) {
 	return s.client.DefaultStorageConfig(ctx, &userPb.DefaultStorageConfigRequest{})
