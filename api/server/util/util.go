@@ -128,6 +128,7 @@ func toRPCDealErrors(des []ffs.DealError) []*userPb.DealError {
 	return ret
 }
 
+// FromProtoCids converts string cids to cid.Cids.
 func FromProtoCids(cids []string) ([]cid.Cid, error) {
 	var res []cid.Cid
 	for _, cid := range cids {
