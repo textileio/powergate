@@ -413,8 +413,6 @@ message CidInfo {
   StorageInfo current_storage_info = 3;
   repeated StorageJob queued_storage_jobs = 4;
   StorageJob executing_storage_job = 5;
-  StorageJob latest_final_storage_job = 6;
-  StorageJob latest_successful_storage_job = 7;
 }
 
 enum JobStatus {

@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/textileio/powergate/cmd/pow/cmd/admin/data"
 	"github.com/textileio/powergate/cmd/pow/cmd/admin/jobs"
+	"github.com/textileio/powergate/cmd/pow/cmd/admin/storageinfo"
 	"github.com/textileio/powergate/cmd/pow/cmd/admin/users"
 	"github.com/textileio/powergate/cmd/pow/cmd/admin/wallet"
 )
@@ -14,6 +15,7 @@ func init() {
 	Cmd.AddCommand(
 		data.Cmd,
 		jobs.Cmd,
+		storageinfo.Cmd,
 		users.Cmd,
 		wallet.Cmd,
 	)
