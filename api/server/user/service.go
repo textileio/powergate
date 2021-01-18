@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	logger "github.com/ipfs/go-log/v2"
@@ -12,12 +11,11 @@ import (
 	"github.com/textileio/powergate/ffs/api"
 	"github.com/textileio/powergate/ffs/manager"
 	"github.com/textileio/powergate/wallet"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
-	// ErrEmptyAuthToken is returned when the provided auth-token is unknown.
-	ErrEmptyAuthToken = errors.New("auth token can't be empty")
-
 	log = logger.Logger("user-service")
 )
 
@@ -63,11 +61,15 @@ func (s *Service) UserIdentifier(ctx context.Context, req *userPb.UserIdentifier
 func (s *Service) getInstanceByToken(ctx context.Context) (*api.API, error) {
 	token := metautils.ExtractIncoming(ctx).Get("X-ffs-Token")
 	if token == "" {
-		return nil, ErrEmptyAuthToken
+		return nil, status.Errorf(codes.PermissionDenied, "auth token can't be empty")
 	}
 	i, err := s.m.GetByAuthToken(token)
 	if err != nil {
-		return nil, err
+		code := codes.Internal
+		if err == manager.ErrAuthTokenNotFound {
+			code = codes.PermissionDenied
+		}
+		return nil, status.Errorf(code, "getting instance: %v", err)
 	}
 	return i, nil
 }

@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 
+	"github.com/ipfs/go-cid"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/util"
@@ -125,4 +126,17 @@ func toRPCDealErrors(des []ffs.DealError) []*userPb.DealError {
 		}
 	}
 	return ret
+}
+
+// FromProtoCids converts string cids to cid.Cids.
+func FromProtoCids(cids []string) ([]cid.Cid, error) {
+	var res []cid.Cid
+	for _, cid := range cids {
+		cid, err := util.CidFromString(cid)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, cid)
+	}
+	return res, nil
 }

@@ -1,7 +1,6 @@
 package user
 
 import (
-	"github.com/ipfs/go-cid"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/deals"
 	"github.com/textileio/powergate/ffs"
@@ -152,16 +151,4 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*userPb.Re
 		}
 	}
 	return ret
-}
-
-func fromProtoCids(cids []string) ([]cid.Cid, error) {
-	var res []cid.Cid
-	for _, cid := range cids {
-		cid, err := util.CidFromString(cid)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, cid)
-	}
-	return res, nil
 }

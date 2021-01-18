@@ -1,13 +1,13 @@
 ## pow data info
 
-Get information about the current storate state of a cid
+Get information about the current storage state of a cid
 
 ### Synopsis
 
-Get information about the current storate state of a cid
+Get information about the current storage state of a cid
 
 ```
-pow data info [optional cid1,cid2,...] [flags]
+pow data info cid [flags]
 ```
 
 ### Options

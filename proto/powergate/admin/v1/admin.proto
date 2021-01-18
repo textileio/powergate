@@ -73,54 +73,31 @@ message ListStorageInfoResponse {
 
 // Storage Jobs
 
-message QueuedStorageJobsRequest {
-  string user_id = 1;
-  repeated string cids = 2;
+message ListStorageJobsRequest {
+  string user_id_filter = 1;
+  string cid_filter = 2;
+  uint64 limit = 3;
+  bool ascending = 4;
+  string next_page_token = 5;
+  powergate.user.v1.StorageJobsSelector selector = 6;
 }
 
-message QueuedStorageJobsResponse {
+message ListStorageJobsResponse {
   repeated powergate.user.v1.StorageJob storage_jobs = 1;
-}
-
-message ExecutingStorageJobsRequest {
-  string user_id = 1;
-  repeated string cids = 2;
-}
-
-message ExecutingStorageJobsResponse {
-  repeated powergate.user.v1.StorageJob storage_jobs = 1;
-}
-
-message LatestFinalStorageJobsRequest {
-  string user_id = 1;
-  repeated string cids = 2;
-}
-
-message LatestFinalStorageJobsResponse {
-  repeated powergate.user.v1.StorageJob storage_jobs = 1;
-}
-
-message LatestSuccessfulStorageJobsRequest {
-  string user_id = 1;
-  repeated string cids = 2;
-}
-
-message LatestSuccessfulStorageJobsResponse {
-  repeated powergate.user.v1.StorageJob storage_jobs = 1;
+  bool more = 2;
+  string next_page_token = 3;
 }
 
 message StorageJobsSummaryRequest {
   string user_id = 1;
-  repeated string cids = 2;
+  string cid = 2;
 }
 
 
 message StorageJobsSummaryResponse {
-  powergate.user.v1.JobCounts job_counts = 1;
-  repeated powergate.user.v1.StorageJob queued_storage_jobs = 2;
-  repeated powergate.user.v1.StorageJob executing_storage_jobs = 3;
-  repeated powergate.user.v1.StorageJob latest_final_storage_jobs = 4;
-  repeated powergate.user.v1.StorageJob latest_successful_storage_jobs = 5;
+  repeated string queued_storage_jobs = 1;
+  repeated string executing_storage_jobs = 2;
+  repeated string final_storage_jobs = 3;
 }
 
 message GCStagedRequest {
@@ -163,11 +140,9 @@ service AdminService {
   rpc ListStorageInfo(ListStorageInfoRequest) returns (ListStorageInfoResponse) {}
 
   // Storage Jobs
-  rpc QueuedStorageJobs(QueuedStorageJobsRequest) returns (QueuedStorageJobsResponse) {}
-  rpc ExecutingStorageJobs(ExecutingStorageJobsRequest) returns (ExecutingStorageJobsResponse) {}
-  rpc LatestFinalStorageJobs(LatestFinalStorageJobsRequest) returns (LatestFinalStorageJobsResponse) {}
-  rpc LatestSuccessfulStorageJobs(LatestSuccessfulStorageJobsRequest) returns (LatestSuccessfulStorageJobsResponse) {}
+  rpc ListStorageJobs(ListStorageJobsRequest) returns (ListStorageJobsResponse) {}
   rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
+
   rpc GCStaged(GCStagedRequest) returns (GCStagedResponse) {}
   rpc PinnedCids(PinnedCidsRequest) returns (PinnedCidsResponse) {}
 }

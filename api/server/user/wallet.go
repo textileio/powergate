@@ -46,7 +46,7 @@ func (s *Service) NewAddress(ctx context.Context, req *userPb.NewAddressRequest)
 func (s *Service) Addresses(ctx context.Context, req *userPb.AddressesRequest) (*userPb.AddressesResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+		return nil, err
 	}
 	addrs := i.Addrs()
 	res := make([]*userPb.AddrInfo, len(addrs))
