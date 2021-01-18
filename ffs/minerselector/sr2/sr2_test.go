@@ -8,8 +8,8 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/lotus"
 )
 
 // TestMS is meant to be runned locally since it needs a fully

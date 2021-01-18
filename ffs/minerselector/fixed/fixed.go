@@ -3,7 +3,7 @@ package fixed
 import (
 	"fmt"
 
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 // MinerSelector is a MinerSelector implementation which

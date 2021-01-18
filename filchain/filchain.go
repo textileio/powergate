@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/v2/lotus"
 )
 
 // FilChain is an abstraction of the Filecoin network.

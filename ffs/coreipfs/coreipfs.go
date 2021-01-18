@@ -15,9 +15,9 @@ import (
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/coreipfs/internal/pinstore"
-	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/coreipfs/internal/pinstore"
+	txndstr "github.com/textileio/powergate/v2/txndstransform"
 )
 
 var (

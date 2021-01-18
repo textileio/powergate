@@ -10,12 +10,12 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/chainstore"
-	"github.com/textileio/powergate/chainsync"
-	"github.com/textileio/powergate/index/faults"
-	"github.com/textileio/powergate/lotus"
-	"github.com/textileio/powergate/signaler"
-	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/v2/chainstore"
+	"github.com/textileio/powergate/v2/chainsync"
+	"github.com/textileio/powergate/v2/index/faults"
+	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/signaler"
+	txndstr "github.com/textileio/powergate/v2/txndstransform"
 	"go.opencensus.io/stats"
 )
 

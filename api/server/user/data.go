@@ -6,11 +6,11 @@ import (
 	"io"
 	"sort"
 
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	su "github.com/textileio/powergate/api/server/util"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/util"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	su "github.com/textileio/powergate/v2/api/server/util"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/api"
+	"github.com/textileio/powergate/v2/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

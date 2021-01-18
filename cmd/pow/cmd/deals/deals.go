@@ -2,8 +2,8 @@ package deals
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/deals/retrievals"
-	"github.com/textileio/powergate/cmd/pow/cmd/deals/storage"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/deals/retrievals"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/deals/storage"
 )
 
 func init() {

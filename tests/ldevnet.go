@@ -12,8 +12,8 @@ import (
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/lotus"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/util"
 )
 
 // TestingTWithCleanup is an augmented require.TestingT with a Cleanup function.

@@ -10,8 +10,8 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/buildinfo"
-	"github.com/textileio/powergate/cmd/powbench/runner"
+	"github.com/textileio/powergate/v2/buildinfo"
+	"github.com/textileio/powergate/v2/cmd/powbench/runner"
 )
 
 const (

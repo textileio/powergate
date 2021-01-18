@@ -11,11 +11,11 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/namespace"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/auth"
-	"github.com/textileio/powergate/ffs/scheduler"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/api"
+	"github.com/textileio/powergate/v2/ffs/auth"
+	"github.com/textileio/powergate/v2/ffs/scheduler"
+	"github.com/textileio/powergate/v2/util"
 )
 
 var (

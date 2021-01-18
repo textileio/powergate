@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 // PushStorageConfig push a new configuration for the Cid in the hot and

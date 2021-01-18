@@ -9,8 +9,8 @@ import (
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/index/ask"
-	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/v2/index/ask"
+	"github.com/textileio/powergate/v2/tests"
 )
 
 func TestMain(m *testing.M) {

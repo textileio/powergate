@@ -17,9 +17,9 @@ import (
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/deals"
-	"github.com/textileio/powergate/tests"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/tests"
+	"github.com/textileio/powergate/v2/util"
 )
 
 const (

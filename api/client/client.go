@@ -5,9 +5,9 @@ import (
 	"crypto/tls"
 	"strings"
 
-	"github.com/textileio/powergate/api/client/admin"
-	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/api/client/admin"
+	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

@@ -2,8 +2,8 @@ package data
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/data/gcstaged"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/data/pinnedcids"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/data/gcstaged"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/data/pinnedcids"
 )
 
 func init() {

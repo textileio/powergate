@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/tests"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/tests"
+	"github.com/textileio/powergate/v2/util"
 )
 
 func TestV1_StartedDeals(t *testing.T) {

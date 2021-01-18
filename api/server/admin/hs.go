@@ -3,7 +3,7 @@ package admin
 import (
 	"context"
 
-	adminProto "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	adminProto "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

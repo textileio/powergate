@@ -11,10 +11,10 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/textileio/powergate/index/ask"
-	"github.com/textileio/powergate/index/faults"
-	"github.com/textileio/powergate/index/miner"
-	"github.com/textileio/powergate/reputation/internal/source"
+	"github.com/textileio/powergate/v2/index/ask"
+	"github.com/textileio/powergate/v2/index/faults"
+	"github.com/textileio/powergate/v2/index/miner"
+	"github.com/textileio/powergate/v2/reputation/internal/source"
 )
 
 var (

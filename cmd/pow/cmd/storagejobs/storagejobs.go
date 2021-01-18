@@ -2,14 +2,14 @@ package storagejobs
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/cancel"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/cancelexecuting"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/cancelqueued"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/get"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/list"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/storageconfig"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/summary"
-	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs/watch"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/storagejobs/cancel"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/storagejobs/cancelexecuting"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/storagejobs/cancelqueued"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/storagejobs/get"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/storagejobs/list"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/storagejobs/storageconfig"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/storagejobs/summary"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/storagejobs/watch"
 )
 
 func init() {

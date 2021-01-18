@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/big"
 
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 )
 
 // Wallet provides an API for managing filecoin wallets.

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/textileio/powergate/index/ask"
+	"github.com/textileio/powergate/v2/index/ask"
 )
 
 var (

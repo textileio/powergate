@@ -17,13 +17,13 @@ change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add
 version-resolver:
   major:
     labels:
-      - "major"
+      - "rd-major"
   minor:
     labels:
-      - "minor"
+      - "rd-minor"
   patch:
     labels:
-      - "patch"
+      - "rd-patch"
   default: patch
 exclude-labels:
   - "skip-changelog"

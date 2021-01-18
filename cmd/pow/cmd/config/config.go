@@ -2,10 +2,10 @@ package config
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/config/apply"
-	"github.com/textileio/powergate/cmd/pow/cmd/config/getdefault"
-	"github.com/textileio/powergate/cmd/pow/cmd/config/remove"
-	"github.com/textileio/powergate/cmd/pow/cmd/config/setdefault"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/config/apply"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/config/getdefault"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/config/remove"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/config/setdefault"
 )
 
 func init() {

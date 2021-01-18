@@ -8,9 +8,9 @@ import (
 	"time"
 
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/api/client"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/api/client"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/util"
 )
 
 var (

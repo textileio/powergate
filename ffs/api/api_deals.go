@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/v2/deals"
 )
 
 // StorageDealRecords lists storage deals for this FFS instance according to the provided options.

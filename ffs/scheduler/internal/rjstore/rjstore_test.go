@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/tests"
 )
 
 func TestEnqueue(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 // WatchLogs pushes human-friendly messages about Cid executions. The method is blocking

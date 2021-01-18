@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

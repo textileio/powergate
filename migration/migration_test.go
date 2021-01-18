@@ -17,7 +17,7 @@ import (
 	badger "github.com/ipfs/go-ds-badger2"
 	"github.com/stretchr/testify/require"
 	mongods "github.com/textileio/go-ds-mongo"
-	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/v2/tests"
 
 	logger "github.com/ipfs/go-log/v2"
 )

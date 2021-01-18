@@ -17,8 +17,8 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/api/client"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/api/client"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 )
 
 var (

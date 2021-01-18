@@ -9,7 +9,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 // Store persist information about storage configs which

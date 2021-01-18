@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 // PushStorageConfigOption mutates a push configuration.

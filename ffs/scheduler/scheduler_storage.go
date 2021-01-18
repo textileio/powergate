@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/powergate/deals"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/sjstore"
+	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/astore"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/cistore"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/sjstore"
 )
 
 // PushConfig queues the specified StorageConfig to be executed as a new Job. It returns

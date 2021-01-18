@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	c "github.com/textileio/powergate/cmd/pow/common"
+	c "github.com/textileio/powergate/v2/cmd/pow/common"
 )
 
 // Cmd is the command.

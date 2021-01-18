@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 // bumpIpfsAddTimeout is a transformation that updates Hot.Ipfs.AddTimeout

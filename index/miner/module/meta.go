@@ -10,9 +10,9 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/textileio/powergate/index/miner"
-	"github.com/textileio/powergate/iplocation"
-	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/v2/index/miner"
+	"github.com/textileio/powergate/v2/iplocation"
+	"github.com/textileio/powergate/v2/lotus"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )

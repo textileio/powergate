@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/api/client/admin"
-	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	"github.com/textileio/powergate/v2/api/client/admin"
+	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

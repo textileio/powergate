@@ -9,7 +9,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/textileio/powergate/index/miner"
+	"github.com/textileio/powergate/v2/index/miner"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )

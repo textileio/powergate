@@ -5,12 +5,12 @@ import (
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	logger "github.com/ipfs/go-log/v2"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	"github.com/textileio/powergate/buildinfo"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/manager"
-	"github.com/textileio/powergate/wallet"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/buildinfo"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/api"
+	"github.com/textileio/powergate/v2/ffs/manager"
+	"github.com/textileio/powergate/v2/wallet"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

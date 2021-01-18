@@ -14,8 +14,8 @@ import (
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	logger "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/lotus"
 )
 
 const (

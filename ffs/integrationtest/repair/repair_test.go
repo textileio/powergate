@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
-	it "github.com/textileio/powergate/ffs/integrationtest"
-	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
-	"github.com/textileio/powergate/ffs/scheduler"
-	"github.com/textileio/powergate/tests"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/api"
+	it "github.com/textileio/powergate/v2/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/v2/ffs/integrationtest/manager"
+	"github.com/textileio/powergate/v2/ffs/scheduler"
+	"github.com/textileio/powergate/v2/tests"
+	"github.com/textileio/powergate/v2/util"
 )
 
 func TestMain(m *testing.M) {
