@@ -1,4 +1,4 @@
-## pow admin jobs summary
+## pow admin storage-jobs summary
 
 Give a summary of storage jobs in all states
 
@@ -7,7 +7,7 @@ Give a summary of storage jobs in all states
 Give a summary of storage jobs in all states
 
 ```
-pow admin jobs summary [flags]
+pow admin storage-jobs summary [flags]
 ```
 
 ### Options
@@ -28,5 +28,5 @@ pow admin jobs summary [flags]
 
 ### SEE ALSO
 
-* [pow admin jobs](pow_admin_jobs.md)	 - Provides admin jobs commands
+* [pow admin storage-jobs](pow_admin_storage-jobs.md)	 - Provides admin jobs commands
 

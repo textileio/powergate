@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/powergate/cmd/pow/cmd/data"
 	"github.com/textileio/powergate/cmd/pow/cmd/deals"
 	"github.com/textileio/powergate/cmd/pow/cmd/id"
+	"github.com/textileio/powergate/cmd/pow/cmd/storageinfo"
 	"github.com/textileio/powergate/cmd/pow/cmd/storagejobs"
 	"github.com/textileio/powergate/cmd/pow/cmd/version"
 	"github.com/textileio/powergate/cmd/pow/cmd/wallet"
@@ -25,7 +26,7 @@ func init() {
 	Cmd.PersistentFlags().String("serverAddress", "127.0.0.1:5002", "address of the powergate service api")
 	Cmd.PersistentFlags().StringP("token", "t", "", "user auth token")
 
-	Cmd.AddCommand(admin.Cmd, config.Cmd, data.Cmd, deals.Cmd, id.Cmd, storagejobs.Cmd, version.Cmd, wallet.Cmd, docsCmd)
+	Cmd.AddCommand(admin.Cmd, config.Cmd, data.Cmd, deals.Cmd, id.Cmd, storageinfo.Cmd, storagejobs.Cmd, version.Cmd, wallet.Cmd, docsCmd)
 }
 
 func initConfig() {

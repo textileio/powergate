@@ -1,4 +1,4 @@
-## pow admin jobs list
+## pow admin storage-jobs list
 
 List storage jobs according to query flag options.
 
@@ -7,7 +7,7 @@ List storage jobs according to query flag options.
 List storage jobs according to query flag options.
 
 ```
-pow admin jobs list [flags]
+pow admin storage-jobs list [flags]
 ```
 
 ### Options
@@ -31,5 +31,5 @@ pow admin jobs list [flags]
 
 ### SEE ALSO
 
-* [pow admin jobs](pow_admin_jobs.md)	 - Provides admin jobs commands
+* [pow admin storage-jobs](pow_admin_storage-jobs.md)	 - Provides admin jobs commands
 

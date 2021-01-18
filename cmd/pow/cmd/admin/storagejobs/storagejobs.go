@@ -1,9 +1,9 @@
-package jobs
+package storagejobs
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/jobs/list"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/jobs/summary"
+	"github.com/textileio/powergate/cmd/pow/cmd/admin/storagejobs/list"
+	"github.com/textileio/powergate/cmd/pow/cmd/admin/storagejobs/summary"
 )
 
 func init() {
@@ -12,8 +12,8 @@ func init() {
 
 // Cmd is the command.
 var Cmd = &cobra.Command{
-	Use:     "jobs",
-	Aliases: []string{"job"},
+	Use:     "storage-jobs",
+	Aliases: []string{"storage-job"},
 	Short:   "Provides admin jobs commands",
 	Long:    `Provides admin jobs commands`,
 }
