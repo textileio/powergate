@@ -11,12 +11,12 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	dealsModule "github.com/textileio/powergate/deals/module"
-	"github.com/textileio/powergate/lotus"
-	"github.com/textileio/powergate/tests"
-	txndstr "github.com/textileio/powergate/txndstransform"
-	"github.com/textileio/powergate/util"
-	walletModule "github.com/textileio/powergate/wallet/module"
+	dealsModule "github.com/textileio/powergate/v2/deals/module"
+	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/tests"
+	txndstr "github.com/textileio/powergate/v2/txndstransform"
+	"github.com/textileio/powergate/v2/util"
+	walletModule "github.com/textileio/powergate/v2/wallet/module"
 )
 
 func TestMain(m *testing.M) {

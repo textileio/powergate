@@ -11,13 +11,13 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/textileio/powergate/chainstore"
-	"github.com/textileio/powergate/chainsync"
-	"github.com/textileio/powergate/index/miner"
-	"github.com/textileio/powergate/iplocation"
-	"github.com/textileio/powergate/lotus"
-	"github.com/textileio/powergate/signaler"
-	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/v2/chainstore"
+	"github.com/textileio/powergate/v2/chainsync"
+	"github.com/textileio/powergate/v2/index/miner"
+	"github.com/textileio/powergate/v2/iplocation"
+	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/signaler"
+	txndstr "github.com/textileio/powergate/v2/txndstransform"
 )
 
 var (

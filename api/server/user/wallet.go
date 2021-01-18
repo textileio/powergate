@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	"github.com/textileio/powergate/ffs/api"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/ffs/api"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

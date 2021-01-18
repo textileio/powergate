@@ -3,10 +3,10 @@ package user
 import (
 	"context"
 
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/util"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/api"
+	"github.com/textileio/powergate/v2/util"
 )
 
 // DefaultStorageConfig calls ffs.DefaultStorageConfig.

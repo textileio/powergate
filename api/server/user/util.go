@@ -1,10 +1,10 @@
 package user
 
 import (
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	"github.com/textileio/powergate/deals"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/util"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/util"
 )
 
 func toRPCStorageConfig(config ffs.StorageConfig) *userPb.StorageConfig {

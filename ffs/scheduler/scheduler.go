@@ -11,14 +11,14 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/ristore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/rjstore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/sjstore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/trackstore"
-	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/astore"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/cistore"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/ristore"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/rjstore"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/sjstore"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/trackstore"
+	txndstr "github.com/textileio/powergate/v2/txndstransform"
 )
 
 var (

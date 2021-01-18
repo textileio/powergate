@@ -2,8 +2,8 @@ package users
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/users/create"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/users/list"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/users/create"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/users/list"
 )
 
 func init() {

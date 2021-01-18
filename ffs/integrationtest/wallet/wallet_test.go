@@ -10,9 +10,9 @@ import (
 	"github.com/filecoin-project/go-address"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs/api"
-	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/ffs/api"
+	itmanager "github.com/textileio/powergate/v2/ffs/integrationtest/manager"
+	"github.com/textileio/powergate/v2/util"
 )
 
 const (

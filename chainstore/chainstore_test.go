@@ -10,7 +10,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/multiformats/go-multihash"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/v2/tests"
 )
 
 type data struct {

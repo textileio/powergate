@@ -3,7 +3,7 @@ package admin
 import (
 	"context"
 
-	proto "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	proto "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
 )
 
 // Data provides access to Powergate data admin APIs.

@@ -9,9 +9,9 @@ import (
 	"github.com/multiformats/go-multiaddr"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/api/server"
-	"github.com/textileio/powergate/tests"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/api/server"
+	"github.com/textileio/powergate/v2/tests"
+	"github.com/textileio/powergate/v2/util"
 	"google.golang.org/grpc"
 )
 

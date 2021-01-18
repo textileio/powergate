@@ -1,10 +1,10 @@
 package admin
 
 import (
-	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
-	"github.com/textileio/powergate/ffs/manager"
-	"github.com/textileio/powergate/ffs/scheduler"
-	"github.com/textileio/powergate/wallet"
+	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
+	"github.com/textileio/powergate/v2/ffs/manager"
+	"github.com/textileio/powergate/v2/ffs/scheduler"
+	"github.com/textileio/powergate/v2/wallet"
 )
 
 // Service implements the Admin API.

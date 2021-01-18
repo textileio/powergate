@@ -10,10 +10,10 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/iplocation"
-	"github.com/textileio/powergate/lotus"
-	"github.com/textileio/powergate/tests"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/iplocation"
+	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/tests"
+	"github.com/textileio/powergate/v2/util"
 )
 
 func TestMain(m *testing.M) {

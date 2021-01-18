@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/v2/tests"
 )
 
 func TestV3(t *testing.T) {

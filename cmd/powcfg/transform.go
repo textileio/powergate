@@ -7,8 +7,8 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	"github.com/textileio/powergate/cmd/powcfg/ratelim"
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/cmd/powcfg/ratelim"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 // Transform is a function that applies a transformation to a StorageConfig.

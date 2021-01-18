@@ -10,7 +10,7 @@ import (
 	logger "github.com/ipfs/go-log/v2"
 	cp "github.com/otiai10/copy"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 func TestIpfsAddBump(t *testing.T) {

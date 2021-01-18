@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/big"
 
-	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

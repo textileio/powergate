@@ -11,7 +11,7 @@ import (
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/powergate/deals"
+	"github.com/textileio/powergate/v2/deals"
 )
 
 // WalletManager provides access to a Lotus wallet for a Lotus node.

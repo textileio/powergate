@@ -13,9 +13,9 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	mh "github.com/multiformats/go-multihash"
 	"github.com/stretchr/testify/require"
-	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
-	"github.com/textileio/powergate/tests"
-	"github.com/textileio/powergate/util"
+	itmanager "github.com/textileio/powergate/v2/ffs/integrationtest/manager"
+	"github.com/textileio/powergate/v2/tests"
+	"github.com/textileio/powergate/v2/util"
 )
 
 type rootType struct {

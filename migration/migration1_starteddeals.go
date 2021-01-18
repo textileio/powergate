@@ -5,7 +5,7 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/util"
 )
 
 func migrateStartedDeals(ds datastoreReaderWriter) error {

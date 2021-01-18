@@ -10,12 +10,12 @@ import (
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
-	it "github.com/textileio/powergate/ffs/integrationtest"
-	itmanager "github.com/textileio/powergate/ffs/integrationtest/manager"
-	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/v2/ffs"
+	it "github.com/textileio/powergate/v2/ffs/integrationtest"
+	itmanager "github.com/textileio/powergate/v2/ffs/integrationtest/manager"
+	"github.com/textileio/powergate/v2/tests"
 
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/util"
 )
 
 func TestMain(m *testing.M) {

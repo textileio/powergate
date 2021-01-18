@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/textileio/powergate/cmd/pow/cmd"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd"
 )
 
 func main() {

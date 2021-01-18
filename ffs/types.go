@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/powergate/deals"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/util"
 )
 
 var (

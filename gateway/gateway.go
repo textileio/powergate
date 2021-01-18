@@ -18,10 +18,10 @@ import (
 	assets "github.com/jessevdk/go-assets"
 	"github.com/rs/cors"
 	gincors "github.com/rs/cors/wrapper/gin"
-	askRunner "github.com/textileio/powergate/index/ask/runner"
-	faultsModule "github.com/textileio/powergate/index/faults/module"
-	minerModule "github.com/textileio/powergate/index/miner/module"
-	"github.com/textileio/powergate/reputation"
+	askRunner "github.com/textileio/powergate/v2/index/ask/runner"
+	faultsModule "github.com/textileio/powergate/v2/index/faults/module"
+	minerModule "github.com/textileio/powergate/v2/index/miner/module"
+	"github.com/textileio/powergate/v2/reputation"
 )
 
 const numTopMiners = 100

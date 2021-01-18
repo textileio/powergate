@@ -9,7 +9,7 @@ import (
 	"github.com/filecoin-project/lotus/chain/types"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/tests"
+	"github.com/textileio/powergate/v2/tests"
 )
 
 func TestMain(m *testing.M) {
