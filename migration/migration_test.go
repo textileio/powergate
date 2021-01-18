@@ -155,6 +155,7 @@ func TestRealDataBadgerV0(t *testing.T) {
 
 	migrations := map[int]Migration{
 		1: V1MultitenancyMigration,
+		2: V3StorageJobsIndexMigration,
 	}
 	m := New(ds, migrations)
 	err = m.Ensure()

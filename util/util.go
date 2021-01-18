@@ -96,7 +96,7 @@ func CidToString(c cid.Cid) string {
 
 // CidFromString converts a string to a cid assuming that an empty string is cid.Undef.
 func CidFromString(c string) (cid.Cid, error) {
-	if c == DefaultCidUndef || c == CidUndef {
+	if c == DefaultCidUndef || c == CidUndef || c == "" {
 		return cid.Undef, nil
 	}
 	return cid.Decode(c)

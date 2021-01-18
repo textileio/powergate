@@ -200,9 +200,14 @@ func (d *Data) WatchLogs(ctx context.Context, ch chan<- WatchLogsEvent, cid stri
 	return nil
 }
 
-// CidInfo returns information about cids stored by the user.
-func (d *Data) CidInfo(ctx context.Context, cids ...string) (*userPb.CidInfoResponse, error) {
-	return d.client.CidInfo(ctx, &userPb.CidInfoRequest{Cids: cids})
+// CidSummary gives a summary of the storage and jobs state of the specified cid.
+func (d *Data) CidSummary(ctx context.Context, cids ...string) (*userPb.CidSummaryResponse, error) {
+	return d.client.CidSummary(ctx, &userPb.CidSummaryRequest{Cids: cids})
+}
+
+// CidInfo returns information about a cid stored by the user.
+func (d *Data) CidInfo(ctx context.Context, cid string) (*userPb.CidInfoResponse, error) {
+	return d.client.CidInfo(ctx, &userPb.CidInfoRequest{Cid: cid})
 }
 
 func newDecoratedIPFSAPI(proxyAddr, ffsToken string) (*httpapi.HttpApi, error) {

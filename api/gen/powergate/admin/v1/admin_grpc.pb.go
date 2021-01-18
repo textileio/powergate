@@ -28,10 +28,7 @@ type AdminServiceClient interface {
 	StorageInfo(ctx context.Context, in *StorageInfoRequest, opts ...grpc.CallOption) (*StorageInfoResponse, error)
 	ListStorageInfo(ctx context.Context, in *ListStorageInfoRequest, opts ...grpc.CallOption) (*ListStorageInfoResponse, error)
 	// Storage Jobs
-	QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error)
-	ExecutingStorageJobs(ctx context.Context, in *ExecutingStorageJobsRequest, opts ...grpc.CallOption) (*ExecutingStorageJobsResponse, error)
-	LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error)
-	LatestSuccessfulStorageJobs(ctx context.Context, in *LatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*LatestSuccessfulStorageJobsResponse, error)
+	ListStorageJobs(ctx context.Context, in *ListStorageJobsRequest, opts ...grpc.CallOption) (*ListStorageJobsResponse, error)
 	StorageJobsSummary(ctx context.Context, in *StorageJobsSummaryRequest, opts ...grpc.CallOption) (*StorageJobsSummaryResponse, error)
 	GCStaged(ctx context.Context, in *GCStagedRequest, opts ...grpc.CallOption) (*GCStagedResponse, error)
 	PinnedCids(ctx context.Context, in *PinnedCidsRequest, opts ...grpc.CallOption) (*PinnedCidsResponse, error)
@@ -108,36 +105,9 @@ func (c *adminServiceClient) ListStorageInfo(ctx context.Context, in *ListStorag
 	return out, nil
 }
 
-func (c *adminServiceClient) QueuedStorageJobs(ctx context.Context, in *QueuedStorageJobsRequest, opts ...grpc.CallOption) (*QueuedStorageJobsResponse, error) {
-	out := new(QueuedStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/QueuedStorageJobs", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *adminServiceClient) ExecutingStorageJobs(ctx context.Context, in *ExecutingStorageJobsRequest, opts ...grpc.CallOption) (*ExecutingStorageJobsResponse, error) {
-	out := new(ExecutingStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/ExecutingStorageJobs", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *adminServiceClient) LatestFinalStorageJobs(ctx context.Context, in *LatestFinalStorageJobsRequest, opts ...grpc.CallOption) (*LatestFinalStorageJobsResponse, error) {
-	out := new(LatestFinalStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/LatestFinalStorageJobs", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *adminServiceClient) LatestSuccessfulStorageJobs(ctx context.Context, in *LatestSuccessfulStorageJobsRequest, opts ...grpc.CallOption) (*LatestSuccessfulStorageJobsResponse, error) {
-	out := new(LatestSuccessfulStorageJobsResponse)
-	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/LatestSuccessfulStorageJobs", in, out, opts...)
+func (c *adminServiceClient) ListStorageJobs(ctx context.Context, in *ListStorageJobsRequest, opts ...grpc.CallOption) (*ListStorageJobsResponse, error) {
+	out := new(ListStorageJobsResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/ListStorageJobs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -186,10 +156,7 @@ type AdminServiceServer interface {
 	StorageInfo(context.Context, *StorageInfoRequest) (*StorageInfoResponse, error)
 	ListStorageInfo(context.Context, *ListStorageInfoRequest) (*ListStorageInfoResponse, error)
 	// Storage Jobs
-	QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error)
-	ExecutingStorageJobs(context.Context, *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error)
-	LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error)
-	LatestSuccessfulStorageJobs(context.Context, *LatestSuccessfulStorageJobsRequest) (*LatestSuccessfulStorageJobsResponse, error)
+	ListStorageJobs(context.Context, *ListStorageJobsRequest) (*ListStorageJobsResponse, error)
 	StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error)
 	GCStaged(context.Context, *GCStagedRequest) (*GCStagedResponse, error)
 	PinnedCids(context.Context, *PinnedCidsRequest) (*PinnedCidsResponse, error)
@@ -221,17 +188,8 @@ func (UnimplementedAdminServiceServer) StorageInfo(context.Context, *StorageInfo
 func (UnimplementedAdminServiceServer) ListStorageInfo(context.Context, *ListStorageInfoRequest) (*ListStorageInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStorageInfo not implemented")
 }
-func (UnimplementedAdminServiceServer) QueuedStorageJobs(context.Context, *QueuedStorageJobsRequest) (*QueuedStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method QueuedStorageJobs not implemented")
-}
-func (UnimplementedAdminServiceServer) ExecutingStorageJobs(context.Context, *ExecutingStorageJobsRequest) (*ExecutingStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExecutingStorageJobs not implemented")
-}
-func (UnimplementedAdminServiceServer) LatestFinalStorageJobs(context.Context, *LatestFinalStorageJobsRequest) (*LatestFinalStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LatestFinalStorageJobs not implemented")
-}
-func (UnimplementedAdminServiceServer) LatestSuccessfulStorageJobs(context.Context, *LatestSuccessfulStorageJobsRequest) (*LatestSuccessfulStorageJobsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LatestSuccessfulStorageJobs not implemented")
+func (UnimplementedAdminServiceServer) ListStorageJobs(context.Context, *ListStorageJobsRequest) (*ListStorageJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStorageJobs not implemented")
 }
 func (UnimplementedAdminServiceServer) StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageJobsSummary not implemented")
@@ -381,74 +339,20 @@ func _AdminService_ListStorageInfo_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminService_QueuedStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueuedStorageJobsRequest)
+func _AdminService_ListStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStorageJobsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminServiceServer).QueuedStorageJobs(ctx, in)
+		return srv.(AdminServiceServer).ListStorageJobs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/powergate.admin.v1.AdminService/QueuedStorageJobs",
+		FullMethod: "/powergate.admin.v1.AdminService/ListStorageJobs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).QueuedStorageJobs(ctx, req.(*QueuedStorageJobsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AdminService_ExecutingStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExecutingStorageJobsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).ExecutingStorageJobs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/powergate.admin.v1.AdminService/ExecutingStorageJobs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).ExecutingStorageJobs(ctx, req.(*ExecutingStorageJobsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AdminService_LatestFinalStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LatestFinalStorageJobsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).LatestFinalStorageJobs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/powergate.admin.v1.AdminService/LatestFinalStorageJobs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).LatestFinalStorageJobs(ctx, req.(*LatestFinalStorageJobsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AdminService_LatestSuccessfulStorageJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LatestSuccessfulStorageJobsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).LatestSuccessfulStorageJobs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/powergate.admin.v1.AdminService/LatestSuccessfulStorageJobs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).LatestSuccessfulStorageJobs(ctx, req.(*LatestSuccessfulStorageJobsRequest))
+		return srv.(AdminServiceServer).ListStorageJobs(ctx, req.(*ListStorageJobsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -540,20 +444,8 @@ var _AdminService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_ListStorageInfo_Handler,
 		},
 		{
-			MethodName: "QueuedStorageJobs",
-			Handler:    _AdminService_QueuedStorageJobs_Handler,
-		},
-		{
-			MethodName: "ExecutingStorageJobs",
-			Handler:    _AdminService_ExecutingStorageJobs_Handler,
-		},
-		{
-			MethodName: "LatestFinalStorageJobs",
-			Handler:    _AdminService_LatestFinalStorageJobs_Handler,
-		},
-		{
-			MethodName: "LatestSuccessfulStorageJobs",
-			Handler:    _AdminService_LatestSuccessfulStorageJobs_Handler,
+			MethodName: "ListStorageJobs",
+			Handler:    _AdminService_ListStorageJobs_Handler,
 		},
 		{
 			MethodName: "StorageJobsSummary",

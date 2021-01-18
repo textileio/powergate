@@ -3,11 +3,12 @@ package user
 import (
 	"context"
 
+	"github.com/ipfs/go-cid"
 	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	"github.com/textileio/powergate/api/server/util"
+	su "github.com/textileio/powergate/api/server/util"
 	"github.com/textileio/powergate/ffs"
 	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/ffs/manager"
+	"github.com/textileio/powergate/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -23,7 +24,7 @@ func (s *Service) StorageJob(ctx context.Context, req *userPb.StorageJobRequest)
 	if err != nil {
 		return nil, err
 	}
-	rpcJob, err := util.ToRPCJob(job)
+	rpcJob, err := su.ToRPCJob(job)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "building job response: %v", err.Error())
 	}
@@ -36,11 +37,7 @@ func (s *Service) StorageJob(ctx context.Context, req *userPb.StorageJobRequest)
 func (s *Service) StorageConfigForJob(ctx context.Context, req *userPb.StorageConfigForJobRequest) (*userPb.StorageConfigForJobResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		code := codes.Internal
-		if err == manager.ErrAuthTokenNotFound || err == ErrEmptyAuthToken {
-			code = codes.PermissionDenied
-		}
-		return nil, status.Errorf(code, "getting instance: %v", err)
+		return nil, err
 	}
 	sc, err := i.StorageConfigForJob(ffs.JobID(req.JobId))
 	if err != nil {
@@ -54,135 +51,96 @@ func (s *Service) StorageConfigForJob(ctx context.Context, req *userPb.StorageCo
 	return &userPb.StorageConfigForJobResponse{StorageConfig: res}, nil
 }
 
-// QueuedStorageJobs returns a list of queued storage jobs.
-func (s *Service) QueuedStorageJobs(ctx context.Context, req *userPb.QueuedStorageJobsRequest) (*userPb.QueuedStorageJobsResponse, error) {
+// ListStorageJobs lists StorageJobs according to the provided request parameters.
+func (s *Service) ListStorageJobs(ctx context.Context, req *userPb.ListStorageJobsRequest) (*userPb.ListStorageJobsResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+		return nil, err
 	}
-
-	cids, err := fromProtoCids(req.Cids)
+	var selector api.ListStorageJobsSelect
+	switch req.Selector {
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_ALL:
+		selector = api.All
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_EXECUTING:
+		selector = api.Executing
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_FINAL:
+		selector = api.Final
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_QUEUED:
+		selector = api.Queued
+	case userPb.StorageJobsSelector_STORAGE_JOBS_SELECTOR_UNSPECIFIED:
+		selector = api.All
+	}
+	conf := api.ListStorageJobsConfig{
+		Limit:         req.Limit,
+		Ascending:     req.Ascending,
+		NextPageToken: req.NextPageToken,
+		Select:        selector,
+	}
+	if req.CidFilter != "" {
+		c, err := cid.Decode(req.CidFilter)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "parsing cid filter: %v", err)
+		}
+		conf.CidFilter = c
+	}
+	jobs, more, next, err := i.ListStorageJobs(conf)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
+		return nil, status.Errorf(codes.Internal, "listing storage jobs: %v", err)
 	}
-	jobs := i.QueuedStorageJobs(cids...)
-	protoJobs, err := util.ToProtoStorageJobs(jobs)
+	protoJobs, err := su.ToProtoStorageJobs(jobs)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
 	}
-	return &userPb.QueuedStorageJobsResponse{
-		StorageJobs: protoJobs,
-	}, nil
-}
-
-// ExecutingStorageJobs returns a list of executing storage jobs.
-func (s *Service) ExecutingStorageJobs(ctx context.Context, req *userPb.ExecutingStorageJobsRequest) (*userPb.ExecutingStorageJobsResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+	res := &userPb.ListStorageJobsResponse{
+		StorageJobs:   protoJobs,
+		More:          more,
+		NextPageToken: next,
 	}
-
-	cids, err := fromProtoCids(req.Cids)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
-	}
-	jobs := i.ExecutingStorageJobs(cids...)
-	protoJobs, err := util.ToProtoStorageJobs(jobs)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
-	}
-	return &userPb.ExecutingStorageJobsResponse{
-		StorageJobs: protoJobs,
-	}, nil
-}
-
-// LatestFinalStorageJobs returns a list of latest final storage jobs.
-func (s *Service) LatestFinalStorageJobs(ctx context.Context, req *userPb.LatestFinalStorageJobsRequest) (*userPb.LatestFinalStorageJobsResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
-	}
-
-	cids, err := fromProtoCids(req.Cids)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
-	}
-	jobs := i.LatestFinalStorageJobs(cids...)
-	protoJobs, err := util.ToProtoStorageJobs(jobs)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
-	}
-	return &userPb.LatestFinalStorageJobsResponse{
-		StorageJobs: protoJobs,
-	}, nil
-}
-
-// LatestSuccessfulStorageJobs returns a list of latest successful storage jobs.
-func (s *Service) LatestSuccessfulStorageJobs(ctx context.Context, req *userPb.LatestSuccessfulStorageJobsRequest) (*userPb.LatestSuccessfulStorageJobsResponse, error) {
-	i, err := s.getInstanceByToken(ctx)
-	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
-	}
-
-	cids, err := fromProtoCids(req.Cids)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
-	}
-	jobs := i.LatestSuccessfulStorageJobs(cids...)
-	protoJobs, err := util.ToProtoStorageJobs(jobs)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting jobs to protos: %v", err)
-	}
-	return &userPb.LatestSuccessfulStorageJobsResponse{
-		StorageJobs: protoJobs,
-	}, nil
+	return res, nil
 }
 
 // StorageJobsSummary returns a summary of all storage jobs.
 func (s *Service) StorageJobsSummary(ctx context.Context, req *userPb.StorageJobsSummaryRequest) (*userPb.StorageJobsSummaryResponse, error) {
 	i, err := s.getInstanceByToken(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.PermissionDenied, "getting instance: %v", err)
+		return nil, err
 	}
 
-	cids, err := fromProtoCids(req.Cids)
+	c, err := util.CidFromString(req.Cid)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "parsing cids: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "parsing cid: %v", err)
 	}
 
-	queuedJobs := i.QueuedStorageJobs(cids...)
-	executingJobs := i.ExecutingStorageJobs(cids...)
-	latestFinalJobs := i.LatestFinalStorageJobs(cids...)
-	latestSuccessfulJobs := i.LatestSuccessfulStorageJobs(cids...)
+	queuedJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Queued, CidFilter: c})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing queued jobs: %v", err)
+	}
+	executingJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Executing, CidFilter: c})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing executing jobs: %v", err)
+	}
+	finalJobs, _, _, err := i.ListStorageJobs(api.ListStorageJobsConfig{Select: api.Final, CidFilter: c})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "listing final jobs: %v", err)
+	}
 
-	protoQueuedJobs, err := util.ToProtoStorageJobs(queuedJobs)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting queued jobs to protos: %v", err)
+	var queuedJobIDs []string
+	for _, job := range queuedJobs {
+		queuedJobIDs = append(queuedJobIDs, job.ID.String())
 	}
-	protoExecutingJobs, err := util.ToProtoStorageJobs(executingJobs)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting executing jobs to protos: %v", err)
+	var executingJobIDs []string
+	for _, job := range executingJobs {
+		executingJobIDs = append(executingJobIDs, job.ID.String())
 	}
-	protoLatestFinalJobs, err := util.ToProtoStorageJobs(latestFinalJobs)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting latest final jobs to protos: %v", err)
-	}
-	protoLatestSuccessfulJobs, err := util.ToProtoStorageJobs(latestSuccessfulJobs)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "converting latest successful jobs to protos: %v", err)
+	var finalJobIDs []string
+	for _, job := range finalJobs {
+		finalJobIDs = append(finalJobIDs, job.ID.String())
 	}
 
 	return &userPb.StorageJobsSummaryResponse{
-		JobCounts: &userPb.JobCounts{
-			Executing:        int32(len(executingJobs)),
-			LatestFinal:      int32(len(latestFinalJobs)),
-			LatestSuccessful: int32(len(latestSuccessfulJobs)),
-			Queued:           int32(len(queuedJobs)),
-		},
-		ExecutingStorageJobs:        protoExecutingJobs,
-		LatestFinalStorageJobs:      protoLatestFinalJobs,
-		LatestSuccessfulStorageJobs: protoLatestSuccessfulJobs,
-		QueuedStorageJobs:           protoQueuedJobs,
+		QueuedStorageJobs:    queuedJobIDs,
+		ExecutingStorageJobs: executingJobIDs,
+		FinalStorageJobs:     finalJobIDs,
 	}, nil
 }
 
@@ -204,7 +162,7 @@ func (s *Service) WatchStorageJobs(req *userPb.WatchStorageJobsRequest, srv user
 		close(ch)
 	}()
 	for job := range ch {
-		rpcJob, err := util.ToRPCJob(job)
+		rpcJob, err := su.ToRPCJob(job)
 		if err != nil {
 			return err
 		}

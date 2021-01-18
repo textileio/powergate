@@ -7,7 +7,7 @@ Give a summary of storage jobs in all states
 Give a summary of storage jobs in all states
 
 ```
-pow storage-jobs summary [optional cid1,cid2,...] [flags]
+pow storage-jobs summary [optional cid] [flags]
 ```
 
 ### Options
