@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-cid"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/util"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/util"
 )
 
 // ToRPCStorageInfo converts a StorageInfo to the proto version.

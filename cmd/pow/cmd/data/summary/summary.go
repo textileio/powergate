@@ -9,8 +9,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	c "github.com/textileio/powergate/cmd/pow/common"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	c "github.com/textileio/powergate/v2/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 

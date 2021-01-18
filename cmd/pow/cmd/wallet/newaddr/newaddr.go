@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/api/client"
-	c "github.com/textileio/powergate/cmd/pow/common"
+	"github.com/textileio/powergate/v2/api/client"
+	c "github.com/textileio/powergate/v2/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 

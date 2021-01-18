@@ -8,8 +8,8 @@ import (
 	"github.com/caarlos0/spin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/buildinfo"
-	c "github.com/textileio/powergate/cmd/pow/common"
+	"github.com/textileio/powergate/v2/buildinfo"
+	c "github.com/textileio/powergate/v2/cmd/pow/common"
 )
 
 // Cmd is the command.

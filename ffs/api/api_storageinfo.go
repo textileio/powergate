@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/scheduler"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/scheduler"
 )
 
 // StorageInfo returns the information about a stored Cid. If no information is available,

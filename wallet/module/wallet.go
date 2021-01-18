@@ -13,7 +13,7 @@ import (
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/lotus/chain/types"
 	logger "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/v2/lotus"
 )
 
 const (

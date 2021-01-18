@@ -8,8 +8,8 @@ import (
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/multiformats/go-multiaddr"
 	geoip2 "github.com/oschwald/geoip2-golang"
-	"github.com/textileio/powergate/iplocation"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/iplocation"
+	"github.com/textileio/powergate/v2/util"
 )
 
 var (

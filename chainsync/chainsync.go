@@ -6,7 +6,7 @@ import (
 
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/textileio/powergate/lotus"
+	"github.com/textileio/powergate/v2/lotus"
 )
 
 const (

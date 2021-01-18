@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	mongods "github.com/textileio/go-ds-mongo"
-	"github.com/textileio/powergate/buildinfo"
+	"github.com/textileio/powergate/v2/buildinfo"
 )
 
 var (

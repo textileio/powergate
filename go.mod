@@ -1,4 +1,4 @@
-module github.com/textileio/powergate
+module github.com/textileio/powergate/v2
 
 go 1.15
 

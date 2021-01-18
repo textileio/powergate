@@ -2,11 +2,11 @@ package admin
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/data"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/storageinfo"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/storagejobs"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/users"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/wallet"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/data"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/storageinfo"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/storagejobs"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/users"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/wallet"
 )
 
 func init() {

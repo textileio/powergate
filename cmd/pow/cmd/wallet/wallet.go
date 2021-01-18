@@ -2,12 +2,12 @@ package wallet
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/wallet/addrs"
-	"github.com/textileio/powergate/cmd/pow/cmd/wallet/balance"
-	"github.com/textileio/powergate/cmd/pow/cmd/wallet/newaddr"
-	"github.com/textileio/powergate/cmd/pow/cmd/wallet/send"
-	"github.com/textileio/powergate/cmd/pow/cmd/wallet/sign"
-	"github.com/textileio/powergate/cmd/pow/cmd/wallet/verify"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/wallet/addrs"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/wallet/balance"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/wallet/newaddr"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/wallet/send"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/wallet/sign"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/wallet/verify"
 )
 
 func init() {

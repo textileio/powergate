@@ -20,9 +20,9 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"github.com/textileio/powergate/api/server"
-	"github.com/textileio/powergate/buildinfo"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/api/server"
+	"github.com/textileio/powergate/v2/buildinfo"
+	"github.com/textileio/powergate/v2/util"
 	"go.opencensus.io/plugin/runmetrics"
 )
 

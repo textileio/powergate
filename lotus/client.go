@@ -11,7 +11,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/util"
 )
 
 var (

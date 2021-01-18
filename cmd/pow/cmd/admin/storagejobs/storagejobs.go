@@ -2,8 +2,8 @@ package storagejobs
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/storagejobs/list"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/storagejobs/summary"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/storagejobs/list"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/storagejobs/summary"
 )
 
 func init() {

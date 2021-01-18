@@ -9,7 +9,7 @@ import (
 
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/api/client"
+	"github.com/textileio/powergate/v2/api/client"
 )
 
 var (

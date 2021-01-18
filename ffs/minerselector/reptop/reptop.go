@@ -9,10 +9,10 @@ import (
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/chain/types"
 	logger "github.com/ipfs/go-log/v2"
-	"github.com/textileio/powergate/ffs"
-	askRunner "github.com/textileio/powergate/index/ask/runner"
-	"github.com/textileio/powergate/lotus"
-	"github.com/textileio/powergate/reputation"
+	"github.com/textileio/powergate/v2/ffs"
+	askRunner "github.com/textileio/powergate/v2/index/ask/runner"
+	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/reputation"
 )
 
 var (

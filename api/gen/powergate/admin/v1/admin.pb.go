@@ -8,7 +8,7 @@ package adminPb
 
 import (
 	proto "github.com/golang/protobuf/proto"
-	v1 "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	v1 "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

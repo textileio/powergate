@@ -2,8 +2,8 @@ package storageinfo
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/storageinfo/get"
-	"github.com/textileio/powergate/cmd/pow/cmd/admin/storageinfo/list"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/storageinfo/get"
+	"github.com/textileio/powergate/v2/cmd/pow/cmd/admin/storageinfo/list"
 )
 
 func init() {

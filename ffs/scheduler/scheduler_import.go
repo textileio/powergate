@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/scheduler/internal/cistore"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/cistore"
 )
 
 // ImportDeals create or augments a Storageinfo for a Cid with the provided deal ids.

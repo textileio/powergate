@@ -13,11 +13,11 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/ffs"
-	it "github.com/textileio/powergate/ffs/integrationtest"
-	"github.com/textileio/powergate/ffs/joblogger"
-	"github.com/textileio/powergate/tests"
-	txndstr "github.com/textileio/powergate/txndstransform"
+	"github.com/textileio/powergate/v2/ffs"
+	it "github.com/textileio/powergate/v2/ffs/integrationtest"
+	"github.com/textileio/powergate/v2/ffs/joblogger"
+	"github.com/textileio/powergate/v2/tests"
+	txndstr "github.com/textileio/powergate/v2/txndstransform"
 )
 
 func TestStage(t *testing.T) {

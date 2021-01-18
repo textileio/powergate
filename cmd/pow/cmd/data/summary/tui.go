@@ -10,8 +10,8 @@ import (
 	"github.com/mattn/go-runewidth"
 	"github.com/muesli/termenv"
 	"github.com/olekukonko/tablewriter"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
-	c "github.com/textileio/powergate/cmd/pow/common"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	c "github.com/textileio/powergate/v2/cmd/pow/common"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 

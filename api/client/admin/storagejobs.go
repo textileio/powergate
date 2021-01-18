@@ -3,8 +3,8 @@ package admin
 import (
 	"context"
 
-	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 )
 
 // StorageJobs provides access to Powergate jobs admin APIs.

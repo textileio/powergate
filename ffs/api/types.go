@@ -3,7 +3,7 @@ package api
 import (
 	"errors"
 
-	"github.com/textileio/powergate/ffs"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 var (

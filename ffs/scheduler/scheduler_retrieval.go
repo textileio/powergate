@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-cid"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/scheduler/internal/astore"
-	"github.com/textileio/powergate/ffs/scheduler/internal/ristore"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/astore"
+	"github.com/textileio/powergate/v2/ffs/scheduler/internal/ristore"
 )
 
 // StartRetrieval schedules a new RetrievalJob to execute a Filecoin retrieval.

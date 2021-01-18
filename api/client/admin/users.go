@@ -3,7 +3,7 @@ package admin
 import (
 	"context"
 
-	adminPb "github.com/textileio/powergate/api/gen/powergate/admin/v1"
+	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
 )
 
 // Users provides access to Powergate admin users APIs.

@@ -5,8 +5,8 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	minerModule "github.com/textileio/powergate/index/miner/module"
-	"github.com/textileio/powergate/iplocation"
+	minerModule "github.com/textileio/powergate/v2/index/miner/module"
+	"github.com/textileio/powergate/v2/iplocation"
 )
 
 var _ minerModule.P2PHost = (*P2pHostMock)(nil)

@@ -13,11 +13,11 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 	"github.com/stretchr/testify/require"
-	"github.com/textileio/powergate/deals"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/ffs/api"
-	"github.com/textileio/powergate/tests"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/ffs/api"
+	"github.com/textileio/powergate/v2/tests"
+	"github.com/textileio/powergate/v2/util"
 )
 
 // CreateIPFS creates a docker container running IPFS.

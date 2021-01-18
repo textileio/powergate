@@ -13,12 +13,12 @@ import (
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	iface "github.com/ipfs/interface-go-ipfs-core"
-	"github.com/textileio/powergate/deals"
-	"github.com/textileio/powergate/deals/module"
-	dealsModule "github.com/textileio/powergate/deals/module"
-	"github.com/textileio/powergate/ffs"
-	"github.com/textileio/powergate/lotus"
-	"github.com/textileio/powergate/util"
+	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/deals/module"
+	dealsModule "github.com/textileio/powergate/v2/deals/module"
+	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/util"
 )
 
 const (

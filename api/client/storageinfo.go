@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	userPb "github.com/textileio/powergate/api/gen/powergate/user/v1"
+	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 )
 
 // StorageInfo provides access to Powergate storage indo APIs.
