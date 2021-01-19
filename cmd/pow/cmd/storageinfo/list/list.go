@@ -30,7 +30,7 @@ var Cmd = &cobra.Command{
 			cids = strings.Split(args[0], ",")
 		}
 
-		res, err := c.PowClient.StorageInfo.ListStorageInfo(c.MustAuthCtx(ctx), cids...)
+		res, err := c.PowClient.StorageInfo.List(c.MustAuthCtx(ctx), cids...)
 		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
