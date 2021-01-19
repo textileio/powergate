@@ -3,6 +3,7 @@ package migration
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -19,7 +20,7 @@ type storageJob struct {
 // V3StorageJobsIndexMigration contains the logic to upgrade a datastore from
 // version 2 to version 3.
 var V3StorageJobsIndexMigration = Migration{
-	UseTxn: true,
+	UseTxn: false,
 	Run: func(ds datastoreReaderWriter) error {
 		q := query.Query{Prefix: "/ffs/scheduler/sjstore/job"}
 		res, err := ds.Query(q)
@@ -28,26 +29,64 @@ var V3StorageJobsIndexMigration = Migration{
 		}
 		defer func() { _ = res.Close() }()
 
+		var count int
+		var lock sync.Mutex
+		var errors []string
+		lim := make(chan struct{}, 1000)
 		for r := range res.Next() {
 			if r.Error != nil {
 				return fmt.Errorf("iterating results: %s", r.Error)
 			}
 
-			var job storageJob
-			if err := json.Unmarshal(r.Value, &job); err != nil {
-				return fmt.Errorf("unmarshaling job: %s", err)
-			}
+			lim <- struct{}{}
 
-			apiidKey := datastore.NewKey("/ffs/scheduler/sjstore/apiid").ChildString(job.APIID).ChildString(job.Cid.String()).ChildString(fmt.Sprintf("%d", job.CreatedAt))
-			cidKey := datastore.NewKey("/ffs/scheduler/sjstore/cid").ChildString(job.Cid.String()).ChildString(job.APIID).ChildString(fmt.Sprintf("%d", job.CreatedAt))
+			r := r
+			go func() {
+				defer func() { <-lim }()
 
-			if err := ds.Put(apiidKey, []byte(job.ID)); err != nil {
-				return fmt.Errorf("putting apiid index record in datastore: %s", err)
-			}
-			if err := ds.Put(cidKey, []byte(job.ID)); err != nil {
-				return fmt.Errorf("putting cid index record in datastore: %s", err)
-			}
+				var job storageJob
+				if err := json.Unmarshal(r.Value, &job); err != nil {
+					lock.Lock()
+					errors = append(errors, fmt.Sprintf("unmarshaling job: %s", err))
+					lock.Unlock()
+					return
+				}
+
+				apiidKey := datastore.NewKey("/ffs/scheduler/sjstore/apiid").ChildString(job.APIID).ChildString(job.Cid.String()).ChildString(fmt.Sprintf("%d", job.CreatedAt))
+				cidKey := datastore.NewKey("/ffs/scheduler/sjstore/cid").ChildString(job.Cid.String()).ChildString(job.APIID).ChildString(fmt.Sprintf("%d", job.CreatedAt))
+
+				if err := ds.Put(apiidKey, []byte(job.ID)); err != nil {
+					lock.Lock()
+					errors = append(errors, fmt.Sprintf("putting apiid index record in datastore: %s", err))
+					lock.Unlock()
+					return
+
+				}
+				if err := ds.Put(cidKey, []byte(job.ID)); err != nil {
+					lock.Lock()
+					errors = append(errors, fmt.Sprintf("putting cid index record in datastore: %s", err))
+					lock.Unlock()
+					return
+
+				}
+
+			}()
+			count++
 		}
+
+		for i := 0; i < cap(lim); i++ {
+			lim <- struct{}{}
+		}
+
+		if len(errors) > 0 {
+			for _, m := range errors {
+				log.Error(m)
+			}
+			return fmt.Errorf("migration had %d errors", len(errors))
+		}
+
+		log.Infof("migration indexed %d storage-jobs", count)
+
 		return nil
 	},
 }
