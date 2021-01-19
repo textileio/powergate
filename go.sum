@@ -1775,6 +1775,10 @@ github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69
 github.com/supranational/blst v0.1.1/go.mod h1:jZJtfjgudtNl4en1tzwPIV3KjUnQUvG3/j+w+fVonLw=
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07/go.mod h1:kDXzergiv9cbyO7IOYJZWg1U88JhDg3PB6klq9Hg2pA=
+github.com/textileio/dsutils v1.0.0 h1:PmmCnf3zMpiaQoF4HbDYTDw7aq5uJPrhIy3fgooqOFM=
+github.com/textileio/dsutils v1.0.0/go.mod h1:A2RXLoDWyLTCuEmC41+WjC8jRsE7BeRy1c6s3acc3PY=
+github.com/textileio/dsutils v1.0.1 h1:HMSNLapNdgd9cIA2meUJmo6GPBU2lWA6KAvbY1czK1o=
+github.com/textileio/dsutils v1.0.1/go.mod h1:A2RXLoDWyLTCuEmC41+WjC8jRsE7BeRy1c6s3acc3PY=
 github.com/textileio/go-datastore-extensions v1.0.1 h1:qIJGqJaigQ1wD4TdwS/hf73u0HChhXvvUSJuxBEKS+c=
 github.com/textileio/go-datastore-extensions v1.0.1/go.mod h1:Pzj9FDRkb55910dr/FX8M7WywvnS26gBgEDez1ZBuLE=
 github.com/textileio/go-ds-mongo v0.1.4 h1:5PPMEmqCfeCySzadtuBXMEJVDGP1Cga/CQXo3GWetmE=

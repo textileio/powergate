@@ -57,7 +57,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1
-	github.com/textileio/dsutils v1.0.0
+	github.com/textileio/dsutils v1.0.1
 	github.com/textileio/go-ds-mongo v0.1.4
 	go.opencensus.io v0.22.5
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
@@ -65,7 +65,5 @@ require (
 	google.golang.org/protobuf v1.25.0
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )
-
-replace github.com/textileio/dsutils => ../dsutils
 
 replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.2007.2
