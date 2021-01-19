@@ -18,7 +18,7 @@ This command will:
 - Print to stdout Powergate output while doing the migrations.
 - `run_<TIMESTAMP>/badger-migrated` will be the migrated `go-datastore` that might be useful for inspection.
 
-###  Target a remote `go-datastore` and run remotelly
+###  Target a remote `go-datastore` and run remotely
 ```bash
 migrtool --origin-remote "$MONGO_URI;$MONGO_DBNAME" --run-remote
 ```
