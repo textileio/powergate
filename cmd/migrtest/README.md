@@ -31,6 +31,8 @@ This command will:
 
 This setup is useful to double-check that running using `go-ds-mongo` client works correctly. This may be slower since it's targeting a remote datastore, but as close as simulating the real migration as possible.
 
+Recall that you should delete the remote databases if not needed anymore. They're all under the same database `tmp_pow_migrtest`, so you can simply delete that database for cleaning all runs.
+
 ### Target a remote `go-datastore` and skip the migration
 This setup might be useful to just have a local copy of the remote `go-datastore`.
 ```bash
