@@ -62,13 +62,13 @@ type WatchStorageJobsEvent struct {
 	Err error
 }
 
-// StorageJob returns the current state of the specified job.
-func (j *StorageJobs) StorageJob(ctx context.Context, jobID string) (*userPb.StorageJobResponse, error) {
+// Get returns the current state of the specified job.
+func (j *StorageJobs) Get(ctx context.Context, jobID string) (*userPb.StorageJobResponse, error) {
 	return j.client.StorageJob(ctx, &userPb.StorageJobRequest{JobId: jobID})
 }
 
-// StorageConfigForJob returns the StorageConfig associated with the specified job.
-func (j *StorageJobs) StorageConfigForJob(ctx context.Context, jobID string) (*userPb.StorageConfigForJobResponse, error) {
+// StorageConfig returns the StorageConfig associated with the specified job.
+func (j *StorageJobs) StorageConfig(ctx context.Context, jobID string) (*userPb.StorageConfigForJobResponse, error) {
 	return j.client.StorageConfigForJob(ctx, &userPb.StorageConfigForJobRequest{JobId: jobID})
 }
 

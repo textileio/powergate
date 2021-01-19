@@ -32,7 +32,7 @@ var Cmd = &cobra.Command{
 		userIDs := viper.GetStringSlice("user-ids")
 		cids := viper.GetStringSlice("cids")
 
-		res, err := c.PowClient.Admin.StorageInfo.ListStorageInfo(c.MustAuthCtx(ctx), userIDs, cids)
+		res, err := c.PowClient.Admin.StorageInfo.List(c.MustAuthCtx(ctx), userIDs, cids)
 		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
