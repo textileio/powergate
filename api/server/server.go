@@ -67,6 +67,12 @@ var (
 	nonCompliantAPIs = []string{
 		"/ffs.rpc.RPCService/SendFil",
 	}
+
+	Migrations = map[int]migration.Migration{
+		1: migration.V1MultitenancyMigration,
+		2: migration.V2StorageInfoDealIDs,
+		3: migration.V3StorageJobsIndexMigration,
+	}
 )
 
 // Server represents the configured lotus client and filecoin grpc server.
@@ -654,12 +660,7 @@ func runMigrations(conf Config) error {
 		}
 	}()
 
-	migrations := map[int]migration.Migration{
-		1: migration.V1MultitenancyMigration,
-		2: migration.V2StorageInfoDealIDs,
-		3: migration.V3StorageJobsIndexMigration,
-	}
-	m := migration.New(ds, migrations)
+	m := migration.New(ds, Migrations)
 	if err := m.Ensure(); err != nil {
 		return fmt.Errorf("running migrations: %s", err)
 	}
