@@ -54,7 +54,6 @@ func main() {
 			if err != nil {
 				log.Fatalf("cloning remote to local: %s", err)
 			}
-
 		} else {
 			badgerPath := path.Join(runName, "badger-migrated")
 			copiedDS, err = clone.CloneFromRemoteToLocal(mongoURI, mongoDatabase, "kvstore", badgerPath, 1000, verbose)
