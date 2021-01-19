@@ -75,7 +75,7 @@ func (m *Migrator) Ensure() error {
 	}
 
 	for i := currentVersion + 1; i <= targetVersion; i++ {
-		log.Infof("Running %d migration...", i)
+		log.Infof("Running v%d migration...", i)
 		if err := m.run(i); err != nil {
 			return fmt.Errorf("running migration %d: %s", i, err)
 		}
