@@ -3,7 +3,7 @@ package powergate.admin.v1;
 
 import "powergate/user/v1/user.proto";
 
-option go_package = "github.com/textileio/powergate/api/gen/powergate/admin/v1;adminPb";
+option go_package = "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1;adminPb";
 
 // Wallet
 message NewAddressRequest {
