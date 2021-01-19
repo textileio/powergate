@@ -68,6 +68,7 @@ var (
 		"/ffs.rpc.RPCService/SendFil",
 	}
 
+	// Migrations contains the list of supported migrations.
 	Migrations = map[int]migration.Migration{
 		1: migration.V1MultitenancyMigration,
 		2: migration.V2StorageInfoDealIDs,
