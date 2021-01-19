@@ -657,6 +657,7 @@ func runMigrations(conf Config) error {
 	migrations := map[int]migration.Migration{
 		1: migration.V1MultitenancyMigration,
 		2: migration.V2StorageInfoDealIDs,
+		3: migration.V3StorageJobsIndexMigration,
 	}
 	m := migration.New(ds, migrations)
 	if err := m.Ensure(); err != nil {
