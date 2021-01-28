@@ -4,10 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -18,91 +14,21 @@ import (
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
-	"github.com/ipfs/go-datastore"
-	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/deals"
-	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/util"
 )
 
 const (
-	chanWriteTimeout = time.Second
-
+	chanWriteTimeout       = time.Second
 	defaultDealStartOffset = 48 * 60 * 60 / util.EpochDurationSeconds // 48hs
 )
 
 var (
-	// ErrRetrievalNoAvailableProviders indicates that the data isn't available on any provided
-	// to be retrieved.
-	ErrRetrievalNoAvailableProviders = errors.New("no providers to retrieve the data")
 	// ErrDealNotFound indicates a particular ProposalCid from a deal isn't found on-chain. Currently,
 	// in Lotus this indicates that it may never existed on-chain, or it existed but it already expired
 	// (currEpoch > StartEpoch+Duration).
 	ErrDealNotFound = errors.New("deal not found on-chain")
-
-	log = logging.Logger("deals")
 )
-
-// Module exposes storage and monitoring from the market.
-type Module struct {
-	clientBuilder       lotus.ClientBuilder
-	cfg                 *deals.Config
-	store               *store
-	pollDuration        time.Duration
-	dealFinalityTimeout time.Duration
-}
-
-// New creates a new Module.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDuration time.Duration, dealFinalityTimeout time.Duration, opts ...deals.Option) (*Module, error) {
-	var cfg deals.Config
-	for _, o := range opts {
-		if err := o(&cfg); err != nil {
-			return nil, err
-		}
-	}
-	m := &Module{
-		clientBuilder:       clientBuilder,
-		cfg:                 &cfg,
-		store:               newStore(ds),
-		pollDuration:        pollDuration,
-		dealFinalityTimeout: dealFinalityTimeout,
-	}
-	m.initPendingDeals()
-	return m, nil
-}
-
-// Import imports raw data in the Filecoin client. The isCAR flag indicates if the data
-// is already in CAR format, so it shouldn't be encoded into a UnixFS DAG in the Filecoin client.
-// It returns the imported data cid and the data size.
-func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Cid, int64, error) {
-	f, err := ioutil.TempFile(m.cfg.ImportPath, "import-*")
-	if err != nil {
-		return cid.Undef, 0, fmt.Errorf("error when creating tmpfile: %s", err)
-	}
-	defer func() {
-		if err := f.Close(); err != nil {
-			log.Errorf("closing storing file: %s", err)
-		}
-	}()
-	var size int64
-	if size, err = io.Copy(f, data); err != nil {
-		return cid.Undef, 0, fmt.Errorf("error when copying data to tmpfile: %s", err)
-	}
-	ref := api.FileRef{
-		Path:  f.Name(),
-		IsCAR: isCAR,
-	}
-	api, cls, err := m.clientBuilder(ctx)
-	if err != nil {
-		return cid.Undef, 0, fmt.Errorf("creating lotus client: %s", err)
-	}
-	defer cls()
-	res, err := api.ClientImport(ctx, ref)
-	if err != nil {
-		return cid.Undef, 0, fmt.Errorf("error when importing data: %s", err)
-	}
-	return res.Root, size, nil
-}
 
 // Store create Deal Proposals with all miners indicated in dcfgs. The epoch price
 // is automatically calculated considering each miner epoch price and piece size.
@@ -170,45 +96,6 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 		m.recordDeal(params, *p)
 	}
 	return res, nil
-}
-
-// CalculateDealPiece calculates the size and CommP for a data cid.
-func (m *Module) CalculateDealPiece(ctx context.Context, c cid.Cid) (api.DataCIDSize, error) {
-	lapi, cls, err := m.clientBuilder(ctx)
-	if err != nil {
-		return api.DataCIDSize{}, fmt.Errorf("creating lotus client: %s", err)
-	}
-	defer cls()
-
-	dsz, err := lapi.ClientDealPieceCID(ctx, c)
-	if err != nil {
-		return api.DataCIDSize{}, fmt.Errorf("calculating data size: %s", err)
-	}
-	return dsz, nil
-}
-
-// GetDealInfo returns info about a deal. If the deal isn't active on-chain,
-// it returns ErrDealNotFound.
-func (m *Module) GetDealInfo(ctx context.Context, dealID uint64) (api.MarketDeal, error) {
-	lapi, cls, err := m.clientBuilder(ctx)
-	if err != nil {
-		return api.MarketDeal{}, fmt.Errorf("creating lotus client: %s", err)
-	}
-	defer cls()
-
-	id := abi.DealID(dealID)
-	smd, err := lapi.StateMarketStorageDeal(ctx, id, types.EmptyTSK)
-	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return api.MarketDeal{}, ErrDealNotFound
-		}
-		return api.MarketDeal{}, fmt.Errorf("getting deal info: %s", err)
-	}
-	if smd == nil {
-		return api.MarketDeal{}, fmt.Errorf("deal on-chain information is empty")
-	}
-
-	return *smd, nil
 }
 
 // Watch returns a channel with state changes of indicated proposals.
@@ -280,33 +167,6 @@ func notifyChanges(ctx context.Context, lapi *apistruct.FullNodeStruct, currStat
 	return nil
 }
 
-func robustClientGetDealInfo(ctx context.Context, lapi *apistruct.FullNodeStruct, propCid cid.Cid) (*api.DealInfo, error) {
-	di, err := lapi.ClientGetDealInfo(ctx, propCid)
-	if err != nil {
-		return nil, fmt.Errorf("client get deal info: %s", err)
-	}
-
-	// Workaround ClientGetDealInfo giving unreliable status.
-	// If the state isn't Active, double-check with on-chain API.
-	if di.DealID != 0 && di.State != storagemarket.StorageDealActive {
-		smd, err := lapi.StateMarketStorageDeal(ctx, di.DealID, types.EmptyTSK)
-		if err != nil {
-			// If the DealID is not found, most probably is because the Lotus
-			// node isn't yet synced. Since all this logic is a workaround
-			// for a problem, make an exception and just return what
-			// ClientGetDealInfo said.
-			if strings.Contains(err.Error(), "not found") {
-				return di, nil
-			}
-			return nil, fmt.Errorf("state market storage deal: %s", err)
-		}
-		if smd.State.SectorStartEpoch > 0 {
-			di.State = storagemarket.StorageDealActive
-		}
-	}
-	return di, nil
-}
-
 func fromLotusDealInfo(ctx context.Context, client *apistruct.FullNodeStruct, dinfo *api.DealInfo) (deals.StorageDealInfo, error) {
 	di := deals.StorageDealInfo{
 		ProposalCid:   dinfo.ProposalCid,
@@ -330,18 +190,4 @@ func fromLotusDealInfo(ctx context.Context, client *apistruct.FullNodeStruct, di
 		di.Duration = uint64(ocd.Proposal.EndEpoch) - uint64(ocd.Proposal.StartEpoch) + 1
 	}
 	return di, nil
-}
-
-type autodeleteFile struct {
-	*os.File
-}
-
-func (af *autodeleteFile) Close() error {
-	if err := af.File.Close(); err != nil {
-		return fmt.Errorf("closing retrieval file: %s", err)
-	}
-	if err := os.Remove(af.File.Name()); err != nil {
-		return fmt.Errorf("autodeleting retrieval file: %s", err)
-	}
-	return nil
 }

@@ -1,4 +1,4 @@
-package module
+package store
 
 import (
 	"crypto/md5"
@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/util"
 )
@@ -21,42 +22,61 @@ var (
 
 	// ErrNotFound indicates the instance doesn't exist.
 	ErrNotFound = errors.New("cid info not found")
+
+	log = logging.Logger("deals-records")
 )
 
-type store struct {
-	ds   datastore.Datastore
+type Store struct {
+	ds   datastore.TxnDatastore
 	lock sync.Mutex
 }
 
-func newStore(ds datastore.Datastore) *store {
-	return &store{
+func New(ds datastore.TxnDatastore) *Store {
+	return &Store{
 		ds: ds,
 	}
 }
 
-func (s *store) putPendingDeal(dr deals.StorageDealRecord) error {
+func (s *Store) PutStorageDeal(dr deals.StorageDealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	buf, err := json.Marshal(dr)
+
+	return putStorageDeal(s.ds, dr)
+}
+
+func (s *Store) ErrorPendingDeal(dr deals.StorageDealRecord, errorMsg string) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if !dr.Pending {
+		return fmt.Errorf("the deal record isn't pending")
+	}
+
+	txn, err := s.ds.NewTransaction(false)
 	if err != nil {
-		return fmt.Errorf("marshaling PendingDeal: %s", err)
+		return fmt.Errorf("creating transaction: %s", err)
 	}
-	if err := s.ds.Put(makePendingDealKey(dr.DealInfo.ProposalCid), buf); err != nil {
-		return fmt.Errorf("put PendingDeal: %s", err)
+	defer txn.Discard()
+
+	if err := txn.Delete(makePendingDealKey(dr.DealInfo.ProposalCid)); err != nil {
+		return fmt.Errorf("delete pending deal storage record: %s", err)
 	}
+
+	dr.ErrMsg = errorMsg
+	dr.Pending = false
+
+	if err := putStorageDeal(txn, dr); err != nil {
+		return err
+	}
+
+	if err := txn.Commit(); err != nil {
+		return fmt.Errorf("committing transaction: %s", err)
+	}
+
 	return nil
 }
 
-func (s *store) deletePendingDeal(proposalCid cid.Cid) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	if err := s.ds.Delete(makePendingDealKey(proposalCid)); err != nil {
-		return fmt.Errorf("delete PendingDeal: %s", err)
-	}
-	return nil
-}
-
-func (s *store) getPendingDeals() ([]deals.StorageDealRecord, error) {
+func (s *Store) GetPendingStorageDeals() ([]deals.StorageDealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseStoragePending.String()}
@@ -84,26 +104,10 @@ func (s *store) getPendingDeals() ([]deals.StorageDealRecord, error) {
 	return ret, nil
 }
 
-func (s *store) putFinalDeal(dr deals.StorageDealRecord) error {
+func (s *Store) GetFinalStorageDeals() ([]deals.StorageDealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	err := s.ds.Delete(makePendingDealKey(dr.DealInfo.ProposalCid))
-	if err != nil {
-		return fmt.Errorf("deleting PendingDeal: %s", err)
-	}
-	buf, err := json.Marshal(dr)
-	if err != nil {
-		return fmt.Errorf("marshaling DealRecord: %s", err)
-	}
-	if err := s.ds.Put(makeFinalDealKey(dr.DealInfo.ProposalCid), buf); err != nil {
-		return fmt.Errorf("put DealRecord: %s", err)
-	}
-	return nil
-}
 
-func (s *store) getFinalDeals() ([]deals.StorageDealRecord, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseStorageFinal.String()}
 	res, err := s.ds.Query(q)
 	if err != nil {
@@ -126,10 +130,11 @@ func (s *store) getFinalDeals() ([]deals.StorageDealRecord, error) {
 		}
 		ret = append(ret, dealRecord)
 	}
+
 	return ret, nil
 }
 
-func (s *store) putRetrieval(rr deals.RetrievalDealRecord) error {
+func (s *Store) PutRetrieval(rr deals.RetrievalDealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	buf, err := json.Marshal(rr)
@@ -142,7 +147,7 @@ func (s *store) putRetrieval(rr deals.RetrievalDealRecord) error {
 	return nil
 }
 
-func (s *store) getRetrievals() ([]deals.RetrievalDealRecord, error) {
+func (s *Store) GetRetrievals() ([]deals.RetrievalDealRecord, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	q := query.Query{Prefix: dsBaseRetrieval.String()}
@@ -168,6 +173,26 @@ func (s *store) getRetrievals() ([]deals.RetrievalDealRecord, error) {
 		ret = append(ret, rr)
 	}
 	return ret, nil
+}
+
+func putStorageDeal(dsw datastore.Write, dr deals.StorageDealRecord) error {
+	buf, err := json.Marshal(dr)
+	if err != nil {
+		return fmt.Errorf("marshaling PendingDeal: %s", err)
+	}
+
+	var key datastore.Key
+	if dr.Pending {
+		key = makePendingDealKey(dr.DealInfo.ProposalCid)
+	} else {
+		key = makeFinalDealKey(dr.DealInfo.ProposalCid)
+	}
+
+	if err := dsw.Put(key, buf); err != nil {
+		return fmt.Errorf("put storage deal record: %s", err)
+	}
+
+	return nil
 }
 
 func makePendingDealKey(c cid.Cid) datastore.Key {

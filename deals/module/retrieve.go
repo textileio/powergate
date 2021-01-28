@@ -2,6 +2,7 @@ package module
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,6 +17,12 @@ import (
 	"github.com/filecoin-project/lotus/api/apistruct"
 	marketevents "github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/ipfs/go-cid"
+)
+
+var (
+	// ErrRetrievalNoAvailableProviders indicates that the data isn't available on any provided
+	// to be retrieved.
+	ErrRetrievalNoAvailableProviders = errors.New("no providers to retrieve the data")
 )
 
 // Fetch fetches deal data to the underlying blockstore of the Filecoin client.

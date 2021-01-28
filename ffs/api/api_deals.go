@@ -20,7 +20,7 @@ func (i *API) StorageDealRecords(opts ...deals.DealRecordsOption) ([]deals.Stora
 		return nil, fmt.Errorf("validating and preparing final addrs: %v", err)
 	}
 
-	// Note that we don't passthrough opts below since above
+	// We don't passthrough opts below since above
 	// the list of wallet addresses might get transformed from opts.
 	recs, err := i.drm.ListStorageDealRecords(
 		deals.WithFromAddrs(finalAddrs...),
@@ -49,6 +49,9 @@ func (i *API) RetrievalDealRecords(opts ...deals.DealRecordsOption) ([]deals.Ret
 	if err != nil {
 		return nil, fmt.Errorf("validating and preparing addrs: %v", err)
 	}
+
+	// We don't passthrough opts below since above
+	// the list of wallet addresses might get transformed from opts.
 	recs, err := i.drm.ListRetrievalDealRecords(
 		deals.WithFromAddrs(finalAddrs...),
 		deals.WithAscending(c.Ascending),

@@ -41,11 +41,16 @@ type StorageDealInfo struct {
 
 // StorageDealRecord represents a storage deal log record.
 type StorageDealRecord struct {
-	RootCid  cid.Cid
-	Addr     string
-	DealInfo StorageDealInfo
-	Time     int64
-	Pending  bool
+	RootCid           cid.Cid
+	Addr              string
+	DealInfo          StorageDealInfo
+	Time              int64
+	Pending           bool
+	DataTransferStart int64
+	DataTransferEnd   int64
+	SealingStart      int64
+	SealingEnd        int64
+	ErrMsg            string
 }
 
 // RetrievalDealInfo contains information about a retrieval deal.
