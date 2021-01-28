@@ -41,32 +41,38 @@ func (s *Store) PutStorageDeal(dr deals.StorageDealRecord) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	return putStorageDeal(s.ds, dr)
-}
-
-func (s *Store) ErrorPendingDeal(dr deals.StorageDealRecord, errorMsg string) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	if !dr.Pending {
-		return fmt.Errorf("the deal record isn't pending")
-	}
-
 	txn, err := s.ds.NewTransaction(false)
 	if err != nil {
 		return fmt.Errorf("creating transaction: %s", err)
 	}
 	defer txn.Discard()
 
-	if err := txn.Delete(makePendingDealKey(dr.DealInfo.ProposalCid)); err != nil {
-		return fmt.Errorf("delete pending deal storage record: %s", err)
+	if dr.Pending && dr.ErrMsg != "" {
+		return fmt.Errorf("pending storage records can't have error messages")
 	}
 
-	dr.ErrMsg = errorMsg
-	dr.Pending = false
+	// If not pending, delete any saved record in the 'pending' keyspace.
+	// If not exists, `Delete()` is a noop.
+	if !dr.Pending {
+		if err := txn.Delete(makePendingDealKey(dr.DealInfo.ProposalCid)); err != nil {
+			return fmt.Errorf("delete pending deal storage record: %s", err)
+		}
+	}
 
-	if err := putStorageDeal(txn, dr); err != nil {
-		return err
+	buf, err := json.Marshal(dr)
+	if err != nil {
+		return fmt.Errorf("marshaling storage deal record: %s", err)
+	}
+
+	var key datastore.Key
+	if dr.Pending {
+		key = makePendingDealKey(dr.DealInfo.ProposalCid)
+	} else {
+		key = makeFinalDealKey(dr.DealInfo.ProposalCid)
+	}
+
+	if err := txn.Put(key, buf); err != nil {
+		return fmt.Errorf("put storage deal record: %s", err)
 	}
 
 	if err := txn.Commit(); err != nil {
@@ -173,26 +179,6 @@ func (s *Store) GetRetrievals() ([]deals.RetrievalDealRecord, error) {
 		ret = append(ret, rr)
 	}
 	return ret, nil
-}
-
-func putStorageDeal(dsw datastore.Write, dr deals.StorageDealRecord) error {
-	buf, err := json.Marshal(dr)
-	if err != nil {
-		return fmt.Errorf("marshaling PendingDeal: %s", err)
-	}
-
-	var key datastore.Key
-	if dr.Pending {
-		key = makePendingDealKey(dr.DealInfo.ProposalCid)
-	} else {
-		key = makeFinalDealKey(dr.DealInfo.ProposalCid)
-	}
-
-	if err := dsw.Put(key, buf); err != nil {
-		return fmt.Errorf("put storage deal record: %s", err)
-	}
-
-	return nil
 }
 
 func makePendingDealKey(c cid.Cid) datastore.Key {

@@ -67,7 +67,9 @@ func TestErrorPendingDeal(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 
-	err = s.ErrorPendingDeal(dr, "ERROR TEST")
+	dr.Pending = false
+	dr.ErrMsg = "ERROR TEST"
+	err = s.PutStorageDeal(dr)
 	require.NoError(t, err)
 
 	res, err = s.GetPendingStorageDeals()
@@ -77,8 +79,8 @@ func TestErrorPendingDeal(t *testing.T) {
 	res, err = s.GetFinalStorageDeals()
 	require.NoError(t, err)
 	require.Len(t, res, 1)
-	require.False(t, dr.Pending)
-	require.Equal(t, "ERROR TEST", dr.ErrMsg)
+	require.False(t, res[0].Pending)
+	require.Equal(t, "ERROR TEST", res[0].ErrMsg)
 }
 
 func TestPutDealRecord(t *testing.T) {
@@ -93,6 +95,9 @@ func TestPutDealRecord(t *testing.T) {
 	res, err := s.GetPendingStorageDeals()
 	require.NoError(t, err)
 	require.Len(t, res, 1)
+	res, err = s.GetFinalStorageDeals()
+	require.NoError(t, err)
+	require.Empty(t, res)
 
 	dr := deals.StorageDealRecord{Addr: "a", Time: time.Now().Unix(), Pending: false, DealInfo: deals.StorageDealInfo{ProposalCid: c1}}
 
@@ -102,6 +107,9 @@ func TestPutDealRecord(t *testing.T) {
 	res, err = s.GetPendingStorageDeals()
 	require.NoError(t, err)
 	require.Empty(t, res)
+	res, err = s.GetFinalStorageDeals()
+	require.NoError(t, err)
+	require.Len(t, res, 1)
 }
 
 func TestGetDealRecords(t *testing.T) {
