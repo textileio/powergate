@@ -28,6 +28,7 @@ type DealRecordsConfig struct {
 	DataCids       []string
 	IncludePending bool
 	IncludeFinal   bool
+	IncludeFailed  bool
 	Ascending      bool
 }
 
@@ -39,6 +40,14 @@ type DealRecordsOption func(*DealRecordsConfig)
 func WithFromAddrs(addrs ...string) DealRecordsOption {
 	return func(c *DealRecordsConfig) {
 		c.FromAddrs = addrs
+	}
+}
+
+// WithIncludeFailed indicates if failed records should be
+// included in the results.
+func WithIncludeFailed(includeFailed bool) DealRecordsOption {
+	return func(c *DealRecordsConfig) {
+		c.IncludeFailed = includeFailed
 	}
 }
 

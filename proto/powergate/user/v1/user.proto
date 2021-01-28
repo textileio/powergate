@@ -478,6 +478,7 @@ message DealRecordsConfig {
   bool include_pending = 3;
   bool include_final = 4;
   bool ascending = 5;
+  bool include_failed = 6;
 }
 
 message StorageDealInfo {

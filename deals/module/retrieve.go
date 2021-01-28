@@ -8,8 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"time"
 
 	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	marketevents "github.com/filecoin-project/lotus/markets/loggers"
@@ -71,6 +73,90 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 		return "", nil, fmt.Errorf("parsing wallet address: %s", err)
 	}
 
+	sortedOffers := getRetrievalOffers(ctx, lapi, payloadCid, pieceCid, miners)
+	if len(sortedOffers) == 0 {
+		return "", nil, ErrRetrievalNoAvailableProviders
+	}
+
+	var events <-chan marketevents.RetrievalEvent
+
+	// Try to make the retrieval in the specified offers order, until we
+	// find one accepting providing the data.
+	var o api.QueryOffer
+	for _, o = range sortedOffers {
+		events, err = lapi.ClientRetrieveWithEvents(ctx, o.Order(addr), ref)
+		if err != nil {
+			log.Infof("fetching/retrieving cid %s from %s: %s", payloadCid, o.Miner, err)
+			continue
+		}
+		break
+	}
+
+	out := make(chan marketevents.RetrievalEvent, 1)
+	go func() {
+		defer lapiCls()
+		defer close(out)
+		// Redirect received events to the output channel
+		var (
+			canceled       bool
+			errMsg         string
+			dtStart, dtEnd time.Time
+		)
+		retrievalStartTime := time.Now()
+	Loop:
+		for {
+			select {
+			case <-ctx.Done():
+				log.Infof("in progress retrieval canceled")
+				canceled = true
+				break Loop
+			case e, ok := <-events:
+				if !ok {
+					break Loop
+				}
+				if e.Err != "" {
+					log.Infof("in progress retrieval errored: %s", err)
+					errMsg = e.Err
+				}
+				if dtStart.IsZero() && e.Event == retrievalmarket.ClientEventBlocksReceived {
+					dtStart = time.Now()
+				}
+				if e.Event == retrievalmarket.ClientEventAllBlocksReceived {
+					dtEnd = time.Now()
+				}
+				out <- e
+			}
+		}
+
+		if !canceled {
+			// This is a fallback if for some reason the
+			// expected event that signals the first block
+			// transfer is missed or not received.
+			// We fallback to the starting time of the retrieval,
+			// which means that will account for possibly the
+			// payment channel creation. This isn't ideal, but
+			// it's better than missing the data.
+			// We WARN just to signal this might be happening.
+			if dtStart.IsZero() {
+				dtStart = retrievalStartTime
+				log.Warnf("retrieval data-transfer start fallback to retrieval start")
+			}
+			// This is a fallback to not receiving an expected
+			// event in the retrieval. We just fallback to Now(),
+			// which should always be pretty close to the real
+			// event. We WARN just to signal this is happening.
+			if dtEnd.IsZero() {
+				dtEnd = time.Now()
+				log.Warnf("retrieval data-transfer end fallback to retrieval end")
+			}
+			m.recordRetrieval(waddr, o, dtStart, dtEnd, errMsg)
+		}
+	}()
+
+	return o.Miner.String(), out, nil
+}
+
+func getRetrievalOffers(ctx context.Context, lapi *apistruct.FullNodeStruct, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string) []api.QueryOffer {
 	// Ask each miner about costs and information about retrieving this data.
 	var offers []api.QueryOffer
 	for _, mi := range miners {
@@ -86,57 +172,8 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 		offers = append(offers, qo)
 	}
 
-	// If no miners available, fail.
-	if len(offers) == 0 {
-		return "", nil, ErrRetrievalNoAvailableProviders
-	}
-
 	// Sort received options by price.
 	sort.Slice(offers, func(a, b int) bool { return offers[a].MinPrice.LessThan(offers[b].MinPrice) })
 
-	out := make(chan marketevents.RetrievalEvent, 1)
-	var events <-chan marketevents.RetrievalEvent
-
-	// Try with sorted miners until we got in the process of receiving data.
-	var o api.QueryOffer
-	for _, o = range offers {
-		events, err = lapi.ClientRetrieveWithEvents(ctx, o.Order(addr), ref)
-		if err != nil {
-			log.Infof("fetching/retrieving cid %s from %s: %s", payloadCid, o.Miner, err)
-			continue
-		}
-		break
-	}
-
-	go func() {
-		defer lapiCls()
-		defer close(out)
-		// Redirect received events to the output channel
-		var errored, canceled bool
-	Loop:
-		for {
-			select {
-			case <-ctx.Done():
-				log.Infof("in progress retrieval canceled")
-				canceled = true
-				break Loop
-			case e, ok := <-events:
-				if !ok {
-					break Loop
-				}
-				if e.Err != "" {
-					log.Infof("in progress retrieval errored: %s", err)
-					errored = true
-				}
-				out <- e
-			}
-		}
-
-		// Only register retrieval if successful
-		if !errored && !canceled {
-			m.recordRetrieval(waddr, o)
-		}
-	}()
-
-	return o.Miner.String(), out, nil
+	return offers
 }

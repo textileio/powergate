@@ -101,6 +101,7 @@ func buildListDealRecordsOptions(conf *userPb.DealRecordsConfig) []deals.DealRec
 			deals.WithFromAddrs(conf.FromAddrs...),
 			deals.WithIncludePending(conf.IncludePending),
 			deals.WithIncludeFinal(conf.IncludeFinal),
+			deals.WithIncludeFailed(conf.IncludeFailed),
 		}
 	}
 	return opts

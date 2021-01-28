@@ -60,3 +60,45 @@ func TestUnfreeze(t *testing.T) {
 		it.RequireRetrievalDealRecord(t, fapi, cid)
 	})
 }
+
+func TestUnfreezeRecords(t *testing.T) {
+	t.Parallel()
+	tests.RunFlaky(t, func(t *tests.FlakyT) {
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+		defer cls()
+
+		// Step 1. Produce a Filecoin retrieval.
+		ra := rand.New(rand.NewSource(22))
+		ctx := context.Background()
+		cid, _ := it.AddRandomFile(t, ra, ipfsAPI)
+
+		config := fapi.DefaultStorageConfig().WithHotEnabled(false).WithHotAllowUnfreeze(true)
+		jid, err := fapi.PushStorageConfig(cid, api.WithStorageConfig(config))
+		require.NoError(t, err)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
+
+		err = ipfsAPI.Dag().Remove(ctx, cid)
+		require.NoError(t, err)
+		config = config.WithHotEnabled(true)
+		jid, err = fapi.PushStorageConfig(cid, api.WithStorageConfig(config), api.WithOverride(true))
+		require.NoError(t, err)
+		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
+
+		// Step 2. Check that the Retrieval Record has appropiate values.
+		recs, err := fapi.RetrievalDealRecords()
+		require.NoError(t, err)
+		require.Len(t, recs, 1)
+
+		rr := recs[0]
+		require.Equal(t, cid, rr.DealInfo.RootCid)
+		dtStart := time.Unix(rr.DataTransferStart, 0)
+		dtEnd := time.Unix(rr.DataTransferEnd, 0)
+		require.False(t, dtStart.IsZero())
+		require.False(t, dtEnd.IsZero())
+		// Retrievals happen too fast in CI to enforce
+		// a strict start < end, so we consider == too.
+		// The designed granularity is 'seconds', not 'nanoseconds'.
+		require.True(t, dtStart.Before(dtEnd) || dtStart.Equal(dtEnd))
+		require.Empty(t, rr.ErrMsg)
+	})
+}

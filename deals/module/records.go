@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/powergate/v2/util"
 )
 
+// TTODO: use IncludeFailed filter
 // ListStorageDealRecords lists storage deals according to the provided options.
 func (m *Module) ListStorageDealRecords(opts ...deals.DealRecordsOption) ([]deals.StorageDealRecord, error) {
 	c := deals.DealRecordsConfig{}
@@ -94,7 +95,7 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]de
 
 	var filtered []deals.RetrievalDealRecord
 
-	if len(c.FromAddrs) > 0 || len(c.DataCids) > 0 {
+	if len(c.FromAddrs) > 0 || len(c.DataCids) > 0 || !c.IncludeFailed {
 		fromAddrsFilter := make(map[string]struct{})
 		dataCidsFilter := make(map[string]struct{})
 		for _, addr := range c.FromAddrs {
@@ -103,12 +104,14 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]de
 		for _, cid := range c.DataCids {
 			dataCidsFilter[cid] = struct{}{}
 		}
+
 		for _, record := range ret {
 			_, inFromAddrsFilter := fromAddrsFilter[record.Addr]
 			_, inDataCidsFilter := dataCidsFilter[util.CidToString(record.DealInfo.RootCid)]
 			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
 			includeViaDataCids := len(dataCidsFilter) == 0 || inDataCidsFilter
-			if includeViaFromAddrs && includeViaDataCids {
+			includeViaIncludeFailed := !c.IncludeFailed || record.ErrMsg != ""
+			if includeViaFromAddrs && includeViaDataCids && includeViaIncludeFailed {
 				filtered = append(filtered, record)
 			}
 		}
@@ -249,7 +252,8 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				return
 			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||
 				info.StateID == storagemarket.StorageDealProposalRejected ||
-				info.StateID == storagemarket.StorageDealFailing {
+				info.StateID == storagemarket.StorageDealFailing ||
+				info.StateID == storagemarket.StorageDealError {
 				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.StateID])
 				if err := m.store.deletePendingDeal(info.ProposalCid); err != nil {
 					log.Errorf("deleting pending deal: %v", err)
@@ -260,7 +264,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 	}
 }
 
-func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
+func (m *Module) recordRetrieval(addr string, offer api.QueryOffer, dtStart, dtEnd time.Time, errMsg string) {
 	rr := deals.RetrievalDealRecord{
 		Addr: addr,
 		Time: time.Now().Unix(),
@@ -273,6 +277,9 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer) {
 			PaymentInterval:         offer.PaymentInterval,
 			PaymentIntervalIncrease: offer.PaymentIntervalIncrease,
 		},
+		DataTransferStart: dtStart.Unix(),
+		DataTransferEnd:   dtEnd.Unix(),
+		ErrMsg:            errMsg,
 	}
 	if err := m.store.putRetrieval(rr); err != nil {
 		log.Errorf("storing retrieval: %v", err)

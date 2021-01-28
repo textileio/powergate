@@ -46,6 +46,13 @@ func WithIncludeFinal(includeFinal bool) DealRecordsOption {
 	}
 }
 
+// WithIncludeFailed specifies if failed records will be included in the output.
+func WithIncludeFailed(includeFailed bool) DealRecordsOption {
+	return func(c *userPb.DealRecordsConfig) {
+		c.IncludeFailed = includeFailed
+	}
+}
+
 // WithAscending specifies to sort the results in ascending order. Default is descending order.
 // Records are sorted by timestamp.
 func WithAscending(ascending bool) DealRecordsOption {
