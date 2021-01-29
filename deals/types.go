@@ -52,6 +52,7 @@ type StorageDealRecord struct {
 	SealingStart      int64
 	SealingEnd        int64
 	ErrMsg            string
+	UpdatedAt         int64
 }
 
 // RetrievalDealInfo contains information about a retrieval deal.
@@ -73,4 +74,5 @@ type RetrievalDealRecord struct {
 	DataTransferStart int64
 	DataTransferEnd   int64
 	ErrMsg            string
+	UpdatedAt         int64
 }

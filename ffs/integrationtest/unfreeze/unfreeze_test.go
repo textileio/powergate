@@ -84,7 +84,7 @@ func TestUnfreezeRecords(t *testing.T) {
 		require.NoError(t, err)
 		it.RequireEventualJobState(t, fapi, jid, ffs.Success)
 
-		// Step 2. Check that the Retrieval Record has appropiate values.
+		// Step 2. Check that the Retrieval Record has appropriate values.
 		recs, err := fapi.RetrievalDealRecords()
 		require.NoError(t, err)
 		require.Len(t, recs, 1)
