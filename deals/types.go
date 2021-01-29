@@ -46,6 +46,7 @@ type StorageDealRecord struct {
 	DealInfo          StorageDealInfo
 	Time              int64
 	Pending           bool
+	TransferSize      int64
 	DataTransferStart int64
 	DataTransferEnd   int64
 	SealingStart      int64

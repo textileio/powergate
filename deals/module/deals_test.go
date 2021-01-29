@@ -67,7 +67,6 @@ func TestStore(t *testing.T) {
 				final, err := m.ListStorageDealRecords(deals.WithIncludeFinal(true))
 				require.NoError(t, err)
 				require.Empty(t, final)
-				fmt.Println("NOW WAIT")
 				err = waitForDealComplete(c, pcids)
 				require.NoError(t, err)
 				time.Sleep(util.AvgBlockTime)
@@ -82,6 +81,17 @@ func TestStore(t *testing.T) {
 				)
 				require.NoError(t, err)
 				require.Len(t, final, nm)
+				for _, r := range final {
+					// TTODO: Delete
+					fmt.Printf("HUM: %v\n", r)
+					require.Greater(t, r.TransferSize, int64(600)) // Greater since DAG transformation has an ovehead.
+					require.Greater(t, r.DataTransferStart, int64(0))
+					require.Greater(t, r.DataTransferEnd, int64(0))
+					require.True(t, r.DataTransferStart <= r.DataTransferEnd)
+					require.Greater(t, r.SealingStart, int64(0))
+					require.Greater(t, r.SealingEnd, int64(0))
+					require.True(t, r.SealingStart < r.SealingEnd)
+				}
 			})
 		})
 	}
@@ -160,7 +170,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	if err != nil {
 		return cid.Undef, nil, err
 	}
-	srs, err := m.Store(ctx, addr.String(), dataCid, piece.PieceSize, piece.PieceCID, cfgs, util.MinDealDuration)
+	srs, err := m.Store(ctx, addr.String(), dataCid, piece.PayloadSize, piece.PieceSize, piece.PieceCID, cfgs, util.MinDealDuration)
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("calling Store(): %s", err)
 	}
@@ -192,7 +202,6 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 			if err != nil {
 				return err
 			}
-			fmt.Printf("WHHH: %v\n", storagemarket.DealStates[di.State])
 			if di.State == storagemarket.StorageDealActive {
 				finished[d] = struct{}{}
 				continue

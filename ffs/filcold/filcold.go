@@ -89,12 +89,12 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
 }
 
-func (fc *FilCold) calculateDealPiece(ctx context.Context, c cid.Cid) (abi.PaddedPieceSize, cid.Cid, error) {
+func (fc *FilCold) calculateDealPiece(ctx context.Context, c cid.Cid) (int64, abi.PaddedPieceSize, cid.Cid, error) {
 	fc.l.Log(ctx, "Entering deal preprocessing queue...")
 	select {
 	case fc.semaphDealPrep <- struct{}{}:
 	case <-ctx.Done():
-		return 0, cid.Undef, fmt.Errorf("canceled by context")
+		return 0, 0, cid.Undef, fmt.Errorf("canceled by context")
 	}
 	defer func() { <-fc.semaphDealPrep }()
 	for {
@@ -104,16 +104,16 @@ func (fc *FilCold) calculateDealPiece(ctx context.Context, c cid.Cid) (abi.Padde
 		log.Warnf("backpressure from unsynced Lotus node")
 		select {
 		case <-ctx.Done():
-			return 0, cid.Undef, fmt.Errorf("canceled by context")
+			return 0, 0, cid.Undef, fmt.Errorf("canceled by context")
 		case <-time.After(time.Minute):
 		}
 	}
 	fc.l.Log(ctx, "Calculating piece size...")
 	piece, err := fc.dm.CalculateDealPiece(ctx, c)
 	if err != nil {
-		return 0, cid.Undef, fmt.Errorf("getting cid cummulative size: %s", err)
+		return 0, 0, cid.Undef, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
-	return piece.PieceSize, piece.PieceCID, nil
+	return piece.PayloadSize, piece.PieceSize, piece.PieceCID, nil
 }
 
 // Store stores a Cid in Filecoin considering the configuration provided. The Cid is retrieved using
@@ -121,11 +121,11 @@ func (fc *FilCold) calculateDealPiece(ctx context.Context, c cid.Cid) (abi.Padde
 // started, and a slice of with Proposal Cids rejected. Returned proposed deals can be tracked
 // with the WaitForDeal API.
 func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, abi.PaddedPieceSize, error) {
-	pieceSize, pieceCid, err := fc.calculateDealPiece(ctx, c)
+	payloadSize, pieceSize, pieceCid, err := fc.calculateDealPiece(ctx, c)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
-	fc.l.Log(ctx, "Calculated piece size is %d MiB.", pieceSize/1024/1024)
+	fc.l.Log(ctx, "Data size is %d MiB, its calculated piece size is %d MiB.", payloadSize/1024/1024, pieceSize/1024/1024)
 
 	if uint64(pieceSize) < fc.minPieceSize {
 		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d MiB", fc.minPieceSize/1024/1024)
@@ -142,7 +142,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		return nil, nil, 0, fmt.Errorf("making deal configs: %s", err)
 	}
 
-	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, pieceSize, pieceCid, cfgs, cfg)
+	okDeals, failedStartingDeals, err := fc.makeDeals(ctx, c, payloadSize, pieceSize, pieceCid, cfgs, cfg)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("starting deals: %s", err)
 	}
@@ -222,7 +222,7 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	var newDealErrors []ffs.DealError
 	for i, p := range toRenew {
 		var dealError ffs.DealError
-		newProposal, err := fc.renewDeal(ctx, c, abi.PaddedPieceSize(inf.Size), p.PieceCid, p, cfg, dealFinalityTimeout, dealUpdates)
+		newProposal, err := fc.renewDeal(ctx, c, p, cfg, dealFinalityTimeout, dealUpdates)
 		if err != nil {
 			if errors.As(err, &dealError) {
 				newDealErrors = append(newDealErrors, dealError)
@@ -237,7 +237,12 @@ func (fc *FilCold) EnsureRenewals(ctx context.Context, c cid.Cid, inf ffs.FilInf
 	return newInf, newDealErrors, nil
 }
 
-func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, pieceSize abi.PaddedPieceSize, pieceCid cid.Cid, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilStorage, error) {
+func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, p ffs.FilStorage, fcfg ffs.FilConfig, waitDealTimeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilStorage, error) {
+	payloadSize, pieceSize, pieceCid, err := fc.calculateDealPiece(ctx, c)
+	if err != nil {
+		return ffs.FilStorage{}, fmt.Errorf("getting cid cummulative size: %s", err)
+	}
+
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: fcfg.ExcludedMiners,
 		CountryCodes:   fcfg.CountryCodes,
@@ -250,7 +255,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, pieceSize abi.Padde
 		return ffs.FilStorage{}, fmt.Errorf("making new deal config: %s", err)
 	}
 
-	okDeals, failedStartedDeals, err := fc.makeDeals(ctx, c, pieceSize, pieceCid, dealConfig, fcfg)
+	okDeals, failedStartedDeals, err := fc.makeDeals(ctx, c, payloadSize, pieceSize, pieceCid, dealConfig, fcfg)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("executing renewed deal: %s", err)
 	}
@@ -272,7 +277,7 @@ func (fc *FilCold) renewDeal(ctx context.Context, c cid.Cid, pieceSize abi.Padde
 
 // makeDeals starts deals with the specified miners. It returns a slice with all the ProposalCids
 // that were started successfully, and a slice of DealError with deals that failed to be started.
-func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, pieceSize abi.PaddedPieceSize, pieceCid cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, error) {
+func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, payloadSize int64, pieceSize abi.PaddedPieceSize, pieceCid cid.Cid, cfgs []deals.StorageDealConfig, fcfg ffs.FilConfig) ([]cid.Cid, []ffs.DealError, error) {
 	for {
 		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
 			break
@@ -289,7 +294,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, pieceSize abi.Padde
 		fc.l.Log(ctx, "Proposing deal to miner %s with %s FIL per epoch...", cfg.Miner, util.AttoFilToFil(cfg.EpochPrice))
 	}
 
-	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, pieceSize, pieceCid, cfgs, uint64(fcfg.DealMinDuration))
+	sres, err := fc.dm.Store(ctx, fcfg.Addr, c, payloadSize, pieceSize, pieceCid, cfgs, uint64(fcfg.DealMinDuration))
 	if err != nil {
 		return nil, nil, fmt.Errorf("storing deals in deal module: %s", err)
 	}

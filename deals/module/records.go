@@ -2,10 +2,12 @@ package module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
 
+	datatransfer "github.com/filecoin-project/go-data-transfer"
 	sm "github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
@@ -155,7 +157,7 @@ func (m *Module) resumeWatchingPendingRecords() error {
 	return nil
 }
 
-func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
+func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid, dataSize int64) {
 	di := deals.StorageDealInfo{
 		Duration:      params.MinBlocksDuration,
 		PricePerEpoch: params.EpochPrice.Uint64(),
@@ -163,11 +165,12 @@ func (m *Module) recordDeal(params *api.StartDealParams, proposalCid cid.Cid) {
 		ProposalCid:   proposalCid,
 	}
 	record := deals.StorageDealRecord{
-		RootCid:  params.Data.Root,
-		Addr:     params.Wallet.String(),
-		Time:     time.Now().Unix(),
-		DealInfo: di,
-		Pending:  true,
+		RootCid:      params.Data.Root,
+		Addr:         params.Wallet.String(),
+		Time:         time.Now().Unix(),
+		DealInfo:     di,
+		Pending:      true,
+		TransferSize: dataSize,
 	}
 	log.Infof("storing pending deal record for proposal cid: %s", util.CidToString(proposalCid))
 	if err := m.store.PutStorageDeal(record); err != nil {
@@ -230,11 +233,20 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	updates, err := m.Watch(ctx, dr.DealInfo.ProposalCid)
+
+	dealUpdates, err := m.Watch(ctx, dr.DealInfo.ProposalCid)
 	if err != nil {
 		log.Errorf("watching proposal cid %s: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 		return
 	}
+	dataTransferUpdates := make(chan dataTransferUpdate)
+	go func() {
+		if err = m.dataTransferUpdates(ctx, dr.DealInfo.ProposalCid, dataTransferUpdates); err != nil {
+			log.Errorf("watching data transfer updates: %s", err)
+			return
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -244,9 +256,9 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				log.Errorf("erroring pending deal: %v", err)
 			}
 			return
-		case info, ok := <-updates:
+		case info, ok := <-dealUpdates:
 			if !ok {
-				log.Errorf("updates channel unexpectedly closed for proposal cid %s", util.CidToString(dr.DealInfo.ProposalCid))
+				log.Errorf("deal updates channel unexpectedly closed for proposal cid %s", util.CidToString(dr.DealInfo.ProposalCid))
 				dr.ErrMsg = errWatchingUnexpectedClose
 				if err := m.store.PutStorageDeal(dr); err != nil {
 					log.Errorf("erroring pending deal: %v", err)
@@ -259,8 +271,6 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 			case sm.StorageDealActive:
 				dr.DealInfo = info
 				dr.Pending = false
-				// In case we didn't detect sealing end triggers, be
-				// sure to take a record.
 				if dr.SealingStart > 0 && dr.SealingEnd == 0 {
 					dr.SealingEnd = time.Now().Unix()
 				}
@@ -278,14 +288,9 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				}
 				return
 
-			// Transient status (no `return`)
-			case sm.StorageDealTransferring:
-				if dr.DataTransferStart == 0 {
-					dr.DataTransferStart = time.Now().Unix()
-					if err := m.store.PutStorageDeal(dr); err != nil {
-						log.Errorf("saving data transfer start time: %s", err)
-					}
-				}
+			// This case is just being paranoid of dataTransferUpdates not reporting the ending transfer time.
+			// If we're in this status, data transfer should already finished, so just check if we got into
+			// that situation and account for it. Shouldn't happen if Lotus doesn't misreports events.
 			case sm.StorageDealCheckForAcceptance, sm.StorageDealProposalAccepted, sm.StorageDealAwaitingPreCommit:
 				if dr.DataTransferStart > 0 && dr.DataTransferEnd == 0 {
 					dr.DataTransferEnd = time.Now().Unix()
@@ -300,6 +305,71 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 						log.Errorf("saving sealing start time: %s", err)
 					}
 				}
+			}
+		case u := <-dataTransferUpdates:
+			if dr.DataTransferStart == 0 && !u.start.IsZero() {
+				dr.DataTransferStart = u.start.Unix()
+				if err := m.store.PutStorageDeal(dr); err != nil {
+					log.Errorf("saving data transfer start time: %s", err)
+				}
+			}
+			if dr.DataTransferEnd == 0 && !u.end.IsZero() {
+				dr.DataTransferEnd = u.end.Unix()
+				if err := m.store.PutStorageDeal(dr); err != nil {
+					log.Errorf("saving data transfer end time: %s", err)
+				}
+			}
+		}
+	}
+}
+
+type dataTransferUpdate struct {
+	start time.Time
+	end   time.Time
+}
+
+type dealTransferVoucher struct {
+	Proposal cid.Cid
+}
+
+func (m *Module) dataTransferUpdates(ctx context.Context, proposalCid cid.Cid, updates chan<- dataTransferUpdate) error {
+	lapi, cls, err := m.clientBuilder(ctx)
+	if err != nil {
+		return fmt.Errorf("measure data transfer creating client: %s", err)
+	}
+	defer cls()
+	ch, err := lapi.ClientDataTransferUpdates(ctx)
+	if err != nil {
+		return fmt.Errorf("measure data transfer getting update channel from lotus: %s", err)
+	}
+
+	var dtStart time.Time
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case u, ok := <-ch:
+			if !ok {
+				return fmt.Errorf("data transfer updates channel unexpectedly closed: %s", err)
+			}
+			var dtVoucher dealTransferVoucher
+			if err := json.Unmarshal([]byte(u.Voucher), &dtVoucher); err != nil {
+				continue
+			}
+			if dtVoucher.Proposal != proposalCid {
+				continue
+			}
+			switch u.Status {
+			case datatransfer.Ongoing:
+				if dtStart.IsZero() {
+					dtStart = time.Now()
+					updates <- dataTransferUpdate{start: dtStart, end: time.Time{}}
+				}
+			case datatransfer.Completed:
+				updates <- dataTransferUpdate{start: dtStart, end: time.Now()}
+				return nil
+			case datatransfer.Failed, datatransfer.Cancelled:
+				return nil
 			}
 		}
 	}

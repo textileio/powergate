@@ -33,7 +33,7 @@ var (
 // is automatically calculated considering each miner epoch price and piece size.
 // The data of dataCid should be already imported to the Filecoin Client or should be
 // accessible to it. (e.g: is integrated with an IPFS node).
-func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, pieceSize abi.PaddedPieceSize, pieceCid cid.Cid, dcfgs []deals.StorageDealConfig, minDuration uint64) ([]deals.StoreResult, error) {
+func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, dataSize int64, pieceSize abi.PaddedPieceSize, pieceCid cid.Cid, dcfgs []deals.StorageDealConfig, minDuration uint64) ([]deals.StoreResult, error) {
 	if minDuration < util.MinDealDuration {
 		return nil, fmt.Errorf("duration %d should be greater or equal to %d", minDuration, util.MinDealDuration)
 	}
@@ -92,7 +92,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 			ProposalCid: *p,
 			Success:     true,
 		}
-		m.recordDeal(params, *p)
+		m.recordDeal(params, *p, dataSize)
 	}
 	return res, nil
 }
