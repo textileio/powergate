@@ -30,6 +30,9 @@ type AdminServiceClient interface {
 	// Storage Jobs
 	ListStorageJobs(ctx context.Context, in *ListStorageJobsRequest, opts ...grpc.CallOption) (*ListStorageJobsResponse, error)
 	StorageJobsSummary(ctx context.Context, in *StorageJobsSummaryRequest, opts ...grpc.CallOption) (*StorageJobsSummaryResponse, error)
+	// Updated Records
+	GetUpdatedStorageDealRecordsSince(ctx context.Context, in *GetUpdatedStorageDealRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedStorageDealRecordsSinceResponse, error)
+	GetUpdatedRetrievalRecordsSince(ctx context.Context, in *GetUpdatedRetrievalRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedRetrievalRecordsSinceResponse, error)
 	GCStaged(ctx context.Context, in *GCStagedRequest, opts ...grpc.CallOption) (*GCStagedResponse, error)
 	PinnedCids(ctx context.Context, in *PinnedCidsRequest, opts ...grpc.CallOption) (*PinnedCidsResponse, error)
 }
@@ -123,6 +126,24 @@ func (c *adminServiceClient) StorageJobsSummary(ctx context.Context, in *Storage
 	return out, nil
 }
 
+func (c *adminServiceClient) GetUpdatedStorageDealRecordsSince(ctx context.Context, in *GetUpdatedStorageDealRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedStorageDealRecordsSinceResponse, error) {
+	out := new(GetUpdatedStorageDealRecordsSinceResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GetUpdatedStorageDealRecordsSince", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetUpdatedRetrievalRecordsSince(ctx context.Context, in *GetUpdatedRetrievalRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedRetrievalRecordsSinceResponse, error) {
+	out := new(GetUpdatedRetrievalRecordsSinceResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GetUpdatedRetrievalRecordsSince", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) GCStaged(ctx context.Context, in *GCStagedRequest, opts ...grpc.CallOption) (*GCStagedResponse, error) {
 	out := new(GCStagedResponse)
 	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GCStaged", in, out, opts...)
@@ -158,6 +179,9 @@ type AdminServiceServer interface {
 	// Storage Jobs
 	ListStorageJobs(context.Context, *ListStorageJobsRequest) (*ListStorageJobsResponse, error)
 	StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error)
+	// Updated Records
+	GetUpdatedStorageDealRecordsSince(context.Context, *GetUpdatedStorageDealRecordsSinceRequest) (*GetUpdatedStorageDealRecordsSinceResponse, error)
+	GetUpdatedRetrievalRecordsSince(context.Context, *GetUpdatedRetrievalRecordsSinceRequest) (*GetUpdatedRetrievalRecordsSinceResponse, error)
 	GCStaged(context.Context, *GCStagedRequest) (*GCStagedResponse, error)
 	PinnedCids(context.Context, *PinnedCidsRequest) (*PinnedCidsResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
@@ -193,6 +217,12 @@ func (UnimplementedAdminServiceServer) ListStorageJobs(context.Context, *ListSto
 }
 func (UnimplementedAdminServiceServer) StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageJobsSummary not implemented")
+}
+func (UnimplementedAdminServiceServer) GetUpdatedStorageDealRecordsSince(context.Context, *GetUpdatedStorageDealRecordsSinceRequest) (*GetUpdatedStorageDealRecordsSinceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUpdatedStorageDealRecordsSince not implemented")
+}
+func (UnimplementedAdminServiceServer) GetUpdatedRetrievalRecordsSince(context.Context, *GetUpdatedRetrievalRecordsSinceRequest) (*GetUpdatedRetrievalRecordsSinceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUpdatedRetrievalRecordsSince not implemented")
 }
 func (UnimplementedAdminServiceServer) GCStaged(context.Context, *GCStagedRequest) (*GCStagedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GCStaged not implemented")
@@ -375,6 +405,42 @@ func _AdminService_StorageJobsSummary_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_GetUpdatedStorageDealRecordsSince_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUpdatedStorageDealRecordsSinceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetUpdatedStorageDealRecordsSince(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GetUpdatedStorageDealRecordsSince",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetUpdatedStorageDealRecordsSince(ctx, req.(*GetUpdatedStorageDealRecordsSinceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetUpdatedRetrievalRecordsSince_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUpdatedRetrievalRecordsSinceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetUpdatedRetrievalRecordsSince(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GetUpdatedRetrievalRecordsSince",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetUpdatedRetrievalRecordsSince(ctx, req.(*GetUpdatedRetrievalRecordsSinceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_GCStaged_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GCStagedRequest)
 	if err := dec(in); err != nil {
@@ -450,6 +516,14 @@ var _AdminService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StorageJobsSummary",
 			Handler:    _AdminService_StorageJobsSummary_Handler,
+		},
+		{
+			MethodName: "GetUpdatedStorageDealRecordsSince",
+			Handler:    _AdminService_GetUpdatedStorageDealRecordsSince_Handler,
+		},
+		{
+			MethodName: "GetUpdatedRetrievalRecordsSince",
+			Handler:    _AdminService_GetUpdatedRetrievalRecordsSince_Handler,
 		},
 		{
 			MethodName: "GCStaged",

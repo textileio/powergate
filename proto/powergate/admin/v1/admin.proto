@@ -105,25 +105,42 @@ message GCStagedRequest {
 }
 
 message GCStagedResponse {
-	repeated string unpinned_cids = 1;
+  repeated string unpinned_cids = 1;
 }
 
 message PinnedCidsRequest {
 }
 
 message PinnedCidsResponse {
-	repeated HSPinnedCid cids = 1;
+  repeated HSPinnedCid cids = 1;
 }
 
 message HSPinnedCid {
-	string cid = 1;
-	repeated HSPinnedCidUser users = 2;
+  string cid = 1;
+  repeated HSPinnedCidUser users = 2;
 }
 
 message HSPinnedCidUser {
-	string user_id = 1;
-	bool staged = 2;
-	int64 created_at = 3;
+  string user_id = 1;
+  bool staged = 2;
+  int64 created_at = 3;
+}
+
+message GetUpdatedStorageDealRecordsSinceRequest {
+  int64 sinceNano = 1;
+}
+
+message GetUpdatedStorageDealRecordsSinceResponse {
+  repeated powergate.user.v1.StorageDealRecord records = 1;
+}
+
+
+message GetUpdatedRetrievalRecordsSinceRequest {
+  int64 sinceNano = 1;
+}
+
+message GetUpdatedRetrievalRecordsSinceResponse {
+  repeated powergate.user.v1.RetrievalDealRecord records = 1;
 }
 
 service AdminService {
@@ -143,6 +160,10 @@ service AdminService {
   // Storage Jobs
   rpc ListStorageJobs(ListStorageJobsRequest) returns (ListStorageJobsResponse) {}
   rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
+
+  // Updated Records
+  rpc GetUpdatedStorageDealRecordsSince(GetUpdatedStorageDealRecordsSinceRequest) returns (GetUpdatedStorageDealRecordsSinceResponse){}
+  rpc GetUpdatedRetrievalRecordsSince(GetUpdatedRetrievalRecordsSinceRequest) returns (GetUpdatedRetrievalRecordsSinceResponse){}
 
   rpc GCStaged(GCStagedRequest) returns (GCStagedResponse) {}
   rpc PinnedCids(PinnedCidsRequest) returns (PinnedCidsResponse) {}

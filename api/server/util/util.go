@@ -5,6 +5,7 @@ import (
 
 	"github.com/ipfs/go-cid"
 	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/ffs"
 	"github.com/textileio/powergate/v2/util"
 )
@@ -139,4 +140,64 @@ func FromProtoCids(cids []string) ([]cid.Cid, error) {
 		res = append(res, cid)
 	}
 	return res, nil
+}
+
+// ToRPCStorageDealRecords transforms a StorageDealRecord slice to the proto version.
+func ToRPCStorageDealRecords(records []deals.StorageDealRecord) []*userPb.StorageDealRecord {
+	ret := make([]*userPb.StorageDealRecord, len(records))
+	for i, r := range records {
+		ret[i] = &userPb.StorageDealRecord{
+			RootCid: util.CidToString(r.RootCid),
+			Address: r.Addr,
+			Time:    r.Time,
+			Pending: r.Pending,
+			DealInfo: &userPb.StorageDealInfo{
+				ProposalCid:     util.CidToString(r.DealInfo.ProposalCid),
+				StateId:         r.DealInfo.StateID,
+				StateName:       r.DealInfo.StateName,
+				Miner:           r.DealInfo.Miner,
+				PieceCid:        util.CidToString(r.DealInfo.PieceCID),
+				Size:            r.DealInfo.Size,
+				PricePerEpoch:   r.DealInfo.PricePerEpoch,
+				StartEpoch:      r.DealInfo.StartEpoch,
+				Duration:        r.DealInfo.Duration,
+				DealId:          r.DealInfo.DealID,
+				ActivationEpoch: r.DealInfo.ActivationEpoch,
+				Message:         r.DealInfo.Message,
+			},
+			TransferSize:      r.TransferSize,
+			DataTransferStart: r.DataTransferStart,
+			DataTransferEnd:   r.DataTransferEnd,
+			SealingStart:      r.SealingStart,
+			SealingEnd:        r.SealingEnd,
+			ErrMsg:            r.ErrMsg,
+			UpdatedAt:         r.UpdatedAt,
+		}
+	}
+	return ret
+}
+
+// ToRPCRetrievalDealRecords converts a RetrievalDealRecord slice to the proto version.
+func ToRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*userPb.RetrievalDealRecord {
+	ret := make([]*userPb.RetrievalDealRecord, len(records))
+	for i, r := range records {
+		ret[i] = &userPb.RetrievalDealRecord{
+			Address: r.Addr,
+			Time:    r.Time,
+			DealInfo: &userPb.RetrievalDealInfo{
+				RootCid:                 util.CidToString(r.DealInfo.RootCid),
+				Size:                    r.DealInfo.Size,
+				MinPrice:                r.DealInfo.MinPrice,
+				PaymentInterval:         r.DealInfo.PaymentInterval,
+				PaymentIntervalIncrease: r.DealInfo.PaymentIntervalIncrease,
+				Miner:                   r.DealInfo.Miner,
+				MinerPeerId:             r.DealInfo.MinerPeerID,
+			},
+			DataTransferStart: r.DataTransferStart,
+			DataTransferEnd:   r.DataTransferEnd,
+			ErrMsg:            r.ErrMsg,
+			UpdatedAt:         r.UpdatedAt,
+		}
+	}
+	return ret
 }

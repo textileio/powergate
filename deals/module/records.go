@@ -139,6 +139,28 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]de
 	return filtered, nil
 }
 
+// GetUpdatedStorageDealRecordsSince returns all the storage deal records that got created or updated
+// since sinceNano.
+func (m *Module) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.StorageDealRecord, error) {
+	r, err := m.store.GetUpdatedStorageDealRecordsSince(sinceNano)
+	if err != nil {
+		return nil, fmt.Errorf("get updated storage deal records from store: %s", err)
+	}
+
+	return r, nil
+}
+
+// GetUpdatedRetrievalRecordsSince returns all the retrieval records that got created or updated
+// since sinceNano.
+func (m *Module) GetUpdatedRetrievalRecordsSince(sinceNano int64) ([]deals.RetrievalDealRecord, error) {
+	r, err := m.store.GetUpdatedRetrievalRecordsSince(sinceNano)
+	if err != nil {
+		return nil, fmt.Errorf("get updated retrieval records from store: %s", err)
+	}
+
+	return r, nil
+}
+
 func (m *Module) resumeWatchingPendingRecords() error {
 	pendingStorageRecords, err := m.store.GetPendingStorageDeals()
 	if err != nil {

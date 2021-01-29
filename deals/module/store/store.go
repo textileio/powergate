@@ -180,7 +180,7 @@ func (s *Store) PutRetrieval(rr deals.RetrievalDealRecord) error {
 		return fmt.Errorf("put RetrievalRecord: %s", err)
 	}
 
-	updatedAtIndexKey := makeStorageUpdatedAtIndexKey(rr.UpdatedAt)
+	updatedAtIndexKey := makeRetrievalUpdatedAtIndexKey(rr.UpdatedAt)
 	if err := txn.Put(updatedAtIndexKey, key.Bytes()); err != nil {
 		return fmt.Errorf("saving updated-at index: %s", err)
 	}
@@ -222,6 +222,8 @@ func (s *Store) GetRetrievals() ([]deals.RetrievalDealRecord, error) {
 	return ret, nil
 }
 
+// GetUpdatedStorageDealRecordsSince returns all the storage deal records that got created or updated
+// since sinceNano.
 func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.StorageDealRecord, error) {
 	q := query.Query{
 		Prefix: dsStorageUpdatedAtIdx.String(),
@@ -231,7 +233,11 @@ func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.Stor
 	if err != nil {
 		return nil, fmt.Errorf("executing query: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing updated storage deal records query result: %s", err)
+		}
+	}()
 
 	msdrs := make(map[datastore.Key]deals.StorageDealRecord)
 	for r := range res.Next() {
@@ -278,7 +284,9 @@ func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.Stor
 	return ret, nil
 }
 
-func (s *Store) GetUpdatedRetrievalDealRecordsSince(sinceNano int64) ([]deals.RetrievalDealRecord, error) {
+// GetUpdatedRetrievalRecordsSince returns all the retrieval records that got created or updated
+// since sinceNano.
+func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64) ([]deals.RetrievalDealRecord, error) {
 	q := query.Query{
 		Prefix: dsRetrievalUpdatedAtIdx.String(),
 		Orders: []query.Order{query.OrderByKeyDescending{}},
@@ -287,7 +295,11 @@ func (s *Store) GetUpdatedRetrievalDealRecordsSince(sinceNano int64) ([]deals.Re
 	if err != nil {
 		return nil, fmt.Errorf("executing query: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing updated retrieval records query result: %s", err)
+		}
+	}()
 
 	mrdrs := make(map[datastore.Key]deals.RetrievalDealRecord)
 	for r := range res.Next() {
@@ -319,7 +331,6 @@ func (s *Store) GetUpdatedRetrievalDealRecordsSince(sinceNano int64) ([]deals.Re
 		if err := json.Unmarshal(buf, &rr); err != nil {
 			return nil, fmt.Errorf("unmarshaling updated retrieval deal record from store: %s", err)
 		}
-
 	}
 
 	ret := make([]deals.RetrievalDealRecord, 0, len(mrdrs))
