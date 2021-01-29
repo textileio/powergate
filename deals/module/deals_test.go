@@ -82,8 +82,6 @@ func TestStore(t *testing.T) {
 				require.NoError(t, err)
 				require.Len(t, final, nm)
 				for _, r := range final {
-					// TTODO: Delete
-					fmt.Printf("HUM: %v\n", r)
 					require.Greater(t, r.TransferSize, int64(600)) // Greater since DAG transformation has an ovehead.
 					require.Greater(t, r.DataTransferStart, int64(0))
 					require.Greater(t, r.DataTransferEnd, int64(0))

@@ -129,6 +129,13 @@ func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*userPb.Storag
 				ActivationEpoch: r.DealInfo.ActivationEpoch,
 				Message:         r.DealInfo.Message,
 			},
+			TransferSize:      r.TransferSize,
+			DataTransferStart: r.DataTransferStart,
+			DataTransferEnd:   r.DataTransferEnd,
+			SealingStart:      r.SealingStart,
+			SealingEnd:        r.SealingEnd,
+			ErrMsg:            r.ErrMsg,
+			UpdatedAt:         r.UpdatedAt,
 		}
 	}
 	return ret
@@ -149,6 +156,10 @@ func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*userPb.Re
 				Miner:                   r.DealInfo.Miner,
 				MinerPeerId:             r.DealInfo.MinerPeerID,
 			},
+			DataTransferStart: r.DataTransferStart,
+			DataTransferEnd:   r.DataTransferEnd,
+			ErrMsg:            r.ErrMsg,
+			UpdatedAt:         r.UpdatedAt,
 		}
 	}
 	return ret

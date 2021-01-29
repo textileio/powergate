@@ -19,9 +19,11 @@ import (
 )
 
 var (
-	dsBaseStoragePending    = datastore.NewKey("storage-pending")
-	dsBaseStorageFinal      = datastore.NewKey("storage-final")
-	dsBaseRetrieval         = datastore.NewKey("retrieval")
+	dsBaseStoragePending = datastore.NewKey("storage-pending")
+	dsBaseStorageFinal   = datastore.NewKey("storage-final")
+	dsBaseRetrieval      = datastore.NewKey("retrieval")
+
+	// TODO: we need a purging daemon to delete index entries older than X days.
 	dsStorageUpdatedAtIdx   = datastore.NewKey("updatedatidx/storage")
 	dsRetrievalUpdatedAtIdx = datastore.NewKey("updatedatidx/retrieval")
 
