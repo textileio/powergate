@@ -29,7 +29,7 @@ func LaunchDevnetDocker(t TestingTWithCleanup, numMiners int, ipfsMaddr string, 
 	envs := []string{
 		devnetEnv("NUMMINERS", strconv.Itoa(numMiners)),
 		// TTODO: rollback
-		devnetEnv("SPEED", "100"),
+		devnetEnv("SPEED", "300"),
 		devnetEnv("IPFSADDR", ipfsMaddr),
 		devnetEnv("BIGSECTORS", false),
 	}

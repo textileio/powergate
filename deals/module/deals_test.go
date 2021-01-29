@@ -67,6 +67,7 @@ func TestStore(t *testing.T) {
 				final, err := m.ListStorageDealRecords(deals.WithIncludeFinal(true))
 				require.NoError(t, err)
 				require.Empty(t, final)
+				fmt.Println("NOW WAIT")
 				err = waitForDealComplete(c, pcids)
 				require.NoError(t, err)
 				time.Sleep(util.AvgBlockTime)
@@ -191,6 +192,7 @@ func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) erro
 			if err != nil {
 				return err
 			}
+			fmt.Printf("WHHH: %v\n", storagemarket.DealStates[di.State])
 			if di.State == storagemarket.StorageDealActive {
 				finished[d] = struct{}{}
 				continue

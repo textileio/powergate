@@ -321,7 +321,7 @@ func (fc *FilCold) makeDeals(ctx context.Context, c cid.Cid, pieceSize abi.Padde
 func (fc *FilCold) WaitForDeal(ctx context.Context, c cid.Cid, proposal cid.Cid, timeout time.Duration, dealUpdates chan deals.StorageDealInfo) (ffs.FilStorage, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	chDi, err := fc.dm.Watch(ctx, []cid.Cid{proposal})
+	chDi, err := fc.dm.Watch(ctx, proposal)
 	if err != nil {
 		return ffs.FilStorage{}, fmt.Errorf("watching proposals in deals module: %s", err)
 	}

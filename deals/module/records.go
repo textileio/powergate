@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
+	sm "github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/v2/deals"
@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	errWatchingTimeout         = "pow: watching timeout"
-	errWatchingUnexpectedClose = "pow: watching unexpected closing"
+	errWatchingTimeout         = "pow watching timeout"
+	errWatchingUnexpectedClose = "pow watching unexpected closing"
 )
 
 // ListStorageDealRecords lists storage deals according to the provided options.
@@ -197,10 +197,10 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 		}
 		return
 	}
-	if info.State != storagemarket.StorageDealActive {
+	if info.State != sm.StorageDealActive {
 		log.Infof("pending deal for proposal cid %s isn't active yet, erroring pending deal", util.CidToString(dr.DealInfo.ProposalCid))
 
-		dr.ErrMsg = fmt.Sprintf("deal failed with status %s", storagemarket.DealStates[info.State])
+		dr.ErrMsg = fmt.Sprintf("deal failed with status %s", sm.DealStates[info.State])
 		if err := m.store.PutStorageDeal(dr); err != nil {
 			log.Errorf("erroring pending deal for proposal cid %s: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 		}
@@ -230,7 +230,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	updates, err := m.Watch(ctx, []cid.Cid{dr.DealInfo.ProposalCid})
+	updates, err := m.Watch(ctx, dr.DealInfo.ProposalCid)
 	if err != nil {
 		log.Errorf("watching proposal cid %s: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 		return
@@ -253,24 +253,53 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				}
 				return
 			}
-			if info.StateID == storagemarket.StorageDealActive {
+
+			switch info.StateID {
+			// Final status (`return`)
+			case sm.StorageDealActive:
 				dr.DealInfo = info
 				dr.Pending = false
+				// In case we didn't detect sealing end triggers, be
+				// sure to take a record.
+				if dr.SealingStart > 0 && dr.SealingEnd == 0 {
+					dr.SealingEnd = time.Now().Unix()
+				}
 				log.Infof("proposal cid %s is active, storing deal record", util.CidToString(info.ProposalCid))
 				if err := m.store.PutStorageDeal(dr); err != nil {
 					log.Errorf("storing proposal cid %s deal record: %v", util.CidToString(info.ProposalCid), err)
 				}
 				return
-			} else if info.StateID == storagemarket.StorageDealProposalNotFound ||
-				info.StateID == storagemarket.StorageDealProposalRejected ||
-				info.StateID == storagemarket.StorageDealFailing ||
-				info.StateID == storagemarket.StorageDealError {
-				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), storagemarket.DealStates[info.StateID])
-				dr.ErrMsg = fmt.Sprintf("deal failed with status %s", storagemarket.DealStates[info.StateID])
+			case sm.StorageDealProposalNotFound, sm.StorageDealProposalRejected, sm.StorageDealFailing, sm.StorageDealError:
+				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), sm.DealStates[info.StateID])
+
+				dr.ErrMsg = fmt.Sprintf("deal failed with status %s", sm.DealStates[info.StateID])
 				if err := m.store.PutStorageDeal(dr); err != nil {
-					log.Errorf("erroring pending deal: %v", err)
+					log.Errorf("saving successful storage deal record: %v", err)
 				}
 				return
+
+			// Transient status (no `return`)
+			case sm.StorageDealTransferring:
+				if dr.DataTransferStart == 0 {
+					dr.DataTransferStart = time.Now().Unix()
+					if err := m.store.PutStorageDeal(dr); err != nil {
+						log.Errorf("saving data transfer start time: %s", err)
+					}
+				}
+			case sm.StorageDealCheckForAcceptance, sm.StorageDealProposalAccepted, sm.StorageDealAwaitingPreCommit:
+				if dr.DataTransferStart > 0 && dr.DataTransferEnd == 0 {
+					dr.DataTransferEnd = time.Now().Unix()
+					if err := m.store.PutStorageDeal(dr); err != nil {
+						log.Errorf("saving data transfer start time: %s", err)
+					}
+				}
+			case sm.StorageDealSealing:
+				if dr.SealingStart == 0 {
+					dr.SealingStart = time.Now().Unix()
+					if err := m.store.PutStorageDeal(dr); err != nil {
+						log.Errorf("saving sealing start time: %s", err)
+					}
+				}
 			}
 		}
 	}

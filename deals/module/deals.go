@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	chanWriteTimeout       = time.Second
 	defaultDealStartOffset = 48 * 60 * 60 / util.EpochDurationSeconds // 48hs
 )
 
@@ -99,33 +98,19 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, piece
 }
 
 // Watch returns a channel with state changes of indicated proposals.
-func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.StorageDealInfo, error) {
-	if len(proposals) == 0 {
-		return nil, fmt.Errorf("proposals list can't be empty")
-	}
-	ch := make(chan deals.StorageDealInfo)
+func (m *Module) Watch(ctx context.Context, proposal cid.Cid) (<-chan deals.StorageDealInfo, error) {
+	updates := make(chan deals.StorageDealInfo)
+
 	go func() {
-		defer close(ch)
-
-		currentState := make(map[cid.Cid]*api.DealInfo)
-
-		makeClientAndNotify := func() error {
-			client, cls, err := m.clientBuilder(ctx)
-			if err != nil {
-				return fmt.Errorf("creating lotus client: %s", err)
-			}
-			if err := notifyChanges(ctx, client, currentState, proposals, ch); err != nil {
-				return fmt.Errorf("pushing new proposal states: %s", err)
-			}
-			cls()
-			return nil
-		}
+		defer close(updates)
 
 		// Notify once so that subscribers get a result quickly
-		if err := makeClientAndNotify(); err != nil {
-			log.Errorf("creating lotus client and notifying: %s", err)
+		last, err := m.getStorageDealInfo(ctx, proposal)
+		if err != nil {
+			log.Errorf("notifying latest proposal status: %s", err)
 			return
 		}
+		updates <- last
 
 		// Then notify every m.pollDuration
 		for {
@@ -133,38 +118,40 @@ func (m *Module) Watch(ctx context.Context, proposals []cid.Cid) (<-chan deals.S
 			case <-ctx.Done():
 				return
 			case <-time.After(m.pollDuration):
-				if err := makeClientAndNotify(); err != nil {
-					log.Errorf("creating lotus client and notifying: %s", err)
+				sdi, err := m.getStorageDealInfo(ctx, proposal)
+				if err != nil {
+					log.Errorf("notifying latests proposal status: %s", err)
 					return
+				}
+				if last.StateID != sdi.StateID {
+					last = sdi
+					updates <- last
 				}
 			}
 		}
 	}()
-	return ch, nil
+
+	return updates, nil
 }
 
-func notifyChanges(ctx context.Context, lapi *apistruct.FullNodeStruct, currState map[cid.Cid]*api.DealInfo, proposals []cid.Cid, ch chan<- deals.StorageDealInfo) error {
-	for _, pcid := range proposals {
-		dinfo, err := robustClientGetDealInfo(ctx, lapi, pcid)
-		if err != nil {
-			return fmt.Errorf("getting deal proposal info %s: %s", pcid, err)
-		}
-		if currState[pcid] == nil || (*currState[pcid]).State != dinfo.State {
-			currState[pcid] = dinfo
-			newState, err := fromLotusDealInfo(ctx, lapi, dinfo)
-			if err != nil {
-				return fmt.Errorf("converting proposal cid %s from lotus deal info: %v", util.CidToString(pcid), err)
-			}
-			select {
-			case <-ctx.Done():
-				return nil
-			case ch <- newState:
-			case <-time.After(chanWriteTimeout):
-				log.Warnf("dropping new state since chan is blocked")
-			}
-		}
+func (m *Module) getStorageDealInfo(ctx context.Context, proposal cid.Cid) (deals.StorageDealInfo, error) {
+	lapi, cls, err := m.clientBuilder(ctx)
+	if err != nil {
+		return deals.StorageDealInfo{}, fmt.Errorf("creating lotus client: %s", err)
 	}
-	return nil
+	defer cls()
+
+	dinfo, err := robustClientGetDealInfo(ctx, lapi, proposal)
+	if err != nil {
+		return deals.StorageDealInfo{}, fmt.Errorf("getting deal proposal info %s: %s", proposal, err)
+	}
+
+	sdi, err := fromLotusDealInfo(ctx, lapi, dinfo)
+	if err != nil {
+		return deals.StorageDealInfo{}, fmt.Errorf("converting proposal cid %s from lotus deal info: %v", util.CidToString(proposal), err)
+	}
+
+	return sdi, nil
 }
 
 func fromLotusDealInfo(ctx context.Context, client *apistruct.FullNodeStruct, dinfo *api.DealInfo) (deals.StorageDealInfo, error) {
