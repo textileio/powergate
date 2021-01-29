@@ -331,6 +331,8 @@ func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64) ([]deals.Retrie
 		if err := json.Unmarshal(buf, &rr); err != nil {
 			return nil, fmt.Errorf("unmarshaling updated retrieval deal record from store: %s", err)
 		}
+
+		mrdrs[recordKey] = rr
 	}
 
 	ret := make([]deals.RetrievalDealRecord, 0, len(mrdrs))
