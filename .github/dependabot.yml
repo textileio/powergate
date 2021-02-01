@@ -1,0 +1,8 @@
+version: 2
+
+updates:
+  - package_ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    target-branch: "develop"
