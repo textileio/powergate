@@ -6,8 +6,8 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/apoorvam/goterminal v0.0.0-20180523175556-614d345c47e5
 	github.com/caarlos0/spin v1.1.0
-	github.com/charmbracelet/bubbles v0.7.5
-	github.com/charmbracelet/bubbletea v0.12.2
+	github.com/charmbracelet/bubbles v0.7.6
+	github.com/charmbracelet/bubbletea v0.12.4
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
@@ -21,7 +21,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.4
-	github.com/google/uuid v1.1.5
+	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/improbable-eng/grpc-web v0.13.0
 	github.com/ipfs/go-cid v0.0.7
@@ -39,7 +39,7 @@ require (
 	github.com/libp2p/go-libp2p-core v0.7.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
-	github.com/mattn/go-runewidth v0.0.9
+	github.com/mattn/go-runewidth v0.0.10
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/muesli/termenv v0.7.4
 	github.com/multiformats/go-multiaddr v0.3.1
@@ -49,7 +49,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/ory/dockertest/v3 v3.6.3
 	github.com/oschwald/geoip2-golang v1.4.0
-	github.com/otiai10/copy v1.3.0
+	github.com/otiai10/copy v1.4.2
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
 	github.com/rs/cors v1.7.0
 	github.com/spf13/cobra v1.1.1
@@ -59,9 +59,9 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/textileio/dsutils v1.0.1
 	github.com/textileio/go-ds-mongo v0.1.4
-	go.opencensus.io v0.22.5
+	go.opencensus.io v0.22.6
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	google.golang.org/grpc v1.34.0
+	google.golang.org/grpc v1.35.0
 	google.golang.org/protobuf v1.25.0
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )
