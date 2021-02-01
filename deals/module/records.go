@@ -141,8 +141,8 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]de
 
 // GetUpdatedStorageDealRecordsSince returns all the storage deal records that got created or updated
 // since sinceNano.
-func (m *Module) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.StorageDealRecord, error) {
-	r, err := m.store.GetUpdatedStorageDealRecordsSince(sinceNano)
+func (m *Module) GetUpdatedStorageDealRecordsSince(sinceNano int64, limit int) ([]deals.StorageDealRecord, error) {
+	r, err := m.store.GetUpdatedStorageDealRecordsSince(sinceNano, limit)
 	if err != nil {
 		return nil, fmt.Errorf("get updated storage deal records from store: %s", err)
 	}
@@ -152,8 +152,8 @@ func (m *Module) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.Sto
 
 // GetUpdatedRetrievalRecordsSince returns all the retrieval records that got created or updated
 // since sinceNano.
-func (m *Module) GetUpdatedRetrievalRecordsSince(sinceNano int64) ([]deals.RetrievalDealRecord, error) {
-	r, err := m.store.GetUpdatedRetrievalRecordsSince(sinceNano)
+func (m *Module) GetUpdatedRetrievalRecordsSince(sinceNano int64, limit int) ([]deals.RetrievalDealRecord, error) {
+	r, err := m.store.GetUpdatedRetrievalRecordsSince(sinceNano, limit)
 	if err != nil {
 		return nil, fmt.Errorf("get updated retrieval records from store: %s", err)
 	}

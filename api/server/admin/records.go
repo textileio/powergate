@@ -12,7 +12,7 @@ import (
 // GetUpdatedStorageDealRecordsSince returns all the storage deal records that got created or updated
 // since a provided point in time.
 func (a *Service) GetUpdatedStorageDealRecordsSince(ctx context.Context, req *adminPb.GetUpdatedStorageDealRecordsSinceRequest) (*adminPb.GetUpdatedStorageDealRecordsSinceResponse, error) {
-	rs, err := a.dm.GetUpdatedStorageDealRecordsSince(req.SinceNano)
+	rs, err := a.dm.GetUpdatedStorageDealRecordsSince(req.SinceNano, int(req.Limit))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting updated storage deal records: %s", err)
 	}
@@ -23,7 +23,7 @@ func (a *Service) GetUpdatedStorageDealRecordsSince(ctx context.Context, req *ad
 // GetUpdatedRetrievalRecordsSince returns all the retrieval records that got created or updated
 // since a provided point in time.
 func (a *Service) GetUpdatedRetrievalRecordsSince(ctx context.Context, req *adminPb.GetUpdatedRetrievalRecordsSinceRequest) (*adminPb.GetUpdatedRetrievalRecordsSinceResponse, error) {
-	rs, err := a.dm.GetUpdatedRetrievalRecordsSince(req.SinceNano)
+	rs, err := a.dm.GetUpdatedRetrievalRecordsSince(req.SinceNano, int(req.Limit))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting updated storage deal records: %s", err)
 	}

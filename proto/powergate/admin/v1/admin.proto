@@ -127,7 +127,8 @@ message HSPinnedCidUser {
 }
 
 message GetUpdatedStorageDealRecordsSinceRequest {
-  int64 sinceNano = 1;
+  int64 since_nano = 1;
+  int32 limit = 2;
 }
 
 message GetUpdatedStorageDealRecordsSinceResponse {
@@ -136,7 +137,8 @@ message GetUpdatedStorageDealRecordsSinceResponse {
 
 
 message GetUpdatedRetrievalRecordsSinceRequest {
-  int64 sinceNano = 1;
+  int64 since_nano = 1;
+  int32 limit = 2;
 }
 
 message GetUpdatedRetrievalRecordsSinceResponse {

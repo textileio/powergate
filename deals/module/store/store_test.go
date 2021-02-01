@@ -266,7 +266,7 @@ func TestStorageUpdatedSince(t *testing.T) {
 	// ## Start verifying changes.
 
 	// Since t0, we should get 3 results, even if there were 4 changes (since sr2 as touched two times; we get the latest state).
-	udr, err := s.GetUpdatedStorageDealRecordsSince(t0)
+	udr, err := s.GetUpdatedStorageDealRecordsSince(t0, 10)
 	require.NoError(t, err)
 	require.Len(t, udr, 3)
 	require.Equal(t, sr1.Addr, udr[0].Addr)
@@ -274,22 +274,27 @@ func TestStorageUpdatedSince(t *testing.T) {
 	require.Equal(t, sr2Updated.Addr, udr[2].Addr)
 
 	// Since t1, we should get 2 results: sr3 and sr2Updated
-	udr, err = s.GetUpdatedStorageDealRecordsSince(t1)
+	udr, err = s.GetUpdatedStorageDealRecordsSince(t1, 10)
 	require.NoError(t, err)
 	require.Len(t, udr, 2)
 	require.Equal(t, sr3.Addr, udr[0].Addr)
 	require.Equal(t, sr2Updated.Addr, udr[1].Addr)
 
 	// Since t2, we should get 1 result: sr2Updated
-	udr, err = s.GetUpdatedStorageDealRecordsSince(t2)
+	udr, err = s.GetUpdatedStorageDealRecordsSince(t2, 10)
 	require.NoError(t, err)
 	require.Len(t, udr, 1)
 	require.Equal(t, sr2Updated.Addr, udr[0].Addr)
 
 	// Since t3, we should get 0 results
-	udr, err = s.GetUpdatedStorageDealRecordsSince(t3)
+	udr, err = s.GetUpdatedStorageDealRecordsSince(t3, 10)
 	require.NoError(t, err)
 	require.Len(t, udr, 0)
+
+	// Test limit
+	udr, err = s.GetUpdatedStorageDealRecordsSince(t0, 1)
+	require.NoError(t, err)
+	require.Len(t, udr, 1)
 }
 
 func TestRetrievalUpdatedSince(t *testing.T) {
@@ -328,7 +333,7 @@ func TestRetrievalUpdatedSince(t *testing.T) {
 	// ## Start verifying changes.
 
 	// Since t0, we should get 3 results, even if there were 4 changes (since rr2 as touched two times; we get the latest state).
-	udr, err := s.GetUpdatedRetrievalRecordsSince(t0)
+	udr, err := s.GetUpdatedRetrievalRecordsSince(t0, 10)
 	require.NoError(t, err)
 	require.Len(t, udr, 3)
 	require.Equal(t, rr1.Addr, udr[0].Addr)
@@ -336,20 +341,25 @@ func TestRetrievalUpdatedSince(t *testing.T) {
 	require.Equal(t, rr2Updated.Addr, udr[2].Addr)
 
 	// Since t1, we should get 2 results: sr3 and rr2Updated
-	udr, err = s.GetUpdatedRetrievalRecordsSince(t1)
+	udr, err = s.GetUpdatedRetrievalRecordsSince(t1, 10)
 	require.NoError(t, err)
 	require.Len(t, udr, 2)
 	require.Equal(t, rr3.Addr, udr[0].Addr)
 	require.Equal(t, rr2Updated.Addr, udr[1].Addr)
 
 	// Since t2, we should get 1 result: rr2Updated
-	udr, err = s.GetUpdatedRetrievalRecordsSince(t2)
+	udr, err = s.GetUpdatedRetrievalRecordsSince(t2, 10)
 	require.NoError(t, err)
 	require.Len(t, udr, 1)
 	require.Equal(t, rr2Updated.Addr, udr[0].Addr)
 
 	// Since t3, we should get 0 results
-	udr, err = s.GetUpdatedRetrievalRecordsSince(t3)
+	udr, err = s.GetUpdatedRetrievalRecordsSince(t3, 10)
 	require.NoError(t, err)
 	require.Len(t, udr, 0)
+
+	// Test limit
+	udr, err = s.GetUpdatedRetrievalRecordsSince(t0, 1)
+	require.NoError(t, err)
+	require.Len(t, udr, 1)
 }

@@ -224,10 +224,9 @@ func (s *Store) GetRetrievals() ([]deals.RetrievalDealRecord, error) {
 
 // GetUpdatedStorageDealRecordsSince returns all the storage deal records that got created or updated
 // since sinceNano.
-func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.StorageDealRecord, error) {
+func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64, limit int) ([]deals.StorageDealRecord, error) {
 	q := query.Query{
 		Prefix: dsStorageUpdatedAtIdx.String(),
-		Orders: []query.Order{query.OrderByKeyDescending{}},
 	}
 	res, err := s.ds.Query(q)
 	if err != nil {
@@ -255,12 +254,6 @@ func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.Stor
 		}
 
 		recordKey := datastore.RawKey(string(r.Value))
-		if _, ok := msdrs[recordKey]; ok {
-			// We already found a *newer* version of this record,
-			// since we're iterating in desc order.
-			continue
-		}
-
 		buf, err := s.ds.Get(recordKey)
 		if err != nil {
 			return nil, fmt.Errorf("get updated storage deal record from store: %s", err)
@@ -270,6 +263,11 @@ func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.Stor
 			return nil, fmt.Errorf("unmarshaling updated storage deal record from store: %s", err)
 		}
 		msdrs[recordKey] = sr
+
+		limit--
+		if limit == 0 {
+			break
+		}
 	}
 
 	ret := make([]deals.StorageDealRecord, 0, len(msdrs))
@@ -286,10 +284,13 @@ func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64) ([]deals.Stor
 
 // GetUpdatedRetrievalRecordsSince returns all the retrieval records that got created or updated
 // since sinceNano.
-func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64) ([]deals.RetrievalDealRecord, error) {
+func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64, limit int) ([]deals.RetrievalDealRecord, error) {
+	if limit < 0 {
+		return nil, fmt.Errorf("limit is negative")
+	}
+
 	q := query.Query{
 		Prefix: dsRetrievalUpdatedAtIdx.String(),
-		Orders: []query.Order{query.OrderByKeyDescending{}},
 	}
 	res, err := s.ds.Query(q)
 	if err != nil {
@@ -317,12 +318,6 @@ func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64) ([]deals.Retrie
 		}
 
 		recordKey := datastore.RawKey(string(r.Value))
-		if _, ok := mrdrs[recordKey]; ok {
-			// We already found a *newer* version of this record,
-			// since we're iterating in desc order.
-			continue
-		}
-
 		buf, err := s.ds.Get(recordKey)
 		if err != nil {
 			return nil, fmt.Errorf("get updated retrieval deal record from store: %s", err)
@@ -333,6 +328,11 @@ func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64) ([]deals.Retrie
 		}
 
 		mrdrs[recordKey] = rr
+
+		limit--
+		if limit == 0 {
+			break
+		}
 	}
 
 	ret := make([]deals.RetrievalDealRecord, 0, len(mrdrs))
