@@ -15,7 +15,7 @@ require (
 	github.com/filecoin-project/go-fil-markets v1.0.10
 	github.com/filecoin-project/go-jsonrpc v0.1.2
 	github.com/filecoin-project/go-state-types v0.0.0-20201102161440-c8033295a1fc
-	github.com/filecoin-project/lotus v1.4.0
+	github.com/filecoin-project/lotus v1.4.1
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
