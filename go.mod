@@ -21,7 +21,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.4
-	github.com/google/uuid v1.1.5
+	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/improbable-eng/grpc-web v0.13.0
 	github.com/ipfs/go-cid v0.0.7
