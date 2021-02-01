@@ -7,7 +7,7 @@ require (
 	github.com/apoorvam/goterminal v0.0.0-20180523175556-614d345c47e5
 	github.com/caarlos0/spin v1.1.0
 	github.com/charmbracelet/bubbles v0.7.5
-	github.com/charmbracelet/bubbletea v0.12.2
+	github.com/charmbracelet/bubbletea v0.12.4
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/libp2p/go-libp2p-core v0.7.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
-	github.com/mattn/go-runewidth v0.0.9
+	github.com/mattn/go-runewidth v0.0.10
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/muesli/termenv v0.7.4
 	github.com/multiformats/go-multiaddr v0.3.1
