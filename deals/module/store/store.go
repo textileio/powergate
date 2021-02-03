@@ -170,6 +170,7 @@ func (s *Store) PutRetrieval(rr deals.RetrievalDealRecord) error {
 	}
 	defer txn.Discard()
 
+	rr.ID = retrievalID(rr)
 	rr.UpdatedAt = time.Now().UnixNano()
 	buf, err := json.Marshal(rr)
 	if err != nil {
@@ -347,6 +348,13 @@ func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64, limit int) ([]d
 	return ret, nil
 }
 
+func retrievalID(rr deals.RetrievalDealRecord) string {
+	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.Addr, rr.DealInfo.Miner, util.CidToString(rr.DealInfo.RootCid))
+	sum := md5.Sum([]byte(str))
+
+	return fmt.Sprintf("%x", sum[:])
+}
+
 func makePendingDealKey(c cid.Cid) datastore.Key {
 	return dsBaseStoragePending.ChildString(util.CidToString(c))
 }
@@ -356,9 +364,7 @@ func makeFinalDealKey(c cid.Cid) datastore.Key {
 }
 
 func makeRetrievalKey(rr deals.RetrievalDealRecord) datastore.Key {
-	str := fmt.Sprintf("%v%v%v%v", rr.Time, rr.Addr, rr.DealInfo.Miner, util.CidToString(rr.DealInfo.RootCid))
-	sum := md5.Sum([]byte(str))
-	return dsBaseRetrieval.ChildString(fmt.Sprintf("%x", sum[:]))
+	return dsBaseRetrieval.ChildString(retrievalID(rr))
 }
 
 func makeStorageUpdatedAtIndexKey(unixNano int64) datastore.Key {

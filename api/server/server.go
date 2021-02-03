@@ -73,6 +73,7 @@ var (
 		1: migration.V1MultitenancyMigration,
 		2: migration.V2StorageInfoDealIDs,
 		3: migration.V3StorageJobsIndexMigration,
+		4: migration.V4RecordsMigration,
 	}
 )
 

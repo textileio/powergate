@@ -19,7 +19,6 @@ import (
 	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/deals/module/store"
 	"github.com/textileio/powergate/v2/lotus"
-	txndstr "github.com/textileio/powergate/v2/txndstransform"
 )
 
 var (
@@ -46,7 +45,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDurat
 	m := &Module{
 		clientBuilder:       clientBuilder,
 		cfg:                 &cfg,
-		store:               store.New(txndstr.Wrap(ds, "recordstore")),
+		store:               store.New(ds),
 		pollDuration:        pollDuration,
 		dealFinalityTimeout: dealFinalityTimeout,
 	}

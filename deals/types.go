@@ -68,6 +68,7 @@ type RetrievalDealInfo struct {
 
 // RetrievalDealRecord represents a retrieval deal log record.
 type RetrievalDealRecord struct {
+	ID                string
 	Addr              string
 	DealInfo          RetrievalDealInfo
 	Time              int64

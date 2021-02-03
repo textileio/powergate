@@ -182,6 +182,7 @@ func ToRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*userPb.Re
 	ret := make([]*userPb.RetrievalDealRecord, len(records))
 	for i, r := range records {
 		ret[i] = &userPb.RetrievalDealRecord{
+			Id:      r.ID,
 			Address: r.Addr,
 			Time:    r.Time,
 			DealInfo: &userPb.RetrievalDealInfo{

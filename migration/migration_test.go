@@ -141,7 +141,7 @@ func TestFailingMigration(t *testing.T) {
 	require.Equal(t, 0, v)
 }
 
-func TestRealDataBadgerV0(t *testing.T) {
+func TestRealDataBadgerFromV0(t *testing.T) {
 	logger.SetDebugLogging()
 	_ = logger.SetLogLevel("badger", "error")
 	tmpDir := t.TempDir()
@@ -161,7 +161,7 @@ func TestRealDataBadgerV0(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestRealDataBadgerV1(t *testing.T) {
+func TestRealDataBadgerFromV1(t *testing.T) {
 	logger.SetDebugLogging()
 	_ = logger.SetLogLevel("badger", "error")
 	tmpDir := t.TempDir()
@@ -182,7 +182,7 @@ func TestRealDataBadgerV1(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestRealDataBadgerV2(t *testing.T) {
+func TestRealDataBadgerFromV2(t *testing.T) {
 	logger.SetDebugLogging()
 	_ = logger.SetLogLevel("badger", "error")
 	tmpDir := t.TempDir()
@@ -198,6 +198,29 @@ func TestRealDataBadgerV2(t *testing.T) {
 		1: V1MultitenancyMigration,
 		2: V2StorageInfoDealIDs,
 		3: V3StorageJobsIndexMigration,
+	}
+	m := New(ds, migrations)
+	err = m.Ensure()
+	require.NoError(t, err)
+}
+
+func TestRealDataBadgerFromV3(t *testing.T) {
+	logger.SetDebugLogging()
+	_ = logger.SetLogLevel("badger", "error")
+	tmpDir := t.TempDir()
+	err := copyDir("testdata/badgerdumpv1", tmpDir+"/badgerdump")
+	require.NoError(t, err)
+
+	opts := &badger.DefaultOptions
+	ds, err := badger.NewDatastore(tmpDir+"/badgerdump", opts)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ds.Close()) }()
+
+	migrations := map[int]Migration{
+		1: V1MultitenancyMigration,
+		2: V2StorageInfoDealIDs,
+		3: V3StorageJobsIndexMigration,
+		4: V4RecordsMigration,
 	}
 	m := New(ds, migrations)
 	err = m.Ensure()

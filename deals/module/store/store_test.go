@@ -174,6 +174,9 @@ func TestGetRetrievalDeals(t *testing.T) {
 	res, err := s.GetRetrievals()
 	require.NoError(t, err)
 	require.Len(t, res, 3)
+	for _, rr := range res {
+		require.NotEmpty(t, rr.ID)
+	}
 }
 
 func TestUpdatedAt(t *testing.T) {
