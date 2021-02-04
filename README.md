@@ -184,7 +184,7 @@ Having a fully synced Lotus node can take a considerable amount of time and effo
 
 If you're interested in running Powergate and experiment with the CLI, the fastest way is to replace the Lotus client dependency with a running localnet, which runs a local Lotus client connected to a network with local miners. 
 
-A simple docker-compose setup is available that will run Powergate connected to a Lotus local network with 512Mib sectors and allows to use the gRPC API or CLI without any extra config flags 🎊
+A simple docker-compose setup is available that will run Powergate connected to a Lotus local network with 512Mib sectors and allows to use the gRPC API or CLI without any extra config flags! 🎊  Note: you will first need to [install Docker compose](https://docs.docker.com/compose/install/) in order to get started.
 ```bash
 cd docker
 make localnet
