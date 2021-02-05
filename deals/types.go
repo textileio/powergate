@@ -74,6 +74,7 @@ type RetrievalDealRecord struct {
 	Time              int64
 	DataTransferStart int64
 	DataTransferEnd   int64
+	BytesReceived     uint64
 	ErrMsg            string
 	UpdatedAt         int64
 }

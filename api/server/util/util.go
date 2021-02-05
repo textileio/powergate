@@ -196,6 +196,7 @@ func ToRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*userPb.Re
 			},
 			DataTransferStart: r.DataTransferStart,
 			DataTransferEnd:   r.DataTransferEnd,
+			BytesReceived:     r.BytesReceived,
 			ErrMsg:            r.ErrMsg,
 			UpdatedAt:         r.UpdatedAt,
 		}

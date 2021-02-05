@@ -533,4 +533,5 @@ message RetrievalDealRecord {
   string err_msg = 6;
   int64 updated_at = 7;
   string id = 8;
+  uint64 bytes_received = 9;
 }

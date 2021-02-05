@@ -397,7 +397,7 @@ func (m *Module) dataTransferUpdates(ctx context.Context, proposalCid cid.Cid, u
 	}
 }
 
-func (m *Module) recordRetrieval(addr string, offer api.QueryOffer, dtStart, dtEnd time.Time, errMsg string) {
+func (m *Module) recordRetrieval(addr string, offer api.QueryOffer, bytesReceived uint64, dtStart, dtEnd time.Time, errMsg string) {
 	rr := deals.RetrievalDealRecord{
 		Addr: addr,
 		Time: time.Now().Unix(),
@@ -412,6 +412,7 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer, dtStart, dtE
 		},
 		DataTransferStart: dtStart.Unix(),
 		DataTransferEnd:   dtEnd.Unix(),
+		BytesReceived:     bytesReceived,
 		ErrMsg:            errMsg,
 	}
 	if err := m.store.PutRetrieval(rr); err != nil {

@@ -110,6 +110,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 			dtStart, dtEnd time.Time
 		)
 		retrievalStartTime := time.Now()
+		var bytesReceived uint64
 	Loop:
 		for {
 			select {
@@ -131,6 +132,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 				if e.Event == retrievalmarket.ClientEventAllBlocksReceived {
 					dtEnd = time.Now()
 				}
+				bytesReceived = e.BytesReceived
 				out <- e
 			}
 		}
@@ -156,7 +158,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 				dtEnd = time.Now()
 				log.Warnf("retrieval data-transfer end fallback to retrieval end")
 			}
-			m.recordRetrieval(waddr, o, dtStart, dtEnd, errMsg)
+			m.recordRetrieval(waddr, o, bytesReceived, dtStart, dtEnd, errMsg)
 		}
 	}()
 

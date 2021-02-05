@@ -100,5 +100,6 @@ func TestUnfreezeRecords(t *testing.T) {
 		// The designed granularity is 'seconds', not 'nanoseconds'.
 		require.True(t, dtStart.Before(dtEnd) || dtStart.Equal(dtEnd))
 		require.Empty(t, rr.ErrMsg)
+		require.Greater(t, rr.BytesReceived, uint64(0))
 	})
 }
