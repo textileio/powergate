@@ -12,6 +12,7 @@ type Admin struct {
 	Wallet      *Wallet
 	Data        *Data
 	Records     *Records
+	Indices     *Indices
 }
 
 // NewAdmin creates a new admin API.
@@ -23,5 +24,6 @@ func NewAdmin(client adminPb.AdminServiceClient) *Admin {
 		Wallet:      &Wallet{client: client},
 		Data:        &Data{client: client},
 		Records:     &Records{client: client},
+		Indices:     &Indices{client: client},
 	}
 }

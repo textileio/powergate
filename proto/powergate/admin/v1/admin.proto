@@ -145,6 +145,36 @@ message GetUpdatedRetrievalRecordsSinceResponse {
   repeated powergate.user.v1.RetrievalDealRecord records = 1;
 }
 
+message GetMinersRequest {
+  bool with_power = 1;
+}
+
+message GetMinersResponse {
+  repeated FilecoinMiner miners = 1;
+}
+
+message FilecoinMiner {
+  string address = 1;
+}
+
+message GetMinerInfoRequest {
+	repeated string miners = 1;
+}
+
+message GetMinerInfoResponse {
+	repeated MinerInfo miners_info = 1;
+}
+
+message MinerInfo {
+	string address = 1;
+	double relative_power = 2;
+	uint64 ask_price = 4;
+	uint64 ask_verified_price = 5;
+	uint64 min_piece_size = 6;
+	uint64 max_piece_size = 7;
+	uint64 sector_size = 8;
+}
+
 service AdminService {
   // Wallet
   rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
@@ -169,4 +199,8 @@ service AdminService {
 
   rpc GCStaged(GCStagedRequest) returns (GCStagedResponse) {}
   rpc PinnedCids(PinnedCidsRequest) returns (PinnedCidsResponse) {}
+
+  // Indices
+  rpc GetMiners(GetMinersRequest) returns (GetMinersResponse) {}
+  rpc GetMinerInfo(GetMinerInfoRequest) returns (GetMinerInfoResponse) {}
 }

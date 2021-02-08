@@ -294,12 +294,13 @@ func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr
 		return ask.StorageAsk{}, false, nil
 	}
 	return ask.StorageAsk{
-		Miner:        sask.Miner.String(),
-		Price:        sask.Price.Uint64(),
-		MinPieceSize: uint64(sask.MinPieceSize),
-		MaxPieceSize: uint64(sask.MaxPieceSize),
-		Timestamp:    int64(sask.Timestamp),
-		Expiry:       int64(sask.Expiry),
+		Miner:         sask.Miner.String(),
+		Price:         sask.Price.Uint64(),
+		VerifiedPrice: sask.VerifiedPrice.Uint64(),
+		MinPieceSize:  uint64(sask.MinPieceSize),
+		MaxPieceSize:  uint64(sask.MaxPieceSize),
+		Timestamp:     int64(sask.Timestamp),
+		Expiry:        int64(sask.Expiry),
 	}, true, nil
 }
 

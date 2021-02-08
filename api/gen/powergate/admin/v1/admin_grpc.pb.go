@@ -35,6 +35,9 @@ type AdminServiceClient interface {
 	GetUpdatedRetrievalRecordsSince(ctx context.Context, in *GetUpdatedRetrievalRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedRetrievalRecordsSinceResponse, error)
 	GCStaged(ctx context.Context, in *GCStagedRequest, opts ...grpc.CallOption) (*GCStagedResponse, error)
 	PinnedCids(ctx context.Context, in *PinnedCidsRequest, opts ...grpc.CallOption) (*PinnedCidsResponse, error)
+	// Indices
+	GetMiners(ctx context.Context, in *GetMinersRequest, opts ...grpc.CallOption) (*GetMinersResponse, error)
+	GetMinerInfo(ctx context.Context, in *GetMinerInfoRequest, opts ...grpc.CallOption) (*GetMinerInfoResponse, error)
 }
 
 type adminServiceClient struct {
@@ -162,6 +165,24 @@ func (c *adminServiceClient) PinnedCids(ctx context.Context, in *PinnedCidsReque
 	return out, nil
 }
 
+func (c *adminServiceClient) GetMiners(ctx context.Context, in *GetMinersRequest, opts ...grpc.CallOption) (*GetMinersResponse, error) {
+	out := new(GetMinersResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GetMiners", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetMinerInfo(ctx context.Context, in *GetMinerInfoRequest, opts ...grpc.CallOption) (*GetMinerInfoResponse, error) {
+	out := new(GetMinerInfoResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GetMinerInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -184,6 +205,9 @@ type AdminServiceServer interface {
 	GetUpdatedRetrievalRecordsSince(context.Context, *GetUpdatedRetrievalRecordsSinceRequest) (*GetUpdatedRetrievalRecordsSinceResponse, error)
 	GCStaged(context.Context, *GCStagedRequest) (*GCStagedResponse, error)
 	PinnedCids(context.Context, *PinnedCidsRequest) (*PinnedCidsResponse, error)
+	// Indices
+	GetMiners(context.Context, *GetMinersRequest) (*GetMinersResponse, error)
+	GetMinerInfo(context.Context, *GetMinerInfoRequest) (*GetMinerInfoResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -229,6 +253,12 @@ func (UnimplementedAdminServiceServer) GCStaged(context.Context, *GCStagedReques
 }
 func (UnimplementedAdminServiceServer) PinnedCids(context.Context, *PinnedCidsRequest) (*PinnedCidsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PinnedCids not implemented")
+}
+func (UnimplementedAdminServiceServer) GetMiners(context.Context, *GetMinersRequest) (*GetMinersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMiners not implemented")
+}
+func (UnimplementedAdminServiceServer) GetMinerInfo(context.Context, *GetMinerInfoRequest) (*GetMinerInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMinerInfo not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -477,6 +507,42 @@ func _AdminService_PinnedCids_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_GetMiners_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMinersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetMiners(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GetMiners",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetMiners(ctx, req.(*GetMinersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetMinerInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMinerInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetMinerInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GetMinerInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetMinerInfo(ctx, req.(*GetMinerInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AdminService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "powergate.admin.v1.AdminService",
 	HandlerType: (*AdminServiceServer)(nil),
@@ -532,6 +598,14 @@ var _AdminService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PinnedCids",
 			Handler:    _AdminService_PinnedCids_Handler,
+		},
+		{
+			MethodName: "GetMiners",
+			Handler:    _AdminService_GetMiners_Handler,
+		},
+		{
+			MethodName: "GetMinerInfo",
+			Handler:    _AdminService_GetMinerInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
