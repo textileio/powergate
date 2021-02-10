@@ -117,7 +117,7 @@ func (m *Module) ListRetrievalDealRecords(opts ...deals.DealRecordsOption) ([]de
 			_, inDataCidsFilter := dataCidsFilter[util.CidToString(record.DealInfo.RootCid)]
 			includeViaFromAddrs := len(c.FromAddrs) == 0 || inFromAddrsFilter
 			includeViaDataCids := len(dataCidsFilter) == 0 || inDataCidsFilter
-			includeViaIncludeFailed := !c.IncludeFailed || record.ErrMsg != ""
+			includeViaIncludeFailed := c.IncludeFailed || record.ErrMsg == ""
 			if includeViaFromAddrs && includeViaDataCids && includeViaIncludeFailed {
 				filtered = append(filtered, record)
 			}
@@ -216,6 +216,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 	if err != nil {
 		errMsg := fmt.Sprintf("getting deal info: %s", err)
 		log.Error(errMsg)
+		dr.Pending = false
 		dr.ErrMsg = errMsg
 		if err := m.store.PutStorageDeal(dr); err != nil {
 			log.Errorf("erroring pending deal for proposal cid %s: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
@@ -225,6 +226,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 	if info.State != sm.StorageDealActive {
 		log.Infof("pending deal for proposal cid %s isn't active yet, erroring pending deal", util.CidToString(dr.DealInfo.ProposalCid))
 
+		dr.Pending = false
 		dr.ErrMsg = fmt.Sprintf("deal failed with status %s", sm.DealStates[info.State])
 		if err := m.store.PutStorageDeal(dr); err != nil {
 			log.Errorf("erroring pending deal for proposal cid %s: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
@@ -232,6 +234,7 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 	} else {
 		di, err := fromLotusDealInfo(ctx, lapi, info)
 		if err != nil {
+			dr.Pending = false
 			dr.ErrMsg = fmt.Sprintf("converting proposal cid %s from lotus deal info: %v", util.CidToString(dr.DealInfo.ProposalCid), err)
 			log.Errorf(dr.ErrMsg)
 			if err := m.store.PutStorageDeal(dr); err != nil {
@@ -273,6 +276,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 		select {
 		case <-ctx.Done():
 			log.Infof("watching proposal cid %s timed out, erroring pending deal", util.CidToString(dr.DealInfo.ProposalCid))
+			dr.Pending = false
 			dr.ErrMsg = errWatchingTimeout
 			if err := m.store.PutStorageDeal(dr); err != nil {
 				log.Errorf("erroring pending deal: %v", err)
@@ -281,6 +285,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 		case info, ok := <-dealUpdates:
 			if !ok {
 				log.Errorf("deal updates channel unexpectedly closed for proposal cid %s", util.CidToString(dr.DealInfo.ProposalCid))
+				dr.Pending = false
 				dr.ErrMsg = errWatchingUnexpectedClose
 				if err := m.store.PutStorageDeal(dr); err != nil {
 					log.Errorf("erroring pending deal: %v", err)
@@ -304,6 +309,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 			case sm.StorageDealProposalNotFound, sm.StorageDealProposalRejected, sm.StorageDealFailing, sm.StorageDealError:
 				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), sm.DealStates[info.StateID])
 
+				dr.Pending = false
 				dr.ErrMsg = fmt.Sprintf("deal failed with status %s", sm.DealStates[info.StateID])
 				if err := m.store.PutStorageDeal(dr); err != nil {
 					log.Errorf("saving successful storage deal record: %v", err)
