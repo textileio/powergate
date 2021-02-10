@@ -409,7 +409,7 @@ func wrapGRPCServer(grpcServer *grpc.Server) *grpcweb.WrappedGrpcServer {
 
 func startGRPCServices(server *grpc.Server, webProxy *http.Server, s *Server, hostNetwork string, hostAddress ma.Multiaddr) error {
 	userService := user.New(s.ffsManager, s.wm, s.hs)
-	adminService := admin.New(s.ffsManager, s.sched, s.wm, s.dm)
+	adminService := admin.New(s.ffsManager, s.sched, s.wm, s.dm, s.mi, s.ai)
 
 	hostAddr, err := util.TCPAddrFromMultiAddr(hostAddress)
 	if err != nil {

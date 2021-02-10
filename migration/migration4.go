@@ -15,7 +15,7 @@ import (
 	"github.com/textileio/powergate/v2/util"
 )
 
-// V4Records contains the logic to upgrade a datastore from
+// V4RecordsMigration contains the logic to upgrade a datastore from
 // version 3 to version 4.
 var V4RecordsMigration = Migration{
 	UseTxn: false,
@@ -86,10 +86,9 @@ func v4PopulateUpdatedAtIndex(ds datastoreReaderWriter) error {
 					indexKey = datastore.NewKey("/deals/updatedatidx/storage").ChildString(strconv.FormatInt(updatedAtTime, 10))
 				} else if strings.HasPrefix(r.Key, "/deals/retrieval") {
 					indexKey = datastore.NewKey("/deals/updatedatidx/retrieval").ChildString(strconv.FormatInt(updatedAtTime, 10))
-
 				} else {
 					lock.Lock()
-					errors = append(errors, fmt.Sprintf("unkown prefix: %s", r.Key))
+					errors = append(errors, fmt.Sprintf("unknown prefix: %s", r.Key))
 					lock.Unlock()
 					return
 				}
@@ -100,7 +99,6 @@ func v4PopulateUpdatedAtIndex(ds datastoreReaderWriter) error {
 					lock.Unlock()
 					return
 				}
-
 			}()
 			count++
 		}

@@ -6,6 +6,7 @@ import (
 	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
 )
 
+// GetMiners returns all miner addresses that satisfy the provided filters.
 func (s *Service) GetMiners(ctx context.Context, req *adminPb.GetMinersRequest) (*adminPb.GetMinersResponse, error) {
 	info := s.mi.Get()
 
@@ -26,6 +27,7 @@ func (s *Service) GetMiners(ctx context.Context, req *adminPb.GetMinersRequest) 
 	return res, nil
 }
 
+// GetMinerInfo return indices information for the provider miners.
 func (s *Service) GetMinerInfo(ctx context.Context, req *adminPb.GetMinerInfoRequest) (*adminPb.GetMinerInfoResponse, error) {
 	res := &adminPb.GetMinerInfoResponse{}
 
