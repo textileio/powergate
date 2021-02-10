@@ -17,6 +17,7 @@ pow deals storage [flags]
   -a, --ascending         sort records ascending, default is sort descending
       --cids strings      limit the records to deals for the specified data cids, treated as and AND operation if --addrs is also provided
   -h, --help              help for storage
+  -e, --include-failed    include failed deals
   -f, --include-final     include final deals
   -p, --include-pending   include pending deals
 ```

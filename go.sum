@@ -1572,8 +1572,6 @@ github.com/textileio/go-datastore-extensions v1.0.1 h1:qIJGqJaigQ1wD4TdwS/hf73u0
 github.com/textileio/go-datastore-extensions v1.0.1/go.mod h1:Pzj9FDRkb55910dr/FX8M7WywvnS26gBgEDez1ZBuLE=
 github.com/textileio/go-ds-mongo v0.1.4 h1:5PPMEmqCfeCySzadtuBXMEJVDGP1Cga/CQXo3GWetmE=
 github.com/textileio/go-ds-mongo v0.1.4/go.mod h1:Zf6JlMPiIQUUmGlFFn5Z65C9p9LAvPg7XvX+qdGmTsU=
-github.com/textileio/textile v1.0.14 h1:ohEoUHATajh6FdVElYtOlgZI3Y0DFPTAJfMrGzpCquc=
-github.com/textileio/textile/v2 v2.6.1 h1:9YSJX4QEc0U5USUqy82LaulNllC7aYyWmWXeuTvv4d0=
 github.com/texttheater/golang-levenshtein v0.0.0-20180516184445-d188e65d659e/go.mod h1:XDKHRm5ThF8YJjx001LtgelzsoaEcvnA7lVWz9EeX3g=
 github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
