@@ -25,7 +25,7 @@ func (a *Service) GetUpdatedStorageDealRecordsSince(ctx context.Context, req *ad
 func (a *Service) GetUpdatedRetrievalRecordsSince(ctx context.Context, req *adminPb.GetUpdatedRetrievalRecordsSinceRequest) (*adminPb.GetUpdatedRetrievalRecordsSinceResponse, error) {
 	rs, err := a.dm.GetUpdatedRetrievalRecordsSince(req.SinceNano, int(req.Limit))
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "getting updated storage deal records: %s", err)
+		return nil, status.Errorf(codes.Internal, "getting updated retrieval records: %s", err)
 	}
 
 	return &adminPb.GetUpdatedRetrievalRecordsSinceResponse{Records: util.ToRPCRetrievalDealRecords(rs)}, nil
