@@ -151,6 +151,8 @@ type MinerSelectorFilter struct {
 	MaxPrice uint64
 	// PieceSize is the piece size of the data.
 	PieceSize uint64
+	// VerifiedDeal indicates it should take verified storage prices.
+	VerifiedDeal bool
 }
 
 // MinerProposal contains a miners address and storage ask information

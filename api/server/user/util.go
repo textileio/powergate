@@ -42,6 +42,7 @@ func toRPCColdConfig(config ffs.ColdConfig) *userPb.ColdConfig {
 			MaxPrice:        config.Filecoin.MaxPrice,
 			FastRetrieval:   config.Filecoin.FastRetrieval,
 			DealStartOffset: config.Filecoin.DealStartOffset,
+			VerifiedDeal:    config.Filecoin.VerifiedDeal,
 		},
 	}
 }
@@ -77,6 +78,7 @@ func fromRPCColdConfig(config *userPb.ColdConfig) ffs.ColdConfig {
 				MaxPrice:        config.Filecoin.MaxPrice,
 				FastRetrieval:   config.Filecoin.FastRetrieval,
 				DealStartOffset: config.Filecoin.DealStartOffset,
+				VerifiedDeal:    config.Filecoin.VerifiedDeal,
 			}
 			if config.Filecoin.Renew != nil {
 				renew := ffs.FilRenew{

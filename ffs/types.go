@@ -214,6 +214,13 @@ func (s StorageConfig) WithColdMaxPrice(maxPrice uint64) StorageConfig {
 	return s
 }
 
+// WithVerifiedDeal specifies that new deals will be marked as verified assuming
+// the wallet address is a verified-client.
+func (s StorageConfig) WithVerifiedDeal(enabled bool) StorageConfig {
+	s.Cold.Filecoin.VerifiedDeal = enabled
+	return s
+}
+
 // WithFastRetrieval specifies if deal fast retrieval flag on new deals
 // is enabled.
 func (s StorageConfig) WithFastRetrieval(enabled bool) StorageConfig {
@@ -366,6 +373,8 @@ type FilConfig struct {
 	// if miners accept deals, since they should seal fast enough to satisfy
 	// this constraint.
 	DealStartOffset int64
+	// VerifiedDeal indicates if new deals should be marked as verified.
+	VerifiedDeal bool
 }
 
 // Validate returns a non-nil error if the configuration is invalid.

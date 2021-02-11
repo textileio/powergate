@@ -356,6 +356,7 @@ message FilConfig {
   uint64 max_price = 8;
   bool fast_retrieval = 9;
   int64 deal_start_offset = 10;
+  bool verified_deal = 11;
 }
 
 message ColdConfig {

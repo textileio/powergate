@@ -77,6 +77,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, dataS
 			Wallet:            addr,
 			FastRetrieval:     c.FastRetrieval,
 			DealStartEpoch:    ts.Height() + abi.ChainEpoch(dealStartOffset),
+			VerifiedDeal:      c.VerifiedDeal,
 		}
 		p, err := lapi.ClientStartDeal(ctx, params)
 		if err != nil {

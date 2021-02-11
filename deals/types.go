@@ -10,6 +10,7 @@ type StorageDealConfig struct {
 	EpochPrice      uint64
 	FastRetrieval   bool
 	DealStartOffset int64
+	VerifiedDeal    bool
 }
 
 // StoreResult contains information about Executing deals.
