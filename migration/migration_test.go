@@ -2,6 +2,7 @@ package migration
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -299,6 +300,11 @@ func post(t *testing.T, ds datastore.TxnDatastore, path string) {
 	require.Equal(t, len(expected), len(current))
 	for k1, v1 := range current {
 		v2, ok := expected[k1]
+		if !bytes.Equal(v2, v1) {
+			fmt.Printf("%s,%s\n", k1, v2)
+			fmt.Printf("%s,%s\n", k1, v1)
+		}
+		fmt.Println()
 		require.True(t, ok)
 		require.Equal(t, v2, v1)
 	}
