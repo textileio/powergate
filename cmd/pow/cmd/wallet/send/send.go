@@ -35,6 +35,7 @@ var Cmd = &cobra.Command{
 		}
 
 		res, err := c.PowClient.Wallet.SendFil(c.MustAuthCtx(ctx), from, to, amount)
+		c.CheckErr(err)
 
 		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
 		c.CheckErr(err)
