@@ -24,7 +24,7 @@ type WalletManager interface {
 	// Balance returns the current balance for an address.
 	Balance(context.Context, string) (*big.Int, error)
 	// SendFil sends fil from one address to another.
-	SendFil(context.Context, string, string, *big.Int) error
+	SendFil(context.Context, string, string, *big.Int) (cid.Cid, error)
 	// Sign signs a message using an address.
 	Sign(context.Context, string, []byte) ([]byte, error)
 	// Verify verifies if a message was signed with an address.

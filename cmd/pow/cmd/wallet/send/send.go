@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
+	"google.golang.org/protobuf/encoding/protojson"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	c "github.com/textileio/powergate/v2/cmd/pow/common"
@@ -32,7 +34,12 @@ var Cmd = &cobra.Command{
 			c.CheckErr(fmt.Errorf("parsing amount %v", args[2]))
 		}
 
-		_, err := c.PowClient.Wallet.SendFil(c.MustAuthCtx(ctx), from, to, amount)
+		res, err := c.PowClient.Wallet.SendFil(c.MustAuthCtx(ctx), from, to, amount)
 		c.CheckErr(err)
+
+		json, err := protojson.MarshalOptions{Multiline: true, Indent: "  ", EmitUnpopulated: true}.Marshal(res)
+		c.CheckErr(err)
+
+		fmt.Println(string(json))
 	},
 }

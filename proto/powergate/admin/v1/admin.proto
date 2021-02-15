@@ -28,6 +28,7 @@ message SendFilRequest {
 }
 
 message SendFilResponse {
+  string cid = 1;
 }
 
 // Users
