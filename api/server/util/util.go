@@ -2,12 +2,14 @@ package util
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ipfs/go-cid"
 	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/ffs"
 	"github.com/textileio/powergate/v2/util"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ToRPCStorageInfo converts a StorageInfo to the proto version.
@@ -166,12 +168,12 @@ func ToRPCStorageDealRecords(records []deals.StorageDealRecord) []*userPb.Storag
 				Message:         r.DealInfo.Message,
 			},
 			TransferSize:      r.TransferSize,
-			DataTransferStart: r.DataTransferStart,
-			DataTransferEnd:   r.DataTransferEnd,
-			SealingStart:      r.SealingStart,
-			SealingEnd:        r.SealingEnd,
+			DataTransferStart: timestamppb.New(time.Unix(r.DataTransferStart, 0)),
+			DataTransferEnd:   timestamppb.New(time.Unix(r.DataTransferEnd, 0)),
+			SealingStart:      timestamppb.New(time.Unix(r.SealingStart, 0)),
+			SealingEnd:        timestamppb.New(time.Unix(r.SealingEnd, 0)),
 			ErrMsg:            r.ErrMsg,
-			UpdatedAt:         r.UpdatedAt,
+			UpdatedAt:         timestamppb.New(time.Unix(0, r.UpdatedAt)),
 		}
 	}
 	return ret

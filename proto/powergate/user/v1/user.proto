@@ -1,6 +1,8 @@
 syntax = "proto3";
 package powergate.user.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "github.com/textileio/powergate/v2/api/gen/powergate/user/v1;userPb";
 
 // Top level
@@ -507,12 +509,12 @@ message StorageDealRecord {
   bool pending = 4;
   StorageDealInfo deal_info = 5;
   int64 transfer_size = 6;
-  int64 data_transfer_start = 7;
-  int64 data_transfer_end = 8;
-  int64 sealing_start = 9;
-  int64 sealing_end = 10;
+  google.protobuf.Timestamp data_transfer_start = 7;
+  google.protobuf.Timestamp data_transfer_end = 8;
+  google.protobuf.Timestamp sealing_start = 9;
+  google.protobuf.Timestamp sealing_end = 10;
   string err_msg = 11;
-  int64 updated_at = 12;
+  google.protobuf.Timestamp updated_at = 12;
 }
 
 message RetrievalDealInfo {
