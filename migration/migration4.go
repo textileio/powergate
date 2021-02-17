@@ -80,8 +80,10 @@ func v4PopulateUpdatedAtIndex(ds datastoreReaderWriter) error {
 				}
 
 				// The index stores at the nano precision.
+				lock.Lock()
 				updatedAtTime := time.Unix(rec.Time, nanoCounter).UnixNano()
 				nanoCounter++
+				lock.Unlock()
 
 				var indexKey datastore.Key
 				if strings.HasPrefix(r.Key, "/deals/storage-") {
@@ -104,15 +106,15 @@ func v4PopulateUpdatedAtIndex(ds datastoreReaderWriter) error {
 					r.Value = buf
 				} else if strings.HasPrefix(r.Key, "/deals/retrieval") {
 					indexKey = datastore.NewKey("/deals/updatedatidx/retrieval").ChildString(strconv.FormatInt(updatedAtTime, 10))
-					var sdr deals.RetrievalDealRecord
-					if err := json.Unmarshal(r.Value, &sdr); err != nil {
+					var rr deals.RetrievalDealRecord
+					if err := json.Unmarshal(r.Value, &rr); err != nil {
 						lock.Lock()
 						errors = append(errors, fmt.Sprintf("unmarshaling retrieval record: %s", r.Key))
 						lock.Unlock()
 						return
 					}
-					sdr.UpdatedAt = updatedAtTime
-					buf, err := json.Marshal(sdr)
+					rr.UpdatedAt = updatedAtTime
+					buf, err := json.Marshal(rr)
 					if err != nil {
 						lock.Lock()
 						errors = append(errors, fmt.Sprintf("marshaling retrieval record: %s", r.Key))

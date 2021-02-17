@@ -13,11 +13,9 @@ func TestV4(t *testing.T) {
 	ds := tests.NewTxMapDatastore()
 
 	pre(t, ds, "testdata/v4_Records.pre")
-	txn, _ := ds.NewTransaction(false)
 
-	err := V4RecordsMigration.Run(txn)
+	err := V4RecordsMigration.Run(ds)
 	require.NoError(t, err)
-	require.NoError(t, txn.Commit())
 
 	post(t, ds, "testdata/v4_Records.post")
 }
