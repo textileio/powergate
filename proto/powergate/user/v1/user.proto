@@ -534,7 +534,7 @@ message RetrievalDealRecord {
   int64 data_transfer_start = 4;
   int64 data_transfer_end = 5;
   string err_msg = 6;
-  int64 updated_at = 7;
+  google.protobuf.Timestamp updated_at = 7;
   string id = 8;
   uint64 bytes_received = 9;
 }

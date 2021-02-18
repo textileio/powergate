@@ -200,7 +200,7 @@ func ToRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*userPb.Re
 			DataTransferEnd:   r.DataTransferEnd,
 			BytesReceived:     r.BytesReceived,
 			ErrMsg:            r.ErrMsg,
-			UpdatedAt:         r.UpdatedAt,
+			UpdatedAt:         timestamppb.New(time.Unix(0, r.UpdatedAt)),
 		}
 	}
 	return ret
