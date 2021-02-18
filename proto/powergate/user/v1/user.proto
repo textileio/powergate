@@ -531,8 +531,8 @@ message RetrievalDealRecord {
   string address = 1;
   int64 time = 2;
   RetrievalDealInfo deal_info = 3;
-  int64 data_transfer_start = 4;
-  int64 data_transfer_end = 5;
+  google.protobuf.Timestamp data_transfer_start = 4;
+  google.protobuf.Timestamp data_transfer_end = 5;
   string err_msg = 6;
   google.protobuf.Timestamp updated_at = 7;
   string id = 8;
