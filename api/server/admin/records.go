@@ -23,7 +23,7 @@ func (a *Service) GetUpdatedStorageDealRecordsSince(ctx context.Context, req *ad
 // GetUpdatedRetrievalRecordsSince returns all the retrieval records that got created or updated
 // since a provided point in time.
 func (a *Service) GetUpdatedRetrievalRecordsSince(ctx context.Context, req *adminPb.GetUpdatedRetrievalRecordsSinceRequest) (*adminPb.GetUpdatedRetrievalRecordsSinceResponse, error) {
-	rs, err := a.dm.GetUpdatedRetrievalRecordsSince(req.SinceNano, int(req.Limit))
+	rs, err := a.dm.GetUpdatedRetrievalRecordsSince(req.Since.AsTime(), int(req.Limit))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting updated retrieval records: %s", err)
 	}
