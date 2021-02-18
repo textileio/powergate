@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"strconv"
 
 	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
 )
@@ -42,8 +43,8 @@ func (s *Service) GetMinerInfo(ctx context.Context, req *adminPb.GetMinerInfoReq
 		lastAsk := ai.Storage[minerAddr]
 		res.MinersInfo = append(res.MinersInfo, &adminPb.MinerInfo{
 			Address:          minerAddr,
-			AskPrice:         lastAsk.Price,
-			AskVerifiedPrice: lastAsk.VerifiedPrice,
+			AskPrice:         strconv.FormatUint(lastAsk.Price, 10),
+			AskVerifiedPrice: strconv.FormatUint(lastAsk.VerifiedPrice, 10),
 			MaxPieceSize:     lastAsk.MaxPieceSize,
 			MinPieceSize:     lastAsk.MinPieceSize,
 			RelativePower:    onchain.RelativePower,

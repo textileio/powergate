@@ -169,8 +169,8 @@ message GetMinerInfoResponse {
 message MinerInfo {
 	string address = 1;
 	double relative_power = 2;
-	uint64 ask_price = 4;
-	uint64 ask_verified_price = 5;
+	string ask_price = 4;
+	string ask_verified_price = 5;
 	uint64 min_piece_size = 6;
 	uint64 max_piece_size = 7;
 	uint64 sector_size = 8;
