@@ -16,7 +16,7 @@ localnet:
 
 
 up: down
-	LOTUS_IMAGE_TAG=v1.4.1 \
+	LOTUS_IMAGE_TAG=v1.4.2 \
 	docker-compose \
 		-p mainnet \
 		-f docker-compose.yaml \
@@ -26,7 +26,7 @@ up: down
 .PHONY: up
 
 down:
-	LOTUS_IMAGE_TAG=v1.4.1 \
+	LOTUS_IMAGE_TAG=v1.4.2 \
 	docker-compose \
 		-p mainnet \
 		-f docker-compose.yaml \
