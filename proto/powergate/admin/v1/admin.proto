@@ -2,6 +2,7 @@ syntax = "proto3";
 package powergate.admin.v1;
 
 import "powergate/user/v1/user.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1;adminPb";
 
@@ -127,7 +128,7 @@ message HSPinnedCidUser {
 }
 
 message GetUpdatedStorageDealRecordsSinceRequest {
-  int64 since_nano = 1;
+  google.protobuf.Timestamp since = 1;
   int32 limit = 2;
 }
 
@@ -137,7 +138,7 @@ message GetUpdatedStorageDealRecordsSinceResponse {
 
 
 message GetUpdatedRetrievalRecordsSinceRequest {
-  int64 since_nano = 1;
+  google.protobuf.Timestamp since = 1;
   int32 limit = 2;
 }
 

@@ -152,8 +152,8 @@ func (m *Module) GetUpdatedStorageDealRecordsSince(sinceNano int64, limit int) (
 
 // GetUpdatedRetrievalRecordsSince returns all the retrieval records that got created or updated
 // since sinceNano.
-func (m *Module) GetUpdatedRetrievalRecordsSince(sinceNano int64, limit int) ([]deals.RetrievalDealRecord, error) {
-	r, err := m.store.GetUpdatedRetrievalRecordsSince(sinceNano, limit)
+func (m *Module) GetUpdatedRetrievalRecordsSince(since time.Time, limit int) ([]deals.RetrievalDealRecord, error) {
+	r, err := m.store.GetUpdatedRetrievalRecordsSince(since, limit)
 	if err != nil {
 		return nil, fmt.Errorf("get updated retrieval records from store: %s", err)
 	}

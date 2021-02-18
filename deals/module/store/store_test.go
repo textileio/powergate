@@ -233,7 +233,7 @@ func TestStorageUpdatedSince(t *testing.T) {
 	s := New(tests.NewTxMapDatastore())
 
 	// Inception.
-	t0 := time.Now().UnixNano()
+	t0 := time.Now()
 
 	c1, _ := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	sr1 := deals.StorageDealRecord{Addr: "a", Time: time.Now().Unix(), Pending: true, DealInfo: deals.StorageDealInfo{ProposalCid: c1}}
@@ -241,7 +241,7 @@ func TestStorageUpdatedSince(t *testing.T) {
 	require.NoError(t, err)
 
 	// Checkpoint 1
-	t1 := time.Now().UnixNano()
+	t1 := time.Now()
 
 	c2, err := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2E")
 	require.NoError(t, err)
@@ -256,7 +256,7 @@ func TestStorageUpdatedSince(t *testing.T) {
 	require.NoError(t, err)
 
 	// Checkpoint 2
-	t2 := time.Now().UnixNano()
+	t2 := time.Now()
 
 	sr2Updated := sr2
 	sr2Updated.Addr = "c2"
@@ -264,7 +264,7 @@ func TestStorageUpdatedSince(t *testing.T) {
 	require.NoError(t, err)
 
 	// Checkpoint 3
-	t3 := time.Now().UnixNano()
+	t3 := time.Now()
 
 	// ## Start verifying changes.
 
@@ -304,7 +304,7 @@ func TestRetrievalUpdatedSince(t *testing.T) {
 	s := New(tests.NewTxMapDatastore())
 
 	// Inception.
-	t0 := time.Now().UnixNano()
+	t0 := time.Now()
 
 	c1, _ := util.CidFromString("QmSnuWmxptJZdLJpKRarxBMS2Ju2oANVrgbr2xWbie9b2D")
 	rr1 := deals.RetrievalDealRecord{Time: time.Now().UnixNano(), Addr: "c1", DealInfo: deals.RetrievalDealInfo{RootCid: c1, Miner: "miner"}}
@@ -312,7 +312,7 @@ func TestRetrievalUpdatedSince(t *testing.T) {
 	require.NoError(t, err)
 
 	// Checkpoint 1
-	t1 := time.Now().UnixNano()
+	t1 := time.Now()
 
 	rr2 := deals.RetrievalDealRecord{Time: time.Now().UnixNano(), Addr: "c2", DealInfo: deals.RetrievalDealInfo{RootCid: c1, Miner: "miner"}}
 	err = s.PutRetrieval(rr2)
@@ -323,7 +323,7 @@ func TestRetrievalUpdatedSince(t *testing.T) {
 	require.NoError(t, err)
 
 	// Checkpoint 2
-	t2 := time.Now().UnixNano()
+	t2 := time.Now()
 
 	rr2Updated := rr2
 	rr2Updated.Addr = "c2"
@@ -331,7 +331,7 @@ func TestRetrievalUpdatedSince(t *testing.T) {
 	require.NoError(t, err)
 
 	// Checkpoint 3
-	t3 := time.Now().UnixNano()
+	t3 := time.Now()
 
 	// ## Start verifying changes.
 

@@ -225,7 +225,7 @@ func (s *Store) GetRetrievals() ([]deals.RetrievalDealRecord, error) {
 
 // GetUpdatedStorageDealRecordsSince returns all the storage deal records that got created or updated
 // since sinceNano.
-func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64, limit int) ([]deals.StorageDealRecord, error) {
+func (s *Store) GetUpdatedStorageDealRecordsSince(since time.Time, limit int) ([]deals.StorageDealRecord, error) {
 	q := query.Query{
 		Prefix: dsStorageUpdatedAtIdx.String(),
 	}
@@ -239,6 +239,7 @@ func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64, limit int) ([
 		}
 	}()
 
+	sinceNano := since.UnixNano()
 	msdrs := make(map[datastore.Key]deals.StorageDealRecord)
 	for r := range res.Next() {
 		if r.Error != nil {
@@ -285,7 +286,7 @@ func (s *Store) GetUpdatedStorageDealRecordsSince(sinceNano int64, limit int) ([
 
 // GetUpdatedRetrievalRecordsSince returns all the retrieval records that got created or updated
 // since sinceNano.
-func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64, limit int) ([]deals.RetrievalDealRecord, error) {
+func (s *Store) GetUpdatedRetrievalRecordsSince(since time.Time, limit int) ([]deals.RetrievalDealRecord, error) {
 	if limit < 0 {
 		return nil, fmt.Errorf("limit is negative")
 	}
@@ -303,6 +304,7 @@ func (s *Store) GetUpdatedRetrievalRecordsSince(sinceNano int64, limit int) ([]d
 		}
 	}()
 
+	sinceNano := since.UnixNano()
 	mrdrs := make(map[datastore.Key]deals.RetrievalDealRecord)
 	for r := range res.Next() {
 		if r.Error != nil {
