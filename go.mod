@@ -12,7 +12,7 @@ require (
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/filecoin-project/go-address v0.0.5
-	github.com/filecoin-project/go-data-transfer v1.2.7
+	github.com/filecoin-project/go-data-transfer v1.2.8
 	github.com/filecoin-project/go-fil-markets v1.1.7
 	github.com/filecoin-project/go-jsonrpc v0.1.4-0.20210217175800-45ea43ac2bec
 	github.com/filecoin-project/go-state-types v0.0.0-20210119062722-4adba5aaea71
