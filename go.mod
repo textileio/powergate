@@ -47,7 +47,7 @@ require (
 	github.com/multiformats/go-multiaddr-dns v0.2.0
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
-	github.com/olekukonko/tablewriter v0.0.4
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/dockertest/v3 v3.6.3
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/otiai10/copy v1.4.2
