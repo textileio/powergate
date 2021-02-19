@@ -4,6 +4,7 @@ import (
 	"context"
 
 	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
+	"github.com/textileio/powergate/v2/api/server/util"
 )
 
 // StorageDealRecords calls ffs.ListStorageDealRecords.
@@ -16,7 +17,7 @@ func (s *Service) StorageDealRecords(ctx context.Context, req *userPb.StorageDea
 	if err != nil {
 		return nil, err
 	}
-	return &userPb.StorageDealRecordsResponse{Records: toRPCStorageDealRecords(records)}, nil
+	return &userPb.StorageDealRecordsResponse{Records: util.ToRPCStorageDealRecords(records)}, nil
 }
 
 // RetrievalDealRecords calls ffs.ListRetrievalDealRecords.
@@ -29,5 +30,5 @@ func (s *Service) RetrievalDealRecords(ctx context.Context, req *userPb.Retrieva
 	if err != nil {
 		return nil, err
 	}
-	return &userPb.RetrievalDealRecordsResponse{Records: toRPCRetrievalDealRecords(records)}, nil
+	return &userPb.RetrievalDealRecordsResponse{Records: util.ToRPCRetrievalDealRecords(records)}, nil
 }

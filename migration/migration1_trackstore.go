@@ -62,6 +62,7 @@ func migrateTrackstore(ds datastoreReaderWriter, cidOwners map[cid.Cid][]ffs.API
 		if err != nil {
 			return fmt.Errorf("marshaling new entry: %s", err)
 		}
+
 		if err := ds.Put(originalKey, buf); err != nil {
 			return fmt.Errorf("put new entry in datastore: %s", err)
 		}

@@ -10,6 +10,7 @@ type StorageDealConfig struct {
 	EpochPrice      uint64
 	FastRetrieval   bool
 	DealStartOffset int64
+	VerifiedDeal    bool
 }
 
 // StoreResult contains information about Executing deals.
@@ -41,11 +42,18 @@ type StorageDealInfo struct {
 
 // StorageDealRecord represents a storage deal log record.
 type StorageDealRecord struct {
-	RootCid  cid.Cid
-	Addr     string
-	DealInfo StorageDealInfo
-	Time     int64
-	Pending  bool
+	RootCid           cid.Cid
+	Addr              string
+	DealInfo          StorageDealInfo
+	Time              int64
+	Pending           bool
+	TransferSize      int64
+	DataTransferStart int64
+	DataTransferEnd   int64
+	SealingStart      int64
+	SealingEnd        int64
+	ErrMsg            string
+	UpdatedAt         int64
 }
 
 // RetrievalDealInfo contains information about a retrieval deal.
@@ -61,7 +69,13 @@ type RetrievalDealInfo struct {
 
 // RetrievalDealRecord represents a retrieval deal log record.
 type RetrievalDealRecord struct {
-	Addr     string
-	DealInfo RetrievalDealInfo
-	Time     int64
+	ID                string
+	Addr              string
+	DealInfo          RetrievalDealInfo
+	Time              int64
+	DataTransferStart int64
+	DataTransferEnd   int64
+	BytesReceived     uint64
+	ErrMsg            string
+	UpdatedAt         int64
 }

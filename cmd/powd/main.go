@@ -244,6 +244,7 @@ func setupLogging(repoPath string) error {
 
 		// Deals Module
 		"deals",
+		"deals-records",
 
 		// Wallet Module
 		"wallet",

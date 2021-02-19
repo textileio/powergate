@@ -152,7 +152,7 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 	index := g.askIndex.Get()
 
 	subtitle := fmt.Sprintf("Last updated: %v, storage median price: %v", timeToString(index.LastUpdated), index.StorageMedianPrice)
-	headers := []string{"Miner", "Price", "Min Piece Size", "Max Piece Size", "Timestamp", "Expiry"}
+	headers := []string{"Miner", "Price", "Verified Price", "Min Piece Size", "Max Piece Size", "Timestamp", "Expiry"}
 
 	rows := make([][]interface{}, len(index.Storage))
 	i := 0
@@ -160,6 +160,7 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 		rows[i] = []interface{}{
 			ask.Miner,
 			ask.Price,
+			ask.VerifiedPrice,
 			ask.MinPieceSize,
 			ask.MaxPieceSize,
 			ask.Timestamp,

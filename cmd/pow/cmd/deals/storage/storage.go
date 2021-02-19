@@ -17,6 +17,7 @@ func init() {
 	Cmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses, treated as and AND operation if --cids is also provided")
 	Cmd.Flags().BoolP("include-pending", "p", false, "include pending deals")
 	Cmd.Flags().BoolP("include-final", "f", false, "include final deals")
+	Cmd.Flags().BoolP("include-failed", "e", false, "include failed deals")
 }
 
 // Cmd is the command.
@@ -48,6 +49,9 @@ var Cmd = &cobra.Command{
 		}
 		if viper.IsSet("include-final") {
 			opts = append(opts, client.WithIncludeFinal(viper.GetBool("include-final")))
+		}
+		if viper.IsSet("include-failed") {
+			opts = append(opts, client.WithIncludeFailed(viper.GetBool("include-failed")))
 		}
 
 		res, err := c.PowClient.Deals.StorageDealRecords(c.MustAuthCtx(ctx), opts...)

@@ -15,6 +15,7 @@ func init() {
 	Cmd.Flags().BoolP("ascending", "a", false, "sort records ascending, default is descending")
 	Cmd.Flags().StringSlice("cids", []string{}, "limit the records to deals for the specified data cids")
 	Cmd.Flags().StringSlice("addrs", []string{}, "limit the records to deals initiated from  the specified wallet addresses")
+	Cmd.Flags().BoolP("include-failed", "e", false, "include failed retrievals")
 }
 
 // Cmd is the command.
@@ -40,6 +41,9 @@ var Cmd = &cobra.Command{
 		}
 		if viper.IsSet("addrs") {
 			opts = append(opts, client.WithFromAddrs(viper.GetStringSlice("addrs")...))
+		}
+		if viper.IsSet("include-failed") {
+			opts = append(opts, client.WithIncludeFailed(viper.GetBool("include-failed")))
 		}
 
 		res, err := c.PowClient.Deals.RetrievalDealRecords(c.MustAuthCtx(ctx), opts...)
