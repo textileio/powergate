@@ -30,8 +30,14 @@ type AdminServiceClient interface {
 	// Storage Jobs
 	ListStorageJobs(ctx context.Context, in *ListStorageJobsRequest, opts ...grpc.CallOption) (*ListStorageJobsResponse, error)
 	StorageJobsSummary(ctx context.Context, in *StorageJobsSummaryRequest, opts ...grpc.CallOption) (*StorageJobsSummaryResponse, error)
+	// Updated Records
+	GetUpdatedStorageDealRecordsSince(ctx context.Context, in *GetUpdatedStorageDealRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedStorageDealRecordsSinceResponse, error)
+	GetUpdatedRetrievalRecordsSince(ctx context.Context, in *GetUpdatedRetrievalRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedRetrievalRecordsSinceResponse, error)
 	GCStaged(ctx context.Context, in *GCStagedRequest, opts ...grpc.CallOption) (*GCStagedResponse, error)
 	PinnedCids(ctx context.Context, in *PinnedCidsRequest, opts ...grpc.CallOption) (*PinnedCidsResponse, error)
+	// Indices
+	GetMiners(ctx context.Context, in *GetMinersRequest, opts ...grpc.CallOption) (*GetMinersResponse, error)
+	GetMinerInfo(ctx context.Context, in *GetMinerInfoRequest, opts ...grpc.CallOption) (*GetMinerInfoResponse, error)
 }
 
 type adminServiceClient struct {
@@ -123,6 +129,24 @@ func (c *adminServiceClient) StorageJobsSummary(ctx context.Context, in *Storage
 	return out, nil
 }
 
+func (c *adminServiceClient) GetUpdatedStorageDealRecordsSince(ctx context.Context, in *GetUpdatedStorageDealRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedStorageDealRecordsSinceResponse, error) {
+	out := new(GetUpdatedStorageDealRecordsSinceResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GetUpdatedStorageDealRecordsSince", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetUpdatedRetrievalRecordsSince(ctx context.Context, in *GetUpdatedRetrievalRecordsSinceRequest, opts ...grpc.CallOption) (*GetUpdatedRetrievalRecordsSinceResponse, error) {
+	out := new(GetUpdatedRetrievalRecordsSinceResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GetUpdatedRetrievalRecordsSince", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) GCStaged(ctx context.Context, in *GCStagedRequest, opts ...grpc.CallOption) (*GCStagedResponse, error) {
 	out := new(GCStagedResponse)
 	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GCStaged", in, out, opts...)
@@ -135,6 +159,24 @@ func (c *adminServiceClient) GCStaged(ctx context.Context, in *GCStagedRequest, 
 func (c *adminServiceClient) PinnedCids(ctx context.Context, in *PinnedCidsRequest, opts ...grpc.CallOption) (*PinnedCidsResponse, error) {
 	out := new(PinnedCidsResponse)
 	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/PinnedCids", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetMiners(ctx context.Context, in *GetMinersRequest, opts ...grpc.CallOption) (*GetMinersResponse, error) {
+	out := new(GetMinersResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GetMiners", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetMinerInfo(ctx context.Context, in *GetMinerInfoRequest, opts ...grpc.CallOption) (*GetMinerInfoResponse, error) {
+	out := new(GetMinerInfoResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/GetMinerInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -158,8 +200,14 @@ type AdminServiceServer interface {
 	// Storage Jobs
 	ListStorageJobs(context.Context, *ListStorageJobsRequest) (*ListStorageJobsResponse, error)
 	StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error)
+	// Updated Records
+	GetUpdatedStorageDealRecordsSince(context.Context, *GetUpdatedStorageDealRecordsSinceRequest) (*GetUpdatedStorageDealRecordsSinceResponse, error)
+	GetUpdatedRetrievalRecordsSince(context.Context, *GetUpdatedRetrievalRecordsSinceRequest) (*GetUpdatedRetrievalRecordsSinceResponse, error)
 	GCStaged(context.Context, *GCStagedRequest) (*GCStagedResponse, error)
 	PinnedCids(context.Context, *PinnedCidsRequest) (*PinnedCidsResponse, error)
+	// Indices
+	GetMiners(context.Context, *GetMinersRequest) (*GetMinersResponse, error)
+	GetMinerInfo(context.Context, *GetMinerInfoRequest) (*GetMinerInfoResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -194,11 +242,23 @@ func (UnimplementedAdminServiceServer) ListStorageJobs(context.Context, *ListSto
 func (UnimplementedAdminServiceServer) StorageJobsSummary(context.Context, *StorageJobsSummaryRequest) (*StorageJobsSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorageJobsSummary not implemented")
 }
+func (UnimplementedAdminServiceServer) GetUpdatedStorageDealRecordsSince(context.Context, *GetUpdatedStorageDealRecordsSinceRequest) (*GetUpdatedStorageDealRecordsSinceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUpdatedStorageDealRecordsSince not implemented")
+}
+func (UnimplementedAdminServiceServer) GetUpdatedRetrievalRecordsSince(context.Context, *GetUpdatedRetrievalRecordsSinceRequest) (*GetUpdatedRetrievalRecordsSinceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUpdatedRetrievalRecordsSince not implemented")
+}
 func (UnimplementedAdminServiceServer) GCStaged(context.Context, *GCStagedRequest) (*GCStagedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GCStaged not implemented")
 }
 func (UnimplementedAdminServiceServer) PinnedCids(context.Context, *PinnedCidsRequest) (*PinnedCidsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PinnedCids not implemented")
+}
+func (UnimplementedAdminServiceServer) GetMiners(context.Context, *GetMinersRequest) (*GetMinersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMiners not implemented")
+}
+func (UnimplementedAdminServiceServer) GetMinerInfo(context.Context, *GetMinerInfoRequest) (*GetMinerInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMinerInfo not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -375,6 +435,42 @@ func _AdminService_StorageJobsSummary_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_GetUpdatedStorageDealRecordsSince_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUpdatedStorageDealRecordsSinceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetUpdatedStorageDealRecordsSince(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GetUpdatedStorageDealRecordsSince",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetUpdatedStorageDealRecordsSince(ctx, req.(*GetUpdatedStorageDealRecordsSinceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetUpdatedRetrievalRecordsSince_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUpdatedRetrievalRecordsSinceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetUpdatedRetrievalRecordsSince(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GetUpdatedRetrievalRecordsSince",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetUpdatedRetrievalRecordsSince(ctx, req.(*GetUpdatedRetrievalRecordsSinceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_GCStaged_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GCStagedRequest)
 	if err := dec(in); err != nil {
@@ -407,6 +503,42 @@ func _AdminService_PinnedCids_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).PinnedCids(ctx, req.(*PinnedCidsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetMiners_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMinersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetMiners(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GetMiners",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetMiners(ctx, req.(*GetMinersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetMinerInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMinerInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetMinerInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/GetMinerInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetMinerInfo(ctx, req.(*GetMinerInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -452,12 +584,28 @@ var _AdminService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_StorageJobsSummary_Handler,
 		},
 		{
+			MethodName: "GetUpdatedStorageDealRecordsSince",
+			Handler:    _AdminService_GetUpdatedStorageDealRecordsSince_Handler,
+		},
+		{
+			MethodName: "GetUpdatedRetrievalRecordsSince",
+			Handler:    _AdminService_GetUpdatedRetrievalRecordsSince_Handler,
+		},
+		{
 			MethodName: "GCStaged",
 			Handler:    _AdminService_GCStaged_Handler,
 		},
 		{
 			MethodName: "PinnedCids",
 			Handler:    _AdminService_PinnedCids_Handler,
+		},
+		{
+			MethodName: "GetMiners",
+			Handler:    _AdminService_GetMiners_Handler,
+		},
+		{
+			MethodName: "GetMinerInfo",
+			Handler:    _AdminService_GetMinerInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

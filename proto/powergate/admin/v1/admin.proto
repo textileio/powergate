@@ -2,6 +2,7 @@ syntax = "proto3";
 package powergate.admin.v1;
 
 import "powergate/user/v1/user.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1;adminPb";
 
@@ -28,6 +29,7 @@ message SendFilRequest {
 }
 
 message SendFilResponse {
+  string cid = 1;
 }
 
 // Users
@@ -104,25 +106,74 @@ message GCStagedRequest {
 }
 
 message GCStagedResponse {
-	repeated string unpinned_cids = 1;
+  repeated string unpinned_cids = 1;
 }
 
 message PinnedCidsRequest {
 }
 
 message PinnedCidsResponse {
-	repeated HSPinnedCid cids = 1;
+  repeated HSPinnedCid cids = 1;
 }
 
 message HSPinnedCid {
-	string cid = 1;
-	repeated HSPinnedCidUser users = 2;
+  string cid = 1;
+  repeated HSPinnedCidUser users = 2;
 }
 
 message HSPinnedCidUser {
-	string user_id = 1;
-	bool staged = 2;
-	int64 created_at = 3;
+  string user_id = 1;
+  bool staged = 2;
+  int64 created_at = 3;
+}
+
+message GetUpdatedStorageDealRecordsSinceRequest {
+  google.protobuf.Timestamp since = 1;
+  int32 limit = 2;
+}
+
+message GetUpdatedStorageDealRecordsSinceResponse {
+  repeated powergate.user.v1.StorageDealRecord records = 1;
+}
+
+
+message GetUpdatedRetrievalRecordsSinceRequest {
+  google.protobuf.Timestamp since = 1;
+  int32 limit = 2;
+}
+
+message GetUpdatedRetrievalRecordsSinceResponse {
+  repeated powergate.user.v1.RetrievalDealRecord records = 1;
+}
+
+message GetMinersRequest {
+  bool with_power = 1;
+}
+
+message GetMinersResponse {
+  repeated FilecoinMiner miners = 1;
+}
+
+message FilecoinMiner {
+  string address = 1;
+}
+
+message GetMinerInfoRequest {
+	repeated string miners = 1;
+}
+
+message GetMinerInfoResponse {
+	repeated MinerInfo miners_info = 1;
+}
+
+message MinerInfo {
+	string address = 1;
+	double relative_power = 2;
+	string ask_price = 4;
+	string ask_verified_price = 5;
+	uint64 min_piece_size = 6;
+	uint64 max_piece_size = 7;
+	uint64 sector_size = 8;
 }
 
 service AdminService {
@@ -143,6 +194,14 @@ service AdminService {
   rpc ListStorageJobs(ListStorageJobsRequest) returns (ListStorageJobsResponse) {}
   rpc StorageJobsSummary(StorageJobsSummaryRequest) returns (StorageJobsSummaryResponse) {}
 
+  // Updated Records
+  rpc GetUpdatedStorageDealRecordsSince(GetUpdatedStorageDealRecordsSinceRequest) returns (GetUpdatedStorageDealRecordsSinceResponse){}
+  rpc GetUpdatedRetrievalRecordsSince(GetUpdatedRetrievalRecordsSinceRequest) returns (GetUpdatedRetrievalRecordsSinceResponse){}
+
   rpc GCStaged(GCStagedRequest) returns (GCStagedResponse) {}
   rpc PinnedCids(PinnedCidsRequest) returns (PinnedCidsResponse) {}
+
+  // Indices
+  rpc GetMiners(GetMinersRequest) returns (GetMinersResponse) {}
+  rpc GetMinerInfo(GetMinerInfoRequest) returns (GetMinerInfoResponse) {}
 }

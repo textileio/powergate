@@ -21,12 +21,13 @@ type Index struct {
 
 // StorageAsk has information about an active ask from a storage miner.
 type StorageAsk struct {
-	Miner        string
-	Price        uint64
-	MinPieceSize uint64
-	MaxPieceSize uint64
-	Timestamp    int64
-	Expiry       int64
+	Miner         string
+	Price         uint64
+	VerifiedPrice uint64
+	MinPieceSize  uint64
+	MaxPieceSize  uint64
+	Timestamp     int64
+	Expiry        int64
 }
 
 // Query specifies filtering and paging data to retrieve active Asks.

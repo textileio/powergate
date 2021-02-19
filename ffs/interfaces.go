@@ -24,7 +24,7 @@ type WalletManager interface {
 	// Balance returns the current balance for an address.
 	Balance(context.Context, string) (*big.Int, error)
 	// SendFil sends fil from one address to another.
-	SendFil(context.Context, string, string, *big.Int) error
+	SendFil(context.Context, string, string, *big.Int) (cid.Cid, error)
 	// Sign signs a message using an address.
 	Sign(context.Context, string, []byte) ([]byte, error)
 	// Verify verifies if a message was signed with an address.
@@ -151,6 +151,8 @@ type MinerSelectorFilter struct {
 	MaxPrice uint64
 	// PieceSize is the piece size of the data.
 	PieceSize uint64
+	// VerifiedDeal indicates it should take verified storage prices.
+	VerifiedDeal bool
 }
 
 // MinerProposal contains a miners address and storage ask information

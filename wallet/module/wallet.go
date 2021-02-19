@@ -12,6 +12,7 @@ import (
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/lotus"
 )
@@ -203,14 +204,14 @@ func (m *Module) Balance(ctx context.Context, addr string) (*big.Int, error) {
 }
 
 // SendFil sends fil from one address to another.
-func (m *Module) SendFil(ctx context.Context, from string, to string, amount *big.Int) error {
+func (m *Module) SendFil(ctx context.Context, from string, to string, amount *big.Int) (cid.Cid, error) {
 	f, err := address.NewFromString(from)
 	if err != nil {
-		return err
+		return cid.Cid{}, err
 	}
 	t, err := address.NewFromString(to)
 	if err != nil {
-		return err
+		return cid.Cid{}, err
 	}
 	msg := &types.Message{
 		From:  f,
@@ -219,12 +220,16 @@ func (m *Module) SendFil(ctx context.Context, from string, to string, amount *bi
 	}
 	client, cls, err := m.clientBuilder(ctx)
 	if err != nil {
-		return fmt.Errorf("creating lotus client: %s", err)
+		return cid.Cid{}, fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
 
-	_, err = client.MpoolPushMessage(ctx, msg, nil)
-	return err
+	sm, err := client.MpoolPushMessage(ctx, msg, nil)
+	if err != nil {
+		return cid.Cid{}, err
+	}
+
+	return sm.Message.Cid(), err
 }
 
 // FundFromFaucet make a faucet call to fund the provided wallet address.

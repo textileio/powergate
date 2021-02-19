@@ -149,8 +149,12 @@ func (rt *RepTop) getMinerProposal(f ffs.MinerSelectorFilter, addrStr string) (f
 		if r.Error != "" {
 			return ffs.MinerProposal{}, fmt.Errorf("query ask had controlled error: %s", r.Error)
 		}
-		if f.MaxPrice > 0 && r.Ask.Price.Uint64() > f.MaxPrice {
-			return ffs.MinerProposal{}, fmt.Errorf("miner doesn't satisfy price constraints %d>%d", r.Ask.Price, f.MaxPrice)
+		price := r.Ask.Price.Uint64()
+		if f.VerifiedDeal {
+			price = r.Ask.VerifiedPrice.Uint64()
+		}
+		if f.MaxPrice > 0 && price > f.MaxPrice {
+			return ffs.MinerProposal{}, fmt.Errorf("miner's price doesn't satisfy price constraints: %d>%d", r.Ask.Price, f.MaxPrice)
 		}
 		if f.PieceSize < uint64(r.Ask.MinPieceSize) || f.PieceSize > uint64(r.Ask.MaxPieceSize) {
 			return ffs.MinerProposal{}, fmt.Errorf("miner doesn't satisfy piece size constraints: %d<%d<%d", r.Ask.MinPieceSize, f.PieceSize, r.Ask.MaxPieceSize)

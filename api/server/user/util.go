@@ -4,7 +4,6 @@ import (
 	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/ffs"
-	"github.com/textileio/powergate/v2/util"
 )
 
 func toRPCStorageConfig(config ffs.StorageConfig) *userPb.StorageConfig {
@@ -43,6 +42,7 @@ func toRPCColdConfig(config ffs.ColdConfig) *userPb.ColdConfig {
 			MaxPrice:        config.Filecoin.MaxPrice,
 			FastRetrieval:   config.Filecoin.FastRetrieval,
 			DealStartOffset: config.Filecoin.DealStartOffset,
+			VerifiedDeal:    config.Filecoin.VerifiedDeal,
 		},
 	}
 }
@@ -78,6 +78,7 @@ func fromRPCColdConfig(config *userPb.ColdConfig) ffs.ColdConfig {
 				MaxPrice:        config.Filecoin.MaxPrice,
 				FastRetrieval:   config.Filecoin.FastRetrieval,
 				DealStartOffset: config.Filecoin.DealStartOffset,
+				VerifiedDeal:    config.Filecoin.VerifiedDeal,
 			}
 			if config.Filecoin.Renew != nil {
 				renew := ffs.FilRenew{
@@ -101,54 +102,8 @@ func buildListDealRecordsOptions(conf *userPb.DealRecordsConfig) []deals.DealRec
 			deals.WithFromAddrs(conf.FromAddrs...),
 			deals.WithIncludePending(conf.IncludePending),
 			deals.WithIncludeFinal(conf.IncludeFinal),
+			deals.WithIncludeFailed(conf.IncludeFailed),
 		}
 	}
 	return opts
-}
-
-func toRPCStorageDealRecords(records []deals.StorageDealRecord) []*userPb.StorageDealRecord {
-	ret := make([]*userPb.StorageDealRecord, len(records))
-	for i, r := range records {
-		ret[i] = &userPb.StorageDealRecord{
-			RootCid: util.CidToString(r.RootCid),
-			Address: r.Addr,
-			Time:    r.Time,
-			Pending: r.Pending,
-			DealInfo: &userPb.StorageDealInfo{
-				ProposalCid:     util.CidToString(r.DealInfo.ProposalCid),
-				StateId:         r.DealInfo.StateID,
-				StateName:       r.DealInfo.StateName,
-				Miner:           r.DealInfo.Miner,
-				PieceCid:        util.CidToString(r.DealInfo.PieceCID),
-				Size:            r.DealInfo.Size,
-				PricePerEpoch:   r.DealInfo.PricePerEpoch,
-				StartEpoch:      r.DealInfo.StartEpoch,
-				Duration:        r.DealInfo.Duration,
-				DealId:          r.DealInfo.DealID,
-				ActivationEpoch: r.DealInfo.ActivationEpoch,
-				Message:         r.DealInfo.Message,
-			},
-		}
-	}
-	return ret
-}
-
-func toRPCRetrievalDealRecords(records []deals.RetrievalDealRecord) []*userPb.RetrievalDealRecord {
-	ret := make([]*userPb.RetrievalDealRecord, len(records))
-	for i, r := range records {
-		ret[i] = &userPb.RetrievalDealRecord{
-			Address: r.Addr,
-			Time:    r.Time,
-			DealInfo: &userPb.RetrievalDealInfo{
-				RootCid:                 util.CidToString(r.DealInfo.RootCid),
-				Size:                    r.DealInfo.Size,
-				MinPrice:                r.DealInfo.MinPrice,
-				PaymentInterval:         r.DealInfo.PaymentInterval,
-				PaymentIntervalIncrease: r.DealInfo.PaymentIntervalIncrease,
-				Miner:                   r.DealInfo.Miner,
-				MinerPeerId:             r.DealInfo.MinerPeerID,
-			},
-		}
-	}
-	return ret
 }

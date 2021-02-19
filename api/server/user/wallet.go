@@ -75,10 +75,14 @@ func (s *Service) SendFil(ctx context.Context, req *userPb.SendFilRequest) (*use
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing amount %v", req.Amount)
 	}
-	if err := i.SendFil(ctx, req.From, req.To, amt); err != nil {
+	cid, err := i.SendFil(ctx, req.From, req.To, amt)
+	if err != nil {
 		return nil, err
 	}
-	return &userPb.SendFilResponse{}, nil
+
+	return &userPb.SendFilResponse{
+		Cid: cid.String(),
+	}, nil
 }
 
 // SignMessage calls ffs.SignMessage.

@@ -81,6 +81,15 @@ func TestStore(t *testing.T) {
 				)
 				require.NoError(t, err)
 				require.Len(t, final, nm)
+				for _, r := range final {
+					require.Greater(t, r.TransferSize, int64(600)) // Greater since DAG transformation has an ovehead.
+					require.Greater(t, r.DataTransferStart, int64(0))
+					require.Greater(t, r.DataTransferEnd, int64(0))
+					require.True(t, r.DataTransferStart <= r.DataTransferEnd)
+					require.Greater(t, r.SealingStart, int64(0))
+					require.Greater(t, r.SealingEnd, int64(0))
+					require.True(t, r.SealingStart < r.SealingEnd)
+				}
 			})
 		})
 	}
@@ -159,7 +168,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	if err != nil {
 		return cid.Undef, nil, err
 	}
-	srs, err := m.Store(ctx, addr.String(), dataCid, piece.PieceSize, piece.PieceCID, cfgs, util.MinDealDuration)
+	srs, err := m.Store(ctx, addr.String(), dataCid, piece.PayloadSize, piece.PieceSize, piece.PieceCID, cfgs, util.MinDealDuration)
 	if err != nil {
 		return cid.Undef, nil, fmt.Errorf("calling Store(): %s", err)
 	}

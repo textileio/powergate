@@ -37,9 +37,11 @@ func (a *Service) SendFil(ctx context.Context, req *adminPb.SendFilRequest) (*ad
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "parsing amount %v", req.Amount)
 	}
-	err := a.wm.SendFil(ctx, req.From, req.To, amt)
+	cid, err := a.wm.SendFil(ctx, req.From, req.To, amt)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "sending fil: %v", err)
 	}
-	return &adminPb.SendFilResponse{}, nil
+	return &adminPb.SendFilResponse{
+		Cid: cid.String(),
+	}, nil
 }

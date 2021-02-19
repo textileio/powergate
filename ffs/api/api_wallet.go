@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+
+	"github.com/ipfs/go-cid"
 )
 
 // Addrs returns the wallet addresses.
@@ -82,9 +84,9 @@ func (i *API) VerifyMessage(ctx context.Context, addr string, message, signature
 }
 
 // SendFil sends fil from a managed address to any another address, returns immediately but funds are sent asynchronously.
-func (i *API) SendFil(ctx context.Context, from string, to string, amount *big.Int) error {
+func (i *API) SendFil(ctx context.Context, from string, to string, amount *big.Int) (cid.Cid, error) {
 	if !i.isManagedAddress(from) {
-		return fmt.Errorf("%v is not managed by ffs instance", from)
+		return cid.Cid{}, fmt.Errorf("%v is not managed by ffs instance", from)
 	}
 	return i.wm.SendFil(ctx, from, to, amount)
 }

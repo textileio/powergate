@@ -103,7 +103,7 @@ func TestSendFil(t *testing.T) {
 
 	require.Eventually(t, hasInitialBal, time.Second*5, time.Second)
 
-	err = fapi.SendFil(ctx, addr1, addr2, big.NewInt(amt))
+	_, err = fapi.SendFil(ctx, addr1, addr2, big.NewInt(amt))
 	require.NoError(t, err)
 
 	require.Eventually(t, hasNewBal, time.Second*5, time.Second)
