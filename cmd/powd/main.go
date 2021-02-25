@@ -385,7 +385,7 @@ func setupFlags() error {
 	pflag.String("ffsadmintoken", "", "FFS admin token for authorized APIs. If empty, the APIs will be open to the public.")
 	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
 	pflag.String("ffsminerselector", "reputation", "Miner selector to be used by FFS: 'sr2', 'reputation'.")
-	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector.")
+	pflag.String("ffsminerselectorparams", "", "Miner selector configuration parameter, depends on --ffsminerselector.")
 	pflag.String("ffsminimumpiecesize", "67108864", "Minimum piece size in bytes allowed to be stored in Filecoin.")
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel.")
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned.")
