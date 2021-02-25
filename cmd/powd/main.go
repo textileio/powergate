@@ -138,6 +138,7 @@ func configFromFlags() (server.Config, error) {
 	askIndexRefreshInterval := time.Minute * time.Duration(config.GetInt("askindexrefreshinterval"))
 	askIndexRefreshOnStart := config.GetBool("askindexrefreshonstart")
 	askIndexMaxParallel := config.GetInt("askindexmaxparallel")
+	indexMinersRefreshOnStart := config.GetBool("indexminersrefreshonstart")
 	disableIndices := config.GetBool("disableindices")
 	disableNonCompliantAPIs := config.GetBool("disablenoncompliantapis")
 
@@ -182,6 +183,8 @@ func configFromFlags() (server.Config, error) {
 		AskIndexRefreshInterval: askIndexRefreshInterval,
 		AskIndexRefreshOnStart:  askIndexRefreshOnStart,
 		AskindexMaxParallel:     askIndexMaxParallel,
+
+		IndexMinersRefreshOnStart: indexMinersRefreshOnStart,
 
 		DisableIndices: disableIndices,
 
@@ -395,6 +398,8 @@ func setupFlags() error {
 	pflag.String("askindexrefreshinterval", "360", "Refresh interval measured in minutes.")
 	pflag.Bool("askindexrefreshonstart", false, "If true it will refresh the index on start.")
 	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index.")
+
+	pflag.Bool("indexminersrefreshonstart", false, "If true it will refresh the miner's on start.")
 
 	pflag.Bool("disableindices", false, "Disable all indices updates, useful to help Lotus syncing process.")
 	pflag.Bool("disablenoncompliantapis", false, "Disable APIs that may not easily comply with US law.")

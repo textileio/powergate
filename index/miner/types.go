@@ -21,13 +21,14 @@ type OnChainData struct {
 	Power         uint64
 	RelativePower float64
 	SectorSize    uint64
+	SectorsLive   uint64
+	SectorsActive uint64
+	SectorsFaulty uint64
 }
 
 // MetaIndex contains off-chain information about miners.
 type MetaIndex struct {
-	Online  uint32
-	Offline uint32
-	Info    map[string]Meta
+	Info map[string]Meta
 }
 
 // Meta contains off-chain information of a miner.
@@ -35,7 +36,6 @@ type Meta struct {
 	LastUpdated time.Time
 	UserAgent   string
 	Location    Location
-	Online      bool
 }
 
 // Location contains geeoinformation.

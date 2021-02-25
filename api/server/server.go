@@ -145,6 +145,8 @@ type Config struct {
 	AskIndexRefreshInterval time.Duration
 	AskIndexRefreshOnStart  bool
 
+	IndexMinersRefreshOnStart bool
+
 	DisableIndices bool
 
 	DisableNonCompliantAPIs bool
@@ -222,7 +224,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm, conf.DisableIndices)
+	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm, conf.IndexMinersRefreshOnStart, conf.DisableIndices)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
