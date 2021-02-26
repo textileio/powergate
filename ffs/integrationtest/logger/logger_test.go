@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 
 func TestLogHistory(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -59,7 +59,7 @@ func TestLogHistory(t *testing.T) {
 func TestCidLogger(t *testing.T) {
 	t.Parallel()
 	t.Run("WithNoFilters", func(t *testing.T) {
-		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -98,7 +98,7 @@ func TestCidLogger(t *testing.T) {
 	})
 	t.Run("WithJidFilter", func(t *testing.T) {
 		t.Run("CorrectJid", func(t *testing.T) {
-			ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+			ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -136,7 +136,7 @@ func TestCidLogger(t *testing.T) {
 			it.RequireStorageConfig(t, fapi, cid, nil)
 		})
 		t.Run("IncorrectJid", func(t *testing.T) {
-			ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+			ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))

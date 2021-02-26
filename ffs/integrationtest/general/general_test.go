@@ -33,7 +33,7 @@ func TestAdd(t *testing.T) {
 		t.Parallel()
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1)
+			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1, 300)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -53,7 +53,7 @@ func TestAdd(t *testing.T) {
 		t.Parallel()
 
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
-			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -74,7 +74,7 @@ func TestGet(t *testing.T) {
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ctx := context.Background()
-		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -94,7 +94,7 @@ func TestGet(t *testing.T) {
 
 func TestDealConsistency(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 
 		firstID := fapi.ID()
@@ -169,7 +169,7 @@ func TestShow(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 
 		defer cls()
 
@@ -222,7 +222,7 @@ func TestColdInstanceLoad(t *testing.T) {
 
 		ds := tests.NewTxMapDatastore()
 		ipfs, ipfsMAddr := it.CreateIPFS(t)
-		addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+		addr, client, ms := itmanager.NewDevnet(t, 1, 300, ipfsMAddr)
 		manager, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 
 		auth, err := manager.Create(context.Background())
@@ -274,7 +274,7 @@ func TestHighMinimumPieceSize(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ds := tests.NewTxMapDatastore()
 		ipfs, ipfsMAddr := it.CreateIPFS(t)
-		addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+		addr, client, ms := itmanager.NewDevnet(t, 1, 300, ipfsMAddr)
 		// Set MinimumPieceSize to 1GB so to force failing
 		manager, _, closeManager := itmanager.NewCustomFFSManager(t, ds, client, addr, ms, ipfs, 1024*1024*1024)
 		defer closeManager()
@@ -301,7 +301,7 @@ func TestStageCidUnpinedOnDisabledHotStorage(t *testing.T) {
 		ctx := context.Background()
 		ds := tests.NewTxMapDatastore()
 		ipfs, ipfsMAddr := it.CreateIPFS(t)
-		addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+		addr, client, ms := itmanager.NewDevnet(t, 1, 300, ipfsMAddr)
 		manager, hs, closeManager := itmanager.NewCustomFFSManager(t, ds, client, addr, ms, ipfs, 0)
 		defer closeManager()
 		auth, err := manager.Create(context.Background())
@@ -332,7 +332,7 @@ func TestRemove(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))

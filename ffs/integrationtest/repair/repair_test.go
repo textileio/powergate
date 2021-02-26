@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 func TestRepair(t *testing.T) {
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		scheduler.RepairEvalFrequency = time.Second * 30
-		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))

@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 func TestUnfreeze(t *testing.T) {
 	t.Parallel()
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 
 		ra := rand.New(rand.NewSource(22))
@@ -64,7 +64,7 @@ func TestUnfreeze(t *testing.T) {
 func TestUnfreezeRecords(t *testing.T) {
 	t.Parallel()
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 
 		// Step 1. Produce a Filecoin retrieval.

@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 func TestFreshIndex(t *testing.T) {
 	// Skipped until #235 lands.
 	t.SkipNow()
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	client, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	time.Sleep(time.Millisecond * 500) // Allow the network to some tipsets
 
 	sh, err := New(tests.NewTxMapDatastore(), client, false)

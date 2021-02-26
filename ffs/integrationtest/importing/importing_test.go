@@ -20,7 +20,7 @@ func TestImportWithoutRetrievalTwoUsers(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ipfsAPI, ipfsMAddr := it.CreateIPFS(t)
-	addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+	addr, client, ms := itmanager.NewDevnet(t, 1, 300, ipfsMAddr)
 	manager, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfsAPI)
 	defer closeManager()
 
@@ -76,7 +76,7 @@ func TestImportWithoutRetrievalTwoUsers(t *testing.T) {
 func TestImportWithRetrievalSingleUser(t *testing.T) {
 	t.Parallel()
 
-	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	// Add some data to Filecoin.

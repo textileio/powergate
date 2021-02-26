@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 
 func TestJobCancelation(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
-	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	cid, _ := it.AddRandomFile(t, r, ipfsAPI)
@@ -47,7 +47,7 @@ func TestJobCancelation(t *testing.T) {
 
 func TestParallelExecution(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -82,7 +82,7 @@ func TestResumeScheduler(t *testing.T) {
 
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := it.CreateIPFS(t)
-	addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+	addr, client, ms := itmanager.NewDevnet(t, 1, 300, ipfsMAddr)
 	manager, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 	auth, err := manager.Create(context.Background())
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func TestResumeScheduler(t *testing.T) {
 
 func TestFailedJobMessage(t *testing.T) {
 	t.Parallel()
-	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+	ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))

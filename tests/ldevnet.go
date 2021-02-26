@@ -23,12 +23,12 @@ type TestingTWithCleanup interface {
 }
 
 // LaunchDevnetDocker launches the devnet docker image.
-func LaunchDevnetDocker(t TestingTWithCleanup, numMiners int, ipfsMaddr string, mountVolumes bool) *dockertest.Resource {
+func LaunchDevnetDocker(t TestingTWithCleanup, numMiners, speed int, ipfsMaddr string, mountVolumes bool) *dockertest.Resource {
 	pool, err := dockertest.NewPool("")
 	require.NoError(t, err)
 	envs := []string{
 		devnetEnv("NUMMINERS", strconv.Itoa(numMiners)),
-		devnetEnv("SPEED", "300"),
+		devnetEnv("SPEED", strconv.Itoa(speed)),
 		devnetEnv("IPFSADDR", ipfsMaddr),
 		devnetEnv("BIGSECTORS", false),
 	}
@@ -73,8 +73,8 @@ func LaunchDevnetDocker(t TestingTWithCleanup, numMiners int, ipfsMaddr string, 
 }
 
 // CreateLocalDevnetWithIPFS creates a local devnet connected to an IPFS node.
-func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners int, ipfsMaddr string, mountVolumes bool) (lotus.ClientBuilder, address.Address, []address.Address) {
-	lotusDevnet := LaunchDevnetDocker(t, numMiners, ipfsMaddr, mountVolumes)
+func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners, speed int, ipfsMaddr string, mountVolumes bool) (lotus.ClientBuilder, address.Address, []address.Address) {
+	lotusDevnet := LaunchDevnetDocker(t, numMiners, speed, ipfsMaddr, mountVolumes)
 	cb, err := lotus.NewBuilder(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "", 1)
 	require.NoError(t, err)
 	ctx, cls := context.WithTimeout(context.Background(), time.Second*10)
@@ -93,8 +93,8 @@ func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners int, ipfsMaddr s
 
 // CreateLocalDevnet returns an API client that targets a local devnet with numMiners number
 // of miners. Refer to http://github.com/textileio/local-devnet for more information.
-func CreateLocalDevnet(t TestingTWithCleanup, numMiners int) (lotus.ClientBuilder, address.Address, []address.Address) {
-	return CreateLocalDevnetWithIPFS(t, numMiners, "", true)
+func CreateLocalDevnet(t TestingTWithCleanup, numMiners, speed int) (lotus.ClientBuilder, address.Address, []address.Address) {
+	return CreateLocalDevnetWithIPFS(t, numMiners, speed, "", true)
 }
 
 func devnetEnv(name string, value interface{}) string {
