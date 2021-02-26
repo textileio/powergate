@@ -19,8 +19,7 @@ import (
 
 var (
 	metaRefreshInterval = time.Hour * 6
-	pingTimeout         = time.Second * 5
-	pingRateLim         = 1
+	metaRateLim         = 1
 )
 
 var (
@@ -57,7 +56,6 @@ func (mi *Index) startMetaWorker(runOnStart bool) {
 		mi.lock.Unlock()
 		mi.signaler.Signal() // ToDo: consider a finer-grained signaling
 		log.Info("meta index updated")
-
 	}
 
 	go func() {
@@ -89,7 +87,7 @@ func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P
 	index := miner.MetaIndex{
 		Info: make(map[string]miner.Meta),
 	}
-	rl := make(chan struct{}, pingRateLim)
+	rl := make(chan struct{}, metaRateLim)
 	var lock sync.Mutex
 	for i, a := range addrs {
 		if ctx.Err() != nil {
@@ -112,7 +110,7 @@ func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P
 			stats.Record(context.Background(), mMetaRefreshProgress.M(float64(i)/float64(len(addrs))))
 		}
 	}
-	for i := 0; i < pingRateLim; i++ {
+	for i := 0; i < metaRateLim; i++ {
 		rl <- struct{}{}
 	}
 
@@ -151,8 +149,6 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 	if err != nil {
 		return si, err
 	}
-	ctx, cancel := context.WithTimeout(ctx, pingTimeout)
-	defer cancel()
 
 	if mi.PeerId != nil {
 		if av := h.GetAgentVersion(*mi.PeerId); av != "" {
