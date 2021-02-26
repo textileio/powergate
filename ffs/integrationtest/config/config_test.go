@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 
 func TestSetDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := itmanager.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	config := ffs.StorageConfig{
@@ -58,7 +58,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		t.Parallel()
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -83,7 +83,7 @@ func TestEnabledConfigChange(t *testing.T) {
 		t.Parallel()
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+			ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -109,7 +109,7 @@ func TestEnabledConfigChange(t *testing.T) {
 
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1)
+			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1, 300)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -135,7 +135,7 @@ func TestEnabledConfigChange(t *testing.T) {
 
 		tests.RunFlaky(t, func(t *tests.FlakyT) {
 			ctx := context.Background()
-			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1)
+			ipfsAPI, client, fapi, cls := itmanager.NewAPI(t, 1, 300)
 			defer cls()
 
 			r := rand.New(rand.NewSource(22))
@@ -184,7 +184,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 			t.Parallel()
 
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
-				ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+				ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 				defer cls()
 
 				r := rand.New(rand.NewSource(22))
@@ -234,7 +234,7 @@ func TestFilecoinEnableConfig(t *testing.T) {
 func TestHotTimeoutConfig(t *testing.T) {
 	t.SkipNow()
 	t.Parallel()
-	_, _, fapi, cls := itmanager.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	t.Run("ShortTime", func(t *testing.T) {
@@ -252,7 +252,7 @@ func TestDurationConfig(t *testing.T) {
 	t.Parallel()
 
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
-		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 
 		r := rand.New(rand.NewSource(22))
@@ -272,7 +272,7 @@ func TestDurationConfig(t *testing.T) {
 
 func TestGetDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
-	_, _, fapi, cls := itmanager.NewAPI(t, 1)
+	_, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	defaultConf := fapi.DefaultStorageConfig()

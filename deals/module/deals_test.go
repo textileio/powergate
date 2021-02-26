@@ -48,7 +48,7 @@ func TestStore(t *testing.T) {
 		t.Run(fmt.Sprintf("CantMiners%d", nm), func(t *testing.T) {
 			t.Parallel()
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
-				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm)
+				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm, 300)
 				m, err := New(tests.NewTxMapDatastore(), clientBuilder, util.AvgBlockTime, time.Minute*10, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 				require.NoError(t, err)
 				c, cls, err := clientBuilder(context.Background())
@@ -104,7 +104,7 @@ func TestRetrieve(t *testing.T) {
 			t.Parallel()
 			tests.RunFlaky(t, func(t *tests.FlakyT) {
 				data := randomBytes(600)
-				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm)
+				clientBuilder, addr, _ := tests.CreateLocalDevnet(t, nm, 300)
 				m, err := New(tests.NewTxMapDatastore(), clientBuilder, util.AvgBlockTime, time.Minute*10, deals.WithImportPath(filepath.Join(tmpDir, "imports")))
 				require.NoError(t, err)
 				c, cls, err := clientBuilder(context.Background())

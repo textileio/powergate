@@ -35,7 +35,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestClientImport(t *testing.T) {
-	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	client, cls, err := clientBuilder(context.Background())
 	require.NoError(t, err)
 	defer cls()
@@ -63,7 +63,7 @@ func TestClientImport(t *testing.T) {
 }
 
 func TestClientChainNotify(t *testing.T) {
-	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	client, cls, err := clientBuilder(context.Background())
 	require.NoError(t, err)
 	defer cls()
@@ -89,7 +89,7 @@ func TestClientChainNotify(t *testing.T) {
 }
 
 func TestChainHead(t *testing.T) {
-	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	client, cls, err := clientBuilder(context.Background())
 	require.NoError(t, err)
 	defer cls()
@@ -101,7 +101,7 @@ func TestChainHead(t *testing.T) {
 }
 
 func TestChainGetTipset(t *testing.T) {
-	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	client, cls, err := clientBuilder(context.Background())
 	require.NoError(t, err)
 	defer cls()
@@ -116,7 +116,7 @@ func TestChainGetTipset(t *testing.T) {
 }
 
 func TestGetPeerID(t *testing.T) {
-	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	client, cls, err := clientBuilder(context.Background())
 	require.NoError(t, err)
 	defer cls()

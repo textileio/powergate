@@ -35,10 +35,10 @@ const (
 )
 
 // NewAPI returns a new set of components for FFS.
-func NewAPI(t tests.TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
+func NewAPI(t tests.TestingTWithCleanup, numMiners, speed int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := it.CreateIPFS(t)
-	addr, clientBuilder, ms := NewDevnet(t, numMiners, ipfsMAddr)
+	addr, clientBuilder, ms := NewDevnet(t, numMiners, speed, ipfsMAddr)
 	manager, closeManager := NewFFSManager(t, ds, clientBuilder, addr, ms, ipfs)
 	auth, err := manager.Create(context.Background())
 	require.NoError(t, err)
@@ -56,8 +56,8 @@ func NewAPI(t tests.TestingTWithCleanup, numMiners int) (*httpapi.HttpApi, *apis
 }
 
 // NewDevnet creates a localnet.
-func NewDevnet(t tests.TestingTWithCleanup, numMiners int, ipfsAddr string) (address.Address, lotus.ClientBuilder, ffs.MinerSelector) {
-	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
+func NewDevnet(t tests.TestingTWithCleanup, numMiners, speed int, ipfsAddr string) (address.Address, lotus.ClientBuilder, ffs.MinerSelector) {
+	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, speed, ipfsAddr, false)
 	addrs := make([]string, numMiners)
 	for i := 0; i < numMiners; i++ {
 		addrs[i] = fmt.Sprintf("f0%d", 1000+i)

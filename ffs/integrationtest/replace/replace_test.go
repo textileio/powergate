@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 func TestPushCidReplace(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ipfs, client, fapi, cls := itmanager.NewAPI(t, 1)
+	ipfs, client, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	r := rand.New(rand.NewSource(22))
@@ -66,7 +66,7 @@ func TestDoubleReplace(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := it.CreateIPFS(t)
-	addr, client, ms := itmanager.NewDevnet(t, 1, ipfsMAddr)
+	addr, client, ms := itmanager.NewDevnet(t, 1, 300, ipfsMAddr)
 	m, closeManager := itmanager.NewFFSManager(t, ds, client, addr, ms, ipfs)
 	defer closeManager()
 

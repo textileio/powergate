@@ -24,7 +24,7 @@ func TestFreshBuild(t *testing.T) {
 	// when querying Asks.
 	t.SkipNow()
 	ctx := context.Background()
-	clientBuilder, _, miners := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, miners := tests.CreateLocalDevnet(t, 1, 300)
 	c, cls, err := clientBuilder(ctx)
 	require.NoError(t, err)
 	defer cls()

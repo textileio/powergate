@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestPrecede(t *testing.T) {
-	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1)
+	clientBuilder, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	time.Sleep(time.Second * 5) // Give time for at least 1 block to be mined.
 	ctx := context.Background()
 	c, cls, err := clientBuilder(context.Background())

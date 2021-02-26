@@ -29,7 +29,7 @@ func TestRenew(t *testing.T) {
 	t.SkipNow()
 
 	t.Parallel()
-	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1)
+	ipfsAPI, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 	defer cls()
 
 	ra := rand.New(rand.NewSource(22))

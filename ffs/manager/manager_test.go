@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 
 func TestNewManager(t *testing.T) {
 	t.Parallel()
-	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
 	m, cls, err := newManager(client, tests.NewTxMapDatastore(), addr, false)
 	require.NoError(t, err)
 	require.NotNil(t, m)
@@ -35,7 +35,7 @@ func TestNewManager(t *testing.T) {
 
 func TestNewManagerMasterAddrFFSUseMasterAddr(t *testing.T) {
 	t.Parallel()
-	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
 	m, cls, err := newManager(client, tests.NewTxMapDatastore(), addr, true)
 	require.NoError(t, err)
 	require.NotNil(t, m)
@@ -44,7 +44,7 @@ func TestNewManagerMasterAddrFFSUseMasterAddr(t *testing.T) {
 
 func TestNewManagerNoMasterAddrNoFFSUseMasterAddr(t *testing.T) {
 	t.Parallel()
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	client, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	m, cls, err := newManager(client, tests.NewTxMapDatastore(), address.Undef, false)
 	require.NoError(t, err)
 	require.NotNil(t, m)
@@ -53,7 +53,7 @@ func TestNewManagerNoMasterAddrNoFFSUseMasterAddr(t *testing.T) {
 
 func TestNewManagerNoMasterAddrFFSUseMasterAddr(t *testing.T) {
 	t.Parallel()
-	client, _, _ := tests.CreateLocalDevnet(t, 1)
+	client, _, _ := tests.CreateLocalDevnet(t, 1, 300)
 	_, cls, err := newManager(client, tests.NewTxMapDatastore(), address.Undef, true)
 	require.Error(t, err)
 	defer require.NoError(t, cls())
@@ -63,7 +63,7 @@ func TestCreate(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
 	m, cls, err := newManager(client, ds, addr, false)
 	require.NoError(t, err)
 	defer require.NoError(t, cls())
@@ -78,7 +78,7 @@ func TestCreateWithFFSMasterAddr(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
 	m, cls, err := newManager(client, ds, addr, true)
 	require.NoError(t, err)
 	defer require.NoError(t, cls())
@@ -101,7 +101,7 @@ func TestList(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
 	m, cls, err := newManager(client, ds, addr, false)
 	require.NoError(t, err)
 	defer require.NoError(t, cls())
@@ -131,7 +131,7 @@ func TestGetByAuthToken(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
-	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
 	m, cls, err := newManager(client, ds, addr, false)
 	require.NoError(t, err)
 	defer require.NoError(t, cls())
@@ -145,7 +145,7 @@ func TestGetByAuthToken(t *testing.T) {
 		require.NotEmpty(t, new.Addrs())
 	})
 	t.Run("Cold", func(t *testing.T) {
-		client, addr, _ := tests.CreateLocalDevnet(t, 1)
+		client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
 		m, cls, err := newManager(client, ds, addr, false)
 		require.NoError(t, err)
 		defer require.NoError(t, cls())
@@ -164,7 +164,7 @@ func TestGetByAuthToken(t *testing.T) {
 func TestDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
-	client, addr, _ := tests.CreateLocalDevnet(t, 1)
+	client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
 	m, cls, err := newManager(client, ds, addr, true)
 	require.NoError(t, err)
 	defer require.NoError(t, cls())

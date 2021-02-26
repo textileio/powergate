@@ -34,7 +34,7 @@ func TestPartialRetrievalFlow(t *testing.T) {
 	t.Parallel()
 	tests.RunFlaky(t, func(t *tests.FlakyT) {
 		ctx := context.Background()
-		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1)
+		ipfs, _, fapi, cls := itmanager.NewAPI(t, 1, 300)
 		defer cls()
 		_ = ctx
 		_ = fapi

@@ -31,7 +31,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 	ipfsAddrStr := "/ip4/127.0.0.1/tcp/" + dipfs.GetPort("5001/tcp")
 	ipfsAddr := util.MustParseAddr(ipfsAddrStr)
 
-	devnet := tests.LaunchDevnetDocker(t, 1, ipfsAddrStr, false)
+	devnet := tests.LaunchDevnetDocker(t, 1, 300, ipfsAddrStr, false)
 	devnetAddr := util.MustParseAddr("/ip4/127.0.0.1/tcp/" + devnet.GetPort("7777/tcp"))
 
 	grpcMaddr := util.MustParseAddr(grpcHostAddress)
