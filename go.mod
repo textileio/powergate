@@ -36,8 +36,8 @@ require (
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/json-iterator/go v1.1.10 // indirect
-	github.com/libp2p/go-libp2p v0.12.0
-	github.com/libp2p/go-libp2p-core v0.7.0
+	github.com/libp2p/go-libp2p v0.13.0
+	github.com/libp2p/go-libp2p-core v0.8.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/mattn/go-runewidth v0.0.10
