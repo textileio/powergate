@@ -59,7 +59,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/textileio/dsutils v1.0.1
 	github.com/textileio/go-ds-mongo v0.1.4
-	go.opencensus.io v0.22.6
+	go.opencensus.io v0.23.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	google.golang.org/grpc v1.35.0
 	google.golang.org/protobuf v1.25.0
