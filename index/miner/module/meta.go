@@ -3,13 +3,13 @@ package module
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/v2/index/miner"
 	"github.com/textileio/powergate/v2/iplocation"
 	"github.com/textileio/powergate/v2/lotus"
@@ -19,22 +19,47 @@ import (
 
 var (
 	metaRefreshInterval = time.Hour * 6
-	pingTimeout         = time.Second * 5
-	pingRateLim         = 1
+	metaRateLim         = 1
 )
 
 var (
 	dsKeyMetaIndex = dsBase.ChildString("meta")
 )
 
-func (mi *Index) startMetaWorker(disabled bool) {
+func (mi *Index) startMetaWorker(runOnStart bool) {
 	mi.wg.Add(1)
+
+	startRun := make(chan struct{}, 1)
+
+	if runOnStart {
+		startRun <- struct{}{}
+	}
+
+	tickMetaIndex := func() {
+		log.Info("updating meta index...")
+		// ToDo: coud have smarter ways of electing which addrs to refresh, and then
+		// doing a merge. Will depend if this too slow, but might not be the case
+		mi.lock.Lock()
+		addrs := make([]string, 0, len(mi.index.OnChain.Miners))
+		for addr, miner := range mi.index.OnChain.Miners {
+			if miner.Power > 0 {
+				addrs = append(addrs, addr)
+			}
+		}
+		mi.lock.Unlock()
+		newIndex := updateMetaIndex(mi.ctx, mi.clientBuilder, mi.h, mi.lr, addrs)
+		if err := mi.persistMetaIndex(newIndex); err != nil {
+			log.Errorf("persisting meta index: %s", err)
+		}
+		mi.lock.Lock()
+		mi.index.Meta = newIndex
+		mi.lock.Unlock()
+		mi.signaler.Signal() // ToDo: consider a finer-grained signaling
+		log.Info("meta index updated")
+	}
+
 	go func() {
 		defer mi.wg.Done()
-		if disabled {
-			log.Infof("meta index worker disabled")
-			return
-		}
 
 		for {
 			select {
@@ -42,26 +67,9 @@ func (mi *Index) startMetaWorker(disabled bool) {
 				log.Info("graceful shutdown of meta updater")
 				return
 			case <-time.After(metaRefreshInterval):
-				log.Info("updating meta index...")
-				// ToDo: coud have smarter ways of electing which addrs to refresh, and then
-				// doing a merge. Will depend if this too slow, but might not be the case
-				mi.lock.Lock()
-				addrs := make([]string, 0, len(mi.index.OnChain.Miners))
-				for addr, miner := range mi.index.OnChain.Miners {
-					if miner.Power > 0 {
-						addrs = append(addrs, addr)
-					}
-				}
-				mi.lock.Unlock()
-				newIndex := updateMetaIndex(mi.ctx, mi.clientBuilder, mi.h, mi.lr, addrs)
-				if err := mi.persistMetaIndex(newIndex); err != nil {
-					log.Errorf("persisting meta index: %s", err)
-				}
-				mi.lock.Lock()
-				mi.index.Meta = newIndex
-				mi.lock.Unlock()
-				mi.signaler.Signal() // ToDo: consider a finer-grained signaling
-				log.Info("meta index updated")
+				tickMetaIndex()
+			case <-startRun:
+				tickMetaIndex()
 			}
 		}
 	}()
@@ -79,7 +87,7 @@ func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P
 	index := miner.MetaIndex{
 		Info: make(map[string]miner.Meta),
 	}
-	rl := make(chan struct{}, pingRateLim)
+	rl := make(chan struct{}, metaRateLim)
 	var lock sync.Mutex
 	for i, a := range addrs {
 		if ctx.Err() != nil {
@@ -102,21 +110,12 @@ func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P
 			stats.Record(context.Background(), mMetaRefreshProgress.M(float64(i)/float64(len(addrs))))
 		}
 	}
-	for i := 0; i < pingRateLim; i++ {
+	for i := 0; i < metaRateLim; i++ {
 		rl <- struct{}{}
 	}
-	for _, v := range index.Info {
-		if v.Online {
-			index.Online++
-		}
-	}
-	index.Offline = uint32(len(addrs)) - index.Online
 
 	stats.Record(context.Background(), mMetaRefreshProgress.M(1))
 	ctx, _ = tag.New(context.Background(), tag.Insert(metricOnline, "online"))
-	stats.Record(ctx, mMetaPingCount.M(int64(index.Online)))
-	ctx, _ = tag.New(context.Background(), tag.Insert(metricOnline, "offline"))
-	stats.Record(ctx, mMetaPingCount.M(int64(index.Offline)))
 
 	return index
 }
@@ -147,25 +146,28 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 		return si, err
 	}
 	mi, err := c.StateMinerInfo(ctx, addr, types.EmptyTSK)
-	if err != nil || mi.PeerId == nil {
+	if err != nil {
 		return si, err
 	}
-	ctx, cancel := context.WithTimeout(ctx, pingTimeout)
-	defer cancel()
-	if alive := h.Ping(ctx, *mi.PeerId); !alive {
-		return si, fmt.Errorf("peer didn't pong")
-	}
-	si.Online = true
 
-	if av := h.GetAgentVersion(*mi.PeerId); av != "" {
-		si.UserAgent = av
+	if mi.PeerId != nil {
+		if av := h.GetAgentVersion(*mi.PeerId); av != "" {
+			si.UserAgent = av
+		}
 	}
 
-	addrs := h.Addrs(*mi.PeerId)
-	if len(addrs) == 0 {
+	if len(mi.Multiaddrs) == 0 {
 		return si, nil
 	}
-	if l, err := lr.Resolve(addrs); err == nil {
+	var maddrs []multiaddr.Multiaddr
+	for _, ma := range mi.Multiaddrs {
+		pma, err := multiaddr.NewMultiaddrBytes(ma)
+		if err != nil {
+			continue
+		}
+		maddrs = append(maddrs, pma)
+	}
+	if l, err := lr.Resolve(maddrs); err == nil {
 		si.Location = miner.Location{
 			Country:   l.Country,
 			Latitude:  l.Latitude,

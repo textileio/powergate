@@ -183,15 +183,13 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 
 	index := g.minerIndex.Get()
 
-	metaSubtitle := fmt.Sprintf("%v miners online, %v miners offline", index.Meta.Online, index.Meta.Offline)
-	metaHeaders := []string{"Miner", "Location", "Online", "User Agent", "Updated"}
+	metaHeaders := []string{"Miner", "Location", "User Agent", "Updated"}
 	metaRows := make([][]interface{}, len(index.Meta.Info))
 	i := 0
 	for id, meta := range index.Meta.Info {
 		metaRows[i] = []interface{}{
 			id,
 			meta.Location.Country,
-			meta.Online,
 			meta.UserAgent,
 			timeToString(meta.LastUpdated),
 		}
@@ -199,7 +197,7 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 	}
 
 	chainSubtitle := fmt.Sprintf("Last updated %v", timeToString(epochToTime(index.OnChain.LastUpdated)))
-	chainHeaders := []string{"Miner", "Power", "RelativePower", "SectorSize"}
+	chainHeaders := []string{"Miner", "Power", "RelativePower", "SectorSize", "SectorsActive", "SectorsLive", "SectorsFaulty"}
 	var chainRows [][]interface{}
 	i = 0
 	for id, onchainData := range index.OnChain.Miners {
@@ -211,6 +209,9 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 			onchainData.Power,
 			onchainData.RelativePower,
 			onchainData.SectorSize,
+			onchainData.SectorsActive,
+			onchainData.SectorsLive,
+			onchainData.SectorsFaulty,
 		})
 		i++
 	}
@@ -224,10 +225,9 @@ func (g *Gateway) minersHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "/public/html/miners.gohtml", gin.H{
 		"MenuItems": menuItems,
 		"MetaData": gin.H{
-			"Title":    "Miner Metadata",
-			"Subtitle": metaSubtitle,
-			"Headers":  metaHeaders,
-			"Rows":     metaRows,
+			"Title":   "Miner Metadata",
+			"Headers": metaHeaders,
+			"Rows":    metaRows,
 		},
 		"ChainData": gin.H{
 			"Title":    "Miner On-Chain Data",

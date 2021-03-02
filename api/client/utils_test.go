@@ -60,6 +60,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 		AskIndexRefreshInterval:     time.Second * 3,
 		AskIndexRefreshOnStart:      true,
 		AskindexMaxParallel:         2,
+		IndexMinersRefreshOnStart:   false,
 	}
 	return conf
 }

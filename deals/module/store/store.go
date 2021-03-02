@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -257,8 +258,11 @@ func (s *Store) GetUpdatedStorageDealRecordsSince(since time.Time, limit int) ([
 
 		recordKey := datastore.RawKey(string(r.Value))
 		buf, err := s.ds.Get(recordKey)
+		if err == datastore.ErrNotFound && strings.HasPrefix(string(r.Value), dsBaseStoragePending.String()) {
+			continue
+		}
 		if err != nil {
-			return nil, fmt.Errorf("get updated storage deal record from store: %s", err)
+			return nil, fmt.Errorf("get updated storage deal record from store %s: %s", r.Value, err)
 		}
 		var sr deals.StorageDealRecord
 		if err := json.Unmarshal(buf, &sr); err != nil {

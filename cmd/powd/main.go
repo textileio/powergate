@@ -138,6 +138,7 @@ func configFromFlags() (server.Config, error) {
 	askIndexRefreshInterval := time.Minute * time.Duration(config.GetInt("askindexrefreshinterval"))
 	askIndexRefreshOnStart := config.GetBool("askindexrefreshonstart")
 	askIndexMaxParallel := config.GetInt("askindexmaxparallel")
+	indexMinersRefreshOnStart := config.GetBool("indexminersrefreshonstart")
 	disableIndices := config.GetBool("disableindices")
 	disableNonCompliantAPIs := config.GetBool("disablenoncompliantapis")
 
@@ -182,6 +183,8 @@ func configFromFlags() (server.Config, error) {
 		AskIndexRefreshInterval: askIndexRefreshInterval,
 		AskIndexRefreshOnStart:  askIndexRefreshOnStart,
 		AskindexMaxParallel:     askIndexMaxParallel,
+
+		IndexMinersRefreshOnStart: indexMinersRefreshOnStart,
 
 		DisableIndices: disableIndices,
 
@@ -382,7 +385,7 @@ func setupFlags() error {
 	pflag.String("ffsadmintoken", "", "FFS admin token for authorized APIs. If empty, the APIs will be open to the public.")
 	pflag.Bool("ffsusemasteraddr", false, "Use the master address as the initial address for all new FFS instances instead of creating a new unique addess for each new FFS instance.")
 	pflag.String("ffsminerselector", "reputation", "Miner selector to be used by FFS: 'sr2', 'reputation'.")
-	pflag.String("ffsminerselectorparams", "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json", "Miner selector configuration parameter, depends on --ffsminerselector.")
+	pflag.String("ffsminerselectorparams", "", "Miner selector configuration parameter, depends on --ffsminerselector.")
 	pflag.String("ffsminimumpiecesize", "67108864", "Minimum piece size in bytes allowed to be stored in Filecoin.")
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel.")
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned.")
@@ -395,6 +398,8 @@ func setupFlags() error {
 	pflag.String("askindexrefreshinterval", "360", "Refresh interval measured in minutes.")
 	pflag.Bool("askindexrefreshonstart", false, "If true it will refresh the index on start.")
 	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index.")
+
+	pflag.Bool("indexminersrefreshonstart", false, "If true it will refresh the miner's on start.")
 
 	pflag.Bool("disableindices", false, "Disable all indices updates, useful to help Lotus syncing process.")
 	pflag.Bool("disablenoncompliantapis", false, "Disable APIs that may not easily comply with US law.")

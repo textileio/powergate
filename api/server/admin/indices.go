@@ -40,6 +40,12 @@ func (s *Service) GetMinerInfo(ctx context.Context, req *adminPb.GetMinerInfoReq
 			continue
 		}
 
+		var minerLocation string
+		meta, ok := mi.Meta.Info[minerAddr]
+		if ok {
+			minerLocation = meta.Location.Country
+		}
+
 		lastAsk := ai.Storage[minerAddr]
 		res.MinersInfo = append(res.MinersInfo, &adminPb.MinerInfo{
 			Address:          minerAddr,
@@ -49,6 +55,10 @@ func (s *Service) GetMinerInfo(ctx context.Context, req *adminPb.GetMinerInfoReq
 			MinPieceSize:     lastAsk.MinPieceSize,
 			RelativePower:    onchain.RelativePower,
 			SectorSize:       onchain.SectorSize,
+			SectorsLive:      onchain.SectorsLive,
+			SectorsFaulty:    onchain.SectorsFaulty,
+			SectorsActive:    onchain.SectorsActive,
+			Location:         minerLocation,
 		})
 	}
 

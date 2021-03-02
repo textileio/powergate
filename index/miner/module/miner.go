@@ -55,7 +55,7 @@ type Index struct {
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, disable bool) (*Index, error) {
+func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, runOnStart, disable bool) (*Index, error) {
 	cs := chainsync.New(clientBuilder)
 	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
 	if err != nil {
@@ -78,8 +78,10 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost
 		return nil, err
 	}
 
-	mi.startMinerWorker(disable)
-	mi.startMetaWorker(disable)
+	if !disable {
+		mi.startMinerWorker(runOnStart)
+		mi.startMetaWorker(runOnStart)
+	}
 	return mi, nil
 }
 
@@ -89,9 +91,7 @@ func (mi *Index) Get() miner.IndexSnapshot {
 	defer mi.lock.Unlock()
 	ii := miner.IndexSnapshot{
 		Meta: miner.MetaIndex{
-			Online:  mi.index.Meta.Online,
-			Offline: mi.index.Meta.Offline,
-			Info:    make(map[string]miner.Meta, len(mi.index.Meta.Info)),
+			Info: make(map[string]miner.Meta, len(mi.index.Meta.Info)),
 		},
 		OnChain: miner.ChainIndex{
 			LastUpdated: mi.index.OnChain.LastUpdated,
@@ -135,14 +135,16 @@ func (mi *Index) Close() error {
 	return nil
 }
 
-func (mi *Index) startMinerWorker(disabled bool) {
+func (mi *Index) startMinerWorker(runOnStart bool) {
 	mi.wg.Add(1)
 	go func() {
 		defer mi.wg.Done()
-		if disabled {
-			log.Infof("miners index worker disabled")
-			return
+
+		startRun := make(chan struct{}, 1)
+		if runOnStart {
+			startRun <- struct{}{}
 		}
+
 		if err := mi.updateOnChainIndex(); err != nil {
 			log.Errorf("initial updating miner index: %s", err)
 		}
@@ -154,6 +156,10 @@ func (mi *Index) startMinerWorker(disabled bool) {
 			case <-time.After(minersRefreshInterval):
 				if err := mi.updateOnChainIndex(); err != nil {
 					log.Errorf("updating miner index: %s", err)
+				}
+			case <-startRun:
+				if err := mi.updateOnChainIndex(); err != nil {
+					log.Errorf("updating miner index on first-run: %s", err)
 				}
 			}
 		}

@@ -13,10 +13,10 @@ require (
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/filecoin-project/go-address v0.0.5
 	github.com/filecoin-project/go-data-transfer v1.2.7
-	github.com/filecoin-project/go-fil-markets v1.1.7
+	github.com/filecoin-project/go-fil-markets v1.1.9
 	github.com/filecoin-project/go-jsonrpc v0.1.4-0.20210217175800-45ea43ac2bec
-	github.com/filecoin-project/go-state-types v0.0.0-20210119062722-4adba5aaea71
-	github.com/filecoin-project/lotus v1.4.2
+	github.com/filecoin-project/go-state-types v0.1.0
+	github.com/filecoin-project/lotus v1.5.0
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
@@ -47,13 +47,13 @@ require (
 	github.com/multiformats/go-multiaddr-dns v0.2.0
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
-	github.com/olekukonko/tablewriter v0.0.4
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/dockertest/v3 v3.6.3
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/otiai10/copy v1.4.2
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
 	github.com/rs/cors v1.7.0
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0

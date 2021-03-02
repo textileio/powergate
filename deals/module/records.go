@@ -293,10 +293,10 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				return
 			}
 
+			dr.DealInfo = info
 			switch info.StateID {
 			// Final status (`return`)
 			case sm.StorageDealActive:
-				dr.DealInfo = info
 				dr.Pending = false
 				if dr.SealingStart > 0 && dr.SealingEnd == 0 {
 					dr.SealingEnd = time.Now().Unix()

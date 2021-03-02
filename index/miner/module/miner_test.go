@@ -28,7 +28,7 @@ func TestFullRefresh(t *testing.T) {
 	client, _, miners := tests.CreateLocalDevnet(t, 1, 300)
 	time.Sleep(time.Second * 15) // Allow the network to some tipsets
 
-	mi, err := New(tests.NewTxMapDatastore(), client, &p2pHostMock{}, &lrMock{}, false)
+	mi, err := New(tests.NewTxMapDatastore(), client, &p2pHostMock{}, &lrMock{}, false, false)
 	require.NoError(t, err)
 
 	l := mi.Listen()
@@ -44,7 +44,6 @@ func TestFullRefresh(t *testing.T) {
 	index := mi.Get()
 	require.Greater(t, index.OnChain.LastUpdated, int64(0))
 	require.Equal(t, len(miners), len(index.OnChain.Miners))
-	require.True(t, index.Meta.Online == uint32(len(miners)) && index.Meta.Offline == 0)
 	for _, m := range miners {
 		chainInfo, ok := index.OnChain.Miners[m.String()]
 		require.True(t, ok)
@@ -54,7 +53,7 @@ func TestFullRefresh(t *testing.T) {
 		require.True(t, ok)
 
 		emptyTime := time.Time{}
-		require.False(t, metaInfo.LastUpdated == emptyTime || metaInfo.UserAgent == "" || !metaInfo.Online)
+		require.False(t, metaInfo.LastUpdated == emptyTime || metaInfo.UserAgent == "")
 	}
 }
 
@@ -70,7 +69,7 @@ func TestIntegration(t *testing.T) {
 	cb, err := lotus.NewBuilder(lotusHost, lotusToken, 1)
 	require.NoError(t, err)
 
-	mi, err := New(tests.NewTxMapDatastore(), cb, &p2pHostMock{}, &lrMock{}, false)
+	mi, err := New(tests.NewTxMapDatastore(), cb, &p2pHostMock{}, &lrMock{}, false, false)
 	require.NoError(t, err)
 
 	<-time.After(time.Second * 15)
