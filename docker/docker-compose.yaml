@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 volumes:
   powergate-powd:
@@ -6,7 +6,6 @@ volumes:
   powergate-lotus:
 
 services:
-  
   powergate:
     ports:
       - 8889:8889
@@ -19,7 +18,7 @@ services:
       - ipfs
       - lotus
     environment:
-      - POWD_LOTUSHOST=/dns4/lotus/tcp/1234
+      - POWD_LOTUSHOST=lotus:1234
       - POWD_IPFSAPIADDR=/dns4/ipfs/tcp/5001
       - POWD_LOTUSTOKENFILE=/root/lotus/.lotus/token
       - POWD_REPOPATH=/root/powergate/.powergate
@@ -27,7 +26,7 @@ services:
     volumes:
       - powergate-powd:/root/powergate
       - powergate-lotus:/root/lotus
-  
+
   lotus:
     image: textile/lotus:${LOTUS_IMAGE_TAG}
     volumes:
@@ -47,17 +46,17 @@ services:
       - 5001:5001
     volumes:
       - powergate-ipfs:/data/ipfs
-    restart: unless-stopped    
-    
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus:v2.1.0
     volumes:
       - ./prometheus/:/etc/prometheus/
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
     ports:
       - 9090:9090
     depends_on:
@@ -72,7 +71,7 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     command:
-       - '--port=8082'
+      - "--port=8082"
     ports:
       - 8082:8082
     restart: unless-stopped
@@ -89,4 +88,3 @@ services:
     env_file:
       - ./grafana/config.monitoring
     restart: unless-stopped
-

@@ -32,7 +32,7 @@ func defaultServerConfig(t *testing.T) server.Config {
 	ipfsAddr := util.MustParseAddr(ipfsAddrStr)
 
 	devnet := tests.LaunchDevnetDocker(t, 1, 300, ipfsAddrStr, false)
-	devnetAddr := "127.0.0.1/tcp/" + devnet.GetPort("7777/tcp")
+	devnetAddr := "127.0.0.1:" + devnet.GetPort("7777/tcp")
 
 	grpcMaddr := util.MustParseAddr(grpcHostAddress)
 	conf := server.Config{

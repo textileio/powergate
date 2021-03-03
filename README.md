@@ -167,7 +167,7 @@ Usage of powd:
       --grpchostaddr string              gRPC host listening address. (default "/ip4/0.0.0.0/tcp/5002")
       --grpcwebproxyaddr string          gRPC webproxy listening address. (default "0.0.0.0:6002")
       --ipfsapiaddr string               IPFS API endpoint multiaddress. (Optional, only needed if FFS is used) (default "/ip4/127.0.0.1/tcp/5001")
-      --lotushost string                 Lotus client API endpoint multiaddress. (default "/ip4/127.0.0.1/tcp/1234")
+      --lotushost string                 Lotus client API endpoint address. (default "127.0.0.1:1234")
       --lotusmasteraddr string           Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)
       --lotustoken string                Lotus API authorization token. This flag or --lotustoken file are mandatory.
       --lotustokenfile string            Path of a file that contains the Lotus API authorization token.
