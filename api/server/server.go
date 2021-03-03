@@ -109,7 +109,7 @@ type Config struct {
 	Devnet          bool
 	IpfsAPIAddr     ma.Multiaddr
 
-	LotusAddress           ma.Multiaddr
+	LotusAddress           string
 	LotusAuthToken         string
 	LotusMasterAddr        string
 	LotusConnectionRetries int

@@ -106,10 +106,7 @@ func configFromFlags() (server.Config, error) {
 		return server.Config{}, fmt.Errorf("parsing grpchostaddr: %s", err)
 	}
 
-	lotusHost, err := ma.NewMultiaddr(config.GetString("lotushost"))
-	if err != nil {
-		return server.Config{}, fmt.Errorf("parsing lotus api multiaddr: %s", err)
-	}
+	lotusHost := config.GetString("lotushost")
 
 	walletInitialFunds := *big.NewInt(config.GetInt64("walletinitialfund"))
 	ipfsAPIAddr := util.MustParseAddr(config.GetString("ipfsapiaddr"))
@@ -365,7 +362,7 @@ func setupFlags() error {
 	pflag.String("grpcwebproxyaddr", "0.0.0.0:6002", "gRPC webproxy listening address.")
 	pflag.String("indexrawjsonhostaddr", "0.0.0.0:8889", "Indexes raw json output listening address")
 
-	pflag.String("lotushost", "/ip4/127.0.0.1/tcp/1234", "Lotus client API endpoint multiaddress.")
+	pflag.String("lotushost", "127.0.0.1:1234", "Lotus client API endpoint address.")
 	pflag.String("lotustoken", "", "Lotus API authorization token. This flag or --lotustoken file are mandatory.")
 	pflag.String("lotustokenfile", "", "Path of a file that contains the Lotus API authorization token.")
 	pflag.String("lotusmasteraddr", "", "Existing wallet address in Lotus to be used as source of funding for new FFS instances. (Optional)")
