@@ -20,7 +20,7 @@ import (
 	gincors "github.com/rs/cors/wrapper/gin"
 	askRunner "github.com/textileio/powergate/v2/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/v2/index/faults/module"
-	minerModule "github.com/textileio/powergate/v2/index/miner/module"
+	minerModule "github.com/textileio/powergate/v2/index/miner/lotusidx"
 	"github.com/textileio/powergate/v2/reputation"
 )
 

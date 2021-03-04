@@ -1,4 +1,4 @@
-package module
+package lotusidx
 
 import (
 	"context"
