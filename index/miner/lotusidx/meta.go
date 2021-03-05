@@ -2,7 +2,6 @@ package lotusidx
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 	"time"
 
@@ -20,10 +19,6 @@ import (
 var (
 	metaRefreshInterval = time.Hour * 6
 	metaRateLim         = 1
-)
-
-var (
-	dsKeyMetaIndex = dsBase.ChildString("meta")
 )
 
 func (mi *Index) startMetaWorker(runOnStart bool) {
@@ -47,8 +42,8 @@ func (mi *Index) startMetaWorker(runOnStart bool) {
 			}
 		}
 		mi.lock.Unlock()
-		newIndex := updateMetaIndex(mi.ctx, mi.clientBuilder, mi.h, mi.lr, addrs)
-		if err := mi.persistMetaIndex(newIndex); err != nil {
+		newIndex := updateMetaIndex(mi.ctx, mi.cb, mi.h, mi.lr, addrs)
+		if err := mi.store.SaveMetadata(newIndex); err != nil {
 			log.Errorf("persisting meta index: %s", err)
 		}
 		mi.lock.Lock()
@@ -175,16 +170,4 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 		}
 	}
 	return si, nil
-}
-
-// persisteMetaIndex saves to datastore a new MetaIndex.
-func (mi *Index) persistMetaIndex(index miner.MetaIndex) error {
-	buf, err := json.Marshal(index)
-	if err != nil {
-		return err
-	}
-	if err := mi.ds.Put(dsKeyMetaIndex, buf); err != nil {
-		return err
-	}
-	return nil
 }

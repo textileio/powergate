@@ -13,11 +13,11 @@ type IndexSnapshot struct {
 // ChainIndex contains on-chain information about miners.
 type ChainIndex struct {
 	LastUpdated int64
-	Miners      map[string]OnChainData
+	Miners      map[string]OnChainMinerData
 }
 
-// OnChainData contains on-chain data about a miner.
-type OnChainData struct {
+// OnChainMinerData contains on-chain data about a miner.
+type OnChainMinerData struct {
 	Power         uint64
 	RelativePower float64
 	SectorSize    uint64

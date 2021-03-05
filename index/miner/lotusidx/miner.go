@@ -2,28 +2,25 @@ package lotusidx
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/ipfs/go-datastore"
+	kt "github.com/ipfs/go-datastore/keytransform"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	"github.com/textileio/powergate/v2/chainstore"
-	"github.com/textileio/powergate/v2/chainsync"
 	"github.com/textileio/powergate/v2/index/miner"
+	"github.com/textileio/powergate/v2/index/miner/lotusidx/store"
 	"github.com/textileio/powergate/v2/iplocation"
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/signaler"
-	txndstr "github.com/textileio/powergate/v2/txndstransform"
 )
 
 var (
 	minersRefreshInterval = time.Hour * 6
-	maxParallelism        = 1
-	dsBase                = datastore.NewKey("index")
+	maxParallelism        = 20
 
 	log = logging.Logger("index-miner")
 )
@@ -37,12 +34,11 @@ type P2PHost interface {
 
 // Index builds and provides information about FC miners.
 type Index struct {
-	clientBuilder lotus.ClientBuilder
-	ds            datastore.TxnDatastore
-	store         *chainstore.Store
-	h             P2PHost
-	lr            iplocation.LocationResolver
-	signaler      *signaler.Signaler
+	cb       lotus.ClientBuilder
+	store    *store.Store
+	h        P2PHost
+	lr       iplocation.LocationResolver
+	signaler *signaler.Signaler
 
 	lock  sync.Mutex
 	index miner.IndexSnapshot
@@ -55,27 +51,34 @@ type Index struct {
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, runOnStart, disable bool) (*Index, error) {
-	cs := chainsync.New(clientBuilder)
-	store, err := chainstore.New(txndstr.Wrap(ds, "chainstore"), cs)
-	if err != nil {
-		return nil, err
-	}
+func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, runOnStart, disable bool) (*Index, error) {
 	initMetrics()
+
+	store, err := store.New(kt.Wrap(ds, kt.PrefixTransform{Prefix: datastore.NewKey("store")}))
+	if err != nil {
+		return nil, fmt.Errorf("creating store: %s", err)
+	}
+
+	savedIndex, err := store.GetIndex()
+	if err != nil {
+		return nil, fmt.Errorf("loading saved index: %s", err)
+	}
+	log.Warnf("Lets see: %T", ds)
+	if err := store.SaveOnChain(context.Background(), savedIndex.OnChain); err != nil {
+		log.Error(err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	mi := &Index{
-		clientBuilder: clientBuilder,
-		ds:            ds,
-		store:         store,
-		signaler:      signaler.New(),
-		h:             h,
-		lr:            lr,
+		cb:       clientBuilder,
+		store:    store,
+		signaler: signaler.New(),
+		h:        h,
+		lr:       lr,
+		index:    savedIndex,
 
 		ctx:    ctx,
 		cancel: cancel,
-	}
-	if err := mi.loadFromDS(); err != nil {
-		return nil, err
 	}
 
 	if !disable {
@@ -95,7 +98,7 @@ func (mi *Index) Get() miner.IndexSnapshot {
 		},
 		OnChain: miner.ChainIndex{
 			LastUpdated: mi.index.OnChain.LastUpdated,
-			Miners:      make(map[string]miner.OnChainData, len(mi.index.OnChain.Miners)),
+			Miners:      make(map[string]miner.OnChainMinerData, len(mi.index.OnChain.Miners)),
 		},
 	}
 	for addr, v := range mi.index.Meta.Info {
@@ -145,52 +148,20 @@ func (mi *Index) startMinerWorker(runOnStart bool) {
 			startRun <- struct{}{}
 		}
 
-		if err := mi.updateOnChainIndex(); err != nil {
-			log.Errorf("initial updating miner index: %s", err)
-		}
 		for {
 			select {
 			case <-mi.ctx.Done():
 				log.Info("graceful shutdown of background miner index")
 				return
 			case <-time.After(minersRefreshInterval):
-				if err := mi.updateOnChainIndex(); err != nil {
+				if err := mi.updateOnChainIndex(mi.ctx); err != nil {
 					log.Errorf("updating miner index: %s", err)
 				}
 			case <-startRun:
-				if err := mi.updateOnChainIndex(); err != nil {
+				if err := mi.updateOnChainIndex(mi.ctx); err != nil {
 					log.Errorf("updating miner index on first-run: %s", err)
 				}
 			}
 		}
 	}()
-}
-
-// loadFromDS loads persisted indexes to memory datastructures. No locks needed
-// since its only called from New().
-func (mi *Index) loadFromDS() error {
-	mi.index = miner.IndexSnapshot{
-		Meta:    miner.MetaIndex{Info: make(map[string]miner.Meta)},
-		OnChain: miner.ChainIndex{Miners: make(map[string]miner.OnChainData)},
-	}
-	buf, err := mi.ds.Get(dsKeyMetaIndex)
-	if err != nil && err != datastore.ErrNotFound {
-		return fmt.Errorf("getting metadata key value: %s", err)
-	}
-	if err == nil {
-		var metaIndex miner.MetaIndex
-		if err := json.Unmarshal(buf, &metaIndex); err != nil {
-			log.Warnf("wrong json?: %s", string(buf))
-			return fmt.Errorf("unmarshaling meta index: %s", err)
-		}
-		mi.index.Meta = metaIndex
-	}
-
-	var chainIndex miner.ChainIndex
-	if _, err := mi.store.GetLastCheckpoint(&chainIndex); err != nil {
-		return fmt.Errorf("getting last checkpoint: %s", err)
-	}
-	mi.index.OnChain = chainIndex
-
-	return nil
 }
