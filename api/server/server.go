@@ -45,7 +45,7 @@ import (
 	"github.com/textileio/powergate/v2/gateway"
 	ask "github.com/textileio/powergate/v2/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/v2/index/faults/module"
-	minerModule "github.com/textileio/powergate/v2/index/miner/lotusidx"
+	minerIndex "github.com/textileio/powergate/v2/index/miner/lotusidx"
 	"github.com/textileio/powergate/v2/iplocation/maxmind"
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/migration"
@@ -85,7 +85,7 @@ type Server struct {
 
 	mm *maxmind.MaxMind
 	ai *ask.Runner
-	mi *minerModule.Index
+	mi *minerIndex.Index
 	fi *faultsModule.Index
 	dm *dealsModule.Module
 	wm *lotusWallet.Module
@@ -148,7 +148,9 @@ type Config struct {
 	AskIndexRefreshInterval time.Duration
 	AskIndexRefreshOnStart  bool
 
-	IndexMinersRefreshOnStart bool
+	IndexMinersRefreshOnStart     bool
+	IndexMinersOnChainMaxParallel int
+	IndexMinersOnChainFrequency   time.Duration
 
 	DisableIndices bool
 
@@ -216,18 +218,25 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
 	}
-	askConf := ask.Config{
+	askIdxConf := ask.Config{
 		Disable:         conf.DisableIndices,
 		QueryAskTimeout: conf.AskIndexQueryAskTimeout,
 		MaxParallel:     conf.AskindexMaxParallel,
 		RefreshInterval: conf.AskIndexRefreshInterval,
 		RefreshOnStart:  conf.Devnet || conf.AskIndexRefreshOnStart,
 	}
-	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder, askConf)
+	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder, askIdxConf)
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := minerModule.New(kt.Wrap(ds, kt.PrefixTransform{Prefix: datastore.NewKey("index/miner")}), clientBuilder, fchost, mm, conf.IndexMinersRefreshOnStart, conf.DisableIndices)
+
+	minerIdxConf := minerIndex.Config{
+		RefreshOnStart:     conf.IndexMinersRefreshOnStart,
+		Disable:            conf.DisableIndices,
+		OnChainMaxParallel: conf.IndexMinersOnChainMaxParallel,
+		OnChainFrequency:   conf.IndexMinersOnChainFrequency,
+	}
+	mi, err := minerIndex.New(kt.Wrap(ds, kt.PrefixTransform{Prefix: datastore.NewKey("index/miner")}), clientBuilder, fchost, mm, minerIdxConf)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}

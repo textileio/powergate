@@ -58,7 +58,7 @@ func (mi *Index) updateOnChainIndex(ctx context.Context) error {
 // updateForAddrs updates chainIndex information for a particular set of addrs.
 func (mi *Index) updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *miner.ChainIndex, addrs []address.Address) error {
 	var l sync.Mutex
-	rl := make(chan struct{}, maxParallelism)
+	rl := make(chan struct{}, mi.conf.OnChainMaxParallel)
 	for i, a := range addrs {
 		if ctx.Err() != nil {
 			return fmt.Errorf("update on-chain index canceled")
@@ -82,7 +82,7 @@ func (mi *Index) updateForAddrs(ctx context.Context, api *apistruct.FullNodeStru
 		mi.onchainProgress = float64(i) / float64(len(addrs))
 		mi.metricLock.Unlock()
 	}
-	for i := 0; i < maxParallelism; i++ {
+	for i := 0; i < mi.conf.OnChainMaxParallel; i++ {
 		rl <- struct{}{}
 	}
 	mi.metricLock.Lock()

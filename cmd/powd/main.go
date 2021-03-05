@@ -137,6 +137,8 @@ func configFromFlags() (server.Config, error) {
 	askIndexRefreshOnStart := config.GetBool("askindexrefreshonstart")
 	askIndexMaxParallel := config.GetInt("askindexmaxparallel")
 	indexMinersRefreshOnStart := config.GetBool("indexminersrefreshonstart")
+	indexMinersOnChainMaxParallel := config.GetInt("indexminersonchainmaxparallel")
+	indexMinersOnChainFrequency := config.GetDuration("indexminersonchainfrequency")
 	disableIndices := config.GetBool("disableindices")
 	disableNonCompliantAPIs := config.GetBool("disablenoncompliantapis")
 
@@ -183,7 +185,9 @@ func configFromFlags() (server.Config, error) {
 		AskIndexRefreshOnStart:  askIndexRefreshOnStart,
 		AskindexMaxParallel:     askIndexMaxParallel,
 
-		IndexMinersRefreshOnStart: indexMinersRefreshOnStart,
+		IndexMinersRefreshOnStart:     indexMinersRefreshOnStart,
+		IndexMinersOnChainMaxParallel: indexMinersOnChainMaxParallel,
+		IndexMinersOnChainFrequency:   indexMinersOnChainFrequency,
 
 		DisableIndices: disableIndices,
 
@@ -380,6 +384,8 @@ func setupFlags() error {
 	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index.")
 
 	pflag.Bool("indexminersrefreshonstart", false, "If true it will refresh the miner's on start.")
+	pflag.Int64("indexminersonchainmaxparallel", 20, "Max parallelization for building on-chain sub-index")
+	pflag.Duration("indexminersonchainfrequency", time.Hour*6, "Frequency of updating on-chain sub-index")
 
 	pflag.Bool("disableindices", false, "Disable all indices updates, useful to help Lotus syncing process.")
 	pflag.Bool("disablenoncompliantapis", false, "Disable APIs that may not easily comply with US law.")

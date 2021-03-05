@@ -20,12 +20,12 @@ var (
 	metaRateLim         = 1
 )
 
-func (mi *Index) startMetaWorker(runOnStart bool) {
+func (mi *Index) startMetaWorker() {
 	mi.wg.Add(1)
 
 	startRun := make(chan struct{}, 1)
 
-	if runOnStart {
+	if mi.conf.RefreshOnStart {
 		startRun <- struct{}{}
 	}
 

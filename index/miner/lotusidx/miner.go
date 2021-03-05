@@ -20,9 +20,6 @@ import (
 )
 
 var (
-	minersRefreshInterval = time.Hour * 6
-	maxParallelism        = 20
-
 	log = logging.Logger("index-miner")
 )
 
@@ -40,6 +37,7 @@ type Index struct {
 	h        P2PHost
 	lr       iplocation.LocationResolver
 	signaler *signaler.Signaler
+	conf     Config
 
 	lock  sync.Mutex
 	index miner.IndexSnapshot
@@ -56,9 +54,16 @@ type Index struct {
 	meterRefreshDuration metric.Int64ValueRecorder
 }
 
+type Config struct {
+	RefreshOnStart     bool
+	Disable            bool
+	OnChainMaxParallel int
+	OnChainFrequency   time.Duration
+}
+
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
-func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, runOnStart, disable bool) (*Index, error) {
+func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, conf Config) (*Index, error) {
 	store, err := store.New(kt.Wrap(ds, kt.PrefixTransform{Prefix: datastore.NewKey("store")}))
 	if err != nil {
 		return nil, fmt.Errorf("creating store: %s", err)
@@ -77,6 +82,7 @@ func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, l
 		h:        h,
 		lr:       lr,
 		index:    savedIndex,
+		conf:     conf,
 
 		ctx:    ctx,
 		cancel: cancel,
@@ -85,9 +91,9 @@ func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, l
 		return nil, fmt.Errorf("init metrics: %s", err)
 	}
 
-	if !disable {
-		mi.startMinerWorker(runOnStart)
-		mi.startMetaWorker(runOnStart)
+	if !conf.Disable {
+		mi.startMinerWorker()
+		mi.startMetaWorker()
 	}
 	return mi, nil
 }
@@ -142,13 +148,13 @@ func (mi *Index) Close() error {
 	return nil
 }
 
-func (mi *Index) startMinerWorker(runOnStart bool) {
+func (mi *Index) startMinerWorker() {
 	mi.wg.Add(1)
 	go func() {
 		defer mi.wg.Done()
 
 		startRun := make(chan struct{}, 1)
-		if runOnStart {
+		if mi.conf.RefreshOnStart {
 			startRun <- struct{}{}
 		}
 
@@ -157,7 +163,7 @@ func (mi *Index) startMinerWorker(runOnStart bool) {
 			case <-mi.ctx.Done():
 				log.Info("graceful shutdown of background miner index")
 				return
-			case <-time.After(minersRefreshInterval):
+			case <-time.After(mi.conf.OnChainFrequency):
 				if err := mi.updateOnChainIndex(mi.ctx); err != nil {
 					log.Errorf("updating miner index: %s", err)
 				}
