@@ -222,6 +222,7 @@ func TestRealDataBadgerFromV3(t *testing.T) {
 		2: V2StorageInfoDealIDs,
 		3: V3StorageJobsIndexMigration,
 		4: V4RecordsMigration,
+		5: V5DeleteOldMinerIndex,
 	}
 	m := New(ds, migrations)
 	err = m.Ensure()

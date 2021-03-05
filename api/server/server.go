@@ -20,6 +20,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/ipfs/go-datastore"
+	kt "github.com/ipfs/go-datastore/keytransform"
 	badger "github.com/ipfs/go-ds-badger2"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
@@ -74,6 +75,7 @@ var (
 		2: migration.V2StorageInfoDealIDs,
 		3: migration.V3StorageJobsIndexMigration,
 		4: migration.V4RecordsMigration,
+		5: migration.V5DeleteOldMinerIndex,
 	}
 )
 
@@ -225,7 +227,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm, conf.IndexMinersRefreshOnStart, conf.DisableIndices)
+	mi, err := minerModule.New(kt.Wrap(ds, kt.PrefixTransform{Prefix: datastore.NewKey("index/miner")}), clientBuilder, fchost, mm, conf.IndexMinersRefreshOnStart, conf.DisableIndices)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
