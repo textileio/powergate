@@ -100,7 +100,7 @@ func (rt *RepTop) genFromReputation(f ffs.MinerSelectorFilter, n int) ([]ffs.Min
 			if len(minerErrors) < maxMinerErrors {
 				minerErrors = append(minerErrors, err)
 			} else if len(minerErrors) == maxMinerErrors {
-				minerErrors = append(minerErrors, fmt.Errorf("..."))
+				minerErrors = append(minerErrors, fmt.Errorf("and more ... "))
 			}
 			continue // Cached miner isn't replying to query-ask now, skip.
 		}
