@@ -91,10 +91,17 @@ func (rt *RepTop) genFromReputation(f ffs.MinerSelectorFilter, n int) ([]ffs.Min
 		return nil, fmt.Errorf("not enough miners from reputation module to satisfy the constraints")
 	}
 
+	var minerErrors []error
+	maxMinerErrors := 5
 	res := make([]ffs.MinerProposal, 0, n)
 	for _, m := range ms {
 		mp, err := rt.getMinerProposal(f, m.Addr)
 		if err != nil {
+			if len(minerErrors) < maxMinerErrors {
+				minerErrors = append(minerErrors, err)
+			} else if len(minerErrors) == maxMinerErrors {
+				minerErrors = append(minerErrors, fmt.Errorf("..."))
+			}
 			continue // Cached miner isn't replying to query-ask now, skip.
 		}
 		res = append(res, mp)
@@ -103,7 +110,7 @@ func (rt *RepTop) genFromReputation(f ffs.MinerSelectorFilter, n int) ([]ffs.Min
 		}
 	}
 	if len(res) < n {
-		return nil, fmt.Errorf("not enough miners satisfy the miner selector constraints")
+		return nil, fmt.Errorf("not enough miners satisfy the miner selector constraints: %s", minerErrors)
 	}
 	return res, nil
 }
