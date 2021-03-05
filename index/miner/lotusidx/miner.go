@@ -16,6 +16,7 @@ import (
 	"github.com/textileio/powergate/v2/iplocation"
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/signaler"
+	"go.opentelemetry.io/otel/metric"
 )
 
 var (
@@ -47,13 +48,17 @@ type Index struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 	closed bool
+
+	// Meters
+	metricLock           sync.RWMutex
+	onchainProgress      float64
+	metaProgress         float64
+	meterRefreshDuration metric.Int64ValueRecorder
 }
 
 // New returns a new MinerIndex. It loads from ds any previous state and starts
 // immediately making the index up to date.
 func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, runOnStart, disable bool) (*Index, error) {
-	initMetrics()
-
 	store, err := store.New(kt.Wrap(ds, kt.PrefixTransform{Prefix: datastore.NewKey("store")}))
 	if err != nil {
 		return nil, fmt.Errorf("creating store: %s", err)
@@ -62,10 +67,6 @@ func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, l
 	savedIndex, err := store.GetIndex()
 	if err != nil {
 		return nil, fmt.Errorf("loading saved index: %s", err)
-	}
-	log.Warnf("Lets see: %T", ds)
-	if err := store.SaveOnChain(context.Background(), savedIndex.OnChain); err != nil {
-		log.Error(err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -79,6 +80,9 @@ func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, l
 
 		ctx:    ctx,
 		cancel: cancel,
+	}
+	if err := mi.initMetrics(); err != nil {
+		return nil, fmt.Errorf("init metrics: %s", err)
 	}
 
 	if !disable {

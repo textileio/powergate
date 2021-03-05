@@ -13,6 +13,7 @@ import (
 )
 
 func (mi *Index) updateOnChainIndex(ctx context.Context) error {
+	start := time.Now()
 	log.Info("updating on-chain index...")
 	defer log.Info("on-chain index updated")
 
@@ -22,17 +23,17 @@ func (mi *Index) updateOnChainIndex(ctx context.Context) error {
 	}
 	defer cls()
 
-	start := time.Now()
+	listStart := time.Now()
 	addrs, err := client.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		return fmt.Errorf("calling state-list-miners: %s", err)
 	}
-	log.Infof("listing all on-chain miners took %.2f seconds", time.Since(start).Seconds())
+	log.Infof("listing all on-chain miners took %.2f seconds", time.Since(listStart).Seconds())
 
 	newIndex := miner.ChainIndex{
 		Miners: map[string]miner.OnChainMinerData{},
 	}
-	if err := updateForAddrs(ctx, client, &newIndex, addrs); err != nil {
+	if err := mi.updateForAddrs(ctx, client, &newIndex, addrs); err != nil {
 		return fmt.Errorf("updating for addresses: %s", err)
 	}
 	chainHead, err := client.ChainHead(ctx)
@@ -49,12 +50,13 @@ func (mi *Index) updateOnChainIndex(ctx context.Context) error {
 		return fmt.Errorf("saving on-chain index to store: %s", err)
 	}
 	mi.signaler.Signal()
+	mi.meterRefreshDuration.Record(ctx, time.Since(start).Milliseconds(), onchainSubindex)
 
 	return nil
 }
 
 // updateForAddrs updates chainIndex information for a particular set of addrs.
-func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *miner.ChainIndex, addrs []address.Address) error {
+func (mi *Index) updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *miner.ChainIndex, addrs []address.Address) error {
 	var l sync.Mutex
 	rl := make(chan struct{}, maxParallelism)
 	for i, a := range addrs {
@@ -76,10 +78,16 @@ func updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainInd
 		if i%10000 == 0 {
 			log.Infof("on-chain idx progress %d/%d", i, len(addrs))
 		}
+		mi.metricLock.Lock()
+		mi.onchainProgress = float64(i) / float64(len(addrs))
+		mi.metricLock.Unlock()
 	}
 	for i := 0; i < maxParallelism; i++ {
 		rl <- struct{}{}
 	}
+	mi.metricLock.Lock()
+	mi.onchainProgress = 1
+	mi.metricLock.Unlock()
 
 	if ctx.Err() != nil {
 		return fmt.Errorf("update on-chain index canceled")

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,7 +13,6 @@ import (
 	"syscall"
 	"time"
 
-	"contrib.go.opencensus.io/exporter/prometheus"
 	logging "github.com/ipfs/go-log/v2"
 	homedir "github.com/mitchellh/go-homedir"
 	ma "github.com/multiformats/go-multiaddr"
@@ -23,7 +21,7 @@ import (
 	"github.com/textileio/powergate/v2/api/server"
 	"github.com/textileio/powergate/v2/buildinfo"
 	"github.com/textileio/powergate/v2/util"
-	"go.opencensus.io/plugin/runmetrics"
+	"go.opentelemetry.io/otel/exporters/metric/prometheus"
 )
 
 var (
@@ -51,10 +49,10 @@ func main() {
 	log.Infof("starting powd:\n%s", buildinfo.Summary())
 
 	// Configuring Prometheus exporter.
-	closeInstr, err := setupInstrumentation()
-	if err != nil {
+	if err := setupInstrumentation(); err != nil {
 		log.Fatalf("starting instrumentation: %s", err)
 	}
+
 	confProtected := conf
 	if confProtected.MongoURI != "" {
 		confProtected.MongoURI = "<hidden>"
@@ -78,7 +76,6 @@ func main() {
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 	<-ch
 	log.Info("Closing...")
-	closeInstr()
 	powd.Close()
 	if conf.Devnet {
 		if err := os.RemoveAll(conf.RepoPath); err != nil {
@@ -194,37 +191,17 @@ func configFromFlags() (server.Config, error) {
 	}, nil
 }
 
-func setupInstrumentation() (func(), error) {
-	err := runmetrics.Enable(runmetrics.RunMetricOptions{
-		EnableCPU:    true,
-		EnableMemory: true,
-	})
+func setupInstrumentation() error {
+	exporter, err := prometheus.InstallNewPipeline(prometheus.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("enabling runtime metrics: %s", err)
+		log.Panicf("failed to initialize prometheus exporter %v", err)
 	}
-	pe, err := prometheus.NewExporter(prometheus.Options{
-		Namespace: "textilefc",
-	})
-	if err != nil {
-		return nil, fmt.Errorf("creating the prometheus stats exporter: %v", err)
-	}
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", pe)
-	srv := &http.Server{Addr: ":8888", Handler: mux}
+	http.HandleFunc("/", exporter.ServeHTTP)
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Errorf("running prometheus scrape endpoint: %v", err)
-		}
+		_ = http.ListenAndServe(":8888", nil)
 	}()
-	closeFunc := func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Errorf("shutting down prometheus server: %s", err)
-		}
-	}
 
-	return closeFunc, nil
+	return nil
 }
 
 func setupLogging(repoPath string) error {
