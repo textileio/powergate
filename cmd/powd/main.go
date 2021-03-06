@@ -197,7 +197,9 @@ func configFromFlags() (server.Config, error) {
 }
 
 func setupInstrumentation() error {
-	exporter, err := prometheus.InstallNewPipeline(prometheus.Config{})
+	exporter, err := prometheus.InstallNewPipeline(prometheus.Config{
+		DefaultHistogramBoundaries: []float64{1e-4, 1e-3, 1e-2, 1e-1, 1},
+	})
 	if err != nil {
 		log.Panicf("failed to initialize prometheus exporter %v", err)
 	}

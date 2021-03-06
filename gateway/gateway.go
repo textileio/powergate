@@ -168,6 +168,9 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 		}
 		i++
 	}
+	sort.Slice(rows, func(i, j int) bool {
+		return rows[i][0].(string) <= rows[j][0].(string)
+	})
 
 	c.HTML(http.StatusOK, "/public/html/asks.gohtml", gin.H{
 		"MenuItems": menuItems,
