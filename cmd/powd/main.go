@@ -14,6 +14,7 @@ import (
 	"time"
 
 	logging "github.com/ipfs/go-log/v2"
+	metricsOpenTelemetry "github.com/jsign/go-metrics-opentelemetry"
 	homedir "github.com/mitchellh/go-homedir"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
@@ -200,10 +201,14 @@ func setupInstrumentation() error {
 	if err != nil {
 		log.Panicf("failed to initialize prometheus exporter %v", err)
 	}
-	http.HandleFunc("/", exporter.ServeHTTP)
+	http.HandleFunc("/metrics", exporter.ServeHTTP)
 	go func() {
 		_ = http.ListenAndServe(":8888", nil)
 	}()
+
+	if err := metricsOpenTelemetry.Inject(); err != nil {
+		return fmt.Errorf("injecting datastore open-telemetry: %s", err)
+	}
 
 	return nil
 }

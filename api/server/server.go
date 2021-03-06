@@ -24,6 +24,7 @@ import (
 	badger "github.com/ipfs/go-ds-badger2"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
+	measure "github.com/jsign/go-ds-measure"
 	ma "github.com/multiformats/go-multiaddr"
 	mongods "github.com/textileio/go-ds-mongo"
 	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
@@ -560,6 +561,9 @@ func (s *Server) Close() {
 }
 
 func createDatastore(conf Config, longTimeout bool) (datastore.TxnDatastore, error) {
+	var ds datastore.TxnDatastore
+	var err error
+
 	if conf.MongoURI != "" {
 		log.Info("Opening Mongo database...")
 		mongoCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -571,24 +575,25 @@ func createDatastore(conf Config, longTimeout bool) (datastore.TxnDatastore, err
 		if longTimeout {
 			opts = []mongods.Option{mongods.WithOpTimeout(time.Hour), mongods.WithTxnTimeout(time.Hour)}
 		}
-		ds, err := mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB, opts...)
+		ds, err = mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB, opts...)
 		if err != nil {
 			return nil, fmt.Errorf("opening mongo datastore: %s", err)
 		}
-		return ds, nil
+	} else {
+
+		log.Info("Opening badger database...")
+		path := filepath.Join(conf.RepoPath, datastoreFolderName)
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
+			return nil, fmt.Errorf("creating repo folder: %s", err)
+		}
+		opts := &badger.DefaultOptions
+		ds, err = badger.NewDatastore(path, opts)
+		if err != nil {
+			return nil, fmt.Errorf("opening badger datastore: %s", err)
+		}
 	}
 
-	log.Info("Opening badger database...")
-	path := filepath.Join(conf.RepoPath, datastoreFolderName)
-	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		return nil, fmt.Errorf("creating repo folder: %s", err)
-	}
-	opts := &badger.DefaultOptions
-	ds, err := badger.NewDatastore(path, opts)
-	if err != nil {
-		return nil, fmt.Errorf("opening badger datastore: %s", err)
-	}
-	return ds, nil
+	return measure.New("powergate.datastore", ds), nil
 }
 
 func getMinerSelector(conf Config, rm *reputation.Module, ai *ask.Runner, cb lotus.ClientBuilder) (ffs.MinerSelector, error) {

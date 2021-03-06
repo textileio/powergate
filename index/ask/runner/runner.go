@@ -13,12 +13,10 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/index/ask"
-	"github.com/textileio/powergate/v2/index/ask/internal/metrics"
 	"github.com/textileio/powergate/v2/index/ask/internal/store"
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/signaler"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
+	"go.opentelemetry.io/otel/metric"
 )
 
 var (
@@ -41,6 +39,11 @@ type Runner struct {
 	finished chan struct{}
 	clsLock  sync.Mutex
 	closed   bool
+
+	// Metrics
+	refreshDuration metric.Int64ValueRecorder
+	metricLock      sync.Mutex
+	progress        float64
 }
 
 // Config contains parameters for index updating.
@@ -54,9 +57,6 @@ type Config struct {
 
 // New returns a new ask index runner. It load a persisted ask index, and immediately starts building a new fresh one.
 func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, config Config) (*Runner, error) {
-	if err := metrics.Init(); err != nil {
-		return nil, fmt.Errorf("initing metrics: %s", err)
-	}
 	store := store.New(ds)
 	idx, err := store.Get()
 	if err != nil {
@@ -77,7 +77,10 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, config Co
 		cancel:   cancel,
 		finished: make(chan struct{}),
 	}
+	ai.initMetrics()
+
 	go ai.start(config.RefreshOnStart, config.Disable)
+
 	return ai, nil
 }
 
@@ -179,6 +182,7 @@ func (ai *Runner) start(refreshOnStart bool, disable bool) {
 // update triggers a full-scan generates and saves a new fresh index and builds
 // views for better querying.
 func (ai *Runner) update() error {
+	start := time.Now()
 	log.Info("updating ask index...")
 	defer log.Info("ask index updated")
 
@@ -187,8 +191,8 @@ func (ai *Runner) update() error {
 		return fmt.Errorf("creating lotus client: %s", err)
 	}
 	defer cls()
-	startTime := time.Now()
-	newIndex, cache, err := generateIndex(ai.ctx, client, ai.config.MaxParallel, ai.config.QueryAskTimeout)
+
+	newIndex, cache, err := ai.generateIndex(ai.ctx, client)
 	if err != nil {
 		return fmt.Errorf("generating index: %s", err)
 	}
@@ -205,21 +209,21 @@ func (ai *Runner) update() error {
 	if err := ai.store.Save(newIndex); err != nil {
 		return fmt.Errorf("persisting ask index: %s", err)
 	}
-
-	stats.Record(context.Background(), metrics.MFullRefreshDuration.M(time.Since(startTime).Milliseconds()))
 	ai.signaler.Signal()
+
+	ai.refreshDuration.Record(context.Background(), time.Since(start).Milliseconds())
 
 	return nil
 }
 
 // generateIndex returns a fresh index.
-func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct, maxParallel int, askTimeout time.Duration) (ask.Index, []*ask.StorageAsk, error) {
+func (ai *Runner) generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Index, []*ask.StorageAsk, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		return ask.Index{}, nil, err
 	}
 
-	rateLim := make(chan struct{}, maxParallel)
+	rateLim := make(chan struct{}, ai.config.MaxParallel)
 	var lock sync.Mutex
 	newAsks := make(map[string]ask.StorageAsk)
 	for i, addr := range addrs {
@@ -229,7 +233,7 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct, maxParall
 		rateLim <- struct{}{}
 		go func(addr address.Address) {
 			defer func() { <-rateLim }()
-			sask, ok, err := getMinerStorageAsk(ctx, api, addr, askTimeout)
+			sask, ok, err := getMinerStorageAsk(ctx, api, addr, ai.config.QueryAskTimeout)
 			if err != nil {
 				log.Errorf("getting miner storage ask: %s", err)
 				return
@@ -242,23 +246,23 @@ func generateIndex(ctx context.Context, api *apistruct.FullNodeStruct, maxParall
 			lock.Unlock()
 		}(addr)
 		if i%5000 == 0 {
-			stats.Record(context.Background(), metrics.MFullRefreshProgress.M(float64(i)/float64(len(addrs))))
 			log.Infof("progress %d/%d", i, len(addrs))
 		}
+		ai.metricLock.Lock()
+		ai.progress = float64(i) / float64(len(addrs))
+		ai.metricLock.Unlock()
+
 	}
-	for i := 0; i < maxParallel; i++ {
+	for i := 0; i < ai.config.MaxParallel; i++ {
 		rateLim <- struct{}{}
 	}
+	ai.metricLock.Lock()
+	ai.progress = 1
+	ai.metricLock.Unlock()
 
 	if ctx.Err() != nil {
 		return ask.Index{}, nil, fmt.Errorf("refresh was canceled")
 	}
-
-	stats.Record(context.Background(), metrics.MFullRefreshProgress.M(1))
-	ctx, _ = tag.New(context.Background(), tag.Insert(metrics.TagAskStatus, "FAIL"))
-	stats.Record(ctx, metrics.MAskQueryResult.M(int64(len(addrs)-len(newAsks))))
-	ctx, _ = tag.New(context.Background(), tag.Insert(metrics.TagAskStatus, "OK"))
-	stats.Record(ctx, metrics.MAskQueryResult.M(int64(len(newAsks))))
 
 	cache := generateOrderedAsks(newAsks)
 	return ask.Index{

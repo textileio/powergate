@@ -29,7 +29,13 @@ func TestFreshBuild(t *testing.T) {
 	require.NoError(t, err)
 	defer cls()
 
-	index, _, err := generateIndex(ctx, c, 1, time.Second*5)
+	ai := &Runner{
+		config: Config{
+			MaxParallel:     1,
+			QueryAskTimeout: time.Second * 5,
+		},
+	}
+	index, _, err := ai.generateIndex(ctx, c)
 	require.NoError(t, err)
 
 	// We should have storage info about every miner in devnet

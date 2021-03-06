@@ -36,6 +36,8 @@ require (
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
+	github.com/jsign/go-ds-measure v0.1.1-0.20210306174726-39c16cb4200f
+	github.com/jsign/go-metrics-opentelemetry v0.0.0-20210306174423-185f369f4b3b
 	github.com/libp2p/go-libp2p v0.12.0
 	github.com/libp2p/go-libp2p-core v0.7.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
@@ -58,14 +60,12 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/textileio/dsutils v1.0.1
 	github.com/textileio/go-ds-mongo v0.1.4
-	go.opencensus.io v0.22.6
+	go.opencensus.io v0.22.6 // indirect
 	go.opentelemetry.io/otel v0.18.0
 	go.opentelemetry.io/otel/exporters/metric/prometheus v0.18.0
 	go.opentelemetry.io/otel/metric v0.18.0
-	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.0
-	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 )
 
 replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.2007.2
