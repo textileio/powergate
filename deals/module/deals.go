@@ -105,6 +105,12 @@ func (m *Module) Watch(ctx context.Context, proposal cid.Cid) (<-chan deals.Stor
 	go func() {
 		defer close(updates)
 
+		watcherUpdates := make(chan struct{}, 20)
+		if err := m.dealWatcher.Subscribe(watcherUpdates, proposal); err != nil {
+			log.Errorf("subscribing to deal-watcher channel: %s", err)
+		}
+		defer m.dealWatcher.Unsubscribe(watcherUpdates, proposal)
+
 		// Notify once so that subscribers get a result quickly
 		last, err := m.getStorageDealInfo(ctx, proposal)
 		if err != nil {
@@ -119,15 +125,17 @@ func (m *Module) Watch(ctx context.Context, proposal cid.Cid) (<-chan deals.Stor
 			case <-ctx.Done():
 				return
 			case <-time.After(m.pollDuration):
-				sdi, err := m.getStorageDealInfo(ctx, proposal)
-				if err != nil {
-					log.Errorf("notifying latests proposal status: %s", err)
-					return
-				}
-				if last.StateID != sdi.StateID {
-					last = sdi
-					updates <- last
-				}
+			case <-watcherUpdates:
+			}
+
+			sdi, err := m.getStorageDealInfo(ctx, proposal)
+			if err != nil {
+				log.Errorf("notifying latests proposal status: %s", err)
+				return
+			}
+			if last.StateID != sdi.StateID {
+				last = sdi
+				updates <- last
 			}
 		}
 	}()

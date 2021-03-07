@@ -238,6 +238,7 @@ func setupLogging(repoPath string) error {
 		// Deals Module
 		"deals",
 		"deals-records",
+		"deals-watcher",
 
 		// Wallet Module
 		"lotus-wallet",

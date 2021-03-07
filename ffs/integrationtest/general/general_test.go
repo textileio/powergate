@@ -22,8 +22,8 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	util.AvgBlockTime = time.Millisecond * 500
-	logging.SetAllLoggers(logging.LevelError)
+	util.AvgBlockTime = time.Millisecond * 4500
+	logging.SetAllLoggers(logging.LevelInfo)
 	os.Exit(m.Run())
 }
 

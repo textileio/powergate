@@ -533,6 +533,9 @@ func (s *Server) Close() {
 	if err := s.l.Close(); err != nil {
 		log.Errorf("closing joblogger: %s", err)
 	}
+	if err := s.dm.Close(); err != nil {
+		log.Errorf("closing deal module: %s", err)
+	}
 	if err := s.rm.Close(); err != nil {
 		log.Errorf("closing reputation module: %s", err)
 	}

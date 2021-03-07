@@ -17,6 +17,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/deals/module/dealwatcher"
 	"github.com/textileio/powergate/v2/deals/module/store"
 	"github.com/textileio/powergate/v2/lotus"
 )
@@ -30,6 +31,7 @@ type Module struct {
 	clientBuilder       lotus.ClientBuilder
 	cfg                 *deals.Config
 	store               *store.Store
+	dealWatcher         *dealwatcher.DealWatcher
 	pollDuration        time.Duration
 	dealFinalityTimeout time.Duration
 }
@@ -42,16 +44,22 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDurat
 			return nil, err
 		}
 	}
+	dw, err := dealwatcher.New(clientBuilder)
+	if err != nil {
+		return nil, fmt.Errorf("creating deal watcher: %s", err)
+	}
 	m := &Module{
 		clientBuilder:       clientBuilder,
 		cfg:                 &cfg,
 		store:               store.New(ds),
 		pollDuration:        pollDuration,
 		dealFinalityTimeout: dealFinalityTimeout,
+		dealWatcher:         dw,
 	}
 	if err := m.resumeWatchingPendingRecords(); err != nil {
 		return nil, fmt.Errorf("resuming watching pending records: %s", err)
 	}
+
 	return m, nil
 }
 
@@ -125,6 +133,13 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 		return cid.Undef, 0, fmt.Errorf("error when importing data: %s", err)
 	}
 	return res.Root, size, nil
+}
+
+func (m *Module) Close() error {
+	if err := m.dealWatcher.Close(); err != nil {
+		return fmt.Errorf("closing deal watcher: %s", err)
+	}
+	return nil
 }
 
 func robustClientGetDealInfo(ctx context.Context, lapi *apistruct.FullNodeStruct, propCid cid.Cid) (*api.DealInfo, error) {
