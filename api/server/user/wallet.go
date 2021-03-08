@@ -73,7 +73,6 @@ func (s *Service) Addresses(ctx context.Context, req *userPb.AddressesRequest) (
 		}
 
 		res[i] = ai
-
 	}
 	return &userPb.AddressesResponse{Addresses: res}, nil
 }

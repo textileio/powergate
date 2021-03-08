@@ -14,9 +14,9 @@ var (
 	ErrNoVerifiedClient = errors.New("the wallet-address isn't a verified client")
 )
 
-// WalletAddressDetail contains detailed information
+// AddressDetail contains detailed information
 // about a wallet address.
-type WalletAddressDetail struct {
+type AddressDetail struct {
 	// Address is the wallet address.
 	Address string
 	// VCInfo contains information if the wallet address is
@@ -39,7 +39,7 @@ type Module interface {
 	List(ctx context.Context) ([]string, error)
 	// ListDetailed lists all known wallet addresses with detailed
 	// information.
-	ListDetailed(ctx context.Context) ([]WalletAddressDetail, error)
+	ListDetailed(ctx context.Context) ([]AddressDetail, error)
 	// GetVerifiedClientInfo returns details about a wallet-address that's
 	// a verified client. If the wallet address isn't a verified client,
 	// it will return ErrNoVerifiedClient.

@@ -278,7 +278,8 @@ func (m *Module) GetVerifiedClientInfo(ctx context.Context, addr string) (wallet
 	return getVerifiedClientInfo(ctx, c, a)
 }
 
-func (m *Module) ListDetailed(ctx context.Context) ([]wallet.WalletAddressDetail, error) {
+// ListDetailed returns detailed information of all wallet-addresses.
+func (m *Module) ListDetailed(ctx context.Context) ([]wallet.AddressDetail, error) {
 	c, cls, err := m.clientBuilder(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating lotus client: %s", err)
@@ -290,7 +291,7 @@ func (m *Module) ListDetailed(ctx context.Context) ([]wallet.WalletAddressDetail
 		return nil, fmt.Errorf("getting wallet addresses: %v", err)
 	}
 
-	ret := make([]wallet.WalletAddressDetail, len(addrs))
+	ret := make([]wallet.AddressDetail, len(addrs))
 	for i, addr := range addrs {
 		ret[i].Address = addr.String()
 		vcInfo, err := getVerifiedClientInfo(ctx, c, addr)
@@ -317,5 +318,4 @@ func getVerifiedClientInfo(ctx context.Context, c *apistruct.FullNodeStruct, add
 	return wallet.VerifiedClientInfo{
 		RemainingDatacapBytes: *sp.Int,
 	}, nil
-
 }
