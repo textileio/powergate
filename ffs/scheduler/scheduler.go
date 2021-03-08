@@ -19,7 +19,6 @@ import (
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/sjstore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/trackstore"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
-	"go.opentelemetry.io/otel/metric"
 )
 
 var (
@@ -66,9 +65,6 @@ type Scheduler struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	finished chan struct{}
-
-	// Metrics
-	metricPreprocessingTotal metric.Int64UpDownCounter
 }
 
 // storageDaemon contains components used by
@@ -147,8 +143,6 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 	}
 
 	go sch.run()
-
-	sch.initMetrics()
 
 	return sch, nil
 }

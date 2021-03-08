@@ -61,6 +61,7 @@ require (
 	github.com/textileio/dsutils v1.0.1
 	github.com/textileio/go-ds-mongo v0.1.4
 	go.opencensus.io v0.22.6 // indirect
+	go.opentelemetry.io/contrib/instrumentation/runtime v0.18.0
 	go.opentelemetry.io/otel v0.18.0
 	go.opentelemetry.io/otel/exporters/metric/prometheus v0.18.0
 	go.opentelemetry.io/otel/metric v0.18.0

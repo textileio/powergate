@@ -17,6 +17,7 @@ import (
 	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/ffs"
 	"github.com/textileio/powergate/v2/util"
+	"go.opentelemetry.io/otel/metric"
 )
 
 /**
@@ -60,6 +61,9 @@ type Store struct {
 
 	queuedIDs    map[ffs.JobID]struct{}
 	executingIDs map[ffs.JobID]struct{}
+
+	// Metrics
+	metricJobCounter metric.Int64UpDownCounter
 }
 
 // Stats return metrics about current job queues.
@@ -85,9 +89,11 @@ func New(ds datastore.TxnDatastore) (*Store, error) {
 		queuedIDs:          make(map[ffs.JobID]struct{}),
 		executingIDs:       make(map[ffs.JobID]struct{}),
 	}
+	s.initMetrics()
 	if err := s.loadCaches(); err != nil {
 		return nil, fmt.Errorf("reloading caches: %s", err)
 	}
+
 	return s, nil
 }
 
@@ -141,11 +147,16 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 	if err != nil {
 		return err
 	}
+
+	ctx := context.Background()
+	s.metricJobCounter.Add(ctx, -1, attrStatusExecuting)
 	switch st {
-	case ffs.Success, ffs.Failed, ffs.Canceled:
-		// Success: Job executed within expected behavior.
-		// Failed: Job executed with expected failure scenario.
-		// Canceled: Job was canceled by the client.
+	case ffs.Success:
+		s.metricJobCounter.Add(ctx, 1, attrStatusSuccess)
+	case ffs.Failed:
+		s.metricJobCounter.Add(ctx, 1, attrStatusFailed)
+	case ffs.Canceled:
+		s.metricJobCounter.Add(ctx, 1, attrStatusCanceled)
 	default:
 		return fmt.Errorf("can't finalize job with status %s", ffs.JobStatusStr[st])
 	}
@@ -157,6 +168,7 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 	if err := s.put(j, false); err != nil {
 		return fmt.Errorf("saving in datastore: %s", err)
 	}
+
 	return nil
 }
 
@@ -180,6 +192,11 @@ func (s *Store) Dequeue(iid ffs.APIID) (*ffs.StorageJob, error) {
 			if err := s.put(job, false); err != nil {
 				return nil, err
 			}
+
+			ctx := context.Background()
+			s.metricJobCounter.Add(ctx, -1, attrStatusQueued)
+			s.metricJobCounter.Add(ctx, 1, attrStatusExecuting)
+
 			return &job, nil
 		}
 		if ok {
@@ -203,6 +220,7 @@ func (s *Store) Enqueue(j ffs.StorageJob) error {
 	if err := s.put(j, true); err != nil {
 		return fmt.Errorf("saving to datastore: %s", err)
 	}
+	s.metricJobCounter.Add(context.Background(), 1, attrStatusQueued)
 
 	return nil
 }
@@ -223,6 +241,11 @@ func (s *Store) GetExecutingJob(iid ffs.APIID, c cid.Cid) *ffs.JobID {
 func (s *Store) GetStats() Stats {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	return s.getStats()
+}
+
+func (s *Store) getStats() Stats {
 	var count int
 	for _, iidJobs := range s.executingJobs {
 		count += len(iidJobs)
@@ -739,6 +762,12 @@ func (s *Store) loadCaches() error {
 			})
 		}
 	}
+
+	stats := s.getStats()
+	ctx := context.Background()
+	s.metricJobCounter.Add(ctx, int64(stats.TotalQueued), attrStatusQueued)
+	s.metricJobCounter.Add(ctx, int64(stats.TotalExecuting), attrStatusExecuting)
+
 	return nil
 }
 

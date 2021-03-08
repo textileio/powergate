@@ -22,6 +22,7 @@ import (
 	"github.com/textileio/powergate/v2/api/server"
 	"github.com/textileio/powergate/v2/buildinfo"
 	"github.com/textileio/powergate/v2/util"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
 )
 
@@ -210,6 +211,10 @@ func setupInstrumentation() error {
 
 	if err := metricsOpenTelemetry.Inject(); err != nil {
 		return fmt.Errorf("injecting datastore open-telemetry: %s", err)
+	}
+
+	if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second)); err != nil {
+		return fmt.Errorf("starting Go runtime metrics: %s", err)
 	}
 
 	return nil
