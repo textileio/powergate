@@ -16,7 +16,7 @@ import (
 	"github.com/textileio/powergate/v2/tests"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
 	"github.com/textileio/powergate/v2/util"
-	walletModule "github.com/textileio/powergate/v2/wallet/module"
+	lotusWallet "github.com/textileio/powergate/v2/wallet/lotuswallet"
 )
 
 func TestMain(m *testing.M) {
@@ -194,7 +194,7 @@ func TestDefaultStorageConfig(t *testing.T) {
 }
 
 func newManager(clientBuilder lotus.ClientBuilder, ds datastore.TxnDatastore, masterAddr address.Address, ffsUseMasterAddr bool) (*Manager, func() error, error) {
-	wm, err := walletModule.New(clientBuilder, masterAddr, *big.NewInt(4000000000), false, "")
+	wm, err := lotusWallet.New(clientBuilder, masterAddr, *big.NewInt(4000000000), false, "")
 	if err != nil {
 		return nil, func() error { return nil }, err
 	}

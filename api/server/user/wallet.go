@@ -7,6 +7,7 @@ import (
 
 	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
 	"github.com/textileio/powergate/v2/ffs/api"
+	"github.com/textileio/powergate/v2/wallet"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -55,12 +56,24 @@ func (s *Service) Addresses(ctx context.Context, req *userPb.AddressesRequest) (
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "getting address balance: %v", err)
 		}
-		res[i] = &userPb.AddrInfo{
+		ai := &userPb.AddrInfo{
 			Name:    addr.Name,
 			Address: addr.Addr,
 			Type:    addr.Type,
 			Balance: bal.String(),
 		}
+		vc, err := s.w.GetVerifiedClientInfo(ctx, addr.Addr)
+		if err != nil && err != wallet.ErrNoVerifiedClient {
+			return nil, status.Errorf(codes.Internal, "getting verified-client wallet address information: %s", err)
+		}
+		if err == nil {
+			ai.VerifiedClientInfo = &userPb.AddrInfo_VerifiedClientInfo{
+				RemainingDatacapBytes: vc.RemainingDatacapBytes.String(),
+			}
+		}
+
+		res[i] = ai
+
 	}
 	return &userPb.AddressesResponse{Addresses: res}, nil
 }

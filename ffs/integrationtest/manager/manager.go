@@ -27,7 +27,7 @@ import (
 	dealsModule "github.com/textileio/powergate/v2/deals/module"
 	it "github.com/textileio/powergate/v2/ffs/integrationtest"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
-	walletModule "github.com/textileio/powergate/v2/wallet/module"
+	lotusWallet "github.com/textileio/powergate/v2/wallet/lotuswallet"
 )
 
 const (
@@ -92,7 +92,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil, scheduler.GCConfig{AutoGCInterval: 0})
 	require.NoError(t, err)
 
-	wm, err := walletModule.New(cb, masterAddr, *big.NewInt(iWalletBal), false, "")
+	wm, err := lotusWallet.New(cb, masterAddr, *big.NewInt(iWalletBal), false, "")
 	require.NoError(t, err)
 
 	manager, err := manager.New(ds, wm, dm, sched, false, true)

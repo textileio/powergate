@@ -25,6 +25,11 @@ func (w *Wallet) Addresses(ctx context.Context) (*adminPb.AddressesResponse, err
 	return w.client.Addresses(ctx, &adminPb.AddressesRequest{})
 }
 
+// AddressesDetailed lists all addresses associated with this Powergate.
+func (w *Wallet) AddressesDetailed(ctx context.Context) (*adminPb.AddressesDetailedResponse, error) {
+	return w.client.AddressesDetailed(ctx, &adminPb.AddressesDetailedRequest{})
+}
+
 // SendFil sends FIL from an address associated with this Powergate to any other address.
 func (w *Wallet) SendFil(ctx context.Context, from, to string, amount *big.Int) (*adminPb.SendFilResponse, error) {
 	req := &adminPb.SendFilRequest{

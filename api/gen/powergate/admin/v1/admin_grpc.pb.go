@@ -20,6 +20,7 @@ type AdminServiceClient interface {
 	// Wallet
 	NewAddress(ctx context.Context, in *NewAddressRequest, opts ...grpc.CallOption) (*NewAddressResponse, error)
 	Addresses(ctx context.Context, in *AddressesRequest, opts ...grpc.CallOption) (*AddressesResponse, error)
+	AddressesDetailed(ctx context.Context, in *AddressesDetailedRequest, opts ...grpc.CallOption) (*AddressesDetailedResponse, error)
 	SendFil(ctx context.Context, in *SendFilRequest, opts ...grpc.CallOption) (*SendFilResponse, error)
 	// Users
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
@@ -60,6 +61,15 @@ func (c *adminServiceClient) NewAddress(ctx context.Context, in *NewAddressReque
 func (c *adminServiceClient) Addresses(ctx context.Context, in *AddressesRequest, opts ...grpc.CallOption) (*AddressesResponse, error) {
 	out := new(AddressesResponse)
 	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/Addresses", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) AddressesDetailed(ctx context.Context, in *AddressesDetailedRequest, opts ...grpc.CallOption) (*AddressesDetailedResponse, error) {
+	out := new(AddressesDetailedResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/AddressesDetailed", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +200,7 @@ type AdminServiceServer interface {
 	// Wallet
 	NewAddress(context.Context, *NewAddressRequest) (*NewAddressResponse, error)
 	Addresses(context.Context, *AddressesRequest) (*AddressesResponse, error)
+	AddressesDetailed(context.Context, *AddressesDetailedRequest) (*AddressesDetailedResponse, error)
 	SendFil(context.Context, *SendFilRequest) (*SendFilResponse, error)
 	// Users
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
@@ -220,6 +231,9 @@ func (UnimplementedAdminServiceServer) NewAddress(context.Context, *NewAddressRe
 }
 func (UnimplementedAdminServiceServer) Addresses(context.Context, *AddressesRequest) (*AddressesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Addresses not implemented")
+}
+func (UnimplementedAdminServiceServer) AddressesDetailed(context.Context, *AddressesDetailedRequest) (*AddressesDetailedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddressesDetailed not implemented")
 }
 func (UnimplementedAdminServiceServer) SendFil(context.Context, *SendFilRequest) (*SendFilResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendFil not implemented")
@@ -305,6 +319,24 @@ func _AdminService_Addresses_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).Addresses(ctx, req.(*AddressesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_AddressesDetailed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddressesDetailedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).AddressesDetailed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/AddressesDetailed",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).AddressesDetailed(ctx, req.(*AddressesDetailedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -554,6 +586,10 @@ var _AdminService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Addresses",
 			Handler:    _AdminService_Addresses_Handler,
+		},
+		{
+			MethodName: "AddressesDetailed",
+			Handler:    _AdminService_AddressesDetailed_Handler,
 		},
 		{
 			MethodName: "SendFil",

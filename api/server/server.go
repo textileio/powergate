@@ -51,7 +51,7 @@ import (
 	"github.com/textileio/powergate/v2/reputation"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
 	"github.com/textileio/powergate/v2/util"
-	walletModule "github.com/textileio/powergate/v2/wallet/module"
+	lotusWallet "github.com/textileio/powergate/v2/wallet/lotuswallet"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -86,7 +86,7 @@ type Server struct {
 	mi *minerModule.Index
 	fi *faultsModule.Index
 	dm *dealsModule.Module
-	wm *walletModule.Module
+	wm *lotusWallet.Module
 	rm *reputation.Module
 
 	ffsManager *manager.Manager
@@ -239,7 +239,7 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
-	wm, err := walletModule.New(clientBuilder, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName)
+	wm, err := lotusWallet.New(clientBuilder, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName)
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
 	}

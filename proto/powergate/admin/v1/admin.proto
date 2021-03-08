@@ -22,6 +22,24 @@ message AddressesResponse {
   repeated string addresses = 1;
 }
 
+message AddressesDetailedRequest {
+}
+
+message AddressesDetailedResponse {
+  repeated AddressDetail addresses = 1;
+
+  message AddressDetail {
+    string address = 1;
+    VerifiedClientInfo verified_client_info = 2;
+
+    message VerifiedClientInfo {
+      string remaining_datacap_bytes = 1;
+    }
+  }
+}
+
+
+
 message SendFilRequest {
   string from = 1;
   string to = 2;	
@@ -184,6 +202,7 @@ service AdminService {
   // Wallet
   rpc NewAddress(NewAddressRequest) returns (NewAddressResponse) {}
   rpc Addresses(AddressesRequest) returns (AddressesResponse) {}
+  rpc AddressesDetailed(AddressesDetailedRequest) returns (AddressesDetailedResponse) {}
   rpc SendFil(SendFilRequest) returns (SendFilResponse) {}
 
   // Users

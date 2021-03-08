@@ -250,7 +250,7 @@ func setupLogging(repoPath string) error {
 		"deals-records",
 
 		// Wallet Module
-		"wallet",
+		"lotus-wallet",
 
 		// Miner Selectors
 		"sr2-miner-selector",
