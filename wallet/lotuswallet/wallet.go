@@ -278,34 +278,6 @@ func (m *Module) GetVerifiedClientInfo(ctx context.Context, addr string) (wallet
 	return getVerifiedClientInfo(ctx, c, a)
 }
 
-// ListDetailed returns detailed information of all wallet-addresses.
-func (m *Module) ListDetailed(ctx context.Context) ([]wallet.AddressDetail, error) {
-	c, cls, err := m.clientBuilder(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("creating lotus client: %s", err)
-	}
-	defer cls()
-
-	addrs, err := c.WalletList(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("getting wallet addresses: %v", err)
-	}
-
-	ret := make([]wallet.AddressDetail, len(addrs))
-	for i, addr := range addrs {
-		ret[i].Address = addr.String()
-		vcInfo, err := getVerifiedClientInfo(ctx, c, addr)
-		if err != nil && err != wallet.ErrNoVerifiedClient {
-			return nil, fmt.Errorf("getting verified-client info: %s", err)
-		}
-		if err == nil {
-			ret[i].VCInfo = &vcInfo
-		}
-	}
-
-	return ret, nil
-}
-
 func getVerifiedClientInfo(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (wallet.VerifiedClientInfo, error) {
 	sp, err := c.StateVerifiedClientStatus(ctx, addr, types.EmptyTSK)
 	if err != nil {

@@ -31,31 +31,6 @@ func (a *Service) Addresses(ctx context.Context, req *adminPb.AddressesRequest) 
 	}, nil
 }
 
-// AddressesDetailed lists all addresses with more detailed information such as balances and being verified-clients.
-func (a *Service) AddressesDetailed(ctx context.Context, req *adminPb.AddressesDetailedRequest) (*adminPb.AddressesDetailedResponse, error) {
-	addrs, err := a.wm.ListDetailed(ctx)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "listing addrs: %v", err)
-	}
-
-	res := &adminPb.AddressesDetailedResponse{
-		Addresses: make([]*adminPb.AddressesDetailedResponse_AddressDetail, len(addrs)),
-	}
-	for i, addr := range addrs {
-		daddr := &adminPb.AddressesDetailedResponse_AddressDetail{
-			Address: addr.Address,
-		}
-		if addr.VCInfo != nil {
-			daddr.VerifiedClientInfo = &adminPb.AddressesDetailedResponse_AddressDetail_VerifiedClientInfo{
-				RemainingDatacapBytes: addr.VCInfo.RemainingDatacapBytes.String(),
-			}
-		}
-		res.Addresses[i] = daddr
-	}
-
-	return res, nil
-}
-
 // SendFil sends FIL from an address associated with this Powergate to any other address.
 func (a *Service) SendFil(ctx context.Context, req *adminPb.SendFilRequest) (*adminPb.SendFilResponse, error) {
 	amt, ok := new(big.Int).SetString(req.Amount, 10)
