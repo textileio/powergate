@@ -117,12 +117,18 @@ Loop:
 
 func (fc *FilCold) calculateDealPiece(ctx context.Context, c cid.Cid) (int64, abi.PaddedPieceSize, cid.Cid, error) {
 	fc.l.Log(ctx, "Entering deal preprocessing queue...")
+	fc.metricPreprocessingTotal.Add(ctx, 1, metricTagPreprocessingStatusWaiting)
 	select {
 	case fc.semaphDealPrep <- struct{}{}:
 	case <-ctx.Done():
 		return 0, 0, cid.Undef, fmt.Errorf("canceled by context")
 	}
-	defer func() { <-fc.semaphDealPrep }()
+	fc.metricPreprocessingTotal.Add(ctx, -1, metricTagPreprocessingTotalWaiting)
+	fc.metricPreprocessingTotal.Add(ctx, 1, metricTagPreprocessingTotalInProgress)
+	defer func() {
+		fc.metricPreprocessingTotal.Add(ctx, -1, metricTagPreprocessingTotalInProgress)
+		<-fc.semaphDealPrep
+	}()
 	for {
 		if fc.lsm.SyncHeightDiff() < unsyncedThreshold {
 			break
