@@ -86,7 +86,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus
 	l := joblogger.New(txndstr.Wrap(ds, "ffs/joblogger"))
 	lsm, err := lotus.NewSyncMonitor(cb)
 	require.NoError(t, err)
-	cl := filcold.New(ms, dm, ipfsClient, fchain, l, lsm, minimumPieceSize, 1)
+	cl := filcold.New(ms, dm, nil, ipfsClient, fchain, l, lsm, minimumPieceSize, 1)
 	hl, err := coreipfs.New(ds, ipfsClient, l)
 	require.NoError(t, err)
 	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil, scheduler.GCConfig{AutoGCInterval: 0})

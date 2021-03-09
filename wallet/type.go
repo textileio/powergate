@@ -17,7 +17,7 @@ var (
 // VerifiedClientInfo contains information for a wallet address
 // that is a verified-client.
 type VerifiedClientInfo struct {
-	RemainingDatacapBytes big.Int
+	RemainingDatacapBytes *big.Int
 }
 
 // Module provides wallet management access to a Filecoin client.

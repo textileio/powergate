@@ -288,6 +288,6 @@ func getVerifiedClientInfo(ctx context.Context, c *apistruct.FullNodeStruct, add
 	}
 
 	return wallet.VerifiedClientInfo{
-		RemainingDatacapBytes: *sp.Int,
+		RemainingDatacapBytes: sp.Int,
 	}, nil
 }

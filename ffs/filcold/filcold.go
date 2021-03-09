@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
@@ -19,6 +20,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs"
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/util"
+	"github.com/textileio/powergate/v2/wallet"
 )
 
 const (
@@ -34,6 +36,7 @@ var (
 type FilCold struct {
 	ms             ffs.MinerSelector
 	dm             *dealsModule.Module
+	wm             wallet.Module
 	ipfs           iface.CoreAPI
 	chain          FilChain
 	l              ffs.JobLogger
@@ -50,10 +53,11 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *dealsModule.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.SyncMonitor, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, wm wallet.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.SyncMonitor, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
 	return &FilCold{
 		ms:             ms,
 		dm:             dm,
+		wm:             wm,
 		ipfs:           ipfs,
 		chain:          chain,
 		l:              l,
@@ -129,6 +133,16 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 
 	if uint64(pieceSize) < fc.minPieceSize {
 		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d MiB", fc.minPieceSize/1024/1024)
+	}
+	if cfg.VerifiedDeal {
+		vci, err := fc.wm.GetVerifiedClientInfo(ctx, cfg.Addr)
+		if err != nil && err != wallet.ErrNoVerifiedClient {
+			return nil, nil, 0, fmt.Errorf("get address verified client info: %s", err)
+		}
+		pieceSizeBig := big.NewInt(int64(pieceSize))
+		if pieceSizeBig.Cmp(vci.RemainingDatacapBytes) == 1 {
+			return nil, nil, 0, fmt.Errorf("the remaining data-cap %d MiB is less than piece-size %d MiB", pieceSize/1024/1024, vci.RemainingDatacapBytes.Uint64()/1024/1024)
+		}
 	}
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
