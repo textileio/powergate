@@ -139,6 +139,9 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		if err != nil && err != wallet.ErrNoVerifiedClient {
 			return nil, nil, 0, fmt.Errorf("get address verified client info: %s", err)
 		}
+		if err == wallet.ErrNoVerifiedClient {
+			return nil, nil, 0, fmt.Errorf("wallet address isn't a verified client")
+		}
 		pieceSizeBig := big.NewInt(int64(pieceSize))
 		if pieceSizeBig.Cmp(vci.RemainingDatacapBytes) == 1 {
 			return nil, nil, 0, fmt.Errorf("the remaining data-cap %d MiB is less than piece-size %d MiB", pieceSize/1024/1024, vci.RemainingDatacapBytes.Uint64()/1024/1024)
