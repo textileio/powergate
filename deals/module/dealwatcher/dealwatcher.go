@@ -11,6 +11,7 @@ import (
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/lotus"
+	"go.opentelemetry.io/otel/metric"
 )
 
 var (
@@ -31,6 +32,10 @@ type DealWatcher struct {
 	closeCancel   context.CancelFunc
 	closeFinished chan struct{}
 	closed        bool
+
+	// Metrics
+	metricDealUpdates            metric.Int64Counter
+	metricDealUpdatesChanFailure metric.Int64Counter
 }
 
 func New(cb lotus.ClientBuilder) (*DealWatcher, error) {
@@ -46,6 +51,8 @@ func New(cb lotus.ClientBuilder) (*DealWatcher, error) {
 	if err := dw.startDaemon(); err != nil {
 		return nil, fmt.Errorf("starting daemon: %s", err)
 	}
+
+	dw.initMetrics()
 
 	return dw, nil
 }
@@ -142,6 +149,8 @@ func (dw *DealWatcher) startDaemon() error {
 					if dw.closeCtx.Err() != nil {
 						return
 					}
+
+					dw.metricDealUpdatesChanFailure.Add(dw.closeCtx, 1)
 					log.Warnf("updates channel closed unexpectedly")
 					for {
 						cls() // Formally closed broken chan.
@@ -159,8 +168,12 @@ func (dw *DealWatcher) startDaemon() error {
 
 				subs, ok := dw.subs[di.ProposalCid]
 				if !ok {
+					dw.lock.Unlock()
+
+					dw.metricDealUpdates.Add(dw.closeCtx, 1, attrDealUntracked)
 					continue
 				}
+				dw.metricDealUpdates.Add(dw.closeCtx, 1, attrDealTracked)
 				for _, s := range subs {
 					select {
 					case s <- struct{}{}:

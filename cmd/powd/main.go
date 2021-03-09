@@ -13,6 +13,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "net/http/pprof"
+
 	logging "github.com/ipfs/go-log/v2"
 	metricsOpenTelemetry "github.com/jsign/go-metrics-opentelemetry"
 	homedir "github.com/mitchellh/go-homedir"
