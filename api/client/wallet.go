@@ -43,7 +43,8 @@ func (w *Wallet) NewAddress(ctx context.Context, name string, options ...NewAddr
 	return w.client.NewAddress(ctx, r)
 }
 
-// Addresses returns a list of addresses managed by the user.
+// Addresses returns a list of addresses managed by the user. Each addresses *could* have
+// verified-client information. If VerifiedClientInfo is nil, then the address isn't verified.
 func (w *Wallet) Addresses(ctx context.Context) (*userPb.AddressesResponse, error) {
 	return w.client.Addresses(ctx, &userPb.AddressesRequest{})
 }
