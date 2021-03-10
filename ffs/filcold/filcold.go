@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/filecoin-project/go-fil-markets/retrievalmarket"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
@@ -84,7 +85,7 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 		strEvent := retrievalmarket.ClientEvents[e.Event]
 		strDealStatus := retrievalmarket.DealStatuses[e.Status]
 		fundsSpent = e.FundsSpent.Uint64()
-		newMsg := fmt.Sprintf("Received %.2fGiB, total spent: %sFIL (%s/%s)", float64(e.BytesReceived)/1024/1024/1024, util.AttoFilToFil(fundsSpent), strEvent, strDealStatus)
+		newMsg := fmt.Sprintf("Received %s, total spent: %sFIL (%s/%s)", humanize.IBytes(e.BytesReceived), util.AttoFilToFil(fundsSpent), strEvent, strDealStatus)
 		if newMsg != lastMsg {
 			fc.l.Log(ctx, newMsg)
 			lastMsg = newMsg
@@ -129,11 +130,12 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
-	fc.l.Log(ctx, "Data size is %d MiB, its calculated piece size is %d MiB.", payloadSize/1024/1024, pieceSize/1024/1024)
+	fc.l.Log(ctx, "The payload size is %s, and the calculated piece size is %s.", humanize.IBytes(uint64(payloadSize)), humanize.IBytes(uint64(pieceSize)))
 
 	if uint64(pieceSize) < fc.minPieceSize {
-		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %d MiB", fc.minPieceSize/1024/1024)
+		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %s", humanize.IBytes(fc.minPieceSize))
 	}
+
 	if cfg.VerifiedDeal {
 		vci, err := fc.wm.GetVerifiedClientInfo(ctx, cfg.Addr)
 		if err != nil && err != wallet.ErrNoVerifiedClient {
@@ -142,10 +144,13 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		if err == wallet.ErrNoVerifiedClient {
 			return nil, nil, 0, fmt.Errorf("wallet address isn't a verified client")
 		}
+
 		pieceSizeBig := big.NewInt(int64(pieceSize))
-		if pieceSizeBig.Cmp(vci.RemainingDatacapBytes) == 1 {
-			return nil, nil, 0, fmt.Errorf("the remaining data-cap %d MiB is less than piece-size %d MiB", pieceSize/1024/1024, vci.RemainingDatacapBytes.Uint64()/1024/1024)
+		if pieceSizeBig.Cmp(big.NewInt(0).Mul(big.NewInt(int64(cfg.RepFactor)), vci.RemainingDatacapBytes)) == 1 {
+			return nil, nil, 0, fmt.Errorf("the remaining data-cap %s is less than piece-size %s * rep-factor %d", humanize.IBytes(uint64(pieceSize)), humanize.IBytes(vci.RemainingDatacapBytes.Uint64()), cfg.RepFactor)
 		}
+
+		fc.l.Log(ctx, "Attempting to use %s of data-cap. The current quota is %s", humanize.IBytes(uint64(pieceSize)*uint64(cfg.RepFactor)), humanize.IBytes(vci.RemainingDatacapBytes.Uint64()))
 	}
 	f := ffs.MinerSelectorFilter{
 		ExcludedMiners: cfg.ExcludedMiners,
