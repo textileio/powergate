@@ -130,7 +130,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("getting cid cummulative size: %s", err)
 	}
-	fc.l.Log(ctx, "The payload size is %s, and the calculated piece size is %s.", humanize.IBytes(uint64(payloadSize)), humanize.IBytes(uint64(pieceSize)))
+	fc.l.Log(ctx, "The payload size is %s, and the calculated piece size is %s", humanize.IBytes(uint64(payloadSize)), humanize.IBytes(uint64(pieceSize)))
 
 	if uint64(pieceSize) < fc.minPieceSize {
 		return nil, nil, 0, fmt.Errorf("Piece size is below allowed minimum %s", humanize.IBytes(fc.minPieceSize))
