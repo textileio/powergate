@@ -322,6 +322,11 @@ message AddrInfo {
   string address = 2;
   string type = 3;
   string balance = 4;
+  VerifiedClientInfo verified_client_info = 5;
+
+  message VerifiedClientInfo {
+    string remaining_datacap_bytes = 1;
+  }
 }
 
 message CidSummary {
