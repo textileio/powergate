@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/filecoin-project/go-address"
@@ -20,7 +21,8 @@ import (
 )
 
 const (
-	feeThreshold = 1_000_000
+	feeThreshold     = 1_000_000
+	errActorNotFound = "actor not found"
 )
 
 var (
@@ -280,7 +282,7 @@ func (m *Module) GetVerifiedClientInfo(ctx context.Context, addr string) (wallet
 
 func getVerifiedClientInfo(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (wallet.VerifiedClientInfo, error) {
 	sp, err := c.StateVerifiedClientStatus(ctx, addr, types.EmptyTSK)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), errActorNotFound) {
 		return wallet.VerifiedClientInfo{}, fmt.Errorf("getting verified-client information: %s", err)
 	}
 	if sp == nil {
