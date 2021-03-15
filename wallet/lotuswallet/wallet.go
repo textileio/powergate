@@ -1,4 +1,4 @@
-package module
+package lotuswallet
 
 import (
 	"context"
@@ -7,22 +7,26 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
+	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/wallet"
 )
 
 const (
-	feeThreshold = 1_000_000
+	feeThreshold     = 1_000_000
+	errActorNotFound = "actor not found"
 )
 
 var (
-	log           = logger.Logger("wallet")
+	log           = logger.Logger("lotus-wallet")
 	networkFaucet = map[string]string{}
 )
 
@@ -256,4 +260,36 @@ func (m *Module) FundFromFaucet(ctx context.Context, addr string) error {
 		return fmt.Errorf("fountain request not OK: %s", r.Status)
 	}
 	return nil
+}
+
+// GetVerifiedClientInfo returns details about a wallet-address that's
+// a verified client. If the wallet address isn't a verified client,
+// it will return ErrNoVerifiedClient.
+func (m *Module) GetVerifiedClientInfo(ctx context.Context, addr string) (wallet.VerifiedClientInfo, error) {
+	c, cls, err := m.clientBuilder(ctx)
+	if err != nil {
+		return wallet.VerifiedClientInfo{}, fmt.Errorf("creating lotus client: %s", err)
+	}
+	defer cls()
+
+	a, err := address.NewFromString(addr)
+	if err != nil {
+		return wallet.VerifiedClientInfo{}, fmt.Errorf("parsing wallet-address: %s", err)
+	}
+
+	return getVerifiedClientInfo(ctx, c, a)
+}
+
+func getVerifiedClientInfo(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (wallet.VerifiedClientInfo, error) {
+	sp, err := c.StateVerifiedClientStatus(ctx, addr, types.EmptyTSK)
+	if err != nil && !strings.Contains(err.Error(), errActorNotFound) {
+		return wallet.VerifiedClientInfo{}, fmt.Errorf("getting verified-client information: %s", err)
+	}
+	if sp == nil {
+		return wallet.VerifiedClientInfo{}, wallet.ErrNoVerifiedClient
+	}
+
+	return wallet.VerifiedClientInfo{
+		RemainingDatacapBytes: sp.Int,
+	}, nil
 }

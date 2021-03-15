@@ -307,7 +307,7 @@ func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time
 				}
 				return
 			case sm.StorageDealProposalNotFound, sm.StorageDealProposalRejected, sm.StorageDealFailing, sm.StorageDealError:
-				log.Infof("proposal cid %s failed with state %s, deleting pending deal", util.CidToString(info.ProposalCid), sm.DealStates[info.StateID])
+				log.Infof("proposal cid %s failed with state %s, saving pending deal as failed", util.CidToString(info.ProposalCid), sm.DealStates[info.StateID])
 
 				dr.Pending = false
 				dr.ErrMsg = fmt.Sprintf("deal failed with status %s", sm.DealStates[info.StateID])
