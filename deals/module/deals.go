@@ -95,6 +95,8 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, dataS
 		}
 		m.recordDeal(params, *p, dataSize)
 	}
+	m.metricDealCreate.Add(ctx, 1)
+
 	return res, nil
 }
 

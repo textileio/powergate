@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -25,7 +26,10 @@ import (
 	"github.com/textileio/powergate/v2/buildinfo"
 	"github.com/textileio/powergate/v2/util"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/metric/prometheus"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/global"
 )
 
 var (
@@ -218,6 +222,14 @@ func setupInstrumentation() error {
 	if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second)); err != nil {
 		return fmt.Errorf("starting Go runtime metrics: %s", err)
 	}
+
+	meter := global.Meter("powergate")
+	attrBuildDate := attribute.Key("builddate").String(buildinfo.BuildDate)
+	attrGitSummary := attribute.Key("gitsummary").String(buildinfo.GitSummary)
+	attrGitBranch := attribute.Key("gitbranch").String(buildinfo.GitBranch)
+	attrGitCommit := attribute.Key("gitcommit").String(buildinfo.GitCommit)
+	metricInfo := metric.Must(meter).NewInt64Counter("powergate.info")
+	metricInfo.Add(context.Background(), 1, attrBuildDate, attrGitSummary, attrGitBranch, attrGitCommit)
 
 	return nil
 }

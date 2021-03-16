@@ -20,6 +20,7 @@ import (
 	"github.com/textileio/powergate/v2/deals/module/dealwatcher"
 	"github.com/textileio/powergate/v2/deals/module/store"
 	"github.com/textileio/powergate/v2/lotus"
+	"go.opentelemetry.io/otel/metric"
 )
 
 var (
@@ -34,6 +35,9 @@ type Module struct {
 	dealWatcher         *dealwatcher.DealWatcher
 	pollDuration        time.Duration
 	dealFinalityTimeout time.Duration
+
+	metricDealTracking      metric.Int64UpDownCounter
+	metricRetrievalTracking metric.Int64UpDownCounter
 }
 
 // New creates a new Module.
@@ -56,6 +60,8 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDurat
 		dealFinalityTimeout: dealFinalityTimeout,
 		dealWatcher:         dw,
 	}
+	m.initMetrics()
+
 	if err := m.resumeWatchingPendingRecords(); err != nil {
 		return nil, fmt.Errorf("resuming watching pending records: %s", err)
 	}

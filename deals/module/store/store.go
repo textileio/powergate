@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/json"
 	"errors"
@@ -17,6 +18,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/util"
+	"go.opentelemetry.io/otel/metric"
 )
 
 var (
@@ -38,13 +40,19 @@ var (
 type Store struct {
 	ds   datastore.TxnDatastore
 	lock sync.Mutex
+
+	metricFinalTotal  metric.Int64Counter
+	metricVolumeBytes metric.Int64Counter
 }
 
 // New returns a new *Store.
 func New(ds datastore.TxnDatastore) *Store {
-	return &Store{
+	s := &Store{
 		ds: ds,
 	}
+	s.initMetrics()
+
+	return s
 }
 
 // PutStorageDeal saves a storage deal record.
@@ -80,6 +88,14 @@ func (s *Store) PutStorageDeal(dr deals.StorageDealRecord) error {
 	if dr.Pending {
 		key = makePendingDealKey(dr.DealInfo.ProposalCid)
 	} else {
+		ctx := context.Background()
+		if dr.ErrMsg == "" {
+			s.metricVolumeBytes.Add(ctx, int64(dr.DealInfo.Size), attrTypeStorage, attrSuccess)
+			s.metricFinalTotal.Add(ctx, 1, attrTypeStorage, attrSuccess)
+		} else {
+			s.metricVolumeBytes.Add(ctx, int64(dr.DealInfo.Size), attrTypeStorage, attrFailed)
+			s.metricFinalTotal.Add(ctx, 1, attrTypeStorage, attrFailed)
+		}
 		key = makeFinalDealKey(dr.DealInfo.ProposalCid)
 	}
 
@@ -190,6 +206,10 @@ func (s *Store) PutRetrieval(rr deals.RetrievalDealRecord) error {
 	if err := txn.Commit(); err != nil {
 		return fmt.Errorf("committing transaction: %s", err)
 	}
+
+	ctx := context.Background()
+	s.metricVolumeBytes.Add(ctx, int64(rr.BytesReceived), attrTypeStorage, attrFailed)
+	s.metricFinalTotal.Add(ctx, 1, attrTypeRetrieval, attrSuccess)
 
 	return nil
 }
