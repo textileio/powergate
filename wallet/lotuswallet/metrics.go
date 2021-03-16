@@ -1,4 +1,4 @@
-package module
+package lotuswallet
 
 import (
 	"go.opentelemetry.io/otel/attribute"

@@ -60,6 +60,7 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
+<<<<<<< HEAD
 func New(ms ffs.MinerSelector, dm *dealsModule.Module, wm wallet.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.SyncMonitor, minPieceSize uint64, maxParallelDealPreparing int, retrievalNextEventTimeout time.Duration) *FilCold {
 	return &FilCold{
 		ms:                   ms,
@@ -72,6 +73,19 @@ func New(ms ffs.MinerSelector, dm *dealsModule.Module, wm wallet.Module, ipfs if
 		minPieceSize:         minPieceSize,
 		retrNextEventTimeout: retrievalNextEventTimeout,
 		semaphDealPrep:       make(chan struct{}, maxParallelDealPreparing),
+=======
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, wm wallet.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.SyncMonitor, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
+	fc := &FilCold{
+		ms:             ms,
+		dm:             dm,
+		wm:             wm,
+		ipfs:           ipfs,
+		chain:          chain,
+		l:              l,
+		lsm:            lsm,
+		minPieceSize:   minPieceSize,
+		semaphDealPrep: make(chan struct{}, maxParallelDealPreparing),
+>>>>>>> 7c4f987... fix compiling
 	}
 	fc.initMetrics()
 
