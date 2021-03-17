@@ -131,12 +131,13 @@ func (dw *DealWatcher) startDaemon() error {
 		return updates, cls, nil
 	}
 
-	updates, cls, err := createUpdateChan()
-	if err != nil {
-		return fmt.Errorf("creating initial updates chan: %s", err)
-	}
-
 	go func() {
+		updates, cls, err := createUpdateChan()
+		if err != nil {
+			log.Errorf("creating initial updates chan: %s", err)
+			return
+		}
+		log.Infof("deal watcher created")
 		defer close(dw.closeFinished)
 		defer func() { cls() }()
 

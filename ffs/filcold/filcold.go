@@ -142,6 +142,7 @@ func (fc *FilCold) calculateDealPiece(ctx context.Context, c cid.Cid) (int64, ab
 	select {
 	case fc.semaphDealPrep <- struct{}{}:
 	case <-ctx.Done():
+		fc.metricPreprocessingTotal.Add(ctx, -1, metricTagPreprocessingWaiting)
 		return 0, 0, cid.Undef, fmt.Errorf("canceled by context")
 	}
 	fc.metricPreprocessingTotal.Add(ctx, -1, metricTagPreprocessingWaiting)

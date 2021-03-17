@@ -226,11 +226,13 @@ func NewServer(conf Config) (*Server, error) {
 		RefreshInterval: conf.AskIndexRefreshInterval,
 		RefreshOnStart:  conf.Devnet || conf.AskIndexRefreshOnStart,
 	}
+	log.Info("Starting ask index...")
 	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder, askIdxConf)
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
 
+	log.Info("Starting miner index...")
 	minerIdxConf := minerIndex.Config{
 		RefreshOnStart:     conf.IndexMinersRefreshOnStart,
 		Disable:            conf.DisableIndices,
@@ -241,6 +243,8 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
+
+	log.Info("Starting faults index...")
 	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), clientBuilder, conf.DisableIndices)
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
@@ -248,10 +252,14 @@ func NewServer(conf Config) (*Server, error) {
 	if conf.Devnet {
 		conf.DealWatchPollDuration = time.Second
 	}
+
+	log.Info("Starting deals module...")
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, conf.DealWatchPollDuration, conf.FFSDealFinalityTimeout, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
+
+	log.Info("Starting wallet module...")
 	wm, err := lotusWallet.New(clientBuilder, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName)
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
@@ -280,6 +288,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)
 	}
 
+	log.Info("Starting FFS scheduler...")
 	var sr2rf func() (int, error)
 	if ms, ok := ms.(*sr2.MinerSelector); ok {
 		sr2rf = ms.GetReplicationFactor

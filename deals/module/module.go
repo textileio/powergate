@@ -48,6 +48,8 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDurat
 			return nil, err
 		}
 	}
+
+	log.Infof("creating deal watcher")
 	dw, err := dealwatcher.New(clientBuilder)
 	if err != nil {
 		return nil, fmt.Errorf("creating deal watcher: %s", err)
@@ -62,6 +64,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDurat
 	}
 	m.initMetrics()
 
+	log.Infof("resuming pending records")
 	if err := m.resumeWatchingPendingRecords(); err != nil {
 		return nil, fmt.Errorf("resuming watching pending records: %s", err)
 	}

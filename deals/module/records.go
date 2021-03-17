@@ -166,6 +166,8 @@ func (m *Module) resumeWatchingPendingRecords() error {
 	if err != nil {
 		return fmt.Errorf("getting pending storage records from store: %v", err)
 	}
+
+	log.Infof("resuming %d pending records", len(pendingStorageRecords))
 	for _, dr := range pendingStorageRecords {
 		remaining := time.Until(time.Unix(dr.Time, 0).Add(m.dealFinalityTimeout))
 		if remaining <= 0 {
