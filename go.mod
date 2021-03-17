@@ -25,7 +25,7 @@ require (
 	github.com/google/go-cmp v0.5.4
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/improbable-eng/grpc-web v0.13.0
+	github.com/improbable-eng/grpc-web v0.14.0
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.5
 	github.com/ipfs/go-ds-badger2 v0.1.1-0.20200708190120-187fc06f714e
@@ -64,6 +64,7 @@ require (
 	google.golang.org/grpc v1.35.0
 	google.golang.org/protobuf v1.25.0
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
+	nhooyr.io/websocket v1.8.6 // indirect
 )
 
 replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.2007.2
