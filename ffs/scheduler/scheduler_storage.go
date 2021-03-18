@@ -301,6 +301,7 @@ func (s *Scheduler) executeEnabledHotStorage(ctx context.Context, iid ffs.APIID,
 	var size int
 	var err error
 	if !replaceCid.Defined() {
+		s.l.Log(ctx, "Fetching from the IPFS network...")
 		size, err = s.hs.Pin(sctx, iid, curr.Cid)
 	} else {
 		s.l.Log(ctx, "Replace of previous pin %s", replaceCid)

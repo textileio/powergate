@@ -91,6 +91,7 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 			lastMsg = newMsg
 		}
 	}
+
 	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
 }
 

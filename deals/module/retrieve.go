@@ -120,6 +120,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 				break Loop
 			case e, ok := <-events:
 				if !ok {
+					errMsg = "retrieval ended unexpectedly"
 					break Loop
 				}
 				if e.Err != "" {
@@ -146,7 +147,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 			// payment channel creation. This isn't ideal, but
 			// it's better than missing the data.
 			// We WARN just to signal this might be happening.
-			if dtStart.IsZero() {
+			if dtStart.IsZero() && errMsg == "" {
 				dtStart = retrievalStartTime
 				log.Warnf("retrieval data-transfer start fallback to retrieval start")
 			}
@@ -154,7 +155,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 			// event in the retrieval. We just fallback to Now(),
 			// which should always be pretty close to the real
 			// event. We WARN just to signal this is happening.
-			if dtEnd.IsZero() {
+			if dtEnd.IsZero() && errMsg == "" {
 				dtEnd = time.Now()
 				log.Warnf("retrieval data-transfer end fallback to retrieval end")
 			}
