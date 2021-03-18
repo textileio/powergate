@@ -72,10 +72,14 @@ func (ci *CoreIpfs) Stage(ctx context.Context, iid ffs.APIID, r io.Reader) (cid.
 	return p.Cid(), nil
 }
 
-// StageCid stage-pin a Cid.
+// StageCid pull the Cid data and stage-pin it.
 func (ci *CoreIpfs) StageCid(ctx context.Context, iid ffs.APIID, c cid.Cid) error {
 	ci.lock.Lock()
 	defer ci.lock.Unlock()
+
+	if err := ci.ipfs.Pin().Add(ctx, path.IpfsPath(c), options.Pin.Recursive(true)); err != nil {
+		return fmt.Errorf("adding data to ipfs: %s", err)
+	}
 
 	if err := ci.ps.AddStaged(iid, c); err != nil {
 		return fmt.Errorf("saving new pin in pinstore: %s", err)
@@ -263,7 +267,7 @@ Loop:
 
 		// Skip Cids that are excluded.
 		if _, ok := excludeMap[stagedPin.Cid]; ok {
-			log.Infof("skipping staged cid %s since it's in exclusion list", stagedPin)
+			log.Infof("skipping staged cid %s since it's in exclusion list", stagedPin.Cid)
 			continue Loop
 		}
 		// A Cid is only safe to GC if all existing stage-pin are older than
