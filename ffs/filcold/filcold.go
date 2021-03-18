@@ -84,28 +84,28 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 		fundsSpent uint64
 		lastMsg    string
 		lastEvent  marketevents.RetrievalEvent
-		ok         bool
 	)
 Loop:
 	for {
 		select {
 		case <-time.After(fc.retrNextEventTimeout):
 			return ffs.FetchInfo{}, fmt.Errorf("didn't receive events for %d minutes", int64(fc.retrNextEventTimeout.Minutes()))
-		case lastEvent, ok = <-events:
+		case e, ok := <-events:
 			if !ok {
 				break Loop
 			}
-			if lastEvent.Err != "" {
-				return ffs.FetchInfo{}, fmt.Errorf("event error in retrieval progress: %s", lastEvent.Err)
+			if e.Err != "" {
+				return ffs.FetchInfo{}, fmt.Errorf("event error in retrieval progress: %s", e.Err)
 			}
-			strEvent := retrievalmarket.ClientEvents[lastEvent.Event]
-			strDealStatus := retrievalmarket.DealStatuses[lastEvent.Status]
-			fundsSpent = lastEvent.FundsSpent.Uint64()
-			newMsg := fmt.Sprintf("Received %s, total spent: %sFIL (%s/%s)", humanize.IBytes(lastEvent.BytesReceived), util.AttoFilToFil(fundsSpent), strEvent, strDealStatus)
+			strEvent := retrievalmarket.ClientEvents[e.Event]
+			strDealStatus := retrievalmarket.DealStatuses[e.Status]
+			fundsSpent = e.FundsSpent.Uint64()
+			newMsg := fmt.Sprintf("Received %s, total spent: %sFIL (%s/%s)", humanize.IBytes(e.BytesReceived), util.AttoFilToFil(fundsSpent), strEvent, strDealStatus)
 			if newMsg != lastMsg {
 				fc.l.Log(ctx, newMsg)
 				lastMsg = newMsg
 			}
+			lastEvent = e
 		}
 	}
 	if lastEvent.Status != retrievalmarket.DealStatusCompleted {
