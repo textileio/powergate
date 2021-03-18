@@ -226,15 +226,13 @@ func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, 
 			return ffs.StorageInfo{}, nil, fmt.Errorf("executing enabled hot-storage: %s", err)
 		}
 		s.l.Log(ctx, "Hot-Storage configuration ran successfully.")
-	} else {
-		// We want to avoid relying on Lotus working in online-mode.
-		// We need to take care ourselves of pulling the data from
-		// the IPFS network.
+	}
+
+	// We want to avoid relying on Lotus working in online-mode.
+	// We need to take care ourselves of pulling the data from
+	// the IPFS network.
+	if !a.Cfg.Hot.Enabled && a.Cfg.Cold.Enabled {
 		s.l.Log(ctx, "Automatically staging Cid from the IPFS network...")
-		// TTODO: change, needs migration
-		if a.Cfg.Hot.Ipfs.AddTimeout < 8*60 {
-			a.Cfg.Hot.Ipfs.AddTimeout = 20 * 60
-		}
 		stageCtx, cancel := context.WithTimeout(ctx, time.Duration(a.Cfg.Hot.Ipfs.AddTimeout)*time.Second)
 		defer cancel()
 		if err := s.hs.StageCid(stageCtx, a.APIID, a.Cid); err != nil {
