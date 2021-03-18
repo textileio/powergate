@@ -120,11 +120,10 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 				break Loop
 			case e, ok := <-events:
 				if !ok {
-					errMsg = "retrieval ended unexpectedly"
 					break Loop
 				}
 				if e.Err != "" {
-					log.Infof("in progress retrieval errored: %s", err)
+					log.Infof("in progress retrieval errored: %s", e.Err)
 					errMsg = e.Err
 				}
 				if dtStart.IsZero() && e.Event == retrievalmarket.ClientEventBlocksReceived {

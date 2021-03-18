@@ -12,6 +12,7 @@ import (
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/api"
+	marketevents "github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	iface "github.com/ipfs/interface-go-ipfs-core"
@@ -78,7 +79,8 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 	fc.l.Log(ctx, "Fetching from %s...", miner)
 	var fundsSpent uint64
 	var lastMsg string
-	for e := range events {
+	var e marketevents.RetrievalEvent
+	for e = range events {
 		if e.Err != "" {
 			return ffs.FetchInfo{}, fmt.Errorf("event error in retrieval progress: %s", e.Err)
 		}
@@ -90,6 +92,9 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 			fc.l.Log(ctx, newMsg)
 			lastMsg = newMsg
 		}
+	}
+	if e.Status != retrievalmarket.DealStatusCompleted {
+		return ffs.FetchInfo{}, fmt.Errorf("retrieval failed with status %s and message %s", retrievalmarket.DealStatuses[e.Status], lastMsg)
 	}
 
 	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
