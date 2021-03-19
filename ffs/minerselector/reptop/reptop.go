@@ -167,6 +167,6 @@ func (rt *RepTop) getMinerProposal(f ffs.MinerSelectorFilter, addrStr string) (f
 			return ffs.MinerProposal{}, fmt.Errorf("miner doesn't satisfy piece size constraints: %d<%d<%d", r.Ask.MinPieceSize, f.PieceSize, r.Ask.MaxPieceSize)
 		}
 
-		return ffs.MinerProposal{Addr: addrStr, EpochPrice: r.Ask.Price.Uint64()}, nil
+		return ffs.MinerProposal{Addr: addrStr, EpochPrice: price}, nil
 	}
 }

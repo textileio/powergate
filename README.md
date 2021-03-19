@@ -62,7 +62,7 @@ Want to know more about this Powergate module? Check out the [FFS design documen
 ### 💫 API + CLI
 
 Powergate exposes an API built from the various modules through gRPC endpoints. 
-You can explore our [`.proto` files](https://github.com/textileio/powergate/proto) to generate your clients, or take advange of a ready-to-use Powergate Go and [JS client](https://github.com/textileio/js-powergate-client). 🙌
+You can explore our [`.proto` files](https://github.com/textileio/powergate/tree/master/proto/powergate) to generate your clients, or take advange of a ready-to-use Powergate Go and [JS client](https://github.com/textileio/js-powergate-client). 🙌
 
 We have a CLI that supports most of Powergate features.
 
