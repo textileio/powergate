@@ -411,7 +411,7 @@ func (m *Module) recordRetrieval(addr string, offer api.QueryOffer, bytesReceive
 			RootCid:                 offer.Root,
 			Size:                    offer.Size,
 			MinPrice:                offer.MinPrice.Uint64(),
-			Miner:                   offer.Miner.String(),
+			Miner:                   offer.MinerPeer.Address.String(),
 			MinerPeerID:             offer.MinerPeer.ID.String(),
 			PaymentInterval:         offer.PaymentInterval,
 			PaymentIntervalIncrease: offer.PaymentIntervalIncrease,
