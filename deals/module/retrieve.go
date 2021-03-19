@@ -162,7 +162,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 		}
 	}()
 
-	return o.Miner.String(), out, nil
+	return o.MinerPeer.Address.String(), out, nil
 }
 
 func getRetrievalOffers(ctx context.Context, lapi *apistruct.FullNodeStruct, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string) []api.QueryOffer {
