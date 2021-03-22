@@ -210,6 +210,8 @@ func (s *Store) Enqueue(j ffs.StorageJob) error {
 // GetExecutingJob returns a JobID that is currently executing for
 // data with cid c in iid. If there's not such job, it returns nil.
 func (s *Store) GetExecutingJob(iid ffs.APIID, c cid.Cid) *ffs.JobID {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	j, ok := s.executingJobs[iid][c]
 	if !ok {
 		return nil
