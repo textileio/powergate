@@ -8,4 +8,5 @@ import (
 func (m *Module) initMetrics() {
 	meter := global.Meter("powergate")
 	m.metricDealTracking = metric.Must(meter).NewInt64UpDownCounter("powergate.deal.tracking")
+	m.metricRetrievalTracking = metric.Must(meter).NewInt64UpDownCounter("powergate.retrieval.tracking")
 }
