@@ -123,7 +123,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 					break Loop
 				}
 				if e.Err != "" {
-					log.Infof("in progress retrieval errored: %s", err)
+					log.Infof("in progress retrieval errored: %s", e.Err)
 					errMsg = e.Err
 				}
 				if dtStart.IsZero() && e.Event == retrievalmarket.ClientEventBlocksReceived {
@@ -146,7 +146,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 			// payment channel creation. This isn't ideal, but
 			// it's better than missing the data.
 			// We WARN just to signal this might be happening.
-			if dtStart.IsZero() {
+			if dtStart.IsZero() && errMsg == "" {
 				dtStart = retrievalStartTime
 				log.Warnf("retrieval data-transfer start fallback to retrieval start")
 			}
@@ -154,7 +154,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 			// event in the retrieval. We just fallback to Now(),
 			// which should always be pretty close to the real
 			// event. We WARN just to signal this is happening.
-			if dtEnd.IsZero() {
+			if dtEnd.IsZero() && errMsg == "" {
 				dtEnd = time.Now()
 				log.Warnf("retrieval data-transfer end fallback to retrieval end")
 			}
@@ -162,7 +162,7 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 		}
 	}()
 
-	return o.Miner.String(), out, nil
+	return o.MinerPeer.Address.String(), out, nil
 }
 
 func getRetrievalOffers(ctx context.Context, lapi *apistruct.FullNodeStruct, payloadCid cid.Cid, pieceCid *cid.Cid, miners []string) []api.QueryOffer {

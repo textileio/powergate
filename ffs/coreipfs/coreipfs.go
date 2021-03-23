@@ -57,13 +57,12 @@ func New(ds datastore.TxnDatastore, ipfs iface.CoreAPI, l ffs.JobLogger) (*CoreI
 
 // Stage adds the data of io.Reader in the storage, and creates a stage-pin on the resulting cid.
 func (ci *CoreIpfs) Stage(ctx context.Context, iid ffs.APIID, r io.Reader) (cid.Cid, error) {
-	ci.lock.Lock()
-	defer ci.lock.Unlock()
-
 	p, err := ci.ipfs.Unixfs().Add(ctx, ipfsfiles.NewReaderFile(r), options.Unixfs.Pin(true))
 	if err != nil {
 		return cid.Undef, fmt.Errorf("adding data to ipfs: %s", err)
 	}
+	ci.lock.Lock()
+	defer ci.lock.Unlock()
 
 	if err := ci.ps.AddStaged(iid, p.Cid()); err != nil {
 		return cid.Undef, fmt.Errorf("saving new pin in pinstore: %s", err)
@@ -72,8 +71,11 @@ func (ci *CoreIpfs) Stage(ctx context.Context, iid ffs.APIID, r io.Reader) (cid.
 	return p.Cid(), nil
 }
 
-// StageCid stage-pin a Cid.
+// StageCid pull the Cid data and stage-pin it.
 func (ci *CoreIpfs) StageCid(ctx context.Context, iid ffs.APIID, c cid.Cid) error {
+	if err := ci.ipfs.Pin().Add(ctx, path.IpfsPath(c), options.Pin.Recursive(true)); err != nil {
+		return fmt.Errorf("adding data to ipfs: %s", err)
+	}
 	ci.lock.Lock()
 	defer ci.lock.Unlock()
 
@@ -263,7 +265,7 @@ Loop:
 
 		// Skip Cids that are excluded.
 		if _, ok := excludeMap[stagedPin.Cid]; ok {
-			log.Infof("skipping staged cid %s since it's in exclusion list", stagedPin)
+			log.Infof("skipping staged cid %s since it's in exclusion list", stagedPin.Cid)
 			continue Loop
 		}
 		// A Cid is only safe to GC if all existing stage-pin are older than

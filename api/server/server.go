@@ -126,19 +126,20 @@ type Config struct {
 	MongoURI string
 	MongoDB  string
 
-	FFSAdminToken               string
-	FFSUseMasterAddr            bool
-	FFSDealFinalityTimeout      time.Duration
-	FFSMinimumPieceSize         uint64
-	FFSMaxParallelDealPreparing int
-	FFSGCAutomaticGCInterval    time.Duration
-	FFSGCStageGracePeriod       time.Duration
-	SchedMaxParallel            int
-	MinerSelector               string
-	MinerSelectorParams         string
-	DealWatchPollDuration       time.Duration
-	AutocreateMasterAddr        bool
-	WalletInitialFunds          big.Int
+	FFSAdminToken                string
+	FFSUseMasterAddr             bool
+	FFSDealFinalityTimeout       time.Duration
+	FFSMinimumPieceSize          uint64
+	FFSRetrievalNextEventTimeout time.Duration
+	FFSMaxParallelDealPreparing  int
+	FFSGCAutomaticGCInterval     time.Duration
+	FFSGCStageGracePeriod        time.Duration
+	SchedMaxParallel             int
+	MinerSelector                string
+	MinerSelectorParams          string
+	DealWatchPollDuration        time.Duration
+	AutocreateMasterAddr         bool
+	WalletInitialFunds           big.Int
 
 	AskIndexQueryAskTimeout time.Duration
 	AskindexMaxParallel     int
@@ -261,7 +262,7 @@ func NewServer(conf Config) (*Server, error) {
 	if conf.Devnet {
 		conf.FFSMinimumPieceSize = 0
 	}
-	cs := filcold.New(ms, dm, wm, ipfs, chain, l, lsm, conf.FFSMinimumPieceSize, conf.FFSMaxParallelDealPreparing)
+	cs := filcold.New(ms, dm, wm, ipfs, chain, l, lsm, conf.FFSMinimumPieceSize, conf.FFSMaxParallelDealPreparing, conf.FFSRetrievalNextEventTimeout)
 	hs, err := coreipfs.New(txndstr.Wrap(ds, "ffs/coreipfs"), ipfs, l)
 	if err != nil {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)

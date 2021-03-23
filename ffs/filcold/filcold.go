@@ -12,6 +12,7 @@ import (
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/api"
+	marketevents "github.com/filecoin-project/lotus/markets/loggers"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
 	iface "github.com/ipfs/interface-go-ipfs-core"
@@ -35,15 +36,16 @@ var (
 // FilCold is a ColdStorage implementation which saves data in the Filecoin network.
 // It assumes the underlying Filecoin client has access to an IPFS node where data is stored.
 type FilCold struct {
-	ms             ffs.MinerSelector
-	dm             *dealsModule.Module
-	wm             wallet.Module
-	ipfs           iface.CoreAPI
-	chain          FilChain
-	l              ffs.JobLogger
-	lsm            *lotus.SyncMonitor
-	minPieceSize   uint64
-	semaphDealPrep chan struct{}
+	ms                   ffs.MinerSelector
+	dm                   *dealsModule.Module
+	wm                   wallet.Module
+	ipfs                 iface.CoreAPI
+	chain                FilChain
+	l                    ffs.JobLogger
+	lsm                  *lotus.SyncMonitor
+	minPieceSize         uint64
+	retrNextEventTimeout time.Duration
+	semaphDealPrep       chan struct{}
 }
 
 var _ ffs.ColdStorage = (*FilCold)(nil)
@@ -54,17 +56,18 @@ type FilChain interface {
 }
 
 // New returns a new FilCold instance.
-func New(ms ffs.MinerSelector, dm *dealsModule.Module, wm wallet.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.SyncMonitor, minPieceSize uint64, maxParallelDealPreparing int) *FilCold {
+func New(ms ffs.MinerSelector, dm *dealsModule.Module, wm wallet.Module, ipfs iface.CoreAPI, chain FilChain, l ffs.JobLogger, lsm *lotus.SyncMonitor, minPieceSize uint64, maxParallelDealPreparing int, retrievalNextEventTimeout time.Duration) *FilCold {
 	return &FilCold{
-		ms:             ms,
-		dm:             dm,
-		wm:             wm,
-		ipfs:           ipfs,
-		chain:          chain,
-		l:              l,
-		lsm:            lsm,
-		minPieceSize:   minPieceSize,
-		semaphDealPrep: make(chan struct{}, maxParallelDealPreparing),
+		ms:                   ms,
+		dm:                   dm,
+		wm:                   wm,
+		ipfs:                 ipfs,
+		chain:                chain,
+		l:                    l,
+		lsm:                  lsm,
+		minPieceSize:         minPieceSize,
+		retrNextEventTimeout: retrievalNextEventTimeout,
+		semaphDealPrep:       make(chan struct{}, maxParallelDealPreparing),
 	}
 }
 
@@ -76,21 +79,39 @@ func (fc *FilCold) Fetch(ctx context.Context, pyCid cid.Cid, piCid *cid.Cid, wad
 		return ffs.FetchInfo{}, fmt.Errorf("fetching from deal module: %s", err)
 	}
 	fc.l.Log(ctx, "Fetching from %s...", miner)
-	var fundsSpent uint64
-	var lastMsg string
-	for e := range events {
-		if e.Err != "" {
-			return ffs.FetchInfo{}, fmt.Errorf("event error in retrieval progress: %s", e.Err)
-		}
-		strEvent := retrievalmarket.ClientEvents[e.Event]
-		strDealStatus := retrievalmarket.DealStatuses[e.Status]
-		fundsSpent = e.FundsSpent.Uint64()
-		newMsg := fmt.Sprintf("Received %s, total spent: %sFIL (%s/%s)", humanize.IBytes(e.BytesReceived), util.AttoFilToFil(fundsSpent), strEvent, strDealStatus)
-		if newMsg != lastMsg {
-			fc.l.Log(ctx, newMsg)
-			lastMsg = newMsg
+
+	var (
+		fundsSpent uint64
+		lastMsg    string
+		lastEvent  marketevents.RetrievalEvent
+	)
+Loop:
+	for {
+		select {
+		case <-time.After(fc.retrNextEventTimeout):
+			return ffs.FetchInfo{}, fmt.Errorf("didn't receive events for %d minutes", int64(fc.retrNextEventTimeout.Minutes()))
+		case e, ok := <-events:
+			if !ok {
+				break Loop
+			}
+			if e.Err != "" {
+				return ffs.FetchInfo{}, fmt.Errorf("event error in retrieval progress: %s", e.Err)
+			}
+			strEvent := retrievalmarket.ClientEvents[e.Event]
+			strDealStatus := retrievalmarket.DealStatuses[e.Status]
+			fundsSpent = e.FundsSpent.Uint64()
+			newMsg := fmt.Sprintf("Received %s, total spent: %sFIL (%s/%s)", humanize.IBytes(e.BytesReceived), util.AttoFilToFil(fundsSpent), strEvent, strDealStatus)
+			if newMsg != lastMsg {
+				fc.l.Log(ctx, newMsg)
+				lastMsg = newMsg
+			}
+			lastEvent = e
 		}
 	}
+	if lastEvent.Status != retrievalmarket.DealStatusCompleted {
+		return ffs.FetchInfo{}, fmt.Errorf("retrieval failed with status %s and message %s", retrievalmarket.DealStatuses[lastEvent.Status], lastMsg)
+	}
+
 	return ffs.FetchInfo{RetrievedMiner: miner, FundsSpent: fundsSpent}, nil
 }
 
