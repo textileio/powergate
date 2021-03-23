@@ -228,6 +228,18 @@ func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, 
 		s.l.Log(ctx, "Hot-Storage configuration ran successfully.")
 	}
 
+	// We want to avoid relying on Lotus working in online-mode.
+	// We need to take care ourselves of pulling the data from
+	// the IPFS network.
+	if !a.Cfg.Hot.Enabled && a.Cfg.Cold.Enabled {
+		s.l.Log(ctx, "Automatically staging Cid from the IPFS network...")
+		stageCtx, cancel := context.WithTimeout(ctx, time.Duration(a.Cfg.Hot.Ipfs.AddTimeout)*time.Second)
+		defer cancel()
+		if err := s.hs.StageCid(stageCtx, a.APIID, a.Cid); err != nil {
+			return ffs.StorageInfo{}, nil, fmt.Errorf("automatically staging cid: %s", err)
+		}
+	}
+
 	s.l.Log(ctx, "Executing Cold-Storage configuration...")
 	cold, errors, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold, dealUpdates)
 	if err != nil {
@@ -287,6 +299,7 @@ func (s *Scheduler) executeEnabledHotStorage(ctx context.Context, iid ffs.APIID,
 	var size int
 	var err error
 	if !replaceCid.Defined() {
+		s.l.Log(ctx, "Fetching from the IPFS network...")
 		size, err = s.hs.Pin(sctx, iid, curr.Cid)
 	} else {
 		s.l.Log(ctx, "Replace of previous pin %s", replaceCid)

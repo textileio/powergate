@@ -130,6 +130,7 @@ func configFromFlags() (server.Config, error) {
 	ffsSchedMaxParallel := config.GetInt("ffsschedmaxparallel")
 	ffsDealWatchFinalityTimeout := time.Minute * time.Duration(config.GetInt("ffsdealfinalitytimeout"))
 	ffsMinimumPieceSize := config.GetUint64("ffsminimumpiecesize")
+	ffsRetrievalNextEventTimeout := config.GetDuration("ffsretrievalnexteventtimeout")
 	ffsMaxParallelDealPreparing := config.GetInt("ffsmaxparalleldealpreparing")
 	ffsGCInterval := time.Minute * time.Duration(config.GetInt("ffsgcinterval"))
 	ffsGCStagedGracePeriod := time.Minute * time.Duration(config.GetInt("ffsgcstagedgraceperiod"))
@@ -166,18 +167,19 @@ func configFromFlags() (server.Config, error) {
 		MongoURI: mongoURI,
 		MongoDB:  mongoDB,
 
-		FFSAdminToken:               ffsAdminToken,
-		FFSUseMasterAddr:            ffsUseMasterAddr,
-		FFSDealFinalityTimeout:      ffsDealWatchFinalityTimeout,
-		FFSMinimumPieceSize:         ffsMinimumPieceSize,
-		FFSMaxParallelDealPreparing: ffsMaxParallelDealPreparing,
-		FFSGCAutomaticGCInterval:    ffsGCInterval,
-		FFSGCStageGracePeriod:       ffsGCStagedGracePeriod,
-		AutocreateMasterAddr:        autocreateMasterAddr,
-		MinerSelector:               minerSelector,
-		MinerSelectorParams:         minerSelectorParams,
-		SchedMaxParallel:            ffsSchedMaxParallel,
-		DealWatchPollDuration:       dealWatchPollDuration,
+		FFSAdminToken:                ffsAdminToken,
+		FFSUseMasterAddr:             ffsUseMasterAddr,
+		FFSDealFinalityTimeout:       ffsDealWatchFinalityTimeout,
+		FFSMinimumPieceSize:          ffsMinimumPieceSize,
+		FFSRetrievalNextEventTimeout: ffsRetrievalNextEventTimeout,
+		FFSMaxParallelDealPreparing:  ffsMaxParallelDealPreparing,
+		FFSGCAutomaticGCInterval:     ffsGCInterval,
+		FFSGCStageGracePeriod:        ffsGCStagedGracePeriod,
+		AutocreateMasterAddr:         autocreateMasterAddr,
+		MinerSelector:                minerSelector,
+		MinerSelectorParams:          minerSelectorParams,
+		SchedMaxParallel:             ffsSchedMaxParallel,
+		DealWatchPollDuration:        dealWatchPollDuration,
 
 		AskIndexQueryAskTimeout: askIndexQueryAskTimeout,
 		AskIndexRefreshInterval: askIndexRefreshInterval,
@@ -387,6 +389,7 @@ func setupFlags() error {
 	pflag.String("ffsminerselector", "reputation", "Miner selector to be used by FFS: 'sr2', 'reputation'.")
 	pflag.String("ffsminerselectorparams", "", "Miner selector configuration parameter, depends on --ffsminerselector.")
 	pflag.String("ffsminimumpiecesize", "67108864", "Minimum piece size in bytes allowed to be stored in Filecoin.")
+	pflag.Duration("ffsretrievalnexteventtimeout", time.Hour, "Maximum amount of time to wait for the next retrieval event before erroring it.")
 	pflag.String("ffsschedmaxparallel", "1000", "Maximum amount of Jobs executed in parallel.")
 	pflag.String("ffsdealfinalitytimeout", "4320", "Deadline in minutes in which a deal must prove liveness changing status before considered abandoned.")
 	pflag.String("ffsmaxparalleldealpreparing", "2", "Max parallel deal preparing tasks.")

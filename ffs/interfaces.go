@@ -42,7 +42,7 @@ type HotStorage interface {
 	// Stage adds io.Reader and stage-pins it.
 	Stage(context.Context, APIID, io.Reader) (cid.Cid, error)
 
-	// StageCid stage-pins a cid.
+	// StageCid pulls Cid data and stage-pin it.
 	StageCid(context.Context, APIID, cid.Cid) error
 
 	// Unpin unpins a Cid.
