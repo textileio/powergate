@@ -17,11 +17,11 @@ import (
 	_ "net/http/pprof"
 
 	logging "github.com/ipfs/go-log/v2"
-	metricsOpenTelemetry "github.com/jsign/go-metrics-opentelemetry"
 	homedir "github.com/mitchellh/go-homedir"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	metricsOpenTelemetry "github.com/textileio/go-metrics-opentelemetry"
 	"github.com/textileio/powergate/v2/api/server"
 	"github.com/textileio/powergate/v2/buildinfo"
 	"github.com/textileio/powergate/v2/util"

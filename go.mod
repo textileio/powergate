@@ -36,8 +36,6 @@ require (
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
-	github.com/jsign/go-ds-measure v0.1.1-0.20210306174726-39c16cb4200f
-	github.com/jsign/go-metrics-opentelemetry v0.0.0-20210306174423-185f369f4b3b
 	github.com/libp2p/go-libp2p v0.12.0
 	github.com/libp2p/go-libp2p-core v0.7.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
@@ -59,7 +57,9 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/textileio/dsutils v1.0.1
+	github.com/textileio/go-ds-measure v0.1.1-0.20210323185620-1df9394d5b7a
 	github.com/textileio/go-ds-mongo v0.1.4
+	github.com/textileio/go-metrics-opentelemetry v0.0.0-20210323190205-79a1865cff3a
 	go.opencensus.io v0.22.6 // indirect
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.18.0
 	go.opentelemetry.io/otel v0.18.0
