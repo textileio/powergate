@@ -153,8 +153,9 @@ func (dw *DealWatcher) startDaemon() error {
 
 					dw.metricDealUpdatesChanFailure.Add(dw.closeCtx, 1)
 					log.Warnf("updates channel closed unexpectedly")
+
+					cls() // Formally closed broken chan.
 					for {
-						cls() // Formally closed broken chan.
 						updates, cls, err = createUpdateChan()
 						if err != nil {
 							log.Warnf("reconstructing updates channel: %s", err)
