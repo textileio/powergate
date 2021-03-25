@@ -250,6 +250,7 @@ func setupLogging(repoPath string) error {
 		"chainstore",
 		"fchost",
 		"maxmind",
+		"lotusidx-store",
 
 		// Lotus client
 		"lotus-client",

@@ -54,6 +54,7 @@ type Index struct {
 	meterRefreshDuration metric.Int64ValueRecorder
 }
 
+// Config provides configuration parametrs to the miner index.
 type Config struct {
 	RefreshOnStart     bool
 	Disable            bool
@@ -87,9 +88,8 @@ func New(ds datastore.Datastore, clientBuilder lotus.ClientBuilder, h P2PHost, l
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	if err := mi.initMetrics(); err != nil {
-		return nil, fmt.Errorf("init metrics: %s", err)
-	}
+
+	mi.initMetrics()
 
 	if !conf.Disable {
 		mi.startMinerWorker()

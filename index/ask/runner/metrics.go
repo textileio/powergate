@@ -9,13 +9,11 @@ import (
 )
 
 // Init register all views.
-func (ai *Runner) initMetrics() error {
+func (ai *Runner) initMetrics() {
 	meter := global.Meter("powergate")
 
 	_ = metric.Must(meter).NewFloat64ValueObserver("powergate.index.ask.progress", ai.progressValueObserver, metric.WithDescription("Ask index refresh progress"), metric.WithUnit(unit.Dimensionless))
 	ai.refreshDuration = metric.Must(meter).NewInt64ValueRecorder("powergate.index.ask.refresh.duration", metric.WithDescription("Refresh duration"), metric.WithUnit(unit.Milliseconds))
-
-	return nil
 }
 
 func (ai *Runner) progressValueObserver(ctx context.Context, result metric.Float64ObserverResult) {

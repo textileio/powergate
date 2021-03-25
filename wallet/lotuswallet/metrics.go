@@ -10,11 +10,9 @@ var (
 	tagAutofund = attribute.Key("autofunding")
 )
 
-func (m *Module) initMetrics() error {
+func (m *Module) initMetrics() {
 	meter := global.Meter("powergate")
 
 	m.metricCreated = metric.Must(meter).NewInt64Counter("powergate.wallet.created")
 	m.metricTransfer = metric.Must(meter).NewInt64ValueRecorder("powergate.wallet.transfer", metric.WithDescription("Transfers in nanoFIL"))
-
-	return nil
 }

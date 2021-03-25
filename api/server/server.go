@@ -592,7 +592,6 @@ func createDatastore(conf Config, longTimeout bool) (datastore.TxnDatastore, err
 			return nil, fmt.Errorf("opening mongo datastore: %s", err)
 		}
 	} else {
-
 		log.Info("Opening badger database...")
 		path := filepath.Join(conf.RepoPath, datastoreFolderName)
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {

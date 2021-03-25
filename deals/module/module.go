@@ -144,6 +144,7 @@ func (m *Module) Import(ctx context.Context, data io.Reader, isCAR bool) (cid.Ci
 	return res.Root, size, nil
 }
 
+// Close gracefully shutdowns the deals module.
 func (m *Module) Close() error {
 	if err := m.dealWatcher.Close(); err != nil {
 		return fmt.Errorf("closing deal watcher: %s", err)

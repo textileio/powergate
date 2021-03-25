@@ -150,5 +150,4 @@ func (lsm *SyncMonitor) initMetrics() {
 			defer lsm.lock.Unlock()
 			result.Observe(lsm.heightDiff)
 		}, metric.WithDescription("Lotus node height syncing diff"))
-
 }

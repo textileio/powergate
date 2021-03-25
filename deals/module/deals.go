@@ -110,7 +110,11 @@ func (m *Module) Watch(ctx context.Context, proposal cid.Cid) (<-chan deals.Stor
 		if err := m.dealWatcher.Subscribe(watcherUpdates, proposal); err != nil {
 			log.Errorf("subscribing to deal-watcher channel: %s", err)
 		}
-		defer m.dealWatcher.Unsubscribe(watcherUpdates, proposal)
+		defer func() {
+			if err := m.dealWatcher.Unsubscribe(watcherUpdates, proposal); err != nil {
+				log.Errorf("unregistering from deal-watcher: %s", err)
+			}
+		}()
 
 		// Notify once so that subscribers get a result quickly
 		last, err := m.getStorageDealInfo(ctx, proposal)

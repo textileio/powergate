@@ -17,10 +17,13 @@ import (
 var (
 	log = logger.Logger("deals-watcher")
 
-	ErrNotFound           = errors.New("subscription not found")
+	// ErrNotFound is returned when a subscription isn't found.
+	ErrNotFound = errors.New("subscription not found")
+	// ErrActiveSubscription is returned when an already registered channel is registered again.
 	ErrActiveSubscription = errors.New("active subscription")
 )
 
+// DealWatcher provides a centralize way to watch for deal updates.
 type DealWatcher struct {
 	cb lotus.ClientBuilder
 
@@ -38,6 +41,7 @@ type DealWatcher struct {
 	metricDealUpdatesChanFailure metric.Int64Counter
 }
 
+// New returns a new DealWatcher.
 func New(cb lotus.ClientBuilder) (*DealWatcher, error) {
 	ctx, cls := context.WithCancel(context.Background())
 	dw := &DealWatcher{
@@ -48,15 +52,13 @@ func New(cb lotus.ClientBuilder) (*DealWatcher, error) {
 		closeFinished: make(chan struct{}),
 	}
 
-	if err := dw.startDaemon(); err != nil {
-		return nil, fmt.Errorf("starting daemon: %s", err)
-	}
-
+	dw.startDaemon()
 	dw.initMetrics()
 
 	return dw, nil
 }
 
+// Subscribe registers a channel that will receive updates for a proposalCid.
 func (dw *DealWatcher) Subscribe(ch chan<- struct{}, proposalCid cid.Cid) error {
 	dw.lock.Lock()
 	defer dw.lock.Unlock()
@@ -73,6 +75,7 @@ func (dw *DealWatcher) Subscribe(ch chan<- struct{}, proposalCid cid.Cid) error 
 	return nil
 }
 
+// Unsubscribe removes a previously registered channel to stop receiving updates.
 func (dw *DealWatcher) Unsubscribe(ch chan<- struct{}, proposalCid cid.Cid) error {
 	dw.lock.Lock()
 	defer dw.lock.Unlock()
@@ -102,6 +105,7 @@ func (dw *DealWatcher) Unsubscribe(ch chan<- struct{}, proposalCid cid.Cid) erro
 	return nil
 }
 
+// Close gracefully shutdowns the deal watcher.
 func (dw *DealWatcher) Close() error {
 	dw.closeLock.Lock()
 	defer dw.closeLock.Unlock()
@@ -117,7 +121,7 @@ func (dw *DealWatcher) Close() error {
 	return nil
 }
 
-func (dw *DealWatcher) startDaemon() error {
+func (dw *DealWatcher) startDaemon() {
 	createUpdateChan := func() (<-chan api.DealInfo, func(), error) {
 		c, cls, err := dw.cb(dw.closeCtx)
 		if err != nil {
@@ -187,6 +191,4 @@ func (dw *DealWatcher) startDaemon() error {
 			}
 		}
 	}()
-
-	return nil
 }

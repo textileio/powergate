@@ -14,13 +14,11 @@ var (
 	metaSubindex    = attribute.Key("subindex").String("meta")
 )
 
-func (mi *Index) initMetrics() error {
+func (mi *Index) initMetrics() {
 	meter := global.Meter("powergate")
 
 	_ = metric.Must(meter).NewFloat64ValueObserver("powergate.index.miner.progress", mi.progressValueObserver, metric.WithDescription("Miner index refresh progress"), metric.WithUnit(unit.Dimensionless))
 	mi.meterRefreshDuration = metric.Must(meter).NewInt64ValueRecorder("powergate.index.miner.refresh.duration", metric.WithDescription("Refresh duration"), metric.WithUnit(unit.Milliseconds))
-
-	return nil
 }
 
 func (mi *Index) progressValueObserver(ctx context.Context, result metric.Float64ObserverResult) {

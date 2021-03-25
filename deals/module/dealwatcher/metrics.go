@@ -16,5 +16,4 @@ func (dw *DealWatcher) initMetrics() {
 
 	dw.metricDealUpdates = metric.Must(meter).NewInt64Counter("powergate.dealwatcher.updates.total")
 	dw.metricDealUpdatesChanFailure = metric.Must(meter).NewInt64Counter("powergate.dealwatcher.updates.chan.failure.total")
-
 }

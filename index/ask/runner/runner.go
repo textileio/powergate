@@ -251,7 +251,6 @@ func (ai *Runner) generateIndex(ctx context.Context, api *apistruct.FullNodeStru
 		ai.metricLock.Lock()
 		ai.progress = float64(i) / float64(len(addrs))
 		ai.metricLock.Unlock()
-
 	}
 	for i := 0; i < ai.config.MaxParallel; i++ {
 		rateLim <- struct{}{}

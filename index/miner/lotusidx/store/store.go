@@ -9,6 +9,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	kt "github.com/ipfs/go-datastore/keytransform"
 	"github.com/ipfs/go-datastore/query"
+	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/index/miner"
 )
 
@@ -16,6 +17,8 @@ var (
 	dsMetadata      = datastore.NewKey("meta")
 	dsOnChainMiner  = datastore.NewKey("onchain/miner")
 	dsOnChainHeight = datastore.NewKey("onchain/height")
+
+	log = logger.Logger("lotusidx-store")
 )
 
 // Store is a store to save on-chain and metadata information about the chain.
@@ -56,7 +59,7 @@ func (s *Store) SaveOnChain(ctx context.Context, index miner.ChainIndex) error {
 		i++
 		if i%1000 == 0 {
 			if err := b.Commit(); err != nil {
-				return fmt.Errorf("commiting batch: %s", err)
+				return fmt.Errorf("committing batch: %s", err)
 			}
 			b, err = s.ds.Batch()
 			if err != nil {
@@ -74,10 +77,9 @@ func (s *Store) SaveOnChain(ctx context.Context, index miner.ChainIndex) error {
 		if err := b.Put(key, buf); err != nil {
 			return fmt.Errorf("saving onchain in store: %s", err)
 		}
-
 	}
 	if err := b.Commit(); err != nil {
-		return fmt.Errorf("commiting batch: %s", err)
+		return fmt.Errorf("committing batch: %s", err)
 	}
 
 	buf := make([]byte, 8)
@@ -112,7 +114,11 @@ func (s *Store) getMetaIndex() (miner.MetaIndex, error) {
 	if err != nil {
 		return miner.MetaIndex{}, fmt.Errorf("executing query: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing meta-index query: %s", err)
+		}
+	}()
 
 	info := map[string]miner.Meta{}
 	for v := range res.Next() {
@@ -139,7 +145,11 @@ func (s *Store) getOnChainIndex() (miner.ChainIndex, error) {
 	if err != nil {
 		return miner.ChainIndex{}, fmt.Errorf("executing query: %s", err)
 	}
-	defer res.Close()
+	defer func() {
+		if err := res.Close(); err != nil {
+			log.Errorf("closing on-chain index query: %s", err)
+		}
+	}()
 
 	info := map[string]miner.OnChainMinerData{}
 	for v := range res.Next() {

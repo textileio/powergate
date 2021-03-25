@@ -223,7 +223,6 @@ func (s *Index) updateIndex() error {
 
 		// Signal external actors that updated index information is available.
 		s.signaler.Signal()
-
 	}
 
 	log.Info("faults index updated")
