@@ -13,7 +13,6 @@ import (
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/v2/lotus"
-	"github.com/textileio/powergate/v2/util"
 )
 
 // TestingTWithCleanup is an augmented require.TestingT with a Cleanup function.
@@ -75,7 +74,7 @@ func LaunchDevnetDocker(t TestingTWithCleanup, numMiners, speed int, ipfsMaddr s
 // CreateLocalDevnetWithIPFS creates a local devnet connected to an IPFS node.
 func CreateLocalDevnetWithIPFS(t TestingTWithCleanup, numMiners, speed int, ipfsMaddr string, mountVolumes bool) (lotus.ClientBuilder, address.Address, []address.Address) {
 	lotusDevnet := LaunchDevnetDocker(t, numMiners, speed, ipfsMaddr, mountVolumes)
-	cb, err := lotus.NewBuilder(util.MustParseAddr("/ip4/127.0.0.1/tcp/"+lotusDevnet.GetPort("7777/tcp")), "", 1)
+	cb, err := lotus.NewBuilder("127.0.0.1:"+lotusDevnet.GetPort("7777/tcp"), "", 1)
 	require.NoError(t, err)
 	ctx, cls := context.WithTimeout(context.Background(), time.Second*10)
 	defer cls()

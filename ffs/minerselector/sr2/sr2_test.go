@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/v2/ffs"
 	"github.com/textileio/powergate/v2/lotus"
@@ -16,11 +15,9 @@ import (
 // synced Lotus node.
 func TestMS(t *testing.T) {
 	t.SkipNow()
-	lotusHost, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5555")
-	require.NoError(t, err)
 	lotusToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.4KpuySIvV4n6kBEXQOle-hi1Ec3lyUmRYCknz4NQyLM"
 
-	cb, err := lotus.NewBuilder(lotusHost, lotusToken, 1)
+	cb, err := lotus.NewBuilder("127.0.0.1:5555", lotusToken, 1)
 	require.NoError(t, err)
 
 	url := "https://raw.githubusercontent.com/filecoin-project/slingshot/master/miners.json"
@@ -35,11 +32,9 @@ func TestMS(t *testing.T) {
 
 func TestCustom(t *testing.T) {
 	t.SkipNow()
-	lotusHost, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5555")
-	require.NoError(t, err)
 	lotusToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.4KpuySIvV4n6kBEXQOle-hi1Ec3lyUmRYCknz4NQyLM"
 
-	cb, err := lotus.NewBuilder(lotusHost, lotusToken, 1)
+	cb, err := lotus.NewBuilder("127.0.0.1:5555", lotusToken, 1)
 	require.NoError(t, err)
 
 	c, cls, err := cb(context.Background())

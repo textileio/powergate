@@ -9,9 +9,6 @@ import (
 	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/filecoin-project/lotus/api/apistruct"
 	logging "github.com/ipfs/go-log/v2"
-	ma "github.com/multiformats/go-multiaddr"
-
-	"github.com/textileio/powergate/v2/util"
 )
 
 var (
@@ -22,11 +19,7 @@ var (
 type ClientBuilder func(ctx context.Context) (*apistruct.FullNodeStruct, func(), error)
 
 // NewBuilder creates a new ClientBuilder.
-func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBuilder, error) {
-	addr, err := util.TCPAddrFromMultiAddr(maddr)
-	if err != nil {
-		return nil, err
-	}
+func NewBuilder(addr string, authToken string, connRetries int) (ClientBuilder, error) {
 	headers := http.Header{
 		"Authorization": []string{"Bearer " + authToken},
 	}

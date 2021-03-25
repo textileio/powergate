@@ -62,11 +62,9 @@ func TestIntegration(t *testing.T) {
 	metaRefreshInterval = time.Hour
 	minersRefreshInterval = time.Second
 
-	lotusHost, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5555")
-	require.NoError(t, err)
 	lotusToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.4KpuySIvV4n6kBEXQOle-hi1Ec3lyUmRYCknz4NQyLM"
 
-	cb, err := lotus.NewBuilder(lotusHost, lotusToken, 1)
+	cb, err := lotus.NewBuilder("127.0.0.1:5555", lotusToken, 1)
 	require.NoError(t, err)
 
 	mi, err := New(tests.NewTxMapDatastore(), cb, &p2pHostMock{}, &lrMock{}, false, false)

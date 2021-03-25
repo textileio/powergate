@@ -117,7 +117,7 @@ You can download `powd` binaries from the [GitHub Releases section](https://gith
 
 In this section, we outline the basic configuration needed for Powergate. Recall you can execute `powd -h` to look for default values and format of configuration values.
 
-The first configuration step is to provide information to connect to the Lotus API correctly. For this, you should provide `POWD_LOTUSHOST`/`--lotushost`, which should be multiaddress that indicates where is the Lotus API JSON-RPC endpoint mentioned in the previous section. 
+The first configuration step is to provide information to connect to the Lotus API correctly. For this, you should provide `POWD_LOTUSHOST`/`--lotushost`, which should be the `host:port` address that indicates where is the Lotus API JSON-RPC endpoint mentioned in the previous section. 
 
 Additionally, you should indicate which is the _auth token_ of the API. The _auth token_ lives in `~/.lotus/token` in your Lotus host. Powergate allows this parameter to be configured in two ways: the path of this token file, or providing the token value directly. For the former, you should set `POWD_LOTUSTOKENFILE`/`--lotustokenfile`, and for the latter `POWD_LOTUSTOKEN`/`--lotustoken`. At least one of each env/flags should be provided. If that isn't the case `powd` will fail to start indicating that as an error.
 
