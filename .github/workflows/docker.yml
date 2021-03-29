@@ -8,16 +8,27 @@ on:
 jobs:
   docker:
     name: Docker publishing
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v1
-      - name: Publish
-        uses: docker/build-push-action@v2
+      - uses: actions/checkout@v2
+      - name: Get git sha
+        id: git_sha
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Check outputs
+        run: echo ${{ steps.git_sha.outputs.sha_short }}
+      - name: Fail if no git sha
+        run: exit 1
+        if: ${{ steps.git_sha.outputs.sha_short == 0 }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          dockerfile: Dockerfile
-          repository: textile/powergate
-          tag_with_ref: true
-          tag_with_sha: true
+          password: ${{ secrets.DOCKER_PASSWORD }}    
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: textile/powergate:latest,textile/powergate:sha-${{ steps.git_sha.outputs.sha_short }}
