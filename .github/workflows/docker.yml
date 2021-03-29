@@ -4,12 +4,32 @@ on:
     types: [published]
   push:
     branches:
+      - jsign/ddup
       - master
 jobs:
   docker:
     name: Docker publishing
     runs-on: self-hosted
     steps:
+      - name: Prepare
+        id: prep
+        run: |
+         DOCKER_IMAGE=textile/myrepository
+         VERSION=edge
+         if [[ $GITHUB_REF == refs/tags/* ]]; then
+           VERSION=${GITHUB_REF#refs/tags/}
+         elif [[ $GITHUB_REF == refs/heads/* ]]; then
+           VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
+         elif [[ $GITHUB_REF == refs/pull/* ]]; then
+           VERSION=pr-${{ github.event.number }}
+         fi
+         TAGS="${DOCKER_IMAGE}:${VERSION}"
+         if [ "${{ github.event_name }}" = "push" ]; then
+           TAGS="$TAGS,${DOCKER_IMAGE}:sha-${GITHUB_SHA::8}"
+         fi
+         echo ::set-output name=version::${VERSION}
+         echo ::set-output name=tags::${TAGS}
+         echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
       - name: Check out code
         uses: actions/checkout@v1
       - name: Publish
@@ -19,5 +39,5 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           dockerfile: Dockerfile
           repository: textile/powergate
-          tag_with_ref: true
-          tag_with_sha: true
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
