@@ -14,16 +14,22 @@ import (
 	"syscall"
 	"time"
 
-	"contrib.go.opencensus.io/exporter/prometheus"
+	_ "net/http/pprof"
+
 	logging "github.com/ipfs/go-log/v2"
 	homedir "github.com/mitchellh/go-homedir"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	metricsOpenTelemetry "github.com/textileio/go-metrics-opentelemetry"
 	"github.com/textileio/powergate/v2/api/server"
 	"github.com/textileio/powergate/v2/buildinfo"
 	"github.com/textileio/powergate/v2/util"
-	"go.opencensus.io/plugin/runmetrics"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/metric/prometheus"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/global"
 )
 
 var (
@@ -51,10 +57,10 @@ func main() {
 	log.Infof("starting powd:\n%s", buildinfo.Summary())
 
 	// Configuring Prometheus exporter.
-	closeInstr, err := setupInstrumentation()
-	if err != nil {
+	if err := setupInstrumentation(); err != nil {
 		log.Fatalf("starting instrumentation: %s", err)
 	}
+
 	confProtected := conf
 	if confProtected.MongoURI != "" {
 		confProtected.MongoURI = "<hidden>"
@@ -78,7 +84,6 @@ func main() {
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 	<-ch
 	log.Info("Closing...")
-	closeInstr()
 	powd.Close()
 	if conf.Devnet {
 		if err := os.RemoveAll(conf.RepoPath); err != nil {
@@ -140,6 +145,8 @@ func configFromFlags() (server.Config, error) {
 	askIndexRefreshOnStart := config.GetBool("askindexrefreshonstart")
 	askIndexMaxParallel := config.GetInt("askindexmaxparallel")
 	indexMinersRefreshOnStart := config.GetBool("indexminersrefreshonstart")
+	indexMinersOnChainMaxParallel := config.GetInt("indexminersonchainmaxparallel")
+	indexMinersOnChainFrequency := config.GetDuration("indexminersonchainfrequency")
 	disableIndices := config.GetBool("disableindices")
 	disableNonCompliantAPIs := config.GetBool("disablenoncompliantapis")
 
@@ -186,7 +193,9 @@ func configFromFlags() (server.Config, error) {
 		AskIndexRefreshOnStart:  askIndexRefreshOnStart,
 		AskindexMaxParallel:     askIndexMaxParallel,
 
-		IndexMinersRefreshOnStart: indexMinersRefreshOnStart,
+		IndexMinersRefreshOnStart:     indexMinersRefreshOnStart,
+		IndexMinersOnChainMaxParallel: indexMinersOnChainMaxParallel,
+		IndexMinersOnChainFrequency:   indexMinersOnChainFrequency,
 
 		DisableIndices: disableIndices,
 
@@ -194,37 +203,35 @@ func configFromFlags() (server.Config, error) {
 	}, nil
 }
 
-func setupInstrumentation() (func(), error) {
-	err := runmetrics.Enable(runmetrics.RunMetricOptions{
-		EnableCPU:    true,
-		EnableMemory: true,
+func setupInstrumentation() error {
+	exporter, err := prometheus.InstallNewPipeline(prometheus.Config{
+		DefaultHistogramBoundaries: []float64{1e-4, 1e-3, 1e-2, 1e-1, 1},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("enabling runtime metrics: %s", err)
+		log.Panicf("failed to initialize prometheus exporter %v", err)
 	}
-	pe, err := prometheus.NewExporter(prometheus.Options{
-		Namespace: "textilefc",
-	})
-	if err != nil {
-		return nil, fmt.Errorf("creating the prometheus stats exporter: %v", err)
-	}
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", pe)
-	srv := &http.Server{Addr: ":8888", Handler: mux}
+	http.HandleFunc("/metrics", exporter.ServeHTTP)
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Errorf("running prometheus scrape endpoint: %v", err)
-		}
+		_ = http.ListenAndServe(":8888", nil)
 	}()
-	closeFunc := func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Errorf("shutting down prometheus server: %s", err)
-		}
+
+	if err := metricsOpenTelemetry.Inject(); err != nil {
+		return fmt.Errorf("injecting datastore open-telemetry: %s", err)
 	}
 
-	return closeFunc, nil
+	if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second)); err != nil {
+		return fmt.Errorf("starting Go runtime metrics: %s", err)
+	}
+
+	meter := global.Meter("powergate")
+	attrBuildDate := attribute.Key("builddate").String(buildinfo.BuildDate)
+	attrGitSummary := attribute.Key("gitsummary").String(buildinfo.GitSummary)
+	attrGitBranch := attribute.Key("gitbranch").String(buildinfo.GitBranch)
+	attrGitCommit := attribute.Key("gitcommit").String(buildinfo.GitCommit)
+	metricInfo := metric.Must(meter).NewInt64Counter("powergate.info")
+	metricInfo.Add(context.Background(), 1, attrBuildDate, attrGitSummary, attrGitBranch, attrGitCommit)
+
+	return nil
 }
 
 func setupLogging(repoPath string) error {
@@ -243,6 +250,7 @@ func setupLogging(repoPath string) error {
 		"chainstore",
 		"fchost",
 		"maxmind",
+		"lotusidx-store",
 
 		// Lotus client
 		"lotus-client",
@@ -250,6 +258,7 @@ func setupLogging(repoPath string) error {
 		// Deals Module
 		"deals",
 		"deals-records",
+		"deals-watcher",
 
 		// Wallet Module
 		"lotus-wallet",
@@ -403,6 +412,8 @@ func setupFlags() error {
 	pflag.String("askindexmaxparallel", "3", "Max parallel query ask to execute while updating index.")
 
 	pflag.Bool("indexminersrefreshonstart", false, "If true it will refresh the miner's on start.")
+	pflag.Int64("indexminersonchainmaxparallel", 20, "Max parallelization for building on-chain sub-index")
+	pflag.Duration("indexminersonchainfrequency", time.Hour*6, "Frequency of updating on-chain sub-index")
 
 	pflag.Bool("disableindices", false, "Disable all indices updates, useful to help Lotus syncing process.")
 	pflag.Bool("disablenoncompliantapis", false, "Disable APIs that may not easily comply with US law.")

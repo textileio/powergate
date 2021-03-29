@@ -1,8 +1,8 @@
-package module
+package lotusidx
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -13,8 +13,6 @@ import (
 	"github.com/textileio/powergate/v2/index/miner"
 	"github.com/textileio/powergate/v2/iplocation"
 	"github.com/textileio/powergate/v2/lotus"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
 )
 
 var (
@@ -22,40 +20,13 @@ var (
 	metaRateLim         = 1
 )
 
-var (
-	dsKeyMetaIndex = dsBase.ChildString("meta")
-)
-
-func (mi *Index) startMetaWorker(runOnStart bool) {
+func (mi *Index) startMetaWorker() {
 	mi.wg.Add(1)
 
 	startRun := make(chan struct{}, 1)
 
-	if runOnStart {
+	if mi.conf.RefreshOnStart {
 		startRun <- struct{}{}
-	}
-
-	tickMetaIndex := func() {
-		log.Info("updating meta index...")
-		// ToDo: coud have smarter ways of electing which addrs to refresh, and then
-		// doing a merge. Will depend if this too slow, but might not be the case
-		mi.lock.Lock()
-		addrs := make([]string, 0, len(mi.index.OnChain.Miners))
-		for addr, miner := range mi.index.OnChain.Miners {
-			if miner.Power > 0 {
-				addrs = append(addrs, addr)
-			}
-		}
-		mi.lock.Unlock()
-		newIndex := updateMetaIndex(mi.ctx, mi.clientBuilder, mi.h, mi.lr, addrs)
-		if err := mi.persistMetaIndex(newIndex); err != nil {
-			log.Errorf("persisting meta index: %s", err)
-		}
-		mi.lock.Lock()
-		mi.index.Meta = newIndex
-		mi.lock.Unlock()
-		mi.signaler.Signal() // ToDo: consider a finer-grained signaling
-		log.Info("meta index updated")
 	}
 
 	go func() {
@@ -67,17 +38,51 @@ func (mi *Index) startMetaWorker(runOnStart bool) {
 				log.Info("graceful shutdown of meta updater")
 				return
 			case <-time.After(metaRefreshInterval):
-				tickMetaIndex()
+				if err := mi.tickUpdateMetaIndex(); err != nil {
+					log.Error(err)
+				}
 			case <-startRun:
-				tickMetaIndex()
+				if err := mi.tickUpdateMetaIndex(); err != nil {
+					log.Error(err)
+				}
 			}
 		}
 	}()
 }
 
+func (mi *Index) tickUpdateMetaIndex() error {
+	start := time.Now()
+	log.Info("updating meta index...")
+	defer log.Info("meta index updated")
+
+	mi.lock.Lock()
+	addrs := make([]string, 0, len(mi.index.OnChain.Miners))
+	for addr, miner := range mi.index.OnChain.Miners {
+		if miner.Power > 0 {
+			addrs = append(addrs, addr)
+		}
+	}
+	mi.lock.Unlock()
+
+	newIndex := mi.updateMetaIndex(mi.ctx, mi.cb, addrs)
+	if err := mi.store.SaveMetadata(newIndex); err != nil {
+		return fmt.Errorf("persisting meta index: %s", err)
+	}
+
+	mi.lock.Lock()
+	mi.index.Meta = newIndex
+	mi.lock.Unlock()
+
+	mi.signaler.Signal()
+
+	mi.meterRefreshDuration.Record(context.Background(), time.Since(start).Milliseconds(), metaSubindex)
+
+	return nil
+}
+
 // updateMetaIndex generates a new index that contains fresh metadata information
 // of addrs miners.
-func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P2PHost, lr iplocation.LocationResolver, addrs []string) miner.MetaIndex {
+func (mi *Index) updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, addrs []string) miner.MetaIndex {
 	client, cls, err := clientBuilder(ctx)
 	if err != nil {
 		log.Errorf("creating lotus client: %s", err)
@@ -97,25 +102,25 @@ func updateMetaIndex(ctx context.Context, clientBuilder lotus.ClientBuilder, h P
 		rl <- struct{}{}
 		go func(a string) {
 			defer func() { <-rl }()
-			si, err := getMeta(ctx, client, h, lr, a)
+			si, err := getMeta(ctx, client, mi.h, mi.lr, a)
 			if err != nil {
-				log.Debugf("error getting static info: %s", err)
+				log.Debugf("getting static info: %s", err)
 				return
 			}
 			lock.Lock()
 			index.Info[a] = merge(index.Info[a], si)
 			lock.Unlock()
 		}(a)
-		if i%100 == 0 {
-			stats.Record(context.Background(), mMetaRefreshProgress.M(float64(i)/float64(len(addrs))))
-		}
+		mi.metricLock.Lock()
+		mi.metaProgress = float64(i) / float64(len(addrs))
+		mi.metricLock.Unlock()
 	}
 	for i := 0; i < metaRateLim; i++ {
 		rl <- struct{}{}
 	}
-
-	stats.Record(context.Background(), mMetaRefreshProgress.M(1))
-	ctx, _ = tag.New(context.Background(), tag.Insert(metricOnline, "online"))
+	mi.metricLock.Lock()
+	mi.metaProgress = float64(1)
+	mi.metricLock.Unlock()
 
 	return index
 }
@@ -175,16 +180,4 @@ func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr ipl
 		}
 	}
 	return si, nil
-}
-
-// persisteMetaIndex saves to datastore a new MetaIndex.
-func (mi *Index) persistMetaIndex(index miner.MetaIndex) error {
-	buf, err := json.Marshal(index)
-	if err != nil {
-		return err
-	}
-	if err := mi.ds.Put(dsKeyMetaIndex, buf); err != nil {
-		return err
-	}
-	return nil
 }

@@ -7,19 +7,11 @@ import (
 	"time"
 
 	"github.com/filecoin-project/lotus/api"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/stats/view"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/global"
 )
 
-var (
-	mLotusHeight = stats.Int64("lotus/height", "Height of Lotus node", "By")
-	vHeight      = &view.View{
-		Name:        "lotus/height_count",
-		Measure:     mLotusHeight,
-		Description: "Current height of Lotus node",
-		Aggregation: view.LastValue(),
-	}
-
+const (
 	metricHeightInterval = time.Second * 120
 )
 
@@ -29,16 +21,15 @@ type SyncMonitor struct {
 	cb ClientBuilder
 
 	lock       sync.Mutex
+	height     int64
 	heightDiff int64
 	remaining  int64
 }
 
 // NewSyncMonitor creates a new LotusSyncMonitor.
 func NewSyncMonitor(cb ClientBuilder) (*SyncMonitor, error) {
-	if err := view.Register(vHeight); err != nil {
-		log.Fatalf("register metrics views: %v", err)
-	}
 	lsm := &SyncMonitor{cb: cb}
+	lsm.initMetrics()
 
 	if err := lsm.refreshSyncDiff(); err != nil {
 		return nil, fmt.Errorf("getting initial sync height diff: %s", err)
@@ -81,7 +72,10 @@ func (lsm *SyncMonitor) refreshHeightMetric() error {
 	if err != nil {
 		return fmt.Errorf("getting chain head: %s", err)
 	}
-	stats.Record(context.Background(), mLotusHeight.M(int64(heaviest.Height())))
+	lsm.lock.Lock()
+	lsm.height = int64(heaviest.Height())
+	lsm.lock.Unlock()
+
 	return nil
 }
 
@@ -138,4 +132,22 @@ func (lsm *SyncMonitor) refreshSyncDiff() error {
 	lsm.lock.Unlock()
 
 	return nil
+}
+
+func (lsm *SyncMonitor) initMetrics() {
+	meter := global.Meter("powergate")
+
+	_ = metric.Must(meter).NewInt64ValueObserver("powergate.lotus.height",
+		func(ctx context.Context, result metric.Int64ObserverResult) {
+			lsm.lock.Lock()
+			defer lsm.lock.Unlock()
+			result.Observe(lsm.height)
+		}, metric.WithDescription("Lotus node height"))
+
+	_ = metric.Must(meter).NewInt64ValueObserver("powergate.lotus.height.diff",
+		func(ctx context.Context, result metric.Int64ObserverResult) {
+			lsm.lock.Lock()
+			defer lsm.lock.Unlock()
+			result.Observe(lsm.heightDiff)
+		}, metric.WithDescription("Lotus node height syncing diff"))
 }

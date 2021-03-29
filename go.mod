@@ -3,11 +3,10 @@ module github.com/textileio/powergate/v2
 go 1.16
 
 require (
-	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	github.com/apoorvam/goterminal v0.0.0-20180523175556-614d345c47e5
 	github.com/caarlos0/spin v1.1.0
 	github.com/charmbracelet/bubbles v0.7.6
-	github.com/charmbracelet/bubbletea v0.12.4
+	github.com/charmbracelet/bubbletea v0.13.1
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
@@ -21,11 +20,12 @@ require (
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.4.3
-	github.com/google/go-cmp v0.5.4
+	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/improbable-eng/grpc-web v0.13.0
+	github.com/improbable-eng/grpc-web v0.14.0
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-datastore v0.4.5
 	github.com/ipfs/go-ds-badger2 v0.1.1-0.20200708190120-187fc06f714e
@@ -51,19 +51,23 @@ require (
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/otiai10/copy v1.4.2
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
-	github.com/prometheus/client_golang v1.9.0 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/textileio/dsutils v1.0.1
+	github.com/textileio/go-ds-measure v0.1.1-0.20210323185620-1df9394d5b7a
 	github.com/textileio/go-ds-mongo v0.1.4
-	go.opencensus.io v0.22.6
-	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	google.golang.org/grpc v1.35.0
+	github.com/textileio/go-metrics-opentelemetry v0.0.0-20210323190205-79a1865cff3a
+	go.opencensus.io v0.22.6 // indirect
+	go.opentelemetry.io/contrib/instrumentation/runtime v0.18.0
+	go.opentelemetry.io/otel v0.18.0
+	go.opentelemetry.io/otel/exporters/metric/prometheus v0.18.0
+	go.opentelemetry.io/otel/metric v0.18.0
+	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.0
-	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
+	nhooyr.io/websocket v1.8.6 // indirect
 )
 
 replace github.com/dgraph-io/badger/v2 => github.com/dgraph-io/badger/v2 v2.2007.2

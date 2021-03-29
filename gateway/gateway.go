@@ -20,7 +20,7 @@ import (
 	gincors "github.com/rs/cors/wrapper/gin"
 	askRunner "github.com/textileio/powergate/v2/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/v2/index/faults/module"
-	minerModule "github.com/textileio/powergate/v2/index/miner/module"
+	minerModule "github.com/textileio/powergate/v2/index/miner/lotusidx"
 	"github.com/textileio/powergate/v2/reputation"
 )
 
@@ -168,6 +168,9 @@ func (g *Gateway) asksHandler(c *gin.Context) {
 		}
 		i++
 	}
+	sort.Slice(rows, func(i, j int) bool {
+		return rows[i][0].(string) <= rows[j][0].(string)
+	})
 
 	c.HTML(http.StatusOK, "/public/html/asks.gohtml", gin.H{
 		"MenuItems": menuItems,

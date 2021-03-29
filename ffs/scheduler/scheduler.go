@@ -349,7 +349,6 @@ func (s *Scheduler) run() {
 }
 
 func (s *Scheduler) printStats() {
-	log.Infof("storage job push rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
 	stats := s.sjs.GetStats()
 	log.Infof("storage job total queued: %d, total executing: %d", stats.TotalQueued, stats.TotalExecuting)
 }
@@ -366,7 +365,8 @@ func (s *Scheduler) resumeStartedDeals() error {
 		if err != nil {
 			return fmt.Errorf("getting resumed queued job: %s", err)
 		}
-		log.Infof("storage job resume rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
+
+		s.printStats()
 		s.sd.rateLim <- struct{}{}
 		go func(j ffs.StorageJob) {
 			log.Infof("resuming job %s with cid %s", j.ID, j.Cid)
@@ -374,7 +374,7 @@ func (s *Scheduler) resumeStartedDeals() error {
 			// Both hot and cold storage can detect resumed job execution.
 			s.executeQueuedStorage(j)
 
-			log.Infof("storage job resume rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
+			s.printStats()
 			<-s.sd.rateLim
 
 			// Signal that a free slot is available for a queued job.
@@ -466,7 +466,7 @@ forLoop:
 		}
 		go func(j ffs.StorageJob) {
 			s.executeQueuedStorage(j)
-			log.Infof("storage job push rate limit: %d/%d", len(s.sd.rateLim), cap(s.sd.rateLim))
+			s.printStats()
 			<-s.sd.rateLim
 
 			// Signal that there's a new open slot, and

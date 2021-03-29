@@ -6,7 +6,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs/manager"
 	"github.com/textileio/powergate/v2/ffs/scheduler"
 	askIndex "github.com/textileio/powergate/v2/index/ask/runner"
-	minerIndex "github.com/textileio/powergate/v2/index/miner/module"
+	minerIndex "github.com/textileio/powergate/v2/index/miner/lotusidx"
 	"github.com/textileio/powergate/v2/wallet"
 )
 

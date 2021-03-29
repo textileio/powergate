@@ -166,6 +166,8 @@ func (m *Module) resumeWatchingPendingRecords() error {
 	if err != nil {
 		return fmt.Errorf("getting pending storage records from store: %v", err)
 	}
+
+	log.Infof("resuming %d pending records", len(pendingStorageRecords))
 	for _, dr := range pendingStorageRecords {
 		remaining := time.Until(time.Unix(dr.Time, 0).Add(m.dealFinalityTimeout))
 		if remaining <= 0 {
@@ -258,6 +260,8 @@ func (m *Module) finalizePendingDeal(dr deals.StorageDealRecord) {
 func (m *Module) eventuallyFinalizeDeal(dr deals.StorageDealRecord, timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+	m.metricDealTracking.Add(ctx, 1)
+	defer m.metricDealTracking.Add(ctx, -1)
 
 	dealUpdates, err := m.Watch(ctx, dr.DealInfo.ProposalCid)
 	if err != nil {

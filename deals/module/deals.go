@@ -95,6 +95,7 @@ func (m *Module) Store(ctx context.Context, waddr string, dataCid cid.Cid, dataS
 		}
 		m.recordDeal(params, *p, dataSize)
 	}
+
 	return res, nil
 }
 
@@ -104,6 +105,16 @@ func (m *Module) Watch(ctx context.Context, proposal cid.Cid) (<-chan deals.Stor
 
 	go func() {
 		defer close(updates)
+
+		watcherUpdates := make(chan struct{}, 20)
+		if err := m.dealWatcher.Subscribe(watcherUpdates, proposal); err != nil {
+			log.Errorf("subscribing to deal-watcher channel: %s", err)
+		}
+		defer func() {
+			if err := m.dealWatcher.Unsubscribe(watcherUpdates, proposal); err != nil {
+				log.Errorf("unregistering from deal-watcher: %s", err)
+			}
+		}()
 
 		// Notify once so that subscribers get a result quickly
 		last, err := m.getStorageDealInfo(ctx, proposal)
@@ -119,15 +130,17 @@ func (m *Module) Watch(ctx context.Context, proposal cid.Cid) (<-chan deals.Stor
 			case <-ctx.Done():
 				return
 			case <-time.After(m.pollDuration):
-				sdi, err := m.getStorageDealInfo(ctx, proposal)
-				if err != nil {
-					log.Errorf("notifying latests proposal status: %s", err)
-					return
-				}
-				if last.StateID != sdi.StateID {
-					last = sdi
-					updates <- last
-				}
+			case <-watcherUpdates:
+			}
+
+			sdi, err := m.getStorageDealInfo(ctx, proposal)
+			if err != nil {
+				log.Errorf("notifying latests proposal status: %s", err)
+				return
+			}
+			if last.StateID != sdi.StateID {
+				last = sdi
+				updates <- last
 			}
 		}
 	}()

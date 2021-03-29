@@ -16,7 +16,6 @@ import (
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/signaler"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
-	"go.opencensus.io/stats"
 )
 
 const (
@@ -60,7 +59,6 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, disable b
 	if err != nil {
 		return nil, err
 	}
-	initMetrics()
 	ctx, cancel := context.WithCancel(context.Background())
 	s := &Index{
 		clientBuilder: clientBuilder,
@@ -184,8 +182,6 @@ func (s *Index) updateIndex() error {
 		return fmt.Errorf("resolving base path: %s", err)
 	}
 
-	mctx := context.Background()
-	start := time.Now()
 	for i := 0; i < len(path); i += batchSize {
 		j := i + batchSize
 		if j > len(path) {
@@ -227,13 +223,8 @@ func (s *Index) updateIndex() error {
 
 		// Signal external actors that updated index information is available.
 		s.signaler.Signal()
-
-		stats.Record(mctx, mRefreshProgress.M(float64(i)/float64(len(path))))
 	}
 
-	stats.Record(mctx, mRefreshDuration.M(time.Since(start).Milliseconds()))
-	stats.Record(mctx, mUpdatedHeight.M(int64(targetTs.Height())))
-	stats.Record(mctx, mRefreshProgress.M(1))
 	log.Info("faults index updated")
 
 	return nil

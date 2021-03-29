@@ -20,10 +20,12 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/ipfs/go-datastore"
+	kt "github.com/ipfs/go-datastore/keytransform"
 	badger "github.com/ipfs/go-ds-badger2"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
+	measure "github.com/textileio/go-ds-measure"
 	mongods "github.com/textileio/go-ds-mongo"
 	adminPb "github.com/textileio/powergate/v2/api/gen/powergate/admin/v1"
 	userPb "github.com/textileio/powergate/v2/api/gen/powergate/user/v1"
@@ -44,7 +46,7 @@ import (
 	"github.com/textileio/powergate/v2/gateway"
 	ask "github.com/textileio/powergate/v2/index/ask/runner"
 	faultsModule "github.com/textileio/powergate/v2/index/faults/module"
-	minerModule "github.com/textileio/powergate/v2/index/miner/module"
+	minerIndex "github.com/textileio/powergate/v2/index/miner/lotusidx"
 	"github.com/textileio/powergate/v2/iplocation/maxmind"
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/migration"
@@ -74,6 +76,7 @@ var (
 		2: migration.V2StorageInfoDealIDs,
 		3: migration.V3StorageJobsIndexMigration,
 		4: migration.V4RecordsMigration,
+		5: migration.V5DeleteOldMinerIndex,
 	}
 )
 
@@ -83,7 +86,7 @@ type Server struct {
 
 	mm *maxmind.MaxMind
 	ai *ask.Runner
-	mi *minerModule.Index
+	mi *minerIndex.Index
 	fi *faultsModule.Index
 	dm *dealsModule.Module
 	wm *lotusWallet.Module
@@ -146,7 +149,9 @@ type Config struct {
 	AskIndexRefreshInterval time.Duration
 	AskIndexRefreshOnStart  bool
 
-	IndexMinersRefreshOnStart bool
+	IndexMinersRefreshOnStart     bool
+	IndexMinersOnChainMaxParallel int
+	IndexMinersOnChainFrequency   time.Duration
 
 	DisableIndices bool
 
@@ -214,21 +219,32 @@ func NewServer(conf Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening maxmind database: %s", err)
 	}
-	askConf := ask.Config{
+	askIdxConf := ask.Config{
 		Disable:         conf.DisableIndices,
 		QueryAskTimeout: conf.AskIndexQueryAskTimeout,
 		MaxParallel:     conf.AskindexMaxParallel,
 		RefreshInterval: conf.AskIndexRefreshInterval,
 		RefreshOnStart:  conf.Devnet || conf.AskIndexRefreshOnStart,
 	}
-	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder, askConf)
+	log.Info("Starting ask index...")
+	ai, err := ask.New(txndstr.Wrap(ds, "index/ask"), clientBuilder, askIdxConf)
 	if err != nil {
 		return nil, fmt.Errorf("creating ask index: %s", err)
 	}
-	mi, err := minerModule.New(txndstr.Wrap(ds, "index/miner"), clientBuilder, fchost, mm, conf.IndexMinersRefreshOnStart, conf.DisableIndices)
+
+	log.Info("Starting miner index...")
+	minerIdxConf := minerIndex.Config{
+		RefreshOnStart:     conf.IndexMinersRefreshOnStart,
+		Disable:            conf.DisableIndices,
+		OnChainMaxParallel: conf.IndexMinersOnChainMaxParallel,
+		OnChainFrequency:   conf.IndexMinersOnChainFrequency,
+	}
+	mi, err := minerIndex.New(kt.Wrap(ds, kt.PrefixTransform{Prefix: datastore.NewKey("index/miner")}), clientBuilder, fchost, mm, minerIdxConf)
 	if err != nil {
 		return nil, fmt.Errorf("creating miner index: %s", err)
 	}
+
+	log.Info("Starting faults index...")
 	si, err := faultsModule.New(txndstr.Wrap(ds, "index/faults"), clientBuilder, conf.DisableIndices)
 	if err != nil {
 		return nil, fmt.Errorf("creating faults index: %s", err)
@@ -236,10 +252,14 @@ func NewServer(conf Config) (*Server, error) {
 	if conf.Devnet {
 		conf.DealWatchPollDuration = time.Second
 	}
+
+	log.Info("Starting deals module...")
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, conf.DealWatchPollDuration, conf.FFSDealFinalityTimeout, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
+
+	log.Info("Starting wallet module...")
 	wm, err := lotusWallet.New(clientBuilder, masterAddr, conf.WalletInitialFunds, conf.AutocreateMasterAddr, networkName)
 	if err != nil {
 		return nil, fmt.Errorf("creating wallet module: %s", err)
@@ -268,6 +288,7 @@ func NewServer(conf Config) (*Server, error) {
 		return nil, fmt.Errorf("creating coreipfs: %s", err)
 	}
 
+	log.Info("Starting FFS scheduler...")
 	var sr2rf func() (int, error)
 	if ms, ok := ms.(*sr2.MinerSelector); ok {
 		sr2rf = ms.GetReplicationFactor
@@ -521,6 +542,9 @@ func (s *Server) Close() {
 	if err := s.l.Close(); err != nil {
 		log.Errorf("closing joblogger: %s", err)
 	}
+	if err := s.dm.Close(); err != nil {
+		log.Errorf("closing deal module: %s", err)
+	}
 	if err := s.rm.Close(); err != nil {
 		log.Errorf("closing reputation module: %s", err)
 	}
@@ -549,6 +573,9 @@ func (s *Server) Close() {
 }
 
 func createDatastore(conf Config, longTimeout bool) (datastore.TxnDatastore, error) {
+	var ds datastore.TxnDatastore
+	var err error
+
 	if conf.MongoURI != "" {
 		log.Info("Opening Mongo database...")
 		mongoCtx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -560,24 +587,24 @@ func createDatastore(conf Config, longTimeout bool) (datastore.TxnDatastore, err
 		if longTimeout {
 			opts = []mongods.Option{mongods.WithOpTimeout(time.Hour), mongods.WithTxnTimeout(time.Hour)}
 		}
-		ds, err := mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB, opts...)
+		ds, err = mongods.New(mongoCtx, conf.MongoURI, conf.MongoDB, opts...)
 		if err != nil {
 			return nil, fmt.Errorf("opening mongo datastore: %s", err)
 		}
-		return ds, nil
+	} else {
+		log.Info("Opening badger database...")
+		path := filepath.Join(conf.RepoPath, datastoreFolderName)
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
+			return nil, fmt.Errorf("creating repo folder: %s", err)
+		}
+		opts := &badger.DefaultOptions
+		ds, err = badger.NewDatastore(path, opts)
+		if err != nil {
+			return nil, fmt.Errorf("opening badger datastore: %s", err)
+		}
 	}
 
-	log.Info("Opening badger database...")
-	path := filepath.Join(conf.RepoPath, datastoreFolderName)
-	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		return nil, fmt.Errorf("creating repo folder: %s", err)
-	}
-	opts := &badger.DefaultOptions
-	ds, err := badger.NewDatastore(path, opts)
-	if err != nil {
-		return nil, fmt.Errorf("opening badger datastore: %s", err)
-	}
-	return ds, nil
+	return measure.New("powergate.datastore", ds), nil
 }
 
 func getMinerSelector(conf Config, rm *reputation.Module, ai *ask.Runner, cb lotus.ClientBuilder) (ffs.MinerSelector, error) {

@@ -103,6 +103,9 @@ func (m *Module) retrieve(ctx context.Context, lapi *apistruct.FullNodeStruct, l
 	go func() {
 		defer lapiCls()
 		defer close(out)
+		m.metricRetrievalTracking.Add(ctx, 1)
+		defer m.metricRetrievalTracking.Add(ctx, -1)
+
 		// Redirect received events to the output channel
 		var (
 			canceled       bool

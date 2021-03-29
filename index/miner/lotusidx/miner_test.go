@@ -1,4 +1,4 @@
-package module
+package lotusidx
 
 import (
 	"context"
@@ -28,7 +28,13 @@ func TestFullRefresh(t *testing.T) {
 	client, _, miners := tests.CreateLocalDevnet(t, 1, 300)
 	time.Sleep(time.Second * 15) // Allow the network to some tipsets
 
-	mi, err := New(tests.NewTxMapDatastore(), client, &p2pHostMock{}, &lrMock{}, false, false)
+	cfg := Config{
+		RefreshOnStart:     true,
+		Disable:            false,
+		OnChainFrequency:   time.Minute,
+		OnChainMaxParallel: 1,
+	}
+	mi, err := New(tests.NewTxMapDatastore(), client, &p2pHostMock{}, &lrMock{}, cfg)
 	require.NoError(t, err)
 
 	l := mi.Listen()
@@ -60,7 +66,6 @@ func TestFullRefresh(t *testing.T) {
 func TestIntegration(t *testing.T) {
 	t.SkipNow()
 	metaRefreshInterval = time.Hour
-	minersRefreshInterval = time.Second
 
 	lotusHost, err := multiaddr.NewMultiaddr("/ip4/127.0.0.1/tcp/5555")
 	require.NoError(t, err)
@@ -69,7 +74,13 @@ func TestIntegration(t *testing.T) {
 	cb, err := lotus.NewBuilder(lotusHost, lotusToken, 1)
 	require.NoError(t, err)
 
-	mi, err := New(tests.NewTxMapDatastore(), cb, &p2pHostMock{}, &lrMock{}, false, false)
+	cfg := Config{
+		RefreshOnStart:     true,
+		Disable:            false,
+		OnChainFrequency:   time.Minute,
+		OnChainMaxParallel: 1,
+	}
+	mi, err := New(tests.NewTxMapDatastore(), cb, &p2pHostMock{}, &lrMock{}, cfg)
 	require.NoError(t, err)
 
 	<-time.After(time.Second * 15)
