@@ -62,9 +62,9 @@ require (
 	github.com/textileio/go-metrics-opentelemetry v0.0.0-20210323190205-79a1865cff3a
 	go.opencensus.io v0.22.6 // indirect
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.18.0
-	go.opentelemetry.io/otel v0.18.0
+	go.opentelemetry.io/otel v0.19.0
 	go.opentelemetry.io/otel/exporters/metric/prometheus v0.18.0
-	go.opentelemetry.io/otel/metric v0.18.0
+	go.opentelemetry.io/otel/metric v0.19.0
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.25.0
 	nhooyr.io/websocket v1.8.6 // indirect
