@@ -40,7 +40,7 @@ require (
 	github.com/libp2p/go-libp2p-core v0.7.0
 	github.com/libp2p/go-libp2p-kad-dht v0.11.0
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
-	github.com/mattn/go-runewidth v0.0.10
+	github.com/mattn/go-runewidth v0.0.12
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/muesli/termenv v0.7.4
 	github.com/multiformats/go-multiaddr v0.3.1
