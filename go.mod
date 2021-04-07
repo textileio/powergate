@@ -7,6 +7,7 @@ require (
 	github.com/caarlos0/spin v1.1.0
 	github.com/charmbracelet/bubbles v0.7.6
 	github.com/charmbracelet/bubbletea v0.13.1
+	github.com/cheggaaa/pb/v3 v3.0.7
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
@@ -20,31 +21,33 @@ require (
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/improbable-eng/grpc-web v0.14.0
+	github.com/ipfs/go-blockservice v0.1.4
 	github.com/ipfs/go-car v0.0.4
 	github.com/ipfs/go-cid v0.0.7
-	github.com/ipfs/go-cidutil v0.0.2
 	github.com/ipfs/go-datastore v0.4.5
+	github.com/ipfs/go-ds-badger v0.2.6
 	github.com/ipfs/go-ds-badger2 v0.1.1-0.20200708190120-187fc06f714e
-	github.com/ipfs/go-ipfs-chunker v0.0.5
+	github.com/ipfs/go-graphsync v0.7.0 // indirect
+	github.com/ipfs/go-ipfs v0.8.0
+	github.com/ipfs/go-ipfs-blockstore v1.0.3
+	github.com/ipfs/go-ipfs-exchange-offline v0.0.1
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/go-ipfs-http-client v0.1.0
 	github.com/ipfs/go-ipld-cbor v0.0.5
 	github.com/ipfs/go-ipld-format v0.2.0
 	github.com/ipfs/go-log/v2 v2.1.2-0.20200626104915-0016c0b4b3e4
 	github.com/ipfs/go-merkledag v0.3.2
-	github.com/ipfs/go-unixfs v0.2.4
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
 	github.com/ipld/go-car v0.2.1-0.20210322190947-cffd36d39d90 // indirect
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
-	github.com/libp2p/go-libp2p v0.12.0
-	github.com/libp2p/go-libp2p-core v0.7.0
-	github.com/libp2p/go-libp2p-kad-dht v0.11.0
+	github.com/libp2p/go-libp2p v0.13.0
+	github.com/libp2p/go-libp2p-core v0.8.5
+	github.com/libp2p/go-libp2p-kad-dht v0.11.1
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/mattn/go-runewidth v0.0.10
 	github.com/mitchellh/go-homedir v1.1.0
