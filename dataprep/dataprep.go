@@ -15,6 +15,7 @@ import (
 	coreiface "github.com/ipfs/interface-go-ipfs-core"
 )
 
+// CommP calculates the piece cid and size from an io.Reader.
 func CommP(r io.Reader) (cid.Cid, uint64, error) {
 	cp := &commP.Calc{}
 	_, err := io.Copy(cp, r)
@@ -34,6 +35,7 @@ func CommP(r io.Reader) (cid.Cid, uint64, error) {
 	return pieceCid, pieceSize, nil
 }
 
+// Dagify creates a UnixFS DAG from the provided file.
 func Dagify(ctx context.Context, dagService ipld.DAGService, path string, progressBytes chan<- int64) (cid.Cid, error) {
 	fileAdder, err := coreunix.NewAdder(ctx, nil, nil, dagService)
 	if err != nil {
@@ -48,7 +50,8 @@ func Dagify(ctx context.Context, dagService ipld.DAGService, path string, progre
 	if err != nil {
 		return cid.Undef, fmt.Errorf("opening path: %s", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
+
 	stat, err := f.Stat()
 	if err != nil {
 		return cid.Undef, fmt.Errorf("getting stat of data: %s", err)
@@ -57,7 +60,7 @@ func Dagify(ctx context.Context, dagService ipld.DAGService, path string, progre
 	if err != nil {
 		return cid.Undef, fmt.Errorf("creating serial file: %s", err)
 	}
-	defer fs.Close()
+	defer func() { _ = fs.Close() }()
 
 	var (
 		dagifyErr error

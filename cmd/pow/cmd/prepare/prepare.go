@@ -90,10 +90,11 @@ If a Cid is provided, an extra --ipfs-api flag should be provided to connect to 
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating dag-service: %s", err))
 		}
-		defer cls()
+		defer func() { _ = cls() }()
 
-		err = car.WriteCar(ctx, dagService, []cid.Cid{dataCid}, w)
-		c.CheckErr(err)
+		if err = car.WriteCar(ctx, dagService, []cid.Cid{dataCid}, w); err != nil {
+			c.Fatal(fmt.Errorf("generating car file: %s", err))
+		}
 	},
 }
 
@@ -118,7 +119,7 @@ You can use the --skip-car-validation, but usually shouldn't be done unless you 
 			if err != nil {
 				c.Fatal(fmt.Errorf("opening the file %s: %s", args[0], err))
 			}
-			defer f.Close()
+			defer func() { _ = f.Close() }()
 
 			skipCARValidation, err := cmd.Flags().GetBool("skip-car-validation")
 			if err != nil {
@@ -186,7 +187,7 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating temporal dag-service: %s", err))
 		}
-		defer cls()
+		defer func() { _ = cls() }()
 
 		ctx := context.Background()
 
@@ -210,7 +211,11 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		prCAR, pwCAR := io.Pipe()
 		var writeCarErr error
 		go func() {
-			defer pwCAR.Close()
+			defer func() {
+				if err := pwCAR.Close(); err != nil {
+					c.Fatal(fmt.Errorf("closing car writer: %s", err))
+				}
+			}()
 			if err := car.WriteCar(ctx, dagService, []cid.Cid{dataCid}, pwCAR); err != nil {
 				writeCarErr = err
 				return
@@ -236,7 +241,9 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		if writeCarErr != nil {
 			c.Fatal(fmt.Errorf("generating CAR file: %s", err))
 		}
-		pwCommP.Close()
+		if err := pwCommP.Close(); err != nil {
+			c.Fatal(fmt.Errorf("closing tee-reader writer: %s", err))
+		}
 		wg.Wait()
 		if errCommP != nil {
 			c.Fatal(fmt.Errorf("calculating piece-size and PieceCID: %s", err))
@@ -254,9 +261,9 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 	},
 }
 
-type CloseFunc func() error
+type closeFunc func() error
 
-func prepareDAGService(cmd *cobra.Command, args []string, quiet bool) (cid.Cid, ipld.DAGService, CloseFunc, error) {
+func prepareDAGService(cmd *cobra.Command, args []string, quiet bool) (cid.Cid, ipld.DAGService, closeFunc, error) {
 	ipfsAPI, err := cmd.Flags().GetString("ipfs-api")
 	if err != nil {
 		return cid.Undef, nil, nil, fmt.Errorf("getting ipfs api flag: %s", err)
@@ -298,10 +305,10 @@ func prepareDAGService(cmd *cobra.Command, args []string, quiet bool) (cid.Cid, 
 		return cid.Undef, nil, nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	return dataCid, ipfs.Dag(), CloseFunc(func() error { return nil }), nil
+	return dataCid, ipfs.Dag(), closeFunc(func() error { return nil }), nil
 }
 
-func createTmpDAGService(tmpDir string) (ipld.DAGService, CloseFunc, error) {
+func createTmpDAGService(tmpDir string) (ipld.DAGService, closeFunc, error) {
 	badgerFolder, err := ioutil.TempDir(tmpDir, "powprepare-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating temporary badger folder: %s", err)
@@ -318,7 +325,7 @@ func createTmpDAGService(tmpDir string) (ipld.DAGService, CloseFunc, error) {
 			if err := ds.Close(); err != nil {
 				return fmt.Errorf("closing datastore: %s", err)
 			}
-			os.RemoveAll(badgerFolder)
+			_ = os.RemoveAll(badgerFolder)
 
 			return nil
 		}, nil
@@ -336,7 +343,7 @@ func printJSONResult(pieceSize uint64, pieceCID cid.Cid) {
 	}
 	out, err := json.Marshal(outData)
 	c.CheckErr(err)
-	fmt.Fprintf(jsonOutput, string(out))
+	fmt.Fprint(jsonOutput, string(out))
 }
 
 func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet bool) (cid.Cid, error) {
@@ -348,10 +355,10 @@ func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet 
 		}
 		stat, err := f.Stat()
 		if err != nil {
-			f.Close()
+			_ = f.Close()
 			return cid.Undef, fmt.Errorf("getting stat of data: %s", err)
 		}
-		f.Close()
+		_ = f.Close()
 
 		c.Message("Creating data DAG...")
 		start := time.Now()
@@ -387,7 +394,6 @@ func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet 
 			bar.Finish()
 			c.Message("DAG created in %.02fs.", time.Since(start).Seconds())
 		}()
-
 	}
 	dataCid, err := dataprep.Dagify(ctx, dagService, path, progressChan)
 	if err != nil {
