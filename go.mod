@@ -51,7 +51,7 @@ require (
 	github.com/libp2p/go-libp2p-core v0.8.5
 	github.com/libp2p/go-libp2p-kad-dht v0.11.1
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
-	github.com/mattn/go-runewidth v0.0.10
+	github.com/mattn/go-runewidth v0.0.12
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/muesli/termenv v0.7.4
 	github.com/multiformats/go-multiaddr v0.3.1
@@ -73,10 +73,10 @@ require (
 	github.com/textileio/go-metrics-opentelemetry v0.0.0-20210323190205-79a1865cff3a
 	go.opencensus.io v0.22.6 // indirect
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.18.0
-	go.opentelemetry.io/otel v0.18.0
+	go.opentelemetry.io/otel v0.19.0
 	go.opentelemetry.io/otel/exporters/metric/prometheus v0.18.0
-	go.opentelemetry.io/otel/metric v0.18.0
-	google.golang.org/grpc v1.36.0
+	go.opentelemetry.io/otel/metric v0.19.0
+	google.golang.org/grpc v1.36.1
 	google.golang.org/protobuf v1.25.0
 	nhooyr.io/websocket v1.8.6 // indirect
 )
