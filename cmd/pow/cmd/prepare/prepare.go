@@ -42,7 +42,7 @@ func init() {
 
 	genCar.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
 	genCar.Flags().String("ipfs-api", "", "IPFS HTTP API multiaddress that stores the cid (only for Cid processing instead of file/folder path)")
-	genCar.Flags().Bool("json", false, "avoid pretty output and use json formatting")
+	genCar.Flags().Bool("quiet", false, "avoid pretty output")
 }
 
 // Cmd is the command.
@@ -55,8 +55,11 @@ var Cmd = &cobra.Command{
 var genCar = &cobra.Command{
 	Use:   "car [path | cid] [output path]",
 	Short: "car generates a CAR file from the data",
-	Long:  `car generates a CAR file from the data`,
-	Args:  cobra.RangeArgs(0, 2),
+	Long: `Generates a CAR file from the data source. This data-source can be a file/folder path or a Cid.
+
+If a file/folder path is provided, this command will DAGify the data and generate the CAR file.
+If a Cid is provided, an extra --ipfs-api flag should be provided to connect to the IPFS node that contains this Cid data.`,
+	Args: cobra.RangeArgs(1, 2),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
@@ -79,7 +82,11 @@ var genCar = &cobra.Command{
 			}()
 		}
 
-		dataCid, dagService, cls, err := prepareDAGService(cmd, args)
+		quiet, err := cmd.Flags().GetBool("quiet")
+		if err != nil {
+			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
+		}
+		dataCid, dagService, cls, err := prepareDAGService(cmd, args, quiet)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating dag-service: %s", err))
 		}
@@ -94,8 +101,12 @@ var commp = &cobra.Command{
 	Use:     "commp [path]",
 	Aliases: []string{"commP"},
 	Short:   "commP calculates the piece size and cid for a CAR file",
-	Long:    `commP claculates the piece size and cid for a CAR file`,
-	Args:    cobra.RangeArgs(0, 1),
+	Long: `commP calculates the piece-size and PieceCID for a CAR file.
+
+This command calculates the piece-size and piece-cid (CommP) from a CAR file.
+This command only makes sense to run for a CAR file, so it does some quick check if the input file *seems* to be well-formated. 
+You can use the --skip-car-validation, but usually shouldn't be done unless you know what you're doing (e.g.: benchmarks, or other tests)`,
+	Args: cobra.RangeArgs(0, 1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
@@ -144,22 +155,36 @@ var commp = &cobra.Command{
 }
 
 var prepare = &cobra.Command{
-	Use:     "prepare [cid | path] [output file path]",
+	Use:     "prepare [cid | path] [output CAR file path]",
 	Aliases: []string{"prep"},
 	Short:   "prepare generates a CAR file for data",
-	Long:    `prepare generates a CAR file for data`,
-	Args:    cobra.RangeArgs(0, 2),
+	Long: `Prepares a data source generating all needed to execute an offline deal.
+The data source can be a file/folder path or a Cid.
+
+If a file/folder path is provided, this command will DAGify the data and generate the CAR file.
+If a Cid is provided, an extra --ipfs-api flag should be provided to connect to the IPFS node that contains this Cid data.
+
+This command prepares data in a more efficiently than running car+commp subcommands, since it already starts calculating CommP at the same time that the CAR file is being generated.
+
+By default prints to stdout the generated CAR file. You can provide a second argument to
+specify the output file path, or simply pipe the stdout result.
+
+The piece-size and piece-cid are printed to stderr. For scripting usage, its recommended to use the --json flag.`,
+	Args: cobra.RangeArgs(1, 2),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// TTODO: tests
-		// TTODO: define final command name and help text
 		// TTODO: print lotus and powergate commands to fire the offline deal
 		c.FmtOutput = os.Stderr
 
-		dataCid, dagService, cls, err := prepareDAGService(cmd, args)
+		json, err := cmd.Flags().GetBool("json")
+		if err != nil {
+			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
+		}
+		dataCid, dagService, cls, err := prepareDAGService(cmd, args, json)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating temporal dag-service: %s", err))
 		}
@@ -180,10 +205,6 @@ var prepare = &cobra.Command{
 			}()
 		}
 
-		json, err := cmd.Flags().GetBool("json")
-		if err != nil {
-			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
-		}
 		if !json {
 			c.Message("Creating CAR and calculating piece-size and PieceCID...")
 		}
@@ -234,22 +255,14 @@ var prepare = &cobra.Command{
 
 type CloseFunc func() error
 
-func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGService, CloseFunc, error) {
-	json, err := cmd.Flags().GetBool("json")
-	if err != nil {
-		c.Fatal(fmt.Errorf("parsing json flag: %s", err))
-	}
+func prepareDAGService(cmd *cobra.Command, args []string, quiet bool) (cid.Cid, ipld.DAGService, CloseFunc, error) {
 	ipfsAPI, err := cmd.Flags().GetString("ipfs-api")
 	if err != nil {
 		return cid.Undef, nil, nil, fmt.Errorf("getting ipfs api flag: %s", err)
 	}
 
 	if ipfsAPI == "" {
-		path := "/dev/stdin"
-		if len(args) > 0 && args[0] != "-" {
-			path = args[0]
-		}
-
+		path := args[0]
 		tmpDir, err := cmd.Flags().GetString("tmpdir")
 		if err != nil {
 			return cid.Undef, nil, nil, fmt.Errorf("getting tmpdir directory: %s", err)
@@ -259,7 +272,7 @@ func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGServ
 		if err != nil {
 			return cid.Undef, nil, nil, fmt.Errorf("creating temporary dag-service: %s", err)
 		}
-		dataCid, err := dagify(context.Background(), dagService, path, json)
+		dataCid, err := dagify(context.Background(), dagService, path, quiet)
 		if err != nil {
 			return cid.Undef, nil, nil, fmt.Errorf("creating dag for data: %s", err)
 		}
@@ -310,6 +323,8 @@ func createTmpDAGService(tmpDir string) (ipld.DAGService, CloseFunc, error) {
 		}, nil
 }
 
+var jsonOutput = io.Writer(os.Stderr)
+
 func printJSONResult(pieceSize uint64, pieceCID cid.Cid) {
 	outData := struct {
 		PieceSize uint64 `json:"piece_size"`
@@ -320,7 +335,7 @@ func printJSONResult(pieceSize uint64, pieceCID cid.Cid) {
 	}
 	out, err := json.Marshal(outData)
 	c.CheckErr(err)
-	fmt.Fprintf(os.Stderr, string(out))
+	fmt.Fprintf(jsonOutput, string(out))
 }
 
 func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet bool) (cid.Cid, error) {
