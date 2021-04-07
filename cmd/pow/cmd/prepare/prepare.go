@@ -32,12 +32,15 @@ func init() {
 	Cmd.AddCommand(prepare, genCar, commp)
 
 	prepare.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
+	prepare.Flags().String("ipfs-api", "", "IPFS HTTP API multiaddress that stores the cid (only for Cid processing instead of file/folder path)")
+	prepare.Flags().Bool("json", false, "avoid pretty output and use json formatting")
 
-	commp.Flags().Bool("json", false, "print output in json format")
+	commp.Flags().Bool("json", false, "avoid pretty output and use json formatting")
 	commp.Flags().Bool("skip-car-validation", false, "skips CAR validation when processing a path")
 
 	genCar.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
 	genCar.Flags().String("ipfs-api", "", "IPFS HTTP API multiaddress that stores the cid (only for Cid processing instead of file/folder path)")
+	genCar.Flags().Bool("json", false, "avoid pretty output and use json formatting")
 }
 
 // Cmd is the command.
@@ -96,32 +99,28 @@ var commp = &cobra.Command{
 		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		var (
-			r   io.Reader
-			err error
-		)
-		r = os.Stdin
+		r := io.Reader(os.Stdin)
 		if len(args) > 0 && args[0] != "-" {
-			r, err := os.Open(args[0])
+			f, err := os.Open(args[0])
 			if err != nil {
 				c.Fatal(fmt.Errorf("opening the file %s: %s", args[0], err))
 			}
-			defer r.Close()
+			defer f.Close()
 
 			skipCARValidation, err := cmd.Flags().GetBool("skip-car-validation")
 			if err != nil {
 				c.Fatal(fmt.Errorf("getting skip-car-validation flag: %s", err))
 			}
 			if !skipCARValidation {
-				_, err = car.ReadHeader(bufio.NewReader(r))
+				_, err = car.ReadHeader(bufio.NewReader(f))
 				if err != nil {
 					c.Fatal(fmt.Errorf("wrong car file format: %s", err))
 				}
-
-				if _, err := r.Seek(0, io.SeekStart); err != nil {
+				if _, err := f.Seek(0, io.SeekStart); err != nil {
 					c.Fatal(fmt.Errorf("rewind file to start: %s", err))
 				}
 			}
+			r = f
 		}
 
 		pieceCID, pieceSize, err := dataprep.CommP(r)
@@ -134,20 +133,10 @@ var commp = &cobra.Command{
 			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
 		}
 		if jsonFlag {
-			outData := struct {
-				PieceSize uint64 `json:"piece_size"`
-				PieceCid  string `json:"piece_cid"`
-			}{
-				PieceSize: pieceSize,
-				PieceCid:  pieceCID.String(),
-			}
-			out, err := json.Marshal(outData)
-			c.CheckErr(err)
-			fmt.Println(string(out))
-
+			printJSONResult(pieceSize, pieceCID)
 			return
 		}
-		c.Message("Piece-size: %s", humanize.IBytes(pieceSize))
+		c.Message("Piece-size: %d (%s)", pieceSize, humanize.IBytes(pieceSize))
 		c.Message("PieceCID: %s", pieceCID)
 	},
 }
@@ -163,34 +152,18 @@ var prepare = &cobra.Command{
 		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// TTODO: Accept Cids, ask for ipfs node api
-		// TTODO: if output path not provided, spit to stdout
-		// TTODO: prety mode
-		// TTODO: quiet mode, no events
 		// TTODO: tests
 		// TTODO: define final command name and help text
 		// TTODO: print lotus and powergate commands to fire the offline deal
 		c.FmtOutput = os.Stderr
 
-		tmpDir, err := cmd.Flags().GetString("tmpdir")
-		c.CheckErr(err)
-
-		dagService, cls, err := createTmpDAGService(tmpDir)
+		dataCid, dagService, cls, err := prepareDAGService(cmd, args)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating temporal dag-service: %s", err))
 		}
 		defer cls()
 
 		ctx := context.Background()
-		path := args[0]
-
-		c.Message("Creating data DAG...")
-		start := time.Now()
-		dataCid, err := dataprep.Dagify(ctx, dagService, path)
-		if err != nil {
-			c.Fatal(fmt.Errorf("creating dag for data: %s", err))
-		}
-		c.Message("DAG created in %.02fs.", time.Since(start).Seconds())
 
 		outputFile := os.Stdout
 		if len(args) > 1 {
@@ -205,8 +178,14 @@ var prepare = &cobra.Command{
 			}()
 		}
 
-		c.Message("Creating CAR and calculating piece-size and PieceCID...")
-		start = time.Now()
+		json, err := cmd.Flags().GetBool("json")
+		if err != nil {
+			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
+		}
+		if !json {
+			c.Message("Creating CAR and calculating piece-size and PieceCID...")
+		}
+		start := time.Now()
 		prCAR, pwCAR := io.Pipe()
 		var writeCarErr error
 		go func() {
@@ -241,9 +220,12 @@ var prepare = &cobra.Command{
 		if errCommP != nil {
 			c.Fatal(fmt.Errorf("calculating piece-size and PieceCID: %s", err))
 		}
+		if json {
+			printJSONResult(pieceSize, pieceCid)
+			return
+		}
 		c.Message("Created CAR file, and piece digest in %.02fs.", time.Since(start).Seconds())
-
-		c.Message("Piece size: %s", humanize.IBytes(pieceSize))
+		c.Message("Piece size: %d (%s)", pieceSize, humanize.IBytes(pieceSize))
 		c.Message("Piece CID: %s", pieceCid)
 	},
 }
@@ -251,6 +233,10 @@ var prepare = &cobra.Command{
 type CloseFunc func() error
 
 func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGService, CloseFunc, error) {
+	json, err := cmd.Flags().GetBool("json")
+	if err != nil {
+		c.Fatal(fmt.Errorf("parsing json flag: %s", err))
+	}
 	ipfsAPI, err := cmd.Flags().GetString("ipfs-api")
 	if err != nil {
 		return cid.Undef, nil, nil, fmt.Errorf("getting ipfs api flag: %s", err)
@@ -272,10 +258,19 @@ func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGServ
 			return cid.Undef, nil, nil, fmt.Errorf("creating temporary dag-service: %s", err)
 		}
 		ctx := context.Background()
+
+		if !json {
+			c.Message("Creating data DAG...")
+		}
+		start := time.Now()
 		dataCid, err := dataprep.Dagify(ctx, dagService, path)
 		if err != nil {
 			return cid.Undef, nil, nil, fmt.Errorf("creating dag for data: %s", err)
 		}
+		if !json {
+			c.Message("DAG created in %.02fs.", time.Since(start).Seconds())
+		}
+
 		return dataCid, dagService, cls, nil
 	}
 
@@ -320,4 +315,17 @@ func createTmpDAGService(tmpDir string) (ipld.DAGService, CloseFunc, error) {
 
 			return nil
 		}, nil
+}
+
+func printJSONResult(pieceSize uint64, pieceCID cid.Cid) {
+	outData := struct {
+		PieceSize uint64 `json:"piece_size"`
+		PieceCid  string `json:"piece_cid"`
+	}{
+		PieceSize: pieceSize,
+		PieceCid:  pieceCID.String(),
+	}
+	out, err := json.Marshal(outData)
+	c.CheckErr(err)
+	fmt.Fprintf(os.Stderr, string(out))
 }
