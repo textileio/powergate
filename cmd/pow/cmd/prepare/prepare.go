@@ -2,6 +2,7 @@ package prepare
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -32,9 +33,11 @@ import (
 )
 
 func init() {
-	Cmd.AddCommand(prepare)
+	Cmd.AddCommand(prepare, commp)
 
 	prepare.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
+
+	commp.Flags().Bool("json", false, "print output in json format")
 }
 
 // Cmd is the command.
@@ -46,7 +49,53 @@ var Cmd = &cobra.Command{
 
 // TTODO: gen-car subcommand.
 
-// TTODO: calc-commp.
+var commp = &cobra.Command{
+	Use:     "commP [path]",
+	Aliases: []string{"commp"},
+	Short:   "TTODO",
+	Long:    `TTODO`,
+	Args:    cobra.MinimumNArgs(0),
+	PreRun: func(cmd *cobra.Command, args []string) {
+		err := viper.BindPFlags(cmd.Flags())
+		c.CheckErr(err)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		// TTODO: Accept Cids, ask for ipfs node api
+		// TTODO: check is a car file? allow flags to ignore
+		r := os.Stdin
+		var err error
+		if len(args) > 0 && args[0] != "-" {
+			r, err = os.Open(args[0])
+			if err != nil {
+				c.Fatal(errors.New("Opening the file"))
+			}
+			defer r.Close()
+		}
+
+		pieceCID, pieceSize, err := calcCommP(r)
+		c.CheckErr(err)
+		// TTODO: json style
+
+		jsonFlag, err := cmd.Flags().GetBool("json")
+		c.CheckErr(err)
+		if jsonFlag {
+			outData := struct {
+				PieceSize uint64 `json:"piece_size"`
+				PieceCid  string `json:"piece_cid"`
+			}{
+				PieceSize: pieceSize,
+				PieceCid:  pieceCID.String(),
+			}
+			out, err := json.Marshal(outData)
+			c.CheckErr(err)
+			fmt.Println(string(out))
+
+			return
+		}
+		c.Message("Piece-size: %s", humanize.IBytes(pieceSize))
+		c.Message("PieceCID: %s", pieceCID)
+	},
+}
 
 // TTODO: split.
 
@@ -125,19 +174,7 @@ var prepare = &cobra.Command{
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			cp := new(commP.Calc)
-			_, err = io.Copy(cp, prCommP)
-			if err != nil {
-				errCommP = err
-				return
-			}
-
-			var rawCommP []byte
-			rawCommP, pieceSize, errCommP = cp.Digest()
-			if errCommP != nil {
-				return
-			}
-			pieceCid, errCommP = commcid.DataCommitmentV1ToCID(rawCommP)
+			pieceCid, pieceSize, errCommP = calcCommP(prCommP)
 		}()
 		if _, err := io.Copy(outputFile, teeCAR); err != nil {
 			c.Fatal(fmt.Errorf("writing CAR file to output: %s", err))
@@ -266,4 +303,24 @@ func dagify(ctx context.Context, dagService ipld.DAGService, path string) (cid.C
 	}
 
 	return dataCid, nil
+}
+
+func calcCommP(r io.Reader) (cid.Cid, uint64, error) {
+	cp := &commP.Calc{}
+	_, err := io.Copy(cp, r)
+	if err != nil {
+		return cid.Undef, 0, fmt.Errorf("copying data to aggregator: %s", err)
+	}
+
+	rawCommP, pieceSize, err := cp.Digest()
+	if err != nil {
+		return cid.Undef, 0, fmt.Errorf("calculating final digest: %s", err)
+	}
+	pieceCid, err := commcid.DataCommitmentV1ToCID(rawCommP)
+	if err != nil {
+		return cid.Undef, 0, fmt.Errorf("converting commP to cid: %s", err)
+	}
+
+	return pieceCid, pieceSize, nil
+
 }
