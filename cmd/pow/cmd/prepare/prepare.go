@@ -8,9 +8,11 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
+	"github.com/cheggaaa/pb/v3"
 	"github.com/dustin/go-humanize"
 	bsrv "github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-car"
@@ -257,18 +259,9 @@ func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGServ
 		if err != nil {
 			return cid.Undef, nil, nil, fmt.Errorf("creating temporary dag-service: %s", err)
 		}
-		ctx := context.Background()
-
-		if !json {
-			c.Message("Creating data DAG...")
-		}
-		start := time.Now()
-		dataCid, err := dataprep.Dagify(ctx, dagService, path)
+		dataCid, err := dagify(context.Background(), dagService, path, json)
 		if err != nil {
 			return cid.Undef, nil, nil, fmt.Errorf("creating dag for data: %s", err)
-		}
-		if !json {
-			c.Message("DAG created in %.02fs.", time.Since(start).Seconds())
 		}
 
 		return dataCid, dagService, cls, nil
@@ -328,4 +321,62 @@ func printJSONResult(pieceSize uint64, pieceCID cid.Cid) {
 	out, err := json.Marshal(outData)
 	c.CheckErr(err)
 	fmt.Fprintf(os.Stderr, string(out))
+}
+
+func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet bool) (cid.Cid, error) {
+	var progressChan chan int64
+	if !quiet {
+		f, err := os.Open(path)
+		if err != nil {
+			return cid.Undef, fmt.Errorf("opening path: %s", err)
+		}
+		stat, err := f.Stat()
+		if err != nil {
+			f.Close()
+			return cid.Undef, fmt.Errorf("getting stat of data: %s", err)
+		}
+		f.Close()
+
+		c.Message("Creating data DAG...")
+		start := time.Now()
+		dataSize := int(stat.Size())
+		if stat.IsDir() {
+			dataSize = 0
+			err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if !info.IsDir() {
+					dataSize += int(info.Size())
+				}
+				return err
+			})
+			if err != nil {
+				return cid.Undef, fmt.Errorf("walking path: %s", err)
+			}
+		}
+		bar := pb.StartNew(dataSize)
+		bar.Set(pb.Bytes, true)
+
+		var wg sync.WaitGroup
+		wg.Add(1)
+		defer wg.Wait()
+		progressChan = make(chan int64)
+		defer close(progressChan)
+		go func() {
+			defer wg.Done()
+			for bytesProgress := range progressChan {
+				bar.Add64(bytesProgress)
+			}
+			bar.Finish()
+			c.Message("DAG created in %.02fs.", time.Since(start).Seconds())
+		}()
+
+	}
+	dataCid, err := dataprep.Dagify(ctx, dagService, path, progressChan)
+	if err != nil {
+		return cid.Undef, fmt.Errorf("creating dag for data: %s", err)
+	}
+
+	return dataCid, nil
 }

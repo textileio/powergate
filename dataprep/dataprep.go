@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
-	"github.com/cheggaaa/pb/v3"
 	commcid "github.com/filecoin-project/go-fil-commcid"
 	commP "github.com/filecoin-project/go-fil-commp-hashhash"
 	"github.com/ipfs/go-cid"
@@ -36,15 +34,14 @@ func CommP(r io.Reader) (cid.Cid, uint64, error) {
 	return pieceCid, pieceSize, nil
 }
 
-func Dagify(ctx context.Context, dagService ipld.DAGService, path string) (cid.Cid, error) {
-	events := make(chan interface{}, 10)
-
+func Dagify(ctx context.Context, dagService ipld.DAGService, path string, progressBytes chan<- int64) (cid.Cid, error) {
 	fileAdder, err := coreunix.NewAdder(ctx, nil, nil, dagService)
 	if err != nil {
 		return cid.Undef, fmt.Errorf("creating unixfs adder: %s", err)
 	}
 	fileAdder.Pin = false
 	fileAdder.Progress = true
+	events := make(chan interface{}, 10)
 	fileAdder.Out = events
 
 	f, err := os.Open(path)
@@ -61,25 +58,6 @@ func Dagify(ctx context.Context, dagService ipld.DAGService, path string) (cid.C
 		return cid.Undef, fmt.Errorf("creating serial file: %s", err)
 	}
 	defer fs.Close()
-
-	dataSize := int(stat.Size())
-	if stat.IsDir() {
-		dataSize = 0
-		err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !info.IsDir() {
-				dataSize += int(info.Size())
-			}
-			return err
-		})
-		if err != nil {
-			return cid.Undef, fmt.Errorf("walking path: %s", err)
-		}
-	}
-	bar := pb.StartNew(dataSize)
-	bar.Set(pb.Bytes, true)
 
 	var (
 		dagifyErr error
@@ -109,12 +87,11 @@ func Dagify(ctx context.Context, dagService ipld.DAGService, path string) (cid.C
 			currentName = output.Name
 			previousSize = 0
 		}
-		if output.Bytes > 0 {
-			bar.Add64(-previousSize + output.Bytes)
+		if output.Bytes > 0 && progressBytes != nil {
+			progressBytes <- (-previousSize + output.Bytes)
 		}
 		previousSize = output.Bytes
 	}
-	bar.Finish()
 	if dagifyErr != nil {
 		return cid.Undef, fmt.Errorf("creating dag for data: %s", dagifyErr)
 	}
