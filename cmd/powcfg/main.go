@@ -37,7 +37,7 @@ func main() {
 		log.Fatalf("opening datastore: %s", err)
 	}
 
-	count, err := applyTransform(ds, dryrun, bumpIpfsAddTimeout(480))
+	count, err := applyTransform(ds, dryrun, bumpIpfsAddTimeout(900))
 	if err != nil {
 		log.Fatalf("applying transformation: %s", err)
 	}
