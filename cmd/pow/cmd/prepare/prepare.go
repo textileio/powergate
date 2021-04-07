@@ -176,7 +176,6 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// TTODO: tests
 		// TTODO: print lotus and powergate commands to fire the offline deal
 		c.FmtOutput = os.Stderr
 
