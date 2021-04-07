@@ -182,7 +182,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 
 		pieceSizeBig := big.NewInt(int64(pieceSize))
 		if pieceSizeBig.Cmp(big.NewInt(0).Mul(big.NewInt(int64(cfg.RepFactor)), vci.RemainingDatacapBytes)) == 1 {
-			return nil, nil, 0, fmt.Errorf("the remaining data-cap %s is less than piece-size %s * rep-factor %d", humanize.IBytes(uint64(pieceSize)), humanize.IBytes(vci.RemainingDatacapBytes.Uint64()), cfg.RepFactor)
+			return nil, nil, 0, fmt.Errorf("the remaining data-cap %s is less than piece-size %s * rep-factor %d", humanize.IBytes(vci.RemainingDatacapBytes.Uint64()), humanize.IBytes(uint64(pieceSize)), cfg.RepFactor)
 		}
 
 		fc.l.Log(ctx, "Attempting to use %s of data-cap. The current quota is %s", humanize.IBytes(uint64(pieceSize)*uint64(cfg.RepFactor)), humanize.IBytes(vci.RemainingDatacapBytes.Uint64()))
