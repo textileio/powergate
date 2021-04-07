@@ -4,35 +4,28 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/cheggaaa/pb/v3"
 	"github.com/dustin/go-humanize"
-	commcid "github.com/filecoin-project/go-fil-commcid"
-	commP "github.com/filecoin-project/go-fil-commp-hashhash"
 	bsrv "github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
 	badger "github.com/ipfs/go-ds-badger"
 	blockstore "github.com/ipfs/go-ipfs-blockstore"
 	offline "github.com/ipfs/go-ipfs-exchange-offline"
-	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
-	"github.com/ipfs/go-ipfs/core/coreunix"
 	ipld "github.com/ipfs/go-ipld-format"
 	dag "github.com/ipfs/go-merkledag"
-	coreiface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	c "github.com/textileio/powergate/v2/cmd/pow/common"
+	"github.com/textileio/powergate/v2/dataprep"
 )
 
 func init() {
@@ -131,7 +124,7 @@ var commp = &cobra.Command{
 			}
 		}
 
-		pieceCID, pieceSize, err := calcCommP(r)
+		pieceCID, pieceSize, err := dataprep.CommP(r)
 		if err != nil {
 			c.Fatal(fmt.Errorf("calculating commP: %s", err))
 		}
@@ -193,7 +186,7 @@ var prepare = &cobra.Command{
 
 		c.Message("Creating data DAG...")
 		start := time.Now()
-		dataCid, err := dagify(ctx, dagService, path)
+		dataCid, err := dataprep.Dagify(ctx, dagService, path)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating dag for data: %s", err))
 		}
@@ -235,7 +228,7 @@ var prepare = &cobra.Command{
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			pieceCid, pieceSize, errCommP = calcCommP(prCommP)
+			pieceCid, pieceSize, errCommP = dataprep.CommP(prCommP)
 		}()
 		if _, err := io.Copy(outputFile, teeCAR); err != nil {
 			c.Fatal(fmt.Errorf("writing CAR file to output: %s", err))
@@ -256,137 +249,6 @@ var prepare = &cobra.Command{
 }
 
 type CloseFunc func() error
-
-func createTmpDAGService(tmpDir string) (ipld.DAGService, CloseFunc, error) {
-	badgerFolder, err := ioutil.TempDir(tmpDir, "powprepare-*")
-	if err != nil {
-		return nil, nil, fmt.Errorf("creating temporary badger folder: %s", err)
-	}
-
-	ds, err := badger.NewDatastore(badgerFolder, &badger.DefaultOptions)
-	if err != nil {
-		return nil, nil, fmt.Errorf("creating temporal badger datastore: %s", err)
-	}
-	bstore := blockstore.NewBlockstore(ds)
-
-	return dag.NewDAGService(bsrv.New(bstore, offline.Exchange(bstore))),
-		func() error {
-			if err := ds.Close(); err != nil {
-				return fmt.Errorf("closing datastore: %s", err)
-			}
-			os.RemoveAll(badgerFolder)
-
-			return nil
-		}, nil
-}
-
-func dagify(ctx context.Context, dagService ipld.DAGService, path string) (cid.Cid, error) {
-	events := make(chan interface{}, 10)
-
-	fileAdder, err := coreunix.NewAdder(ctx, nil, nil, dagService)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("creating unixfs adder: %s", err)
-	}
-	fileAdder.Pin = false
-	fileAdder.Progress = true
-	fileAdder.Out = events
-
-	f, err := os.Open(path)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("opening path: %s", err)
-	}
-	defer f.Close()
-	stat, err := f.Stat()
-	if err != nil {
-		return cid.Undef, fmt.Errorf("getting stat of data: %s", err)
-	}
-	fs, err := files.NewSerialFile(path, false, stat)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("creating serial file: %s", err)
-	}
-	defer fs.Close()
-
-	dataSize := int(stat.Size())
-	if stat.IsDir() {
-		dataSize = 0
-		err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if !info.IsDir() {
-				dataSize += int(info.Size())
-			}
-			return err
-		})
-		if err != nil {
-			return cid.Undef, fmt.Errorf("walking path: %s", err)
-		}
-	}
-	bar := pb.StartNew(dataSize)
-	bar.Set(pb.Bytes, true)
-
-	var (
-		dagifyErr error
-		dataCid   cid.Cid
-	)
-	go func() {
-		defer close(events)
-
-		nd, err := fileAdder.AddAllAndPin(fs)
-		if err != nil {
-			dagifyErr = err
-			return
-		}
-		dataCid = nd.Cid()
-	}()
-	currentName := ""
-	var previousSize int64
-	for event := range events {
-		output, ok := event.(*coreiface.AddEvent)
-		if !ok {
-			c.CheckErr(errors.New("unknown event type"))
-		}
-		if stat.IsDir() && output.Name == "" {
-			continue
-		}
-		if currentName != output.Name {
-			currentName = output.Name
-			previousSize = 0
-		}
-		if output.Bytes > 0 {
-			bar.Add64(-previousSize + output.Bytes)
-		}
-		previousSize = output.Bytes
-	}
-	bar.Finish()
-	if dagifyErr != nil {
-		return cid.Undef, fmt.Errorf("creating dag for data: %s", dagifyErr)
-	}
-
-	return dataCid, nil
-}
-
-func calcCommP(r io.Reader) (cid.Cid, uint64, error) {
-	cp := &commP.Calc{}
-	_, err := io.Copy(cp, r)
-	if err != nil {
-		return cid.Undef, 0, fmt.Errorf("copying data to aggregator: %s", err)
-	}
-
-	rawCommP, pieceSize, err := cp.Digest()
-	if err != nil {
-		return cid.Undef, 0, fmt.Errorf("calculating final digest: %s", err)
-	}
-	pieceCid, err := commcid.DataCommitmentV1ToCID(rawCommP)
-	if err != nil {
-		return cid.Undef, 0, fmt.Errorf("converting commP to cid: %s", err)
-	}
-
-	return pieceCid, pieceSize, nil
-
-}
-
-// TTODO: move lib related things to... libs. Only leave here CLI stuff.
 
 func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGService, CloseFunc, error) {
 	ipfsAPI, err := cmd.Flags().GetString("ipfs-api")
@@ -410,7 +272,7 @@ func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGServ
 			return cid.Undef, nil, nil, fmt.Errorf("creating temporary dag-service: %s", err)
 		}
 		ctx := context.Background()
-		dataCid, err := dagify(ctx, dagService, path)
+		dataCid, err := dataprep.Dagify(ctx, dagService, path)
 		if err != nil {
 			return cid.Undef, nil, nil, fmt.Errorf("creating dag for data: %s", err)
 		}
@@ -435,4 +297,27 @@ func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGServ
 	}
 
 	return dataCid, ipfs.Dag(), CloseFunc(func() error { return nil }), nil
+}
+
+func createTmpDAGService(tmpDir string) (ipld.DAGService, CloseFunc, error) {
+	badgerFolder, err := ioutil.TempDir(tmpDir, "powprepare-*")
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating temporary badger folder: %s", err)
+	}
+
+	ds, err := badger.NewDatastore(badgerFolder, &badger.DefaultOptions)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating temporal badger datastore: %s", err)
+	}
+	bstore := blockstore.NewBlockstore(ds)
+
+	return dag.NewDAGService(bsrv.New(bstore, offline.Exchange(bstore))),
+		func() error {
+			if err := ds.Close(); err != nil {
+				return fmt.Errorf("closing datastore: %s", err)
+			}
+			os.RemoveAll(badgerFolder)
+
+			return nil
+		}, nil
 }
