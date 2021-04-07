@@ -26,6 +26,7 @@ pow [flags]
 * [pow data](pow_data.md)	 - Provides commands to interact with general data APIs
 * [pow deals](pow_deals.md)	 - Provides commands to view Filecoin deal information
 * [pow id](pow_id.md)	 - Returns the user id
+* [pow offline](pow_offline.md)	 - Provides commands to prepare data for Filecoin onbarding
 * [pow storage-info](pow_storage-info.md)	 - Provides commands to get and query cid storage info.
 * [pow storage-jobs](pow_storage-jobs.md)	 - Provides commands to query for storage jobs in various states
 * [pow version](pow_version.md)	 - Display version information for pow and the connected server
