@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/cheggaaa/pb/v3"
 	bsrv "github.com/ipfs/go-blockservice"
@@ -32,15 +33,15 @@ func init() {
 
 // Cmd is the command.
 var Cmd = &cobra.Command{
-	Use:   "prepare",
+	Use:   "offline",
 	Short: "Provides commands to prepare data for Filecoin onbarding",
 	Long:  `Provides commands to prepare data for Filecoin onbarding`,
 }
 
 var genCar = &cobra.Command{
-	Use:   "gen-car [cid | path] [output file path]",
-	Short: "gen-car generates a CAR file for data",
-	Long:  `gen-car generates a CAR file for data`,
+	Use:   "prepare [cid | path] [output file path]",
+	Short: "prepare generates a CAR file for data",
+	Long:  `prepare generates a CAR file for data`,
 	Args:  cobra.MinimumNArgs(1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
@@ -51,6 +52,9 @@ var genCar = &cobra.Command{
 		// TTODO: if output path not provided, spit to stdout
 		// TTODO: prety mode
 		// TTODO: quiet mode, no events
+		// TTODO: tests
+		// TTODO: define final command name and help text
+		c.FmtOutput = os.Stderr
 
 		dagService, cls, err := createTmpDAGService()
 		if err != nil {
@@ -60,10 +64,13 @@ var genCar = &cobra.Command{
 
 		ctx := context.Background()
 		path := args[0]
+
+		c.Message("Creating data DAG...")
 		dataCid, err := dagify(ctx, dagService, path)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating dag for data: %s", err))
 		}
+		c.Message("DAG created.")
 
 		outputFile := os.Stdout
 		if len(args) > 1 {
@@ -82,10 +89,13 @@ var genCar = &cobra.Command{
 		var writeCarErr error
 		go func() {
 			defer pw.Close()
+			start := time.Now()
+			c.Message("Creating CAR file...")
 			if err := car.WriteCar(ctx, dagService, []cid.Cid{dataCid}, pw); err != nil {
 				writeCarErr = err
 				return
 			}
+			c.Message("CAR file created in %.02f seconds.", time.Since(start).Seconds())
 		}()
 		if _, err := io.Copy(outputFile, pr); err != nil {
 			c.Fatal(fmt.Errorf("writing CAR file to output: %s", err))
@@ -191,11 +201,13 @@ func dagify(ctx context.Context, dagService ipld.DAGService, path string) (cid.C
 		if output.Name == "" {
 			continue
 		}
+		panic(1)
 		if currentName != output.Name {
 			currentName = output.Name
 			previousSize = 0
 		}
 		if output.Bytes > 0 {
+			c.Message("LA")
 			bar.Add64(-previousSize + output.Bytes)
 		}
 		previousSize = output.Bytes
