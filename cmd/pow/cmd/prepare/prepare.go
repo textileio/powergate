@@ -176,7 +176,6 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// TTODO: print lotus and powergate commands to fire the offline deal
 		c.FmtOutput = os.Stderr
 
 		json, err := cmd.Flags().GetBool("json")
@@ -248,7 +247,10 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		}
 		c.Message("Created CAR file, and piece digest in %.02fs.", time.Since(start).Seconds())
 		c.Message("Piece size: %d (%s)", pieceSize, humanize.IBytes(pieceSize))
-		c.Message("Piece CID: %s", pieceCid)
+		c.Message("Piece CID: %s\n", pieceCid)
+
+		c.Message("Lotus offline-deal command:")
+		c.Message("lotus client deal --manual-piece-cid=%s --manual-piece-size=%d %s <miner> <price> <duration>", pieceCid, pieceSize, dataCid)
 	},
 }
 
