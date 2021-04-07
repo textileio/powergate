@@ -1,6 +1,7 @@
 package prepare
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -23,23 +24,27 @@ import (
 	blockstore "github.com/ipfs/go-ipfs-blockstore"
 	offline "github.com/ipfs/go-ipfs-exchange-offline"
 	files "github.com/ipfs/go-ipfs-files"
+	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/go-ipfs/core/coreunix"
 	ipld "github.com/ipfs/go-ipld-format"
 	dag "github.com/ipfs/go-merkledag"
 	coreiface "github.com/ipfs/interface-go-ipfs-core"
+	"github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	c "github.com/textileio/powergate/v2/cmd/pow/common"
 )
 
 func init() {
-	Cmd.AddCommand(prepare, commp)
+	Cmd.AddCommand(prepare, genCar, commp)
 
 	prepare.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
 
 	commp.Flags().Bool("json", false, "print output in json format")
+	commp.Flags().Bool("skip-car-validation", false, "skips CAR validation when processing a path")
 
 	genCar.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
+	genCar.Flags().String("ipfs-api", "", "IPFS HTTP API multiaddress that stores the cid (only for Cid processing instead of file/folder path)")
 }
 
 // Cmd is the command.
@@ -49,20 +54,16 @@ var Cmd = &cobra.Command{
 	Long:  `Provides commands to prepare data for Filecoin onbarding`,
 }
 
-// TTODO: gen-car subcommand.
-
 var genCar = &cobra.Command{
-	Use:     "car [path | cid] [output path]",
-	Aliases: []string{"commp"},
-	Short:   "car generates a CAR file from the data",
-	Long:    `car generates a CAR file from the data`,
-	Args:    cobra.RangeArgs(0, 2),
+	Use:   "car [path | cid] [output path]",
+	Short: "car generates a CAR file from the data",
+	Long:  `car generates a CAR file from the data`,
+	Args:  cobra.RangeArgs(0, 2),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// TTODO: Accept Cids, ask for ipfs node api
 		var dataCid cid.Cid
 		var err error
 		ctx := context.Background()
@@ -80,63 +81,65 @@ var genCar = &cobra.Command{
 			}()
 		}
 
-		var (
-			dagService ipld.DAGService
-			cls        CloseFunc
-		)
-		tmpDir, err := cmd.Flags().GetString("tmpdir")
-		c.CheckErr(err)
-
-		//TTODO: this will change when we detect that the first parameter is a CID
-		dagService, cls, err = createTmpDAGService(tmpDir)
+		dataCid, dagService, cls, err := prepareDAGService(cmd, args)
 		if err != nil {
-			c.Fatal(fmt.Errorf("creating temporal dag-service: %s", err))
+			c.Fatal(fmt.Errorf("creating dag-service: %s", err))
 		}
 		defer cls()
 
-		path := "/dev/stdin"
-		if len(args) > 0 && args[0] != "-" {
-			path = args[0]
-		}
-
-		dataCid, err = dagify(ctx, dagService, path)
-		if err != nil {
-			c.Fatal(fmt.Errorf("creating dag for data: %s", err))
-		}
-
 		err = car.WriteCar(ctx, dagService, []cid.Cid{dataCid}, w)
 		c.CheckErr(err)
-
 	},
 }
 
 var commp = &cobra.Command{
-	Use:     "commP [path]",
-	Aliases: []string{"commp"},
-	Short:   "commP calculates the piece size and cid for a block of data",
-	Long:    `commP claculates the piece size and cid for a block of data`,
-	Args:    cobra.MinimumNArgs(0),
+	Use:     "commp [path]",
+	Aliases: []string{"commP"},
+	Short:   "commP calculates the piece size and cid for a CAR file",
+	Long:    `commP claculates the piece size and cid for a CAR file`,
+	Args:    cobra.RangeArgs(0, 1),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// TTODO: Accept Cids, ask for ipfs node api
-		r := os.Stdin
-		var err error
+		var (
+			r   io.Reader
+			err error
+		)
+		r = os.Stdin
 		if len(args) > 0 && args[0] != "-" {
-			r, err = os.Open(args[0])
+			r, err := os.Open(args[0])
 			if err != nil {
-				c.Fatal(errors.New("Opening the file"))
+				c.Fatal(fmt.Errorf("opening the file %s: %s", args[0], err))
 			}
 			defer r.Close()
+
+			skipCARValidation, err := cmd.Flags().GetBool("skip-car-validation")
+			if err != nil {
+				c.Fatal(fmt.Errorf("getting skip-car-validation flag: %s", err))
+			}
+			if !skipCARValidation {
+				_, err = car.ReadHeader(bufio.NewReader(r))
+				if err != nil {
+					c.Fatal(fmt.Errorf("wrong car file format: %s", err))
+				}
+
+				if _, err := r.Seek(0, io.SeekStart); err != nil {
+					c.Fatal(fmt.Errorf("rewind file to start: %s", err))
+				}
+			}
 		}
 
 		pieceCID, pieceSize, err := calcCommP(r)
-		c.CheckErr(err)
+		if err != nil {
+			c.Fatal(fmt.Errorf("calculating commP: %s", err))
+		}
 
 		jsonFlag, err := cmd.Flags().GetBool("json")
-		c.CheckErr(err)
+		if err != nil {
+			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
+		}
 		if jsonFlag {
 			outData := struct {
 				PieceSize uint64 `json:"piece_size"`
@@ -156,13 +159,12 @@ var commp = &cobra.Command{
 	},
 }
 
-// TTODO: split.
-
 var prepare = &cobra.Command{
-	Use:   "prepare [cid | path] [output file path]",
-	Short: "prepare generates a CAR file for data",
-	Long:  `prepare generates a CAR file for data`,
-	Args:  cobra.MinimumNArgs(1),
+	Use:     "prepare [cid | path] [output file path]",
+	Aliases: []string{"prep"},
+	Short:   "prepare generates a CAR file for data",
+	Long:    `prepare generates a CAR file for data`,
+	Args:    cobra.RangeArgs(0, 2),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		err := viper.BindPFlags(cmd.Flags())
 		c.CheckErr(err)
@@ -382,4 +384,55 @@ func calcCommP(r io.Reader) (cid.Cid, uint64, error) {
 
 	return pieceCid, pieceSize, nil
 
+}
+
+// TTODO: move lib related things to... libs. Only leave here CLI stuff.
+
+func prepareDAGService(cmd *cobra.Command, args []string) (cid.Cid, ipld.DAGService, CloseFunc, error) {
+	ipfsAPI, err := cmd.Flags().GetString("ipfs-api")
+	if err != nil {
+		return cid.Undef, nil, nil, fmt.Errorf("getting ipfs api flag: %s", err)
+	}
+
+	if ipfsAPI == "" {
+		path := "/dev/stdin"
+		if len(args) > 0 && args[0] != "-" {
+			path = args[0]
+		}
+
+		tmpDir, err := cmd.Flags().GetString("tmpdir")
+		if err != nil {
+			return cid.Undef, nil, nil, fmt.Errorf("getting tmpdir directory: %s", err)
+		}
+
+		dagService, cls, err := createTmpDAGService(tmpDir)
+		if err != nil {
+			return cid.Undef, nil, nil, fmt.Errorf("creating temporary dag-service: %s", err)
+		}
+		ctx := context.Background()
+		dataCid, err := dagify(ctx, dagService, path)
+		if err != nil {
+			return cid.Undef, nil, nil, fmt.Errorf("creating dag for data: %s", err)
+		}
+		return dataCid, dagService, cls, nil
+	}
+
+	if len(args) == 0 {
+		return cid.Undef, nil, nil, fmt.Errorf("cid argument is empty")
+	}
+	dataCid, err := cid.Decode(args[0])
+	if err != nil {
+		return cid.Undef, nil, nil, fmt.Errorf("parsing cid: %s", err)
+	}
+
+	ipfsAPIMA, err := multiaddr.NewMultiaddr(ipfsAPI)
+	if err != nil {
+		return cid.Undef, nil, nil, fmt.Errorf("parsing ipfs-api multiaddress: %s", err)
+	}
+	ipfs, err := httpapi.NewApi(ipfsAPIMA)
+	if err != nil {
+		return cid.Undef, nil, nil, fmt.Errorf("creating ipfs client: %s", err)
+	}
+
+	return dataCid, ipfs.Dag(), CloseFunc(func() error { return nil }), nil
 }
