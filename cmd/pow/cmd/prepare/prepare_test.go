@@ -42,7 +42,7 @@ func run(t *testing.T, size int) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("creating temp file: %s", err)
 	}
-	defer os.Remove(f.Name())
+	defer func() { _ = os.Remove(f.Name()) }()
 
 	z := sha256.New()
 	_, err = z.Write([]byte("A")) //bytes.Repeat([]byte{byte('A')}, size))

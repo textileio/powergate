@@ -29,6 +29,8 @@ var (
 	CmdTimeout = time.Second * 60
 )
 
+// FmtOutput allows to configure where Message(), Success(), and
+// Fatal() helpers should write.
 var FmtOutput = os.Stdout
 
 // Message prints a message to stdout.
