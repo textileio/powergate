@@ -8,9 +8,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/dustin/go-humanize"
+	commcid "github.com/filecoin-project/go-fil-commcid"
+	commP "github.com/filecoin-project/go-fil-commp-hashhash"
 	bsrv "github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
@@ -28,7 +32,9 @@ import (
 )
 
 func init() {
-	Cmd.AddCommand(genCar)
+	Cmd.AddCommand(prepare)
+
+	prepare.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
 }
 
 // Cmd is the command.
@@ -38,7 +44,13 @@ var Cmd = &cobra.Command{
 	Long:  `Provides commands to prepare data for Filecoin onbarding`,
 }
 
-var genCar = &cobra.Command{
+// TTODO: gen-car subcommand.
+
+// TTODO: calc-commp.
+
+// TTODO: split.
+
+var prepare = &cobra.Command{
 	Use:   "prepare [cid | path] [output file path]",
 	Short: "prepare generates a CAR file for data",
 	Long:  `prepare generates a CAR file for data`,
@@ -54,9 +66,13 @@ var genCar = &cobra.Command{
 		// TTODO: quiet mode, no events
 		// TTODO: tests
 		// TTODO: define final command name and help text
+		// TTODO: print lotus and powergate commands to fire the offline deal
 		c.FmtOutput = os.Stderr
 
-		dagService, cls, err := createTmpDAGService()
+		tmpDir, err := cmd.Flags().GetString("tmpdir")
+		c.CheckErr(err)
+
+		dagService, cls, err := createTmpDAGService(tmpDir)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating temporal dag-service: %s", err))
 		}
@@ -66,11 +82,12 @@ var genCar = &cobra.Command{
 		path := args[0]
 
 		c.Message("Creating data DAG...")
+		start := time.Now()
 		dataCid, err := dagify(ctx, dagService, path)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating dag for data: %s", err))
 		}
-		c.Message("DAG created.")
+		c.Message("DAG created in %.02fs.", time.Since(start).Seconds())
 
 		outputFile := os.Stdout
 		if len(args) > 1 {
@@ -85,32 +102,65 @@ var genCar = &cobra.Command{
 			}()
 		}
 
-		pr, pw := io.Pipe()
+		c.Message("Creating CAR and calculating piece-size and PieceCID...")
+		start = time.Now()
+		prCAR, pwCAR := io.Pipe()
 		var writeCarErr error
 		go func() {
-			defer pw.Close()
-			start := time.Now()
-			c.Message("Creating CAR file...")
-			if err := car.WriteCar(ctx, dagService, []cid.Cid{dataCid}, pw); err != nil {
+			defer pwCAR.Close()
+			if err := car.WriteCar(ctx, dagService, []cid.Cid{dataCid}, pwCAR); err != nil {
 				writeCarErr = err
 				return
 			}
-			c.Message("CAR file created in %.02f seconds.", time.Since(start).Seconds())
 		}()
-		if _, err := io.Copy(outputFile, pr); err != nil {
+
+		prCommP, pwCommP := io.Pipe()
+		teeCAR := io.TeeReader(prCAR, pwCommP)
+		var (
+			errCommP  error
+			wg        sync.WaitGroup
+			pieceCid  cid.Cid
+			pieceSize uint64
+		)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			cp := new(commP.Calc)
+			_, err = io.Copy(cp, prCommP)
+			if err != nil {
+				errCommP = err
+				return
+			}
+
+			var rawCommP []byte
+			rawCommP, pieceSize, errCommP = cp.Digest()
+			if errCommP != nil {
+				return
+			}
+			pieceCid, errCommP = commcid.DataCommitmentV1ToCID(rawCommP)
+		}()
+		if _, err := io.Copy(outputFile, teeCAR); err != nil {
 			c.Fatal(fmt.Errorf("writing CAR file to output: %s", err))
 		}
 		if writeCarErr != nil {
 			c.Fatal(fmt.Errorf("generating CAR file: %s", err))
 		}
+		pwCommP.Close()
+		wg.Wait()
+		if errCommP != nil {
+			c.Fatal(fmt.Errorf("calculating piece-size and PieceCID: %s", err))
+		}
+		c.Message("Created CAR file, and piece digest in %.02fs.", time.Since(start).Seconds())
 
+		c.Message("Piece size: %s", humanize.IBytes(pieceSize))
+		c.Message("Piece CID: %s", pieceCid)
 	},
 }
 
 type CloseFunc func() error
 
-func createTmpDAGService() (ipld.DAGService, CloseFunc, error) {
-	badgerFolder, err := ioutil.TempDir("", "powprepare-*")
+func createTmpDAGService(tmpDir string) (ipld.DAGService, CloseFunc, error) {
+	badgerFolder, err := ioutil.TempDir(tmpDir, "powprepare-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating temporary badger folder: %s", err)
 	}
@@ -198,16 +248,14 @@ func dagify(ctx context.Context, dagService ipld.DAGService, path string) (cid.C
 		if !ok {
 			c.CheckErr(errors.New("unknown event type"))
 		}
-		if output.Name == "" {
+		if stat.IsDir() && output.Name == "" {
 			continue
 		}
-		panic(1)
 		if currentName != output.Name {
 			currentName = output.Name
 			previousSize = 0
 		}
 		if output.Bytes > 0 {
-			c.Message("LA")
 			bar.Add64(-previousSize + output.Bytes)
 		}
 		previousSize = output.Bytes
