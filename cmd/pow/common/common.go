@@ -29,14 +29,18 @@ var (
 	CmdTimeout = time.Second * 60
 )
 
+// FmtOutput allows to configure where Message(), Success(), and
+// Fatal() helpers should write.
+var FmtOutput = os.Stdout
+
 // Message prints a message to stdout.
 func Message(format string, args ...interface{}) {
-	fmt.Println(aurora.Sprintf(aurora.BrightBlack("> "+format), args...))
+	fmt.Fprintln(FmtOutput, aurora.Sprintf(aurora.BrightBlack("> "+format), args...))
 }
 
 // Success prints a success message to stdout.
 func Success(format string, args ...interface{}) {
-	fmt.Println(aurora.Sprintf(aurora.Cyan("> Success! %s"),
+	fmt.Fprintln(FmtOutput, aurora.Sprintf(aurora.Cyan("> Success! %s"),
 		aurora.Sprintf(aurora.BrightBlack(format), args...)))
 }
 
@@ -46,7 +50,7 @@ func Fatal(err error, args ...interface{}) {
 	words := strings.SplitN(err.Error(), " ", 2)
 	words[0] = strings.Title(words[0])
 	msg := strings.Join(words, " ")
-	fmt.Println(aurora.Sprintf(aurora.Red("> Error! %s"),
+	fmt.Fprintln(FmtOutput, aurora.Sprintf(aurora.Red("> Error! %s"),
 		aurora.Sprintf(aurora.BrightBlack(msg), args...)))
 	os.Exit(1)
 }
