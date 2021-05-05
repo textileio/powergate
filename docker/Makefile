@@ -1,5 +1,5 @@
 localnet-down:
-	DOCKER_BUILDKIT=1 \
+	COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
 	docker-compose -p localnet \
 		-f docker-compose-localnet.yaml \
 		-f ipfs-image.yaml \
@@ -8,7 +8,7 @@ localnet-down:
 .PHONY: localnet-down
 
 localnet: 
-	DOCKER_BUILDKIT=1 \
+	COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
 	BIGSECTORS=true \
 	docker-compose -p localnet \
 		-f docker-compose-localnet.yaml \
@@ -19,7 +19,7 @@ localnet:
 
 
 up: down
-	DOCKER_BUILDKIT=1 \
+	COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
 	LOTUS_IMAGE_TAG=v1.8.0 \
 	docker-compose \
 		-p mainnet \
@@ -30,7 +30,7 @@ up: down
 .PHONY: up
 
 down:
-	DOCKER_BUILDKIT=1 \
+	COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
 	LOTUS_IMAGE_TAG=v1.8.0 \
 	docker-compose \
 		-p mainnet \
@@ -42,7 +42,7 @@ down:
 
 
 up-calibration: down-calibration
-	DOCKER_BUILDKIT=1 \
+	COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
 	LOTUS_IMAGE_TAG=ntwk-calibration-d6c42 \
 	docker-compose \
 		-p calibration \
@@ -53,7 +53,7 @@ up-calibration: down-calibration
 .PHONY: up-calibration
 
 down-calibration:
-	DOCKER_BUILDKIT=1 \
+	COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
 	LOTUS_IMAGE_TAG=ntwk-calibration-d6c42 \
 	docker-compose \
 		-p calibration \
