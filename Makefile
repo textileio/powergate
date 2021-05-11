@@ -54,7 +54,7 @@ define gen_release_files
 endef
 
 build-pow-release: $(GOX) $(GOVVV) $(GOMPLATE)
-	$(call gen_release_files,./cmd/pow,pow,"linux/amd64 linux/386 linux/arm darwin/amd64 windows/amd64")
+	$(call gen_release_files,./cmd/pow,pow,"linux/amd64 darwin/amd64 windows/amd64")
 .PHONY: build-pow-release
 
 build-powd-release: $(GOX) $(GOVVV) $(GOMPLATE)
