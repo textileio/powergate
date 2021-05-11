@@ -134,6 +134,10 @@ func (rt *RepTop) getMinerProposal(f ffs.MinerSelectorFilter, addrStr string) (f
 		return ffs.MinerProposal{}, fmt.Errorf("getting miner %s info: %s", addr, err)
 	}
 
+	if mi.PeerId == nil {
+		return ffs.MinerProposal{}, fmt.Errorf("the miner %s doesn't specify a peer id", addr)
+	}
+
 	type chAskRes struct {
 		Error string
 		Ask   *storagemarket.StorageAsk
