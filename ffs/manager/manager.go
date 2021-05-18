@@ -180,12 +180,12 @@ func (m *Manager) List() ([]ffs.AuthEntry, error) {
 	return res, nil
 }
 
-// RecycleAuthToken invalidates the provided token replacing it with a new one.
-func (m *Manager) RecycleAuthToken(token string) (string, error) {
+// RegenerateAuthToken invalidates the provided token replacing it with a new one.
+func (m *Manager) RegenerateAuthToken(token string) (string, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
-	newToken, err := m.auth.RecycleToken(token)
+	newToken, err := m.auth.RegenerateAuthToken(token)
 	if err == auth.ErrNotFound {
 		return "", ErrAuthTokenNotFound
 	}

@@ -46,6 +46,14 @@ message CreateUserResponse {
   User user = 1;
 }
 
+message RegenerateAuthRequest {
+  string token = 1;
+}
+
+message RegenerateAuthResponse {
+  string new_token = 1;
+}
+
 message UsersRequest {
 }
 
@@ -188,6 +196,7 @@ service AdminService {
 
   // Users
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+  rpc RegenerateAuth(RegenerateAuthRequest) returns (RegenerateAuthResponse){}
   rpc Users(UsersRequest) returns (UsersResponse) {}
 
   // Storage Info
