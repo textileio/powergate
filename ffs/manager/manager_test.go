@@ -176,11 +176,11 @@ func TestRegenerateAuthToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// The old token should be invalid
-	n, err := m.GetByAuthToken(originalAuth.Token)
+	_, err = m.GetByAuthToken(originalAuth.Token)
 	require.Equal(t, err, ErrAuthTokenNotFound)
 
 	// Get with new token and check the APIID is equal to the original one.
-	n, err = m.GetByAuthToken(regeneratedAuth)
+	n, err := m.GetByAuthToken(regeneratedAuth)
 	require.NoError(t, err)
 	require.Equal(t, originalAuth.APIID, n.ID())
 	require.NotEmpty(t, n.Addrs())
