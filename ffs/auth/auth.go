@@ -23,11 +23,11 @@ var (
 // Auth contains a mapping between auth-tokens and Api instances.
 type Auth struct {
 	lock sync.Mutex
-	ds   ds.Datastore
+	ds   ds.TxnDatastore
 }
 
 // New returns a new Auth.
-func New(store ds.Datastore) *Auth {
+func New(store ds.TxnDatastore) *Auth {
 	return &Auth{
 		ds: store,
 	}
@@ -70,6 +70,51 @@ func (r *Auth) Get(token string) (ffs.APIID, error) {
 		return ffs.EmptyInstanceID, fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
 	}
 	return e.APIID, nil
+}
+
+// RecycleToken invalidates a token regenerating a new one.
+func (r *Auth) RecycleToken(token string) (string, error) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	txn, err := r.ds.NewTransaction(false)
+	if err != nil {
+		return "", fmt.Errorf("creating transaction: %s", err)
+	}
+	defer txn.Discard()
+
+	buf, err := txn.Get(ds.NewKey(token))
+	if err != nil && err == ds.ErrNotFound {
+		return "", ErrNotFound
+	}
+	if err != nil {
+		return "", fmt.Errorf("getting token %s from datastore: %s", token, err)
+	}
+	var e ffs.AuthEntry
+	if err := json.Unmarshal(buf, &e); err != nil {
+		return "", fmt.Errorf("unmarshaling %s information from datastore: %s", token, err)
+	}
+
+	// Delete old token.
+	if err := txn.Delete(ds.NewKey(token)); err != nil {
+		return "", fmt.Errorf("deleting old token: %s", err)
+	}
+
+	// Set new token
+	e.Token = uuid.New().String()
+	buf, err = json.Marshal(&e)
+	if err != nil {
+		return "", fmt.Errorf("marshaling new recycled token: %s", err)
+	}
+	if err := txn.Put(ds.NewKey(e.Token), buf); err != nil {
+		return "", fmt.Errorf("saving recycled token: %s", err)
+	}
+
+	if err := txn.Commit(); err != nil {
+		return "", fmt.Errorf("committing transaction: %s", err)
+	}
+
+	return e.Token, nil
 }
 
 // List returns a list of all API instances.
