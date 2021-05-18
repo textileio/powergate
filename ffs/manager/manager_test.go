@@ -161,7 +161,7 @@ func TestGetByAuthToken(t *testing.T) {
 	})
 }
 
-func TestRecycleToken(t *testing.T) {
+func TestRegenerateAuthToken(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
 	ctx := context.Background()
@@ -172,7 +172,7 @@ func TestRecycleToken(t *testing.T) {
 	originalAuth, err := m.Create(ctx)
 	require.NoError(t, err)
 
-	recycledAuth, err := m.RecycleAuthToken(originalAuth.Token)
+	regeneratedAuth, err := m.RegenerateAuthToken(originalAuth.Token)
 	require.NoError(t, err)
 
 	// The old token should be invalid
@@ -180,7 +180,7 @@ func TestRecycleToken(t *testing.T) {
 	require.Equal(t, err, ErrAuthTokenNotFound)
 
 	// Get with new token and check the APIID is equal to the original one.
-	n, err = m.GetByAuthToken(recycledAuth)
+	n, err = m.GetByAuthToken(regeneratedAuth)
 	require.NoError(t, err)
 	require.Equal(t, originalAuth.APIID, n.ID())
 	require.NotEmpty(t, n.Addrs())

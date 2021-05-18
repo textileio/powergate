@@ -72,8 +72,8 @@ func (r *Auth) Get(token string) (ffs.APIID, error) {
 	return e.APIID, nil
 }
 
-// RecycleToken invalidates a token regenerating a new one.
-func (r *Auth) RecycleToken(token string) (string, error) {
+// RegenerateAuthToken invalidates a token regenerating a new one.
+func (r *Auth) RegenerateAuthToken(token string) (string, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
@@ -104,10 +104,10 @@ func (r *Auth) RecycleToken(token string) (string, error) {
 	e.Token = uuid.New().String()
 	buf, err = json.Marshal(&e)
 	if err != nil {
-		return "", fmt.Errorf("marshaling new recycled token: %s", err)
+		return "", fmt.Errorf("marshaling new regenerated token: %s", err)
 	}
 	if err := txn.Put(ds.NewKey(e.Token), buf); err != nil {
-		return "", fmt.Errorf("saving recycled token: %s", err)
+		return "", fmt.Errorf("saving regenerated token: %s", err)
 	}
 
 	if err := txn.Commit(); err != nil {
