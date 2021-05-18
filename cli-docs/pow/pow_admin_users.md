@@ -25,4 +25,5 @@ Provides admin users commands
 * [pow admin](pow_admin.md)	 - Provides admin commands
 * [pow admin users create](pow_admin_users_create.md)	 - Create a Powergate user.
 * [pow admin users list](pow_admin_users_list.md)	 - List all Powergate users.
+* [pow admin users regenerate](pow_admin_users_regenerate.md)	 - Invalidates an existing token and replaces it with a new one.
 
