@@ -161,6 +161,31 @@ func TestGetByAuthToken(t *testing.T) {
 	})
 }
 
+func TestRecycleToken(t *testing.T) {
+	t.Parallel()
+	ds := tests.NewTxMapDatastore()
+	ctx := context.Background()
+	client, addr, _ := tests.CreateLocalDevnet(t, 1, 300)
+	m, cls, err := newManager(client, ds, addr, false)
+	require.NoError(t, err)
+	defer require.NoError(t, cls())
+	originalAuth, err := m.Create(ctx)
+	require.NoError(t, err)
+
+	recycledAuth, err := m.RecycleAuthToken(originalAuth.Token)
+	require.NoError(t, err)
+
+	// The old token should be invalid
+	n, err := m.GetByAuthToken(originalAuth.Token)
+	require.Equal(t, err, ErrAuthTokenNotFound)
+
+	// Get with new token and check the APIID is equal to the original one.
+	n, err = m.GetByAuthToken(recycledAuth)
+	require.NoError(t, err)
+	require.Equal(t, originalAuth.APIID, n.ID())
+	require.NotEmpty(t, n.Addrs())
+}
+
 func TestDefaultStorageConfig(t *testing.T) {
 	t.Parallel()
 	ds := tests.NewTxMapDatastore()
