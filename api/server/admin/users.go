@@ -22,6 +22,25 @@ func (a *Service) CreateUser(ctx context.Context, req *adminPb.CreateUserRequest
 	}, nil
 }
 
+// RegenerateAuth invalidates an existing token replacing it with a new one.
+func (a *Service) RegenerateAuth(ctx context.Context, req *adminPb.RegenerateAuthRequest) (*adminPb.RegenerateAuthResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is nil")
+	}
+	if req.Token == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "token can't be empty")
+	}
+
+	newToken, err := a.m.RegenerateAuthToken(req.Token)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "creating instance: %v", err)
+	}
+
+	return &adminPb.RegenerateAuthResponse{
+		NewToken: newToken,
+	}, nil
+}
+
 // Users lists all managed instances.
 func (a *Service) Users(ctx context.Context, req *adminPb.UsersRequest) (*adminPb.UsersResponse, error) {
 	lst, err := a.m.List()
