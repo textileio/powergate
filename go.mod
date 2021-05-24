@@ -13,13 +13,13 @@ require (
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/filecoin-project/go-address v0.0.5
-	github.com/filecoin-project/go-data-transfer v1.2.7
+	github.com/filecoin-project/go-data-transfer v1.4.3
 	github.com/filecoin-project/go-fil-commcid v0.0.0-20201016201715-d41df56b4f6a
 	github.com/filecoin-project/go-fil-commp-hashhash v0.0.0-20210329070555-d36b89a2504c
-	github.com/filecoin-project/go-fil-markets v1.1.9
+	github.com/filecoin-project/go-fil-markets v1.2.5
 	github.com/filecoin-project/go-jsonrpc v0.1.4-0.20210217175800-45ea43ac2bec
 	github.com/filecoin-project/go-state-types v0.1.0
-	github.com/filecoin-project/lotus v1.8.0
+	github.com/filecoin-project/lotus v1.9.0
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3

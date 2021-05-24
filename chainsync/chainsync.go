@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/textileio/powergate/v2/lotus"
 )
@@ -49,7 +49,7 @@ func (cs *ChainSync) Precedes(ctx context.Context, from, to types.TipSetKey) (bo
 
 // ResolveBase returns the base TipSetKey that both left and right TipSetKey share,
 // plus a Revert/Apply set of operations to get from last to new.
-func ResolveBase(ctx context.Context, api *apistruct.FullNodeStruct, left *types.TipSetKey, right types.TipSetKey) (*types.TipSetKey, []*types.TipSet, error) {
+func ResolveBase(ctx context.Context, api *api.FullNodeStruct, left *types.TipSetKey, right types.TipSetKey) (*types.TipSetKey, []*types.TipSet, error) {
 	var path []*types.TipSet
 	if left == nil {
 		genesis, err := api.ChainGetGenesis(ctx)

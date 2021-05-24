@@ -12,7 +12,7 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logger "github.com/ipfs/go-log/v2"
@@ -212,6 +212,11 @@ func (m *Module) Balance(ctx context.Context, addr string) (*big.Int, error) {
 	}
 	b, err := client.WalletBalance(ctx, a)
 	if err != nil {
+		//如果钱包里面灭有钱或者从未交易过.这会导致一个错误,actor not found
+		//查询string中是否有actor not found,但是一般都是矿工
+		if strings.Contains(err.Error(),"actor not found"){
+			return &big.Int{},nil
+		}
 		return nil, fmt.Errorf("getting balance from lotus: %s", err)
 	}
 	return b.Int, nil
@@ -292,7 +297,7 @@ func (m *Module) GetVerifiedClientInfo(ctx context.Context, addr string) (wallet
 	return getVerifiedClientInfo(ctx, c, a)
 }
 
-func getVerifiedClientInfo(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (wallet.VerifiedClientInfo, error) {
+func getVerifiedClientInfo(ctx context.Context, c *api.FullNodeStruct, addr address.Address) (wallet.VerifiedClientInfo, error) {
 	sp, err := c.StateVerifiedClientStatus(ctx, addr, types.EmptyTSK)
 	if err != nil && !strings.Contains(err.Error(), errActorNotFound) {
 		return wallet.VerifiedClientInfo{}, fmt.Errorf("getting verified-client information: %s", err)

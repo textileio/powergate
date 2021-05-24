@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/textileio/powergate/v2/index/miner"
 )
@@ -56,7 +56,7 @@ func (mi *Index) updateOnChainIndex(ctx context.Context) error {
 }
 
 // updateForAddrs updates chainIndex information for a particular set of addrs.
-func (mi *Index) updateForAddrs(ctx context.Context, api *apistruct.FullNodeStruct, chainIndex *miner.ChainIndex, addrs []address.Address) error {
+func (mi *Index) updateForAddrs(ctx context.Context, api *api.FullNodeStruct, chainIndex *miner.ChainIndex, addrs []address.Address) error {
 	var l sync.Mutex
 	rl := make(chan struct{}, mi.conf.OnChainMaxParallel)
 	for i, a := range addrs {
@@ -96,7 +96,7 @@ func (mi *Index) updateForAddrs(ctx context.Context, api *apistruct.FullNodeStru
 	return nil
 }
 
-func getOnChainData(ctx context.Context, c *apistruct.FullNodeStruct, addr address.Address) (miner.OnChainMinerData, error) {
+func getOnChainData(ctx context.Context, c *api.FullNodeStruct, addr address.Address) (miner.OnChainMinerData, error) {
 	// Power of miner.
 	mp, err := c.StateMinerPower(ctx, addr, types.EmptyTSK)
 	if err != nil {

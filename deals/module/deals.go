@@ -11,7 +11,6 @@ import (
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
 	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/textileio/powergate/v2/deals"
@@ -168,7 +167,7 @@ func (m *Module) getStorageDealInfo(ctx context.Context, proposal cid.Cid) (deal
 	return sdi, nil
 }
 
-func fromLotusDealInfo(ctx context.Context, client *apistruct.FullNodeStruct, dinfo *api.DealInfo) (deals.StorageDealInfo, error) {
+func fromLotusDealInfo(ctx context.Context, client *api.FullNodeStruct, dinfo *api.DealInfo) (deals.StorageDealInfo, error) {
 	di := deals.StorageDealInfo{
 		ProposalCid:   dinfo.ProposalCid,
 		StateID:       dinfo.State,
