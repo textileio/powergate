@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
@@ -136,7 +136,7 @@ func TestRetrieve(t *testing.T) {
 	}
 }
 
-func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int, data []byte) (cid.Cid, []cid.Cid, error) {
+func storeMultiMiner(m *Module, client *api.FullNodeStruct, numMiners int, data []byte) (cid.Cid, []cid.Cid, error) {
 	ctx := context.Background()
 	miners, err := client.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
@@ -186,7 +186,7 @@ func storeMultiMiner(m *Module, client *apistruct.FullNodeStruct, numMiners int,
 	return dataCid, pcids, nil
 }
 
-func waitForDealComplete(client *apistruct.FullNodeStruct, deals []cid.Cid) error {
+func waitForDealComplete(client *api.FullNodeStruct, deals []cid.Cid) error {
 	ctx := context.Background()
 	finished := make(map[cid.Cid]struct{})
 	for len(finished) != len(deals) {

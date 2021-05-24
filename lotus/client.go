@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-jsonrpc"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	logging "github.com/ipfs/go-log/v2"
 	ma "github.com/multiformats/go-multiaddr"
 
@@ -19,7 +19,7 @@ var (
 )
 
 // ClientBuilder creates a new Lotus client.
-type ClientBuilder func(ctx context.Context) (*apistruct.FullNodeStruct, func(), error)
+type ClientBuilder func(ctx context.Context) (*api.FullNodeStruct, func(), error)
 
 // NewBuilder creates a new ClientBuilder.
 func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBuilder, error) {
@@ -31,8 +31,8 @@ func NewBuilder(maddr ma.Multiaddr, authToken string, connRetries int) (ClientBu
 		"Authorization": []string{"Bearer " + authToken},
 	}
 
-	return func(ctx context.Context) (*apistruct.FullNodeStruct, func(), error) {
-		var api apistruct.FullNodeStruct
+	return func(ctx context.Context) (*api.FullNodeStruct, func(), error) {
+		var api api.FullNodeStruct
 		var closer jsonrpc.ClientCloser
 		var err error
 		for i := 0; i < connRetries; i++ {

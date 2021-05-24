@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	lapi "github.com/filecoin-project/lotus/api"
 	"math/rand"
 	"time"
 
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/ipfs/go-cid"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
@@ -58,14 +58,14 @@ func RequireIpfsPinnedCid(ctx context.Context, t require.TestingT, cid cid.Cid, 
 }
 
 // RequireFilUnstored checks that a cid is not stored in the Filecoin network.
-func RequireFilUnstored(ctx context.Context, t require.TestingT, client *apistruct.FullNodeStruct, c cid.Cid) {
+func RequireFilUnstored(ctx context.Context, t require.TestingT, client *lapi.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c, nil)
 	require.NoError(t, err)
 	require.Empty(t, offers)
 }
 
 // RequireFilStored cehcks that a cid is stored in the Filecoin network.
-func RequireFilStored(ctx context.Context, t require.TestingT, client *apistruct.FullNodeStruct, c cid.Cid) {
+func RequireFilStored(ctx context.Context, t require.TestingT, client *lapi.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c, nil)
 	require.NoError(t, err)
 	require.NotEmpty(t, offers)

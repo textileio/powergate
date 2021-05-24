@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	lapi "github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-datastore"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/powergate/v2/ffs"
@@ -35,7 +35,7 @@ const (
 )
 
 // NewAPI returns a new set of components for FFS.
-func NewAPI(t tests.TestingTWithCleanup, numMiners, speed int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
+func NewAPI(t tests.TestingTWithCleanup, numMiners, speed int) (*httpapi.HttpApi, *lapi.FullNodeStruct, *api.API, func()) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := it.CreateIPFS(t)
 	addr, clientBuilder, ms := NewDevnet(t, numMiners, speed, ipfsMAddr)

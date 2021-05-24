@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	grpcm "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
@@ -629,7 +629,7 @@ func getMinerSelector(conf Config, rm *reputation.Module, ai *ask.Runner, cb lot
 	return ms, nil
 }
 
-func evaluateMasterAddr(conf Config, c *apistruct.FullNodeStruct) (address.Address, error) {
+func evaluateMasterAddr(conf Config, c *api.FullNodeStruct) (address.Address, error) {
 	var res address.Address
 	if conf.Devnet {
 		// Wait for the devnet to bootstrap completely and generate at least 1 block.
