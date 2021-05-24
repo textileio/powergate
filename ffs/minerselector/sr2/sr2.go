@@ -11,7 +11,7 @@ import (
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	logger "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/ffs"
@@ -154,7 +154,7 @@ func (ms *MinerSelector) getMiners() (minersBuckets, error) {
 	return res, nil
 }
 
-func getMinerQueryAsk(c *apistruct.FullNodeStruct, addrStr string) (*storagemarket.StorageAsk, error) {
+func getMinerQueryAsk(c *api.FullNodeStruct, addrStr string) (*storagemarket.StorageAsk, error) {
 	addr, err := address.NewFromString(addrStr)
 	if err != nil {
 		return nil, fmt.Errorf("miner address is invalid: %s", err)

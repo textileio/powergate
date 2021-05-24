@@ -11,7 +11,6 @@ import (
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/api/apistruct"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -152,7 +151,7 @@ func (m *Module) Close() error {
 	return nil
 }
 
-func robustClientGetDealInfo(ctx context.Context, lapi *apistruct.FullNodeStruct, propCid cid.Cid) (*api.DealInfo, error) {
+func robustClientGetDealInfo(ctx context.Context, lapi *api.FullNodeStruct, propCid cid.Cid) (*api.DealInfo, error) {
 	di, err := lapi.ClientGetDealInfo(ctx, propCid)
 	if err != nil {
 		return nil, fmt.Errorf("client get deal info: %s", err)

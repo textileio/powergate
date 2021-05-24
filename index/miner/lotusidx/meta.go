@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/textileio/powergate/v2/index/miner"
@@ -142,7 +142,7 @@ func merge(old miner.Meta, upt miner.Meta) miner.Meta {
 }
 
 // getMeta returns fresh metadata information about a miner.
-func getMeta(ctx context.Context, c *apistruct.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, straddr string) (miner.Meta, error) {
+func getMeta(ctx context.Context, c *api.FullNodeStruct, h P2PHost, lr iplocation.LocationResolver, straddr string) (miner.Meta, error) {
 	si := miner.Meta{
 		LastUpdated: time.Now(),
 	}

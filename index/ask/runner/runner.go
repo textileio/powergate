@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/filecoin-project/go-address"
-	"github.com/filecoin-project/lotus/api/apistruct"
+	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
@@ -217,7 +217,7 @@ func (ai *Runner) update() error {
 }
 
 // generateIndex returns a fresh index.
-func (ai *Runner) generateIndex(ctx context.Context, api *apistruct.FullNodeStruct) (ask.Index, []*ask.StorageAsk, error) {
+func (ai *Runner) generateIndex(ctx context.Context, api *api.FullNodeStruct) (ask.Index, []*ask.StorageAsk, error) {
 	addrs, err := api.StateListMiners(ctx, types.EmptyTSK)
 	if err != nil {
 		return ask.Index{}, nil, err
@@ -273,7 +273,7 @@ func (ai *Runner) generateIndex(ctx context.Context, api *apistruct.FullNodeStru
 
 // getMinerStorage ask returns the result of querying the miner for its current Storage Ask.
 // If the miner has zero power, it won't be queried returning false.
-func getMinerStorageAsk(ctx context.Context, api *apistruct.FullNodeStruct, addr address.Address, askTimeout time.Duration) (ask.StorageAsk, bool, error) {
+func getMinerStorageAsk(ctx context.Context, api *api.FullNodeStruct, addr address.Address, askTimeout time.Duration) (ask.StorageAsk, bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, askTimeout)
 	defer cancel()
 	power, err := api.StateMinerPower(ctx, addr, types.EmptyTSK)
