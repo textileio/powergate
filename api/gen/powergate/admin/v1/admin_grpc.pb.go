@@ -23,6 +23,7 @@ type AdminServiceClient interface {
 	SendFil(ctx context.Context, in *SendFilRequest, opts ...grpc.CallOption) (*SendFilResponse, error)
 	// Users
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
+	RegenerateAuth(ctx context.Context, in *RegenerateAuthRequest, opts ...grpc.CallOption) (*RegenerateAuthResponse, error)
 	Users(ctx context.Context, in *UsersRequest, opts ...grpc.CallOption) (*UsersResponse, error)
 	// Storage Info
 	StorageInfo(ctx context.Context, in *StorageInfoRequest, opts ...grpc.CallOption) (*StorageInfoResponse, error)
@@ -78,6 +79,15 @@ func (c *adminServiceClient) SendFil(ctx context.Context, in *SendFilRequest, op
 func (c *adminServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
 	out := new(CreateUserResponse)
 	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/CreateUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) RegenerateAuth(ctx context.Context, in *RegenerateAuthRequest, opts ...grpc.CallOption) (*RegenerateAuthResponse, error) {
+	out := new(RegenerateAuthResponse)
+	err := c.cc.Invoke(ctx, "/powergate.admin.v1.AdminService/RegenerateAuth", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +203,7 @@ type AdminServiceServer interface {
 	SendFil(context.Context, *SendFilRequest) (*SendFilResponse, error)
 	// Users
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
+	RegenerateAuth(context.Context, *RegenerateAuthRequest) (*RegenerateAuthResponse, error)
 	Users(context.Context, *UsersRequest) (*UsersResponse, error)
 	// Storage Info
 	StorageInfo(context.Context, *StorageInfoRequest) (*StorageInfoResponse, error)
@@ -226,6 +237,9 @@ func (UnimplementedAdminServiceServer) SendFil(context.Context, *SendFilRequest)
 }
 func (UnimplementedAdminServiceServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
+}
+func (UnimplementedAdminServiceServer) RegenerateAuth(context.Context, *RegenerateAuthRequest) (*RegenerateAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegenerateAuth not implemented")
 }
 func (UnimplementedAdminServiceServer) Users(context.Context, *UsersRequest) (*UsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Users not implemented")
@@ -341,6 +355,24 @@ func _AdminService_CreateUser_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).CreateUser(ctx, req.(*CreateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_RegenerateAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegenerateAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).RegenerateAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/powergate.admin.v1.AdminService/RegenerateAuth",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).RegenerateAuth(ctx, req.(*RegenerateAuthRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -562,6 +594,10 @@ var _AdminService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateUser",
 			Handler:    _AdminService_CreateUser_Handler,
+		},
+		{
+			MethodName: "RegenerateAuth",
+			Handler:    _AdminService_RegenerateAuth_Handler,
 		},
 		{
 			MethodName: "Users",

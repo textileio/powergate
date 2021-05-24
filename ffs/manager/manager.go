@@ -15,6 +15,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs/api"
 	"github.com/textileio/powergate/v2/ffs/auth"
 	"github.com/textileio/powergate/v2/ffs/scheduler"
+	txndstr "github.com/textileio/powergate/v2/txndstransform"
 	"github.com/textileio/powergate/v2/util"
 )
 
@@ -83,7 +84,7 @@ type Manager struct {
 }
 
 // New returns a new Manager.
-func New(ds datastore.Datastore, wm ffs.WalletManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool, onLocalnet bool) (*Manager, error) {
+func New(ds datastore.TxnDatastore, wm ffs.WalletManager, drm ffs.DealRecordsManager, sched *scheduler.Scheduler, ffsUseMasterAddr bool, onLocalnet bool) (*Manager, error) {
 	if ffsUseMasterAddr && wm.MasterAddr() == address.Undef {
 		return nil, fmt.Errorf("ffsUseMasterAddr requires that master address is defined")
 	}
@@ -92,7 +93,7 @@ func New(ds datastore.Datastore, wm ffs.WalletManager, drm ffs.DealRecordsManage
 		return nil, fmt.Errorf("loading default storage config: %s", err)
 	}
 	return &Manager{
-		auth:             auth.New(namespace.Wrap(ds, datastore.NewKey("auth"))),
+		auth:             auth.New(txndstr.Wrap(ds, "auth")),
 		ds:               ds,
 		wm:               wm,
 		drm:              drm,
@@ -177,6 +178,19 @@ func (m *Manager) List() ([]ffs.AuthEntry, error) {
 		return nil, fmt.Errorf("listing existing instances: %s", err)
 	}
 	return res, nil
+}
+
+// RegenerateAuthToken invalidates the provided token replacing it with a new one.
+func (m *Manager) RegenerateAuthToken(token string) (string, error) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	newToken, err := m.auth.RegenerateAuthToken(token)
+	if err == auth.ErrNotFound {
+		return "", ErrAuthTokenNotFound
+	}
+
+	return newToken, nil
 }
 
 // GetByAuthToken loads an existing instance using an auth-token. If auth-token doesn't exist,
