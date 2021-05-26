@@ -212,11 +212,6 @@ func (m *Module) Balance(ctx context.Context, addr string) (*big.Int, error) {
 	}
 	b, err := client.WalletBalance(ctx, a)
 	if err != nil {
-		//如果钱包里面灭有钱或者从未交易过.这会导致一个错误,actor not found
-		//查询string中是否有actor not found,但是一般都是矿工
-		if strings.Contains(err.Error(),"actor not found"){
-			return &big.Int{},nil
-		}
 		return nil, fmt.Errorf("getting balance from lotus: %s", err)
 	}
 	return b.Int, nil
