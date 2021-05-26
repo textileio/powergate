@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	lapi "github.com/filecoin-project/lotus/api"
 	"math/rand"
 	"time"
 
+	lapi "github.com/filecoin-project/lotus/api"
 	"github.com/ipfs/go-cid"
 	ipfsfiles "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
