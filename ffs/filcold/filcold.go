@@ -181,7 +181,7 @@ func (fc *FilCold) Store(ctx context.Context, c cid.Cid, cfg ffs.FilConfig) ([]c
 		}
 
 		pieceSizeBig := big.NewInt(int64(pieceSize))
-		if pieceSizeBig.Cmp(big.NewInt(0).Mul(big.NewInt(int64(cfg.RepFactor)), vci.RemainingDatacapBytes)) == 1 {
+		if vci.RemainingDatacapBytes.Cmp(big.NewInt(0).Mul(big.NewInt(int64(cfg.RepFactor)), pieceSizeBig)) == -1 {
 			return nil, nil, 0, fmt.Errorf("the remaining data-cap %s is less than piece-size %s * rep-factor %d", humanize.IBytes(vci.RemainingDatacapBytes.Uint64()), humanize.IBytes(uint64(pieceSize)), cfg.RepFactor)
 		}
 
