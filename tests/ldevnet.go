@@ -38,7 +38,7 @@ func LaunchDevnetDocker(t TestingTWithCleanup, numMiners, speed int, ipfsMaddr s
 	}
 
 	repository := "textile/lotus-devnet"
-	tag := "v1.8.0"
+	tag := "v1.9.0"
 	lotusDevnet, err := pool.RunWithOptions(&dockertest.RunOptions{Repository: repository, Tag: tag, Env: envs, Mounts: mounts})
 	require.NoError(t, err)
 	err = lotusDevnet.Expire(180)
