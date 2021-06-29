@@ -20,7 +20,7 @@ localnet:
 
 up: down
 	DOCKER_BUILDKIT=1 \
-	LOTUS_IMAGE_TAG=v1.9.0 \
+	LOTUS_IMAGE_TAG=v1.10.0 \
 	docker-compose \
 		-p mainnet \
 		-f docker-compose.yaml \
@@ -31,7 +31,7 @@ up: down
 
 down:
 	DOCKER_BUILDKIT=1 \
-	LOTUS_IMAGE_TAG=v1.9.0 \
+	LOTUS_IMAGE_TAG=v1.10.0 \
 	docker-compose \
 		-p mainnet \
 		-f docker-compose.yaml \
