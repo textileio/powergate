@@ -12,8 +12,12 @@ import (
 	"sync"
 	"time"
 
+	files "github.com/ipfs/go-ipfs-files"
+	unixfile "github.com/ipfs/go-unixfs/file"
+
 	"github.com/cheggaaa/pb/v3"
 	"github.com/dustin/go-humanize"
+	aggregator "github.com/filecoin-project/go-dagaggregator-unixfs"
 	bsrv "github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-car"
 	"github.com/ipfs/go-cid"
@@ -36,6 +40,7 @@ func init() {
 	prepare.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
 	prepare.Flags().String("ipfs-api", "", "IPFS HTTP API multiaddress that stores the cid (only for Cid processing instead of file/folder path)")
 	prepare.Flags().Bool("json", false, "avoid pretty output and use json formatting")
+	prepare.Flags().Bool("aggregate", false, "aggregates a folder of files")
 
 	commp.Flags().Bool("json", false, "avoid pretty output and use json formatting")
 	commp.Flags().Bool("skip-car-validation", false, "skips CAR validation when processing a path")
@@ -86,7 +91,7 @@ If a Cid is provided, an extra --ipfs-api flag should be provided to connect to 
 		if err != nil {
 			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
 		}
-		dataCid, dagService, cls, err := prepareDAGService(cmd, args, quiet)
+		dataCid, dagService, _, cls, err := prepareDAGService(cmd, args, quiet)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating dag-service: %s", err))
 		}
@@ -147,7 +152,7 @@ You can use the --skip-car-validation, but usually shouldn't be done unless you 
 			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
 		}
 		if jsonFlag {
-			printJSONResult(pieceSize, pieceCID)
+			printJSONResult(pieceSize, cid.Undef, pieceCID, nil)
 			return
 		}
 		c.Message("Piece-size: %d (%s)", pieceSize, humanize.IBytes(pieceSize))
@@ -183,7 +188,7 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		if err != nil {
 			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
 		}
-		dataCid, dagService, cls, err := prepareDAGService(cmd, args, json)
+		payloadCid, dagService, aggrFiles, cls, err := prepareDAGService(cmd, args, json)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating temporal dag-service: %s", err))
 		}
@@ -216,7 +221,7 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 					c.Fatal(fmt.Errorf("closing car writer: %s", err))
 				}
 			}()
-			if err := car.WriteCar(ctx, dagService, []cid.Cid{dataCid}, pwCAR); err != nil {
+			if err := car.WriteCar(ctx, dagService, []cid.Cid{payloadCid}, pwCAR); err != nil {
 				writeCarErr = err
 				return
 			}
@@ -249,63 +254,101 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 			c.Fatal(fmt.Errorf("calculating piece-size and PieceCID: %s", err))
 		}
 		if json {
-			printJSONResult(pieceSize, pieceCid)
+			printJSONResult(pieceSize, payloadCid, pieceCid, aggrFiles)
+
+			aggregate, err := cmd.Flags().GetBool("aggregate")
+			if err != nil {
+				c.Fatal(fmt.Errorf("aggregate flag: %s", err))
+			}
+			if aggregate {
+				rootNd, err := dagService.Get(ctx, payloadCid)
+				if err != nil {
+					c.Fatal(fmt.Errorf("get root node: %s", err))
+				}
+				manifestLnk := rootNd.Links()[0]
+				manifestNd, err := dagService.Get(ctx, manifestLnk.Cid)
+				if err != nil {
+					c.Fatal(fmt.Errorf("get manfiest node: %s", err))
+				}
+				manifestF, err := unixfile.NewUnixfsFile(context.Background(), dagService, manifestNd)
+				if err != nil {
+					c.Fatal(fmt.Errorf("get unifxfs manifest file: %s", err))
+				}
+				manifest := manifestF.(files.File)
+				fManifest, err := os.Create(args[1] + ".manifest")
+				if err != nil {
+					c.Fatal(fmt.Errorf("creating manifest file: %s", err))
+
+				}
+				defer func() {
+					if err := fManifest.Close(); err != nil {
+						c.Fatal(fmt.Errorf("closing manifest file: %s", err))
+					}
+				}()
+				if _, err := io.Copy(fManifest, manifest); err != nil {
+					c.Fatal(fmt.Errorf("writing manifest file: %s", err))
+				}
+			}
 			return
 		}
 		c.Message("Created CAR file, and piece digest in %.02fs.", time.Since(start).Seconds())
+		c.Message("Payload cid: %s", payloadCid)
 		c.Message("Piece size: %d (%s)", pieceSize, humanize.IBytes(pieceSize))
 		c.Message("Piece CID: %s\n", pieceCid)
 
 		c.Message("Lotus offline-deal command:")
-		c.Message("lotus client deal --manual-piece-cid=%s --manual-piece-size=%d %s <miner> <price> <duration>", pieceCid, pieceSize, dataCid)
+		c.Message("lotus client deal --manual-piece-cid=%s --manual-piece-size=%d %s <miner> <price> <duration>", pieceCid, pieceSize, payloadCid)
 	},
 }
 
 type closeFunc func() error
 
-func prepareDAGService(cmd *cobra.Command, args []string, quiet bool) (cid.Cid, ipld.DAGService, closeFunc, error) {
+func prepareDAGService(cmd *cobra.Command, args []string, quiet bool) (cid.Cid, ipld.DAGService, []aggregatedFile, closeFunc, error) {
 	ipfsAPI, err := cmd.Flags().GetString("ipfs-api")
 	if err != nil {
-		return cid.Undef, nil, nil, fmt.Errorf("getting ipfs api flag: %s", err)
+		return cid.Undef, nil, nil, nil, fmt.Errorf("getting ipfs api flag: %s", err)
 	}
-
+	aggregate, err := cmd.Flags().GetBool("aggregate")
+	if err != nil {
+		return cid.Undef, nil, nil, nil, fmt.Errorf("aggregate flag: %s", err)
+	}
 	if ipfsAPI == "" {
 		path := args[0]
 		tmpDir, err := cmd.Flags().GetString("tmpdir")
 		if err != nil {
-			return cid.Undef, nil, nil, fmt.Errorf("getting tmpdir directory: %s", err)
+			return cid.Undef, nil, nil, nil, fmt.Errorf("getting tmpdir directory: %s", err)
 		}
 
 		dagService, cls, err := createTmpDAGService(tmpDir)
 		if err != nil {
-			return cid.Undef, nil, nil, fmt.Errorf("creating temporary dag-service: %s", err)
+			return cid.Undef, nil, nil, nil, fmt.Errorf("creating temporary dag-service: %s", err)
 		}
-		dataCid, err := dagify(context.Background(), dagService, path, quiet)
+		dataCid, aggregatedFiles, err := dagify(context.Background(), dagService, path, quiet, aggregate)
 		if err != nil {
-			return cid.Undef, nil, nil, fmt.Errorf("creating dag for data: %s", err)
+			return cid.Undef, nil, nil, nil, fmt.Errorf("creating dag for data: %s", err)
 		}
 
-		return dataCid, dagService, cls, nil
+		return dataCid, dagService, aggregatedFiles, cls, nil
 	}
 
 	if len(args) == 0 {
-		return cid.Undef, nil, nil, fmt.Errorf("cid argument is empty")
+		return cid.Undef, nil, nil, nil, fmt.Errorf("cid argument is empty")
 	}
 	dataCid, err := cid.Decode(args[0])
 	if err != nil {
-		return cid.Undef, nil, nil, fmt.Errorf("parsing cid: %s", err)
+		return cid.Undef, nil, nil, nil, fmt.Errorf("parsing cid: %s", err)
 	}
 
 	ipfsAPIMA, err := multiaddr.NewMultiaddr(ipfsAPI)
 	if err != nil {
-		return cid.Undef, nil, nil, fmt.Errorf("parsing ipfs-api multiaddress: %s", err)
+		return cid.Undef, nil, nil, nil, fmt.Errorf("parsing ipfs-api multiaddress: %s", err)
 	}
 	ipfs, err := httpapi.NewApi(ipfsAPIMA)
 	if err != nil {
-		return cid.Undef, nil, nil, fmt.Errorf("creating ipfs client: %s", err)
+		return cid.Undef, nil, nil, nil, fmt.Errorf("creating ipfs client: %s", err)
 	}
 
-	return dataCid, ipfs.Dag(), closeFunc(func() error { return nil }), nil
+	return dataCid, ipfs.Dag(), nil, closeFunc(func() error { return nil }), nil
 }
 
 func createTmpDAGService(tmpDir string) (ipld.DAGService, closeFunc, error) {
@@ -333,30 +376,36 @@ func createTmpDAGService(tmpDir string) (ipld.DAGService, closeFunc, error) {
 
 var jsonOutput = io.Writer(os.Stderr)
 
-func printJSONResult(pieceSize uint64, pieceCID cid.Cid) {
+func printJSONResult(pieceSize uint64, payloadCid, pieceCID cid.Cid, aggrFiles []aggregatedFile) {
 	outData := struct {
-		PieceSize uint64 `json:"piece_size"`
-		PieceCid  string `json:"piece_cid"`
+		PayloadCid      string           `json:"payload_cid,omitempty"`
+		PieceSize       uint64           `json:"piece_size"`
+		PieceCid        string           `json:"piece_cid"`
+		AggregatedFiles []aggregatedFile `json:"files,omitempty"`
 	}{
-		PieceSize: pieceSize,
-		PieceCid:  pieceCID.String(),
+		PieceSize:       pieceSize,
+		PieceCid:        pieceCID.String(),
+		AggregatedFiles: aggrFiles,
+	}
+	if payloadCid.Defined() {
+		outData.PayloadCid = payloadCid.String()
 	}
 	out, err := json.Marshal(outData)
 	c.CheckErr(err)
 	fmt.Fprint(jsonOutput, string(out))
 }
 
-func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet bool) (cid.Cid, error) {
+func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet bool, aggregate bool) (cid.Cid, []aggregatedFile, error) {
 	var progressChan chan int64
 	if !quiet {
 		f, err := os.Open(path)
 		if err != nil {
-			return cid.Undef, fmt.Errorf("opening path: %s", err)
+			return cid.Undef, nil, fmt.Errorf("opening path: %s", err)
 		}
 		stat, err := f.Stat()
 		if err != nil {
 			_ = f.Close()
-			return cid.Undef, fmt.Errorf("getting stat of data: %s", err)
+			return cid.Undef, nil, fmt.Errorf("getting stat of data: %s", err)
 		}
 		_ = f.Close()
 
@@ -375,7 +424,7 @@ func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet 
 				return err
 			})
 			if err != nil {
-				return cid.Undef, fmt.Errorf("walking path: %s", err)
+				return cid.Undef, nil, fmt.Errorf("walking path: %s", err)
 			}
 		}
 		bar := pb.StartNew(dataSize)
@@ -395,10 +444,44 @@ func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet 
 			c.Message("DAG created in %.02fs.", time.Since(start).Seconds())
 		}()
 	}
-	dataCid, err := dataprep.Dagify(ctx, dagService, path, progressChan)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("creating dag for data: %s", err)
+
+	var aggregatedFiles []aggregatedFile
+	var dataCid cid.Cid
+	var err error
+	if !aggregate {
+		dataCid, err = dataprep.Dagify(ctx, dagService, path, progressChan)
+		if err != nil {
+			return cid.Undef, nil, fmt.Errorf("creating dag for data: %s", err)
+		}
+	} else {
+		var lst []aggregator.AggregateDagEntry
+		err = filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				return nil
+			}
+			dcid, err := dataprep.Dagify(ctx, dagService, p, progressChan)
+			if err != nil {
+				return err
+			}
+			lst = append(lst, aggregator.AggregateDagEntry{
+				RootCid: dcid,
+			})
+			aggregatedFiles = append(aggregatedFiles, aggregatedFile{Name: p, Cid: dcid.String()})
+			return err
+		})
+		dataCid, err = aggregator.Aggregate(ctx, dagService, lst)
+		if err != nil {
+			return cid.Undef, nil, fmt.Errorf("aggregating: %s", err)
+		}
 	}
 
-	return dataCid, nil
+	return dataCid, aggregatedFiles, nil
+}
+
+type aggregatedFile struct {
+	Name string `json:"name"`
+	Cid  string `jsong:"cid"`
 }
