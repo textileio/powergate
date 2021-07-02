@@ -482,6 +482,10 @@ func dagify(ctx context.Context, dagService ipld.DAGService, path string, quiet 
 			aggregatedFiles = append(aggregatedFiles, aggregatedFile{Name: p, Cid: dcid.String()})
 			return err
 		})
+		if err != nil {
+			return cid.Undef, nil, fmt.Errorf("walking the target folder: %s", err)
+		}
+
 		dataCid, err = aggregator.Aggregate(ctx, dagService, lst)
 		if err != nil {
 			return cid.Undef, nil, fmt.Errorf("aggregating: %s", err)

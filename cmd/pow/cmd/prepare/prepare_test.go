@@ -22,9 +22,9 @@ func TestOfflinePreparation(t *testing.T) {
 		size int
 		json string
 	}{
-		{size: 10000, json: `{"piece_size":16384,"piece_cid":"baga6ea4seaqjuk4uh5g7cu5znbvrr7wvfsn2l3xj47rbymvi63uiiroya44lkiy"}`},
-		{size: 1000, json: `{"piece_size":2048,"piece_cid":"baga6ea4seaqadahcx4ct54tlbvgkqlhmif7kxxkvxz3yf3vr2e4puhvsxdbrgka"}`},
-		{size: 100, json: `{"piece_size":256,"piece_cid":"baga6ea4seaqd4hgfl6texpf377k7igx2ga2mfwn3lb4c4kdpaq3g3oao2yftuki"}`},
+		{size: 10000, json: `{"payload_cid":"QmRP8TCp9bthhzLACAao6mh8cfLypqXncdNbzuPtuqFYP7","piece_size":16384,"piece_cid":"baga6ea4seaqjuk4uh5g7cu5znbvrr7wvfsn2l3xj47rbymvi63uiiroya44lkiy"}`},
+		{size: 1000, json: `{"payload_cid":"QmQRAjpSLWziADGz8p5ezxTguFNn18yYbSnduKqMrbJ93c","piece_size":2048,"piece_cid":"baga6ea4seaqadahcx4ct54tlbvgkqlhmif7kxxkvxz3yf3vr2e4puhvsxdbrgka"}`},
+		{size: 100, json: `{"payload_cid":"QmY6zHswPvyZkAyxwM9uup1DDPb67hZqChv8hnyu4MrFWk","piece_size":256,"piece_cid":"baga6ea4seaqd4hgfl6texpf377k7igx2ga2mfwn3lb4c4kdpaq3g3oao2yftuki"}`},
 	}
 
 	for _, test := range testCases {
