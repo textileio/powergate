@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -188,6 +189,18 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		if err != nil {
 			c.Fatal(fmt.Errorf("parsing json flag: %s", err))
 		}
+		aggregate, err := cmd.Flags().GetBool("aggregate")
+		if err != nil {
+			c.Fatal(fmt.Errorf("aggregate flag: %s", err))
+		}
+		ipfsAPI, err := cmd.Flags().GetString("ipfs-api")
+		if err != nil {
+			c.Fatal(fmt.Errorf("get api addr flag: %s", err))
+		}
+		if ipfsAPI != "" && aggregate {
+			c.Fatal(errors.New("the --aggregate flag can't be used with a remote go-ipfs node"))
+		}
+
 		payloadCid, dagService, aggrFiles, cls, err := prepareDAGService(cmd, args, json)
 		if err != nil {
 			c.Fatal(fmt.Errorf("creating temporal dag-service: %s", err))
@@ -253,42 +266,39 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 		if errCommP != nil {
 			c.Fatal(fmt.Errorf("calculating piece-size and PieceCID: %s", err))
 		}
+
+		if aggregate {
+			rootNd, err := dagService.Get(ctx, payloadCid)
+			if err != nil {
+				c.Fatal(fmt.Errorf("get root node: %s", err))
+			}
+			manifestLnk := rootNd.Links()[0]
+			manifestNd, err := dagService.Get(ctx, manifestLnk.Cid)
+			if err != nil {
+				c.Fatal(fmt.Errorf("get manfiest node: %s", err))
+			}
+			manifestF, err := unixfile.NewUnixfsFile(context.Background(), dagService, manifestNd)
+			if err != nil {
+				c.Fatal(fmt.Errorf("get unifxfs manifest file: %s", err))
+			}
+			manifest := manifestF.(files.File)
+			fManifest, err := os.Create(args[1] + ".manifest")
+			if err != nil {
+				c.Fatal(fmt.Errorf("creating manifest file: %s", err))
+
+			}
+			defer func() {
+				if err := fManifest.Close(); err != nil {
+					c.Fatal(fmt.Errorf("closing manifest file: %s", err))
+				}
+			}()
+			if _, err := io.Copy(fManifest, manifest); err != nil {
+				c.Fatal(fmt.Errorf("writing manifest file: %s", err))
+			}
+		}
+
 		if json {
 			printJSONResult(pieceSize, payloadCid, pieceCid, aggrFiles)
-
-			aggregate, err := cmd.Flags().GetBool("aggregate")
-			if err != nil {
-				c.Fatal(fmt.Errorf("aggregate flag: %s", err))
-			}
-			if aggregate {
-				rootNd, err := dagService.Get(ctx, payloadCid)
-				if err != nil {
-					c.Fatal(fmt.Errorf("get root node: %s", err))
-				}
-				manifestLnk := rootNd.Links()[0]
-				manifestNd, err := dagService.Get(ctx, manifestLnk.Cid)
-				if err != nil {
-					c.Fatal(fmt.Errorf("get manfiest node: %s", err))
-				}
-				manifestF, err := unixfile.NewUnixfsFile(context.Background(), dagService, manifestNd)
-				if err != nil {
-					c.Fatal(fmt.Errorf("get unifxfs manifest file: %s", err))
-				}
-				manifest := manifestF.(files.File)
-				fManifest, err := os.Create(args[1] + ".manifest")
-				if err != nil {
-					c.Fatal(fmt.Errorf("creating manifest file: %s", err))
-
-				}
-				defer func() {
-					if err := fManifest.Close(); err != nil {
-						c.Fatal(fmt.Errorf("closing manifest file: %s", err))
-					}
-				}()
-				if _, err := io.Copy(fManifest, manifest); err != nil {
-					c.Fatal(fmt.Errorf("writing manifest file: %s", err))
-				}
-			}
 			return
 		}
 		c.Message("Created CAR file, and piece digest in %.02fs.", time.Since(start).Seconds())
