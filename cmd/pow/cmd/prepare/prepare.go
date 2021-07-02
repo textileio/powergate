@@ -275,7 +275,7 @@ The piece-size and piece-cid are printed to stderr. For scripting usage, its rec
 			manifestLnk := rootNd.Links()[0]
 			manifestNd, err := dagService.Get(ctx, manifestLnk.Cid)
 			if err != nil {
-				c.Fatal(fmt.Errorf("get manfiest node: %s", err))
+				c.Fatal(fmt.Errorf("get manifest node: %s", err))
 			}
 			manifestF, err := unixfile.NewUnixfsFile(context.Background(), dagService, manifestNd)
 			if err != nil {
