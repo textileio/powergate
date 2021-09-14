@@ -49,6 +49,7 @@ func init() {
 	genCar.Flags().String("tmpdir", os.TempDir(), "path of folder where a temporal blockstore is created for processing data")
 	genCar.Flags().String("ipfs-api", "", "IPFS HTTP API multiaddress that stores the cid (only for Cid processing instead of file/folder path)")
 	genCar.Flags().Bool("quiet", false, "avoid pretty output")
+	genCar.Flags().Bool("aggregate", false, "aggregates a folder of files")
 }
 
 // Cmd is the command.
