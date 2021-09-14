@@ -16,6 +16,7 @@ pow offline car [path | cid] [output path] [flags]
 ### Options
 
 ```
+      --aggregate         aggregates a folder of files
   -h, --help              help for car
       --ipfs-api string   IPFS HTTP API multiaddress that stores the cid (only for Cid processing instead of file/folder path)
       --quiet             avoid pretty output
