@@ -24,7 +24,7 @@ require (
 	github.com/gin-contrib/location v0.0.2
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/gin v1.6.3
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.0
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
@@ -60,7 +60,7 @@ require (
 	github.com/multiformats/go-multiaddr-dns v0.2.0
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/ory/dockertest/v3 v3.6.3
+	github.com/ory/dockertest/v3 v3.8.0
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/otiai10/copy v1.4.2
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
@@ -79,7 +79,7 @@ require (
 	go.opentelemetry.io/otel/exporters/metric/prometheus v0.18.0
 	go.opentelemetry.io/otel/metric v0.19.0
 	google.golang.org/grpc v1.36.1
-	google.golang.org/protobuf v1.25.0
+	google.golang.org/protobuf v1.26.0
 	nhooyr.io/websocket v1.8.6 // indirect
 )
 
