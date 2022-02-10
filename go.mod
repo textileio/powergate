@@ -78,7 +78,7 @@ require (
 	go.opentelemetry.io/otel v0.20.0
 	go.opentelemetry.io/otel/exporters/metric/prometheus v0.20.0
 	go.opentelemetry.io/otel/metric v0.20.0
-	google.golang.org/grpc v1.36.1
+	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.26.0
 	nhooyr.io/websocket v1.8.6 // indirect
 )
