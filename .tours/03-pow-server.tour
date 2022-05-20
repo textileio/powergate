@@ -1,0 +1,111 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "03 Pow Server",
+  "steps": [
+    {
+      "file": "api/server/server.go",
+      "description": "Here is the configuration object that powergate is started up with. Lots of options, but there are sensible defaults for most of them. To clarify, this is the global/main configuration for the entire server. This is in comparison to the FFS data \"storage configurations\" that we'll cover later.",
+      "line": 109
+    },
+    {
+      "file": "cmd/powd/main.go",
+      "description": "This is the best place to see documentation about what all those configuration options mean and what the default settings are. These are the flags used by the `powd` executable.",
+      "line": 370
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "As we create the server here, we're mostly just creating all the different powergate components based on the incoming config vales. We'll dive deeper into many of these components later.",
+      "line": 162,
+      "selection": {
+        "start": {
+          "line": 257,
+          "character": 2
+        },
+        "end": {
+          "line": 257,
+          "character": 3
+        }
+      }
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "This is mostly the lotus client setup. We use the concept of a \"client builder\", that will return a new lotus client on demand, because we found that long lived lotus clients would behave in a flaky manner.",
+      "line": 168
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "FilecoinHost is a libp2p host connected to the FC network. I need to remember more exactly how it is used, let's see where it's passed in as a dependency.",
+      "line": 198
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "The asks index is created here. As a remoder, asks represent offers by storage miners to store data, and how much FIL they are asking to store data.",
+      "line": 230
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "We create the miner index here. It keeps track of all the miners on the network, and indexed both on chain and off chain data about them.",
+      "line": 242
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "The faults index is created here. It keeps track of when miners fail to store data that they commited to storing.",
+      "line": 248
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "We create the deals module here, which is responsible for executing deals on the Filecoin network.",
+      "line": 257
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "Wallet module is create here. It is used to create and manage Filecoin wallets. ",
+      "line": 263
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "Here we create the reputation module. It uses many of the other modules, and it caclulates and returns reputation data about storage miners. This is used by FFS to select which miners to store data with.",
+      "line": 267
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "This is an important step. This function returns a miner selector implementation depending on the server config. This allows different choices like selecting miners based on the reputation module, or selecting from a fixed list of miners. Or anu other implementation that may exist.",
+      "line": 276
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "Here we create our \"cold storage\" module that is used to fulfil the filecoing storage part of data storage with Powergate.",
+      "line": 285
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "And here is our \"hot storage\" module.",
+      "line": 286
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "We create the scheduler here. It is the thing that takes incoming storage requests, queues them up as jobs, and executes those jobs to fulfil storage requests.",
+      "line": 297
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "The FFS manager is created here. It is responsible for managing interactions with all the various FFS instances created by users. ",
+      "line": 302
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "This sections below is just starting up http and grpc services. Boilerplate kind of stuff.",
+      "line": 309
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "We start up our API services we discussed in the API tour in this function.",
+      "line": 349
+    },
+    {
+      "file": "api/server/server.go",
+      "description": "You can see the API services created here.",
+      "line": 436
+    }
+  ]
+}

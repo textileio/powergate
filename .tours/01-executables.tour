@@ -1,0 +1,35 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "01 - Executables",
+  "steps": [
+    {
+      "title": "Powergate executables",
+      "description": "The repo contains a few executables that do different things. Just want to show where they live here, and we can dive into the important ones."
+    },
+    {
+      "file": "cmd/powd/main.go",
+      "description": "`powd` is the main Powergate backend daemon. Once it starts, it spawns off all other Powergate sub-processes. This is important and where we'll be diving into more detail.",
+      "line": 40
+    },
+    {
+      "file": "cmd/pow/main.go",
+      "description": "`pow` is the Powergate CLI. It allows a user to interact with the Powergate gRPC APIs in the terminal. It's implemeted using the Powergate Go client package.",
+      "line": 10
+    },
+    {
+      "file": "cmd/powbench/main.go",
+      "description": "`powbench` runs benchmarks against Powergate. Probably not that important to understand the details here.",
+      "line": 31
+    },
+    {
+      "file": "cmd/migrtest/main.go",
+      "description": "`migrtest` is a utility to test data migrations on real data, but without actually committing the migration. Also probably not that important to understand at this early stage.",
+      "line": 26
+    },
+    {
+      "file": "cmd/powcfg/main.go",
+      "description": "`powcfg` is a utility to make batch changes to storage configuration data in the powergate data stores. This has been useful a couple times when we've needed to change default storage settings for all users of Powergate. Don't worry much about the details here for now.",
+      "line": 22
+    }
+  ]
+}

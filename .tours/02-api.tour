@@ -1,0 +1,60 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "02 - API",
+  "steps": [
+    {
+      "title": "Protobufs/gRPC",
+      "description": "Powergate uses Protobufs and gRPC for all client/server communication. We have two categories of Protobuf/gRPC definitions, one for \"admin\" API interactions another for all other \"user\" interactions.\n\nWe use a great tool called Buf for managing, linting, and code generation of Proto and gRPC definitions. Buf provides a good style guide that we've followed and we run their linter as well. https://docs.buf.build/best-practices/style-guide."
+    },
+    {
+      "file": "proto/powergate/admin/v1/admin.proto",
+      "description": "This file defines all the admin API.",
+      "line": 7
+    },
+    {
+      "file": "proto/powergate/admin/v1/admin.proto",
+      "description": "You'll notice how these proto definitions, both here and below in the RPC definitions, are categories using comments like this. These comments correspond to modules of the client and server API implementations. It just helps keep things organized.",
+      "line": 9
+    },
+    {
+      "file": "proto/powergate/admin/v1/admin.proto",
+      "description": "This defines the admin RPC interface.",
+      "line": 191
+    },
+    {
+      "file": "proto/powergate/user/v1/user.proto",
+      "description": "And here is our user RPC API definition.",
+      "line": 272
+    },
+    {
+      "file": "Makefile",
+      "description": "Running `make protos` generates all the proto related code.",
+      "line": 85
+    },
+    {
+      "file": "api/gen/powergate/admin/v1/admin.pb.go",
+      "description": "All the generated proto and gRPC code ends up in the `api/gen/powergate` folder a level up from here. So this file contains the generated admin protos, the RPC code is in the file next to this one, and you can see the same generated user API code as well.",
+      "line": 7
+    },
+    {
+      "file": "api/client/client.go",
+      "description": "Here is the Go client for Powergate. It uses the generated Protobuf and gRPC code to implemet all the client API. We provide some structure and organization to all the different calls using this `struct`.",
+      "line": 16
+    },
+    {
+      "file": "api/server/admin/service.go",
+      "description": "The server side API is implemented using this \"admin\" service and the \"user\" service. The implementation is split between different files just to make things more readable and less confusing. It is implemented using the generated Protobuf objects and gRPC stubs as well as other Powergate modules that are passed in as dependenceis to the service.",
+      "line": 14
+    },
+    {
+      "file": "api/server/admin/service.go",
+      "description": "You see all the dependencies to implement the service are passed in here; The schduler, wallet module, deals module, miner index, etc. These should sound familiar if you read the Readmes in the Powergate repo. We'll get into the deails of all those dependencies soon.",
+      "line": 25
+    },
+    {
+      "file": "api/server/user/service.go",
+      "description": "Similar thing for the user API service here.",
+      "line": 23
+    }
+  ]
+}
