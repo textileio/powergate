@@ -28,9 +28,10 @@ func (s *Service) SetDefaultStorageConfig(ctx context.Context, req *userPb.SetDe
 		return nil, err
 	}
 	defaultConfig := ffs.StorageConfig{
-		Repairable: req.Config.Repairable,
-		Hot:        fromRPCHotConfig(req.Config.Hot),
-		Cold:       fromRPCColdConfig(req.Config.Cold),
+		Repairable:    req.Config.Repairable,
+		Hot:           fromRPCHotConfig(req.Config.Hot),
+		Cold:          fromRPCColdConfig(req.Config.Cold),
+		Notifications: fromRPCNotificationConfigs(req.Config.Notifications),
 	}
 	if err := i.SetDefaultStorageConfig(defaultConfig); err != nil {
 		return nil, err
@@ -54,9 +55,10 @@ func (s *Service) ApplyStorageConfig(ctx context.Context, req *userPb.ApplyStora
 
 	if req.HasConfig {
 		config := ffs.StorageConfig{
-			Repairable: req.Config.Repairable,
-			Hot:        fromRPCHotConfig(req.Config.Hot),
-			Cold:       fromRPCColdConfig(req.Config.Cold),
+			Repairable:    req.Config.Repairable,
+			Hot:           fromRPCHotConfig(req.Config.Hot),
+			Cold:          fromRPCColdConfig(req.Config.Cold),
+			Notifications: fromRPCNotificationConfigs(req.Config.Notifications),
 		}
 		options = append(options, api.WithStorageConfig(config))
 	}

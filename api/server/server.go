@@ -50,6 +50,7 @@ import (
 	"github.com/textileio/powergate/v2/iplocation/maxmind"
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/migration"
+	"github.com/textileio/powergate/v2/notifications"
 	"github.com/textileio/powergate/v2/reputation"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
 	"github.com/textileio/powergate/v2/util"
@@ -253,8 +254,10 @@ func NewServer(conf Config) (*Server, error) {
 		conf.DealWatchPollDuration = time.Second
 	}
 
+	nt := notifications.New()
+
 	log.Info("Starting deals module...")
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, conf.DealWatchPollDuration, conf.FFSDealFinalityTimeout, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), nt, clientBuilder, conf.DealWatchPollDuration, conf.FFSDealFinalityTimeout, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}

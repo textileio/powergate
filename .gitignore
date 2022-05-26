@@ -17,6 +17,7 @@ cover.out
 
 # vscode config folder
 .vscode/
+.idea
 
 # File names that can be used for testing.
 myfile

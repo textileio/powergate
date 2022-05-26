@@ -17,6 +17,7 @@ import (
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/notifications"
 	"github.com/textileio/powergate/v2/util"
 	"go.opentelemetry.io/otel/metric"
 )
@@ -39,6 +40,7 @@ var (
 // Store stores deal and retrieval records.
 type Store struct {
 	ds   datastore.TxnDatastore
+	nt   notifications.Notifier
 	lock sync.Mutex
 
 	metricFinalTotal  metric.Int64Counter
@@ -46,9 +48,10 @@ type Store struct {
 }
 
 // New returns a new *Store.
-func New(ds datastore.TxnDatastore) *Store {
+func New(ds datastore.TxnDatastore, nt notifications.Notifier) *Store {
 	s := &Store{
 		ds: ds,
+		nt: nt,
 	}
 	s.initMetrics()
 
@@ -111,6 +114,8 @@ func (s *Store) PutStorageDeal(dr deals.StorageDealRecord) error {
 	if err := txn.Commit(); err != nil {
 		return fmt.Errorf("committing transaction: %s", err)
 	}
+
+	s.nt.NotifyDeal(dr)
 
 	return nil
 }

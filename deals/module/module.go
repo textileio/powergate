@@ -19,6 +19,7 @@ import (
 	"github.com/textileio/powergate/v2/deals/module/dealwatcher"
 	"github.com/textileio/powergate/v2/deals/module/store"
 	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/notifications"
 	"go.opentelemetry.io/otel/metric"
 )
 
@@ -40,7 +41,7 @@ type Module struct {
 }
 
 // New creates a new Module.
-func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDuration time.Duration, dealFinalityTimeout time.Duration, opts ...deals.Option) (*Module, error) {
+func New(ds datastore.TxnDatastore, nt notifications.Notifier, clientBuilder lotus.ClientBuilder, pollDuration time.Duration, dealFinalityTimeout time.Duration, opts ...deals.Option) (*Module, error) {
 	var cfg deals.Config
 	for _, o := range opts {
 		if err := o(&cfg); err != nil {
@@ -56,7 +57,7 @@ func New(ds datastore.TxnDatastore, clientBuilder lotus.ClientBuilder, pollDurat
 	m := &Module{
 		clientBuilder:       clientBuilder,
 		cfg:                 &cfg,
-		store:               store.New(ds),
+		store:               store.New(ds, nt),
 		pollDuration:        pollDuration,
 		dealFinalityTimeout: dealFinalityTimeout,
 		dealWatcher:         dw,

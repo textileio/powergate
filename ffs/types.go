@@ -132,9 +132,10 @@ type RetrievalJob struct {
 
 // StorageConfig contains a default storage configuration for an Api instance.
 type StorageConfig struct {
-	Hot        HotConfig
-	Cold       ColdConfig
-	Repairable bool
+	Hot           HotConfig
+	Cold          ColdConfig
+	Repairable    bool
+	Notifications []*NotificationConfig
 }
 
 // WithRepairable allows to enable/disable auto-repair.
@@ -340,6 +341,36 @@ func (cc ColdConfig) Validate() error {
 		return fmt.Errorf("invalid wallet address")
 	}
 	return nil
+}
+
+type NotificationConfig struct {
+	Webhook       *Webhook
+	Configuration *WebhookConfiguration
+}
+
+type Webhook struct {
+	Endpoint       string
+	Authentication *WebhookAuthentication
+}
+
+type WebhookAuthentication struct {
+	Type string
+	Data *WebhookAuthData
+}
+
+type WebhookAuthData struct {
+	Username string
+	Password string
+}
+
+type WebhookConfiguration struct {
+	Events []string
+	Alerts []*WebhookAlert
+}
+
+type WebhookAlert struct {
+	Type      string
+	Threshold string
 }
 
 // FilConfig is the desired state of a Cid in the Filecoin network.

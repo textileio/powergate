@@ -20,6 +20,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs/scheduler"
 	"github.com/textileio/powergate/v2/filchain"
 	"github.com/textileio/powergate/v2/lotus"
+	"github.com/textileio/powergate/v2/notifications"
 	"github.com/textileio/powergate/v2/tests"
 	"github.com/textileio/powergate/v2/util"
 
@@ -79,7 +80,8 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 
 // NewCustomFFSManager returns a new customized FFS manager.
 func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi, minimumPieceSize uint64) (*manager.Manager, *coreipfs.CoreIpfs, func()) {
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), cb, util.AvgBlockTime, time.Minute*10)
+	nt := notifications.New()
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), nt, cb, util.AvgBlockTime, time.Minute*10)
 	require.NoError(t, err)
 
 	fchain := filchain.New(cb)

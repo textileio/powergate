@@ -371,10 +371,41 @@ message ColdConfig {
   FilConfig filecoin = 2;
 }
 
+message WebhookAuthData {
+  string username = 1;
+  string password = 2;
+}
+
+message WebhookAuthentication {
+  string type = 1;
+  WebhookAuthData data = 2;
+}
+
+message Webhook {
+  string endpoint = 1;
+  WebhookAuthentication authentication = 2;
+}
+
+message WebhookAlert {
+  string type = 1;
+  string threshold = 2;
+}
+
+message WebhookConfiguration {
+  repeated string events = 1;
+  repeated WebhookAlert alerts = 2;
+}
+
+message NotificationConfig {
+  Webhook webhook = 1;
+  WebhookConfiguration configuration = 2;
+}
+
 message StorageConfig {
   HotConfig hot = 1;
   ColdConfig cold = 2;
   bool repairable = 3;
+  repeated NotificationConfig notifications = 4;
 }
 
 message IpfsHotInfo {
