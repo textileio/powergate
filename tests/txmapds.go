@@ -6,6 +6,8 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	"github.com/textileio/powergate/v2/deals"
+	"github.com/textileio/powergate/v2/ffs"
 )
 
 // TxMapDatastore is a in-memory datastore that satisfies TxnDatastore.
@@ -172,3 +174,14 @@ func (bt *SimpleTx) Commit() error {
 
 	return err
 }
+
+type mockNotifier struct{}
+
+func NewMockNotifier() *mockNotifier {
+	return &mockNotifier{}
+}
+
+func (n *mockNotifier) NotifyDealRecord(dr deals.StorageDealRecord) {}
+func (n *mockNotifier) RegisterStorageJob(job ffs.StorageJob, notificationConfig []*ffs.NotificationConfig) {
+}
+func (n *mockNotifier) NotifyStorageJob(jobID ffs.JobID, dealInfo deals.StorageDealInfo) {}

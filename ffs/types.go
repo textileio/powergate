@@ -2,7 +2,10 @@ package ffs
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"io"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -353,14 +356,44 @@ type Webhook struct {
 	Authentication *WebhookAuthentication
 }
 
+func (w *Webhook) Publish(client *http.Client, payload io.Reader) error {
+	req, err := http.NewRequest("POST", w.Endpoint, payload)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	if w.Authentication != nil {
+		w.Authentication.setHeaders(req)
+	}
+
+	_, err = client.Do(req)
+	return err
+}
+
 type WebhookAuthentication struct {
 	Type string
 	Data *WebhookAuthData
 }
 
+func (a *WebhookAuthentication) setHeaders(req *http.Request) {
+	switch a.Type {
+	case "basic_auth":
+		if a.Data != nil {
+			req.Header.Set("Authorization", fmt.Sprintf("Basic %s", a.Data.encode()))
+		}
+	}
+}
+
 type WebhookAuthData struct {
 	Username string
 	Password string
+}
+
+func (d WebhookAuthData) encode() string {
+	return base64.StdEncoding.EncodeToString(
+		[]byte(fmt.Sprintf("%s:%s", d.Username, d.Password)),
+	)
 }
 
 type WebhookConfiguration struct {

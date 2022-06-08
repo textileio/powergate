@@ -16,6 +16,7 @@ import (
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/notifications"
 	"github.com/textileio/powergate/v2/util"
 	"go.opentelemetry.io/otel/metric"
 )
@@ -64,6 +65,8 @@ type Store struct {
 
 	// Metrics
 	metricJobCounter metric.Int64UpDownCounter
+
+	notifier notifications.Notifier
 }
 
 // Stats return metrics about current job queues.
@@ -78,7 +81,7 @@ type watcher struct {
 }
 
 // New returns a new JobStore backed by the Datastore.
-func New(ds datastore.TxnDatastore) (*Store, error) {
+func New(ds datastore.TxnDatastore, notifier notifications.Notifier) (*Store, error) {
 	s := &Store{
 		ds:                 ds,
 		jobStatusCache:     make(map[ffs.APIID]map[cid.Cid]map[cid.Cid]deals.StorageDealInfo),
@@ -88,6 +91,7 @@ func New(ds datastore.TxnDatastore) (*Store, error) {
 		lastSuccessfulJobs: make(map[ffs.APIID]map[cid.Cid]*ffs.StorageJob),
 		queuedIDs:          make(map[ffs.JobID]struct{}),
 		executingIDs:       make(map[ffs.JobID]struct{}),
+		notifier:           notifier,
 	}
 	s.initMetrics()
 	if err := s.loadCaches(); err != nil {
@@ -116,8 +120,13 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 			if err != nil {
 				log.Errorf("getting job: %v", err)
 				s.lock.Unlock()
+				// do we need to continue here?
+				// probably we will fail to get job from the store on the next iteration as well
 				continue
 			}
+
+			s.notifier.NotifyStorageJob(job, update)
+
 			values := make([]deals.StorageDealInfo, 0, len(s.jobStatusCache[j.APIID][j.Cid]))
 			for _, v := range s.jobStatusCache[j.APIID][j.Cid] {
 				values = append(values, v)

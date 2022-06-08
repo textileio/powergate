@@ -18,6 +18,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/rjstore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/sjstore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/trackstore"
+	"github.com/textileio/powergate/v2/notifications"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
 )
 
@@ -41,15 +42,16 @@ var (
 // This Jobs are executed by delegating the work to the hot and cold storage configured for
 // the scheduler.
 type Scheduler struct {
-	cs  ffs.ColdStorage
-	hs  ffs.HotStorage
-	sjs *sjstore.Store
-	rjs *rjstore.Store
-	as  *astore.Store
-	ts  *trackstore.Store
-	cis *cistore.Store
-	ris *ristore.Store
-	l   ffs.JobLogger
+	cs       ffs.ColdStorage
+	hs       ffs.HotStorage
+	sjs      *sjstore.Store
+	rjs      *rjstore.Store
+	as       *astore.Store
+	ts       *trackstore.Store
+	cis      *cistore.Store
+	ris      *ristore.Store
+	l        ffs.JobLogger
+	notifier notifications.Notifier
 
 	sr2RepFactor        func() (int, error)
 	dealFinalityTimeout time.Duration
@@ -89,8 +91,8 @@ type GCConfig struct {
 
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
-func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage, maxParallel int, dealFinalityTimeout time.Duration, sr2rf func() (int, error), gcConfig GCConfig) (*Scheduler, error) {
-	sjs, err := sjstore.New(txndstr.Wrap(ds, "sjstore"))
+func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage, maxParallel int, dealFinalityTimeout time.Duration, sr2rf func() (int, error), gcConfig GCConfig, notifier notifications.Notifier) (*Scheduler, error) {
+	sjs, err := sjstore.New(txndstr.Wrap(ds, "sjstore"), notifier)
 	if err != nil {
 		return nil, fmt.Errorf("loading stroage jobstore: %s", err)
 	}
@@ -123,6 +125,8 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 
 		l:  l,
 		gc: gcConfig,
+
+		notifier: notifier,
 
 		jobsCancel: make(map[ffs.JobID]chan struct{}),
 		sd: storageDaemon{
@@ -520,9 +524,12 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 		return
 	}
 
+	s.notifier.RegisterStorageJob(j, a.Cfg.Notifications)
+
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
 	dealUpdates := s.sjs.MonitorJob(j)
+	// TODO: vova: job executes start here
 	info, dealErrors, err := s.executeStorage(ctx, a, j, dealUpdates)
 	close(dealUpdates)
 	// Something bad-enough happened to make Job

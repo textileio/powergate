@@ -254,10 +254,10 @@ func NewServer(conf Config) (*Server, error) {
 		conf.DealWatchPollDuration = time.Second
 	}
 
-	nt := notifications.New()
+	notifier := notifications.New()
 
 	log.Info("Starting deals module...")
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), nt, clientBuilder, conf.DealWatchPollDuration, conf.FFSDealFinalityTimeout, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, conf.DealWatchPollDuration, conf.FFSDealFinalityTimeout, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
 		return nil, fmt.Errorf("creating deal module: %s", err)
 	}
@@ -297,7 +297,7 @@ func NewServer(conf Config) (*Server, error) {
 		sr2rf = ms.GetReplicationFactor
 	}
 	gcConfig := scheduler.GCConfig{StageGracePeriod: conf.FFSGCStageGracePeriod, AutoGCInterval: conf.FFSGCAutomaticGCInterval}
-	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf, gcConfig)
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf, gcConfig, notifier)
 	if err != nil {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}

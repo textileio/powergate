@@ -81,6 +81,9 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 	}
 
 	s.l.Log(ctx, "Configuration saved successfully")
+
+	s.notifier.RegisterStorageJob(j, cfg.Notifications)
+
 	return jid, nil
 }
 

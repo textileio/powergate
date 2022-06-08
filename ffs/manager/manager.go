@@ -63,6 +63,18 @@ var (
 				DealMinDuration: util.MinDealDuration,
 			},
 		},
+
+		// TODO: remove after review, just for testing
+		Notifications: []*ffs.NotificationConfig{
+			{
+				Webhook: &ffs.Webhook{
+					Endpoint: "https://vmanilo.free.beeceptor.com/webhook/job",
+				},
+				Configuration: &ffs.WebhookConfiguration{
+					Events: []string{"storage-deal-created"},
+				},
+			},
+		},
 	}
 	dsDefaultStorageConfigKey = datastore.NewKey("defaultstorageconfig")
 )

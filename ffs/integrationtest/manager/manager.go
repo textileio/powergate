@@ -80,8 +80,8 @@ func NewFFSManager(t require.TestingT, ds datastore.TxnDatastore, clientBuilder 
 
 // NewCustomFFSManager returns a new customized FFS manager.
 func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus.ClientBuilder, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi, minimumPieceSize uint64) (*manager.Manager, *coreipfs.CoreIpfs, func()) {
-	nt := notifications.New()
-	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), nt, cb, util.AvgBlockTime, time.Minute*10)
+	notifier := notifications.New()
+	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), cb, util.AvgBlockTime, time.Minute*10)
 	require.NoError(t, err)
 
 	fchain := filchain.New(cb)
@@ -91,7 +91,7 @@ func NewCustomFFSManager(t require.TestingT, ds datastore.TxnDatastore, cb lotus
 	cl := filcold.New(ms, dm, nil, ipfsClient, fchain, l, lsm, minimumPieceSize, 1, time.Hour)
 	hl, err := coreipfs.New(ds, ipfsClient, l)
 	require.NoError(t, err)
-	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil, scheduler.GCConfig{AutoGCInterval: 0})
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hl, cl, 10, time.Minute*10, nil, scheduler.GCConfig{AutoGCInterval: 0}, notifier)
 	require.NoError(t, err)
 
 	wm, err := lotusWallet.New(cb, masterAddr, *big.NewInt(iWalletBal), false, "")
