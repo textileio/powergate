@@ -529,7 +529,6 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
 	dealUpdates := s.sjs.MonitorJob(j)
-	// TODO: vova: job executes start here
 	info, dealErrors, err := s.executeStorage(ctx, a, j, dealUpdates)
 	close(dealUpdates)
 	// Something bad-enough happened to make Job

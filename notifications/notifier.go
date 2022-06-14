@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/filecoin-project/go-fil-markets/storagemarket"
 	"github.com/textileio/powergate/v2/deals"
 	"github.com/textileio/powergate/v2/ffs"
 )
@@ -75,6 +76,10 @@ func (n *notifier) notifyAll(configs []*ffs.NotificationConfig, updates *storage
 }
 
 func (n *notifier) notify(config *ffs.NotificationConfig, updates *storageJobUpdate) {
+	if config == nil {
+		return
+	}
+
 	if matchNotificationConfig(config.Configuration, updates.dealInfo) {
 		n.publishNotification(config.Webhook, updates)
 	}
@@ -88,9 +93,92 @@ func matchNotificationConfig(config *ffs.WebhookConfiguration, updates deals.Sto
 	return matchNotificationEvents(config.Events, updates) || matchNotificationAlerts(config.Alerts, updates)
 }
 
+const (
+	all            = "*"
+	created        = "created"
+	completed      = "completed"
+	retried        = "retried"
+	failed         = "failed"
+	expired        = "expired"
+	slashed        = "slashed"
+	separator      = "-"
+	storageDeal    = "storage-deal"
+	storageAuction = "storage-auction"
+	dataRetrieval  = "data-retrieval"
+
+	AllEvents          = all
+	AllCreatedEvents   = all + separator + created
+	AllCompletedEvents = all + separator + completed
+	AllRetriedEvents   = all + separator + retried
+	AllFailedEvents    = all + separator + failed
+
+	AllStorageDealEvents      = storageDeal + separator + all
+	StorageDealCreatedEvent   = storageDeal + separator + created
+	StorageDealCompletedEvent = storageDeal + separator + completed
+	StorageDealRetriedEvent   = storageDeal + separator + retried
+	StorageDealFailedEvent    = storageDeal + separator + failed
+	StorageDealExpiredEvent   = storageDeal + separator + expired
+	StorageDealSlashedEvent   = storageDeal + separator + slashed
+
+	AllStorageAuctionEvents      = storageAuction + separator + all
+	StorageAuctionCreatedEvent   = storageAuction + separator + created
+	StorageAuctionCompletedEvent = storageAuction + separator + completed
+	StorageAuctionFailedEvent    = storageAuction + separator + failed
+
+	AllDataRetrievalEvents      = dataRetrieval + separator + all
+	DataRetrievalCompletedEvent = dataRetrieval + separator + completed
+	DataRetrievalRetriedEvent   = dataRetrieval + separator + retried
+	DataRetrievalFailedEvent    = dataRetrieval + separator + failed
+)
+
 func matchNotificationEvents(events []string, updates deals.StorageDealInfo) bool {
-	// TODO
-	return true
+	for _, event := range events {
+		if matchNotificationEvent(event, updates) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func matchNotificationEvent(event string, updates deals.StorageDealInfo) bool {
+	switch event {
+	case AllEvents:
+		return true
+	case AllCreatedEvents:
+		// TODO: add created events
+		return updates.DealID != 0 // ||
+	case AllCompletedEvents:
+		// TODO: add other completed events
+		return updates.StateID == storagemarket.StorageDealActive // ||
+
+	// TODO:
+	// case AllRetriedEvents:
+
+	case AllStorageDealEvents:
+		return true
+
+	case StorageDealCreatedEvent:
+		return updates.DealID != 0
+
+	case StorageDealCompletedEvent:
+		return updates.StateID == storagemarket.StorageDealActive
+
+	// TODO:
+	// case StorageDealRetriedEvent:
+
+	case StorageDealFailedEvent:
+		return updates.StateID == storagemarket.StorageDealFailing || updates.StateID == storagemarket.StorageDealError || updates.Message != ""
+
+	case StorageDealExpiredEvent:
+		return updates.StateID == storagemarket.StorageDealExpired
+
+	case StorageDealSlashedEvent:
+		return updates.StateID == storagemarket.StorageDealSlashed
+
+	default:
+		return false
+	}
 }
 
 func matchNotificationAlerts(alerts []*ffs.WebhookAlert, updates deals.StorageDealInfo) bool {
@@ -98,12 +186,38 @@ func matchNotificationAlerts(alerts []*ffs.WebhookAlert, updates deals.StorageDe
 	return false
 }
 
+type notification struct {
+	Cid         string    `json:"cid"`
+	JobID       ffs.JobID `json:"jobId"`
+	JobStatus   string    `json:"jobStatus"`
+	Miner       string    `json:"miner"`
+	Price       uint64    `json:"price"`
+	ProposalCid string    `json:"proposalCid"`
+	DealID      uint64    `json:"dealId,omitempty"`
+	DealStatus  string    `json:"dealStatus"`
+	ErrCause    string    `json:"error,omitempty"`
+	Message     string    `json:"message,omitempty"`
+}
+
 func (n *notifier) publishNotification(webhook *ffs.Webhook, updates *storageJobUpdate) {
 	if webhook == nil {
 		return
 	}
 
-	data, err := json.Marshal(updates.dealInfo)
+	obj := &notification{
+		Cid:         updates.job.Cid.String(),
+		JobID:       updates.job.ID,
+		JobStatus:   ffs.JobStatusStr[updates.job.Status],
+		Miner:       updates.dealInfo.Miner,
+		Price:       updates.dealInfo.PricePerEpoch,
+		ProposalCid: updates.dealInfo.ProposalCid.String(),
+		DealID:      updates.dealInfo.DealID,
+		DealStatus:  updates.dealInfo.StateName,
+		ErrCause:    updates.job.ErrCause,
+		Message:     updates.dealInfo.Message,
+	}
+
+	data, err := json.Marshal(obj)
 	if err != nil {
 		// TODO: log error
 		return
