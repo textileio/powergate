@@ -11,7 +11,7 @@ import (
 )
 
 // StartRetrieval schedules a new RetrievalJob to execute a Filecoin retrieval.
-func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, piCid cid.Cid, sel string, miners []string, walletAddr string, maxPrice uint64) (ffs.JobID, error) {
+func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, piCid cid.Cid, sel string, miners []string, walletAddr string, maxPrice uint64, notifications []*ffs.NotificationConfig) (ffs.JobID, error) {
 	if iid == ffs.EmptyInstanceID {
 		return ffs.EmptyJobID, fmt.Errorf("empty API ID")
 	}
@@ -52,6 +52,7 @@ func (s *Scheduler) StartRetrieval(iid ffs.APIID, rid ffs.RetrievalID, pyCid, pi
 		Miners:        miners,
 		WalletAddress: walletAddr,
 		MaxPrice:      maxPrice,
+		Notifications: notifications,
 	}
 	if err := s.as.PutRetrievalAction(j.ID, ra); err != nil {
 		return ffs.EmptyJobID, fmt.Errorf("saving retrieval action for job: %s", err)

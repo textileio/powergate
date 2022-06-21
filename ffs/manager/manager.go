@@ -71,7 +71,7 @@ var (
 					Endpoint: "https://vmanilo.free.beeceptor.com/webhook/job",
 				},
 				Configuration: &ffs.WebhookConfiguration{
-					Events: []string{"storage-deal-created"},
+					Events: []string{"*-created", "*-completed"},
 				},
 			},
 		},

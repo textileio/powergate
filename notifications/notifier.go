@@ -1,91 +1,110 @@
 package notifications
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
+	"io"
 	"net/http"
-	"sync"
 
-	"github.com/filecoin-project/go-fil-markets/storagemarket"
-	"github.com/textileio/powergate/v2/deals"
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/ffs"
 )
 
-type Notifier interface {
-	RegisterStorageJob(job ffs.StorageJob, notificationConfig []*ffs.NotificationConfig)
-	NotifyStorageJob(job ffs.StorageJob, dealInfo deals.StorageDealInfo)
-}
+var (
+	log = logging.Logger("notifier")
+)
 
-type storageJobUpdate struct {
-	job      ffs.StorageJob
-	dealInfo deals.StorageDealInfo
+type Notifier interface {
+	RegisterJob(jobId ffs.JobID, configs []*ffs.NotificationConfig)
+	NotifyJobUpdates(job JobUpdates)
 }
 
 type notifier struct {
-	client                  *http.Client
-	store                   *configStore
-	storageJobNotifications chan *storageJobUpdate
+	ctx           context.Context
+	configs       *configStore
+	updates       chan JobUpdates
+	toDelete      chan ffs.JobID
+	notifications chan *notification
 }
 
-func New() *notifier {
+func New(ctx context.Context) *notifier {
 	nt := &notifier{
-		client:                  http.DefaultClient,
-		store:                   newConfigStore(),
-		storageJobNotifications: make(chan *storageJobUpdate, 1000),
+		ctx:           ctx,
+		configs:       newConfigStore(),
+		updates:       make(chan JobUpdates, 1000),
+		toDelete:      make(chan ffs.JobID, 1000),
+		notifications: make(chan *notification, 1000),
 	}
 
 	go nt.run()
 
+	const workers = 10
+	for i := 0; i < workers; i++ {
+		go nt.worker()
+	}
+
 	return nt
 }
 
-func (n *notifier) RegisterStorageJob(job ffs.StorageJob, notificationConfig []*ffs.NotificationConfig) {
-	if notificationConfig == nil {
+func (n *notifier) RegisterJob(jobId ffs.JobID, configs []*ffs.NotificationConfig) {
+	if configs == nil {
 		return
 	}
 
-	n.store.put(job, notificationConfig)
+	n.configs.put(jobId, configs)
 }
 
-func (n *notifier) NotifyStorageJob(job ffs.StorageJob, dealInfo deals.StorageDealInfo) {
-	n.storageJobNotifications <- &storageJobUpdate{
-		job:      job,
-		dealInfo: dealInfo,
-	}
+func (n *notifier) NotifyJobUpdates(jobUpdates JobUpdates) {
+	n.updates <- jobUpdates
 }
 
 func (n *notifier) run() {
-	for updates := range n.storageJobNotifications {
-		if updates == nil {
-			continue
-		}
+	for {
+		select {
+		case <-n.ctx.Done():
+			return
 
-		config := n.store.get(updates.job.ID)
-		if config == nil {
-			continue
-		}
+		case updates, ok := <-n.updates:
+			if !ok {
+				return
+			}
 
-		n.notifyAll(config.notifications, updates)
+			config := n.configs.get(updates.JobID())
+			if config == nil {
+				continue
+			}
+
+			n.notifyAll(config, updates)
+
+			if updates.FinalUpdates() {
+				n.configs.delete(updates.JobID())
+			}
+		}
 	}
 }
 
-func (n *notifier) notifyAll(configs []*ffs.NotificationConfig, updates *storageJobUpdate) {
+func (n *notifier) notifyAll(configs []*ffs.NotificationConfig, updates JobUpdates) {
 	for _, cfg := range configs {
+		if cfg == nil {
+			continue
+		}
+
 		n.notify(cfg, updates)
 	}
 }
 
-func (n *notifier) notify(config *ffs.NotificationConfig, updates *storageJobUpdate) {
-	if config == nil {
-		return
-	}
+func (n *notifier) notify(config *ffs.NotificationConfig, updates JobUpdates) {
+	if matchNotificationConfig(config.Configuration, updates) {
+		payload, err := updates.Payload()
+		if err != nil {
+			log.Errorf("failed to make notification payload: %s", err)
+			return
+		}
 
-	if matchNotificationConfig(config.Configuration, updates.dealInfo) {
-		n.publishNotification(config.Webhook, updates)
+		n.publishNotification(config.Webhook, payload)
 	}
 }
 
-func matchNotificationConfig(config *ffs.WebhookConfiguration, updates deals.StorageDealInfo) bool {
+func matchNotificationConfig(config *ffs.WebhookConfiguration, updates JobUpdates) bool {
 	if config == nil {
 		return false
 	}
@@ -93,47 +112,9 @@ func matchNotificationConfig(config *ffs.WebhookConfiguration, updates deals.Sto
 	return matchNotificationEvents(config.Events, updates) || matchNotificationAlerts(config.Alerts, updates)
 }
 
-const (
-	all            = "*"
-	created        = "created"
-	completed      = "completed"
-	retried        = "retried"
-	failed         = "failed"
-	expired        = "expired"
-	slashed        = "slashed"
-	separator      = "-"
-	storageDeal    = "storage-deal"
-	storageAuction = "storage-auction"
-	dataRetrieval  = "data-retrieval"
-
-	AllEvents          = all
-	AllCreatedEvents   = all + separator + created
-	AllCompletedEvents = all + separator + completed
-	AllRetriedEvents   = all + separator + retried
-	AllFailedEvents    = all + separator + failed
-
-	AllStorageDealEvents      = storageDeal + separator + all
-	StorageDealCreatedEvent   = storageDeal + separator + created
-	StorageDealCompletedEvent = storageDeal + separator + completed
-	StorageDealRetriedEvent   = storageDeal + separator + retried
-	StorageDealFailedEvent    = storageDeal + separator + failed
-	StorageDealExpiredEvent   = storageDeal + separator + expired
-	StorageDealSlashedEvent   = storageDeal + separator + slashed
-
-	AllStorageAuctionEvents      = storageAuction + separator + all
-	StorageAuctionCreatedEvent   = storageAuction + separator + created
-	StorageAuctionCompletedEvent = storageAuction + separator + completed
-	StorageAuctionFailedEvent    = storageAuction + separator + failed
-
-	AllDataRetrievalEvents      = dataRetrieval + separator + all
-	DataRetrievalCompletedEvent = dataRetrieval + separator + completed
-	DataRetrievalRetriedEvent   = dataRetrieval + separator + retried
-	DataRetrievalFailedEvent    = dataRetrieval + separator + failed
-)
-
-func matchNotificationEvents(events []string, updates deals.StorageDealInfo) bool {
+func matchNotificationEvents(events []string, updates JobUpdates) bool {
 	for _, event := range events {
-		if matchNotificationEvent(event, updates) {
+		if updates.MatchNotificationEvent(event) {
 			return true
 		}
 	}
@@ -141,125 +122,49 @@ func matchNotificationEvents(events []string, updates deals.StorageDealInfo) boo
 	return false
 }
 
-func matchNotificationEvent(event string, updates deals.StorageDealInfo) bool {
-	switch event {
-	case AllEvents:
-		return true
-	case AllCreatedEvents:
-		// TODO: add created events
-		return updates.DealID != 0 // ||
-	case AllCompletedEvents:
-		// TODO: add other completed events
-		return updates.StateID == storagemarket.StorageDealActive // ||
-
-	// TODO:
-	// case AllRetriedEvents:
-
-	case AllStorageDealEvents:
-		return true
-
-	case StorageDealCreatedEvent:
-		return updates.DealID != 0
-
-	case StorageDealCompletedEvent:
-		return updates.StateID == storagemarket.StorageDealActive
-
-	// TODO:
-	// case StorageDealRetriedEvent:
-
-	case StorageDealFailedEvent:
-		return updates.StateID == storagemarket.StorageDealFailing || updates.StateID == storagemarket.StorageDealError || updates.Message != ""
-
-	case StorageDealExpiredEvent:
-		return updates.StateID == storagemarket.StorageDealExpired
-
-	case StorageDealSlashedEvent:
-		return updates.StateID == storagemarket.StorageDealSlashed
-
-	default:
-		return false
+func matchNotificationAlerts(alerts []*ffs.WebhookAlert, updates JobUpdates) bool {
+	for _, alert := range alerts {
+		if updates.MatchNotificationAlert(alert) {
+			return true
+		}
 	}
-}
 
-func matchNotificationAlerts(alerts []*ffs.WebhookAlert, updates deals.StorageDealInfo) bool {
-	// TODO
 	return false
 }
 
+func (n *notifier) publishNotification(webhook *ffs.Webhook, payload io.Reader) {
+	if webhook == nil || payload == nil {
+		return
+	}
+
+	n.notifications <- &notification{
+		webhook: webhook,
+		payload: payload,
+	}
+}
+
 type notification struct {
-	Cid         string    `json:"cid"`
-	JobID       ffs.JobID `json:"jobId"`
-	JobStatus   string    `json:"jobStatus"`
-	Miner       string    `json:"miner"`
-	Price       uint64    `json:"price"`
-	ProposalCid string    `json:"proposalCid"`
-	DealID      uint64    `json:"dealId,omitempty"`
-	DealStatus  string    `json:"dealStatus"`
-	ErrCause    string    `json:"error,omitempty"`
-	Message     string    `json:"message,omitempty"`
+	webhook *ffs.Webhook
+	payload io.Reader
 }
 
-func (n *notifier) publishNotification(webhook *ffs.Webhook, updates *storageJobUpdate) {
-	if webhook == nil {
-		return
+func (n *notifier) worker() {
+	client := http.DefaultClient
+
+	for {
+		select {
+		case <-n.ctx.Done():
+			return
+
+		case notification, ok := <-n.notifications:
+			if !ok {
+				return
+			}
+
+			err := notification.webhook.Publish(client, notification.payload)
+			if err != nil {
+				log.Errorf("failed to publish notification: %s", err)
+			}
+		}
 	}
-
-	obj := &notification{
-		Cid:         updates.job.Cid.String(),
-		JobID:       updates.job.ID,
-		JobStatus:   ffs.JobStatusStr[updates.job.Status],
-		Miner:       updates.dealInfo.Miner,
-		Price:       updates.dealInfo.PricePerEpoch,
-		ProposalCid: updates.dealInfo.ProposalCid.String(),
-		DealID:      updates.dealInfo.DealID,
-		DealStatus:  updates.dealInfo.StateName,
-		ErrCause:    updates.job.ErrCause,
-		Message:     updates.dealInfo.Message,
-	}
-
-	data, err := json.Marshal(obj)
-	if err != nil {
-		// TODO: log error
-		return
-	}
-
-	err = webhook.Publish(n.client, bytes.NewBuffer(data))
-	if err != nil {
-		// TODO: log error
-		return
-	}
-}
-
-type configStore struct {
-	sync.RWMutex
-
-	configs map[ffs.JobID]*jobConfig
-}
-
-func newConfigStore() *configStore {
-	return &configStore{
-		configs: make(map[ffs.JobID]*jobConfig),
-	}
-}
-
-type jobConfig struct {
-	job           ffs.StorageJob
-	notifications []*ffs.NotificationConfig
-}
-
-func (s *configStore) put(job ffs.StorageJob, notifications []*ffs.NotificationConfig) {
-	s.Lock()
-	defer s.Unlock()
-
-	s.configs[job.ID] = &jobConfig{
-		job:           job,
-		notifications: notifications,
-	}
-}
-
-func (s *configStore) get(jobID ffs.JobID) *jobConfig {
-	s.RLock()
-	defer s.RUnlock()
-
-	return s.configs[jobID]
 }

@@ -125,7 +125,10 @@ func (s *Store) MonitorJob(j ffs.StorageJob) chan deals.StorageDealInfo {
 				continue
 			}
 
-			s.notifier.NotifyStorageJob(job, update)
+			s.notifier.NotifyJobUpdates(&notifications.StorageJobUpdates{
+				Job:  job,
+				Info: update,
+			})
 
 			values := make([]deals.StorageDealInfo, 0, len(s.jobStatusCache[j.APIID][j.Cid]))
 			for _, v := range s.jobStatusCache[j.APIID][j.Cid] {
@@ -156,6 +159,13 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error, dealEr
 	if err != nil {
 		return err
 	}
+
+	s.notifier.NotifyJobUpdates(&notifications.FinalJobStatus{
+		JobId:      jid,
+		JobStatus:  st,
+		JobError:   jobError,
+		DealErrors: dealErrors,
+	})
 
 	ctx := context.Background()
 	s.metricJobCounter.Add(ctx, -1, attrStatusExecuting)

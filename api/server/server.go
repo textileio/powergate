@@ -50,7 +50,6 @@ import (
 	"github.com/textileio/powergate/v2/iplocation/maxmind"
 	"github.com/textileio/powergate/v2/lotus"
 	"github.com/textileio/powergate/v2/migration"
-	"github.com/textileio/powergate/v2/notifications"
 	"github.com/textileio/powergate/v2/reputation"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
 	"github.com/textileio/powergate/v2/util"
@@ -254,8 +253,6 @@ func NewServer(conf Config) (*Server, error) {
 		conf.DealWatchPollDuration = time.Second
 	}
 
-	notifier := notifications.New()
-
 	log.Info("Starting deals module...")
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), clientBuilder, conf.DealWatchPollDuration, conf.FFSDealFinalityTimeout, deals.WithImportPath(filepath.Join(conf.RepoPath, "imports")))
 	if err != nil {
@@ -297,7 +294,7 @@ func NewServer(conf Config) (*Server, error) {
 		sr2rf = ms.GetReplicationFactor
 	}
 	gcConfig := scheduler.GCConfig{StageGracePeriod: conf.FFSGCStageGracePeriod, AutoGCInterval: conf.FFSGCAutomaticGCInterval}
-	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf, gcConfig, notifier)
+	sched, err := scheduler.New(txndstr.Wrap(ds, "ffs/scheduler"), l, hs, cs, conf.SchedMaxParallel, conf.FFSDealFinalityTimeout, sr2rf, gcConfig)
 	if err != nil {
 		return nil, fmt.Errorf("creating scheduler: %s", err)
 	}
