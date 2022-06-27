@@ -8,6 +8,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs"
 )
 
+// FinalJobStatus - uses for notification about final job status
 type FinalJobStatus struct {
 	JobId      ffs.JobID
 	JobStatus  ffs.JobStatus
@@ -15,18 +16,22 @@ type FinalJobStatus struct {
 	DealErrors []ffs.DealError
 }
 
+// JobID - expose job id
 func (f FinalJobStatus) JobID() ffs.JobID {
 	return f.JobId
 }
 
+// FinalUpdates - checks if it's final job update
 func (f FinalJobStatus) FinalUpdates() bool {
 	return true
 }
 
+// MatchAlert - matches for alerts
 func (f FinalJobStatus) MatchAlert(alert *ffs.WebhookAlert) bool {
 	return false
 }
 
+// MatchEvent - matches for events
 func (f FinalJobStatus) MatchEvent(event string) bool {
 	switch event {
 	case AllEvents, AllStorageDealEvents:
@@ -59,6 +64,7 @@ type dealError struct {
 	Message     string `json:"error"`
 }
 
+// Payload - forms notification payload for final job update
 func (f FinalJobStatus) Payload() (io.Reader, error) {
 	var errMessage string
 	if f.JobError != nil {

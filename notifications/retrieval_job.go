@@ -9,6 +9,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs"
 )
 
+// RetrievalJobUpdates - uses for retrieval job events
 type RetrievalJobUpdates struct {
 	Job  ffs.RetrievalJob
 	Info ffs.RetrievalInfo

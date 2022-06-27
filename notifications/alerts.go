@@ -12,10 +12,13 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// Alert types
+
 const (
 	DiskSpaceCheck = "datacap"
 )
 
+// DiskSpaceAlert - uses for alert notification when available disk space goes below threshold
 type DiskSpaceAlert struct {
 	JobID ffs.JobID
 }
@@ -27,6 +30,7 @@ type diskSpaceAlertNotification struct {
 	Error              string    `json:"error"`
 }
 
+// Payload - forms notification payload
 func (d DiskSpaceAlert) Payload() (io.Reader, error) {
 	availableDiskSpace, err := getAvailableDiskSpace()
 	if err != nil {
@@ -50,10 +54,12 @@ func (d DiskSpaceAlert) Payload() (io.Reader, error) {
 	return bytes.NewBuffer(data), nil
 }
 
+// MatchEvent - checks for matching with events
 func (d DiskSpaceAlert) MatchEvent(event string) bool {
 	return false
 }
 
+// MatchAlert - checks for matching with alerts
 func (d DiskSpaceAlert) MatchAlert(alert *ffs.WebhookAlert) bool {
 	if alert == nil {
 		return false

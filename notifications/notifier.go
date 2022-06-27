@@ -13,9 +13,13 @@ var (
 	log = logging.Logger("notifier")
 )
 
+// Notifier - notifies external systems about job updates by subscribing to events and alerts
 type Notifier interface {
+	// RegisterJob - stores notification configuration for each job
 	RegisterJob(jobId ffs.JobID, configs []*ffs.NotificationConfig)
+	// NotifyJobUpdates - notifies about job updates according to notification configurations
 	NotifyJobUpdates(job JobUpdates)
+	// Alert - triggers check and notifies in case of alert
 	Alert(alert Notification, configs []*ffs.NotificationConfig)
 }
 

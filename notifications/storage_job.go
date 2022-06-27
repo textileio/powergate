@@ -10,6 +10,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs"
 )
 
+// StorageJobUpdates - uses for retrieval job events
 type StorageJobUpdates struct {
 	Job  ffs.StorageJob
 	Info deals.StorageDealInfo

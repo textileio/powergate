@@ -6,6 +6,8 @@ import (
 	"github.com/textileio/powergate/v2/ffs"
 )
 
+// in-memory store for job's notification configs
+
 type configStore struct {
 	sync.RWMutex
 

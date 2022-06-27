@@ -1,5 +1,7 @@
 package notifications
 
+// Event types
+
 const (
 	all           = "*"
 	created       = "created"
