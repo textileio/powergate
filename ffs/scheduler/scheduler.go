@@ -530,6 +530,7 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 	}
 
 	s.notifier.RegisterJob(j.ID, a.Cfg.Notifications)
+	s.notifier.Alert(notifications.DiskSpaceAlert{JobID: j.ID}, a.Cfg.Notifications)
 
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
@@ -646,6 +647,7 @@ func (s *Scheduler) executeQueuedRetrievals(j ffs.RetrievalJob) {
 	}
 
 	s.notifier.RegisterJob(j.ID, a.Notifications)
+	s.notifier.Alert(notifications.DiskSpaceAlert{JobID: j.ID}, a.Notifications)
 
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)

@@ -72,6 +72,12 @@ var (
 				},
 				Configuration: &ffs.WebhookConfiguration{
 					Events: []string{"*-created", "*-completed"},
+					Alerts: []*ffs.WebhookAlert{
+						{
+							Type:      "datacap",
+							Threshold: "500 GB",
+						},
+					},
 				},
 			},
 		},

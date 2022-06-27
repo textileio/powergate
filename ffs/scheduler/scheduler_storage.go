@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/astore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/cistore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/sjstore"
+	"github.com/textileio/powergate/v2/notifications"
 )
 
 // PushConfig queues the specified StorageConfig to be executed as a new Job. It returns
@@ -83,6 +84,7 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 	s.l.Log(ctx, "Configuration saved successfully")
 
 	s.notifier.RegisterJob(j.ID, cfg.Notifications)
+	s.notifier.Alert(notifications.DiskSpaceAlert{JobID: jid}, cfg.Notifications)
 
 	return jid, nil
 }

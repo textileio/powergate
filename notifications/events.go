@@ -1,18 +1,17 @@
 package notifications
 
 const (
-	all            = "*"
-	created        = "created"
-	completed      = "completed"
-	retried        = "retried"
-	failed         = "failed"
-	canceled       = "canceled"
-	expired        = "expired"
-	slashed        = "slashed"
-	separator      = "-"
-	storageDeal    = "storage-deal"
-	storageAuction = "storage-auction"
-	dataRetrieval  = "data-retrieval"
+	all           = "*"
+	created       = "created"
+	completed     = "completed"
+	retried       = "retried"
+	failed        = "failed"
+	canceled      = "canceled"
+	expired       = "expired"
+	slashed       = "slashed"
+	separator     = "-"
+	storageDeal   = "storage-deal"
+	dataRetrieval = "data-retrieval"
 
 	// All events
 	AllEvents          = all
@@ -31,13 +30,6 @@ const (
 	StorageDealCanceledEvent  = storageDeal + separator + canceled
 	StorageDealExpiredEvent   = storageDeal + separator + expired
 	StorageDealSlashedEvent   = storageDeal + separator + slashed
-
-	// Storage auction events
-	AllStorageAuctionEvents      = storageAuction + separator + all
-	StorageAuctionCreatedEvent   = storageAuction + separator + created
-	StorageAuctionCompletedEvent = storageAuction + separator + completed
-	StorageAuctionFailedEvent    = storageAuction + separator + failed
-	StorageAuctionCanceledEvent  = storageAuction + separator + canceled
 
 	// Data retrieval events
 	AllDataRetrievalEvents      = dataRetrieval + separator + all

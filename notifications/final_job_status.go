@@ -23,11 +23,11 @@ func (f FinalJobStatus) FinalUpdates() bool {
 	return true
 }
 
-func (f FinalJobStatus) MatchNotificationAlert(alert *ffs.WebhookAlert) bool {
+func (f FinalJobStatus) MatchAlert(alert *ffs.WebhookAlert) bool {
 	return false
 }
 
-func (f FinalJobStatus) MatchNotificationEvent(event string) bool {
+func (f FinalJobStatus) MatchEvent(event string) bool {
 	switch event {
 	case AllEvents, AllStorageDealEvents:
 		return true

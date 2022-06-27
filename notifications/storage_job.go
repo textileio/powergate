@@ -23,12 +23,11 @@ func (s StorageJobUpdates) FinalUpdates() bool {
 	return false
 }
 
-func (s StorageJobUpdates) MatchNotificationAlert(alert *ffs.WebhookAlert) bool {
-	// TODO:
+func (s StorageJobUpdates) MatchAlert(alert *ffs.WebhookAlert) bool {
 	return false
 }
 
-func (s StorageJobUpdates) MatchNotificationEvent(event string) bool {
+func (s StorageJobUpdates) MatchEvent(event string) bool {
 	switch event {
 	case AllEvents, AllStorageDealEvents:
 		return true

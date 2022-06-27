@@ -10,7 +10,11 @@ type JobUpdates interface {
 	JobID() ffs.JobID
 	FinalUpdates() bool
 
+	Notification
+}
+
+type Notification interface {
 	Payload() (io.Reader, error)
-	MatchNotificationEvent(event string) bool
-	MatchNotificationAlert(alert *ffs.WebhookAlert) bool
+	MatchEvent(event string) bool
+	MatchAlert(alert *ffs.WebhookAlert) bool
 }

@@ -55,7 +55,7 @@ func (r RetrievalJobUpdates) Payload() (io.Reader, error) {
 	return bytes.NewBuffer(data), nil
 }
 
-func (r RetrievalJobUpdates) MatchNotificationEvent(event string) bool {
+func (r RetrievalJobUpdates) MatchEvent(event string) bool {
 	switch event {
 	case AllEvents, AllDataRetrievalEvents:
 		return true
@@ -79,7 +79,6 @@ func (r RetrievalJobUpdates) MatchNotificationEvent(event string) bool {
 	}
 }
 
-func (r RetrievalJobUpdates) MatchNotificationAlert(alert *ffs.WebhookAlert) bool {
-	// TODO
+func (r RetrievalJobUpdates) MatchAlert(alert *ffs.WebhookAlert) bool {
 	return false
 }

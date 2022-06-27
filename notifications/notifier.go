@@ -16,6 +16,7 @@ var (
 type Notifier interface {
 	RegisterJob(jobId ffs.JobID, configs []*ffs.NotificationConfig)
 	NotifyJobUpdates(job JobUpdates)
+	Alert(alert Notification, configs []*ffs.NotificationConfig)
 }
 
 type notifier struct {
@@ -24,6 +25,7 @@ type notifier struct {
 	updates       chan JobUpdates
 	toDelete      chan ffs.JobID
 	notifications chan *notification
+	alerts        chan *alert
 }
 
 func New(ctx context.Context) *notifier {
@@ -33,6 +35,7 @@ func New(ctx context.Context) *notifier {
 		updates:       make(chan JobUpdates, 1000),
 		toDelete:      make(chan ffs.JobID, 1000),
 		notifications: make(chan *notification, 1000),
+		alerts:        make(chan *alert, 1000),
 	}
 
 	go nt.run()
@@ -43,6 +46,22 @@ func New(ctx context.Context) *notifier {
 	}
 
 	return nt
+}
+
+type alert struct {
+	notification Notification
+	configs      []*ffs.NotificationConfig
+}
+
+func (n *notifier) Alert(notification Notification, configs []*ffs.NotificationConfig) {
+	if configs == nil {
+		return
+	}
+
+	n.alerts <- &alert{
+		notification: notification,
+		configs:      configs,
+	}
 }
 
 func (n *notifier) RegisterJob(jobId ffs.JobID, configs []*ffs.NotificationConfig) {
@@ -78,23 +97,30 @@ func (n *notifier) run() {
 			if updates.FinalUpdates() {
 				n.configs.delete(updates.JobID())
 			}
+
+		case alert, ok := <-n.alerts:
+			if !ok {
+				return
+			}
+
+			n.notifyAll(alert.configs, alert.notification)
 		}
 	}
 }
 
-func (n *notifier) notifyAll(configs []*ffs.NotificationConfig, updates JobUpdates) {
+func (n *notifier) notifyAll(configs []*ffs.NotificationConfig, notification Notification) {
 	for _, cfg := range configs {
 		if cfg == nil {
 			continue
 		}
 
-		n.notify(cfg, updates)
+		n.notify(cfg, notification)
 	}
 }
 
-func (n *notifier) notify(config *ffs.NotificationConfig, updates JobUpdates) {
-	if matchNotificationConfig(config.Configuration, updates) {
-		payload, err := updates.Payload()
+func (n *notifier) notify(config *ffs.NotificationConfig, notification Notification) {
+	if matchEventsOrAlerts(config.Configuration, notification) {
+		payload, err := notification.Payload()
 		if err != nil {
 			log.Errorf("failed to make notification payload: %s", err)
 			return
@@ -104,17 +130,17 @@ func (n *notifier) notify(config *ffs.NotificationConfig, updates JobUpdates) {
 	}
 }
 
-func matchNotificationConfig(config *ffs.WebhookConfiguration, updates JobUpdates) bool {
+func matchEventsOrAlerts(config *ffs.WebhookConfiguration, notification Notification) bool {
 	if config == nil {
 		return false
 	}
 
-	return matchNotificationEvents(config.Events, updates) || matchNotificationAlerts(config.Alerts, updates)
+	return matchEvents(config.Events, notification) || matchAlerts(config.Alerts, notification)
 }
 
-func matchNotificationEvents(events []string, updates JobUpdates) bool {
+func matchEvents(events []string, notification Notification) bool {
 	for _, event := range events {
-		if updates.MatchNotificationEvent(event) {
+		if notification.MatchEvent(event) {
 			return true
 		}
 	}
@@ -122,9 +148,9 @@ func matchNotificationEvents(events []string, updates JobUpdates) bool {
 	return false
 }
 
-func matchNotificationAlerts(alerts []*ffs.WebhookAlert, updates JobUpdates) bool {
+func matchAlerts(alerts []*ffs.WebhookAlert, notification Notification) bool {
 	for _, alert := range alerts {
-		if updates.MatchNotificationAlert(alert) {
+		if notification.MatchAlert(alert) {
 			return true
 		}
 	}
