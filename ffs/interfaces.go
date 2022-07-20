@@ -122,6 +122,9 @@ type ColdStorage interface {
 	// If a deal ID doesn't exist, the deal isn't active anymore, or was
 	// slashed, then ErrOnChainDealNotFound is returned.
 	GetDealInfo(context.Context, uint64) (api.MarketDeal, error)
+
+	// GetCurrentEpoch returns information about current epoch on-chain.
+	GetCurrentEpoch(context.Context) (uint64, error)
 }
 
 // MinerSelector returns miner addresses and ask storage information using a

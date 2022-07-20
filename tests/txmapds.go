@@ -181,5 +181,6 @@ func NewMockNotifier() *mockNotifier {
 	return &mockNotifier{}
 }
 
-func (n *mockNotifier) RegisterJob(jobId ffs.JobID, configs []*ffs.NotificationConfig) {}
-func (n *mockNotifier) NotifyJobUpdates(job notifications.JobUpdates)                  {}
+func (n *mockNotifier) RegisterJob(jobId ffs.JobID, configs []*ffs.NotificationConfig)            {}
+func (n *mockNotifier) NotifyJobUpdates(job notifications.JobUpdates)                             {}
+func (n *mockNotifier) Alert(alert notifications.Notification, configs []*ffs.NotificationConfig) {}

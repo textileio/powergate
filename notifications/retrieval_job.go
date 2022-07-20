@@ -31,8 +31,9 @@ type retrievalJobNotification struct {
 	TotalPaid   uint64          `json:"totalPaid"`
 	Miner       string          `json:"miner"`
 	Size        int64           `json:"size"`
-	CreatedAt   string          `json:"createdAt"`
-	ErrCause    string          `json:"error,omitempty"`
+	// CreatedAt timestamp in RFC3339 format
+	CreatedAt string `json:"createdAt"`
+	ErrCause  string `json:"error,omitempty"`
 }
 
 func (r RetrievalJobUpdates) Payload() (io.Reader, error) {

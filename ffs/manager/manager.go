@@ -77,6 +77,10 @@ var (
 							Type:      "datacap",
 							Threshold: "500 GB",
 						},
+						{
+							Type:      "storage-deal-pending-expiration",
+							Threshold: "1000h",
+						},
 					},
 				},
 			},
