@@ -27,7 +27,7 @@ Join us on our [public Slack channel](https://slack.textile.io/) for news, discu
 
 ## Prerequisites
 
-To build from source, you need to have Go 1.14 or newer installed.
+To build from source, you need to have a Go version that is between 1.14.x through 1.17.x. Go 1.18.x and above include a libp2p version that is not currently supported.
 
 ## Design
 
