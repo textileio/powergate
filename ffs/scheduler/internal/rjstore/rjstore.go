@@ -11,6 +11,7 @@ import (
 	"github.com/ipfs/go-datastore/query"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/textileio/powergate/v2/ffs"
+	"github.com/textileio/powergate/v2/notifications"
 )
 
 var (
@@ -26,6 +27,7 @@ type Store struct {
 	lock     sync.Mutex
 	ds       datastore.Datastore
 	watchers []watcher
+	notifier notifications.Notifier
 }
 
 // watcher represents an API instance who is watching for
@@ -36,8 +38,8 @@ type watcher struct {
 }
 
 // New returns a new retrieval job store.
-func New(ds datastore.Datastore) (*Store, error) {
-	s := &Store{ds: ds}
+func New(ds datastore.Datastore, notifier notifications.Notifier) (*Store, error) {
+	s := &Store{ds: ds, notifier: notifier}
 	return s, nil
 }
 
@@ -62,6 +64,13 @@ func (s *Store) Finalize(jid ffs.JobID, st ffs.JobStatus, jobError error) error 
 	if jobError != nil {
 		j.ErrCause = jobError.Error()
 	}
+
+	s.notifier.NotifyJobUpdates(&notifications.FinalJobStatus{
+		JobId:     jid,
+		JobStatus: st,
+		JobError:  jobError,
+	})
+
 	if err := s.put(j); err != nil {
 		return fmt.Errorf("saving in datastore: %s", err)
 	}

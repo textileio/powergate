@@ -53,7 +53,7 @@ func createJob() ffs.RetrievalJob {
 
 func create(t *testing.T) *Store {
 	ds := tests.NewTxMapDatastore()
-	store, err := New(ds)
+	store, err := New(ds, tests.NewMockNotifier())
 	require.NoError(t, err)
 	return store
 }

@@ -38,6 +38,7 @@ type RetrievalAction struct {
 	Miners        []string
 	WalletAddress string
 	MaxPrice      uint64
+	Notifications []*ffs.NotificationConfig
 }
 
 // Store persists Actions.

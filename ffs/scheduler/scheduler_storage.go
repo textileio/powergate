@@ -13,6 +13,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/astore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/cistore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/sjstore"
+	"github.com/textileio/powergate/v2/notifications"
 )
 
 // PushConfig queues the specified StorageConfig to be executed as a new Job. It returns
@@ -81,6 +82,10 @@ func (s *Scheduler) push(iid ffs.APIID, c cid.Cid, cfg ffs.StorageConfig, oldCid
 	}
 
 	s.l.Log(ctx, "Configuration saved successfully")
+
+	s.notifier.RegisterJob(j.ID, cfg.Notifications)
+	s.notifier.Alert(notifications.DiskSpaceAlert{JobID: jid}, cfg.Notifications)
+
 	return jid, nil
 }
 
@@ -241,7 +246,7 @@ func (s *Scheduler) executeStorage(ctx context.Context, a astore.StorageAction, 
 	}
 
 	s.l.Log(ctx, "Executing Cold-Storage configuration...")
-	cold, errors, err := s.executeColdStorage(ctx, ci, a.Cfg.Cold, dealUpdates)
+	cold, errors, err := s.executeColdStorage(ctx, ci, a.Cfg, dealUpdates)
 	if err != nil {
 		s.l.Log(ctx, "Cold-Storage execution failed.")
 		return ffs.StorageInfo{}, errors, fmt.Errorf("executing cold-storage config: %s", err)
@@ -392,8 +397,8 @@ func (s *Scheduler) getRefreshedColdInfo(ctx context.Context, curr ffs.ColdInfo)
 	return curr, nil
 }
 
-func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo, cfg ffs.ColdConfig, dealUpdates chan deals.StorageDealInfo) (ffs.ColdInfo, []ffs.DealError, error) {
-	if !cfg.Enabled {
+func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo, cfg ffs.StorageConfig, dealUpdates chan deals.StorageDealInfo) (ffs.ColdInfo, []ffs.DealError, error) {
+	if !cfg.Cold.Enabled {
 		s.l.Log(ctx, "Cold-Storage was disabled, Filecoin deals will eventually expire.")
 		return curr.Cold, nil, nil
 	}
@@ -421,12 +426,36 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo
 		}
 	}
 
+	currentEpoch, err := s.cs.GetCurrentEpoch(ctx)
+	if err != nil {
+		log.Error(err)
+	} else {
+		for _, deal := range curr.Cold.Filecoin.Proposals {
+			// no need to alert for renewed deals
+			if deal.Renewed {
+				continue
+			}
+
+			s.notifier.Alert(
+				notifications.DealExpirationAlert{
+					JobID:        curr.JobID,
+					DealID:       deal.DealID,
+					PieceCid:     deal.PieceCid,
+					Miner:        deal.Miner,
+					ExpiryEpoch:  deal.StartEpoch + uint64(deal.Duration),
+					CurrentEpoch: currentEpoch,
+				},
+				cfg.Notifications,
+			)
+		}
+	}
+
 	// 2. If this Storage Config is renewable, then let's check if any of the existing deals
 	// should be renewed, and do it.
-	if cfg.Filecoin.Renew.Enabled {
+	if cfg.Cold.Filecoin.Renew.Enabled {
 		if curr.Hot.Enabled {
 			s.l.Log(ctx, "Checking deal renewals...")
-			newFilInfo, errors, err := s.cs.EnsureRenewals(ctx, curr.Cid, curr.Cold.Filecoin, cfg.Filecoin, s.dealFinalityTimeout, dealUpdates)
+			newFilInfo, errors, err := s.cs.EnsureRenewals(ctx, curr.Cid, curr.Cold.Filecoin, cfg.Cold.Filecoin, s.dealFinalityTimeout, dealUpdates)
 			if err != nil {
 				s.l.Log(ctx, "Deal renewal process couldn't be executed: %s", err)
 			} else {
@@ -471,18 +500,18 @@ func (s *Scheduler) executeColdStorage(ctx context.Context, curr ffs.StorageInfo
 
 	// Do we need to do some work?
 	if s.sr2RepFactor != nil {
-		cfg.Filecoin.RepFactor, err = s.sr2RepFactor()
+		cfg.Cold.Filecoin.RepFactor, err = s.sr2RepFactor()
 		if err != nil {
 			return ffs.ColdInfo{}, nil, fmt.Errorf("getting SR2 replication factor: %s", err)
 		}
 	}
-	if cfg.Filecoin.RepFactor-len(curr.Cold.Filecoin.Proposals) <= 0 {
+	if cfg.Cold.Filecoin.RepFactor-len(curr.Cold.Filecoin.Proposals) <= 0 {
 		s.l.Log(ctx, "The current replication factor is equal or higher than desired, avoiding making new deals.")
 		return curr.Cold, nil, nil
 	}
 
 	// The answer is yes, calculate how many extra deals we need and create them.
-	deltaFilConfig := createDeltaFilConfig(cfg, curr.Cold.Filecoin)
+	deltaFilConfig := createDeltaFilConfig(cfg.Cold, curr.Cold.Filecoin)
 	s.l.Log(ctx, "Current replication factor is lower than desired, making %d new deals...", deltaFilConfig.RepFactor)
 	startedProposals, rejectedProposals, size, err := s.cs.Store(ctx, curr.Cid, deltaFilConfig)
 	if err != nil {

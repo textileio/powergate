@@ -18,6 +18,7 @@ import (
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/rjstore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/sjstore"
 	"github.com/textileio/powergate/v2/ffs/scheduler/internal/trackstore"
+	"github.com/textileio/powergate/v2/notifications"
 	txndstr "github.com/textileio/powergate/v2/txndstransform"
 )
 
@@ -41,15 +42,16 @@ var (
 // This Jobs are executed by delegating the work to the hot and cold storage configured for
 // the scheduler.
 type Scheduler struct {
-	cs  ffs.ColdStorage
-	hs  ffs.HotStorage
-	sjs *sjstore.Store
-	rjs *rjstore.Store
-	as  *astore.Store
-	ts  *trackstore.Store
-	cis *cistore.Store
-	ris *ristore.Store
-	l   ffs.JobLogger
+	cs       ffs.ColdStorage
+	hs       ffs.HotStorage
+	sjs      *sjstore.Store
+	rjs      *rjstore.Store
+	as       *astore.Store
+	ts       *trackstore.Store
+	cis      *cistore.Store
+	ris      *ristore.Store
+	l        ffs.JobLogger
+	notifier notifications.Notifier
 
 	sr2RepFactor        func() (int, error)
 	dealFinalityTimeout time.Duration
@@ -90,24 +92,29 @@ type GCConfig struct {
 // New returns a new instance of Scheduler which uses JobStore as its backing repository for state,
 // HotStorage for the hot layer, and ColdStorage for the cold layer.
 func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.ColdStorage, maxParallel int, dealFinalityTimeout time.Duration, sr2rf func() (int, error), gcConfig GCConfig) (*Scheduler, error) {
-	sjs, err := sjstore.New(txndstr.Wrap(ds, "sjstore"))
+	ctx, cancel := context.WithCancel(context.Background())
+	notifier := notifications.New(ctx)
+
+	sjs, err := sjstore.New(txndstr.Wrap(ds, "sjstore"), notifier)
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("loading stroage jobstore: %s", err)
 	}
-	rjs, err := rjstore.New(txndstr.Wrap(ds, "rjstore"))
+	rjs, err := rjstore.New(txndstr.Wrap(ds, "rjstore"), notifier)
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("loading retrieval jobstore: %s", err)
 	}
 	as := astore.New(txndstr.Wrap(ds, "astore"))
 	ts, err := trackstore.New(txndstr.Wrap(ds, "tstore"))
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("loading scheduler trackstore: %s", err)
 	}
 
 	cis := cistore.New(txndstr.Wrap(ds, "cistore_v2"))
 	ris := ristore.New(txndstr.Wrap(ds, "ristore"))
 
-	ctx, cancel := context.WithCancel(context.Background())
 	sch := &Scheduler{
 		cs: cs,
 		hs: hs,
@@ -123,6 +130,8 @@ func New(ds datastore.TxnDatastore, l ffs.JobLogger, hs ffs.HotStorage, cs ffs.C
 
 		l:  l,
 		gc: gcConfig,
+
+		notifier: notifier,
 
 		jobsCancel: make(map[ffs.JobID]chan struct{}),
 		sd: storageDaemon{
@@ -520,6 +529,9 @@ func (s *Scheduler) executeQueuedStorage(j ffs.StorageJob) {
 		return
 	}
 
+	s.notifier.RegisterJob(j.ID, a.Cfg.Notifications)
+	s.notifier.Alert(notifications.DiskSpaceAlert{JobID: j.ID}, a.Cfg.Notifications)
+
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
 	dealUpdates := s.sjs.MonitorJob(j)
@@ -634,6 +646,9 @@ func (s *Scheduler) executeQueuedRetrievals(j ffs.RetrievalJob) {
 		return
 	}
 
+	s.notifier.RegisterJob(j.ID, a.Notifications)
+	s.notifier.Alert(notifications.DiskSpaceAlert{JobID: j.ID}, a.Notifications)
+
 	// Execute
 	s.l.Log(ctx, "Executing job %s...", j.ID)
 	info, err := s.executeRetrieval(ctx, a, j)
@@ -648,6 +663,12 @@ func (s *Scheduler) executeQueuedRetrievals(j ffs.RetrievalJob) {
 		s.l.Log(ctx, "Job %s execution failed: %s", j.ID, err)
 		return
 	}
+
+	s.notifier.NotifyJobUpdates(&notifications.RetrievalJobUpdates{
+		Job:  j,
+		Info: info,
+	})
+
 	// Save whatever stored information was completely/partially
 	// done in execution.
 	if err := s.ris.Put(info); err != nil {

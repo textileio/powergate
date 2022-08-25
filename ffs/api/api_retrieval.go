@@ -56,7 +56,7 @@ func (i *API) StartRetrieval(payloadCid, pieceCid cid.Cid, selector string, mine
 	}
 
 	rID := ffs.NewRetrievalID()
-	jid, err := i.sched.StartRetrieval(i.cfg.ID, rID, payloadCid, pieceCid, selector, miners, rc.walletAddress, rc.maxPrice)
+	jid, err := i.sched.StartRetrieval(i.cfg.ID, rID, payloadCid, pieceCid, selector, miners, rc.walletAddress, rc.maxPrice, i.cfg.DefaultStorageConfig.Notifications)
 	if err != nil {
 		return Retrieval{}, fmt.Errorf("starting retrieval in scheduler: %s", err)
 	}

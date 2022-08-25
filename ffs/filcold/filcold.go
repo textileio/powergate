@@ -223,6 +223,16 @@ func (fc *FilCold) GetDealInfo(ctx context.Context, dealID uint64) (api.MarketDe
 	return di, nil
 }
 
+// GetCurrentEpoch returns on-chain current epoch
+func (fc *FilCold) GetCurrentEpoch(ctx context.Context) (uint64, error) {
+	currentEpoch, err := fc.chain.GetHeight(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("get current filecoin epoch: %s", err)
+	}
+
+	return currentEpoch, nil
+}
+
 // EnsureRenewals analyzes a FilInfo state for a Cid and executes renewals considering the FilConfig desired configuration.
 // Deal status updates are sent on the provided dealUpdates channel.
 // The caller should close the channel once all calls to EnsureRenewals have returned.
