@@ -96,7 +96,7 @@ require (
 	github.com/Stebalien/go-bitfield v0.0.1 // indirect
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/akavel/rsrc v0.8.0 // indirect
-	github.com/aws/aws-sdk-go v1.32.11 // indirect
+	github.com/aws/aws-sdk-go v1.34.0 // indirect
 	github.com/benbjohnson/clock v1.0.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bren2010/proquint v0.0.0-20160323162903-38337c27106d // indirect
